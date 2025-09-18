@@ -1,0 +1,854 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>XC9500 - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="xilinx-xc9500-xc9500xl-xc9500xv-cplds"><a class="header" href="#xilinx-xc9500-xc9500xl-xc9500xv-cplds">Xilinx XC9500, XC9500XL, XC9500XV CPLDs</a></h1>
+<p>XC9500 is a family of flash-based CPLDs manufactured by Xilinx.  It is a derivative of the earlier XC7200 and XC7300
+EPLD families.  It comes in three variants:</p>
+<ol>
+<li>XC9500: 5V core logic, 3.3V or 5V I/O, original version.</li>
+<li>XC9500XL: 3.3V core logic, 2.5V or 3.3V I/O (5V tolerant), with some functional changes from XC9500:
+<ul>
+<li>UIM no longer has wired-AND functionality</li>
+<li>FFs have clock enable function</li>
+<li>54 (instead of 36) UIM inputs per function block</li>
+<li>FF has configurable clock polarity</li>
+<li>output enable has configurable polarity</li>
+<li>FOE/FCLK multiplexers and inversion have been removed</li>
+<li>optional weak bus keeper can be configured for all pins</li>
+</ul>
+</li>
+<li>XC9500XV: 2.5V core logic, 1.8V, 2.5V, or 3.3V I/O, with minor functional changes from XC9500XL:
+<ul>
+<li>larger devices have two or four I/O banks with separate VCCIO</li>
+<li>the bitstream now contains a <code>DONE</code> bit tied to <code>ISC_DONE</code>, preventing problems with partially configured devices</li>
+</ul>
+</li>
+</ol>
+<h2 id="devices"><a class="header" href="#devices">Devices</a></h2>
+<p>The following devices exist:</p>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Device</th>
+<th>Variant</th>
+<th>IDCODE</th>
+<th>Function blocks</th>
+<th>GOE pins / FOE networks</th>
+<th>I/O banks</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>xc9536</td>
+<td>xc9500</td>
+<td>0x09502093</td>
+<td>2</td>
+<td>2</td>
+<td>1</td>
+<td>Does not have block input feedback</td>
+</tr>
+<tr>
+<td>xc9572</td>
+<td>xc9500</td>
+<td>0x09504093</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>GOE mapping to pads varies with package</td>
+</tr>
+<tr>
+<td>xc95108</td>
+<td>xc9500</td>
+<td>0x09506093</td>
+<td>6</td>
+<td>2</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xc95144</td>
+<td>xc9500</td>
+<td>0x09508093</td>
+<td>8</td>
+<td>4</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xc95216</td>
+<td>xc9500</td>
+<td>0x09512093</td>
+<td>12</td>
+<td>4</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xc95288</td>
+<td>xc9500</td>
+<td>0x09516093</td>
+<td>16</td>
+<td>4</td>
+<td>1</td>
+<td>Has special input buffer enable fuses</td>
+</tr>
+<tr>
+<td>xc9536xl</td>
+<td>xc9500xl</td>
+<td>0x09602093</td>
+<td>2</td>
+<td>2</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xc9572xl</td>
+<td>xc9500xl</td>
+<td>0x09604093</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>GOE mapping to pads varies with package</td>
+</tr>
+<tr>
+<td>xc95144xl</td>
+<td>xc9500xl</td>
+<td>0x09608093</td>
+<td>8</td>
+<td>4</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xc95288xl</td>
+<td>xc9500xl</td>
+<td>0x09616093</td>
+<td>16</td>
+<td>4</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xa9536xl</td>
+<td>xc9500xl</td>
+<td>0x09602093</td>
+<td>2</td>
+<td>2</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xa9572xl</td>
+<td>xc9500xl</td>
+<td>0x09604093</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>GOE mapping to pads varies with package</td>
+</tr>
+<tr>
+<td>xa95144xl</td>
+<td>xc9500xl</td>
+<td>0x09608093</td>
+<td>8</td>
+<td>4</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xc9536xv</td>
+<td>xc9500xv</td>
+<td>0x09702093</td>
+<td>2</td>
+<td>2</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>xc9572xv</td>
+<td>xc9500xv</td>
+<td>0x09704093</td>
+<td>4</td>
+<td>2</td>
+<td>1</td>
+<td>GOE mapping to pads varies with package</td>
+</tr>
+<tr>
+<td>xc95144xv</td>
+<td>xc9500xv</td>
+<td>0x09708093</td>
+<td>8</td>
+<td>4</td>
+<td>2</td>
+<td></td>
+</tr>
+<tr>
+<td>xc95288xv</td>
+<td>xc9500xv</td>
+<td>0x09716093</td>
+<td>16</td>
+<td>4</td>
+<td>4</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>The parts starting with XA are automotive versions.  They are functionally completely identical to corresponding XC versions.</p>
+<h2 id="packages"><a class="header" href="#packages">Packages</a></h2>
+<p>The devices come in the following packages:</p>
+<ul>
+<li>PLCC:
+<ul>
+<li>PC44 (JEDEC MO-047)</li>
+<li>PC84 (JEDEC MO-047)</li>
+</ul>
+</li>
+<li>QFP:
+<ul>
+<li>very thin QFP (1mm thickness):
+<ul>
+<li>VQ44 (0.8mm pitch; JEDEC MS-026-ACB)</li>
+<li>VQ64 (0.5mm pitch; JEDEC MS-026-ACD)</li>
+</ul>
+</li>
+<li>thin QFP (1.4mm thickness):
+<ul>
+<li>TQ100 (0.5mm pitch; JEDEC MS-026-BED)</li>
+<li>TQ144 (0.5mm pitch; JEDEC MS-026-BFB)</li>
+</ul>
+</li>
+<li>plastic QFP:
+<ul>
+<li>PQ100 (2.7mm thickness, non-square, 30×20 pins, 0.65mm pitch; JEDEC MS-022-GC1)</li>
+<li>PQ160 (3.4mm thickness, 0.65mm pitch; JEDEC MS-022-DD1)</li>
+<li>PQ208 (3.4mm thickness, 0.5mm pitch; JEDEC MS-029-FA-1)</li>
+</ul>
+</li>
+<li>platic QFP with heat sink:
+<ul>
+<li>HQ208 (same footprint as PQ208)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>BGA:
+<ul>
+<li>standard BGA (1.27mm pitch):
+<ul>
+<li>BG256 (JEDEC MS-034-BAL-2)</li>
+<li>BG352</li>
+</ul>
+</li>
+<li>fine-pitch BGA (1mm pitch):
+<ul>
+<li>FG256</li>
+</ul>
+</li>
+<li>chip-scale BGA (0.8mm pitch):
+<ul>
+<li>CS48</li>
+<li>CS144 (JEDEC MO-216-BAG-2)</li>
+<li>CS280 (JEDEC MO-216-BAL-1)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Device</th>
+<th>cs48</th>
+<th>pc44</th>
+<th>vq44</th>
+<th>pc84</th>
+<th>pq100</th>
+<th>tq100</th>
+<th>pq160</th>
+<th>bg352</th>
+<th>hq208</th>
+<th>vq64</th>
+<th>cs144</th>
+<th>tq144</th>
+<th>bg256</th>
+<th>cs280</th>
+<th>fg256</th>
+<th>pq208</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>xc9536</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc9572</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95108</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95144</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95216</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95288</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc9536xl</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc9572xl</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95144xl</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95288xl</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>xa9536xl</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xa9572xl</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xa95144xl</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc9536xv</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc9572xv</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95144xv</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>xc95288xv</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pin compatibility is maintained across all 3 variants of the XC9500 family within a single package.
+Additionally, devices in PQ208 and HQ208 packages are pin compatible with each other.</p>
+<h2 id="device-pins"><a class="header" href="#device-pins">Device pins</a></h2>
+<p>The XC9500 family devices have the following pads:</p>
+<ul>
+<li>
+<p><code>GND</code>: ground pins</p>
+</li>
+<li>
+<p><code>VCCINT</code>: core power, has to be:</p>
+<ul>
+<li>5V on XC9500</li>
+<li>3.3V on XC9500XL</li>
+<li>2.5V on XC9500XV</li>
+</ul>
+</li>
+<li>
+<p><code>VCCIO</code> or <code>VCCIO{bank}</code>: I/O power, has to be:</p>
+<ul>
+<li>3.3V or 5V on XC9500</li>
+<li>2.5V or 3.3V on XC9500XL</li>
+<li>1.8V, 2.5V, or 3.3V on XC9500XV</li>
+</ul>
+</li>
+<li>
+<p><code>IOB_{i}_{j}</code>: general purpose I/O, associated with a macrocell (FB <code>i</code>, MC <code>j</code>); some of them also have an associated
+special function that can be used in addition to or instead of their plain I/O function:</p>
+<ul>
+<li><code>GCLK[0-2]</code>: capable of driving <code>FCLK*</code> fast clock networks</li>
+<li><code>GSR</code>: capable of driving <code>FSR</code> fast set/reset network</li>
+<li><code>GOE[0-1]</code> (smaller devices) or <code>GOE[0-3]</code> (larger devices): capable of driving <code>FOE*</code> fast output enable networks</li>
+</ul>
+<p>Curiously, the <code>GOE</code> specials mapping to device pads varies with packaging on XC9572* devices.
+How exactly that works is unknown.</p>
+<p>The output drivers are powered by the <code>VCCIO</code> rails, and the output voltage
+is determined by that rail.</p>
+<p>For input, the following voltages are supported on all pins, regardless of VCCIO voltage:</p>
+<ul>
+<li>XC9500: 3.3V or 5V</li>
+<li>XC9500XL: 2.5V or 3.3V</li>
+<li>XC9500XV: 2.5V or 3.3V (notably, 1.8V is not supported)</li>
+</ul>
+</li>
+<li>
+<p><code>TCK</code>, <code>TMS</code>, <code>TDI</code>, <code>TDO</code>: dedicated JTAG pins; the <code>TDO</code> pin output driver
+is powered by one of the <code>VCCIO</code> rails</p>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crosslink/config.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../xc9500/structure.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crosslink/config.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../xc9500/structure.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

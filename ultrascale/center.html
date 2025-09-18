@@ -1,0 +1,1575 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Configuration center - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="configuration-center"><a class="header" href="#configuration-center">Configuration center</a></h1>
+<h2 id="tile-cfg"><a class="header" href="#tile-cfg">Tile CFG</a></h2>
+<p>Cells: 60</p>
+<h3 id="bel-cfg"><a class="header" href="#bel-cfg">Bel CFG</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFG bel CFG</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>BSCAN_CDR1</td><td>output</td><td>TCELL42:OUT.4.TMIN</td></tr>
+<tr><td>BSCAN_CDR2</td><td>output</td><td>TCELL42:OUT.6.TMIN</td></tr>
+<tr><td>BSCAN_CDR3</td><td>output</td><td>TCELL54:OUT.18.TMIN</td></tr>
+<tr><td>BSCAN_CDR4</td><td>output</td><td>TCELL54:OUT.20.TMIN</td></tr>
+<tr><td>BSCAN_CLKDR1</td><td>output</td><td>TCELL42:OUT.8.TMIN</td></tr>
+<tr><td>BSCAN_CLKDR2</td><td>output</td><td>TCELL42:OUT.10.TMIN</td></tr>
+<tr><td>BSCAN_CLKDR3</td><td>output</td><td>TCELL54:OUT.22.TMIN</td></tr>
+<tr><td>BSCAN_CLKDR4</td><td>output</td><td>TCELL54:OUT.24.TMIN</td></tr>
+<tr><td>BSCAN_RTI1</td><td>output</td><td>TCELL42:OUT.12.TMIN</td></tr>
+<tr><td>BSCAN_RTI2</td><td>output</td><td>TCELL42:OUT.14.TMIN</td></tr>
+<tr><td>BSCAN_RTI3</td><td>output</td><td>TCELL54:OUT.26.TMIN</td></tr>
+<tr><td>BSCAN_RTI4</td><td>output</td><td>TCELL54:OUT.28.TMIN</td></tr>
+<tr><td>BSCAN_SDR1</td><td>output</td><td>TCELL42:OUT.16.TMIN</td></tr>
+<tr><td>BSCAN_SDR2</td><td>output</td><td>TCELL42:OUT.18.TMIN</td></tr>
+<tr><td>BSCAN_SDR3</td><td>output</td><td>TCELL53:OUT.0.TMIN</td></tr>
+<tr><td>BSCAN_SDR4</td><td>output</td><td>TCELL53:OUT.2.TMIN</td></tr>
+<tr><td>BSCAN_SEL1</td><td>output</td><td>TCELL42:OUT.20.TMIN</td></tr>
+<tr><td>BSCAN_SEL2</td><td>output</td><td>TCELL42:OUT.22.TMIN</td></tr>
+<tr><td>BSCAN_SEL3</td><td>output</td><td>TCELL53:OUT.4.TMIN</td></tr>
+<tr><td>BSCAN_SEL4</td><td>output</td><td>TCELL53:OUT.6.TMIN</td></tr>
+<tr><td>BSCAN_TCK1</td><td>output</td><td>TCELL43:OUT.6.TMIN</td></tr>
+<tr><td>BSCAN_TCK2</td><td>output</td><td>TCELL43:OUT.8.TMIN</td></tr>
+<tr><td>BSCAN_TCK3</td><td>output</td><td>TCELL54:OUT.6.TMIN</td></tr>
+<tr><td>BSCAN_TCK4</td><td>output</td><td>TCELL54:OUT.8.TMIN</td></tr>
+<tr><td>BSCAN_TDI1</td><td>output</td><td>TCELL43:OUT.14.TMIN</td></tr>
+<tr><td>BSCAN_TDI2</td><td>output</td><td>TCELL43:OUT.16.TMIN</td></tr>
+<tr><td>BSCAN_TDI3</td><td>output</td><td>TCELL54:OUT.14.TMIN</td></tr>
+<tr><td>BSCAN_TDI4</td><td>output</td><td>TCELL54:OUT.16.TMIN</td></tr>
+<tr><td>BSCAN_TDO1</td><td>input</td><td>TCELL43:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>BSCAN_TDO2</td><td>input</td><td>TCELL43:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>BSCAN_TDO3</td><td>input</td><td>TCELL54:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>BSCAN_TDO4</td><td>input</td><td>TCELL54:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>BSCAN_TLR1</td><td>output</td><td>TCELL42:OUT.24.TMIN</td></tr>
+<tr><td>BSCAN_TLR2</td><td>output</td><td>TCELL42:OUT.26.TMIN</td></tr>
+<tr><td>BSCAN_TLR3</td><td>output</td><td>TCELL53:OUT.8.TMIN</td></tr>
+<tr><td>BSCAN_TLR4</td><td>output</td><td>TCELL53:OUT.10.TMIN</td></tr>
+<tr><td>BSCAN_TMS1</td><td>output</td><td>TCELL43:OUT.10.TMIN</td></tr>
+<tr><td>BSCAN_TMS2</td><td>output</td><td>TCELL43:OUT.12.TMIN</td></tr>
+<tr><td>BSCAN_TMS3</td><td>output</td><td>TCELL54:OUT.10.TMIN</td></tr>
+<tr><td>BSCAN_TMS4</td><td>output</td><td>TCELL54:OUT.12.TMIN</td></tr>
+<tr><td>BSCAN_UDR1</td><td>output</td><td>TCELL42:OUT.28.TMIN</td></tr>
+<tr><td>BSCAN_UDR2</td><td>output</td><td>TCELL42:OUT.30.TMIN</td></tr>
+<tr><td>BSCAN_UDR3</td><td>output</td><td>TCELL53:OUT.12.TMIN</td></tr>
+<tr><td>BSCAN_UDR4</td><td>output</td><td>TCELL53:OUT.14.TMIN</td></tr>
+<tr><td>DCI_LOCK</td><td>output</td><td>TCELL42:OUT.2.TMIN</td></tr>
+<tr><td>DCI_USR_RESET_IN</td><td>input</td><td>TCELL42:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>ECC_END_OF_FRAME</td><td>output</td><td>TCELL51:OUT.26.TMIN</td></tr>
+<tr><td>ECC_END_OF_SCAN</td><td>output</td><td>TCELL51:OUT.28.TMIN</td></tr>
+<tr><td>ECC_ERROR_NOTSINGLE</td><td>output</td><td>TCELL51:OUT.22.TMIN</td></tr>
+<tr><td>ECC_ERROR_SINGLE</td><td>output</td><td>TCELL51:OUT.24.TMIN</td></tr>
+<tr><td>ECC_FAR0</td><td>output</td><td>TCELL52:OUT.0.TMIN</td></tr>
+<tr><td>ECC_FAR1</td><td>output</td><td>TCELL52:OUT.2.TMIN</td></tr>
+<tr><td>ECC_FAR10</td><td>output</td><td>TCELL52:OUT.20.TMIN</td></tr>
+<tr><td>ECC_FAR11</td><td>output</td><td>TCELL52:OUT.22.TMIN</td></tr>
+<tr><td>ECC_FAR12</td><td>output</td><td>TCELL52:OUT.24.TMIN</td></tr>
+<tr><td>ECC_FAR13</td><td>output</td><td>TCELL52:OUT.26.TMIN</td></tr>
+<tr><td>ECC_FAR14</td><td>output</td><td>TCELL52:OUT.28.TMIN</td></tr>
+<tr><td>ECC_FAR15</td><td>output</td><td>TCELL52:OUT.30.TMIN</td></tr>
+<tr><td>ECC_FAR16</td><td>output</td><td>TCELL51:OUT.0.TMIN</td></tr>
+<tr><td>ECC_FAR17</td><td>output</td><td>TCELL51:OUT.2.TMIN</td></tr>
+<tr><td>ECC_FAR18</td><td>output</td><td>TCELL51:OUT.4.TMIN</td></tr>
+<tr><td>ECC_FAR19</td><td>output</td><td>TCELL51:OUT.6.TMIN</td></tr>
+<tr><td>ECC_FAR2</td><td>output</td><td>TCELL52:OUT.4.TMIN</td></tr>
+<tr><td>ECC_FAR20</td><td>output</td><td>TCELL51:OUT.8.TMIN</td></tr>
+<tr><td>ECC_FAR21</td><td>output</td><td>TCELL51:OUT.10.TMIN</td></tr>
+<tr><td>ECC_FAR22</td><td>output</td><td>TCELL51:OUT.12.TMIN</td></tr>
+<tr><td>ECC_FAR23</td><td>output</td><td>TCELL51:OUT.14.TMIN</td></tr>
+<tr><td>ECC_FAR24</td><td>output</td><td>TCELL51:OUT.16.TMIN</td></tr>
+<tr><td>ECC_FAR25</td><td>output</td><td>TCELL51:OUT.18.TMIN</td></tr>
+<tr><td>ECC_FAR3</td><td>output</td><td>TCELL52:OUT.6.TMIN</td></tr>
+<tr><td>ECC_FAR4</td><td>output</td><td>TCELL52:OUT.8.TMIN</td></tr>
+<tr><td>ECC_FAR5</td><td>output</td><td>TCELL52:OUT.10.TMIN</td></tr>
+<tr><td>ECC_FAR6</td><td>output</td><td>TCELL52:OUT.12.TMIN</td></tr>
+<tr><td>ECC_FAR7</td><td>output</td><td>TCELL52:OUT.14.TMIN</td></tr>
+<tr><td>ECC_FAR8</td><td>output</td><td>TCELL52:OUT.16.TMIN</td></tr>
+<tr><td>ECC_FAR9</td><td>output</td><td>TCELL52:OUT.18.TMIN</td></tr>
+<tr><td>ECC_FAR_SEL0</td><td>input</td><td>TCELL51:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>ECC_FAR_SEL1</td><td>input</td><td>TCELL51:IMUX.IMUX.16.DELAY</td></tr>
+<tr><td>EOS</td><td>output</td><td>TCELL47:OUT.10.TMIN</td></tr>
+<tr><td>ICAP_AVAIL_BOT</td><td>output</td><td>TCELL43:OUT.4.TMIN</td></tr>
+<tr><td>ICAP_AVAIL_TOP</td><td>output</td><td>TCELL54:OUT.4.TMIN</td></tr>
+<tr><td>ICAP_CLK_BOT_B</td><td>input</td><td>TCELL45:IMUX.CTRL.0</td></tr>
+<tr><td>ICAP_CLK_TOP_B</td><td>input</td><td>TCELL56:IMUX.CTRL.0</td></tr>
+<tr><td>ICAP_CS_B_BOT</td><td>input</td><td>TCELL43:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>ICAP_CS_B_TOP</td><td>input</td><td>TCELL54:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT0</td><td>input</td><td>TCELL44:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT1</td><td>input</td><td>TCELL44:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT10</td><td>input</td><td>TCELL44:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT11</td><td>input</td><td>TCELL44:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT12</td><td>input</td><td>TCELL44:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT13</td><td>input</td><td>TCELL44:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT14</td><td>input</td><td>TCELL44:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT15</td><td>input</td><td>TCELL44:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT16</td><td>input</td><td>TCELL45:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT17</td><td>input</td><td>TCELL45:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT18</td><td>input</td><td>TCELL45:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT19</td><td>input</td><td>TCELL45:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT2</td><td>input</td><td>TCELL44:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT20</td><td>input</td><td>TCELL45:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT21</td><td>input</td><td>TCELL45:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT22</td><td>input</td><td>TCELL45:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT23</td><td>input</td><td>TCELL45:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT24</td><td>input</td><td>TCELL45:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT25</td><td>input</td><td>TCELL45:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT26</td><td>input</td><td>TCELL45:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT27</td><td>input</td><td>TCELL45:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT28</td><td>input</td><td>TCELL45:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT29</td><td>input</td><td>TCELL45:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT3</td><td>input</td><td>TCELL44:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT30</td><td>input</td><td>TCELL45:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT31</td><td>input</td><td>TCELL45:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT4</td><td>input</td><td>TCELL44:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT5</td><td>input</td><td>TCELL44:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT6</td><td>input</td><td>TCELL44:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT7</td><td>input</td><td>TCELL44:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT8</td><td>input</td><td>TCELL44:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>ICAP_DATA_BOT9</td><td>input</td><td>TCELL44:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP0</td><td>input</td><td>TCELL55:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP1</td><td>input</td><td>TCELL55:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP10</td><td>input</td><td>TCELL55:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP11</td><td>input</td><td>TCELL55:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP12</td><td>input</td><td>TCELL55:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP13</td><td>input</td><td>TCELL55:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP14</td><td>input</td><td>TCELL55:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP15</td><td>input</td><td>TCELL55:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP16</td><td>input</td><td>TCELL56:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP17</td><td>input</td><td>TCELL56:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP18</td><td>input</td><td>TCELL56:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP19</td><td>input</td><td>TCELL56:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP2</td><td>input</td><td>TCELL55:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP20</td><td>input</td><td>TCELL56:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP21</td><td>input</td><td>TCELL56:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP22</td><td>input</td><td>TCELL56:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP23</td><td>input</td><td>TCELL56:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP24</td><td>input</td><td>TCELL56:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP25</td><td>input</td><td>TCELL56:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP26</td><td>input</td><td>TCELL56:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP27</td><td>input</td><td>TCELL56:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP28</td><td>input</td><td>TCELL56:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP29</td><td>input</td><td>TCELL56:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP3</td><td>input</td><td>TCELL55:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP30</td><td>input</td><td>TCELL56:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP31</td><td>input</td><td>TCELL56:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP4</td><td>input</td><td>TCELL55:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP5</td><td>input</td><td>TCELL55:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP6</td><td>input</td><td>TCELL55:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP7</td><td>input</td><td>TCELL55:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP8</td><td>input</td><td>TCELL55:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>ICAP_DATA_TOP9</td><td>input</td><td>TCELL55:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>ICAP_OUT_BOT0</td><td>output</td><td>TCELL44:OUT.0.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT1</td><td>output</td><td>TCELL44:OUT.2.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT10</td><td>output</td><td>TCELL44:OUT.20.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT11</td><td>output</td><td>TCELL44:OUT.22.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT12</td><td>output</td><td>TCELL44:OUT.24.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT13</td><td>output</td><td>TCELL44:OUT.26.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT14</td><td>output</td><td>TCELL44:OUT.28.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT15</td><td>output</td><td>TCELL44:OUT.30.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT16</td><td>output</td><td>TCELL45:OUT.0.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT17</td><td>output</td><td>TCELL45:OUT.2.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT18</td><td>output</td><td>TCELL45:OUT.4.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT19</td><td>output</td><td>TCELL45:OUT.6.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT2</td><td>output</td><td>TCELL44:OUT.4.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT20</td><td>output</td><td>TCELL45:OUT.8.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT21</td><td>output</td><td>TCELL45:OUT.10.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT22</td><td>output</td><td>TCELL45:OUT.12.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT23</td><td>output</td><td>TCELL45:OUT.14.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT24</td><td>output</td><td>TCELL45:OUT.16.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT25</td><td>output</td><td>TCELL45:OUT.18.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT26</td><td>output</td><td>TCELL45:OUT.20.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT27</td><td>output</td><td>TCELL45:OUT.22.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT28</td><td>output</td><td>TCELL45:OUT.24.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT29</td><td>output</td><td>TCELL45:OUT.26.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT3</td><td>output</td><td>TCELL44:OUT.6.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT30</td><td>output</td><td>TCELL45:OUT.28.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT31</td><td>output</td><td>TCELL45:OUT.30.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT4</td><td>output</td><td>TCELL44:OUT.8.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT5</td><td>output</td><td>TCELL44:OUT.10.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT6</td><td>output</td><td>TCELL44:OUT.12.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT7</td><td>output</td><td>TCELL44:OUT.14.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT8</td><td>output</td><td>TCELL44:OUT.16.TMIN</td></tr>
+<tr><td>ICAP_OUT_BOT9</td><td>output</td><td>TCELL44:OUT.18.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP0</td><td>output</td><td>TCELL55:OUT.0.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP1</td><td>output</td><td>TCELL55:OUT.2.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP10</td><td>output</td><td>TCELL55:OUT.20.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP11</td><td>output</td><td>TCELL55:OUT.22.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP12</td><td>output</td><td>TCELL55:OUT.24.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP13</td><td>output</td><td>TCELL55:OUT.26.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP14</td><td>output</td><td>TCELL55:OUT.28.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP15</td><td>output</td><td>TCELL55:OUT.30.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP16</td><td>output</td><td>TCELL56:OUT.0.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP17</td><td>output</td><td>TCELL56:OUT.2.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP18</td><td>output</td><td>TCELL56:OUT.4.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP19</td><td>output</td><td>TCELL56:OUT.6.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP2</td><td>output</td><td>TCELL55:OUT.4.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP20</td><td>output</td><td>TCELL56:OUT.8.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP21</td><td>output</td><td>TCELL56:OUT.10.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP22</td><td>output</td><td>TCELL56:OUT.12.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP23</td><td>output</td><td>TCELL56:OUT.14.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP24</td><td>output</td><td>TCELL56:OUT.16.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP25</td><td>output</td><td>TCELL56:OUT.18.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP26</td><td>output</td><td>TCELL56:OUT.20.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP27</td><td>output</td><td>TCELL56:OUT.22.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP28</td><td>output</td><td>TCELL56:OUT.24.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP29</td><td>output</td><td>TCELL56:OUT.26.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP3</td><td>output</td><td>TCELL55:OUT.6.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP30</td><td>output</td><td>TCELL56:OUT.28.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP31</td><td>output</td><td>TCELL56:OUT.30.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP4</td><td>output</td><td>TCELL55:OUT.8.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP5</td><td>output</td><td>TCELL55:OUT.10.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP6</td><td>output</td><td>TCELL55:OUT.12.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP7</td><td>output</td><td>TCELL55:OUT.14.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP8</td><td>output</td><td>TCELL55:OUT.16.TMIN</td></tr>
+<tr><td>ICAP_OUT_TOP9</td><td>output</td><td>TCELL55:OUT.18.TMIN</td></tr>
+<tr><td>ICAP_PR_DONE_BOT</td><td>output</td><td>TCELL43:OUT.0.TMIN</td></tr>
+<tr><td>ICAP_PR_DONE_TOP</td><td>output</td><td>TCELL54:OUT.0.TMIN</td></tr>
+<tr><td>ICAP_PR_ERROR_BOT</td><td>output</td><td>TCELL43:OUT.2.TMIN</td></tr>
+<tr><td>ICAP_PR_ERROR_TOP</td><td>output</td><td>TCELL54:OUT.2.TMIN</td></tr>
+<tr><td>ICAP_RDWR_B_BOT</td><td>input</td><td>TCELL43:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>ICAP_RDWR_B_TOP</td><td>input</td><td>TCELL54:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>IOX_CCLK</td><td>output</td><td>TCELL50:OUT.0.TMIN</td></tr>
+<tr><td>IOX_CFGDATA0</td><td>output</td><td>TCELL48:OUT.0.TMIN</td></tr>
+<tr><td>IOX_CFGDATA1</td><td>output</td><td>TCELL48:OUT.2.TMIN</td></tr>
+<tr><td>IOX_CFGDATA10</td><td>output</td><td>TCELL48:OUT.20.TMIN</td></tr>
+<tr><td>IOX_CFGDATA11</td><td>output</td><td>TCELL48:OUT.22.TMIN</td></tr>
+<tr><td>IOX_CFGDATA12</td><td>output</td><td>TCELL48:OUT.24.TMIN</td></tr>
+<tr><td>IOX_CFGDATA13</td><td>output</td><td>TCELL48:OUT.26.TMIN</td></tr>
+<tr><td>IOX_CFGDATA14</td><td>output</td><td>TCELL48:OUT.28.TMIN</td></tr>
+<tr><td>IOX_CFGDATA15</td><td>output</td><td>TCELL48:OUT.30.TMIN</td></tr>
+<tr><td>IOX_CFGDATA16</td><td>output</td><td>TCELL49:OUT.0.TMIN</td></tr>
+<tr><td>IOX_CFGDATA17</td><td>output</td><td>TCELL49:OUT.2.TMIN</td></tr>
+<tr><td>IOX_CFGDATA18</td><td>output</td><td>TCELL49:OUT.4.TMIN</td></tr>
+<tr><td>IOX_CFGDATA19</td><td>output</td><td>TCELL49:OUT.6.TMIN</td></tr>
+<tr><td>IOX_CFGDATA2</td><td>output</td><td>TCELL48:OUT.4.TMIN</td></tr>
+<tr><td>IOX_CFGDATA20</td><td>output</td><td>TCELL49:OUT.8.TMIN</td></tr>
+<tr><td>IOX_CFGDATA21</td><td>output</td><td>TCELL49:OUT.10.TMIN</td></tr>
+<tr><td>IOX_CFGDATA22</td><td>output</td><td>TCELL49:OUT.12.TMIN</td></tr>
+<tr><td>IOX_CFGDATA23</td><td>output</td><td>TCELL49:OUT.14.TMIN</td></tr>
+<tr><td>IOX_CFGDATA24</td><td>output</td><td>TCELL49:OUT.16.TMIN</td></tr>
+<tr><td>IOX_CFGDATA25</td><td>output</td><td>TCELL49:OUT.18.TMIN</td></tr>
+<tr><td>IOX_CFGDATA26</td><td>output</td><td>TCELL49:OUT.20.TMIN</td></tr>
+<tr><td>IOX_CFGDATA27</td><td>output</td><td>TCELL49:OUT.22.TMIN</td></tr>
+<tr><td>IOX_CFGDATA28</td><td>output</td><td>TCELL49:OUT.24.TMIN</td></tr>
+<tr><td>IOX_CFGDATA29</td><td>output</td><td>TCELL49:OUT.26.TMIN</td></tr>
+<tr><td>IOX_CFGDATA3</td><td>output</td><td>TCELL48:OUT.6.TMIN</td></tr>
+<tr><td>IOX_CFGDATA30</td><td>output</td><td>TCELL49:OUT.28.TMIN</td></tr>
+<tr><td>IOX_CFGDATA31</td><td>output</td><td>TCELL49:OUT.30.TMIN</td></tr>
+<tr><td>IOX_CFGDATA4</td><td>output</td><td>TCELL48:OUT.8.TMIN</td></tr>
+<tr><td>IOX_CFGDATA5</td><td>output</td><td>TCELL48:OUT.10.TMIN</td></tr>
+<tr><td>IOX_CFGDATA6</td><td>output</td><td>TCELL48:OUT.12.TMIN</td></tr>
+<tr><td>IOX_CFGDATA7</td><td>output</td><td>TCELL48:OUT.14.TMIN</td></tr>
+<tr><td>IOX_CFGDATA8</td><td>output</td><td>TCELL48:OUT.16.TMIN</td></tr>
+<tr><td>IOX_CFGDATA9</td><td>output</td><td>TCELL48:OUT.18.TMIN</td></tr>
+<tr><td>IOX_CFGMASTER</td><td>output</td><td>TCELL50:OUT.2.TMIN</td></tr>
+<tr><td>IOX_INITBI</td><td>output</td><td>TCELL50:OUT.6.TMIN</td></tr>
+<tr><td>IOX_INITBO</td><td>input</td><td>TCELL48:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>IOX_MODE0</td><td>output</td><td>TCELL50:OUT.12.TMIN</td></tr>
+<tr><td>IOX_MODE1</td><td>output</td><td>TCELL50:OUT.14.TMIN</td></tr>
+<tr><td>IOX_MODE2</td><td>output</td><td>TCELL50:OUT.16.TMIN</td></tr>
+<tr><td>IOX_PUDCB</td><td>output</td><td>TCELL50:OUT.8.TMIN</td></tr>
+<tr><td>IOX_RDWRB</td><td>output</td><td>TCELL50:OUT.10.TMIN</td></tr>
+<tr><td>IOX_TDO</td><td>input</td><td>TCELL48:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>IOX_VGG_COMP_OUT</td><td>output</td><td>TCELL50:OUT.4.TMIN</td></tr>
+<tr><td>KEY_CLEAR</td><td>input</td><td>TCELL47:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>PROG_ACK</td><td>input</td><td>TCELL47:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>PROG_REQ</td><td>output</td><td>TCELL47:OUT.8.TMIN</td></tr>
+<tr><td>RBCRC_ERROR</td><td>output</td><td>TCELL51:OUT.20.TMIN</td></tr>
+<tr><td>START_CFG_CLK</td><td>output</td><td>TCELL47:OUT.14.TMIN</td></tr>
+<tr><td>START_CFG_MCLK</td><td>output</td><td>TCELL47:OUT.12.TMIN</td></tr>
+<tr><td>USR_ACCESS_CLK</td><td>output</td><td>TCELL57:OUT.2.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA0</td><td>output</td><td>TCELL58:OUT.0.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA1</td><td>output</td><td>TCELL58:OUT.2.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA10</td><td>output</td><td>TCELL58:OUT.20.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA11</td><td>output</td><td>TCELL58:OUT.22.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA12</td><td>output</td><td>TCELL58:OUT.24.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA13</td><td>output</td><td>TCELL58:OUT.26.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA14</td><td>output</td><td>TCELL58:OUT.28.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA15</td><td>output</td><td>TCELL58:OUT.30.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA16</td><td>output</td><td>TCELL59:OUT.0.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA17</td><td>output</td><td>TCELL59:OUT.2.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA18</td><td>output</td><td>TCELL59:OUT.4.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA19</td><td>output</td><td>TCELL59:OUT.6.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA2</td><td>output</td><td>TCELL58:OUT.4.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA20</td><td>output</td><td>TCELL59:OUT.8.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA21</td><td>output</td><td>TCELL59:OUT.10.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA22</td><td>output</td><td>TCELL59:OUT.12.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA23</td><td>output</td><td>TCELL59:OUT.14.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA24</td><td>output</td><td>TCELL59:OUT.16.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA25</td><td>output</td><td>TCELL59:OUT.18.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA26</td><td>output</td><td>TCELL59:OUT.20.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA27</td><td>output</td><td>TCELL59:OUT.22.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA28</td><td>output</td><td>TCELL59:OUT.24.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA29</td><td>output</td><td>TCELL59:OUT.26.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA3</td><td>output</td><td>TCELL58:OUT.6.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA30</td><td>output</td><td>TCELL59:OUT.28.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA31</td><td>output</td><td>TCELL59:OUT.30.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA4</td><td>output</td><td>TCELL58:OUT.8.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA5</td><td>output</td><td>TCELL58:OUT.10.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA6</td><td>output</td><td>TCELL58:OUT.12.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA7</td><td>output</td><td>TCELL58:OUT.14.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA8</td><td>output</td><td>TCELL58:OUT.16.TMIN</td></tr>
+<tr><td>USR_ACCESS_DATA9</td><td>output</td><td>TCELL58:OUT.18.TMIN</td></tr>
+<tr><td>USR_ACCESS_VALID</td><td>output</td><td>TCELL57:OUT.0.TMIN</td></tr>
+<tr><td>USR_CCLK_O_B</td><td>input</td><td>TCELL47:IMUX.CTRL.0</td></tr>
+<tr><td>USR_CCLK_TS</td><td>input</td><td>TCELL47:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>USR_DNA_CLK_B</td><td>input</td><td>TCELL42:IMUX.CTRL.0</td></tr>
+<tr><td>USR_DNA_DIN</td><td>input</td><td>TCELL42:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>USR_DNA_OUT</td><td>output</td><td>TCELL42:OUT.0.TMIN</td></tr>
+<tr><td>USR_DNA_READ</td><td>input</td><td>TCELL42:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>USR_DNA_SHIFT</td><td>input</td><td>TCELL42:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>USR_DONE_O</td><td>input</td><td>TCELL47:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>USR_DONE_TS</td><td>input</td><td>TCELL47:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>USR_D_O_CFGIO0</td><td>input</td><td>TCELL47:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>USR_D_O_CFGIO1</td><td>input</td><td>TCELL47:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>USR_D_O_CFGIO2</td><td>input</td><td>TCELL47:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>USR_D_O_CFGIO3</td><td>input</td><td>TCELL47:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>USR_D_PIN_CFGIO0</td><td>output</td><td>TCELL47:OUT.0.TMIN</td></tr>
+<tr><td>USR_D_PIN_CFGIO1</td><td>output</td><td>TCELL47:OUT.2.TMIN</td></tr>
+<tr><td>USR_D_PIN_CFGIO2</td><td>output</td><td>TCELL47:OUT.4.TMIN</td></tr>
+<tr><td>USR_D_PIN_CFGIO3</td><td>output</td><td>TCELL47:OUT.6.TMIN</td></tr>
+<tr><td>USR_D_TS_CFGIO0</td><td>input</td><td>TCELL47:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>USR_D_TS_CFGIO1</td><td>input</td><td>TCELL47:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>USR_D_TS_CFGIO2</td><td>input</td><td>TCELL47:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>USR_D_TS_CFGIO3</td><td>input</td><td>TCELL47:IMUX.IMUX.16.DELAY</td></tr>
+<tr><td>USR_EFUSE0</td><td>output</td><td>TCELL46:OUT.0.TMIN</td></tr>
+<tr><td>USR_EFUSE1</td><td>output</td><td>TCELL46:OUT.2.TMIN</td></tr>
+<tr><td>USR_EFUSE10</td><td>output</td><td>TCELL46:OUT.20.TMIN</td></tr>
+<tr><td>USR_EFUSE11</td><td>output</td><td>TCELL46:OUT.22.TMIN</td></tr>
+<tr><td>USR_EFUSE12</td><td>output</td><td>TCELL46:OUT.24.TMIN</td></tr>
+<tr><td>USR_EFUSE13</td><td>output</td><td>TCELL46:OUT.26.TMIN</td></tr>
+<tr><td>USR_EFUSE14</td><td>output</td><td>TCELL46:OUT.28.TMIN</td></tr>
+<tr><td>USR_EFUSE15</td><td>output</td><td>TCELL46:OUT.30.TMIN</td></tr>
+<tr><td>USR_EFUSE16</td><td>output</td><td>TCELL41:OUT.0.TMIN</td></tr>
+<tr><td>USR_EFUSE17</td><td>output</td><td>TCELL41:OUT.2.TMIN</td></tr>
+<tr><td>USR_EFUSE18</td><td>output</td><td>TCELL41:OUT.4.TMIN</td></tr>
+<tr><td>USR_EFUSE19</td><td>output</td><td>TCELL41:OUT.6.TMIN</td></tr>
+<tr><td>USR_EFUSE2</td><td>output</td><td>TCELL46:OUT.4.TMIN</td></tr>
+<tr><td>USR_EFUSE20</td><td>output</td><td>TCELL41:OUT.8.TMIN</td></tr>
+<tr><td>USR_EFUSE21</td><td>output</td><td>TCELL41:OUT.10.TMIN</td></tr>
+<tr><td>USR_EFUSE22</td><td>output</td><td>TCELL41:OUT.12.TMIN</td></tr>
+<tr><td>USR_EFUSE23</td><td>output</td><td>TCELL41:OUT.14.TMIN</td></tr>
+<tr><td>USR_EFUSE24</td><td>output</td><td>TCELL41:OUT.16.TMIN</td></tr>
+<tr><td>USR_EFUSE25</td><td>output</td><td>TCELL41:OUT.18.TMIN</td></tr>
+<tr><td>USR_EFUSE26</td><td>output</td><td>TCELL41:OUT.20.TMIN</td></tr>
+<tr><td>USR_EFUSE27</td><td>output</td><td>TCELL41:OUT.22.TMIN</td></tr>
+<tr><td>USR_EFUSE28</td><td>output</td><td>TCELL41:OUT.24.TMIN</td></tr>
+<tr><td>USR_EFUSE29</td><td>output</td><td>TCELL41:OUT.26.TMIN</td></tr>
+<tr><td>USR_EFUSE3</td><td>output</td><td>TCELL46:OUT.6.TMIN</td></tr>
+<tr><td>USR_EFUSE30</td><td>output</td><td>TCELL41:OUT.28.TMIN</td></tr>
+<tr><td>USR_EFUSE31</td><td>output</td><td>TCELL41:OUT.30.TMIN</td></tr>
+<tr><td>USR_EFUSE4</td><td>output</td><td>TCELL46:OUT.8.TMIN</td></tr>
+<tr><td>USR_EFUSE5</td><td>output</td><td>TCELL46:OUT.10.TMIN</td></tr>
+<tr><td>USR_EFUSE6</td><td>output</td><td>TCELL46:OUT.12.TMIN</td></tr>
+<tr><td>USR_EFUSE7</td><td>output</td><td>TCELL46:OUT.14.TMIN</td></tr>
+<tr><td>USR_EFUSE8</td><td>output</td><td>TCELL46:OUT.16.TMIN</td></tr>
+<tr><td>USR_EFUSE9</td><td>output</td><td>TCELL46:OUT.18.TMIN</td></tr>
+<tr><td>USR_FCS_B_O</td><td>input</td><td>TCELL47:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>USR_FCS_B_TS</td><td>input</td><td>TCELL47:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>USR_GSR</td><td>input</td><td>TCELL47:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>USR_GTS</td><td>input</td><td>TCELL47:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>USR_TCK_B</td><td>input</td><td>TCELL43:IMUX.CTRL.1</td></tr>
+<tr><td>USR_TDI</td><td>input</td><td>TCELL43:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>USR_TDO</td><td>output</td><td>TCELL43:OUT.18.TMIN</td></tr>
+<tr><td>USR_TMS</td><td>input</td><td>TCELL43:IMUX.IMUX.5.DELAY</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-abus_switch_cfg"><a class="header" href="#bel-abus_switch_cfg">Bel ABUS_SWITCH_CFG</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFG bel ABUS_SWITCH_CFG</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFG bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL41:OUT.0.TMIN</td><td>CFG.USR_EFUSE16</td></tr>
+<tr><td>TCELL41:OUT.2.TMIN</td><td>CFG.USR_EFUSE17</td></tr>
+<tr><td>TCELL41:OUT.4.TMIN</td><td>CFG.USR_EFUSE18</td></tr>
+<tr><td>TCELL41:OUT.6.TMIN</td><td>CFG.USR_EFUSE19</td></tr>
+<tr><td>TCELL41:OUT.8.TMIN</td><td>CFG.USR_EFUSE20</td></tr>
+<tr><td>TCELL41:OUT.10.TMIN</td><td>CFG.USR_EFUSE21</td></tr>
+<tr><td>TCELL41:OUT.12.TMIN</td><td>CFG.USR_EFUSE22</td></tr>
+<tr><td>TCELL41:OUT.14.TMIN</td><td>CFG.USR_EFUSE23</td></tr>
+<tr><td>TCELL41:OUT.16.TMIN</td><td>CFG.USR_EFUSE24</td></tr>
+<tr><td>TCELL41:OUT.18.TMIN</td><td>CFG.USR_EFUSE25</td></tr>
+<tr><td>TCELL41:OUT.20.TMIN</td><td>CFG.USR_EFUSE26</td></tr>
+<tr><td>TCELL41:OUT.22.TMIN</td><td>CFG.USR_EFUSE27</td></tr>
+<tr><td>TCELL41:OUT.24.TMIN</td><td>CFG.USR_EFUSE28</td></tr>
+<tr><td>TCELL41:OUT.26.TMIN</td><td>CFG.USR_EFUSE29</td></tr>
+<tr><td>TCELL41:OUT.28.TMIN</td><td>CFG.USR_EFUSE30</td></tr>
+<tr><td>TCELL41:OUT.30.TMIN</td><td>CFG.USR_EFUSE31</td></tr>
+<tr><td>TCELL42:OUT.0.TMIN</td><td>CFG.USR_DNA_OUT</td></tr>
+<tr><td>TCELL42:OUT.2.TMIN</td><td>CFG.DCI_LOCK</td></tr>
+<tr><td>TCELL42:OUT.4.TMIN</td><td>CFG.BSCAN_CDR1</td></tr>
+<tr><td>TCELL42:OUT.6.TMIN</td><td>CFG.BSCAN_CDR2</td></tr>
+<tr><td>TCELL42:OUT.8.TMIN</td><td>CFG.BSCAN_CLKDR1</td></tr>
+<tr><td>TCELL42:OUT.10.TMIN</td><td>CFG.BSCAN_CLKDR2</td></tr>
+<tr><td>TCELL42:OUT.12.TMIN</td><td>CFG.BSCAN_RTI1</td></tr>
+<tr><td>TCELL42:OUT.14.TMIN</td><td>CFG.BSCAN_RTI2</td></tr>
+<tr><td>TCELL42:OUT.16.TMIN</td><td>CFG.BSCAN_SDR1</td></tr>
+<tr><td>TCELL42:OUT.18.TMIN</td><td>CFG.BSCAN_SDR2</td></tr>
+<tr><td>TCELL42:OUT.20.TMIN</td><td>CFG.BSCAN_SEL1</td></tr>
+<tr><td>TCELL42:OUT.22.TMIN</td><td>CFG.BSCAN_SEL2</td></tr>
+<tr><td>TCELL42:OUT.24.TMIN</td><td>CFG.BSCAN_TLR1</td></tr>
+<tr><td>TCELL42:OUT.26.TMIN</td><td>CFG.BSCAN_TLR2</td></tr>
+<tr><td>TCELL42:OUT.28.TMIN</td><td>CFG.BSCAN_UDR1</td></tr>
+<tr><td>TCELL42:OUT.30.TMIN</td><td>CFG.BSCAN_UDR2</td></tr>
+<tr><td>TCELL42:IMUX.CTRL.0</td><td>CFG.USR_DNA_CLK_B</td></tr>
+<tr><td>TCELL42:IMUX.IMUX.0.DELAY</td><td>CFG.USR_DNA_DIN</td></tr>
+<tr><td>TCELL42:IMUX.IMUX.1.DELAY</td><td>CFG.USR_DNA_READ</td></tr>
+<tr><td>TCELL42:IMUX.IMUX.2.DELAY</td><td>CFG.USR_DNA_SHIFT</td></tr>
+<tr><td>TCELL42:IMUX.IMUX.3.DELAY</td><td>CFG.DCI_USR_RESET_IN</td></tr>
+<tr><td>TCELL43:OUT.0.TMIN</td><td>CFG.ICAP_PR_DONE_BOT</td></tr>
+<tr><td>TCELL43:OUT.2.TMIN</td><td>CFG.ICAP_PR_ERROR_BOT</td></tr>
+<tr><td>TCELL43:OUT.4.TMIN</td><td>CFG.ICAP_AVAIL_BOT</td></tr>
+<tr><td>TCELL43:OUT.6.TMIN</td><td>CFG.BSCAN_TCK1</td></tr>
+<tr><td>TCELL43:OUT.8.TMIN</td><td>CFG.BSCAN_TCK2</td></tr>
+<tr><td>TCELL43:OUT.10.TMIN</td><td>CFG.BSCAN_TMS1</td></tr>
+<tr><td>TCELL43:OUT.12.TMIN</td><td>CFG.BSCAN_TMS2</td></tr>
+<tr><td>TCELL43:OUT.14.TMIN</td><td>CFG.BSCAN_TDI1</td></tr>
+<tr><td>TCELL43:OUT.16.TMIN</td><td>CFG.BSCAN_TDI2</td></tr>
+<tr><td>TCELL43:OUT.18.TMIN</td><td>CFG.USR_TDO</td></tr>
+<tr><td>TCELL43:IMUX.CTRL.1</td><td>CFG.USR_TCK_B</td></tr>
+<tr><td>TCELL43:IMUX.IMUX.0.DELAY</td><td>CFG.ICAP_RDWR_B_BOT</td></tr>
+<tr><td>TCELL43:IMUX.IMUX.1.DELAY</td><td>CFG.ICAP_CS_B_BOT</td></tr>
+<tr><td>TCELL43:IMUX.IMUX.2.DELAY</td><td>CFG.BSCAN_TDO1</td></tr>
+<tr><td>TCELL43:IMUX.IMUX.3.DELAY</td><td>CFG.BSCAN_TDO2</td></tr>
+<tr><td>TCELL43:IMUX.IMUX.5.DELAY</td><td>CFG.USR_TMS</td></tr>
+<tr><td>TCELL43:IMUX.IMUX.6.DELAY</td><td>CFG.USR_TDI</td></tr>
+<tr><td>TCELL44:OUT.0.TMIN</td><td>CFG.ICAP_OUT_BOT0</td></tr>
+<tr><td>TCELL44:OUT.2.TMIN</td><td>CFG.ICAP_OUT_BOT1</td></tr>
+<tr><td>TCELL44:OUT.4.TMIN</td><td>CFG.ICAP_OUT_BOT2</td></tr>
+<tr><td>TCELL44:OUT.6.TMIN</td><td>CFG.ICAP_OUT_BOT3</td></tr>
+<tr><td>TCELL44:OUT.8.TMIN</td><td>CFG.ICAP_OUT_BOT4</td></tr>
+<tr><td>TCELL44:OUT.10.TMIN</td><td>CFG.ICAP_OUT_BOT5</td></tr>
+<tr><td>TCELL44:OUT.12.TMIN</td><td>CFG.ICAP_OUT_BOT6</td></tr>
+<tr><td>TCELL44:OUT.14.TMIN</td><td>CFG.ICAP_OUT_BOT7</td></tr>
+<tr><td>TCELL44:OUT.16.TMIN</td><td>CFG.ICAP_OUT_BOT8</td></tr>
+<tr><td>TCELL44:OUT.18.TMIN</td><td>CFG.ICAP_OUT_BOT9</td></tr>
+<tr><td>TCELL44:OUT.20.TMIN</td><td>CFG.ICAP_OUT_BOT10</td></tr>
+<tr><td>TCELL44:OUT.22.TMIN</td><td>CFG.ICAP_OUT_BOT11</td></tr>
+<tr><td>TCELL44:OUT.24.TMIN</td><td>CFG.ICAP_OUT_BOT12</td></tr>
+<tr><td>TCELL44:OUT.26.TMIN</td><td>CFG.ICAP_OUT_BOT13</td></tr>
+<tr><td>TCELL44:OUT.28.TMIN</td><td>CFG.ICAP_OUT_BOT14</td></tr>
+<tr><td>TCELL44:OUT.30.TMIN</td><td>CFG.ICAP_OUT_BOT15</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.0.DELAY</td><td>CFG.ICAP_DATA_BOT0</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.1.DELAY</td><td>CFG.ICAP_DATA_BOT1</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.2.DELAY</td><td>CFG.ICAP_DATA_BOT2</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.3.DELAY</td><td>CFG.ICAP_DATA_BOT3</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.4.DELAY</td><td>CFG.ICAP_DATA_BOT4</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.5.DELAY</td><td>CFG.ICAP_DATA_BOT5</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.6.DELAY</td><td>CFG.ICAP_DATA_BOT6</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.7.DELAY</td><td>CFG.ICAP_DATA_BOT7</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.8.DELAY</td><td>CFG.ICAP_DATA_BOT8</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.9.DELAY</td><td>CFG.ICAP_DATA_BOT9</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.10.DELAY</td><td>CFG.ICAP_DATA_BOT10</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.11.DELAY</td><td>CFG.ICAP_DATA_BOT11</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.12.DELAY</td><td>CFG.ICAP_DATA_BOT12</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.13.DELAY</td><td>CFG.ICAP_DATA_BOT13</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.14.DELAY</td><td>CFG.ICAP_DATA_BOT14</td></tr>
+<tr><td>TCELL44:IMUX.IMUX.15.DELAY</td><td>CFG.ICAP_DATA_BOT15</td></tr>
+<tr><td>TCELL45:OUT.0.TMIN</td><td>CFG.ICAP_OUT_BOT16</td></tr>
+<tr><td>TCELL45:OUT.2.TMIN</td><td>CFG.ICAP_OUT_BOT17</td></tr>
+<tr><td>TCELL45:OUT.4.TMIN</td><td>CFG.ICAP_OUT_BOT18</td></tr>
+<tr><td>TCELL45:OUT.6.TMIN</td><td>CFG.ICAP_OUT_BOT19</td></tr>
+<tr><td>TCELL45:OUT.8.TMIN</td><td>CFG.ICAP_OUT_BOT20</td></tr>
+<tr><td>TCELL45:OUT.10.TMIN</td><td>CFG.ICAP_OUT_BOT21</td></tr>
+<tr><td>TCELL45:OUT.12.TMIN</td><td>CFG.ICAP_OUT_BOT22</td></tr>
+<tr><td>TCELL45:OUT.14.TMIN</td><td>CFG.ICAP_OUT_BOT23</td></tr>
+<tr><td>TCELL45:OUT.16.TMIN</td><td>CFG.ICAP_OUT_BOT24</td></tr>
+<tr><td>TCELL45:OUT.18.TMIN</td><td>CFG.ICAP_OUT_BOT25</td></tr>
+<tr><td>TCELL45:OUT.20.TMIN</td><td>CFG.ICAP_OUT_BOT26</td></tr>
+<tr><td>TCELL45:OUT.22.TMIN</td><td>CFG.ICAP_OUT_BOT27</td></tr>
+<tr><td>TCELL45:OUT.24.TMIN</td><td>CFG.ICAP_OUT_BOT28</td></tr>
+<tr><td>TCELL45:OUT.26.TMIN</td><td>CFG.ICAP_OUT_BOT29</td></tr>
+<tr><td>TCELL45:OUT.28.TMIN</td><td>CFG.ICAP_OUT_BOT30</td></tr>
+<tr><td>TCELL45:OUT.30.TMIN</td><td>CFG.ICAP_OUT_BOT31</td></tr>
+<tr><td>TCELL45:IMUX.CTRL.0</td><td>CFG.ICAP_CLK_BOT_B</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.0.DELAY</td><td>CFG.ICAP_DATA_BOT16</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.1.DELAY</td><td>CFG.ICAP_DATA_BOT17</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.2.DELAY</td><td>CFG.ICAP_DATA_BOT18</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.3.DELAY</td><td>CFG.ICAP_DATA_BOT19</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.4.DELAY</td><td>CFG.ICAP_DATA_BOT20</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.5.DELAY</td><td>CFG.ICAP_DATA_BOT21</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.6.DELAY</td><td>CFG.ICAP_DATA_BOT22</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.7.DELAY</td><td>CFG.ICAP_DATA_BOT23</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.8.DELAY</td><td>CFG.ICAP_DATA_BOT24</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.9.DELAY</td><td>CFG.ICAP_DATA_BOT25</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.10.DELAY</td><td>CFG.ICAP_DATA_BOT26</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.11.DELAY</td><td>CFG.ICAP_DATA_BOT27</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.12.DELAY</td><td>CFG.ICAP_DATA_BOT28</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.13.DELAY</td><td>CFG.ICAP_DATA_BOT29</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.14.DELAY</td><td>CFG.ICAP_DATA_BOT30</td></tr>
+<tr><td>TCELL45:IMUX.IMUX.15.DELAY</td><td>CFG.ICAP_DATA_BOT31</td></tr>
+<tr><td>TCELL46:OUT.0.TMIN</td><td>CFG.USR_EFUSE0</td></tr>
+<tr><td>TCELL46:OUT.2.TMIN</td><td>CFG.USR_EFUSE1</td></tr>
+<tr><td>TCELL46:OUT.4.TMIN</td><td>CFG.USR_EFUSE2</td></tr>
+<tr><td>TCELL46:OUT.6.TMIN</td><td>CFG.USR_EFUSE3</td></tr>
+<tr><td>TCELL46:OUT.8.TMIN</td><td>CFG.USR_EFUSE4</td></tr>
+<tr><td>TCELL46:OUT.10.TMIN</td><td>CFG.USR_EFUSE5</td></tr>
+<tr><td>TCELL46:OUT.12.TMIN</td><td>CFG.USR_EFUSE6</td></tr>
+<tr><td>TCELL46:OUT.14.TMIN</td><td>CFG.USR_EFUSE7</td></tr>
+<tr><td>TCELL46:OUT.16.TMIN</td><td>CFG.USR_EFUSE8</td></tr>
+<tr><td>TCELL46:OUT.18.TMIN</td><td>CFG.USR_EFUSE9</td></tr>
+<tr><td>TCELL46:OUT.20.TMIN</td><td>CFG.USR_EFUSE10</td></tr>
+<tr><td>TCELL46:OUT.22.TMIN</td><td>CFG.USR_EFUSE11</td></tr>
+<tr><td>TCELL46:OUT.24.TMIN</td><td>CFG.USR_EFUSE12</td></tr>
+<tr><td>TCELL46:OUT.26.TMIN</td><td>CFG.USR_EFUSE13</td></tr>
+<tr><td>TCELL46:OUT.28.TMIN</td><td>CFG.USR_EFUSE14</td></tr>
+<tr><td>TCELL46:OUT.30.TMIN</td><td>CFG.USR_EFUSE15</td></tr>
+<tr><td>TCELL47:OUT.0.TMIN</td><td>CFG.USR_D_PIN_CFGIO0</td></tr>
+<tr><td>TCELL47:OUT.2.TMIN</td><td>CFG.USR_D_PIN_CFGIO1</td></tr>
+<tr><td>TCELL47:OUT.4.TMIN</td><td>CFG.USR_D_PIN_CFGIO2</td></tr>
+<tr><td>TCELL47:OUT.6.TMIN</td><td>CFG.USR_D_PIN_CFGIO3</td></tr>
+<tr><td>TCELL47:OUT.8.TMIN</td><td>CFG.PROG_REQ</td></tr>
+<tr><td>TCELL47:OUT.10.TMIN</td><td>CFG.EOS</td></tr>
+<tr><td>TCELL47:OUT.12.TMIN</td><td>CFG.START_CFG_MCLK</td></tr>
+<tr><td>TCELL47:OUT.14.TMIN</td><td>CFG.START_CFG_CLK</td></tr>
+<tr><td>TCELL47:IMUX.CTRL.0</td><td>CFG.USR_CCLK_O_B</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.0.DELAY</td><td>CFG.KEY_CLEAR</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.1.DELAY</td><td>CFG.PROG_ACK</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.2.DELAY</td><td>CFG.USR_CCLK_TS</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.3.DELAY</td><td>CFG.USR_DONE_O</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.4.DELAY</td><td>CFG.USR_DONE_TS</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.5.DELAY</td><td>CFG.USR_GSR</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.6.DELAY</td><td>CFG.USR_GTS</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.7.DELAY</td><td>CFG.USR_FCS_B_O</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.8.DELAY</td><td>CFG.USR_FCS_B_TS</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.9.DELAY</td><td>CFG.USR_D_O_CFGIO0</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.10.DELAY</td><td>CFG.USR_D_O_CFGIO1</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.11.DELAY</td><td>CFG.USR_D_O_CFGIO2</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.12.DELAY</td><td>CFG.USR_D_O_CFGIO3</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.13.DELAY</td><td>CFG.USR_D_TS_CFGIO0</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.14.DELAY</td><td>CFG.USR_D_TS_CFGIO1</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.15.DELAY</td><td>CFG.USR_D_TS_CFGIO2</td></tr>
+<tr><td>TCELL47:IMUX.IMUX.16.DELAY</td><td>CFG.USR_D_TS_CFGIO3</td></tr>
+<tr><td>TCELL48:OUT.0.TMIN</td><td>CFG.IOX_CFGDATA0</td></tr>
+<tr><td>TCELL48:OUT.2.TMIN</td><td>CFG.IOX_CFGDATA1</td></tr>
+<tr><td>TCELL48:OUT.4.TMIN</td><td>CFG.IOX_CFGDATA2</td></tr>
+<tr><td>TCELL48:OUT.6.TMIN</td><td>CFG.IOX_CFGDATA3</td></tr>
+<tr><td>TCELL48:OUT.8.TMIN</td><td>CFG.IOX_CFGDATA4</td></tr>
+<tr><td>TCELL48:OUT.10.TMIN</td><td>CFG.IOX_CFGDATA5</td></tr>
+<tr><td>TCELL48:OUT.12.TMIN</td><td>CFG.IOX_CFGDATA6</td></tr>
+<tr><td>TCELL48:OUT.14.TMIN</td><td>CFG.IOX_CFGDATA7</td></tr>
+<tr><td>TCELL48:OUT.16.TMIN</td><td>CFG.IOX_CFGDATA8</td></tr>
+<tr><td>TCELL48:OUT.18.TMIN</td><td>CFG.IOX_CFGDATA9</td></tr>
+<tr><td>TCELL48:OUT.20.TMIN</td><td>CFG.IOX_CFGDATA10</td></tr>
+<tr><td>TCELL48:OUT.22.TMIN</td><td>CFG.IOX_CFGDATA11</td></tr>
+<tr><td>TCELL48:OUT.24.TMIN</td><td>CFG.IOX_CFGDATA12</td></tr>
+<tr><td>TCELL48:OUT.26.TMIN</td><td>CFG.IOX_CFGDATA13</td></tr>
+<tr><td>TCELL48:OUT.28.TMIN</td><td>CFG.IOX_CFGDATA14</td></tr>
+<tr><td>TCELL48:OUT.30.TMIN</td><td>CFG.IOX_CFGDATA15</td></tr>
+<tr><td>TCELL48:IMUX.IMUX.0.DELAY</td><td>CFG.IOX_TDO</td></tr>
+<tr><td>TCELL48:IMUX.IMUX.1.DELAY</td><td>CFG.IOX_INITBO</td></tr>
+<tr><td>TCELL49:OUT.0.TMIN</td><td>CFG.IOX_CFGDATA16</td></tr>
+<tr><td>TCELL49:OUT.2.TMIN</td><td>CFG.IOX_CFGDATA17</td></tr>
+<tr><td>TCELL49:OUT.4.TMIN</td><td>CFG.IOX_CFGDATA18</td></tr>
+<tr><td>TCELL49:OUT.6.TMIN</td><td>CFG.IOX_CFGDATA19</td></tr>
+<tr><td>TCELL49:OUT.8.TMIN</td><td>CFG.IOX_CFGDATA20</td></tr>
+<tr><td>TCELL49:OUT.10.TMIN</td><td>CFG.IOX_CFGDATA21</td></tr>
+<tr><td>TCELL49:OUT.12.TMIN</td><td>CFG.IOX_CFGDATA22</td></tr>
+<tr><td>TCELL49:OUT.14.TMIN</td><td>CFG.IOX_CFGDATA23</td></tr>
+<tr><td>TCELL49:OUT.16.TMIN</td><td>CFG.IOX_CFGDATA24</td></tr>
+<tr><td>TCELL49:OUT.18.TMIN</td><td>CFG.IOX_CFGDATA25</td></tr>
+<tr><td>TCELL49:OUT.20.TMIN</td><td>CFG.IOX_CFGDATA26</td></tr>
+<tr><td>TCELL49:OUT.22.TMIN</td><td>CFG.IOX_CFGDATA27</td></tr>
+<tr><td>TCELL49:OUT.24.TMIN</td><td>CFG.IOX_CFGDATA28</td></tr>
+<tr><td>TCELL49:OUT.26.TMIN</td><td>CFG.IOX_CFGDATA29</td></tr>
+<tr><td>TCELL49:OUT.28.TMIN</td><td>CFG.IOX_CFGDATA30</td></tr>
+<tr><td>TCELL49:OUT.30.TMIN</td><td>CFG.IOX_CFGDATA31</td></tr>
+<tr><td>TCELL50:OUT.0.TMIN</td><td>CFG.IOX_CCLK</td></tr>
+<tr><td>TCELL50:OUT.2.TMIN</td><td>CFG.IOX_CFGMASTER</td></tr>
+<tr><td>TCELL50:OUT.4.TMIN</td><td>CFG.IOX_VGG_COMP_OUT</td></tr>
+<tr><td>TCELL50:OUT.6.TMIN</td><td>CFG.IOX_INITBI</td></tr>
+<tr><td>TCELL50:OUT.8.TMIN</td><td>CFG.IOX_PUDCB</td></tr>
+<tr><td>TCELL50:OUT.10.TMIN</td><td>CFG.IOX_RDWRB</td></tr>
+<tr><td>TCELL50:OUT.12.TMIN</td><td>CFG.IOX_MODE0</td></tr>
+<tr><td>TCELL50:OUT.14.TMIN</td><td>CFG.IOX_MODE1</td></tr>
+<tr><td>TCELL50:OUT.16.TMIN</td><td>CFG.IOX_MODE2</td></tr>
+<tr><td>TCELL51:OUT.0.TMIN</td><td>CFG.ECC_FAR16</td></tr>
+<tr><td>TCELL51:OUT.2.TMIN</td><td>CFG.ECC_FAR17</td></tr>
+<tr><td>TCELL51:OUT.4.TMIN</td><td>CFG.ECC_FAR18</td></tr>
+<tr><td>TCELL51:OUT.6.TMIN</td><td>CFG.ECC_FAR19</td></tr>
+<tr><td>TCELL51:OUT.8.TMIN</td><td>CFG.ECC_FAR20</td></tr>
+<tr><td>TCELL51:OUT.10.TMIN</td><td>CFG.ECC_FAR21</td></tr>
+<tr><td>TCELL51:OUT.12.TMIN</td><td>CFG.ECC_FAR22</td></tr>
+<tr><td>TCELL51:OUT.14.TMIN</td><td>CFG.ECC_FAR23</td></tr>
+<tr><td>TCELL51:OUT.16.TMIN</td><td>CFG.ECC_FAR24</td></tr>
+<tr><td>TCELL51:OUT.18.TMIN</td><td>CFG.ECC_FAR25</td></tr>
+<tr><td>TCELL51:OUT.20.TMIN</td><td>CFG.RBCRC_ERROR</td></tr>
+<tr><td>TCELL51:OUT.22.TMIN</td><td>CFG.ECC_ERROR_NOTSINGLE</td></tr>
+<tr><td>TCELL51:OUT.24.TMIN</td><td>CFG.ECC_ERROR_SINGLE</td></tr>
+<tr><td>TCELL51:OUT.26.TMIN</td><td>CFG.ECC_END_OF_FRAME</td></tr>
+<tr><td>TCELL51:OUT.28.TMIN</td><td>CFG.ECC_END_OF_SCAN</td></tr>
+<tr><td>TCELL51:IMUX.IMUX.15.DELAY</td><td>CFG.ECC_FAR_SEL0</td></tr>
+<tr><td>TCELL51:IMUX.IMUX.16.DELAY</td><td>CFG.ECC_FAR_SEL1</td></tr>
+<tr><td>TCELL52:OUT.0.TMIN</td><td>CFG.ECC_FAR0</td></tr>
+<tr><td>TCELL52:OUT.2.TMIN</td><td>CFG.ECC_FAR1</td></tr>
+<tr><td>TCELL52:OUT.4.TMIN</td><td>CFG.ECC_FAR2</td></tr>
+<tr><td>TCELL52:OUT.6.TMIN</td><td>CFG.ECC_FAR3</td></tr>
+<tr><td>TCELL52:OUT.8.TMIN</td><td>CFG.ECC_FAR4</td></tr>
+<tr><td>TCELL52:OUT.10.TMIN</td><td>CFG.ECC_FAR5</td></tr>
+<tr><td>TCELL52:OUT.12.TMIN</td><td>CFG.ECC_FAR6</td></tr>
+<tr><td>TCELL52:OUT.14.TMIN</td><td>CFG.ECC_FAR7</td></tr>
+<tr><td>TCELL52:OUT.16.TMIN</td><td>CFG.ECC_FAR8</td></tr>
+<tr><td>TCELL52:OUT.18.TMIN</td><td>CFG.ECC_FAR9</td></tr>
+<tr><td>TCELL52:OUT.20.TMIN</td><td>CFG.ECC_FAR10</td></tr>
+<tr><td>TCELL52:OUT.22.TMIN</td><td>CFG.ECC_FAR11</td></tr>
+<tr><td>TCELL52:OUT.24.TMIN</td><td>CFG.ECC_FAR12</td></tr>
+<tr><td>TCELL52:OUT.26.TMIN</td><td>CFG.ECC_FAR13</td></tr>
+<tr><td>TCELL52:OUT.28.TMIN</td><td>CFG.ECC_FAR14</td></tr>
+<tr><td>TCELL52:OUT.30.TMIN</td><td>CFG.ECC_FAR15</td></tr>
+<tr><td>TCELL53:OUT.0.TMIN</td><td>CFG.BSCAN_SDR3</td></tr>
+<tr><td>TCELL53:OUT.2.TMIN</td><td>CFG.BSCAN_SDR4</td></tr>
+<tr><td>TCELL53:OUT.4.TMIN</td><td>CFG.BSCAN_SEL3</td></tr>
+<tr><td>TCELL53:OUT.6.TMIN</td><td>CFG.BSCAN_SEL4</td></tr>
+<tr><td>TCELL53:OUT.8.TMIN</td><td>CFG.BSCAN_TLR3</td></tr>
+<tr><td>TCELL53:OUT.10.TMIN</td><td>CFG.BSCAN_TLR4</td></tr>
+<tr><td>TCELL53:OUT.12.TMIN</td><td>CFG.BSCAN_UDR3</td></tr>
+<tr><td>TCELL53:OUT.14.TMIN</td><td>CFG.BSCAN_UDR4</td></tr>
+<tr><td>TCELL54:OUT.0.TMIN</td><td>CFG.ICAP_PR_DONE_TOP</td></tr>
+<tr><td>TCELL54:OUT.2.TMIN</td><td>CFG.ICAP_PR_ERROR_TOP</td></tr>
+<tr><td>TCELL54:OUT.4.TMIN</td><td>CFG.ICAP_AVAIL_TOP</td></tr>
+<tr><td>TCELL54:OUT.6.TMIN</td><td>CFG.BSCAN_TCK3</td></tr>
+<tr><td>TCELL54:OUT.8.TMIN</td><td>CFG.BSCAN_TCK4</td></tr>
+<tr><td>TCELL54:OUT.10.TMIN</td><td>CFG.BSCAN_TMS3</td></tr>
+<tr><td>TCELL54:OUT.12.TMIN</td><td>CFG.BSCAN_TMS4</td></tr>
+<tr><td>TCELL54:OUT.14.TMIN</td><td>CFG.BSCAN_TDI3</td></tr>
+<tr><td>TCELL54:OUT.16.TMIN</td><td>CFG.BSCAN_TDI4</td></tr>
+<tr><td>TCELL54:OUT.18.TMIN</td><td>CFG.BSCAN_CDR3</td></tr>
+<tr><td>TCELL54:OUT.20.TMIN</td><td>CFG.BSCAN_CDR4</td></tr>
+<tr><td>TCELL54:OUT.22.TMIN</td><td>CFG.BSCAN_CLKDR3</td></tr>
+<tr><td>TCELL54:OUT.24.TMIN</td><td>CFG.BSCAN_CLKDR4</td></tr>
+<tr><td>TCELL54:OUT.26.TMIN</td><td>CFG.BSCAN_RTI3</td></tr>
+<tr><td>TCELL54:OUT.28.TMIN</td><td>CFG.BSCAN_RTI4</td></tr>
+<tr><td>TCELL54:IMUX.IMUX.0.DELAY</td><td>CFG.ICAP_RDWR_B_TOP</td></tr>
+<tr><td>TCELL54:IMUX.IMUX.1.DELAY</td><td>CFG.ICAP_CS_B_TOP</td></tr>
+<tr><td>TCELL54:IMUX.IMUX.2.DELAY</td><td>CFG.BSCAN_TDO3</td></tr>
+<tr><td>TCELL54:IMUX.IMUX.3.DELAY</td><td>CFG.BSCAN_TDO4</td></tr>
+<tr><td>TCELL55:OUT.0.TMIN</td><td>CFG.ICAP_OUT_TOP0</td></tr>
+<tr><td>TCELL55:OUT.2.TMIN</td><td>CFG.ICAP_OUT_TOP1</td></tr>
+<tr><td>TCELL55:OUT.4.TMIN</td><td>CFG.ICAP_OUT_TOP2</td></tr>
+<tr><td>TCELL55:OUT.6.TMIN</td><td>CFG.ICAP_OUT_TOP3</td></tr>
+<tr><td>TCELL55:OUT.8.TMIN</td><td>CFG.ICAP_OUT_TOP4</td></tr>
+<tr><td>TCELL55:OUT.10.TMIN</td><td>CFG.ICAP_OUT_TOP5</td></tr>
+<tr><td>TCELL55:OUT.12.TMIN</td><td>CFG.ICAP_OUT_TOP6</td></tr>
+<tr><td>TCELL55:OUT.14.TMIN</td><td>CFG.ICAP_OUT_TOP7</td></tr>
+<tr><td>TCELL55:OUT.16.TMIN</td><td>CFG.ICAP_OUT_TOP8</td></tr>
+<tr><td>TCELL55:OUT.18.TMIN</td><td>CFG.ICAP_OUT_TOP9</td></tr>
+<tr><td>TCELL55:OUT.20.TMIN</td><td>CFG.ICAP_OUT_TOP10</td></tr>
+<tr><td>TCELL55:OUT.22.TMIN</td><td>CFG.ICAP_OUT_TOP11</td></tr>
+<tr><td>TCELL55:OUT.24.TMIN</td><td>CFG.ICAP_OUT_TOP12</td></tr>
+<tr><td>TCELL55:OUT.26.TMIN</td><td>CFG.ICAP_OUT_TOP13</td></tr>
+<tr><td>TCELL55:OUT.28.TMIN</td><td>CFG.ICAP_OUT_TOP14</td></tr>
+<tr><td>TCELL55:OUT.30.TMIN</td><td>CFG.ICAP_OUT_TOP15</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.0.DELAY</td><td>CFG.ICAP_DATA_TOP0</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.1.DELAY</td><td>CFG.ICAP_DATA_TOP1</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.2.DELAY</td><td>CFG.ICAP_DATA_TOP2</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.3.DELAY</td><td>CFG.ICAP_DATA_TOP3</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.4.DELAY</td><td>CFG.ICAP_DATA_TOP4</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.5.DELAY</td><td>CFG.ICAP_DATA_TOP5</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.6.DELAY</td><td>CFG.ICAP_DATA_TOP6</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.7.DELAY</td><td>CFG.ICAP_DATA_TOP7</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.8.DELAY</td><td>CFG.ICAP_DATA_TOP8</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.9.DELAY</td><td>CFG.ICAP_DATA_TOP9</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.10.DELAY</td><td>CFG.ICAP_DATA_TOP10</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.11.DELAY</td><td>CFG.ICAP_DATA_TOP11</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.12.DELAY</td><td>CFG.ICAP_DATA_TOP12</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.13.DELAY</td><td>CFG.ICAP_DATA_TOP13</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.14.DELAY</td><td>CFG.ICAP_DATA_TOP14</td></tr>
+<tr><td>TCELL55:IMUX.IMUX.15.DELAY</td><td>CFG.ICAP_DATA_TOP15</td></tr>
+<tr><td>TCELL56:OUT.0.TMIN</td><td>CFG.ICAP_OUT_TOP16</td></tr>
+<tr><td>TCELL56:OUT.2.TMIN</td><td>CFG.ICAP_OUT_TOP17</td></tr>
+<tr><td>TCELL56:OUT.4.TMIN</td><td>CFG.ICAP_OUT_TOP18</td></tr>
+<tr><td>TCELL56:OUT.6.TMIN</td><td>CFG.ICAP_OUT_TOP19</td></tr>
+<tr><td>TCELL56:OUT.8.TMIN</td><td>CFG.ICAP_OUT_TOP20</td></tr>
+<tr><td>TCELL56:OUT.10.TMIN</td><td>CFG.ICAP_OUT_TOP21</td></tr>
+<tr><td>TCELL56:OUT.12.TMIN</td><td>CFG.ICAP_OUT_TOP22</td></tr>
+<tr><td>TCELL56:OUT.14.TMIN</td><td>CFG.ICAP_OUT_TOP23</td></tr>
+<tr><td>TCELL56:OUT.16.TMIN</td><td>CFG.ICAP_OUT_TOP24</td></tr>
+<tr><td>TCELL56:OUT.18.TMIN</td><td>CFG.ICAP_OUT_TOP25</td></tr>
+<tr><td>TCELL56:OUT.20.TMIN</td><td>CFG.ICAP_OUT_TOP26</td></tr>
+<tr><td>TCELL56:OUT.22.TMIN</td><td>CFG.ICAP_OUT_TOP27</td></tr>
+<tr><td>TCELL56:OUT.24.TMIN</td><td>CFG.ICAP_OUT_TOP28</td></tr>
+<tr><td>TCELL56:OUT.26.TMIN</td><td>CFG.ICAP_OUT_TOP29</td></tr>
+<tr><td>TCELL56:OUT.28.TMIN</td><td>CFG.ICAP_OUT_TOP30</td></tr>
+<tr><td>TCELL56:OUT.30.TMIN</td><td>CFG.ICAP_OUT_TOP31</td></tr>
+<tr><td>TCELL56:IMUX.CTRL.0</td><td>CFG.ICAP_CLK_TOP_B</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.0.DELAY</td><td>CFG.ICAP_DATA_TOP16</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.1.DELAY</td><td>CFG.ICAP_DATA_TOP17</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.2.DELAY</td><td>CFG.ICAP_DATA_TOP18</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.3.DELAY</td><td>CFG.ICAP_DATA_TOP19</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.4.DELAY</td><td>CFG.ICAP_DATA_TOP20</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.5.DELAY</td><td>CFG.ICAP_DATA_TOP21</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.6.DELAY</td><td>CFG.ICAP_DATA_TOP22</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.7.DELAY</td><td>CFG.ICAP_DATA_TOP23</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.8.DELAY</td><td>CFG.ICAP_DATA_TOP24</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.9.DELAY</td><td>CFG.ICAP_DATA_TOP25</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.10.DELAY</td><td>CFG.ICAP_DATA_TOP26</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.11.DELAY</td><td>CFG.ICAP_DATA_TOP27</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.12.DELAY</td><td>CFG.ICAP_DATA_TOP28</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.13.DELAY</td><td>CFG.ICAP_DATA_TOP29</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.14.DELAY</td><td>CFG.ICAP_DATA_TOP30</td></tr>
+<tr><td>TCELL56:IMUX.IMUX.15.DELAY</td><td>CFG.ICAP_DATA_TOP31</td></tr>
+<tr><td>TCELL57:OUT.0.TMIN</td><td>CFG.USR_ACCESS_VALID</td></tr>
+<tr><td>TCELL57:OUT.2.TMIN</td><td>CFG.USR_ACCESS_CLK</td></tr>
+<tr><td>TCELL58:OUT.0.TMIN</td><td>CFG.USR_ACCESS_DATA0</td></tr>
+<tr><td>TCELL58:OUT.2.TMIN</td><td>CFG.USR_ACCESS_DATA1</td></tr>
+<tr><td>TCELL58:OUT.4.TMIN</td><td>CFG.USR_ACCESS_DATA2</td></tr>
+<tr><td>TCELL58:OUT.6.TMIN</td><td>CFG.USR_ACCESS_DATA3</td></tr>
+<tr><td>TCELL58:OUT.8.TMIN</td><td>CFG.USR_ACCESS_DATA4</td></tr>
+<tr><td>TCELL58:OUT.10.TMIN</td><td>CFG.USR_ACCESS_DATA5</td></tr>
+<tr><td>TCELL58:OUT.12.TMIN</td><td>CFG.USR_ACCESS_DATA6</td></tr>
+<tr><td>TCELL58:OUT.14.TMIN</td><td>CFG.USR_ACCESS_DATA7</td></tr>
+<tr><td>TCELL58:OUT.16.TMIN</td><td>CFG.USR_ACCESS_DATA8</td></tr>
+<tr><td>TCELL58:OUT.18.TMIN</td><td>CFG.USR_ACCESS_DATA9</td></tr>
+<tr><td>TCELL58:OUT.20.TMIN</td><td>CFG.USR_ACCESS_DATA10</td></tr>
+<tr><td>TCELL58:OUT.22.TMIN</td><td>CFG.USR_ACCESS_DATA11</td></tr>
+<tr><td>TCELL58:OUT.24.TMIN</td><td>CFG.USR_ACCESS_DATA12</td></tr>
+<tr><td>TCELL58:OUT.26.TMIN</td><td>CFG.USR_ACCESS_DATA13</td></tr>
+<tr><td>TCELL58:OUT.28.TMIN</td><td>CFG.USR_ACCESS_DATA14</td></tr>
+<tr><td>TCELL58:OUT.30.TMIN</td><td>CFG.USR_ACCESS_DATA15</td></tr>
+<tr><td>TCELL59:OUT.0.TMIN</td><td>CFG.USR_ACCESS_DATA16</td></tr>
+<tr><td>TCELL59:OUT.2.TMIN</td><td>CFG.USR_ACCESS_DATA17</td></tr>
+<tr><td>TCELL59:OUT.4.TMIN</td><td>CFG.USR_ACCESS_DATA18</td></tr>
+<tr><td>TCELL59:OUT.6.TMIN</td><td>CFG.USR_ACCESS_DATA19</td></tr>
+<tr><td>TCELL59:OUT.8.TMIN</td><td>CFG.USR_ACCESS_DATA20</td></tr>
+<tr><td>TCELL59:OUT.10.TMIN</td><td>CFG.USR_ACCESS_DATA21</td></tr>
+<tr><td>TCELL59:OUT.12.TMIN</td><td>CFG.USR_ACCESS_DATA22</td></tr>
+<tr><td>TCELL59:OUT.14.TMIN</td><td>CFG.USR_ACCESS_DATA23</td></tr>
+<tr><td>TCELL59:OUT.16.TMIN</td><td>CFG.USR_ACCESS_DATA24</td></tr>
+<tr><td>TCELL59:OUT.18.TMIN</td><td>CFG.USR_ACCESS_DATA25</td></tr>
+<tr><td>TCELL59:OUT.20.TMIN</td><td>CFG.USR_ACCESS_DATA26</td></tr>
+<tr><td>TCELL59:OUT.22.TMIN</td><td>CFG.USR_ACCESS_DATA27</td></tr>
+<tr><td>TCELL59:OUT.24.TMIN</td><td>CFG.USR_ACCESS_DATA28</td></tr>
+<tr><td>TCELL59:OUT.26.TMIN</td><td>CFG.USR_ACCESS_DATA29</td></tr>
+<tr><td>TCELL59:OUT.28.TMIN</td><td>CFG.USR_ACCESS_DATA30</td></tr>
+<tr><td>TCELL59:OUT.30.TMIN</td><td>CFG.USR_ACCESS_DATA31</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-cfgio"><a class="header" href="#tile-cfgio">Tile CFGIO</a></h2>
+<p>Cells: 30</p>
+<h3 id="bel-pmv"><a class="header" href="#bel-pmv">Bel PMV</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFGIO bel PMV</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT1_INTOP</td><td>output</td><td>TCELL15:OUT.18.TMIN</td></tr>
+<tr><td>OUT2_INTOP</td><td>output</td><td>TCELL15:OUT.17.TMIN</td></tr>
+<tr><td>OUT3_INTOP</td><td>output</td><td>TCELL16:OUT.21.TMIN</td></tr>
+<tr><td>OUT4_INTOP</td><td>output</td><td>TCELL16:OUT.20.TMIN</td></tr>
+<tr><td>PMV_EN1_INTIP</td><td>input</td><td>TCELL19:IMUX.IMUX.43.DELAY</td></tr>
+<tr><td>SPARE_IN1_INTIP0</td><td>input</td><td>TCELL19:IMUX.IMUX.44.DELAY</td></tr>
+<tr><td>SPARE_IN1_INTIP1</td><td>input</td><td>TCELL19:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>SPARE_IN1_INTIP2</td><td>input</td><td>TCELL19:IMUX.IMUX.45.DELAY</td></tr>
+<tr><td>SPARE_IN1_INTIP3</td><td>input</td><td>TCELL19:IMUX.IMUX.46.DELAY</td></tr>
+<tr><td>SPARE_IN1_INTIP4</td><td>input</td><td>TCELL19:IMUX.IMUX.47.DELAY</td></tr>
+<tr><td>SPARE_IN1_INTIP5</td><td>input</td><td>TCELL19:IMUX.IMUX.14.DELAY</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pmv2"><a class="header" href="#bel-pmv2">Bel PMV2</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFGIO bel PMV2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX_IN_INT0</td><td>input</td><td>TCELL25:IMUX.IMUX.38.DELAY</td></tr>
+<tr><td>IMUX_IN_INT1</td><td>input</td><td>TCELL25:IMUX.IMUX.41.DELAY</td></tr>
+<tr><td>IMUX_IN_INT2</td><td>input</td><td>TCELL25:IMUX.IMUX.40.DELAY</td></tr>
+<tr><td>IMUX_IN_INT3</td><td>input</td><td>TCELL25:IMUX.IMUX.39.DELAY</td></tr>
+<tr><td>OUTS_INT0</td><td>output</td><td>TCELL27:OUT.8.TMIN</td></tr>
+<tr><td>OUTS_INT1</td><td>output</td><td>TCELL27:OUT.4.TMIN</td></tr>
+<tr><td>OUTS_INT2</td><td>output</td><td>TCELL27:OUT.3.TMIN</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pmviob"><a class="header" href="#bel-pmviob">Bel PMVIOB</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFGIO bel PMVIOB</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_DIV2_HPIO_INTOP</td><td>output</td><td>TCELL24:OUT.11.TMIN</td></tr>
+<tr><td>OUT_DIV4_HPIO_INTOP</td><td>output</td><td>TCELL24:OUT.10.TMIN</td></tr>
+<tr><td>OUT_HPIO_INTOP</td><td>output</td><td>TCELL24:OUT.12.TMIN</td></tr>
+<tr><td>PMV_A_HPIO_INTIP0</td><td>input</td><td>TCELL24:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>PMV_A_HPIO_INTIP1</td><td>input</td><td>TCELL24:IMUX.IMUX.23.DELAY</td></tr>
+<tr><td>PMV_EN_HPIO_INTIP</td><td>input</td><td>TCELL24:IMUX.IMUX.25.DELAY</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-mtbf3"><a class="header" href="#bel-mtbf3">Bel MTBF3</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFGIO bel MTBF3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CAPTURE_CLK_INTIP</td><td>input</td><td>TCELL27:IMUX.IMUX.24.DELAY</td></tr>
+<tr><td>CAPTURE_Q_INTOP0</td><td>output</td><td>TCELL27:OUT.27.TMIN</td></tr>
+<tr><td>CAPTURE_Q_INTOP1</td><td>output</td><td>TCELL27:OUT.28.TMIN</td></tr>
+<tr><td>CAPTURE_Q_INTOP2</td><td>output</td><td>TCELL27:OUT.29.TMIN</td></tr>
+<tr><td>CAPTURE_Q_INTOP3</td><td>output</td><td>TCELL27:OUT.30.TMIN</td></tr>
+<tr><td>CAPTURE_Q_INTOP4</td><td>output</td><td>TCELL27:OUT.31.TMIN</td></tr>
+<tr><td>DATAIN_INTIP</td><td>input</td><td>TCELL27:IMUX.IMUX.26.DELAY</td></tr>
+<tr><td>FF_CLK_INTIP</td><td>input</td><td>TCELL27:IMUX.IMUX.25.DELAY</td></tr>
+<tr><td>FF_Q_INTOP0</td><td>output</td><td>TCELL27:OUT.22.TMIN</td></tr>
+<tr><td>FF_Q_INTOP1</td><td>output</td><td>TCELL27:OUT.23.TMIN</td></tr>
+<tr><td>FF_Q_INTOP2</td><td>output</td><td>TCELL27:OUT.24.TMIN</td></tr>
+<tr><td>FF_Q_INTOP3</td><td>output</td><td>TCELL27:OUT.25.TMIN</td></tr>
+<tr><td>FF_Q_INTOP4</td><td>output</td><td>TCELL27:OUT.26.TMIN</td></tr>
+<tr><td>OUTPUT_SEL_INTIP0</td><td>input</td><td>TCELL27:IMUX.IMUX.28.DELAY</td></tr>
+<tr><td>OUTPUT_SEL_INTIP1</td><td>input</td><td>TCELL27:IMUX.IMUX.29.DELAY</td></tr>
+<tr><td>OUTPUT_SEL_INTIP2</td><td>input</td><td>TCELL27:IMUX.IMUX.30.DELAY</td></tr>
+<tr><td>OUTPUT_SEL_INTIP3</td><td>input</td><td>TCELL27:IMUX.IMUX.31.DELAY</td></tr>
+<tr><td>RESET_INTIP</td><td>input</td><td>TCELL27:IMUX.IMUX.27.DELAY</td></tr>
+<tr><td>SYNC_ENABLE_INTIP</td><td>input</td><td>TCELL27:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>TOGGLE_SEL_INTIP</td><td>input</td><td>TCELL27:IMUX.IMUX.4.DELAY</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CFGIO bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL15:OUT.17.TMIN</td><td>PMV.OUT2_INTOP</td></tr>
+<tr><td>TCELL15:OUT.18.TMIN</td><td>PMV.OUT1_INTOP</td></tr>
+<tr><td>TCELL16:OUT.20.TMIN</td><td>PMV.OUT4_INTOP</td></tr>
+<tr><td>TCELL16:OUT.21.TMIN</td><td>PMV.OUT3_INTOP</td></tr>
+<tr><td>TCELL19:IMUX.IMUX.13.DELAY</td><td>PMV.SPARE_IN1_INTIP1</td></tr>
+<tr><td>TCELL19:IMUX.IMUX.14.DELAY</td><td>PMV.SPARE_IN1_INTIP5</td></tr>
+<tr><td>TCELL19:IMUX.IMUX.43.DELAY</td><td>PMV.PMV_EN1_INTIP</td></tr>
+<tr><td>TCELL19:IMUX.IMUX.44.DELAY</td><td>PMV.SPARE_IN1_INTIP0</td></tr>
+<tr><td>TCELL19:IMUX.IMUX.45.DELAY</td><td>PMV.SPARE_IN1_INTIP2</td></tr>
+<tr><td>TCELL19:IMUX.IMUX.46.DELAY</td><td>PMV.SPARE_IN1_INTIP3</td></tr>
+<tr><td>TCELL19:IMUX.IMUX.47.DELAY</td><td>PMV.SPARE_IN1_INTIP4</td></tr>
+<tr><td>TCELL24:OUT.10.TMIN</td><td>PMVIOB.OUT_DIV4_HPIO_INTOP</td></tr>
+<tr><td>TCELL24:OUT.11.TMIN</td><td>PMVIOB.OUT_DIV2_HPIO_INTOP</td></tr>
+<tr><td>TCELL24:OUT.12.TMIN</td><td>PMVIOB.OUT_HPIO_INTOP</td></tr>
+<tr><td>TCELL24:IMUX.IMUX.3.DELAY</td><td>PMVIOB.PMV_A_HPIO_INTIP0</td></tr>
+<tr><td>TCELL24:IMUX.IMUX.23.DELAY</td><td>PMVIOB.PMV_A_HPIO_INTIP1</td></tr>
+<tr><td>TCELL24:IMUX.IMUX.25.DELAY</td><td>PMVIOB.PMV_EN_HPIO_INTIP</td></tr>
+<tr><td>TCELL25:IMUX.IMUX.38.DELAY</td><td>PMV2.IMUX_IN_INT0</td></tr>
+<tr><td>TCELL25:IMUX.IMUX.39.DELAY</td><td>PMV2.IMUX_IN_INT3</td></tr>
+<tr><td>TCELL25:IMUX.IMUX.40.DELAY</td><td>PMV2.IMUX_IN_INT2</td></tr>
+<tr><td>TCELL25:IMUX.IMUX.41.DELAY</td><td>PMV2.IMUX_IN_INT1</td></tr>
+<tr><td>TCELL27:OUT.3.TMIN</td><td>PMV2.OUTS_INT2</td></tr>
+<tr><td>TCELL27:OUT.4.TMIN</td><td>PMV2.OUTS_INT1</td></tr>
+<tr><td>TCELL27:OUT.8.TMIN</td><td>PMV2.OUTS_INT0</td></tr>
+<tr><td>TCELL27:OUT.22.TMIN</td><td>MTBF3.FF_Q_INTOP0</td></tr>
+<tr><td>TCELL27:OUT.23.TMIN</td><td>MTBF3.FF_Q_INTOP1</td></tr>
+<tr><td>TCELL27:OUT.24.TMIN</td><td>MTBF3.FF_Q_INTOP2</td></tr>
+<tr><td>TCELL27:OUT.25.TMIN</td><td>MTBF3.FF_Q_INTOP3</td></tr>
+<tr><td>TCELL27:OUT.26.TMIN</td><td>MTBF3.FF_Q_INTOP4</td></tr>
+<tr><td>TCELL27:OUT.27.TMIN</td><td>MTBF3.CAPTURE_Q_INTOP0</td></tr>
+<tr><td>TCELL27:OUT.28.TMIN</td><td>MTBF3.CAPTURE_Q_INTOP1</td></tr>
+<tr><td>TCELL27:OUT.29.TMIN</td><td>MTBF3.CAPTURE_Q_INTOP2</td></tr>
+<tr><td>TCELL27:OUT.30.TMIN</td><td>MTBF3.CAPTURE_Q_INTOP3</td></tr>
+<tr><td>TCELL27:OUT.31.TMIN</td><td>MTBF3.CAPTURE_Q_INTOP4</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.4.DELAY</td><td>MTBF3.TOGGLE_SEL_INTIP</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.5.DELAY</td><td>MTBF3.SYNC_ENABLE_INTIP</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.24.DELAY</td><td>MTBF3.CAPTURE_CLK_INTIP</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.25.DELAY</td><td>MTBF3.FF_CLK_INTIP</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.26.DELAY</td><td>MTBF3.DATAIN_INTIP</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.27.DELAY</td><td>MTBF3.RESET_INTIP</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.28.DELAY</td><td>MTBF3.OUTPUT_SEL_INTIP0</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.29.DELAY</td><td>MTBF3.OUTPUT_SEL_INTIP1</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.30.DELAY</td><td>MTBF3.OUTPUT_SEL_INTIP2</td></tr>
+<tr><td>TCELL27:IMUX.IMUX.31.DELAY</td><td>MTBF3.OUTPUT_SEL_INTIP3</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-ams"><a class="header" href="#tile-ams">Tile AMS</a></h2>
+<p>Cells: 30</p>
+<h3 id="bel-sysmon"><a class="header" href="#bel-sysmon">Bel SYSMON</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale AMS bel SYSMON</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALM0</td><td>output</td><td>TCELL7:OUT.0.TMIN</td></tr>
+<tr><td>ALM1</td><td>output</td><td>TCELL7:OUT.1.TMIN</td></tr>
+<tr><td>ALM10</td><td>output</td><td>TCELL7:OUT.10.TMIN</td></tr>
+<tr><td>ALM11</td><td>output</td><td>TCELL7:OUT.11.TMIN</td></tr>
+<tr><td>ALM12</td><td>output</td><td>TCELL7:OUT.12.TMIN</td></tr>
+<tr><td>ALM13</td><td>output</td><td>TCELL7:OUT.13.TMIN</td></tr>
+<tr><td>ALM14</td><td>output</td><td>TCELL7:OUT.14.TMIN</td></tr>
+<tr><td>ALM15</td><td>output</td><td>TCELL7:OUT.15.TMIN</td></tr>
+<tr><td>ALM2</td><td>output</td><td>TCELL7:OUT.2.TMIN</td></tr>
+<tr><td>ALM3</td><td>output</td><td>TCELL7:OUT.3.TMIN</td></tr>
+<tr><td>ALM4</td><td>output</td><td>TCELL7:OUT.4.TMIN</td></tr>
+<tr><td>ALM5</td><td>output</td><td>TCELL7:OUT.5.TMIN</td></tr>
+<tr><td>ALM6</td><td>output</td><td>TCELL7:OUT.6.TMIN</td></tr>
+<tr><td>ALM7</td><td>output</td><td>TCELL7:OUT.7.TMIN</td></tr>
+<tr><td>ALM8</td><td>output</td><td>TCELL7:OUT.8.TMIN</td></tr>
+<tr><td>ALM9</td><td>output</td><td>TCELL7:OUT.9.TMIN</td></tr>
+<tr><td>BUSY</td><td>output</td><td>TCELL7:OUT.17.TMIN</td></tr>
+<tr><td>CHANNEL0</td><td>output</td><td>TCELL7:OUT.18.TMIN</td></tr>
+<tr><td>CHANNEL1</td><td>output</td><td>TCELL7:OUT.19.TMIN</td></tr>
+<tr><td>CHANNEL2</td><td>output</td><td>TCELL7:OUT.20.TMIN</td></tr>
+<tr><td>CHANNEL3</td><td>output</td><td>TCELL7:OUT.21.TMIN</td></tr>
+<tr><td>CHANNEL4</td><td>output</td><td>TCELL7:OUT.22.TMIN</td></tr>
+<tr><td>CHANNEL5</td><td>output</td><td>TCELL7:OUT.23.TMIN</td></tr>
+<tr><td>CONVST</td><td>input</td><td>TCELL7:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>CONVST_CLK_B</td><td>input</td><td>TCELL6:IMUX.CTRL.1</td></tr>
+<tr><td>DADDR0</td><td>input</td><td>TCELL0:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>DADDR1</td><td>input</td><td>TCELL0:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>DADDR2</td><td>input</td><td>TCELL0:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>DADDR3</td><td>input</td><td>TCELL0:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>DADDR4</td><td>input</td><td>TCELL0:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>DADDR5</td><td>input</td><td>TCELL0:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>DADDR6</td><td>input</td><td>TCELL0:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>DADDR7</td><td>input</td><td>TCELL0:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>DATA_READY_ADC1_F</td><td>input</td><td>TCELL0:IMUX.IMUX.24.DELAY</td></tr>
+<tr><td>DATA_READY_ADC2_F</td><td>input</td><td>TCELL0:IMUX.IMUX.25.DELAY</td></tr>
+<tr><td>DCLK_B</td><td>input</td><td>TCELL6:IMUX.CTRL.0</td></tr>
+<tr><td>DEC_OUT_ADC1_F0</td><td>input</td><td>TCELL0:IMUX.IMUX.26.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F1</td><td>input</td><td>TCELL0:IMUX.IMUX.27.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F10</td><td>input</td><td>TCELL0:IMUX.IMUX.36.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F11</td><td>input</td><td>TCELL0:IMUX.IMUX.37.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F12</td><td>input</td><td>TCELL0:IMUX.IMUX.38.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F13</td><td>input</td><td>TCELL0:IMUX.IMUX.39.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F14</td><td>input</td><td>TCELL0:IMUX.IMUX.40.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F15</td><td>input</td><td>TCELL0:IMUX.IMUX.41.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F2</td><td>input</td><td>TCELL0:IMUX.IMUX.28.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F3</td><td>input</td><td>TCELL0:IMUX.IMUX.29.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F4</td><td>input</td><td>TCELL0:IMUX.IMUX.30.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F5</td><td>input</td><td>TCELL0:IMUX.IMUX.31.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F6</td><td>input</td><td>TCELL0:IMUX.IMUX.32.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F7</td><td>input</td><td>TCELL0:IMUX.IMUX.33.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F8</td><td>input</td><td>TCELL0:IMUX.IMUX.34.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC1_F9</td><td>input</td><td>TCELL0:IMUX.IMUX.35.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F0</td><td>input</td><td>TCELL7:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F1</td><td>input</td><td>TCELL7:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F10</td><td>input</td><td>TCELL7:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F11</td><td>input</td><td>TCELL7:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F12</td><td>input</td><td>TCELL7:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F13</td><td>input</td><td>TCELL7:IMUX.IMUX.16.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F14</td><td>input</td><td>TCELL7:IMUX.IMUX.17.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F15</td><td>input</td><td>TCELL7:IMUX.IMUX.18.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F2</td><td>input</td><td>TCELL7:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F3</td><td>input</td><td>TCELL7:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F4</td><td>input</td><td>TCELL7:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F5</td><td>input</td><td>TCELL7:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F6</td><td>input</td><td>TCELL7:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F7</td><td>input</td><td>TCELL7:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F8</td><td>input</td><td>TCELL7:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>DEC_OUT_ADC2_F9</td><td>input</td><td>TCELL7:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>DEN</td><td>input</td><td>TCELL7:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>DI0</td><td>input</td><td>TCELL0:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>DI1</td><td>input</td><td>TCELL0:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>DI10</td><td>input</td><td>TCELL0:IMUX.IMUX.18.DELAY</td></tr>
+<tr><td>DI11</td><td>input</td><td>TCELL0:IMUX.IMUX.19.DELAY</td></tr>
+<tr><td>DI12</td><td>input</td><td>TCELL0:IMUX.IMUX.20.DELAY</td></tr>
+<tr><td>DI13</td><td>input</td><td>TCELL0:IMUX.IMUX.21.DELAY</td></tr>
+<tr><td>DI14</td><td>input</td><td>TCELL0:IMUX.IMUX.22.DELAY</td></tr>
+<tr><td>DI15</td><td>input</td><td>TCELL0:IMUX.IMUX.23.DELAY</td></tr>
+<tr><td>DI2</td><td>input</td><td>TCELL0:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>DI3</td><td>input</td><td>TCELL0:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>DI4</td><td>input</td><td>TCELL0:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>DI5</td><td>input</td><td>TCELL0:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>DI6</td><td>input</td><td>TCELL0:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>DI7</td><td>input</td><td>TCELL0:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>DI8</td><td>input</td><td>TCELL0:IMUX.IMUX.16.DELAY</td></tr>
+<tr><td>DI9</td><td>input</td><td>TCELL0:IMUX.IMUX.17.DELAY</td></tr>
+<tr><td>DOUT0</td><td>output</td><td>TCELL6:OUT.0.TMIN</td></tr>
+<tr><td>DOUT1</td><td>output</td><td>TCELL6:OUT.1.TMIN</td></tr>
+<tr><td>DOUT10</td><td>output</td><td>TCELL6:OUT.10.TMIN</td></tr>
+<tr><td>DOUT11</td><td>output</td><td>TCELL6:OUT.11.TMIN</td></tr>
+<tr><td>DOUT12</td><td>output</td><td>TCELL6:OUT.12.TMIN</td></tr>
+<tr><td>DOUT13</td><td>output</td><td>TCELL6:OUT.13.TMIN</td></tr>
+<tr><td>DOUT14</td><td>output</td><td>TCELL6:OUT.14.TMIN</td></tr>
+<tr><td>DOUT15</td><td>output</td><td>TCELL6:OUT.15.TMIN</td></tr>
+<tr><td>DOUT2</td><td>output</td><td>TCELL6:OUT.2.TMIN</td></tr>
+<tr><td>DOUT3</td><td>output</td><td>TCELL6:OUT.3.TMIN</td></tr>
+<tr><td>DOUT4</td><td>output</td><td>TCELL6:OUT.4.TMIN</td></tr>
+<tr><td>DOUT5</td><td>output</td><td>TCELL6:OUT.5.TMIN</td></tr>
+<tr><td>DOUT6</td><td>output</td><td>TCELL6:OUT.6.TMIN</td></tr>
+<tr><td>DOUT7</td><td>output</td><td>TCELL6:OUT.7.TMIN</td></tr>
+<tr><td>DOUT8</td><td>output</td><td>TCELL6:OUT.8.TMIN</td></tr>
+<tr><td>DOUT9</td><td>output</td><td>TCELL6:OUT.9.TMIN</td></tr>
+<tr><td>DRDY</td><td>output</td><td>TCELL7:OUT.16.TMIN</td></tr>
+<tr><td>DWE</td><td>input</td><td>TCELL7:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>EOC</td><td>output</td><td>TCELL7:OUT.24.TMIN</td></tr>
+<tr><td>EOS</td><td>output</td><td>TCELL7:OUT.25.TMIN</td></tr>
+<tr><td>JTAG_BUSY</td><td>output</td><td>TCELL6:OUT.16.TMIN</td></tr>
+<tr><td>JTAG_LOCKED</td><td>output</td><td>TCELL6:OUT.17.TMIN</td></tr>
+<tr><td>JTAG_MODIFIED</td><td>output</td><td>TCELL6:OUT.18.TMIN</td></tr>
+<tr><td>MUX_ADDR0</td><td>output</td><td>TCELL7:OUT.26.TMIN</td></tr>
+<tr><td>MUX_ADDR1</td><td>output</td><td>TCELL7:OUT.27.TMIN</td></tr>
+<tr><td>MUX_ADDR2</td><td>output</td><td>TCELL7:OUT.28.TMIN</td></tr>
+<tr><td>MUX_ADDR3</td><td>output</td><td>TCELL7:OUT.29.TMIN</td></tr>
+<tr><td>MUX_ADDR4</td><td>output</td><td>TCELL7:OUT.30.TMIN</td></tr>
+<tr><td>OT</td><td>output</td><td>TCELL7:OUT.31.TMIN</td></tr>
+<tr><td>RESET_USER_B</td><td>input</td><td>TCELL6:IMUX.CTRL.2</td></tr>
+<tr><td>TEST_ADC_CLK_B0</td><td>input</td><td>TCELL6:IMUX.CTRL.3</td></tr>
+<tr><td>TEST_ADC_CLK_B1</td><td>input</td><td>TCELL6:IMUX.CTRL.4</td></tr>
+<tr><td>TEST_ADC_CLK_B2</td><td>input</td><td>TCELL6:IMUX.CTRL.5</td></tr>
+<tr><td>TEST_ADC_CLK_B3</td><td>input</td><td>TCELL6:IMUX.CTRL.6</td></tr>
+<tr><td>TEST_ADC_IN0</td><td>input</td><td>TCELL6:IMUX.IMUX.20.DELAY</td></tr>
+<tr><td>TEST_ADC_IN1</td><td>input</td><td>TCELL6:IMUX.IMUX.21.DELAY</td></tr>
+<tr><td>TEST_ADC_IN10</td><td>input</td><td>TCELL6:IMUX.IMUX.30.DELAY</td></tr>
+<tr><td>TEST_ADC_IN11</td><td>input</td><td>TCELL6:IMUX.IMUX.31.DELAY</td></tr>
+<tr><td>TEST_ADC_IN12</td><td>input</td><td>TCELL6:IMUX.IMUX.32.DELAY</td></tr>
+<tr><td>TEST_ADC_IN13</td><td>input</td><td>TCELL6:IMUX.IMUX.33.DELAY</td></tr>
+<tr><td>TEST_ADC_IN14</td><td>input</td><td>TCELL6:IMUX.IMUX.34.DELAY</td></tr>
+<tr><td>TEST_ADC_IN15</td><td>input</td><td>TCELL6:IMUX.IMUX.35.DELAY</td></tr>
+<tr><td>TEST_ADC_IN16</td><td>input</td><td>TCELL6:IMUX.IMUX.36.DELAY</td></tr>
+<tr><td>TEST_ADC_IN17</td><td>input</td><td>TCELL6:IMUX.IMUX.37.DELAY</td></tr>
+<tr><td>TEST_ADC_IN18</td><td>input</td><td>TCELL6:IMUX.IMUX.38.DELAY</td></tr>
+<tr><td>TEST_ADC_IN19</td><td>input</td><td>TCELL6:IMUX.IMUX.39.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2</td><td>input</td><td>TCELL6:IMUX.IMUX.22.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_0</td><td>input</td><td>TCELL6:IMUX.IMUX.0.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_1</td><td>input</td><td>TCELL6:IMUX.IMUX.1.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_10</td><td>input</td><td>TCELL6:IMUX.IMUX.10.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_11</td><td>input</td><td>TCELL6:IMUX.IMUX.11.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_12</td><td>input</td><td>TCELL6:IMUX.IMUX.12.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_13</td><td>input</td><td>TCELL6:IMUX.IMUX.13.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_14</td><td>input</td><td>TCELL6:IMUX.IMUX.14.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_15</td><td>input</td><td>TCELL6:IMUX.IMUX.15.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_16</td><td>input</td><td>TCELL6:IMUX.IMUX.16.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_17</td><td>input</td><td>TCELL6:IMUX.IMUX.17.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_18</td><td>input</td><td>TCELL6:IMUX.IMUX.18.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_19</td><td>input</td><td>TCELL6:IMUX.IMUX.19.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_2</td><td>input</td><td>TCELL6:IMUX.IMUX.2.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_3</td><td>input</td><td>TCELL6:IMUX.IMUX.3.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_4</td><td>input</td><td>TCELL6:IMUX.IMUX.4.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_5</td><td>input</td><td>TCELL6:IMUX.IMUX.5.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_6</td><td>input</td><td>TCELL6:IMUX.IMUX.6.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_7</td><td>input</td><td>TCELL6:IMUX.IMUX.7.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_8</td><td>input</td><td>TCELL6:IMUX.IMUX.8.DELAY</td></tr>
+<tr><td>TEST_ADC_IN2_9</td><td>input</td><td>TCELL6:IMUX.IMUX.9.DELAY</td></tr>
+<tr><td>TEST_ADC_IN3</td><td>input</td><td>TCELL6:IMUX.IMUX.23.DELAY</td></tr>
+<tr><td>TEST_ADC_IN4</td><td>input</td><td>TCELL6:IMUX.IMUX.24.DELAY</td></tr>
+<tr><td>TEST_ADC_IN5</td><td>input</td><td>TCELL6:IMUX.IMUX.25.DELAY</td></tr>
+<tr><td>TEST_ADC_IN6</td><td>input</td><td>TCELL6:IMUX.IMUX.26.DELAY</td></tr>
+<tr><td>TEST_ADC_IN7</td><td>input</td><td>TCELL6:IMUX.IMUX.27.DELAY</td></tr>
+<tr><td>TEST_ADC_IN8</td><td>input</td><td>TCELL6:IMUX.IMUX.28.DELAY</td></tr>
+<tr><td>TEST_ADC_IN9</td><td>input</td><td>TCELL6:IMUX.IMUX.29.DELAY</td></tr>
+<tr><td>TEST_ADC_OUT0</td><td>output</td><td>TCELL0:OUT.0.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT1</td><td>output</td><td>TCELL0:OUT.1.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT10</td><td>output</td><td>TCELL6:OUT.19.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT11</td><td>output</td><td>TCELL6:OUT.20.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT12</td><td>output</td><td>TCELL6:OUT.21.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT13</td><td>output</td><td>TCELL6:OUT.22.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT14</td><td>output</td><td>TCELL6:OUT.23.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT15</td><td>output</td><td>TCELL6:OUT.24.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT16</td><td>output</td><td>TCELL6:OUT.25.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT17</td><td>output</td><td>TCELL6:OUT.26.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT18</td><td>output</td><td>TCELL6:OUT.27.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT19</td><td>output</td><td>TCELL6:OUT.28.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT2</td><td>output</td><td>TCELL0:OUT.2.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT3</td><td>output</td><td>TCELL0:OUT.3.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT4</td><td>output</td><td>TCELL6:OUT.29.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT5</td><td>output</td><td>TCELL0:OUT.5.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT6</td><td>output</td><td>TCELL0:OUT.6.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT7</td><td>output</td><td>TCELL0:OUT.7.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT8</td><td>output</td><td>TCELL0:OUT.8.TMIN</td></tr>
+<tr><td>TEST_ADC_OUT9</td><td>output</td><td>TCELL0:OUT.9.TMIN</td></tr>
+<tr><td>TEST_CAPTURE</td><td>input</td><td>TCELL7:IMUX.IMUX.19.DELAY</td></tr>
+<tr><td>TEST_DB0</td><td>output</td><td>TCELL0:OUT.10.TMIN</td></tr>
+<tr><td>TEST_DB1</td><td>output</td><td>TCELL0:OUT.11.TMIN</td></tr>
+<tr><td>TEST_DB10</td><td>output</td><td>TCELL0:OUT.20.TMIN</td></tr>
+<tr><td>TEST_DB11</td><td>output</td><td>TCELL0:OUT.21.TMIN</td></tr>
+<tr><td>TEST_DB12</td><td>output</td><td>TCELL0:OUT.22.TMIN</td></tr>
+<tr><td>TEST_DB13</td><td>output</td><td>TCELL0:OUT.23.TMIN</td></tr>
+<tr><td>TEST_DB14</td><td>output</td><td>TCELL0:OUT.24.TMIN</td></tr>
+<tr><td>TEST_DB15</td><td>output</td><td>TCELL0:OUT.25.TMIN</td></tr>
+<tr><td>TEST_DB2</td><td>output</td><td>TCELL0:OUT.12.TMIN</td></tr>
+<tr><td>TEST_DB3</td><td>output</td><td>TCELL0:OUT.13.TMIN</td></tr>
+<tr><td>TEST_DB4</td><td>output</td><td>TCELL0:OUT.14.TMIN</td></tr>
+<tr><td>TEST_DB5</td><td>output</td><td>TCELL0:OUT.15.TMIN</td></tr>
+<tr><td>TEST_DB6</td><td>output</td><td>TCELL0:OUT.16.TMIN</td></tr>
+<tr><td>TEST_DB7</td><td>output</td><td>TCELL0:OUT.17.TMIN</td></tr>
+<tr><td>TEST_DB8</td><td>output</td><td>TCELL0:OUT.18.TMIN</td></tr>
+<tr><td>TEST_DB9</td><td>output</td><td>TCELL0:OUT.19.TMIN</td></tr>
+<tr><td>TEST_DRCK</td><td>input</td><td>TCELL7:IMUX.IMUX.20.DELAY</td></tr>
+<tr><td>TEST_EN_JTAG</td><td>input</td><td>TCELL7:IMUX.IMUX.21.DELAY</td></tr>
+<tr><td>TEST_RST</td><td>input</td><td>TCELL7:IMUX.IMUX.22.DELAY</td></tr>
+<tr><td>TEST_SCAN_CLK0</td><td>input</td><td>TCELL7:IMUX.IMUX.27.DELAY</td></tr>
+<tr><td>TEST_SCAN_CLK1</td><td>input</td><td>TCELL7:IMUX.IMUX.28.DELAY</td></tr>
+<tr><td>TEST_SCAN_CLK2</td><td>input</td><td>TCELL7:IMUX.IMUX.29.DELAY</td></tr>
+<tr><td>TEST_SCAN_CLK3</td><td>input</td><td>TCELL7:IMUX.IMUX.30.DELAY</td></tr>
+<tr><td>TEST_SCAN_CLK4</td><td>input</td><td>TCELL7:IMUX.IMUX.31.DELAY</td></tr>
+<tr><td>TEST_SCAN_MODE0</td><td>input</td><td>TCELL7:IMUX.IMUX.32.DELAY</td></tr>
+<tr><td>TEST_SCAN_MODE1</td><td>input</td><td>TCELL7:IMUX.IMUX.33.DELAY</td></tr>
+<tr><td>TEST_SCAN_MODE2</td><td>input</td><td>TCELL7:IMUX.IMUX.34.DELAY</td></tr>
+<tr><td>TEST_SCAN_MODE3</td><td>input</td><td>TCELL7:IMUX.IMUX.35.DELAY</td></tr>
+<tr><td>TEST_SCAN_MODE4</td><td>input</td><td>TCELL7:IMUX.IMUX.36.DELAY</td></tr>
+<tr><td>TEST_SCAN_RESET</td><td>input</td><td>TCELL7:IMUX.IMUX.37.DELAY</td></tr>
+<tr><td>TEST_SE0</td><td>input</td><td>TCELL7:IMUX.IMUX.38.DELAY</td></tr>
+<tr><td>TEST_SE1</td><td>input</td><td>TCELL7:IMUX.IMUX.39.DELAY</td></tr>
+<tr><td>TEST_SE2</td><td>input</td><td>TCELL7:IMUX.IMUX.40.DELAY</td></tr>
+<tr><td>TEST_SE3</td><td>input</td><td>TCELL7:IMUX.IMUX.41.DELAY</td></tr>
+<tr><td>TEST_SE4</td><td>input</td><td>TCELL7:IMUX.IMUX.42.DELAY</td></tr>
+<tr><td>TEST_SEL</td><td>input</td><td>TCELL7:IMUX.IMUX.23.DELAY</td></tr>
+<tr><td>TEST_SHIFT</td><td>input</td><td>TCELL7:IMUX.IMUX.24.DELAY</td></tr>
+<tr><td>TEST_SI0</td><td>input</td><td>TCELL7:IMUX.IMUX.43.DELAY</td></tr>
+<tr><td>TEST_SI1</td><td>input</td><td>TCELL7:IMUX.IMUX.44.DELAY</td></tr>
+<tr><td>TEST_SI2</td><td>input</td><td>TCELL7:IMUX.IMUX.45.DELAY</td></tr>
+<tr><td>TEST_SI3</td><td>input</td><td>TCELL7:IMUX.IMUX.46.DELAY</td></tr>
+<tr><td>TEST_SI4</td><td>input</td><td>TCELL7:IMUX.IMUX.47.DELAY</td></tr>
+<tr><td>TEST_SO0</td><td>output</td><td>TCELL0:OUT.26.TMIN</td></tr>
+<tr><td>TEST_SO1</td><td>output</td><td>TCELL0:OUT.27.TMIN</td></tr>
+<tr><td>TEST_SO2</td><td>output</td><td>TCELL0:OUT.28.TMIN</td></tr>
+<tr><td>TEST_SO3</td><td>output</td><td>TCELL0:OUT.29.TMIN</td></tr>
+<tr><td>TEST_SO4</td><td>output</td><td>TCELL0:OUT.30.TMIN</td></tr>
+<tr><td>TEST_TDI</td><td>input</td><td>TCELL7:IMUX.IMUX.25.DELAY</td></tr>
+<tr><td>TEST_TDO</td><td>output</td><td>TCELL0:OUT.31.TMIN</td></tr>
+<tr><td>TEST_UPDATE</td><td>input</td><td>TCELL7:IMUX.IMUX.26.DELAY</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale AMS bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:OUT.0.TMIN</td><td>SYSMON.TEST_ADC_OUT0</td></tr>
+<tr><td>TCELL0:OUT.1.TMIN</td><td>SYSMON.TEST_ADC_OUT1</td></tr>
+<tr><td>TCELL0:OUT.2.TMIN</td><td>SYSMON.TEST_ADC_OUT2</td></tr>
+<tr><td>TCELL0:OUT.3.TMIN</td><td>SYSMON.TEST_ADC_OUT3</td></tr>
+<tr><td>TCELL0:OUT.5.TMIN</td><td>SYSMON.TEST_ADC_OUT5</td></tr>
+<tr><td>TCELL0:OUT.6.TMIN</td><td>SYSMON.TEST_ADC_OUT6</td></tr>
+<tr><td>TCELL0:OUT.7.TMIN</td><td>SYSMON.TEST_ADC_OUT7</td></tr>
+<tr><td>TCELL0:OUT.8.TMIN</td><td>SYSMON.TEST_ADC_OUT8</td></tr>
+<tr><td>TCELL0:OUT.9.TMIN</td><td>SYSMON.TEST_ADC_OUT9</td></tr>
+<tr><td>TCELL0:OUT.10.TMIN</td><td>SYSMON.TEST_DB0</td></tr>
+<tr><td>TCELL0:OUT.11.TMIN</td><td>SYSMON.TEST_DB1</td></tr>
+<tr><td>TCELL0:OUT.12.TMIN</td><td>SYSMON.TEST_DB2</td></tr>
+<tr><td>TCELL0:OUT.13.TMIN</td><td>SYSMON.TEST_DB3</td></tr>
+<tr><td>TCELL0:OUT.14.TMIN</td><td>SYSMON.TEST_DB4</td></tr>
+<tr><td>TCELL0:OUT.15.TMIN</td><td>SYSMON.TEST_DB5</td></tr>
+<tr><td>TCELL0:OUT.16.TMIN</td><td>SYSMON.TEST_DB6</td></tr>
+<tr><td>TCELL0:OUT.17.TMIN</td><td>SYSMON.TEST_DB7</td></tr>
+<tr><td>TCELL0:OUT.18.TMIN</td><td>SYSMON.TEST_DB8</td></tr>
+<tr><td>TCELL0:OUT.19.TMIN</td><td>SYSMON.TEST_DB9</td></tr>
+<tr><td>TCELL0:OUT.20.TMIN</td><td>SYSMON.TEST_DB10</td></tr>
+<tr><td>TCELL0:OUT.21.TMIN</td><td>SYSMON.TEST_DB11</td></tr>
+<tr><td>TCELL0:OUT.22.TMIN</td><td>SYSMON.TEST_DB12</td></tr>
+<tr><td>TCELL0:OUT.23.TMIN</td><td>SYSMON.TEST_DB13</td></tr>
+<tr><td>TCELL0:OUT.24.TMIN</td><td>SYSMON.TEST_DB14</td></tr>
+<tr><td>TCELL0:OUT.25.TMIN</td><td>SYSMON.TEST_DB15</td></tr>
+<tr><td>TCELL0:OUT.26.TMIN</td><td>SYSMON.TEST_SO0</td></tr>
+<tr><td>TCELL0:OUT.27.TMIN</td><td>SYSMON.TEST_SO1</td></tr>
+<tr><td>TCELL0:OUT.28.TMIN</td><td>SYSMON.TEST_SO2</td></tr>
+<tr><td>TCELL0:OUT.29.TMIN</td><td>SYSMON.TEST_SO3</td></tr>
+<tr><td>TCELL0:OUT.30.TMIN</td><td>SYSMON.TEST_SO4</td></tr>
+<tr><td>TCELL0:OUT.31.TMIN</td><td>SYSMON.TEST_TDO</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.0.DELAY</td><td>SYSMON.DADDR0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.1.DELAY</td><td>SYSMON.DADDR1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.2.DELAY</td><td>SYSMON.DADDR2</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.3.DELAY</td><td>SYSMON.DADDR3</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.4.DELAY</td><td>SYSMON.DADDR4</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.5.DELAY</td><td>SYSMON.DADDR5</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.6.DELAY</td><td>SYSMON.DADDR6</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.7.DELAY</td><td>SYSMON.DADDR7</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.8.DELAY</td><td>SYSMON.DI0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.9.DELAY</td><td>SYSMON.DI1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.10.DELAY</td><td>SYSMON.DI2</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.11.DELAY</td><td>SYSMON.DI3</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.12.DELAY</td><td>SYSMON.DI4</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.13.DELAY</td><td>SYSMON.DI5</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.14.DELAY</td><td>SYSMON.DI6</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.15.DELAY</td><td>SYSMON.DI7</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.16.DELAY</td><td>SYSMON.DI8</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.17.DELAY</td><td>SYSMON.DI9</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.18.DELAY</td><td>SYSMON.DI10</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.19.DELAY</td><td>SYSMON.DI11</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.20.DELAY</td><td>SYSMON.DI12</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.21.DELAY</td><td>SYSMON.DI13</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.22.DELAY</td><td>SYSMON.DI14</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.23.DELAY</td><td>SYSMON.DI15</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.24.DELAY</td><td>SYSMON.DATA_READY_ADC1_F</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.25.DELAY</td><td>SYSMON.DATA_READY_ADC2_F</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.26.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.27.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.28.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F2</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.29.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F3</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.30.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F4</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.31.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F5</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.32.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F6</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.33.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F7</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.34.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F8</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.35.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F9</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.36.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F10</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.37.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F11</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.38.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F12</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.39.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F13</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.40.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F14</td></tr>
+<tr><td>TCELL0:IMUX.IMUX.41.DELAY</td><td>SYSMON.DEC_OUT_ADC1_F15</td></tr>
+<tr><td>TCELL6:OUT.0.TMIN</td><td>SYSMON.DOUT0</td></tr>
+<tr><td>TCELL6:OUT.1.TMIN</td><td>SYSMON.DOUT1</td></tr>
+<tr><td>TCELL6:OUT.2.TMIN</td><td>SYSMON.DOUT2</td></tr>
+<tr><td>TCELL6:OUT.3.TMIN</td><td>SYSMON.DOUT3</td></tr>
+<tr><td>TCELL6:OUT.4.TMIN</td><td>SYSMON.DOUT4</td></tr>
+<tr><td>TCELL6:OUT.5.TMIN</td><td>SYSMON.DOUT5</td></tr>
+<tr><td>TCELL6:OUT.6.TMIN</td><td>SYSMON.DOUT6</td></tr>
+<tr><td>TCELL6:OUT.7.TMIN</td><td>SYSMON.DOUT7</td></tr>
+<tr><td>TCELL6:OUT.8.TMIN</td><td>SYSMON.DOUT8</td></tr>
+<tr><td>TCELL6:OUT.9.TMIN</td><td>SYSMON.DOUT9</td></tr>
+<tr><td>TCELL6:OUT.10.TMIN</td><td>SYSMON.DOUT10</td></tr>
+<tr><td>TCELL6:OUT.11.TMIN</td><td>SYSMON.DOUT11</td></tr>
+<tr><td>TCELL6:OUT.12.TMIN</td><td>SYSMON.DOUT12</td></tr>
+<tr><td>TCELL6:OUT.13.TMIN</td><td>SYSMON.DOUT13</td></tr>
+<tr><td>TCELL6:OUT.14.TMIN</td><td>SYSMON.DOUT14</td></tr>
+<tr><td>TCELL6:OUT.15.TMIN</td><td>SYSMON.DOUT15</td></tr>
+<tr><td>TCELL6:OUT.16.TMIN</td><td>SYSMON.JTAG_BUSY</td></tr>
+<tr><td>TCELL6:OUT.17.TMIN</td><td>SYSMON.JTAG_LOCKED</td></tr>
+<tr><td>TCELL6:OUT.18.TMIN</td><td>SYSMON.JTAG_MODIFIED</td></tr>
+<tr><td>TCELL6:OUT.19.TMIN</td><td>SYSMON.TEST_ADC_OUT10</td></tr>
+<tr><td>TCELL6:OUT.20.TMIN</td><td>SYSMON.TEST_ADC_OUT11</td></tr>
+<tr><td>TCELL6:OUT.21.TMIN</td><td>SYSMON.TEST_ADC_OUT12</td></tr>
+<tr><td>TCELL6:OUT.22.TMIN</td><td>SYSMON.TEST_ADC_OUT13</td></tr>
+<tr><td>TCELL6:OUT.23.TMIN</td><td>SYSMON.TEST_ADC_OUT14</td></tr>
+<tr><td>TCELL6:OUT.24.TMIN</td><td>SYSMON.TEST_ADC_OUT15</td></tr>
+<tr><td>TCELL6:OUT.25.TMIN</td><td>SYSMON.TEST_ADC_OUT16</td></tr>
+<tr><td>TCELL6:OUT.26.TMIN</td><td>SYSMON.TEST_ADC_OUT17</td></tr>
+<tr><td>TCELL6:OUT.27.TMIN</td><td>SYSMON.TEST_ADC_OUT18</td></tr>
+<tr><td>TCELL6:OUT.28.TMIN</td><td>SYSMON.TEST_ADC_OUT19</td></tr>
+<tr><td>TCELL6:OUT.29.TMIN</td><td>SYSMON.TEST_ADC_OUT4</td></tr>
+<tr><td>TCELL6:IMUX.CTRL.0</td><td>SYSMON.DCLK_B</td></tr>
+<tr><td>TCELL6:IMUX.CTRL.1</td><td>SYSMON.CONVST_CLK_B</td></tr>
+<tr><td>TCELL6:IMUX.CTRL.2</td><td>SYSMON.RESET_USER_B</td></tr>
+<tr><td>TCELL6:IMUX.CTRL.3</td><td>SYSMON.TEST_ADC_CLK_B0</td></tr>
+<tr><td>TCELL6:IMUX.CTRL.4</td><td>SYSMON.TEST_ADC_CLK_B1</td></tr>
+<tr><td>TCELL6:IMUX.CTRL.5</td><td>SYSMON.TEST_ADC_CLK_B2</td></tr>
+<tr><td>TCELL6:IMUX.CTRL.6</td><td>SYSMON.TEST_ADC_CLK_B3</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.0.DELAY</td><td>SYSMON.TEST_ADC_IN2_0</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.1.DELAY</td><td>SYSMON.TEST_ADC_IN2_1</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.2.DELAY</td><td>SYSMON.TEST_ADC_IN2_2</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.3.DELAY</td><td>SYSMON.TEST_ADC_IN2_3</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.4.DELAY</td><td>SYSMON.TEST_ADC_IN2_4</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.5.DELAY</td><td>SYSMON.TEST_ADC_IN2_5</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.6.DELAY</td><td>SYSMON.TEST_ADC_IN2_6</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.7.DELAY</td><td>SYSMON.TEST_ADC_IN2_7</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.8.DELAY</td><td>SYSMON.TEST_ADC_IN2_8</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.9.DELAY</td><td>SYSMON.TEST_ADC_IN2_9</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.10.DELAY</td><td>SYSMON.TEST_ADC_IN2_10</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.11.DELAY</td><td>SYSMON.TEST_ADC_IN2_11</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.12.DELAY</td><td>SYSMON.TEST_ADC_IN2_12</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.13.DELAY</td><td>SYSMON.TEST_ADC_IN2_13</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.14.DELAY</td><td>SYSMON.TEST_ADC_IN2_14</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.15.DELAY</td><td>SYSMON.TEST_ADC_IN2_15</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.16.DELAY</td><td>SYSMON.TEST_ADC_IN2_16</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.17.DELAY</td><td>SYSMON.TEST_ADC_IN2_17</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.18.DELAY</td><td>SYSMON.TEST_ADC_IN2_18</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.19.DELAY</td><td>SYSMON.TEST_ADC_IN2_19</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.20.DELAY</td><td>SYSMON.TEST_ADC_IN0</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.21.DELAY</td><td>SYSMON.TEST_ADC_IN1</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.22.DELAY</td><td>SYSMON.TEST_ADC_IN2</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.23.DELAY</td><td>SYSMON.TEST_ADC_IN3</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.24.DELAY</td><td>SYSMON.TEST_ADC_IN4</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.25.DELAY</td><td>SYSMON.TEST_ADC_IN5</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.26.DELAY</td><td>SYSMON.TEST_ADC_IN6</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.27.DELAY</td><td>SYSMON.TEST_ADC_IN7</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.28.DELAY</td><td>SYSMON.TEST_ADC_IN8</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.29.DELAY</td><td>SYSMON.TEST_ADC_IN9</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.30.DELAY</td><td>SYSMON.TEST_ADC_IN10</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.31.DELAY</td><td>SYSMON.TEST_ADC_IN11</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.32.DELAY</td><td>SYSMON.TEST_ADC_IN12</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.33.DELAY</td><td>SYSMON.TEST_ADC_IN13</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.34.DELAY</td><td>SYSMON.TEST_ADC_IN14</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.35.DELAY</td><td>SYSMON.TEST_ADC_IN15</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.36.DELAY</td><td>SYSMON.TEST_ADC_IN16</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.37.DELAY</td><td>SYSMON.TEST_ADC_IN17</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.38.DELAY</td><td>SYSMON.TEST_ADC_IN18</td></tr>
+<tr><td>TCELL6:IMUX.IMUX.39.DELAY</td><td>SYSMON.TEST_ADC_IN19</td></tr>
+<tr><td>TCELL7:OUT.0.TMIN</td><td>SYSMON.ALM0</td></tr>
+<tr><td>TCELL7:OUT.1.TMIN</td><td>SYSMON.ALM1</td></tr>
+<tr><td>TCELL7:OUT.2.TMIN</td><td>SYSMON.ALM2</td></tr>
+<tr><td>TCELL7:OUT.3.TMIN</td><td>SYSMON.ALM3</td></tr>
+<tr><td>TCELL7:OUT.4.TMIN</td><td>SYSMON.ALM4</td></tr>
+<tr><td>TCELL7:OUT.5.TMIN</td><td>SYSMON.ALM5</td></tr>
+<tr><td>TCELL7:OUT.6.TMIN</td><td>SYSMON.ALM6</td></tr>
+<tr><td>TCELL7:OUT.7.TMIN</td><td>SYSMON.ALM7</td></tr>
+<tr><td>TCELL7:OUT.8.TMIN</td><td>SYSMON.ALM8</td></tr>
+<tr><td>TCELL7:OUT.9.TMIN</td><td>SYSMON.ALM9</td></tr>
+<tr><td>TCELL7:OUT.10.TMIN</td><td>SYSMON.ALM10</td></tr>
+<tr><td>TCELL7:OUT.11.TMIN</td><td>SYSMON.ALM11</td></tr>
+<tr><td>TCELL7:OUT.12.TMIN</td><td>SYSMON.ALM12</td></tr>
+<tr><td>TCELL7:OUT.13.TMIN</td><td>SYSMON.ALM13</td></tr>
+<tr><td>TCELL7:OUT.14.TMIN</td><td>SYSMON.ALM14</td></tr>
+<tr><td>TCELL7:OUT.15.TMIN</td><td>SYSMON.ALM15</td></tr>
+<tr><td>TCELL7:OUT.16.TMIN</td><td>SYSMON.DRDY</td></tr>
+<tr><td>TCELL7:OUT.17.TMIN</td><td>SYSMON.BUSY</td></tr>
+<tr><td>TCELL7:OUT.18.TMIN</td><td>SYSMON.CHANNEL0</td></tr>
+<tr><td>TCELL7:OUT.19.TMIN</td><td>SYSMON.CHANNEL1</td></tr>
+<tr><td>TCELL7:OUT.20.TMIN</td><td>SYSMON.CHANNEL2</td></tr>
+<tr><td>TCELL7:OUT.21.TMIN</td><td>SYSMON.CHANNEL3</td></tr>
+<tr><td>TCELL7:OUT.22.TMIN</td><td>SYSMON.CHANNEL4</td></tr>
+<tr><td>TCELL7:OUT.23.TMIN</td><td>SYSMON.CHANNEL5</td></tr>
+<tr><td>TCELL7:OUT.24.TMIN</td><td>SYSMON.EOC</td></tr>
+<tr><td>TCELL7:OUT.25.TMIN</td><td>SYSMON.EOS</td></tr>
+<tr><td>TCELL7:OUT.26.TMIN</td><td>SYSMON.MUX_ADDR0</td></tr>
+<tr><td>TCELL7:OUT.27.TMIN</td><td>SYSMON.MUX_ADDR1</td></tr>
+<tr><td>TCELL7:OUT.28.TMIN</td><td>SYSMON.MUX_ADDR2</td></tr>
+<tr><td>TCELL7:OUT.29.TMIN</td><td>SYSMON.MUX_ADDR3</td></tr>
+<tr><td>TCELL7:OUT.30.TMIN</td><td>SYSMON.MUX_ADDR4</td></tr>
+<tr><td>TCELL7:OUT.31.TMIN</td><td>SYSMON.OT</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.0.DELAY</td><td>SYSMON.DEN</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.1.DELAY</td><td>SYSMON.DWE</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.2.DELAY</td><td>SYSMON.CONVST</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.3.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F0</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.4.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F1</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.5.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F2</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.6.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F3</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.7.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F4</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.8.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F5</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.9.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F6</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.10.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F7</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.11.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F8</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.12.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F9</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.13.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F10</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.14.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F11</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.15.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F12</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.16.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F13</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.17.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F14</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.18.DELAY</td><td>SYSMON.DEC_OUT_ADC2_F15</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.19.DELAY</td><td>SYSMON.TEST_CAPTURE</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.20.DELAY</td><td>SYSMON.TEST_DRCK</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.21.DELAY</td><td>SYSMON.TEST_EN_JTAG</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.22.DELAY</td><td>SYSMON.TEST_RST</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.23.DELAY</td><td>SYSMON.TEST_SEL</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.24.DELAY</td><td>SYSMON.TEST_SHIFT</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.25.DELAY</td><td>SYSMON.TEST_TDI</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.26.DELAY</td><td>SYSMON.TEST_UPDATE</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.27.DELAY</td><td>SYSMON.TEST_SCAN_CLK0</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.28.DELAY</td><td>SYSMON.TEST_SCAN_CLK1</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.29.DELAY</td><td>SYSMON.TEST_SCAN_CLK2</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.30.DELAY</td><td>SYSMON.TEST_SCAN_CLK3</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.31.DELAY</td><td>SYSMON.TEST_SCAN_CLK4</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.32.DELAY</td><td>SYSMON.TEST_SCAN_MODE0</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.33.DELAY</td><td>SYSMON.TEST_SCAN_MODE1</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.34.DELAY</td><td>SYSMON.TEST_SCAN_MODE2</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.35.DELAY</td><td>SYSMON.TEST_SCAN_MODE3</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.36.DELAY</td><td>SYSMON.TEST_SCAN_MODE4</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.37.DELAY</td><td>SYSMON.TEST_SCAN_RESET</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.38.DELAY</td><td>SYSMON.TEST_SE0</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.39.DELAY</td><td>SYSMON.TEST_SE1</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.40.DELAY</td><td>SYSMON.TEST_SE2</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.41.DELAY</td><td>SYSMON.TEST_SE3</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.42.DELAY</td><td>SYSMON.TEST_SE4</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.43.DELAY</td><td>SYSMON.TEST_SI0</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.44.DELAY</td><td>SYSMON.TEST_SI1</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.45.DELAY</td><td>SYSMON.TEST_SI2</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.46.DELAY</td><td>SYSMON.TEST_SI3</td></tr>
+<tr><td>TCELL7:IMUX.IMUX.47.DELAY</td><td>SYSMON.TEST_SI4</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ultrascale/io/xiphy.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ultrascale/cmac.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ultrascale/io/xiphy.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ultrascale/cmac.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

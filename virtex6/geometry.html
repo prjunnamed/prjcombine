@@ -1,0 +1,311 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Device geometry - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="device-geometry"><a class="header" href="#device-geometry">Device geometry</a></h1>
+<h2 id="general-structure"><a class="header" href="#general-structure">General structure</a></h2>
+<p>Virtex 6 devices follow the same general structure as <a href="../virtex4/geometry.html">Virtex 4</a> and <a href="../virtex5/geometry.html">Virtex 5 devices</a>, with minor changes.</p>
+<p>Virtex 6 devices are divided into "regions". A region is exactly 40 interconnect tiles high. In addition to 40 interconnect rows, each region has a special HCLK row running through the middle (between rows 19 and 20), which is not counted in the row numbering.</p>
+<p>The exact sequence of columns varies with the device. The main available column types are:</p>
+<ul>
+<li>CLBLL column: contains <code>CLBLL</code> tiles, one for every interconnect tile.</li>
+<li>CLBLM column: contains <code>CLBLM</code> tiles, one for every interconnect tile.</li>
+<li>BRAM column: contains <code>BRAM</code> tiles, one for every 5 interconnect tiles (ie. 8 <code>BRAM</code> tiles per region)</li>
+<li>hard logic column: a variant of BRAM column; contains a mixture of:
+<ul>
+<li><code>BRAM</code> tiles</li>
+<li><code>EMAC</code> tiles (10 interconnect tiles high, replaces two <code>BRAM</code> tiles)</li>
+<li><code>PCIE</code> tiles (20 interconnect tiles high and 4 columns wide, replaces 4 <code>BRAM</code> tiles and 3×20 CLBs in the three CLB columns to the left)</li>
+</ul>
+</li>
+<li>DSP column: contains <code>DSP</code> tiles, one for every 5 interconnect tiles (ie. 8 <code>DSP</code> tiles per region)</li>
+<li>IO column: contains <code>IO</code> tiles, one for every 2 interconnect tiles; also contains special <code>HCLK_IOI</code> tiles in the HCLK rows</li>
+<li>the center column: there is exactly one of those per device; it contains a mixture of <code>CFG</code>, <code>CMT</code>, <code>CMT_BUFG_*</code>, and clock distribution tiles</li>
+<li>GT column: for each region, contains either four <code>GTX</code> tiles (each of them 10 rows high), or one <code>GTH</code> tile (40 rows high)</li>
+</ul>
+<p>Each of the above types of columns is colocated with a single interconnect column. The interconnect column consists of:</p>
+<ul>
+<li><code>INT</code> tiles, one per interconnect row (16 per region)</li>
+<li><code>INTF</code> or <code>INTF.DELAY</code> tiles, one for every <code>INT</code> tile, except for <code>INT</code> tiles associated with <code>CLB*</code> tiles
+<ul>
+<li><code>INTF</code> is associated with <code>BRAM</code>, <code>DSP</code>, <code>IO</code>, <code>CMT</code>, and <code>CFG</code> tiles</li>
+<li><code>INTF.DELAY</code> is associated with <code>GTX</code>, <code>GTH</code>, <code>PCIE</code>, and <code>EMAC</code> tiles</li>
+</ul>
+</li>
+<li><code>HCLK</code> tiles, one per region (located in the HCLK row)</li>
+</ul>
+<p>While there is still a clock spine column, it is no longer considered meaningfully separate from the center column.</p>
+<p>There can be up to four IO columns per device:</p>
+<ul>
+<li>outer left column (present on all except <code>hxt</code> devices, always the leftmost column of the device when present)</li>
+<li>inner left column (always present, relatively close to the center column)</li>
+<li>inner right column (always present, relatively close to the center column)</li>
+<li>outer right column (present on some devices; is the rightmost column of the device if the device has no MGT columns)</li>
+</ul>
+<p>There can be up to two GT columns on the device, depending on the device type:</p>
+<ul>
+<li><code>xc6vlx760</code> has no GT columns at all; the leftmost and rightmost columns are the outer IO columns</li>
+<li><code>lxt</code>, <code>cxt</code>, and <code>sxt</code> devices have one GT column, which is the rightmost column of the device; it contains <code>GTX</code> tiles</li>
+<li><code>hxt</code> devices have two GT columns, the leftmost and the rightmost column of the device; they contain <code>GTX</code> tiles and, on all devices except <code>xc6vhx250t</code>, additionally some <code>GTH</code> tiles</li>
+</ul>
+<p>If the device contains MGT columns, it also has a hard logic column, which is the second rightmost column of the device, right next to the right MGT column. <code>lx</code> devices have no hard logic column.</p>
+<p>The other kinds of columns (CLB, BRAM, DSP) come in varying numbers, locations, and proportions, depending on device size and kind.</p>
+<p>The grid is mostly regular, but can have holes of two kinds:</p>
+<ul>
+<li>
+<p>the configuration center (<code>CFG</code> tile) occupies a 6×80 area of what would otherwise be <code>CLBLL</code> tiles to the left of the center column; this area has no interconnect tiles; horizontal interconnect lines pass through the hole, skipping over the 6 columns, while vertical interconnect lines cannot cross the hole, and are turned around at the bottom and top edge of the hole. The inputs/outputs for the primitives in the <code>CFG</code> tile are borrowed from the <code>INT</code> tiles in the center column.</p>
+</li>
+<li>
+<p>the <code>PCIE</code> tile occupies a 4×20 area of interconnect tiles; the columns it occupies are, in order:</p>
+<ul>
+<li>a CLBLL column; the <code>CLBLL</code> tiles in this area are skipped, but the <code>INT</code> tiles remain and serve as interconnect to the <code>PCIE</code> tile</li>
+<li>a CLBLM column; the <code>CLBLM</code> tiles in this area are skipped, but the <code>INT</code> tiles remain and serve as interconnect to the <code>PCIE</code> tile</li>
+<li>a CLBLL column; both the <code>CLBLL</code> and <code>INT</code> tiles in this area are skipped</li>
+<li>the hard logic column; there are no <code>INT</code> tiles in this area</li>
+</ul>
+<p>As with the <code>CFG</code> tile, horizontal interconnect lines jump across the skipped <code>INT</code> tiles, but vertical lines are turned around at the bottom and top edge.</p>
+</li>
+</ul>
+<h3 id="center-column"><a class="header" href="#center-column">Center column</a></h3>
+<p>The center column has a triple role as the configuration center, CMT column, and clock distrubution column. It has the following contents:</p>
+<ul>
+<li>there is one <code>CMT</code> tile (consisting of two <code>MMCM</code>\ s) per region</li>
+<li>two consecutive regions in the middle additionally host the <code>CFG</code> tile; the boundary between this two regions is considered to be the "center point" of the device, regardless of how far it is from actual geometrical center (the devices can be quite unbalanced in that respect); we will call the regions hosting <code>CFG</code> tile <code>c - 1</code> and <code>c</code></li>
+<li>the top 3 rows of region <code>c - 1</code> contain the <code>CMT_BUFG_BOT</code> tile, which contains 16 global clock buffers (<code>BUGCTRL</code>)</li>
+<li>the bottom 3 rows of region <code>c</code> contain the <code>CMT_BUFG_TOP</code> tile, which contains another set of 16 global clock buffers (<code>BUGCTRL</code>)</li>
+<li>the top rows of regions <code>c - 2</code> and below contain the <code>GCLK_BUF</code> tile, which rebuffers the global clock signals</li>
+<li>likewise, the bottom rows of regions <code>c + 1</code> and above also contain the <code>GCLK_BUF</code> tile</li>
+<li>the bottom two rows of regions <code>c - 2</code> and below contain the <code>PMVIOB</code> tile, the purpose of which is unknown</li>
+<li>the top two rows of regions <code>c</code> and above likewise contain the <code>PMVIOB</code> tile</li>
+</ul>
+<h2 id="bitstream-geometry"><a class="header" href="#bitstream-geometry">Bitstream geometry</a></h2>
+<p>The bitstream is made of frames, which come in two types:</p>
+<ul>
+<li>0: main area</li>
+<li>1: BRAM data area</li>
+</ul>
+<p>The bitstream is split by region — each frame covers 40 interconnect rows plus the HCLK row, and the frame size is independent of device size.</p>
+<p>Frames are identified by their type, region, major and minor numbers. The major number identifies a column (interconnect column or the clock spine), and the minor number identifies a frame within a column. The major numbers are counted separately for each type of frame.</p>
+<p>For bitstream purposes, the regions are counted using the <code>CFG</code> tile as the origin. Top region 0 is considered to be the region that contains the upper half of the <code>CFG</code> tile, top region 1 is the region above that, and so on. Bottom region 0 is considered to be the region that contains the lower half of the <code>CFG</code> tile, bottom region 1 is the region below that, and so on.</p>
+<p>The main area contains all interconnect columns, with major numbers assigned sequentially from 0 on the left, one for each column. The columns have the following widths:</p>
+<ul>
+<li>CLBLL and CLBLM columns: 36 frames</li>
+<li>BRAM or hard logic column: 28 frames</li>
+<li>DSP column: 28 frames</li>
+<li>IO column: 44 frames</li>
+<li>center column: 38 frames</li>
+<li>MGT column: 30 frames</li>
+</ul>
+<p>The BRAM data area contains 128 frames for each BRAM column, in order from left. The major numbers are assigned sequentially for each BRAM column starting from 0.</p>
+<p>Each frame is exactly 2592 bits long and has the following structure:</p>
+<ul>
+<li>bits 0-1279: interconnect rows 0 to 19 of the region, 64 bits per row</li>
+<li>bits 1280-1292: ECC</li>
+<li>bits 1293-1311: HCLK row</li>
+<li>bits 1312-2591: interconnect rows 20 to 39 of the region, 64 bits per row</li>
+</ul>
+<p>Every interconnect tile thus corresponds to a bitstream tile that is 28×64 to 44×64 bits. The actual interconnect tile is 26×64 bits, occupying the first 26 frames of the column. If <code>INTF</code> or <code>INTF.DELAY</code> tile is present in the tile, it occupies leftover space in frames 24 and 25.  The remaining frames, as well as unused space in frames 24-25, are used for configuring the associated primitive tile.</p>
+<p>The HCLK row has smaller bitstream tiles, 28×19 to 44×19 bits in size.</p>
+<p>The BRAM data tiles are 128×320 bits in size (covering the height of 5 interconnect rows). The area at intersection with HCLK rows is unused.</p>
+<h3 id="ecc"><a class="header" href="#ecc">ECC</a></h3>
+<p>TODO: reverse, document</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../virtex6/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../virtex6/interconnect.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../virtex6/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../virtex6/interconnect.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

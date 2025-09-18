@@ -1,0 +1,1628 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Clock column buffers - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="clock-column-buffers"><a class="header" href="#clock-column-buffers">Clock column buffers</a></h1>
+<h2 id="tile-rclk_int"><a class="header" href="#tile-rclk_int">Tile RCLK_INT</a></h2>
+<p>Cells: 4</p>
+<h3 id="switchbox-rclk_int"><a class="header" href="#switchbox-rclk_int">Switchbox RCLK_INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale RCLK_INT switchbox RCLK_INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.0</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.1</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.2</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.3</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.4</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.5</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.6</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.7</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.8</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.9</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.10</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.11</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.12</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.13</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.14</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.15</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.16</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.17</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.18</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.19</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.20</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.21</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.22</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL0_RCLK.IMUX.23</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.0</td><td>TCELL0_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.1</td><td>TCELL0_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.2</td><td>TCELL0_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.3</td><td>TCELL0_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.4</td><td>TCELL0_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.5</td><td>TCELL0_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.6</td><td>TCELL0_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.7</td><td>TCELL0_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.8</td><td>TCELL0_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.9</td><td>TCELL0_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.10</td><td>TCELL0_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.11</td><td>TCELL0_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.S.7.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.12</td><td>TCELL0_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.13</td><td>TCELL0_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.14</td><td>TCELL0_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.15</td><td>TCELL0_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.16</td><td>TCELL0_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.17</td><td>TCELL0_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.18</td><td>TCELL0_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.19</td><td>TCELL0_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.20</td><td>TCELL0_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.21</td><td>TCELL0_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.22</td><td>TCELL0_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL0_RCLK.INODE.23</td><td>TCELL0_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL0_DBL.N.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.0</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.1</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.2</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.3</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.4</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.5</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.8</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.10</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.14</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.21</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.23</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.6</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.7</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.8</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.9</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.10</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.11</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.3</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.5</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.7</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.12</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.16</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.18</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.12</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.13</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.14</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.15</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.16</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.17</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.4</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.6</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.15</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.17</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.19</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.18</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.19</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.20</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.21</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.22</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="7">TCELL1_RCLK.IMUX.23</td><td>TCELL0_VCC</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.9</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.11</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.13</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.20</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_RCLK.INODE.22</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.0</td><td>TCELL1_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.1</td><td>TCELL1_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.2</td><td>TCELL1_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.3</td><td>TCELL1_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.3.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.6.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.7.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.4</td><td>TCELL1_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.6.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.5</td><td>TCELL1_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.6.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.6</td><td>TCELL1_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.7</td><td>TCELL1_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.8</td><td>TCELL1_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.9</td><td>TCELL1_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.4.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.7.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.10</td><td>TCELL1_SNG.S.1.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.6.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.11</td><td>TCELL1_SNG.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.2.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.S.5.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.0.0</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.S.6.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.12</td><td>TCELL1_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.13</td><td>TCELL1_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.14</td><td>TCELL1_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.15</td><td>TCELL1_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.6.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.1.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.7.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.16</td><td>TCELL1_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.6.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.17</td><td>TCELL1_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.6.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.18</td><td>TCELL1_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.19</td><td>TCELL1_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.20</td><td>TCELL1_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.3.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.21</td><td>TCELL1_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.4.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.7.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.22</td><td>TCELL1_SNG.N.1.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.6.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">TCELL1_RCLK.INODE.23</td><td>TCELL1_SNG.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.2.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_SNG.N.5.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.0.1</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.3.2</td><td>mux</td>
+</tr>
+<tr><td>TCELL1_DBL.N.6.1</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufce_leaf_x16_s"><a class="header" href="#bel-bufce_leaf_x16_s">Bel BUFCE_LEAF_X16_S</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale RCLK_INT bel BUFCE_LEAF_X16_S</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE_INT0</td><td>input</td><td>TCELL0:RCLK.IMUX.12</td></tr>
+<tr><td>CE_INT1</td><td>input</td><td>TCELL1:RCLK.IMUX.12</td></tr>
+<tr><td>CE_INT10</td><td>input</td><td>TCELL0:RCLK.IMUX.19</td></tr>
+<tr><td>CE_INT11</td><td>input</td><td>TCELL1:RCLK.IMUX.19</td></tr>
+<tr><td>CE_INT12</td><td>input</td><td>TCELL0:RCLK.IMUX.15</td></tr>
+<tr><td>CE_INT13</td><td>input</td><td>TCELL1:RCLK.IMUX.15</td></tr>
+<tr><td>CE_INT14</td><td>input</td><td>TCELL0:RCLK.IMUX.20</td></tr>
+<tr><td>CE_INT15</td><td>input</td><td>TCELL1:RCLK.IMUX.20</td></tr>
+<tr><td>CE_INT2</td><td>input</td><td>TCELL0:RCLK.IMUX.18</td></tr>
+<tr><td>CE_INT3</td><td>input</td><td>TCELL1:RCLK.IMUX.18</td></tr>
+<tr><td>CE_INT4</td><td>input</td><td>TCELL0:RCLK.IMUX.13</td></tr>
+<tr><td>CE_INT5</td><td>input</td><td>TCELL1:RCLK.IMUX.13</td></tr>
+<tr><td>CE_INT6</td><td>input</td><td>TCELL0:RCLK.IMUX.14</td></tr>
+<tr><td>CE_INT7</td><td>input</td><td>TCELL1:RCLK.IMUX.10</td></tr>
+<tr><td>CE_INT8</td><td>input</td><td>TCELL1:RCLK.IMUX.14</td></tr>
+<tr><td>CE_INT9</td><td>input</td><td>TCELL0:RCLK.IMUX.10</td></tr>
+<tr><td>CLK_OUT0</td><td>output</td><td>TCELL2:GCLK0</td></tr>
+<tr><td>CLK_OUT1</td><td>output</td><td>TCELL2:GCLK2</td></tr>
+<tr><td>CLK_OUT10</td><td>output</td><td>TCELL2:GCLK5</td></tr>
+<tr><td>CLK_OUT11</td><td>output</td><td>TCELL2:GCLK7</td></tr>
+<tr><td>CLK_OUT12</td><td>output</td><td>TCELL2:GCLK9</td></tr>
+<tr><td>CLK_OUT13</td><td>output</td><td>TCELL2:GCLK11</td></tr>
+<tr><td>CLK_OUT14</td><td>output</td><td>TCELL2:GCLK13</td></tr>
+<tr><td>CLK_OUT15</td><td>output</td><td>TCELL2:GCLK15</td></tr>
+<tr><td>CLK_OUT2</td><td>output</td><td>TCELL2:GCLK4</td></tr>
+<tr><td>CLK_OUT3</td><td>output</td><td>TCELL2:GCLK6</td></tr>
+<tr><td>CLK_OUT4</td><td>output</td><td>TCELL2:GCLK8</td></tr>
+<tr><td>CLK_OUT5</td><td>output</td><td>TCELL2:GCLK10</td></tr>
+<tr><td>CLK_OUT6</td><td>output</td><td>TCELL2:GCLK12</td></tr>
+<tr><td>CLK_OUT7</td><td>output</td><td>TCELL2:GCLK14</td></tr>
+<tr><td>CLK_OUT8</td><td>output</td><td>TCELL2:GCLK1</td></tr>
+<tr><td>CLK_OUT9</td><td>output</td><td>TCELL2:GCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufce_leaf_x16_n"><a class="header" href="#bel-bufce_leaf_x16_n">Bel BUFCE_LEAF_X16_N</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale RCLK_INT bel BUFCE_LEAF_X16_N</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE_INT0</td><td>input</td><td>TCELL1:RCLK.IMUX.21</td></tr>
+<tr><td>CE_INT1</td><td>input</td><td>TCELL0:RCLK.IMUX.21</td></tr>
+<tr><td>CE_INT10</td><td>input</td><td>TCELL1:RCLK.IMUX.16</td></tr>
+<tr><td>CE_INT11</td><td>input</td><td>TCELL0:RCLK.IMUX.11</td></tr>
+<tr><td>CE_INT12</td><td>input</td><td>TCELL1:RCLK.IMUX.23</td></tr>
+<tr><td>CE_INT13</td><td>input</td><td>TCELL0:RCLK.IMUX.5</td></tr>
+<tr><td>CE_INT14</td><td>input</td><td>TCELL1:RCLK.IMUX.17</td></tr>
+<tr><td>CE_INT15</td><td>input</td><td>TCELL0:RCLK.IMUX.17</td></tr>
+<tr><td>CE_INT2</td><td>input</td><td>TCELL1:RCLK.IMUX.11</td></tr>
+<tr><td>CE_INT3</td><td>input</td><td>TCELL0:RCLK.IMUX.16</td></tr>
+<tr><td>CE_INT4</td><td>input</td><td>TCELL1:RCLK.IMUX.4</td></tr>
+<tr><td>CE_INT5</td><td>input</td><td>TCELL0:RCLK.IMUX.22</td></tr>
+<tr><td>CE_INT6</td><td>input</td><td>TCELL1:RCLK.IMUX.5</td></tr>
+<tr><td>CE_INT7</td><td>input</td><td>TCELL0:RCLK.IMUX.23</td></tr>
+<tr><td>CE_INT8</td><td>input</td><td>TCELL0:RCLK.IMUX.4</td></tr>
+<tr><td>CE_INT9</td><td>input</td><td>TCELL1:RCLK.IMUX.22</td></tr>
+<tr><td>CLK_OUT0</td><td>output</td><td>TCELL0:GCLK0</td></tr>
+<tr><td>CLK_OUT1</td><td>output</td><td>TCELL0:GCLK2</td></tr>
+<tr><td>CLK_OUT10</td><td>output</td><td>TCELL0:GCLK5</td></tr>
+<tr><td>CLK_OUT11</td><td>output</td><td>TCELL0:GCLK7</td></tr>
+<tr><td>CLK_OUT12</td><td>output</td><td>TCELL0:GCLK9</td></tr>
+<tr><td>CLK_OUT13</td><td>output</td><td>TCELL0:GCLK11</td></tr>
+<tr><td>CLK_OUT14</td><td>output</td><td>TCELL0:GCLK13</td></tr>
+<tr><td>CLK_OUT15</td><td>output</td><td>TCELL0:GCLK15</td></tr>
+<tr><td>CLK_OUT2</td><td>output</td><td>TCELL0:GCLK4</td></tr>
+<tr><td>CLK_OUT3</td><td>output</td><td>TCELL0:GCLK6</td></tr>
+<tr><td>CLK_OUT4</td><td>output</td><td>TCELL0:GCLK8</td></tr>
+<tr><td>CLK_OUT5</td><td>output</td><td>TCELL0:GCLK10</td></tr>
+<tr><td>CLK_OUT6</td><td>output</td><td>TCELL0:GCLK12</td></tr>
+<tr><td>CLK_OUT7</td><td>output</td><td>TCELL0:GCLK14</td></tr>
+<tr><td>CLK_OUT8</td><td>output</td><td>TCELL0:GCLK1</td></tr>
+<tr><td>CLK_OUT9</td><td>output</td><td>TCELL0:GCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-rclk_int_clk"><a class="header" href="#bel-rclk_int_clk">Bel RCLK_INT_CLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale RCLK_INT bel RCLK_INT_CLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale RCLK_INT bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:GCLK0</td><td>BUFCE_LEAF_X16_N.CLK_OUT0</td></tr>
+<tr><td>TCELL0:GCLK1</td><td>BUFCE_LEAF_X16_N.CLK_OUT8</td></tr>
+<tr><td>TCELL0:GCLK2</td><td>BUFCE_LEAF_X16_N.CLK_OUT1</td></tr>
+<tr><td>TCELL0:GCLK3</td><td>BUFCE_LEAF_X16_N.CLK_OUT9</td></tr>
+<tr><td>TCELL0:GCLK4</td><td>BUFCE_LEAF_X16_N.CLK_OUT2</td></tr>
+<tr><td>TCELL0:GCLK5</td><td>BUFCE_LEAF_X16_N.CLK_OUT10</td></tr>
+<tr><td>TCELL0:GCLK6</td><td>BUFCE_LEAF_X16_N.CLK_OUT3</td></tr>
+<tr><td>TCELL0:GCLK7</td><td>BUFCE_LEAF_X16_N.CLK_OUT11</td></tr>
+<tr><td>TCELL0:GCLK8</td><td>BUFCE_LEAF_X16_N.CLK_OUT4</td></tr>
+<tr><td>TCELL0:GCLK9</td><td>BUFCE_LEAF_X16_N.CLK_OUT12</td></tr>
+<tr><td>TCELL0:GCLK10</td><td>BUFCE_LEAF_X16_N.CLK_OUT5</td></tr>
+<tr><td>TCELL0:GCLK11</td><td>BUFCE_LEAF_X16_N.CLK_OUT13</td></tr>
+<tr><td>TCELL0:GCLK12</td><td>BUFCE_LEAF_X16_N.CLK_OUT6</td></tr>
+<tr><td>TCELL0:GCLK13</td><td>BUFCE_LEAF_X16_N.CLK_OUT14</td></tr>
+<tr><td>TCELL0:GCLK14</td><td>BUFCE_LEAF_X16_N.CLK_OUT7</td></tr>
+<tr><td>TCELL0:GCLK15</td><td>BUFCE_LEAF_X16_N.CLK_OUT15</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.4</td><td>BUFCE_LEAF_X16_N.CE_INT8</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.5</td><td>BUFCE_LEAF_X16_N.CE_INT13</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.10</td><td>BUFCE_LEAF_X16_S.CE_INT9</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.11</td><td>BUFCE_LEAF_X16_N.CE_INT11</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.12</td><td>BUFCE_LEAF_X16_S.CE_INT0</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.13</td><td>BUFCE_LEAF_X16_S.CE_INT4</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.14</td><td>BUFCE_LEAF_X16_S.CE_INT6</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.15</td><td>BUFCE_LEAF_X16_S.CE_INT12</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.16</td><td>BUFCE_LEAF_X16_N.CE_INT3</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.17</td><td>BUFCE_LEAF_X16_N.CE_INT15</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.18</td><td>BUFCE_LEAF_X16_S.CE_INT2</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.19</td><td>BUFCE_LEAF_X16_S.CE_INT10</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.20</td><td>BUFCE_LEAF_X16_S.CE_INT14</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.21</td><td>BUFCE_LEAF_X16_N.CE_INT1</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.22</td><td>BUFCE_LEAF_X16_N.CE_INT5</td></tr>
+<tr><td>TCELL0:RCLK.IMUX.23</td><td>BUFCE_LEAF_X16_N.CE_INT7</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.4</td><td>BUFCE_LEAF_X16_N.CE_INT4</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.5</td><td>BUFCE_LEAF_X16_N.CE_INT6</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.10</td><td>BUFCE_LEAF_X16_S.CE_INT7</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.11</td><td>BUFCE_LEAF_X16_N.CE_INT2</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.12</td><td>BUFCE_LEAF_X16_S.CE_INT1</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.13</td><td>BUFCE_LEAF_X16_S.CE_INT5</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.14</td><td>BUFCE_LEAF_X16_S.CE_INT8</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.15</td><td>BUFCE_LEAF_X16_S.CE_INT13</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.16</td><td>BUFCE_LEAF_X16_N.CE_INT10</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.17</td><td>BUFCE_LEAF_X16_N.CE_INT14</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.18</td><td>BUFCE_LEAF_X16_S.CE_INT3</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.19</td><td>BUFCE_LEAF_X16_S.CE_INT11</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.20</td><td>BUFCE_LEAF_X16_S.CE_INT15</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.21</td><td>BUFCE_LEAF_X16_N.CE_INT0</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.22</td><td>BUFCE_LEAF_X16_N.CE_INT9</td></tr>
+<tr><td>TCELL1:RCLK.IMUX.23</td><td>BUFCE_LEAF_X16_N.CE_INT12</td></tr>
+<tr><td>TCELL2:GCLK0</td><td>BUFCE_LEAF_X16_S.CLK_OUT0</td></tr>
+<tr><td>TCELL2:GCLK1</td><td>BUFCE_LEAF_X16_S.CLK_OUT8</td></tr>
+<tr><td>TCELL2:GCLK2</td><td>BUFCE_LEAF_X16_S.CLK_OUT1</td></tr>
+<tr><td>TCELL2:GCLK3</td><td>BUFCE_LEAF_X16_S.CLK_OUT9</td></tr>
+<tr><td>TCELL2:GCLK4</td><td>BUFCE_LEAF_X16_S.CLK_OUT2</td></tr>
+<tr><td>TCELL2:GCLK5</td><td>BUFCE_LEAF_X16_S.CLK_OUT10</td></tr>
+<tr><td>TCELL2:GCLK6</td><td>BUFCE_LEAF_X16_S.CLK_OUT3</td></tr>
+<tr><td>TCELL2:GCLK7</td><td>BUFCE_LEAF_X16_S.CLK_OUT11</td></tr>
+<tr><td>TCELL2:GCLK8</td><td>BUFCE_LEAF_X16_S.CLK_OUT4</td></tr>
+<tr><td>TCELL2:GCLK9</td><td>BUFCE_LEAF_X16_S.CLK_OUT12</td></tr>
+<tr><td>TCELL2:GCLK10</td><td>BUFCE_LEAF_X16_S.CLK_OUT5</td></tr>
+<tr><td>TCELL2:GCLK11</td><td>BUFCE_LEAF_X16_S.CLK_OUT13</td></tr>
+<tr><td>TCELL2:GCLK12</td><td>BUFCE_LEAF_X16_S.CLK_OUT6</td></tr>
+<tr><td>TCELL2:GCLK13</td><td>BUFCE_LEAF_X16_S.CLK_OUT14</td></tr>
+<tr><td>TCELL2:GCLK14</td><td>BUFCE_LEAF_X16_S.CLK_OUT7</td></tr>
+<tr><td>TCELL2:GCLK15</td><td>BUFCE_LEAF_X16_S.CLK_OUT15</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../ultrascale/clock/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../ultrascale/clock/rclk_v.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../ultrascale/clock/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../ultrascale/clock/rclk_v.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,4143 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>General interconnect - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="general-interconnect"><a class="header" href="#general-interconnect">General interconnect</a></h1>
+<p>The Spartan 3 general interconnect is essentially a scaled-down version of <a href="../../virtex2/interconnect/README.html">Virtex 2 interconnect</a>.</p>
+<p>The general interconnect of Virtex 2 is made of several kinds of similar, but not identical interconnect tiles. The tile types include:</p>
+<ul>
+<li><code>INT.CLB</code>, the interconnect tile associated with <a href="../clb.html">configurable logic blocks</a> and corner tiles</li>
+<li><code>INT.BRAM.*</code>, the interconnect tile associated with <a href="../bram.html">block RAMs</a></li>
+<li><code>INT.IOI.*</code>, the interconnect tile associated with <a href="../io/README.html">I/O tiles</a></li>
+<li><code>INT.DCM.*</code>, the interconnect tiles associated with <a href="../dcm-s3.html">digital clock managers</a></li>
+</ul>
+<p>The various tile types have the same backbone, but differ in the types of input multiplexers they have, mostly clock multiplexers.</p>
+<h2 id="backbone"><a class="header" href="#backbone">Backbone</a></h2>
+<p>The core of the interconnect is made of the following wires, each of which is instantiated once per interconnect tile and is driven by a buffered multiplexer:</p>
+<ul>
+<li>
+<p><code>OMUX0</code> through <code>OMUX15</code>, per-tile output multiplexers. The inputs to those include various primitive outputs in the tile. They serve as single-hop interconnect wires — each <code>OMUX</code> wire is also visible in one or two of the (immediately or diagonally) adjacent interconnect tiles:</p>
+<div class="table-wrapper"><table><thead><tr><th>Wire</th><th>Direction</th><th>Wire in tile #1</th><th>Wire in tile #2</th></tr></thead><tbody>
+<tr><td><code>OMUX0</code></td><td><code>S</code></td><td><code>OMUX0.S</code></td><td></td></tr>
+<tr><td><code>OMUX1</code></td><td><code>W</code>, then <code>S</code></td><td><code>OMUX1.W</code></td><td><code>OMUX1.WS</code></td></tr>
+<tr><td><code>OMUX2</code></td><td><code>E</code> and <code>S</code></td><td><code>OMUX2.E</code></td><td><code>OMUX2.S</code></td></tr>
+<tr><td><code>OMUX3</code></td><td><code>S</code>, then <code>E</code></td><td><code>OMUX3.S</code></td><td><code>OMUX3.SE</code></td></tr>
+<tr><td><code>OMUX4</code></td><td><code>S</code></td><td><code>OMUX4.S</code></td><td></td></tr>
+<tr><td><code>OMUX5</code></td><td><code>S</code>, then <code>W</code></td><td><code>OMUX5.S</code></td><td><code>OMUX5.SW</code></td></tr>
+<tr><td><code>OMUX6</code></td><td><code>W</code></td><td><code>OMUX6.W</code></td><td></td></tr>
+<tr><td><code>OMUX7</code></td><td><code>E</code>, then <code>S</code></td><td><code>OMUX7.E</code></td><td><code>OMUX7.ES</code></td></tr>
+<tr><td><code>OMUX8</code></td><td><code>E</code>, then <code>N</code></td><td><code>OMUX8.E</code></td><td><code>OMUX8.EN</code></td></tr>
+<tr><td><code>OMUX9</code></td><td><code>W</code> and <code>N</code></td><td><code>OMUX9.W</code></td><td><code>OMUX9.N</code></td></tr>
+<tr><td><code>OMUX10</code></td><td><code>N</code>, then <code>W</code></td><td><code>OMUX10.N</code></td><td><code>OMUX10.NW</code></td></tr>
+<tr><td><code>OMUX11</code></td><td><code>N</code></td><td><code>OMUX11.N</code></td><td></td></tr>
+<tr><td><code>OMUX12</code></td><td><code>N</code>, then <code>E</code></td><td><code>OMUX12.N</code></td><td><code>OMUX12.NE</code></td></tr>
+<tr><td><code>OMUX13</code></td><td><code>E</code></td><td><code>OMUX13.E</code></td><td></td></tr>
+<tr><td><code>OMUX14</code></td><td><code>W</code>, then <code>N</code></td><td><code>OMUX14.W</code></td><td><code>OMUX12.WN</code></td></tr>
+<tr><td><code>OMUX15</code></td><td><code>N</code></td><td><code>OMUX15.N</code></td><td></td></tr>
+</tbody></table>
+</div><div class="warning">this table is very similar to, but subtly different from the corresponding Virtex 2 table (the differences are in `OMUX9` and `OMUX13`).</div>
+</li>
+<li>
+<p>Double lines going in the cardinal directions, 8 per direction, called <code>DBL.[EWSN][0-7]</code>. Each of them has three segments, called <code>DBL.[EWSN][0-7].[0-2]</code>, where <code>.0</code> is located in the source tile and is driven, <code>.1</code> is in the next tile in the relevant direction, and <code>.2</code> is in the next tile after that. Some of the lines additionally have a fourth segment:</p>
+<ul>
+<li><code>DBL.W[67].3</code> is to the north of <code>DBL.W[67].2</code></li>
+<li><code>DBL.E[01].3</code> is to the south of <code>DBL.E[01].2</code></li>
+<li><code>DBL.S[01].3</code> is to the south of <code>DBL.S[01].2</code></li>
+<li><code>DBL.N[67].3</code> is to the north of <code>DBL.N[67].2</code></li>
+</ul>
+<p>Only the <code>.0</code> segment is driven. The inputs to the multiplexer include:</p>
+<ul>
+<li><code>OMUX</code> wires</li>
+<li><code>.1</code>, <code>.2</code> and <code>.3</code> segments of other <code>DBL</code> wires</li>
+<li><code>.3</code>, <code>.6</code> and <code>.7</code> segments of <code>HEX</code> wires</li>
+<li><code>OUT.FAN</code> wires</li>
+</ul>
+</li>
+<li>
+<p>Hex lines going in the cardinal directions, 8 per direction, called <code>HEX.[EWSN][0-7]</code>. They are analogous to double lines, except they have 7 (or sometimes 8) segments, thus spanning a distance of 6 tiles. The lines with 8th segment include:</p>
+<ul>
+<li><code>HEX.W[67].7</code> is to the north of <code>HEX.W[67].6</code></li>
+<li><code>HEX.E[01].7</code> is to the south of <code>HEX.E[01].6</code></li>
+<li><code>HEX.S[01].7</code> is to the south of <code>HEX.S[01].6</code></li>
+<li><code>HEX.N[67].7</code> is to the north of <code>HEX.N[67].6</code></li>
+</ul>
+<p>Only the <code>.0</code> segment is driven. The inputs to the multiplexer include:</p>
+<ul>
+<li><code>OMUX</code> wires</li>
+<li><code>.3</code>, <code>.6</code> and <code>.7</code> segments of other <code>HEX</code> wires</li>
+<li><code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segments of <code>LV</code> wires (for vertical lines)</li>
+<li><code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segments of <code>LH</code> wires (for horizontal lines)</li>
+<li><code>OUT.FAN</code> wires</li>
+</ul>
+<p>Some hex lines are associated with various kind of input multiplexers, such that a single hex line can drive all input multiplexers of given type through its <code>.0</code> to <code>.5</code> segments:</p>
+<ul>
+<li><code>HEX.[SN]0</code> is associated with <code>IMUX.SR*</code></li>
+<li><code>HEX.[SN]4</code> is associated with <code>IMUX.CLK*</code> and <code>IMUX.IOCLK*</code></li>
+<li><code>HEX.[SN]7</code> is associated with <code>IMUX.CE*</code></li>
+</ul>
+</li>
+</ul>
+<p>For large-fanout nets or nets that need to span long distances, the interconnect also has long lines that span the whole width or height of the device. There are 24 vertical long lines, <code>LV</code>, per an interconnect column, and 24 horizontal long lines, <code>LH</code>, per an interconnect row. They are visible as <code>LV.{0-23}</code> and <code>LH.{0-23}</code> segments in each interconnect tile, in a rotating way: <code>LH.0</code> in a given tile is visible as <code>LH.1</code> or <code>LH.23</code> in the horizontally adjacent tiles.
+Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segments of long wires are actually accessible to a tile — the rest are just passing through.</p>
+<p>Each interconnect tile can optionally drive the long line segments accessible to it via buffered multiplexers. The inputs to <code>LH</code> driver multiplexers include:</p>
+<ul>
+<li><code>OMUX</code> wires</li>
+<li><code>.1</code> segments of <code>DBL</code> wires</li>
+</ul>
+<p>The inputs to <code>LV</code> driver multiplexers include:</p>
+<ul>
+<li><code>OMUX</code> wires</li>
+<li><code>.1</code> segments of <code>DBL</code> wires</li>
+<li>various segments of <code>HEX.E0</code> and <code>HEX.W6</code> wires</li>
+</ul>
+<p>The every-6-tiles nature of long wires combined with existence of hex wires allows for easy distribution of signals everywhere on the FPGA.</p>
+<h2 id="input-multiplexers"><a class="header" href="#input-multiplexers">Input multiplexers</a></h2>
+<p>Every interconnect tile also contains input multiplexers, which drive the associated primitive inputs. The exact set of available input multiplexers depends on the type of interconnect tile.</p>
+<p>The baseline set of input muxes is present in the <code>INT.CLB</code> tile:</p>
+<ul>
+<li>
+<p><code>IMUX.CLK[0-3]</code>: four clock inputs. In CLBs, they correspond to the four <code>SLICE</code>\ s. They are multiplexed from:</p>
+<ul>
+<li><code>PULLUP</code>, a dummy always-1 wire</li>
+<li><code>GCLK0</code> through <code>GCLK7</code>, the <a href="../clock/README.html">clock interconnect</a> global lines</li>
+<li>various segments of <code>DBL</code> lines</li>
+<li>any segment of <code>HEX.S4</code> and <code>HEX.N4</code> lines</li>
+</ul>
+<p>The <code>IMUX.CLK</code> multiplexers have a programmable inverter.</p>
+</li>
+<li>
+<p><code>IMUX.SR[0-3]</code>: four set/reset inputs. In CLBs, they correspond to the four <code>SLICE</code>\ s. They are multiplexed from:</p>
+<ul>
+<li><code>PULLUP</code>, a dummy always-1 wire</li>
+<li>various segments of <code>DBL</code> lines</li>
+<li>any segment of <code>HEX.S0</code> and <code>HEX.N0</code> lines</li>
+</ul>
+<p>The <code>IMUX.SR</code> multiplexers have a programmable inverter.</p>
+</li>
+<li>
+<p><code>IMUX.CE[0-3]</code>: four clock enable inputs. In CLBs, they correspond to the four <code>SLICE</code>\ s. They are multiplexed from:</p>
+<ul>
+<li><code>PULLUP</code>, a dummy always-1 wire</li>
+<li>various segments of <code>DBL</code> lines</li>
+<li>any segment of <code>HEX.S7</code> and <code>HEX.N7</code> lines</li>
+</ul>
+<p>The <code>IMUX.CE</code> multiplexers have a programmable inverter.</p>
+</li>
+<li>
+<p><code>IMUX.FAN.B[XY][0-3]</code>: 8 fanout inputs, corresponding to <code>BX</code> and <code>BY</code> in CLBs. They are special in that they can be used both as primitive inputs and as extra routing resources to reach other primitive inputs (specifically, <code>IMUX.DATA*</code>). They are multiplexed from:</p>
+<ul>
+<li><code>PULLUP</code>, a dummy always-1 wire</li>
+<li><code>OMUX</code> wires</li>
+<li>various segments of <code>DBL</code> lines</li>
+<li>other <code>IMUX.FAN.*</code> wires</li>
+</ul>
+</li>
+<li>
+<p><code>IMUX.DATA[0-31]</code>: 32 general data inputs, corresponding to LUT inputs in CLBs. They are multiplexed from the same sources as <code>IMUX.FAN.*</code> lines.</p>
+</li>
+</ul>
+<p>The input multiplexers in <code>INT.BRAM</code> tiles are essentially subsets of <code>INT.CLB</code>. The <code>INT.BRAM.S3A.03</code> tiles are specifically missing <code>IMUX.CLK</code> and <code>IMUX.CE</code> because their bitstream tile space is repurposed for hard multiplier input selection.</p>
+<p>The <code>INT.DCM.*</code> tiles are a variant of <code>INT.CLB</code> with one difference: the <code>IMUX.CLK*</code> inputs can be additionally multiplexed from <code>DCM.CLKPAD[0-3]</code>, which are direct inputs from clock I/O pads (see <a href="../clock/README.html">clock interconnect</a>).</p>
+<p>The <code>INT.IOI*</code> tiles are a variant of <code>INT.CLB</code> with the following differences:</p>
+<ul>
+<li>
+<p><code>IMUX.CLK*</code> are not present</p>
+</li>
+<li>
+<p>the <code>IMUX.IOCLK[0-7]</code> inputs are added, which are multiplexed from:</p>
+<ul>
+<li><code>PULLUP</code>, a dummy always-1 wire</li>
+<li><code>GCLK0</code> through <code>GCLK7</code>, the <a href="../clock/README.html">clock interconnect</a> global lines</li>
+<li>various segments of <code>DBL</code> lines</li>
+<li>any segment of <code>HEX.S4</code> and <code>HEX.N4</code> lines</li>
+</ul>
+<p>The <code>IMUX.IOCLK*</code> lines are not invertible on interconnect level, but they have inverters in the <code>IOI</code> primitives.</p>
+</li>
+</ul>
+<h2 id="primitive-outputs"><a class="header" href="#primitive-outputs">Primitive outputs</a></h2>
+<p>Primitive outputs are wires that go from the various primitives into the general interconnect. The set of available primitive outputs depends on the type of the interconnect tile. The <code>OUT.FAN*</code> outputs can be used as inputs to many interconnect multiplexers, while other outputs can only be routed via <code>OMUX</code> multiplexers.</p>
+<p>The <code>INT.CLB</code>, <code>INT.DCM.*</code>, and <code>INT.IOI.*</code> tiles have the following primitive outputs:</p>
+<ul>
+<li><code>OUT.FAN[0-7]</code>: the main combinational LUT outputs (<code>X</code> and <code>Y</code>); they have access to many more routing resources than other outputs</li>
+<li><code>OUT.SEC[0-15]</code>: the remaining SLICE outputs (<code>XQ</code>, <code>YQ</code>, <code>XB</code>, <code>YB</code>)</li>
+</ul>
+<p>Every <code>OMUX</code> multiplexer can mux from all <code>OUT.FAN</code> and <code>OUT.SEC</code> wires.</p>
+<p>The <code>INT.BRAM.*</code> tiles have the following primitive outputs:</p>
+<ul>
+<li><code>OUT.FAN[0-7]</code>: as above</li>
+<li><code>OUT.SEC[4-15]</code>: as above</li>
+<li><code>OUT.HALF[0-3].[0-1]</code>: they take the place of <code>OUT.SEC[0-3]</code>; <code>.0</code> outputs are routed only to <code>OMUX[0-7]</code> while <code>.1</code> outputs are routed only to <code>OMUX[8-15]</code>, creating a possible bottleneck</li>
+</ul>
+<h2 id="terminators"><a class="header" href="#terminators">Terminators</a></h2>
+<p>The edges of the device contain special <code>TERM.[EWSN]</code> tiles that handle interconnect lines going out-of-bounds:</p>
+<ul>
+<li><code>DBL</code> lines get reflected — eg. northbound lines "bounce off" the top edge and become southbound lines</li>
+<li><code>HEX</code> lines are likewise reflected</li>
+<li>long lines begin and end at <code>TERM</code> tiles</li>
+<li><code>OMUX</code> lines going out of bounds are unconnected</li>
+</ul>
+<p>The Spartan 3E devices contain special <code>TERM.BRAM.[SN]</code> tiles that handle vertical interconnect lines hitting the bottom and top edge of the BRAM column. They work like <code>TERM.[EWSN]</code>, but they pass long lines through to the other end of the BRAM column.</p>
+<p>The top and bottom of Spartan 3A BRAM columns don't have a terminator — the out-of-bounds interconnect lines just go nowhere and aren't usable.</p>
+<h2 id="long-line-splitters"><a class="header" href="#long-line-splitters">Long line splitters</a></h2>
+<p>On larger Spartan 3E and Spartan 3A devices, the horizontal clock spine contains <code>LLV</code> tiles, which contain programmable buffers that can optionally join the top and bottom segments of <code>LV</code> lines (they can buffer each line top-to-bottom, bottom-to-top, or the two segments can be disconnected and used for different signals). Likewise, the primary vertical clock spine contains <code>LLH</code> tiles, which can optionally join the left and right segments of <code>LH</code> lines.</p>
+<p>The area of horizontal clock spine located within the inside of BRAM column doesn't contain <code>LLV</code> tiles. This is moot anyway, as the columns don't have enough interconnect tiles for the long lines to actually be useful (each long line only has at most one tap, making them useless).</p>
+<h2 id="tile-slots"><a class="header" href="#tile-slots">Tile slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 tile slots</caption>
+<thead>
+<tr><th>Slot</th><th>Tiles</th><th>Bel slots</th></tr>
+</thead>
+<tbody>
+<tr><td>INT</td><td>INT.CLB, INT.IOI.S3A.LR, INT.IOI.S3A.TB, INT.BRAM.S3A.03, INT.BRAM.S3A.12, INT.DCM, INT.IOI.S3E, INT.BRAM.S3E, INT.DCM.S3E.DUMMY, INT.IOI.S3, INT.BRAM.S3, INT.BRAM.S3ADSP, INT.DCM.S3.DUMMY</td><td>INT, RLL, PTE2OMUX0, PTE2OMUX1, PTE2OMUX2, PTE2OMUX3</td></tr>
+<tr><td>INTF</td><td>INTF.DSP</td><td>INTF_TESTMUX</td></tr>
+<tr><td>BEL</td><td>CLB, IOI.S3A.LR, IOI.S3A.B, IOI.S3A.T, DCM.S3E.TL, DCM.S3E.TR, LL.S3A, LR.S3A, UL.S3A, UR.S3A, BRAM.S3A, IOI.S3E, DCM.S3E.BR, LL.S3E, LR.S3E, UL.S3E, UR.S3E, BRAM.S3E, DCM.S3E.BL, DCM.S3E.LB, DCM.S3E.LT, DCM.S3E.RB, DCM.S3E.RT, IOI.S3, DCM.S3, LL.S3, LR.S3, UL.S3, UR.S3, BRAM.S3, BRAM.S3ADSP, DSP</td><td>SLICE0, SLICE1, SLICE2, SLICE3, TBUF0, TBUF1, TBUS, IO0, IO1, IO2, IO3, IBUF0, IBUF1, IBUF2, IBUF3, OBUF0, OBUF1, OBUF2, OBUF3, BRAM, MULT, DSP, DCM, GT, GT10, IPAD_RXP, IPAD_RXN, OPAD_TXP, OPAD_TXN, PPC405, DCI0, DCI1, DCIRESET0, DCIRESET1, STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
+<tr><td>TERM_H</td><td>LLH, LLH.CLKT.S3A, LLH.CLKB.S3A</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E, LLH</td></tr>
+<tr><td>TERM_V</td><td>LLV.S3E, LLV.S3A</td><td>TERM_S, TERM_N, PPC_TERM_S, PPC_TERM_N, LLV</td></tr>
+<tr><td>IOB</td><td>IOBS.S3A.B2, IOBS.S3A.T2, IOBS.S3A.L4, IOBS.S3A.R4, IOBS.S3E.B1, IOBS.S3E.B2, IOBS.S3E.B3, IOBS.S3E.B4, IOBS.S3E.T1, IOBS.S3E.T2, IOBS.S3E.T3, IOBS.S3E.T4, IOBS.S3E.L1, IOBS.S3E.L2, IOBS.S3E.L3, IOBS.S3E.L4, IOBS.S3E.R1, IOBS.S3E.R2, IOBS.S3E.R3, IOBS.S3E.R4, IOBS.S3.B2, IOBS.S3.T2, IOBS.S3.L1, IOBS.S3.R1</td><td></td></tr>
+<tr><td>CLK</td><td>CLKB.S3A, CLKT.S3A, CLKL.S3A, CLKR.S3A, CLKC_50A, GCLKH.DSP, CLKB.S3E, CLKT.S3E, CLKL.S3E, CLKR.S3E, CLKC, GCLKVM.S3E, CLKB.S3, CLKT.S3, DCMCONN.BOT, DCMCONN.TOP, GCLKVM.S3</td><td>CLK_INT, BUFGMUX0, BUFGMUX1, BUFGMUX2, BUFGMUX3, BUFGMUX4, BUFGMUX5, BUFGMUX6, BUFGMUX7, PCILOGIC, PCILOGICSE, VCC, GLOBALSIG_S0, GLOBALSIG_S1, GLOBALSIG_N0, GLOBALSIG_N1, GLOBALSIG_S, GLOBALSIG_N, GLOBALSIG_WE, DCMCONN, BREFCLK, CLKC, CLKC_50A, GCLKVM, GLOBALSIG_DSP</td></tr>
+<tr><td>HROW</td><td>GCLKVC</td><td>GCLKC, GCLKVC</td></tr>
+<tr><td>HCLK</td><td>GCLKH, GCLKH.UNI, GCLKH.UNI.S, GCLKH.UNI.N, GCLKH.0, GCLKH.S, GCLKH.N</td><td>GCLKH, GLOBALSIG</td></tr>
+<tr><td>PCI_CE</td><td>PCI_CE_S, PCI_CE_CNR, PCI_CE_N, PCI_CE_E, PCI_CE_W</td><td>PCI_CE_N, PCI_CE_S, PCI_CE_W, PCI_CE_E, PCI_CE_CNR</td></tr>
+<tr><td>RANDOR</td><td>RANDOR, RANDOR_INIT</td><td>RANDOR</td></tr>
+</tbody>
+</table></div>
+<h2 id="bel-slots"><a class="header" href="#bel-slots">Bel slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 bel slots</caption>
+<thead>
+<tr><th>Slot</th><th>Tile slot</th><th>Tiles</th></tr>
+</thead>
+<tbody>
+<tr><td>INT</td><td>INT</td><td>INT.CLB, INT.IOI.S3A.LR, INT.IOI.S3A.TB, INT.BRAM.S3A.03, INT.BRAM.S3A.12, INT.DCM, INT.IOI.S3E, INT.BRAM.S3E, INT.DCM.S3E.DUMMY, INT.IOI.S3, INT.BRAM.S3, INT.BRAM.S3ADSP, INT.DCM.S3.DUMMY</td></tr>
+<tr><td>RLL</td><td>INT</td><td>INT.CLB, INT.IOI.S3A.LR, INT.IOI.S3A.TB, INT.BRAM.S3A.03, INT.BRAM.S3A.12, INT.DCM, INT.IOI.S3E, INT.BRAM.S3E, INT.DCM.S3E.DUMMY, INT.IOI.S3, INT.BRAM.S3, INT.BRAM.S3ADSP, INT.DCM.S3.DUMMY</td></tr>
+<tr><td>INTF_TESTMUX</td><td>INTF</td><td>INTF.DSP</td></tr>
+<tr><td>CLK_INT</td><td>CLK</td><td>CLKB.S3A, CLKT.S3A, CLKB.S3E, CLKT.S3E, CLKB.S3, CLKT.S3</td></tr>
+<tr><td>TERM_W</td><td>TERM_H</td><td></td></tr>
+<tr><td>TERM_E</td><td>TERM_H</td><td></td></tr>
+<tr><td>TERM_S</td><td>TERM_V</td><td></td></tr>
+<tr><td>TERM_N</td><td>TERM_V</td><td></td></tr>
+<tr><td>PPC_TERM_W</td><td>TERM_H</td><td></td></tr>
+<tr><td>PPC_TERM_E</td><td>TERM_H</td><td></td></tr>
+<tr><td>PPC_TERM_S</td><td>TERM_V</td><td></td></tr>
+<tr><td>PPC_TERM_N</td><td>TERM_V</td><td></td></tr>
+<tr><td>LLH</td><td>TERM_H</td><td>LLH, LLH.CLKT.S3A, LLH.CLKB.S3A</td></tr>
+<tr><td>LLV</td><td>TERM_V</td><td>LLV.S3E, LLV.S3A</td></tr>
+<tr><td>SLICE0</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>SLICE1</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>SLICE2</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>SLICE3</td><td>BEL</td><td>CLB</td></tr>
+<tr><td>TBUF0</td><td>BEL</td><td></td></tr>
+<tr><td>TBUF1</td><td>BEL</td><td></td></tr>
+<tr><td>TBUS</td><td>BEL</td><td></td></tr>
+<tr><td>IO0</td><td>BEL</td><td>IOI.S3A.LR, IOI.S3A.B, IOI.S3A.T, IOI.S3E, IOI.S3</td></tr>
+<tr><td>IO1</td><td>BEL</td><td>IOI.S3A.LR, IOI.S3A.B, IOI.S3A.T, IOI.S3E, IOI.S3</td></tr>
+<tr><td>IO2</td><td>BEL</td><td>IOI.S3A.B, IOI.S3A.T, IOI.S3E, IOI.S3</td></tr>
+<tr><td>IO3</td><td>BEL</td><td></td></tr>
+<tr><td>IBUF0</td><td>BEL</td><td></td></tr>
+<tr><td>IBUF1</td><td>BEL</td><td></td></tr>
+<tr><td>IBUF2</td><td>BEL</td><td></td></tr>
+<tr><td>IBUF3</td><td>BEL</td><td></td></tr>
+<tr><td>OBUF0</td><td>BEL</td><td></td></tr>
+<tr><td>OBUF1</td><td>BEL</td><td></td></tr>
+<tr><td>OBUF2</td><td>BEL</td><td></td></tr>
+<tr><td>OBUF3</td><td>BEL</td><td></td></tr>
+<tr><td>BRAM</td><td>BEL</td><td>BRAM.S3A, BRAM.S3E, BRAM.S3, BRAM.S3ADSP</td></tr>
+<tr><td>MULT</td><td>BEL</td><td>BRAM.S3A, BRAM.S3E, BRAM.S3</td></tr>
+<tr><td>DSP</td><td>BEL</td><td>DSP</td></tr>
+<tr><td>DCM</td><td>BEL</td><td>DCM.S3E.TL, DCM.S3E.TR, DCM.S3E.BR, DCM.S3E.BL, DCM.S3E.LB, DCM.S3E.LT, DCM.S3E.RB, DCM.S3E.RT, DCM.S3</td></tr>
+<tr><td>GT</td><td>BEL</td><td></td></tr>
+<tr><td>GT10</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXP</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXN</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXP</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXN</td><td>BEL</td><td></td></tr>
+<tr><td>PPC405</td><td>BEL</td><td></td></tr>
+<tr><td>DCI0</td><td>BEL</td><td>LL.S3, LR.S3, UL.S3, UR.S3</td></tr>
+<tr><td>DCI1</td><td>BEL</td><td>LL.S3, LR.S3, UL.S3, UR.S3</td></tr>
+<tr><td>DCIRESET0</td><td>BEL</td><td>LL.S3, LR.S3, UL.S3, UR.S3</td></tr>
+<tr><td>DCIRESET1</td><td>BEL</td><td>LL.S3, LR.S3, UL.S3, UR.S3</td></tr>
+<tr><td>STARTUP</td><td>BEL</td><td>LR.S3A, LR.S3E, LR.S3</td></tr>
+<tr><td>CAPTURE</td><td>BEL</td><td>LR.S3A, LR.S3E, LR.S3</td></tr>
+<tr><td>ICAP</td><td>BEL</td><td>LR.S3A, LR.S3E, LR.S3</td></tr>
+<tr><td>SPI_ACCESS</td><td>BEL</td><td>LR.S3A</td></tr>
+<tr><td>PMV</td><td>BEL</td><td>UL.S3A, UL.S3E, UL.S3</td></tr>
+<tr><td>DNA_PORT</td><td>BEL</td><td>UL.S3A</td></tr>
+<tr><td>BSCAN</td><td>BEL</td><td>UR.S3A, UR.S3E, UR.S3</td></tr>
+<tr><td>JTAGPPC</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGMUX0</td><td>CLK</td><td>CLKB.S3A, CLKT.S3A, CLKL.S3A, CLKR.S3A, CLKB.S3E, CLKT.S3E, CLKL.S3E, CLKR.S3E, CLKB.S3, CLKT.S3</td></tr>
+<tr><td>BUFGMUX1</td><td>CLK</td><td>CLKB.S3A, CLKT.S3A, CLKL.S3A, CLKR.S3A, CLKB.S3E, CLKT.S3E, CLKL.S3E, CLKR.S3E, CLKB.S3, CLKT.S3</td></tr>
+<tr><td>BUFGMUX2</td><td>CLK</td><td>CLKB.S3A, CLKT.S3A, CLKL.S3A, CLKR.S3A, CLKB.S3E, CLKT.S3E, CLKL.S3E, CLKR.S3E, CLKB.S3, CLKT.S3</td></tr>
+<tr><td>BUFGMUX3</td><td>CLK</td><td>CLKB.S3A, CLKT.S3A, CLKL.S3A, CLKR.S3A, CLKB.S3E, CLKT.S3E, CLKL.S3E, CLKR.S3E, CLKB.S3, CLKT.S3</td></tr>
+<tr><td>BUFGMUX4</td><td>CLK</td><td>CLKL.S3A, CLKR.S3A, CLKL.S3E, CLKR.S3E</td></tr>
+<tr><td>BUFGMUX5</td><td>CLK</td><td>CLKL.S3A, CLKR.S3A, CLKL.S3E, CLKR.S3E</td></tr>
+<tr><td>BUFGMUX6</td><td>CLK</td><td>CLKL.S3A, CLKR.S3A, CLKL.S3E, CLKR.S3E</td></tr>
+<tr><td>BUFGMUX7</td><td>CLK</td><td>CLKL.S3A, CLKR.S3A, CLKL.S3E, CLKR.S3E</td></tr>
+<tr><td>PCILOGIC</td><td>CLK</td><td></td></tr>
+<tr><td>PCILOGICSE</td><td>CLK</td><td>CLKL.S3A, CLKR.S3A, CLKL.S3E, CLKR.S3E</td></tr>
+<tr><td>VCC</td><td>CLK</td><td>CLKL.S3A, CLKR.S3A, CLKL.S3E, CLKR.S3E</td></tr>
+<tr><td>GLOBALSIG_S0</td><td>CLK</td><td></td></tr>
+<tr><td>GLOBALSIG_S1</td><td>CLK</td><td></td></tr>
+<tr><td>GLOBALSIG_N0</td><td>CLK</td><td></td></tr>
+<tr><td>GLOBALSIG_N1</td><td>CLK</td><td></td></tr>
+<tr><td>GLOBALSIG_S</td><td>CLK</td><td>CLKB.S3A, CLKB.S3E, CLKB.S3</td></tr>
+<tr><td>GLOBALSIG_N</td><td>CLK</td><td>CLKT.S3A, CLKT.S3E, CLKT.S3</td></tr>
+<tr><td>GLOBALSIG_WE</td><td>CLK</td><td>CLKL.S3A, CLKR.S3A, CLKL.S3E, CLKR.S3E</td></tr>
+<tr><td>DCMCONN</td><td>CLK</td><td>DCMCONN.BOT, DCMCONN.TOP</td></tr>
+<tr><td>DCMCONN_S3E</td><td>BEL</td><td>DCM.S3E.TL, DCM.S3E.TR, DCM.S3E.BR, DCM.S3E.BL, DCM.S3E.LB, DCM.S3E.LT, DCM.S3E.RB, DCM.S3E.RT</td></tr>
+<tr><td>BREFCLK_INT</td><td>BEL</td><td></td></tr>
+<tr><td>BREFCLK</td><td>CLK</td><td></td></tr>
+<tr><td>CLKC</td><td>CLK</td><td>CLKC</td></tr>
+<tr><td>CLKC_50A</td><td>CLK</td><td>CLKC_50A</td></tr>
+<tr><td>GCLKC</td><td>HROW</td><td></td></tr>
+<tr><td>GCLKH</td><td>HCLK</td><td>GCLKH, GCLKH.UNI, GCLKH.UNI.S, GCLKH.UNI.N, GCLKH.S, GCLKH.N</td></tr>
+<tr><td>GCLKVM</td><td>CLK</td><td>GCLKVM.S3E, GCLKVM.S3</td></tr>
+<tr><td>GCLKVC</td><td>HROW</td><td>GCLKVC</td></tr>
+<tr><td>GLOBALSIG</td><td>HCLK</td><td>GCLKH, GCLKH.UNI, GCLKH.UNI.S, GCLKH.UNI.N, GCLKH.0, GCLKH.S, GCLKH.N</td></tr>
+<tr><td>GLOBALSIG_DSP</td><td>CLK</td><td>GCLKH.DSP</td></tr>
+<tr><td>PTE2OMUX0</td><td>INT</td><td>INT.DCM, INT.DCM.S3E.DUMMY</td></tr>
+<tr><td>PTE2OMUX1</td><td>INT</td><td>INT.DCM, INT.DCM.S3E.DUMMY</td></tr>
+<tr><td>PTE2OMUX2</td><td>INT</td><td>INT.DCM, INT.DCM.S3E.DUMMY</td></tr>
+<tr><td>PTE2OMUX3</td><td>INT</td><td>INT.DCM, INT.DCM.S3E.DUMMY</td></tr>
+<tr><td>RANDOR</td><td>RANDOR</td><td>RANDOR</td></tr>
+<tr><td>RANDOR_OUT</td><td>BEL</td><td>UR.S3A, UR.S3E, UR.S3</td></tr>
+<tr><td>PCI_CE_N</td><td>PCI_CE</td><td>PCI_CE_N</td></tr>
+<tr><td>PCI_CE_S</td><td>PCI_CE</td><td>PCI_CE_S</td></tr>
+<tr><td>PCI_CE_W</td><td>PCI_CE</td><td>PCI_CE_W</td></tr>
+<tr><td>PCI_CE_E</td><td>PCI_CE</td><td>PCI_CE_E</td></tr>
+<tr><td>PCI_CE_CNR</td><td>PCI_CE</td><td>PCI_CE_CNR</td></tr>
+<tr><td>MISR</td><td>BEL</td><td></td></tr>
+</tbody>
+</table></div>
+<h2 id="connector-slots"><a class="header" href="#connector-slots">Connector slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 connector slots</caption>
+<thead>
+<tr><th>Slot</th><th>Opposite</th><th>Connectors</th></tr>
+</thead>
+<tbody>
+<tr><td>W</td><td>E</td><td>MAIN.W, TERM.W, LLH.W, LLH.DCM.S3ADSP.W, DSPHOLE.W, HDCM.W</td></tr>
+<tr><td>E</td><td>W</td><td>MAIN.E, TERM.E, LLH.E, LLH.DCM.S3ADSP.E, DSPHOLE.E, HDCM.E</td></tr>
+<tr><td>S</td><td>N</td><td>MAIN.S, TERM.S, TERM.BRAM.S, CLKLR.S3E.S, LLV.S, LLV.CLKLR.S3E.S, BRKH.S3.S</td></tr>
+<tr><td>N</td><td>S</td><td>MAIN.N, TERM.N, TERM.BRAM.N, CLKLR.S3E.N, LLV.N, LLV.CLKLR.S3E.N, BRKH.S3.N</td></tr>
+</tbody>
+</table></div>
+<h2 id="region-slots"><a class="header" href="#region-slots">Region slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 region slots</caption>
+<thead>
+<tr><th>Slot</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>HCLK</td><td></td></tr>
+<tr><td>LEAF</td><td>GCLK0, GCLK1, GCLK2, GCLK3, GCLK4, GCLK5, GCLK6, GCLK7</td></tr>
+</tbody>
+</table></div>
+<h2 id="wires"><a class="header" href="#wires">Wires</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 wires</caption>
+<thead>
+<tr><th>Wire</th><th>Kind</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PULLUP</td><td>TIE_PULLUP</td></tr>
+<tr><td>GCLK0</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK1</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK2</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK3</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK4</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK5</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK6</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK7</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>DCM.CLKPAD0</td><td>LOGIC_OUT</td></tr>
+<tr><td>DCM.CLKPAD1</td><td>LOGIC_OUT</td></tr>
+<tr><td>DCM.CLKPAD2</td><td>LOGIC_OUT</td></tr>
+<tr><td>DCM.CLKPAD3</td><td>LOGIC_OUT</td></tr>
+<tr><td>OMUX0</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX0.S</td><td>BRANCH:N</td></tr>
+<tr><td>OMUX1</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX1.W</td><td>BRANCH:E</td></tr>
+<tr><td>OMUX1.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OMUX2</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX2.E</td><td>BRANCH:W</td></tr>
+<tr><td>OMUX2.S</td><td>BRANCH:N</td></tr>
+<tr><td>OMUX3</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX3.S</td><td>BRANCH:N</td></tr>
+<tr><td>OMUX3.SE</td><td>BRANCH:W</td></tr>
+<tr><td>OMUX4</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX4.S</td><td>BRANCH:N</td></tr>
+<tr><td>OMUX5</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX5.S</td><td>BRANCH:N</td></tr>
+<tr><td>OMUX5.SW</td><td>BRANCH:E</td></tr>
+<tr><td>OMUX6</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX6.W</td><td>BRANCH:E</td></tr>
+<tr><td>OMUX7</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX7.E</td><td>BRANCH:W</td></tr>
+<tr><td>OMUX7.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OMUX8</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX8.E</td><td>BRANCH:W</td></tr>
+<tr><td>OMUX8.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OMUX9</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX9.W</td><td>BRANCH:E</td></tr>
+<tr><td>OMUX9.N</td><td>BRANCH:S</td></tr>
+<tr><td>OMUX10</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX10.N</td><td>BRANCH:S</td></tr>
+<tr><td>OMUX10.NW</td><td>BRANCH:E</td></tr>
+<tr><td>OMUX11</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX11.N</td><td>BRANCH:S</td></tr>
+<tr><td>OMUX12</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX12.N</td><td>BRANCH:S</td></tr>
+<tr><td>OMUX12.NE</td><td>BRANCH:W</td></tr>
+<tr><td>OMUX13</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX13.E</td><td>BRANCH:W</td></tr>
+<tr><td>OMUX14</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX14.W</td><td>BRANCH:E</td></tr>
+<tr><td>OMUX14.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OMUX15</td><td>MUX_OUT</td></tr>
+<tr><td>OMUX15.N</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.W0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W0.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W0.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W1.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W1.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W2.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W2.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W3.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W3.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W4.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W4.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W4.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W5.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W5.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W5.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W6.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W6.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W6.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W6.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.W7.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.W7.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W7.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.W7.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.E0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E0.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E0.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.E1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E1.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E1.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E1.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.E2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E2.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E2.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E3.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E3.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E4.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E4.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E4.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E5.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E5.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E5.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E6.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E6.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E6.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E7.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.E7.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.E7.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.S0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S0.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S0.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S1.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S1.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S1.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S2.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S2.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S3.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S3.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S4.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S4.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S4.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S5.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S5.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S5.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S6.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S6.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S6.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S7.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.S7.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.S7.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.N0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N0.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N0.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N1.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N1.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N2.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N2.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N3.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N3.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N4.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N4.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N4.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N5.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N5.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N5.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N6.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N6.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N6.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N6.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N7.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.N7.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N7.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.N7.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.W0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W0.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W0.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W0.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W0.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W0.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W0.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W1.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W1.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W1.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W1.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W1.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W1.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W2.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W2.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W2.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W2.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W2.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W2.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W3.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W3.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W3.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W3.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W3.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W3.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W4.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W4.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W4.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W4.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W4.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W4.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W4.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W5.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W5.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W5.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W5.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W5.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W5.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W5.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W6.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W6.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W6.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W6.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W6.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W6.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W6.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W6.7</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.W7.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.W7.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W7.2</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W7.3</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W7.4</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W7.5</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W7.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.W7.7</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.E0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E0.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E0.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E0.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E0.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E0.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E0.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E0.7</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.E1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E1.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E1.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E1.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E1.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E1.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E1.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E1.7</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.E2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E2.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E2.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E2.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E2.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E2.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E2.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E3.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E3.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E3.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E3.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E3.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E3.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E4.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E4.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E4.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E4.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E4.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E4.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E4.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E5.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E5.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E5.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E5.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E5.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E5.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E5.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E6.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E6.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E6.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E6.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E6.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E6.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E6.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E7.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.E7.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E7.2</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E7.3</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E7.4</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E7.5</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.E7.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.S0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S0.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S0.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S0.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S0.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S0.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S0.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S0.7</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S1.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S1.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S1.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S1.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S1.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S1.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S1.7</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S2.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S2.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S2.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S2.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S2.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S2.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S3.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S3.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S3.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S3.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S3.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S3.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S4.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S4.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S4.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S4.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S4.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S4.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S4.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S5.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S5.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S5.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S5.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S5.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S5.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S5.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S6.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S6.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S6.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S6.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S6.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S6.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S6.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S7.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.S7.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S7.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S7.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S7.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S7.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.S7.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.N0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N0.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N0.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N0.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N0.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N0.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N0.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N1.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N1.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N1.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N1.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N1.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N1.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N2.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N2.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N2.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N2.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N2.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N2.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N3.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N3.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N3.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N3.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N3.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N3.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N4.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N4.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N4.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N4.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N4.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N4.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N4.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N5.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N5.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N5.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N5.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N5.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N5.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N5.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N6.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N6.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N6.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N6.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N6.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N6.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N6.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N6.7</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N7.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.N7.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N7.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N7.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N7.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N7.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N7.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.N7.7</td><td>BRANCH:S</td></tr>
+<tr><td>LH.0</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.5</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.6</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.7</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.8</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.9</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.10</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.11</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.12</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.13</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.14</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.15</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.16</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.17</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.18</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.19</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.20</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.21</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.22</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.23</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LV.0</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.5</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.6</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.7</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.8</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.9</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.10</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.11</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.12</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.13</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.14</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.15</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.16</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.17</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.18</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.19</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.20</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.21</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.22</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.23</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>IMUX.SR0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.SR1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.SR2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.SR3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK4</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK5</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK6</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IOCLK7</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CE0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CE1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CE2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CE3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX0.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX1.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX2.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BX3.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY0.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY1.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY2.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN.BY3.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA4</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA5</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA6</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA7</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA8</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA9</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA10</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA11</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA12</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA13</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA14</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA15</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA16</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA17</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA18</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA19</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA20</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA21</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA22</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA23</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA24</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA25</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA26</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA27</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA28</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA29</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA30</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.DATA31</td><td>MUX_OUT</td></tr>
+<tr><td>OUT.FAN0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN2</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN2.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN3</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN3.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN4</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN4.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN5</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN5.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN6</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN6.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN7</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.FAN7.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC2</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC2.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC3</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC3.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC4</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC4.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC5</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC5.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC6</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC6.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC7</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC7.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC8</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC8.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC9</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC9.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC10</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC10.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC11</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC11.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC12</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC12.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC13</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC13.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC14</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC14.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC15</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.SEC15.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF0.0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF0.0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF0.1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF0.1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF1.0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF1.0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF1.1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF1.1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF2.0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF2.0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF2.1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF2.1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF3.0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF3.0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF3.1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.HALF3.1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>CLK.IMUX.SEL0</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.IMUX.SEL1</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.IMUX.SEL2</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.IMUX.SEL3</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.IMUX.CLK0</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.IMUX.CLK1</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.IMUX.CLK2</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.IMUX.CLK3</td><td>MUX_OUT</td></tr>
+<tr><td>CLK.OUT.0</td><td>LOGIC_OUT</td></tr>
+<tr><td>CLK.OUT.1</td><td>LOGIC_OUT</td></tr>
+<tr><td>CLK.OUT.2</td><td>LOGIC_OUT</td></tr>
+<tr><td>CLK.OUT.3</td><td>LOGIC_OUT</td></tr>
+</tbody>
+</table></div>
+<h2 id="connectors--w"><a class="header" href="#connectors--w">Connectors — W</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.W</th>
+<th>TERM.W</th>
+<th>LLH.W</th>
+<th>LLH.DCM.S3ADSP.W</th>
+<th>DSPHOLE.W</th>
+<th>HDCM.W</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OMUX2.E</td>
+<td>→ OMUX2</td>
+<td>-</td>
+<td>→ OMUX2</td>
+<td>→ OMUX2</td>
+<td>→ OMUX2</td>
+<td>→ OMUX2</td>
+</tr>
+<tr><td>OMUX3.SE</td>
+<td>→ OMUX3.S</td>
+<td>-</td>
+<td>→ OMUX3.S</td>
+<td>→ OMUX3.S</td>
+<td>→ OMUX3.S</td>
+<td>→ OMUX3.S</td>
+</tr>
+<tr><td>OMUX7.E</td>
+<td>→ OMUX7</td>
+<td>-</td>
+<td>→ OMUX7</td>
+<td>→ OMUX7</td>
+<td>→ OMUX7</td>
+<td>→ OMUX7</td>
+</tr>
+<tr><td>OMUX8.E</td>
+<td>→ OMUX8</td>
+<td>-</td>
+<td>→ OMUX8</td>
+<td>→ OMUX8</td>
+<td>→ OMUX8</td>
+<td>→ OMUX8</td>
+</tr>
+<tr><td>OMUX12.NE</td>
+<td>→ OMUX12.N</td>
+<td>-</td>
+<td>→ OMUX12.N</td>
+<td>→ OMUX12.N</td>
+<td>→ OMUX12.N</td>
+<td>→ OMUX12.N</td>
+</tr>
+<tr><td>OMUX13.E</td>
+<td>→ OMUX13</td>
+<td>-</td>
+<td>→ OMUX13</td>
+<td>→ OMUX13</td>
+<td>→ OMUX13</td>
+<td>→ OMUX13</td>
+</tr>
+<tr><td>DBL.E0.1</td>
+<td>→ DBL.E0.0</td>
+<td>← DBL.W0.0</td>
+<td>→ DBL.E0.0</td>
+<td>→ DBL.E0.0</td>
+<td>→ DBL.E0.0</td>
+<td>→ DBL.E0.0</td>
+</tr>
+<tr><td>DBL.E0.2</td>
+<td>→ DBL.E0.1</td>
+<td>← DBL.W0.1</td>
+<td>→ DBL.E0.1</td>
+<td>→ DBL.E0.1</td>
+<td>→ DBL.E0.1</td>
+<td>→ DBL.E0.1</td>
+</tr>
+<tr><td>DBL.E1.1</td>
+<td>→ DBL.E1.0</td>
+<td>← DBL.W1.0</td>
+<td>→ DBL.E1.0</td>
+<td>→ DBL.E1.0</td>
+<td>→ DBL.E1.0</td>
+<td>→ DBL.E1.0</td>
+</tr>
+<tr><td>DBL.E1.2</td>
+<td>→ DBL.E1.1</td>
+<td>← DBL.W1.1</td>
+<td>→ DBL.E1.1</td>
+<td>→ DBL.E1.1</td>
+<td>→ DBL.E1.1</td>
+<td>→ DBL.E1.1</td>
+</tr>
+<tr><td>DBL.E2.1</td>
+<td>→ DBL.E2.0</td>
+<td>← DBL.W2.0</td>
+<td>→ DBL.E2.0</td>
+<td>→ DBL.E2.0</td>
+<td>→ DBL.E2.0</td>
+<td>→ DBL.E2.0</td>
+</tr>
+<tr><td>DBL.E2.2</td>
+<td>→ DBL.E2.1</td>
+<td>← DBL.W2.1</td>
+<td>→ DBL.E2.1</td>
+<td>→ DBL.E2.1</td>
+<td>→ DBL.E2.1</td>
+<td>→ DBL.E2.1</td>
+</tr>
+<tr><td>DBL.E3.1</td>
+<td>→ DBL.E3.0</td>
+<td>← DBL.W3.0</td>
+<td>→ DBL.E3.0</td>
+<td>→ DBL.E3.0</td>
+<td>→ DBL.E3.0</td>
+<td>→ DBL.E3.0</td>
+</tr>
+<tr><td>DBL.E3.2</td>
+<td>→ DBL.E3.1</td>
+<td>← DBL.W3.1</td>
+<td>→ DBL.E3.1</td>
+<td>→ DBL.E3.1</td>
+<td>→ DBL.E3.1</td>
+<td>→ DBL.E3.1</td>
+</tr>
+<tr><td>DBL.E4.1</td>
+<td>→ DBL.E4.0</td>
+<td>← DBL.W4.0</td>
+<td>→ DBL.E4.0</td>
+<td>→ DBL.E4.0</td>
+<td>→ DBL.E4.0</td>
+<td>→ DBL.E4.0</td>
+</tr>
+<tr><td>DBL.E4.2</td>
+<td>→ DBL.E4.1</td>
+<td>← DBL.W4.1</td>
+<td>→ DBL.E4.1</td>
+<td>→ DBL.E4.1</td>
+<td>→ DBL.E4.1</td>
+<td>→ DBL.E4.1</td>
+</tr>
+<tr><td>DBL.E5.1</td>
+<td>→ DBL.E5.0</td>
+<td>← DBL.W5.0</td>
+<td>→ DBL.E5.0</td>
+<td>→ DBL.E5.0</td>
+<td>→ DBL.E5.0</td>
+<td>→ DBL.E5.0</td>
+</tr>
+<tr><td>DBL.E5.2</td>
+<td>→ DBL.E5.1</td>
+<td>← DBL.W5.1</td>
+<td>→ DBL.E5.1</td>
+<td>→ DBL.E5.1</td>
+<td>→ DBL.E5.1</td>
+<td>→ DBL.E5.1</td>
+</tr>
+<tr><td>DBL.E6.1</td>
+<td>→ DBL.E6.0</td>
+<td>← DBL.W6.0</td>
+<td>→ DBL.E6.0</td>
+<td>→ DBL.E6.0</td>
+<td>→ DBL.E6.0</td>
+<td>→ DBL.E6.0</td>
+</tr>
+<tr><td>DBL.E6.2</td>
+<td>→ DBL.E6.1</td>
+<td>← DBL.W6.1</td>
+<td>→ DBL.E6.1</td>
+<td>→ DBL.E6.1</td>
+<td>→ DBL.E6.1</td>
+<td>→ DBL.E6.1</td>
+</tr>
+<tr><td>DBL.E7.1</td>
+<td>→ DBL.E7.0</td>
+<td>← DBL.W7.0</td>
+<td>→ DBL.E7.0</td>
+<td>→ DBL.E7.0</td>
+<td>→ DBL.E7.0</td>
+<td>→ DBL.E7.0</td>
+</tr>
+<tr><td>DBL.E7.2</td>
+<td>→ DBL.E7.1</td>
+<td>← DBL.W7.1</td>
+<td>→ DBL.E7.1</td>
+<td>→ DBL.E7.1</td>
+<td>→ DBL.E7.1</td>
+<td>→ DBL.E7.1</td>
+</tr>
+<tr><td>HEX.E0.1</td>
+<td>→ HEX.E0.0</td>
+<td>← HEX.W0.0</td>
+<td>→ HEX.E0.0</td>
+<td>→ HEX.E0.0</td>
+<td>→ HEX.E0.0</td>
+<td>→ HEX.E0.0</td>
+</tr>
+<tr><td>HEX.E0.2</td>
+<td>→ HEX.E0.1</td>
+<td>← HEX.W0.1</td>
+<td>→ HEX.E0.1</td>
+<td>→ HEX.E0.1</td>
+<td>→ HEX.E0.1</td>
+<td>→ HEX.E0.1</td>
+</tr>
+<tr><td>HEX.E0.3</td>
+<td>→ HEX.E0.2</td>
+<td>← HEX.W0.2</td>
+<td>→ HEX.E0.2</td>
+<td>-</td>
+<td>→ HEX.E0.2</td>
+<td>-</td>
+</tr>
+<tr><td>HEX.E0.4</td>
+<td>→ HEX.E0.3</td>
+<td>← HEX.W0.3</td>
+<td>→ HEX.E0.3</td>
+<td>→ HEX.E0.3</td>
+<td>→ HEX.E0.3</td>
+<td>→ HEX.E0.3</td>
+</tr>
+<tr><td>HEX.E0.5</td>
+<td>→ HEX.E0.4</td>
+<td>← HEX.W0.4</td>
+<td>→ HEX.E0.4</td>
+<td>→ HEX.E0.4</td>
+<td>→ HEX.E0.4</td>
+<td>→ HEX.E0.4</td>
+</tr>
+<tr><td>HEX.E0.6</td>
+<td>→ HEX.E0.5</td>
+<td>← HEX.W0.5</td>
+<td>→ HEX.E0.5</td>
+<td>→ HEX.E0.5</td>
+<td>→ HEX.E0.5</td>
+<td>→ HEX.E0.5</td>
+</tr>
+<tr><td>HEX.E1.1</td>
+<td>→ HEX.E1.0</td>
+<td>← HEX.W1.0</td>
+<td>→ HEX.E1.0</td>
+<td>→ HEX.E1.0</td>
+<td>→ HEX.E1.0</td>
+<td>→ HEX.E1.0</td>
+</tr>
+<tr><td>HEX.E1.2</td>
+<td>→ HEX.E1.1</td>
+<td>← HEX.W1.1</td>
+<td>→ HEX.E1.1</td>
+<td>→ HEX.E1.1</td>
+<td>→ HEX.E1.1</td>
+<td>→ HEX.E1.1</td>
+</tr>
+<tr><td>HEX.E1.3</td>
+<td>→ HEX.E1.2</td>
+<td>← HEX.W1.2</td>
+<td>→ HEX.E1.2</td>
+<td>→ HEX.E1.2</td>
+<td>→ HEX.E1.2</td>
+<td>→ HEX.E1.2</td>
+</tr>
+<tr><td>HEX.E1.4</td>
+<td>→ HEX.E1.3</td>
+<td>← HEX.W1.3</td>
+<td>→ HEX.E1.3</td>
+<td>→ HEX.E1.3</td>
+<td>→ HEX.E1.3</td>
+<td>→ HEX.E1.3</td>
+</tr>
+<tr><td>HEX.E1.5</td>
+<td>→ HEX.E1.4</td>
+<td>← HEX.W1.4</td>
+<td>→ HEX.E1.4</td>
+<td>→ HEX.E1.4</td>
+<td>→ HEX.E1.4</td>
+<td>→ HEX.E1.4</td>
+</tr>
+<tr><td>HEX.E1.6</td>
+<td>→ HEX.E1.5</td>
+<td>← HEX.W1.5</td>
+<td>→ HEX.E1.5</td>
+<td>→ HEX.E1.5</td>
+<td>→ HEX.E1.5</td>
+<td>→ HEX.E1.5</td>
+</tr>
+<tr><td>HEX.E2.1</td>
+<td>→ HEX.E2.0</td>
+<td>← HEX.W2.0</td>
+<td>→ HEX.E2.0</td>
+<td>→ HEX.E2.0</td>
+<td>→ HEX.E2.0</td>
+<td>→ HEX.E2.0</td>
+</tr>
+<tr><td>HEX.E2.2</td>
+<td>→ HEX.E2.1</td>
+<td>← HEX.W2.1</td>
+<td>→ HEX.E2.1</td>
+<td>→ HEX.E2.1</td>
+<td>→ HEX.E2.1</td>
+<td>→ HEX.E2.1</td>
+</tr>
+<tr><td>HEX.E2.3</td>
+<td>→ HEX.E2.2</td>
+<td>← HEX.W2.2</td>
+<td>→ HEX.E2.2</td>
+<td>→ HEX.E2.2</td>
+<td>→ HEX.E2.2</td>
+<td>→ HEX.E2.2</td>
+</tr>
+<tr><td>HEX.E2.4</td>
+<td>→ HEX.E2.3</td>
+<td>← HEX.W2.3</td>
+<td>→ HEX.E2.3</td>
+<td>→ HEX.E2.3</td>
+<td>→ HEX.E2.3</td>
+<td>→ HEX.E2.3</td>
+</tr>
+<tr><td>HEX.E2.5</td>
+<td>→ HEX.E2.4</td>
+<td>← HEX.W2.4</td>
+<td>→ HEX.E2.4</td>
+<td>→ HEX.E2.4</td>
+<td>→ HEX.E2.4</td>
+<td>→ HEX.E2.4</td>
+</tr>
+<tr><td>HEX.E2.6</td>
+<td>→ HEX.E2.5</td>
+<td>← HEX.W2.5</td>
+<td>→ HEX.E2.5</td>
+<td>→ HEX.E2.5</td>
+<td>→ HEX.E2.5</td>
+<td>→ HEX.E2.5</td>
+</tr>
+<tr><td>HEX.E3.1</td>
+<td>→ HEX.E3.0</td>
+<td>← HEX.W3.0</td>
+<td>→ HEX.E3.0</td>
+<td>→ HEX.E3.0</td>
+<td>→ HEX.E3.0</td>
+<td>→ HEX.E3.0</td>
+</tr>
+<tr><td>HEX.E3.2</td>
+<td>→ HEX.E3.1</td>
+<td>← HEX.W3.1</td>
+<td>→ HEX.E3.1</td>
+<td>→ HEX.E3.1</td>
+<td>→ HEX.E3.1</td>
+<td>→ HEX.E3.1</td>
+</tr>
+<tr><td>HEX.E3.3</td>
+<td>→ HEX.E3.2</td>
+<td>← HEX.W3.2</td>
+<td>→ HEX.E3.2</td>
+<td>→ HEX.E3.2</td>
+<td>→ HEX.E3.2</td>
+<td>→ HEX.E3.2</td>
+</tr>
+<tr><td>HEX.E3.4</td>
+<td>→ HEX.E3.3</td>
+<td>← HEX.W3.3</td>
+<td>→ HEX.E3.3</td>
+<td>→ HEX.E3.3</td>
+<td>→ HEX.E3.3</td>
+<td>→ HEX.E3.3</td>
+</tr>
+<tr><td>HEX.E3.5</td>
+<td>→ HEX.E3.4</td>
+<td>← HEX.W3.4</td>
+<td>→ HEX.E3.4</td>
+<td>→ HEX.E3.4</td>
+<td>→ HEX.E3.4</td>
+<td>→ HEX.E3.4</td>
+</tr>
+<tr><td>HEX.E3.6</td>
+<td>→ HEX.E3.5</td>
+<td>← HEX.W3.5</td>
+<td>→ HEX.E3.5</td>
+<td>→ HEX.E3.5</td>
+<td>→ HEX.E3.5</td>
+<td>→ HEX.E3.5</td>
+</tr>
+<tr><td>HEX.E4.1</td>
+<td>→ HEX.E4.0</td>
+<td>← HEX.W4.0</td>
+<td>→ HEX.E4.0</td>
+<td>→ HEX.E4.0</td>
+<td>→ HEX.E4.0</td>
+<td>→ HEX.E4.0</td>
+</tr>
+<tr><td>HEX.E4.2</td>
+<td>→ HEX.E4.1</td>
+<td>← HEX.W4.1</td>
+<td>→ HEX.E4.1</td>
+<td>→ HEX.E4.1</td>
+<td>→ HEX.E4.1</td>
+<td>→ HEX.E4.1</td>
+</tr>
+<tr><td>HEX.E4.3</td>
+<td>→ HEX.E4.2</td>
+<td>← HEX.W4.2</td>
+<td>→ HEX.E4.2</td>
+<td>→ HEX.E4.2</td>
+<td>→ HEX.E4.2</td>
+<td>→ HEX.E4.2</td>
+</tr>
+<tr><td>HEX.E4.4</td>
+<td>→ HEX.E4.3</td>
+<td>← HEX.W4.3</td>
+<td>→ HEX.E4.3</td>
+<td>→ HEX.E4.3</td>
+<td>→ HEX.E4.3</td>
+<td>→ HEX.E4.3</td>
+</tr>
+<tr><td>HEX.E4.5</td>
+<td>→ HEX.E4.4</td>
+<td>← HEX.W4.4</td>
+<td>→ HEX.E4.4</td>
+<td>→ HEX.E4.4</td>
+<td>→ HEX.E4.4</td>
+<td>→ HEX.E4.4</td>
+</tr>
+<tr><td>HEX.E4.6</td>
+<td>→ HEX.E4.5</td>
+<td>← HEX.W4.5</td>
+<td>→ HEX.E4.5</td>
+<td>→ HEX.E4.5</td>
+<td>→ HEX.E4.5</td>
+<td>→ HEX.E4.5</td>
+</tr>
+<tr><td>HEX.E5.1</td>
+<td>→ HEX.E5.0</td>
+<td>← HEX.W5.0</td>
+<td>→ HEX.E5.0</td>
+<td>→ HEX.E5.0</td>
+<td>→ HEX.E5.0</td>
+<td>→ HEX.E5.0</td>
+</tr>
+<tr><td>HEX.E5.2</td>
+<td>→ HEX.E5.1</td>
+<td>← HEX.W5.1</td>
+<td>→ HEX.E5.1</td>
+<td>→ HEX.E5.1</td>
+<td>→ HEX.E5.1</td>
+<td>→ HEX.E5.1</td>
+</tr>
+<tr><td>HEX.E5.3</td>
+<td>→ HEX.E5.2</td>
+<td>← HEX.W5.2</td>
+<td>→ HEX.E5.2</td>
+<td>→ HEX.E5.2</td>
+<td>→ HEX.E5.2</td>
+<td>→ HEX.E5.2</td>
+</tr>
+<tr><td>HEX.E5.4</td>
+<td>→ HEX.E5.3</td>
+<td>← HEX.W5.3</td>
+<td>→ HEX.E5.3</td>
+<td>→ HEX.E5.3</td>
+<td>→ HEX.E5.3</td>
+<td>→ HEX.E5.3</td>
+</tr>
+<tr><td>HEX.E5.5</td>
+<td>→ HEX.E5.4</td>
+<td>← HEX.W5.4</td>
+<td>→ HEX.E5.4</td>
+<td>→ HEX.E5.4</td>
+<td>→ HEX.E5.4</td>
+<td>→ HEX.E5.4</td>
+</tr>
+<tr><td>HEX.E5.6</td>
+<td>→ HEX.E5.5</td>
+<td>← HEX.W5.5</td>
+<td>→ HEX.E5.5</td>
+<td>→ HEX.E5.5</td>
+<td>→ HEX.E5.5</td>
+<td>→ HEX.E5.5</td>
+</tr>
+<tr><td>HEX.E6.1</td>
+<td>→ HEX.E6.0</td>
+<td>← HEX.W6.0</td>
+<td>→ HEX.E6.0</td>
+<td>→ HEX.E6.0</td>
+<td>→ HEX.E6.0</td>
+<td>→ HEX.E6.0</td>
+</tr>
+<tr><td>HEX.E6.2</td>
+<td>→ HEX.E6.1</td>
+<td>← HEX.W6.1</td>
+<td>→ HEX.E6.1</td>
+<td>→ HEX.E6.1</td>
+<td>→ HEX.E6.1</td>
+<td>→ HEX.E6.1</td>
+</tr>
+<tr><td>HEX.E6.3</td>
+<td>→ HEX.E6.2</td>
+<td>← HEX.W6.2</td>
+<td>→ HEX.E6.2</td>
+<td>→ HEX.E6.2</td>
+<td>→ HEX.E6.2</td>
+<td>→ HEX.E6.2</td>
+</tr>
+<tr><td>HEX.E6.4</td>
+<td>→ HEX.E6.3</td>
+<td>← HEX.W6.3</td>
+<td>→ HEX.E6.3</td>
+<td>→ HEX.E6.3</td>
+<td>→ HEX.E6.3</td>
+<td>→ HEX.E6.3</td>
+</tr>
+<tr><td>HEX.E6.5</td>
+<td>→ HEX.E6.4</td>
+<td>← HEX.W6.4</td>
+<td>→ HEX.E6.4</td>
+<td>→ HEX.E6.4</td>
+<td>→ HEX.E6.4</td>
+<td>→ HEX.E6.4</td>
+</tr>
+<tr><td>HEX.E6.6</td>
+<td>→ HEX.E6.5</td>
+<td>← HEX.W6.5</td>
+<td>→ HEX.E6.5</td>
+<td>→ HEX.E6.5</td>
+<td>→ HEX.E6.5</td>
+<td>→ HEX.E6.5</td>
+</tr>
+<tr><td>HEX.E7.1</td>
+<td>→ HEX.E7.0</td>
+<td>← HEX.W7.0</td>
+<td>→ HEX.E7.0</td>
+<td>→ HEX.E7.0</td>
+<td>→ HEX.E7.0</td>
+<td>→ HEX.E7.0</td>
+</tr>
+<tr><td>HEX.E7.2</td>
+<td>→ HEX.E7.1</td>
+<td>← HEX.W7.1</td>
+<td>→ HEX.E7.1</td>
+<td>→ HEX.E7.1</td>
+<td>→ HEX.E7.1</td>
+<td>→ HEX.E7.1</td>
+</tr>
+<tr><td>HEX.E7.3</td>
+<td>→ HEX.E7.2</td>
+<td>← HEX.W7.2</td>
+<td>→ HEX.E7.2</td>
+<td>→ HEX.E7.2</td>
+<td>→ HEX.E7.2</td>
+<td>→ HEX.E7.2</td>
+</tr>
+<tr><td>HEX.E7.4</td>
+<td>→ HEX.E7.3</td>
+<td>← HEX.W7.3</td>
+<td>→ HEX.E7.3</td>
+<td>→ HEX.E7.3</td>
+<td>→ HEX.E7.3</td>
+<td>→ HEX.E7.3</td>
+</tr>
+<tr><td>HEX.E7.5</td>
+<td>→ HEX.E7.4</td>
+<td>← HEX.W7.4</td>
+<td>→ HEX.E7.4</td>
+<td>→ HEX.E7.4</td>
+<td>→ HEX.E7.4</td>
+<td>→ HEX.E7.4</td>
+</tr>
+<tr><td>HEX.E7.6</td>
+<td>→ HEX.E7.5</td>
+<td>← HEX.W7.5</td>
+<td>→ HEX.E7.5</td>
+<td>→ HEX.E7.5</td>
+<td>→ HEX.E7.5</td>
+<td>→ HEX.E7.5</td>
+</tr>
+<tr><td>LH.0</td>
+<td>→ LH.23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.23</td>
+<td>→ LH.23</td>
+</tr>
+<tr><td>LH.1</td>
+<td>→ LH.0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.0</td>
+<td>→ LH.0</td>
+</tr>
+<tr><td>LH.2</td>
+<td>→ LH.1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.1</td>
+<td>→ LH.1</td>
+</tr>
+<tr><td>LH.3</td>
+<td>→ LH.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.2</td>
+<td>→ LH.2</td>
+</tr>
+<tr><td>LH.4</td>
+<td>→ LH.3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.3</td>
+<td>→ LH.3</td>
+</tr>
+<tr><td>LH.5</td>
+<td>→ LH.4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.4</td>
+<td>→ LH.4</td>
+</tr>
+<tr><td>LH.6</td>
+<td>→ LH.5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.5</td>
+<td>→ LH.5</td>
+</tr>
+<tr><td>LH.7</td>
+<td>→ LH.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.6</td>
+<td>→ LH.6</td>
+</tr>
+<tr><td>LH.8</td>
+<td>→ LH.7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.7</td>
+<td>→ LH.7</td>
+</tr>
+<tr><td>LH.9</td>
+<td>→ LH.8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.8</td>
+<td>→ LH.8</td>
+</tr>
+<tr><td>LH.10</td>
+<td>→ LH.9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.9</td>
+<td>→ LH.9</td>
+</tr>
+<tr><td>LH.11</td>
+<td>→ LH.10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.10</td>
+<td>→ LH.10</td>
+</tr>
+<tr><td>LH.12</td>
+<td>→ LH.11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.11</td>
+<td>→ LH.11</td>
+</tr>
+<tr><td>LH.13</td>
+<td>→ LH.12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.12</td>
+<td>→ LH.12</td>
+</tr>
+<tr><td>LH.14</td>
+<td>→ LH.13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.13</td>
+<td>→ LH.13</td>
+</tr>
+<tr><td>LH.15</td>
+<td>→ LH.14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.14</td>
+<td>→ LH.14</td>
+</tr>
+<tr><td>LH.16</td>
+<td>→ LH.15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.15</td>
+<td>→ LH.15</td>
+</tr>
+<tr><td>LH.17</td>
+<td>→ LH.16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.16</td>
+<td>→ LH.16</td>
+</tr>
+<tr><td>LH.18</td>
+<td>→ LH.17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.17</td>
+<td>→ LH.17</td>
+</tr>
+<tr><td>LH.19</td>
+<td>→ LH.18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.18</td>
+<td>→ LH.18</td>
+</tr>
+<tr><td>LH.20</td>
+<td>→ LH.19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.19</td>
+<td>→ LH.19</td>
+</tr>
+<tr><td>LH.21</td>
+<td>→ LH.20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.20</td>
+<td>→ LH.20</td>
+</tr>
+<tr><td>LH.22</td>
+<td>→ LH.21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.21</td>
+<td>→ LH.21</td>
+</tr>
+<tr><td>LH.23</td>
+<td>→ LH.22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ LH.22</td>
+<td>→ LH.22</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--e"><a class="header" href="#connectors--e">Connectors — E</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.E</th>
+<th>TERM.E</th>
+<th>LLH.E</th>
+<th>LLH.DCM.S3ADSP.E</th>
+<th>DSPHOLE.E</th>
+<th>HDCM.E</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OMUX1.W</td>
+<td>→ OMUX1</td>
+<td>-</td>
+<td>→ OMUX1</td>
+<td>→ OMUX1</td>
+<td>→ OMUX1</td>
+<td>→ OMUX1</td>
+</tr>
+<tr><td>OMUX5.SW</td>
+<td>→ OMUX5.S</td>
+<td>-</td>
+<td>→ OMUX5.S</td>
+<td>→ OMUX5.S</td>
+<td>→ OMUX5.S</td>
+<td>→ OMUX5.S</td>
+</tr>
+<tr><td>OMUX6.W</td>
+<td>→ OMUX6</td>
+<td>-</td>
+<td>→ OMUX6</td>
+<td>→ OMUX6</td>
+<td>→ OMUX6</td>
+<td>→ OMUX6</td>
+</tr>
+<tr><td>OMUX9.W</td>
+<td>→ OMUX9</td>
+<td>-</td>
+<td>→ OMUX9</td>
+<td>→ OMUX9</td>
+<td>→ OMUX9</td>
+<td>→ OMUX9</td>
+</tr>
+<tr><td>OMUX10.NW</td>
+<td>→ OMUX10.N</td>
+<td>-</td>
+<td>→ OMUX10.N</td>
+<td>→ OMUX10.N</td>
+<td>→ OMUX10.N</td>
+<td>→ OMUX10.N</td>
+</tr>
+<tr><td>OMUX14.W</td>
+<td>→ OMUX14</td>
+<td>-</td>
+<td>→ OMUX14</td>
+<td>→ OMUX14</td>
+<td>→ OMUX14</td>
+<td>→ OMUX14</td>
+</tr>
+<tr><td>DBL.W0.1</td>
+<td>→ DBL.W0.0</td>
+<td>← DBL.E0.0</td>
+<td>→ DBL.W0.0</td>
+<td>→ DBL.W0.0</td>
+<td>→ DBL.W0.0</td>
+<td>→ DBL.W0.0</td>
+</tr>
+<tr><td>DBL.W0.2</td>
+<td>→ DBL.W0.1</td>
+<td>← DBL.E0.1</td>
+<td>→ DBL.W0.1</td>
+<td>→ DBL.W0.1</td>
+<td>→ DBL.W0.1</td>
+<td>→ DBL.W0.1</td>
+</tr>
+<tr><td>DBL.W1.1</td>
+<td>→ DBL.W1.0</td>
+<td>← DBL.E1.0</td>
+<td>→ DBL.W1.0</td>
+<td>→ DBL.W1.0</td>
+<td>→ DBL.W1.0</td>
+<td>→ DBL.W1.0</td>
+</tr>
+<tr><td>DBL.W1.2</td>
+<td>→ DBL.W1.1</td>
+<td>← DBL.E1.1</td>
+<td>→ DBL.W1.1</td>
+<td>→ DBL.W1.1</td>
+<td>→ DBL.W1.1</td>
+<td>→ DBL.W1.1</td>
+</tr>
+<tr><td>DBL.W2.1</td>
+<td>→ DBL.W2.0</td>
+<td>← DBL.E2.0</td>
+<td>→ DBL.W2.0</td>
+<td>→ DBL.W2.0</td>
+<td>→ DBL.W2.0</td>
+<td>→ DBL.W2.0</td>
+</tr>
+<tr><td>DBL.W2.2</td>
+<td>→ DBL.W2.1</td>
+<td>← DBL.E2.1</td>
+<td>→ DBL.W2.1</td>
+<td>→ DBL.W2.1</td>
+<td>→ DBL.W2.1</td>
+<td>→ DBL.W2.1</td>
+</tr>
+<tr><td>DBL.W3.1</td>
+<td>→ DBL.W3.0</td>
+<td>← DBL.E3.0</td>
+<td>→ DBL.W3.0</td>
+<td>→ DBL.W3.0</td>
+<td>→ DBL.W3.0</td>
+<td>→ DBL.W3.0</td>
+</tr>
+<tr><td>DBL.W3.2</td>
+<td>→ DBL.W3.1</td>
+<td>← DBL.E3.1</td>
+<td>→ DBL.W3.1</td>
+<td>→ DBL.W3.1</td>
+<td>→ DBL.W3.1</td>
+<td>→ DBL.W3.1</td>
+</tr>
+<tr><td>DBL.W4.1</td>
+<td>→ DBL.W4.0</td>
+<td>← DBL.E4.0</td>
+<td>→ DBL.W4.0</td>
+<td>→ DBL.W4.0</td>
+<td>→ DBL.W4.0</td>
+<td>→ DBL.W4.0</td>
+</tr>
+<tr><td>DBL.W4.2</td>
+<td>→ DBL.W4.1</td>
+<td>← DBL.E4.1</td>
+<td>→ DBL.W4.1</td>
+<td>→ DBL.W4.1</td>
+<td>→ DBL.W4.1</td>
+<td>→ DBL.W4.1</td>
+</tr>
+<tr><td>DBL.W5.1</td>
+<td>→ DBL.W5.0</td>
+<td>← DBL.E5.0</td>
+<td>→ DBL.W5.0</td>
+<td>→ DBL.W5.0</td>
+<td>→ DBL.W5.0</td>
+<td>→ DBL.W5.0</td>
+</tr>
+<tr><td>DBL.W5.2</td>
+<td>→ DBL.W5.1</td>
+<td>← DBL.E5.1</td>
+<td>→ DBL.W5.1</td>
+<td>→ DBL.W5.1</td>
+<td>→ DBL.W5.1</td>
+<td>→ DBL.W5.1</td>
+</tr>
+<tr><td>DBL.W6.1</td>
+<td>→ DBL.W6.0</td>
+<td>← DBL.E6.0</td>
+<td>→ DBL.W6.0</td>
+<td>→ DBL.W6.0</td>
+<td>→ DBL.W6.0</td>
+<td>→ DBL.W6.0</td>
+</tr>
+<tr><td>DBL.W6.2</td>
+<td>→ DBL.W6.1</td>
+<td>← DBL.E6.1</td>
+<td>→ DBL.W6.1</td>
+<td>→ DBL.W6.1</td>
+<td>→ DBL.W6.1</td>
+<td>→ DBL.W6.1</td>
+</tr>
+<tr><td>DBL.W7.1</td>
+<td>→ DBL.W7.0</td>
+<td>← DBL.E7.0</td>
+<td>→ DBL.W7.0</td>
+<td>→ DBL.W7.0</td>
+<td>→ DBL.W7.0</td>
+<td>→ DBL.W7.0</td>
+</tr>
+<tr><td>DBL.W7.2</td>
+<td>→ DBL.W7.1</td>
+<td>← DBL.E7.1</td>
+<td>→ DBL.W7.1</td>
+<td>→ DBL.W7.1</td>
+<td>→ DBL.W7.1</td>
+<td>→ DBL.W7.1</td>
+</tr>
+<tr><td>HEX.W0.1</td>
+<td>→ HEX.W0.0</td>
+<td>← HEX.E0.0</td>
+<td>→ HEX.W0.0</td>
+<td>→ HEX.W0.0</td>
+<td>→ HEX.W0.0</td>
+<td>→ HEX.W0.0</td>
+</tr>
+<tr><td>HEX.W0.2</td>
+<td>→ HEX.W0.1</td>
+<td>← HEX.E0.1</td>
+<td>→ HEX.W0.1</td>
+<td>→ HEX.W0.1</td>
+<td>→ HEX.W0.1</td>
+<td>→ HEX.W0.1</td>
+</tr>
+<tr><td>HEX.W0.3</td>
+<td>→ HEX.W0.2</td>
+<td>← HEX.E0.2</td>
+<td>→ HEX.W0.2</td>
+<td>→ HEX.W0.2</td>
+<td>→ HEX.W0.2</td>
+<td>→ HEX.W0.2</td>
+</tr>
+<tr><td>HEX.W0.4</td>
+<td>→ HEX.W0.3</td>
+<td>← HEX.E0.3</td>
+<td>→ HEX.W0.3</td>
+<td>→ HEX.W0.3</td>
+<td>→ HEX.W0.3</td>
+<td>→ HEX.W0.3</td>
+</tr>
+<tr><td>HEX.W0.5</td>
+<td>→ HEX.W0.4</td>
+<td>← HEX.E0.4</td>
+<td>→ HEX.W0.4</td>
+<td>→ HEX.W0.4</td>
+<td>→ HEX.W0.4</td>
+<td>→ HEX.W0.4</td>
+</tr>
+<tr><td>HEX.W0.6</td>
+<td>→ HEX.W0.5</td>
+<td>← HEX.E0.5</td>
+<td>→ HEX.W0.5</td>
+<td>→ HEX.W0.5</td>
+<td>→ HEX.W0.5</td>
+<td>→ HEX.W0.5</td>
+</tr>
+<tr><td>HEX.W1.1</td>
+<td>→ HEX.W1.0</td>
+<td>← HEX.E1.0</td>
+<td>→ HEX.W1.0</td>
+<td>→ HEX.W1.0</td>
+<td>→ HEX.W1.0</td>
+<td>→ HEX.W1.0</td>
+</tr>
+<tr><td>HEX.W1.2</td>
+<td>→ HEX.W1.1</td>
+<td>← HEX.E1.1</td>
+<td>→ HEX.W1.1</td>
+<td>→ HEX.W1.1</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>HEX.W1.3</td>
+<td>→ HEX.W1.2</td>
+<td>← HEX.E1.2</td>
+<td>→ HEX.W1.2</td>
+<td>→ HEX.W1.2</td>
+<td>→ HEX.W1.2</td>
+<td>→ HEX.W1.2</td>
+</tr>
+<tr><td>HEX.W1.4</td>
+<td>→ HEX.W1.3</td>
+<td>← HEX.E1.3</td>
+<td>→ HEX.W1.3</td>
+<td>→ HEX.W1.3</td>
+<td>→ HEX.W1.3</td>
+<td>→ HEX.W1.3</td>
+</tr>
+<tr><td>HEX.W1.5</td>
+<td>→ HEX.W1.4</td>
+<td>← HEX.E1.4</td>
+<td>→ HEX.W1.4</td>
+<td>→ HEX.W1.4</td>
+<td>→ HEX.W1.4</td>
+<td>→ HEX.W1.4</td>
+</tr>
+<tr><td>HEX.W1.6</td>
+<td>→ HEX.W1.5</td>
+<td>← HEX.E1.5</td>
+<td>→ HEX.W1.5</td>
+<td>→ HEX.W1.5</td>
+<td>→ HEX.W1.5</td>
+<td>→ HEX.W1.5</td>
+</tr>
+<tr><td>HEX.W2.1</td>
+<td>→ HEX.W2.0</td>
+<td>← HEX.E2.0</td>
+<td>→ HEX.W2.0</td>
+<td>→ HEX.W2.0</td>
+<td>→ HEX.W2.0</td>
+<td>→ HEX.W2.0</td>
+</tr>
+<tr><td>HEX.W2.2</td>
+<td>→ HEX.W2.1</td>
+<td>← HEX.E2.1</td>
+<td>→ HEX.W2.1</td>
+<td>→ HEX.W2.1</td>
+<td>→ HEX.W2.1</td>
+<td>→ HEX.W2.1</td>
+</tr>
+<tr><td>HEX.W2.3</td>
+<td>→ HEX.W2.2</td>
+<td>← HEX.E2.2</td>
+<td>→ HEX.W2.2</td>
+<td>→ HEX.W2.2</td>
+<td>→ HEX.W2.2</td>
+<td>→ HEX.W2.2</td>
+</tr>
+<tr><td>HEX.W2.4</td>
+<td>→ HEX.W2.3</td>
+<td>← HEX.E2.3</td>
+<td>→ HEX.W2.3</td>
+<td>→ HEX.W2.3</td>
+<td>→ HEX.W2.3</td>
+<td>→ HEX.W2.3</td>
+</tr>
+<tr><td>HEX.W2.5</td>
+<td>→ HEX.W2.4</td>
+<td>← HEX.E2.4</td>
+<td>→ HEX.W2.4</td>
+<td>→ HEX.W2.4</td>
+<td>→ HEX.W2.4</td>
+<td>→ HEX.W2.4</td>
+</tr>
+<tr><td>HEX.W2.6</td>
+<td>→ HEX.W2.5</td>
+<td>← HEX.E2.5</td>
+<td>→ HEX.W2.5</td>
+<td>→ HEX.W2.5</td>
+<td>→ HEX.W2.5</td>
+<td>→ HEX.W2.5</td>
+</tr>
+<tr><td>HEX.W3.1</td>
+<td>→ HEX.W3.0</td>
+<td>← HEX.E3.0</td>
+<td>→ HEX.W3.0</td>
+<td>→ HEX.W3.0</td>
+<td>→ HEX.W3.0</td>
+<td>→ HEX.W3.0</td>
+</tr>
+<tr><td>HEX.W3.2</td>
+<td>→ HEX.W3.1</td>
+<td>← HEX.E3.1</td>
+<td>→ HEX.W3.1</td>
+<td>→ HEX.W3.1</td>
+<td>→ HEX.W3.1</td>
+<td>→ HEX.W3.1</td>
+</tr>
+<tr><td>HEX.W3.3</td>
+<td>→ HEX.W3.2</td>
+<td>← HEX.E3.2</td>
+<td>→ HEX.W3.2</td>
+<td>→ HEX.W3.2</td>
+<td>→ HEX.W3.2</td>
+<td>→ HEX.W3.2</td>
+</tr>
+<tr><td>HEX.W3.4</td>
+<td>→ HEX.W3.3</td>
+<td>← HEX.E3.3</td>
+<td>→ HEX.W3.3</td>
+<td>→ HEX.W3.3</td>
+<td>→ HEX.W3.3</td>
+<td>→ HEX.W3.3</td>
+</tr>
+<tr><td>HEX.W3.5</td>
+<td>→ HEX.W3.4</td>
+<td>← HEX.E3.4</td>
+<td>→ HEX.W3.4</td>
+<td>→ HEX.W3.4</td>
+<td>→ HEX.W3.4</td>
+<td>→ HEX.W3.4</td>
+</tr>
+<tr><td>HEX.W3.6</td>
+<td>→ HEX.W3.5</td>
+<td>← HEX.E3.5</td>
+<td>→ HEX.W3.5</td>
+<td>→ HEX.W3.5</td>
+<td>→ HEX.W3.5</td>
+<td>→ HEX.W3.5</td>
+</tr>
+<tr><td>HEX.W4.1</td>
+<td>→ HEX.W4.0</td>
+<td>← HEX.E4.0</td>
+<td>→ HEX.W4.0</td>
+<td>→ HEX.W4.0</td>
+<td>→ HEX.W4.0</td>
+<td>→ HEX.W4.0</td>
+</tr>
+<tr><td>HEX.W4.2</td>
+<td>→ HEX.W4.1</td>
+<td>← HEX.E4.1</td>
+<td>→ HEX.W4.1</td>
+<td>→ HEX.W4.1</td>
+<td>→ HEX.W4.1</td>
+<td>→ HEX.W4.1</td>
+</tr>
+<tr><td>HEX.W4.3</td>
+<td>→ HEX.W4.2</td>
+<td>← HEX.E4.2</td>
+<td>→ HEX.W4.2</td>
+<td>→ HEX.W4.2</td>
+<td>→ HEX.W4.2</td>
+<td>→ HEX.W4.2</td>
+</tr>
+<tr><td>HEX.W4.4</td>
+<td>→ HEX.W4.3</td>
+<td>← HEX.E4.3</td>
+<td>→ HEX.W4.3</td>
+<td>→ HEX.W4.3</td>
+<td>→ HEX.W4.3</td>
+<td>→ HEX.W4.3</td>
+</tr>
+<tr><td>HEX.W4.5</td>
+<td>→ HEX.W4.4</td>
+<td>← HEX.E4.4</td>
+<td>→ HEX.W4.4</td>
+<td>→ HEX.W4.4</td>
+<td>→ HEX.W4.4</td>
+<td>→ HEX.W4.4</td>
+</tr>
+<tr><td>HEX.W4.6</td>
+<td>→ HEX.W4.5</td>
+<td>← HEX.E4.5</td>
+<td>→ HEX.W4.5</td>
+<td>→ HEX.W4.5</td>
+<td>→ HEX.W4.5</td>
+<td>→ HEX.W4.5</td>
+</tr>
+<tr><td>HEX.W5.1</td>
+<td>→ HEX.W5.0</td>
+<td>← HEX.E5.0</td>
+<td>→ HEX.W5.0</td>
+<td>→ HEX.W5.0</td>
+<td>→ HEX.W5.0</td>
+<td>→ HEX.W5.0</td>
+</tr>
+<tr><td>HEX.W5.2</td>
+<td>→ HEX.W5.1</td>
+<td>← HEX.E5.1</td>
+<td>→ HEX.W5.1</td>
+<td>→ HEX.W5.1</td>
+<td>→ HEX.W5.1</td>
+<td>→ HEX.W5.1</td>
+</tr>
+<tr><td>HEX.W5.3</td>
+<td>→ HEX.W5.2</td>
+<td>← HEX.E5.2</td>
+<td>→ HEX.W5.2</td>
+<td>→ HEX.W5.2</td>
+<td>→ HEX.W5.2</td>
+<td>→ HEX.W5.2</td>
+</tr>
+<tr><td>HEX.W5.4</td>
+<td>→ HEX.W5.3</td>
+<td>← HEX.E5.3</td>
+<td>→ HEX.W5.3</td>
+<td>→ HEX.W5.3</td>
+<td>→ HEX.W5.3</td>
+<td>→ HEX.W5.3</td>
+</tr>
+<tr><td>HEX.W5.5</td>
+<td>→ HEX.W5.4</td>
+<td>← HEX.E5.4</td>
+<td>→ HEX.W5.4</td>
+<td>→ HEX.W5.4</td>
+<td>→ HEX.W5.4</td>
+<td>→ HEX.W5.4</td>
+</tr>
+<tr><td>HEX.W5.6</td>
+<td>→ HEX.W5.5</td>
+<td>← HEX.E5.5</td>
+<td>→ HEX.W5.5</td>
+<td>→ HEX.W5.5</td>
+<td>→ HEX.W5.5</td>
+<td>→ HEX.W5.5</td>
+</tr>
+<tr><td>HEX.W6.1</td>
+<td>→ HEX.W6.0</td>
+<td>← HEX.E6.0</td>
+<td>→ HEX.W6.0</td>
+<td>→ HEX.W6.0</td>
+<td>→ HEX.W6.0</td>
+<td>→ HEX.W6.0</td>
+</tr>
+<tr><td>HEX.W6.2</td>
+<td>→ HEX.W6.1</td>
+<td>← HEX.E6.1</td>
+<td>→ HEX.W6.1</td>
+<td>→ HEX.W6.1</td>
+<td>→ HEX.W6.1</td>
+<td>→ HEX.W6.1</td>
+</tr>
+<tr><td>HEX.W6.3</td>
+<td>→ HEX.W6.2</td>
+<td>← HEX.E6.2</td>
+<td>→ HEX.W6.2</td>
+<td>→ HEX.W6.2</td>
+<td>→ HEX.W6.2</td>
+<td>→ HEX.W6.2</td>
+</tr>
+<tr><td>HEX.W6.4</td>
+<td>→ HEX.W6.3</td>
+<td>← HEX.E6.3</td>
+<td>→ HEX.W6.3</td>
+<td>→ HEX.W6.3</td>
+<td>→ HEX.W6.3</td>
+<td>→ HEX.W6.3</td>
+</tr>
+<tr><td>HEX.W6.5</td>
+<td>→ HEX.W6.4</td>
+<td>← HEX.E6.4</td>
+<td>→ HEX.W6.4</td>
+<td>→ HEX.W6.4</td>
+<td>→ HEX.W6.4</td>
+<td>→ HEX.W6.4</td>
+</tr>
+<tr><td>HEX.W6.6</td>
+<td>→ HEX.W6.5</td>
+<td>← HEX.E6.5</td>
+<td>→ HEX.W6.5</td>
+<td>→ HEX.W6.5</td>
+<td>→ HEX.W6.5</td>
+<td>→ HEX.W6.5</td>
+</tr>
+<tr><td>HEX.W7.1</td>
+<td>→ HEX.W7.0</td>
+<td>← HEX.E7.0</td>
+<td>→ HEX.W7.0</td>
+<td>→ HEX.W7.0</td>
+<td>→ HEX.W7.0</td>
+<td>→ HEX.W7.0</td>
+</tr>
+<tr><td>HEX.W7.2</td>
+<td>→ HEX.W7.1</td>
+<td>← HEX.E7.1</td>
+<td>→ HEX.W7.1</td>
+<td>→ HEX.W7.1</td>
+<td>→ HEX.W7.1</td>
+<td>→ HEX.W7.1</td>
+</tr>
+<tr><td>HEX.W7.3</td>
+<td>→ HEX.W7.2</td>
+<td>← HEX.E7.2</td>
+<td>→ HEX.W7.2</td>
+<td>→ HEX.W7.2</td>
+<td>→ HEX.W7.2</td>
+<td>→ HEX.W7.2</td>
+</tr>
+<tr><td>HEX.W7.4</td>
+<td>→ HEX.W7.3</td>
+<td>← HEX.E7.3</td>
+<td>→ HEX.W7.3</td>
+<td>→ HEX.W7.3</td>
+<td>→ HEX.W7.3</td>
+<td>→ HEX.W7.3</td>
+</tr>
+<tr><td>HEX.W7.5</td>
+<td>→ HEX.W7.4</td>
+<td>← HEX.E7.4</td>
+<td>→ HEX.W7.4</td>
+<td>→ HEX.W7.4</td>
+<td>→ HEX.W7.4</td>
+<td>→ HEX.W7.4</td>
+</tr>
+<tr><td>HEX.W7.6</td>
+<td>→ HEX.W7.5</td>
+<td>← HEX.E7.5</td>
+<td>→ HEX.W7.5</td>
+<td>→ HEX.W7.5</td>
+<td>→ HEX.W7.5</td>
+<td>→ HEX.W7.5</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--s"><a class="header" href="#connectors--s">Connectors — S</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.S</th>
+<th>TERM.S</th>
+<th>TERM.BRAM.S</th>
+<th>CLKLR.S3E.S</th>
+<th>LLV.S</th>
+<th>LLV.CLKLR.S3E.S</th>
+<th>BRKH.S3.S</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OMUX8.EN</td>
+<td>→ OMUX8.E</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX8.E</td>
+<td>-</td>
+<td>→ OMUX8.E</td>
+</tr>
+<tr><td>OMUX9.N</td>
+<td>→ OMUX9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX9</td>
+<td>-</td>
+<td>→ OMUX9</td>
+</tr>
+<tr><td>OMUX10.N</td>
+<td>→ OMUX10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX10</td>
+<td>-</td>
+<td>→ OMUX10</td>
+</tr>
+<tr><td>OMUX11.N</td>
+<td>→ OMUX11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX11</td>
+<td>-</td>
+<td>→ OMUX11</td>
+</tr>
+<tr><td>OMUX12.N</td>
+<td>→ OMUX12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX12</td>
+<td>-</td>
+<td>→ OMUX12</td>
+</tr>
+<tr><td>OMUX14.WN</td>
+<td>→ OMUX14.W</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX14.W</td>
+<td>-</td>
+<td>→ OMUX14.W</td>
+</tr>
+<tr><td>OMUX15.N</td>
+<td>→ OMUX15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX15</td>
+<td>-</td>
+<td>→ OMUX15</td>
+</tr>
+<tr><td>DBL.W6.3</td>
+<td>→ DBL.W6.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.W6.2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>DBL.W7.3</td>
+<td>→ DBL.W7.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.W7.2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>DBL.N0.1</td>
+<td>→ DBL.N0.0</td>
+<td>← DBL.S0.0</td>
+<td>← DBL.S0.0</td>
+<td>→ DBL.N0.0</td>
+<td>→ DBL.N0.0</td>
+<td>→ DBL.N0.0</td>
+<td>→ DBL.N0.0</td>
+</tr>
+<tr><td>DBL.N0.2</td>
+<td>→ DBL.N0.1</td>
+<td>← DBL.S0.1</td>
+<td>← DBL.S0.1</td>
+<td>→ DBL.N0.1</td>
+<td>→ DBL.N0.1</td>
+<td>→ DBL.N0.1</td>
+<td>→ DBL.N0.1</td>
+</tr>
+<tr><td>DBL.N1.1</td>
+<td>→ DBL.N1.0</td>
+<td>← DBL.S1.0</td>
+<td>← DBL.S1.0</td>
+<td>→ DBL.N1.0</td>
+<td>→ DBL.N1.0</td>
+<td>→ DBL.N1.0</td>
+<td>→ DBL.N1.0</td>
+</tr>
+<tr><td>DBL.N1.2</td>
+<td>→ DBL.N1.1</td>
+<td>← DBL.S1.1</td>
+<td>← DBL.S1.1</td>
+<td>→ DBL.N1.1</td>
+<td>→ DBL.N1.1</td>
+<td>→ DBL.N1.1</td>
+<td>→ DBL.N1.1</td>
+</tr>
+<tr><td>DBL.N2.1</td>
+<td>→ DBL.N2.0</td>
+<td>← DBL.S2.0</td>
+<td>← DBL.S2.0</td>
+<td>→ DBL.N2.0</td>
+<td>→ DBL.N2.0</td>
+<td>→ DBL.N2.0</td>
+<td>→ DBL.N2.0</td>
+</tr>
+<tr><td>DBL.N2.2</td>
+<td>→ DBL.N2.1</td>
+<td>← DBL.S2.1</td>
+<td>← DBL.S2.1</td>
+<td>→ DBL.N2.1</td>
+<td>→ DBL.N2.1</td>
+<td>→ DBL.N2.1</td>
+<td>→ DBL.N2.1</td>
+</tr>
+<tr><td>DBL.N3.1</td>
+<td>→ DBL.N3.0</td>
+<td>← DBL.S3.0</td>
+<td>← DBL.S3.0</td>
+<td>→ DBL.N3.0</td>
+<td>→ DBL.N3.0</td>
+<td>→ DBL.N3.0</td>
+<td>→ DBL.N3.0</td>
+</tr>
+<tr><td>DBL.N3.2</td>
+<td>→ DBL.N3.1</td>
+<td>← DBL.S3.1</td>
+<td>← DBL.S3.1</td>
+<td>→ DBL.N3.1</td>
+<td>→ DBL.N3.1</td>
+<td>→ DBL.N3.1</td>
+<td>→ DBL.N3.1</td>
+</tr>
+<tr><td>DBL.N4.1</td>
+<td>→ DBL.N4.0</td>
+<td>← DBL.S4.0</td>
+<td>← DBL.S4.0</td>
+<td>→ DBL.N4.0</td>
+<td>→ DBL.N4.0</td>
+<td>→ DBL.N4.0</td>
+<td>→ DBL.N4.0</td>
+</tr>
+<tr><td>DBL.N4.2</td>
+<td>→ DBL.N4.1</td>
+<td>← DBL.S4.1</td>
+<td>← DBL.S4.1</td>
+<td>→ DBL.N4.1</td>
+<td>→ DBL.N4.1</td>
+<td>→ DBL.N4.1</td>
+<td>→ DBL.N4.1</td>
+</tr>
+<tr><td>DBL.N5.1</td>
+<td>→ DBL.N5.0</td>
+<td>← DBL.S5.0</td>
+<td>← DBL.S5.0</td>
+<td>→ DBL.N5.0</td>
+<td>→ DBL.N5.0</td>
+<td>→ DBL.N5.0</td>
+<td>→ DBL.N5.0</td>
+</tr>
+<tr><td>DBL.N5.2</td>
+<td>→ DBL.N5.1</td>
+<td>← DBL.S5.1</td>
+<td>← DBL.S5.1</td>
+<td>→ DBL.N5.1</td>
+<td>→ DBL.N5.1</td>
+<td>→ DBL.N5.1</td>
+<td>→ DBL.N5.1</td>
+</tr>
+<tr><td>DBL.N6.1</td>
+<td>→ DBL.N6.0</td>
+<td>← DBL.S6.0</td>
+<td>← DBL.S6.0</td>
+<td>→ DBL.N6.0</td>
+<td>→ DBL.N6.0</td>
+<td>→ DBL.N6.0</td>
+<td>→ DBL.N6.0</td>
+</tr>
+<tr><td>DBL.N6.2</td>
+<td>→ DBL.N6.1</td>
+<td>← DBL.S6.1</td>
+<td>← DBL.S6.1</td>
+<td>→ DBL.N6.1</td>
+<td>→ DBL.N6.1</td>
+<td>→ DBL.N6.1</td>
+<td>→ DBL.N6.1</td>
+</tr>
+<tr><td>DBL.N6.3</td>
+<td>→ DBL.N6.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.N6.2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>DBL.N7.1</td>
+<td>→ DBL.N7.0</td>
+<td>← DBL.S7.0</td>
+<td>← DBL.S7.0</td>
+<td>→ DBL.N7.0</td>
+<td>→ DBL.N7.0</td>
+<td>→ DBL.N7.0</td>
+<td>→ DBL.N7.0</td>
+</tr>
+<tr><td>DBL.N7.2</td>
+<td>→ DBL.N7.1</td>
+<td>← DBL.S7.1</td>
+<td>← DBL.S7.1</td>
+<td>→ DBL.N7.1</td>
+<td>→ DBL.N7.1</td>
+<td>→ DBL.N7.1</td>
+<td>→ DBL.N7.1</td>
+</tr>
+<tr><td>DBL.N7.3</td>
+<td>→ DBL.N7.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.N7.2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>HEX.W6.7</td>
+<td>→ HEX.W6.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.W6.6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>HEX.W7.7</td>
+<td>→ HEX.W7.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.W7.6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>HEX.N0.1</td>
+<td>→ HEX.N0.0</td>
+<td>← HEX.S0.0</td>
+<td>← HEX.S0.0</td>
+<td>→ HEX.N0.0</td>
+<td>→ HEX.N0.0</td>
+<td>→ HEX.N0.0</td>
+<td>→ HEX.N0.0</td>
+</tr>
+<tr><td>HEX.N0.2</td>
+<td>→ HEX.N0.1</td>
+<td>← HEX.S0.1</td>
+<td>← HEX.S0.1</td>
+<td>→ HEX.N0.1</td>
+<td>→ HEX.N0.1</td>
+<td>→ HEX.N0.1</td>
+<td>→ HEX.N0.1</td>
+</tr>
+<tr><td>HEX.N0.3</td>
+<td>→ HEX.N0.2</td>
+<td>← HEX.S0.2</td>
+<td>← HEX.S0.2</td>
+<td>→ HEX.N0.2</td>
+<td>→ HEX.N0.2</td>
+<td>→ HEX.N0.2</td>
+<td>→ HEX.N0.2</td>
+</tr>
+<tr><td>HEX.N0.4</td>
+<td>→ HEX.N0.3</td>
+<td>← HEX.S0.3</td>
+<td>← HEX.S0.3</td>
+<td>→ HEX.N0.3</td>
+<td>→ HEX.N0.3</td>
+<td>→ HEX.N0.3</td>
+<td>→ HEX.N0.3</td>
+</tr>
+<tr><td>HEX.N0.5</td>
+<td>→ HEX.N0.4</td>
+<td>← HEX.S0.4</td>
+<td>← HEX.S0.4</td>
+<td>→ HEX.N0.4</td>
+<td>→ HEX.N0.4</td>
+<td>→ HEX.N0.4</td>
+<td>→ HEX.N0.4</td>
+</tr>
+<tr><td>HEX.N0.6</td>
+<td>→ HEX.N0.5</td>
+<td>← HEX.S0.5</td>
+<td>← HEX.S0.5</td>
+<td>→ HEX.N0.5</td>
+<td>→ HEX.N0.5</td>
+<td>→ HEX.N0.5</td>
+<td>→ HEX.N0.5</td>
+</tr>
+<tr><td>HEX.N1.1</td>
+<td>→ HEX.N1.0</td>
+<td>← HEX.S1.0</td>
+<td>← HEX.S1.0</td>
+<td>→ HEX.N1.0</td>
+<td>→ HEX.N1.0</td>
+<td>→ HEX.N1.0</td>
+<td>→ HEX.N1.0</td>
+</tr>
+<tr><td>HEX.N1.2</td>
+<td>→ HEX.N1.1</td>
+<td>← HEX.S1.1</td>
+<td>← HEX.S1.1</td>
+<td>→ HEX.N1.1</td>
+<td>→ HEX.N1.1</td>
+<td>→ HEX.N1.1</td>
+<td>→ HEX.N1.1</td>
+</tr>
+<tr><td>HEX.N1.3</td>
+<td>→ HEX.N1.2</td>
+<td>← HEX.S1.2</td>
+<td>← HEX.S1.2</td>
+<td>→ HEX.N1.2</td>
+<td>→ HEX.N1.2</td>
+<td>→ HEX.N1.2</td>
+<td>→ HEX.N1.2</td>
+</tr>
+<tr><td>HEX.N1.4</td>
+<td>→ HEX.N1.3</td>
+<td>← HEX.S1.3</td>
+<td>← HEX.S1.3</td>
+<td>→ HEX.N1.3</td>
+<td>→ HEX.N1.3</td>
+<td>→ HEX.N1.3</td>
+<td>→ HEX.N1.3</td>
+</tr>
+<tr><td>HEX.N1.5</td>
+<td>→ HEX.N1.4</td>
+<td>← HEX.S1.4</td>
+<td>← HEX.S1.4</td>
+<td>→ HEX.N1.4</td>
+<td>→ HEX.N1.4</td>
+<td>→ HEX.N1.4</td>
+<td>→ HEX.N1.4</td>
+</tr>
+<tr><td>HEX.N1.6</td>
+<td>→ HEX.N1.5</td>
+<td>← HEX.S1.5</td>
+<td>← HEX.S1.5</td>
+<td>→ HEX.N1.5</td>
+<td>→ HEX.N1.5</td>
+<td>→ HEX.N1.5</td>
+<td>→ HEX.N1.5</td>
+</tr>
+<tr><td>HEX.N2.1</td>
+<td>→ HEX.N2.0</td>
+<td>← HEX.S2.0</td>
+<td>← HEX.S2.0</td>
+<td>→ HEX.N2.0</td>
+<td>→ HEX.N2.0</td>
+<td>→ HEX.N2.0</td>
+<td>→ HEX.N2.0</td>
+</tr>
+<tr><td>HEX.N2.2</td>
+<td>→ HEX.N2.1</td>
+<td>← HEX.S2.1</td>
+<td>← HEX.S2.1</td>
+<td>→ HEX.N2.1</td>
+<td>→ HEX.N2.1</td>
+<td>→ HEX.N2.1</td>
+<td>→ HEX.N2.1</td>
+</tr>
+<tr><td>HEX.N2.3</td>
+<td>→ HEX.N2.2</td>
+<td>← HEX.S2.2</td>
+<td>← HEX.S2.2</td>
+<td>→ HEX.N2.2</td>
+<td>→ HEX.N2.2</td>
+<td>→ HEX.N2.2</td>
+<td>→ HEX.N2.2</td>
+</tr>
+<tr><td>HEX.N2.4</td>
+<td>→ HEX.N2.3</td>
+<td>← HEX.S2.3</td>
+<td>← HEX.S2.3</td>
+<td>→ HEX.N2.3</td>
+<td>→ HEX.N2.3</td>
+<td>→ HEX.N2.3</td>
+<td>→ HEX.N2.3</td>
+</tr>
+<tr><td>HEX.N2.5</td>
+<td>→ HEX.N2.4</td>
+<td>← HEX.S2.4</td>
+<td>← HEX.S2.4</td>
+<td>→ HEX.N2.4</td>
+<td>→ HEX.N2.4</td>
+<td>→ HEX.N2.4</td>
+<td>→ HEX.N2.4</td>
+</tr>
+<tr><td>HEX.N2.6</td>
+<td>→ HEX.N2.5</td>
+<td>← HEX.S2.5</td>
+<td>← HEX.S2.5</td>
+<td>→ HEX.N2.5</td>
+<td>→ HEX.N2.5</td>
+<td>→ HEX.N2.5</td>
+<td>→ HEX.N2.5</td>
+</tr>
+<tr><td>HEX.N3.1</td>
+<td>→ HEX.N3.0</td>
+<td>← HEX.S3.0</td>
+<td>← HEX.S3.0</td>
+<td>→ HEX.N3.0</td>
+<td>→ HEX.N3.0</td>
+<td>→ HEX.N3.0</td>
+<td>→ HEX.N3.0</td>
+</tr>
+<tr><td>HEX.N3.2</td>
+<td>→ HEX.N3.1</td>
+<td>← HEX.S3.1</td>
+<td>← HEX.S3.1</td>
+<td>→ HEX.N3.1</td>
+<td>→ HEX.N3.1</td>
+<td>→ HEX.N3.1</td>
+<td>→ HEX.N3.1</td>
+</tr>
+<tr><td>HEX.N3.3</td>
+<td>→ HEX.N3.2</td>
+<td>← HEX.S3.2</td>
+<td>← HEX.S3.2</td>
+<td>→ HEX.N3.2</td>
+<td>→ HEX.N3.2</td>
+<td>→ HEX.N3.2</td>
+<td>→ HEX.N3.2</td>
+</tr>
+<tr><td>HEX.N3.4</td>
+<td>→ HEX.N3.3</td>
+<td>← HEX.S3.3</td>
+<td>← HEX.S3.3</td>
+<td>→ HEX.N3.3</td>
+<td>→ HEX.N3.3</td>
+<td>→ HEX.N3.3</td>
+<td>→ HEX.N3.3</td>
+</tr>
+<tr><td>HEX.N3.5</td>
+<td>→ HEX.N3.4</td>
+<td>← HEX.S3.4</td>
+<td>← HEX.S3.4</td>
+<td>→ HEX.N3.4</td>
+<td>→ HEX.N3.4</td>
+<td>→ HEX.N3.4</td>
+<td>→ HEX.N3.4</td>
+</tr>
+<tr><td>HEX.N3.6</td>
+<td>→ HEX.N3.5</td>
+<td>← HEX.S3.5</td>
+<td>← HEX.S3.5</td>
+<td>→ HEX.N3.5</td>
+<td>→ HEX.N3.5</td>
+<td>→ HEX.N3.5</td>
+<td>→ HEX.N3.5</td>
+</tr>
+<tr><td>HEX.N4.1</td>
+<td>→ HEX.N4.0</td>
+<td>← HEX.S4.0</td>
+<td>← HEX.S4.0</td>
+<td>→ HEX.N4.0</td>
+<td>→ HEX.N4.0</td>
+<td>→ HEX.N4.0</td>
+<td>→ HEX.N4.0</td>
+</tr>
+<tr><td>HEX.N4.2</td>
+<td>→ HEX.N4.1</td>
+<td>← HEX.S4.1</td>
+<td>← HEX.S4.1</td>
+<td>→ HEX.N4.1</td>
+<td>→ HEX.N4.1</td>
+<td>→ HEX.N4.1</td>
+<td>→ HEX.N4.1</td>
+</tr>
+<tr><td>HEX.N4.3</td>
+<td>→ HEX.N4.2</td>
+<td>← HEX.S4.2</td>
+<td>← HEX.S4.2</td>
+<td>→ HEX.N4.2</td>
+<td>→ HEX.N4.2</td>
+<td>→ HEX.N4.2</td>
+<td>→ HEX.N4.2</td>
+</tr>
+<tr><td>HEX.N4.4</td>
+<td>→ HEX.N4.3</td>
+<td>← HEX.S4.3</td>
+<td>← HEX.S4.3</td>
+<td>→ HEX.N4.3</td>
+<td>→ HEX.N4.3</td>
+<td>→ HEX.N4.3</td>
+<td>→ HEX.N4.3</td>
+</tr>
+<tr><td>HEX.N4.5</td>
+<td>→ HEX.N4.4</td>
+<td>← HEX.S4.4</td>
+<td>← HEX.S4.4</td>
+<td>→ HEX.N4.4</td>
+<td>→ HEX.N4.4</td>
+<td>→ HEX.N4.4</td>
+<td>→ HEX.N4.4</td>
+</tr>
+<tr><td>HEX.N4.6</td>
+<td>→ HEX.N4.5</td>
+<td>← HEX.S4.5</td>
+<td>← HEX.S4.5</td>
+<td>→ HEX.N4.5</td>
+<td>→ HEX.N4.5</td>
+<td>→ HEX.N4.5</td>
+<td>→ HEX.N4.5</td>
+</tr>
+<tr><td>HEX.N5.1</td>
+<td>→ HEX.N5.0</td>
+<td>← HEX.S5.0</td>
+<td>← HEX.S5.0</td>
+<td>→ HEX.N5.0</td>
+<td>→ HEX.N5.0</td>
+<td>→ HEX.N5.0</td>
+<td>→ HEX.N5.0</td>
+</tr>
+<tr><td>HEX.N5.2</td>
+<td>→ HEX.N5.1</td>
+<td>← HEX.S5.1</td>
+<td>← HEX.S5.1</td>
+<td>→ HEX.N5.1</td>
+<td>→ HEX.N5.1</td>
+<td>→ HEX.N5.1</td>
+<td>→ HEX.N5.1</td>
+</tr>
+<tr><td>HEX.N5.3</td>
+<td>→ HEX.N5.2</td>
+<td>← HEX.S5.2</td>
+<td>← HEX.S5.2</td>
+<td>→ HEX.N5.2</td>
+<td>→ HEX.N5.2</td>
+<td>→ HEX.N5.2</td>
+<td>→ HEX.N5.2</td>
+</tr>
+<tr><td>HEX.N5.4</td>
+<td>→ HEX.N5.3</td>
+<td>← HEX.S5.3</td>
+<td>← HEX.S5.3</td>
+<td>→ HEX.N5.3</td>
+<td>→ HEX.N5.3</td>
+<td>→ HEX.N5.3</td>
+<td>→ HEX.N5.3</td>
+</tr>
+<tr><td>HEX.N5.5</td>
+<td>→ HEX.N5.4</td>
+<td>← HEX.S5.4</td>
+<td>← HEX.S5.4</td>
+<td>→ HEX.N5.4</td>
+<td>→ HEX.N5.4</td>
+<td>→ HEX.N5.4</td>
+<td>→ HEX.N5.4</td>
+</tr>
+<tr><td>HEX.N5.6</td>
+<td>→ HEX.N5.5</td>
+<td>← HEX.S5.5</td>
+<td>← HEX.S5.5</td>
+<td>→ HEX.N5.5</td>
+<td>→ HEX.N5.5</td>
+<td>→ HEX.N5.5</td>
+<td>→ HEX.N5.5</td>
+</tr>
+<tr><td>HEX.N6.1</td>
+<td>→ HEX.N6.0</td>
+<td>← HEX.S6.0</td>
+<td>← HEX.S6.0</td>
+<td>→ HEX.N6.0</td>
+<td>→ HEX.N6.0</td>
+<td>→ HEX.N6.0</td>
+<td>→ HEX.N6.0</td>
+</tr>
+<tr><td>HEX.N6.2</td>
+<td>→ HEX.N6.1</td>
+<td>← HEX.S6.1</td>
+<td>← HEX.S6.1</td>
+<td>→ HEX.N6.1</td>
+<td>→ HEX.N6.1</td>
+<td>→ HEX.N6.1</td>
+<td>→ HEX.N6.1</td>
+</tr>
+<tr><td>HEX.N6.3</td>
+<td>→ HEX.N6.2</td>
+<td>← HEX.S6.2</td>
+<td>← HEX.S6.2</td>
+<td>→ HEX.N6.2</td>
+<td>→ HEX.N6.2</td>
+<td>→ HEX.N6.2</td>
+<td>→ HEX.N6.2</td>
+</tr>
+<tr><td>HEX.N6.4</td>
+<td>→ HEX.N6.3</td>
+<td>← HEX.S6.3</td>
+<td>← HEX.S6.3</td>
+<td>→ HEX.N6.3</td>
+<td>→ HEX.N6.3</td>
+<td>→ HEX.N6.3</td>
+<td>→ HEX.N6.3</td>
+</tr>
+<tr><td>HEX.N6.5</td>
+<td>→ HEX.N6.4</td>
+<td>← HEX.S6.4</td>
+<td>← HEX.S6.4</td>
+<td>→ HEX.N6.4</td>
+<td>→ HEX.N6.4</td>
+<td>→ HEX.N6.4</td>
+<td>→ HEX.N6.4</td>
+</tr>
+<tr><td>HEX.N6.6</td>
+<td>→ HEX.N6.5</td>
+<td>← HEX.S6.5</td>
+<td>← HEX.S6.5</td>
+<td>→ HEX.N6.5</td>
+<td>→ HEX.N6.5</td>
+<td>→ HEX.N6.5</td>
+<td>→ HEX.N6.5</td>
+</tr>
+<tr><td>HEX.N6.7</td>
+<td>→ HEX.N6.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.N6.6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>HEX.N7.1</td>
+<td>→ HEX.N7.0</td>
+<td>← HEX.S7.0</td>
+<td>← HEX.S7.0</td>
+<td>→ HEX.N7.0</td>
+<td>→ HEX.N7.0</td>
+<td>→ HEX.N7.0</td>
+<td>→ HEX.N7.0</td>
+</tr>
+<tr><td>HEX.N7.2</td>
+<td>→ HEX.N7.1</td>
+<td>← HEX.S7.1</td>
+<td>← HEX.S7.1</td>
+<td>→ HEX.N7.1</td>
+<td>→ HEX.N7.1</td>
+<td>→ HEX.N7.1</td>
+<td>→ HEX.N7.1</td>
+</tr>
+<tr><td>HEX.N7.3</td>
+<td>→ HEX.N7.2</td>
+<td>← HEX.S7.2</td>
+<td>← HEX.S7.2</td>
+<td>→ HEX.N7.2</td>
+<td>→ HEX.N7.2</td>
+<td>→ HEX.N7.2</td>
+<td>→ HEX.N7.2</td>
+</tr>
+<tr><td>HEX.N7.4</td>
+<td>→ HEX.N7.3</td>
+<td>← HEX.S7.3</td>
+<td>← HEX.S7.3</td>
+<td>→ HEX.N7.3</td>
+<td>→ HEX.N7.3</td>
+<td>→ HEX.N7.3</td>
+<td>→ HEX.N7.3</td>
+</tr>
+<tr><td>HEX.N7.5</td>
+<td>→ HEX.N7.4</td>
+<td>← HEX.S7.4</td>
+<td>← HEX.S7.4</td>
+<td>→ HEX.N7.4</td>
+<td>→ HEX.N7.4</td>
+<td>→ HEX.N7.4</td>
+<td>→ HEX.N7.4</td>
+</tr>
+<tr><td>HEX.N7.6</td>
+<td>→ HEX.N7.5</td>
+<td>← HEX.S7.5</td>
+<td>← HEX.S7.5</td>
+<td>→ HEX.N7.5</td>
+<td>→ HEX.N7.5</td>
+<td>→ HEX.N7.5</td>
+<td>→ HEX.N7.5</td>
+</tr>
+<tr><td>HEX.N7.7</td>
+<td>→ HEX.N7.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.N7.6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>LV.0</td>
+<td>→ LV.1</td>
+<td>-</td>
+<td>→ LV.1</td>
+<td>→ LV.1</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.1</td>
+</tr>
+<tr><td>LV.1</td>
+<td>→ LV.2</td>
+<td>-</td>
+<td>→ LV.2</td>
+<td>→ LV.2</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.2</td>
+</tr>
+<tr><td>LV.2</td>
+<td>→ LV.3</td>
+<td>-</td>
+<td>→ LV.3</td>
+<td>→ LV.3</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.3</td>
+</tr>
+<tr><td>LV.3</td>
+<td>→ LV.4</td>
+<td>-</td>
+<td>→ LV.4</td>
+<td>→ LV.4</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.4</td>
+</tr>
+<tr><td>LV.4</td>
+<td>→ LV.5</td>
+<td>-</td>
+<td>→ LV.5</td>
+<td>→ LV.5</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.5</td>
+</tr>
+<tr><td>LV.5</td>
+<td>→ LV.6</td>
+<td>-</td>
+<td>→ LV.6</td>
+<td>→ LV.6</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.6</td>
+</tr>
+<tr><td>LV.6</td>
+<td>→ LV.7</td>
+<td>-</td>
+<td>→ LV.7</td>
+<td>→ LV.7</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.7</td>
+</tr>
+<tr><td>LV.7</td>
+<td>→ LV.8</td>
+<td>-</td>
+<td>→ LV.8</td>
+<td>→ LV.8</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.8</td>
+</tr>
+<tr><td>LV.8</td>
+<td>→ LV.9</td>
+<td>-</td>
+<td>→ LV.9</td>
+<td>→ LV.9</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.9</td>
+</tr>
+<tr><td>LV.9</td>
+<td>→ LV.10</td>
+<td>-</td>
+<td>→ LV.10</td>
+<td>→ LV.10</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.10</td>
+</tr>
+<tr><td>LV.10</td>
+<td>→ LV.11</td>
+<td>-</td>
+<td>→ LV.11</td>
+<td>→ LV.11</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.11</td>
+</tr>
+<tr><td>LV.11</td>
+<td>→ LV.12</td>
+<td>-</td>
+<td>→ LV.12</td>
+<td>→ LV.12</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.12</td>
+</tr>
+<tr><td>LV.12</td>
+<td>→ LV.13</td>
+<td>-</td>
+<td>→ LV.13</td>
+<td>→ LV.13</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.13</td>
+</tr>
+<tr><td>LV.13</td>
+<td>→ LV.14</td>
+<td>-</td>
+<td>→ LV.14</td>
+<td>→ LV.14</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.14</td>
+</tr>
+<tr><td>LV.14</td>
+<td>→ LV.15</td>
+<td>-</td>
+<td>→ LV.15</td>
+<td>→ LV.15</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.15</td>
+</tr>
+<tr><td>LV.15</td>
+<td>→ LV.16</td>
+<td>-</td>
+<td>→ LV.16</td>
+<td>→ LV.16</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.16</td>
+</tr>
+<tr><td>LV.16</td>
+<td>→ LV.17</td>
+<td>-</td>
+<td>→ LV.17</td>
+<td>→ LV.17</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.17</td>
+</tr>
+<tr><td>LV.17</td>
+<td>→ LV.18</td>
+<td>-</td>
+<td>→ LV.18</td>
+<td>→ LV.18</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.18</td>
+</tr>
+<tr><td>LV.18</td>
+<td>→ LV.19</td>
+<td>-</td>
+<td>→ LV.19</td>
+<td>→ LV.19</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.19</td>
+</tr>
+<tr><td>LV.19</td>
+<td>→ LV.20</td>
+<td>-</td>
+<td>→ LV.20</td>
+<td>→ LV.20</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.20</td>
+</tr>
+<tr><td>LV.20</td>
+<td>→ LV.21</td>
+<td>-</td>
+<td>→ LV.21</td>
+<td>→ LV.21</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.21</td>
+</tr>
+<tr><td>LV.21</td>
+<td>→ LV.22</td>
+<td>-</td>
+<td>→ LV.22</td>
+<td>→ LV.22</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.22</td>
+</tr>
+<tr><td>LV.22</td>
+<td>→ LV.23</td>
+<td>-</td>
+<td>→ LV.23</td>
+<td>→ LV.23</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.23</td>
+</tr>
+<tr><td>LV.23</td>
+<td>→ LV.0</td>
+<td>-</td>
+<td>→ LV.0</td>
+<td>→ LV.0</td>
+<td>-</td>
+<td>-</td>
+<td>→ LV.0</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--n"><a class="header" href="#connectors--n">Connectors — N</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan3 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.N</th>
+<th>TERM.N</th>
+<th>TERM.BRAM.N</th>
+<th>CLKLR.S3E.N</th>
+<th>LLV.N</th>
+<th>LLV.CLKLR.S3E.N</th>
+<th>BRKH.S3.N</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OMUX0.S</td>
+<td>→ OMUX0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX0</td>
+<td>-</td>
+<td>→ OMUX0</td>
+</tr>
+<tr><td>OMUX1.WS</td>
+<td>→ OMUX1.W</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX1.W</td>
+<td>-</td>
+<td>→ OMUX1.W</td>
+</tr>
+<tr><td>OMUX2.S</td>
+<td>→ OMUX2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX2</td>
+<td>-</td>
+<td>→ OMUX2</td>
+</tr>
+<tr><td>OMUX3.S</td>
+<td>→ OMUX3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX3</td>
+<td>-</td>
+<td>→ OMUX3</td>
+</tr>
+<tr><td>OMUX4.S</td>
+<td>→ OMUX4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX4</td>
+<td>-</td>
+<td>→ OMUX4</td>
+</tr>
+<tr><td>OMUX5.S</td>
+<td>→ OMUX5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX5</td>
+<td>-</td>
+<td>→ OMUX5</td>
+</tr>
+<tr><td>OMUX7.ES</td>
+<td>→ OMUX7.E</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ OMUX7.E</td>
+<td>-</td>
+<td>→ OMUX7.E</td>
+</tr>
+<tr><td>DBL.E0.3</td>
+<td>→ DBL.E0.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.E0.2</td>
+<td>-</td>
+<td>→ DBL.E0.2</td>
+</tr>
+<tr><td>DBL.E1.3</td>
+<td>→ DBL.E1.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.E1.2</td>
+<td>-</td>
+<td>→ DBL.E1.2</td>
+</tr>
+<tr><td>DBL.S0.1</td>
+<td>→ DBL.S0.0</td>
+<td>← DBL.N0.0</td>
+<td>← DBL.N0.0</td>
+<td>→ DBL.S0.0</td>
+<td>→ DBL.S0.0</td>
+<td>→ DBL.S0.0</td>
+<td>→ DBL.S0.0</td>
+</tr>
+<tr><td>DBL.S0.2</td>
+<td>→ DBL.S0.1</td>
+<td>← DBL.N0.1</td>
+<td>← DBL.N0.1</td>
+<td>→ DBL.S0.1</td>
+<td>→ DBL.S0.1</td>
+<td>→ DBL.S0.1</td>
+<td>→ DBL.S0.1</td>
+</tr>
+<tr><td>DBL.S0.3</td>
+<td>→ DBL.S0.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.S0.2</td>
+<td>-</td>
+<td>→ DBL.S0.2</td>
+</tr>
+<tr><td>DBL.S1.1</td>
+<td>→ DBL.S1.0</td>
+<td>← DBL.N1.0</td>
+<td>← DBL.N1.0</td>
+<td>→ DBL.S1.0</td>
+<td>→ DBL.S1.0</td>
+<td>→ DBL.S1.0</td>
+<td>→ DBL.S1.0</td>
+</tr>
+<tr><td>DBL.S1.2</td>
+<td>→ DBL.S1.1</td>
+<td>← DBL.N1.1</td>
+<td>← DBL.N1.1</td>
+<td>→ DBL.S1.1</td>
+<td>→ DBL.S1.1</td>
+<td>→ DBL.S1.1</td>
+<td>→ DBL.S1.1</td>
+</tr>
+<tr><td>DBL.S1.3</td>
+<td>→ DBL.S1.2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ DBL.S1.2</td>
+<td>-</td>
+<td>→ DBL.S1.2</td>
+</tr>
+<tr><td>DBL.S2.1</td>
+<td>→ DBL.S2.0</td>
+<td>← DBL.N2.0</td>
+<td>← DBL.N2.0</td>
+<td>→ DBL.S2.0</td>
+<td>→ DBL.S2.0</td>
+<td>→ DBL.S2.0</td>
+<td>→ DBL.S2.0</td>
+</tr>
+<tr><td>DBL.S2.2</td>
+<td>→ DBL.S2.1</td>
+<td>← DBL.N2.1</td>
+<td>← DBL.N2.1</td>
+<td>→ DBL.S2.1</td>
+<td>→ DBL.S2.1</td>
+<td>→ DBL.S2.1</td>
+<td>→ DBL.S2.1</td>
+</tr>
+<tr><td>DBL.S3.1</td>
+<td>→ DBL.S3.0</td>
+<td>← DBL.N3.0</td>
+<td>← DBL.N3.0</td>
+<td>→ DBL.S3.0</td>
+<td>→ DBL.S3.0</td>
+<td>→ DBL.S3.0</td>
+<td>→ DBL.S3.0</td>
+</tr>
+<tr><td>DBL.S3.2</td>
+<td>→ DBL.S3.1</td>
+<td>← DBL.N3.1</td>
+<td>← DBL.N3.1</td>
+<td>→ DBL.S3.1</td>
+<td>→ DBL.S3.1</td>
+<td>→ DBL.S3.1</td>
+<td>→ DBL.S3.1</td>
+</tr>
+<tr><td>DBL.S4.1</td>
+<td>→ DBL.S4.0</td>
+<td>← DBL.N4.0</td>
+<td>← DBL.N4.0</td>
+<td>→ DBL.S4.0</td>
+<td>→ DBL.S4.0</td>
+<td>→ DBL.S4.0</td>
+<td>→ DBL.S4.0</td>
+</tr>
+<tr><td>DBL.S4.2</td>
+<td>→ DBL.S4.1</td>
+<td>← DBL.N4.1</td>
+<td>← DBL.N4.1</td>
+<td>→ DBL.S4.1</td>
+<td>→ DBL.S4.1</td>
+<td>→ DBL.S4.1</td>
+<td>→ DBL.S4.1</td>
+</tr>
+<tr><td>DBL.S5.1</td>
+<td>→ DBL.S5.0</td>
+<td>← DBL.N5.0</td>
+<td>← DBL.N5.0</td>
+<td>→ DBL.S5.0</td>
+<td>→ DBL.S5.0</td>
+<td>→ DBL.S5.0</td>
+<td>→ DBL.S5.0</td>
+</tr>
+<tr><td>DBL.S5.2</td>
+<td>→ DBL.S5.1</td>
+<td>← DBL.N5.1</td>
+<td>← DBL.N5.1</td>
+<td>→ DBL.S5.1</td>
+<td>→ DBL.S5.1</td>
+<td>→ DBL.S5.1</td>
+<td>→ DBL.S5.1</td>
+</tr>
+<tr><td>DBL.S6.1</td>
+<td>→ DBL.S6.0</td>
+<td>← DBL.N6.0</td>
+<td>← DBL.N6.0</td>
+<td>→ DBL.S6.0</td>
+<td>→ DBL.S6.0</td>
+<td>→ DBL.S6.0</td>
+<td>→ DBL.S6.0</td>
+</tr>
+<tr><td>DBL.S6.2</td>
+<td>→ DBL.S6.1</td>
+<td>← DBL.N6.1</td>
+<td>← DBL.N6.1</td>
+<td>→ DBL.S6.1</td>
+<td>→ DBL.S6.1</td>
+<td>→ DBL.S6.1</td>
+<td>→ DBL.S6.1</td>
+</tr>
+<tr><td>DBL.S7.1</td>
+<td>→ DBL.S7.0</td>
+<td>← DBL.N7.0</td>
+<td>← DBL.N7.0</td>
+<td>→ DBL.S7.0</td>
+<td>→ DBL.S7.0</td>
+<td>→ DBL.S7.0</td>
+<td>→ DBL.S7.0</td>
+</tr>
+<tr><td>DBL.S7.2</td>
+<td>→ DBL.S7.1</td>
+<td>← DBL.N7.1</td>
+<td>← DBL.N7.1</td>
+<td>→ DBL.S7.1</td>
+<td>→ DBL.S7.1</td>
+<td>→ DBL.S7.1</td>
+<td>→ DBL.S7.1</td>
+</tr>
+<tr><td>HEX.E0.7</td>
+<td>→ HEX.E0.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.E0.6</td>
+<td>-</td>
+<td>→ HEX.E0.6</td>
+</tr>
+<tr><td>HEX.E1.7</td>
+<td>→ HEX.E1.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.E1.6</td>
+<td>-</td>
+<td>→ HEX.E1.6</td>
+</tr>
+<tr><td>HEX.S0.1</td>
+<td>→ HEX.S0.0</td>
+<td>← HEX.N0.0</td>
+<td>← HEX.N0.0</td>
+<td>→ HEX.S0.0</td>
+<td>→ HEX.S0.0</td>
+<td>→ HEX.S0.0</td>
+<td>→ HEX.S0.0</td>
+</tr>
+<tr><td>HEX.S0.2</td>
+<td>→ HEX.S0.1</td>
+<td>← HEX.N0.1</td>
+<td>← HEX.N0.1</td>
+<td>→ HEX.S0.1</td>
+<td>→ HEX.S0.1</td>
+<td>→ HEX.S0.1</td>
+<td>→ HEX.S0.1</td>
+</tr>
+<tr><td>HEX.S0.3</td>
+<td>→ HEX.S0.2</td>
+<td>← HEX.N0.2</td>
+<td>← HEX.N0.2</td>
+<td>→ HEX.S0.2</td>
+<td>→ HEX.S0.2</td>
+<td>→ HEX.S0.2</td>
+<td>→ HEX.S0.2</td>
+</tr>
+<tr><td>HEX.S0.4</td>
+<td>→ HEX.S0.3</td>
+<td>← HEX.N0.3</td>
+<td>← HEX.N0.3</td>
+<td>→ HEX.S0.3</td>
+<td>→ HEX.S0.3</td>
+<td>→ HEX.S0.3</td>
+<td>→ HEX.S0.3</td>
+</tr>
+<tr><td>HEX.S0.5</td>
+<td>→ HEX.S0.4</td>
+<td>← HEX.N0.4</td>
+<td>← HEX.N0.4</td>
+<td>→ HEX.S0.4</td>
+<td>→ HEX.S0.4</td>
+<td>→ HEX.S0.4</td>
+<td>→ HEX.S0.4</td>
+</tr>
+<tr><td>HEX.S0.6</td>
+<td>→ HEX.S0.5</td>
+<td>← HEX.N0.5</td>
+<td>← HEX.N0.5</td>
+<td>→ HEX.S0.5</td>
+<td>→ HEX.S0.5</td>
+<td>→ HEX.S0.5</td>
+<td>→ HEX.S0.5</td>
+</tr>
+<tr><td>HEX.S0.7</td>
+<td>→ HEX.S0.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.S0.6</td>
+<td>-</td>
+<td>→ HEX.S0.6</td>
+</tr>
+<tr><td>HEX.S1.1</td>
+<td>→ HEX.S1.0</td>
+<td>← HEX.N1.0</td>
+<td>← HEX.N1.0</td>
+<td>→ HEX.S1.0</td>
+<td>→ HEX.S1.0</td>
+<td>→ HEX.S1.0</td>
+<td>→ HEX.S1.0</td>
+</tr>
+<tr><td>HEX.S1.2</td>
+<td>→ HEX.S1.1</td>
+<td>← HEX.N1.1</td>
+<td>← HEX.N1.1</td>
+<td>→ HEX.S1.1</td>
+<td>→ HEX.S1.1</td>
+<td>→ HEX.S1.1</td>
+<td>→ HEX.S1.1</td>
+</tr>
+<tr><td>HEX.S1.3</td>
+<td>→ HEX.S1.2</td>
+<td>← HEX.N1.2</td>
+<td>← HEX.N1.2</td>
+<td>→ HEX.S1.2</td>
+<td>→ HEX.S1.2</td>
+<td>→ HEX.S1.2</td>
+<td>→ HEX.S1.2</td>
+</tr>
+<tr><td>HEX.S1.4</td>
+<td>→ HEX.S1.3</td>
+<td>← HEX.N1.3</td>
+<td>← HEX.N1.3</td>
+<td>→ HEX.S1.3</td>
+<td>→ HEX.S1.3</td>
+<td>→ HEX.S1.3</td>
+<td>→ HEX.S1.3</td>
+</tr>
+<tr><td>HEX.S1.5</td>
+<td>→ HEX.S1.4</td>
+<td>← HEX.N1.4</td>
+<td>← HEX.N1.4</td>
+<td>→ HEX.S1.4</td>
+<td>→ HEX.S1.4</td>
+<td>→ HEX.S1.4</td>
+<td>→ HEX.S1.4</td>
+</tr>
+<tr><td>HEX.S1.6</td>
+<td>→ HEX.S1.5</td>
+<td>← HEX.N1.5</td>
+<td>← HEX.N1.5</td>
+<td>→ HEX.S1.5</td>
+<td>→ HEX.S1.5</td>
+<td>→ HEX.S1.5</td>
+<td>→ HEX.S1.5</td>
+</tr>
+<tr><td>HEX.S1.7</td>
+<td>→ HEX.S1.6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>→ HEX.S1.6</td>
+<td>-</td>
+<td>→ HEX.S1.6</td>
+</tr>
+<tr><td>HEX.S2.1</td>
+<td>→ HEX.S2.0</td>
+<td>← HEX.N2.0</td>
+<td>← HEX.N2.0</td>
+<td>→ HEX.S2.0</td>
+<td>→ HEX.S2.0</td>
+<td>→ HEX.S2.0</td>
+<td>→ HEX.S2.0</td>
+</tr>
+<tr><td>HEX.S2.2</td>
+<td>→ HEX.S2.1</td>
+<td>← HEX.N2.1</td>
+<td>← HEX.N2.1</td>
+<td>→ HEX.S2.1</td>
+<td>→ HEX.S2.1</td>
+<td>→ HEX.S2.1</td>
+<td>→ HEX.S2.1</td>
+</tr>
+<tr><td>HEX.S2.3</td>
+<td>→ HEX.S2.2</td>
+<td>← HEX.N2.2</td>
+<td>← HEX.N2.2</td>
+<td>→ HEX.S2.2</td>
+<td>→ HEX.S2.2</td>
+<td>→ HEX.S2.2</td>
+<td>→ HEX.S2.2</td>
+</tr>
+<tr><td>HEX.S2.4</td>
+<td>→ HEX.S2.3</td>
+<td>← HEX.N2.3</td>
+<td>← HEX.N2.3</td>
+<td>→ HEX.S2.3</td>
+<td>→ HEX.S2.3</td>
+<td>→ HEX.S2.3</td>
+<td>→ HEX.S2.3</td>
+</tr>
+<tr><td>HEX.S2.5</td>
+<td>→ HEX.S2.4</td>
+<td>← HEX.N2.4</td>
+<td>← HEX.N2.4</td>
+<td>→ HEX.S2.4</td>
+<td>→ HEX.S2.4</td>
+<td>→ HEX.S2.4</td>
+<td>→ HEX.S2.4</td>
+</tr>
+<tr><td>HEX.S2.6</td>
+<td>→ HEX.S2.5</td>
+<td>← HEX.N2.5</td>
+<td>← HEX.N2.5</td>
+<td>→ HEX.S2.5</td>
+<td>→ HEX.S2.5</td>
+<td>→ HEX.S2.5</td>
+<td>→ HEX.S2.5</td>
+</tr>
+<tr><td>HEX.S3.1</td>
+<td>→ HEX.S3.0</td>
+<td>← HEX.N3.0</td>
+<td>← HEX.N3.0</td>
+<td>→ HEX.S3.0</td>
+<td>→ HEX.S3.0</td>
+<td>→ HEX.S3.0</td>
+<td>→ HEX.S3.0</td>
+</tr>
+<tr><td>HEX.S3.2</td>
+<td>→ HEX.S3.1</td>
+<td>← HEX.N3.1</td>
+<td>← HEX.N3.1</td>
+<td>→ HEX.S3.1</td>
+<td>→ HEX.S3.1</td>
+<td>→ HEX.S3.1</td>
+<td>→ HEX.S3.1</td>
+</tr>
+<tr><td>HEX.S3.3</td>
+<td>→ HEX.S3.2</td>
+<td>← HEX.N3.2</td>
+<td>← HEX.N3.2</td>
+<td>→ HEX.S3.2</td>
+<td>→ HEX.S3.2</td>
+<td>→ HEX.S3.2</td>
+<td>→ HEX.S3.2</td>
+</tr>
+<tr><td>HEX.S3.4</td>
+<td>→ HEX.S3.3</td>
+<td>← HEX.N3.3</td>
+<td>← HEX.N3.3</td>
+<td>→ HEX.S3.3</td>
+<td>→ HEX.S3.3</td>
+<td>→ HEX.S3.3</td>
+<td>→ HEX.S3.3</td>
+</tr>
+<tr><td>HEX.S3.5</td>
+<td>→ HEX.S3.4</td>
+<td>← HEX.N3.4</td>
+<td>← HEX.N3.4</td>
+<td>→ HEX.S3.4</td>
+<td>→ HEX.S3.4</td>
+<td>→ HEX.S3.4</td>
+<td>→ HEX.S3.4</td>
+</tr>
+<tr><td>HEX.S3.6</td>
+<td>→ HEX.S3.5</td>
+<td>← HEX.N3.5</td>
+<td>← HEX.N3.5</td>
+<td>→ HEX.S3.5</td>
+<td>→ HEX.S3.5</td>
+<td>→ HEX.S3.5</td>
+<td>→ HEX.S3.5</td>
+</tr>
+<tr><td>HEX.S4.1</td>
+<td>→ HEX.S4.0</td>
+<td>← HEX.N4.0</td>
+<td>← HEX.N4.0</td>
+<td>→ HEX.S4.0</td>
+<td>→ HEX.S4.0</td>
+<td>→ HEX.S4.0</td>
+<td>→ HEX.S4.0</td>
+</tr>
+<tr><td>HEX.S4.2</td>
+<td>→ HEX.S4.1</td>
+<td>← HEX.N4.1</td>
+<td>← HEX.N4.1</td>
+<td>→ HEX.S4.1</td>
+<td>→ HEX.S4.1</td>
+<td>→ HEX.S4.1</td>
+<td>→ HEX.S4.1</td>
+</tr>
+<tr><td>HEX.S4.3</td>
+<td>→ HEX.S4.2</td>
+<td>← HEX.N4.2</td>
+<td>← HEX.N4.2</td>
+<td>→ HEX.S4.2</td>
+<td>→ HEX.S4.2</td>
+<td>→ HEX.S4.2</td>
+<td>→ HEX.S4.2</td>
+</tr>
+<tr><td>HEX.S4.4</td>
+<td>→ HEX.S4.3</td>
+<td>← HEX.N4.3</td>
+<td>← HEX.N4.3</td>
+<td>→ HEX.S4.3</td>
+<td>→ HEX.S4.3</td>
+<td>→ HEX.S4.3</td>
+<td>→ HEX.S4.3</td>
+</tr>
+<tr><td>HEX.S4.5</td>
+<td>→ HEX.S4.4</td>
+<td>← HEX.N4.4</td>
+<td>← HEX.N4.4</td>
+<td>→ HEX.S4.4</td>
+<td>→ HEX.S4.4</td>
+<td>→ HEX.S4.4</td>
+<td>→ HEX.S4.4</td>
+</tr>
+<tr><td>HEX.S4.6</td>
+<td>→ HEX.S4.5</td>
+<td>← HEX.N4.5</td>
+<td>← HEX.N4.5</td>
+<td>→ HEX.S4.5</td>
+<td>→ HEX.S4.5</td>
+<td>→ HEX.S4.5</td>
+<td>→ HEX.S4.5</td>
+</tr>
+<tr><td>HEX.S5.1</td>
+<td>→ HEX.S5.0</td>
+<td>← HEX.N5.0</td>
+<td>← HEX.N5.0</td>
+<td>→ HEX.S5.0</td>
+<td>→ HEX.S5.0</td>
+<td>→ HEX.S5.0</td>
+<td>→ HEX.S5.0</td>
+</tr>
+<tr><td>HEX.S5.2</td>
+<td>→ HEX.S5.1</td>
+<td>← HEX.N5.1</td>
+<td>← HEX.N5.1</td>
+<td>→ HEX.S5.1</td>
+<td>→ HEX.S5.1</td>
+<td>→ HEX.S5.1</td>
+<td>→ HEX.S5.1</td>
+</tr>
+<tr><td>HEX.S5.3</td>
+<td>→ HEX.S5.2</td>
+<td>← HEX.N5.2</td>
+<td>← HEX.N5.2</td>
+<td>→ HEX.S5.2</td>
+<td>→ HEX.S5.2</td>
+<td>→ HEX.S5.2</td>
+<td>→ HEX.S5.2</td>
+</tr>
+<tr><td>HEX.S5.4</td>
+<td>→ HEX.S5.3</td>
+<td>← HEX.N5.3</td>
+<td>← HEX.N5.3</td>
+<td>→ HEX.S5.3</td>
+<td>→ HEX.S5.3</td>
+<td>→ HEX.S5.3</td>
+<td>→ HEX.S5.3</td>
+</tr>
+<tr><td>HEX.S5.5</td>
+<td>→ HEX.S5.4</td>
+<td>← HEX.N5.4</td>
+<td>← HEX.N5.4</td>
+<td>→ HEX.S5.4</td>
+<td>→ HEX.S5.4</td>
+<td>→ HEX.S5.4</td>
+<td>→ HEX.S5.4</td>
+</tr>
+<tr><td>HEX.S5.6</td>
+<td>→ HEX.S5.5</td>
+<td>← HEX.N5.5</td>
+<td>← HEX.N5.5</td>
+<td>→ HEX.S5.5</td>
+<td>→ HEX.S5.5</td>
+<td>→ HEX.S5.5</td>
+<td>→ HEX.S5.5</td>
+</tr>
+<tr><td>HEX.S6.1</td>
+<td>→ HEX.S6.0</td>
+<td>← HEX.N6.0</td>
+<td>← HEX.N6.0</td>
+<td>→ HEX.S6.0</td>
+<td>→ HEX.S6.0</td>
+<td>→ HEX.S6.0</td>
+<td>→ HEX.S6.0</td>
+</tr>
+<tr><td>HEX.S6.2</td>
+<td>→ HEX.S6.1</td>
+<td>← HEX.N6.1</td>
+<td>← HEX.N6.1</td>
+<td>→ HEX.S6.1</td>
+<td>→ HEX.S6.1</td>
+<td>→ HEX.S6.1</td>
+<td>→ HEX.S6.1</td>
+</tr>
+<tr><td>HEX.S6.3</td>
+<td>→ HEX.S6.2</td>
+<td>← HEX.N6.2</td>
+<td>← HEX.N6.2</td>
+<td>→ HEX.S6.2</td>
+<td>→ HEX.S6.2</td>
+<td>→ HEX.S6.2</td>
+<td>→ HEX.S6.2</td>
+</tr>
+<tr><td>HEX.S6.4</td>
+<td>→ HEX.S6.3</td>
+<td>← HEX.N6.3</td>
+<td>← HEX.N6.3</td>
+<td>→ HEX.S6.3</td>
+<td>→ HEX.S6.3</td>
+<td>→ HEX.S6.3</td>
+<td>→ HEX.S6.3</td>
+</tr>
+<tr><td>HEX.S6.5</td>
+<td>→ HEX.S6.4</td>
+<td>← HEX.N6.4</td>
+<td>← HEX.N6.4</td>
+<td>→ HEX.S6.4</td>
+<td>→ HEX.S6.4</td>
+<td>→ HEX.S6.4</td>
+<td>→ HEX.S6.4</td>
+</tr>
+<tr><td>HEX.S6.6</td>
+<td>→ HEX.S6.5</td>
+<td>← HEX.N6.5</td>
+<td>← HEX.N6.5</td>
+<td>→ HEX.S6.5</td>
+<td>→ HEX.S6.5</td>
+<td>→ HEX.S6.5</td>
+<td>→ HEX.S6.5</td>
+</tr>
+<tr><td>HEX.S7.1</td>
+<td>→ HEX.S7.0</td>
+<td>← HEX.N7.0</td>
+<td>← HEX.N7.0</td>
+<td>→ HEX.S7.0</td>
+<td>→ HEX.S7.0</td>
+<td>→ HEX.S7.0</td>
+<td>→ HEX.S7.0</td>
+</tr>
+<tr><td>HEX.S7.2</td>
+<td>→ HEX.S7.1</td>
+<td>← HEX.N7.1</td>
+<td>← HEX.N7.1</td>
+<td>→ HEX.S7.1</td>
+<td>→ HEX.S7.1</td>
+<td>→ HEX.S7.1</td>
+<td>→ HEX.S7.1</td>
+</tr>
+<tr><td>HEX.S7.3</td>
+<td>→ HEX.S7.2</td>
+<td>← HEX.N7.2</td>
+<td>← HEX.N7.2</td>
+<td>→ HEX.S7.2</td>
+<td>→ HEX.S7.2</td>
+<td>→ HEX.S7.2</td>
+<td>→ HEX.S7.2</td>
+</tr>
+<tr><td>HEX.S7.4</td>
+<td>→ HEX.S7.3</td>
+<td>← HEX.N7.3</td>
+<td>← HEX.N7.3</td>
+<td>→ HEX.S7.3</td>
+<td>→ HEX.S7.3</td>
+<td>→ HEX.S7.3</td>
+<td>→ HEX.S7.3</td>
+</tr>
+<tr><td>HEX.S7.5</td>
+<td>→ HEX.S7.4</td>
+<td>← HEX.N7.4</td>
+<td>← HEX.N7.4</td>
+<td>→ HEX.S7.4</td>
+<td>→ HEX.S7.4</td>
+<td>→ HEX.S7.4</td>
+<td>→ HEX.S7.4</td>
+</tr>
+<tr><td>HEX.S7.6</td>
+<td>→ HEX.S7.5</td>
+<td>← HEX.N7.5</td>
+<td>← HEX.N7.5</td>
+<td>→ HEX.S7.5</td>
+<td>→ HEX.S7.5</td>
+<td>→ HEX.S7.5</td>
+<td>→ HEX.S7.5</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../spartan3/geometry.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../spartan3/interconnect/tiles-int.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../spartan3/geometry.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../spartan3/interconnect/tiles-int.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

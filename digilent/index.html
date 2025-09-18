@@ -1,0 +1,610 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Digilent Adept - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="digilent-adept"><a class="header" href="#digilent-adept">Digilent Adept</a></h1>
+<p>Digilent made a family of devboards using a common custom USB protocol.
+For lack of a better name, we call it the Digilent Adept protocol.</p>
+<p>The protocol is designed to be extensible: there is a set of control requests
+that can be used to query information about the board and the capabilities,
+and then there is a common multiplexing and framing protocol used to
+communicate with one of the device's "subsystems", such as JTAG, SPI, GPIO,
+or board management.</p>
+<p>There ar two kinds of devices implementing this protocol:</p>
+<ul>
+<li>AT90USB162-based, which have pre-flashed firmware and can be used immediately</li>
+<li>FX2-based, which may require firmware upload first</li>
+</ul>
+<p>TODO: there are also FX3-based devices, but it is unclear whether they reuse
+the protocol or not</p>
+<p>Note that Digilent has phased out this protocol — newer boards are FTDI based instead.
+On FTDI-based boards, the Adept runtime libraries will emulate this protocol in software, even
+assembling command structures in one part of the stack, then destructuring them in the FTDI-specific
+code.  The code doing this (a normal host <code>.so</code> or <code>.dll</code>) is, hilariously, called "firmware".</p>
+<p>The protocol is implemented on devices with USB ID of <code>0x1443:0x0007</code>.</p>
+<p>TODO: <code>0x1443:0x0003</code> and <code>0x1443:0x0005</code> allegedly also exist, on
+the oldest FX2-based devices</p>
+<p>The device exposes a single configuration and single interface.  The class,
+subclass, and protocol are all-0, as would be expected.  The device has
+the following endpoints:</p>
+<ul>
+<li>control endpoint 0: in addition to the usual core USB stuff, used to send
+various custom control requests</li>
+<li>command endpoint (bulk OUT): used to send subsystem commands</li>
+<li>response endpoint (bulk IN): used to receive subsystem command responses</li>
+<li>data out endpoint (bulk OUT): used to send large data payloads for subsystem commands</li>
+<li>data in endpoint (bulk IN): used to receive large data payloads for subsystem commands</li>
+</ul>
+<p>The actual endpoint numbers (and their max packet size) involved depend on the device kind:</p>
+<div class="table-wrapper"><table><thead><tr><th>Endpoint</th><th>FX2</th><th>AT90USB</th></tr></thead><tbody>
+<tr><td>command</td><td>EP1 OUT (64 bytes)</td><td>EP1 OUT (16 bytes)</td></tr>
+<tr><td>response</td><td>EP1 OUT (64 bytes)</td><td>EP2 IN (16 bytes)</td></tr>
+<tr><td>data out</td><td>EP2 OUT (64/512 bytes)</td><td>EP3 OUT (64 bytes)</td></tr>
+<tr><td>data in</td><td>EP6 IN (64/512 bytes)</td><td>EP4 IN (64 bytes)</td></tr>
+</tbody></table>
+</div>
+<p>All numbers in the protocol are encoded as little-endian unless stated otherwise.</p>
+<h2 id="identification"><a class="header" href="#identification">Identification</a></h2>
+<p>All Adept devices will present useless data (something akin to <code>"Digilent Adept USB"</code>) in their
+USB identifier strings.  To identify the actual devboard, the "product id" should be obtained
+instead (via <code>GET_PRODUCT_ID</code> control request, or by reading from user EEPROM area on FTDI
+devices).  The product id is a 32-bit word with the following structure:</p>
+<ul>
+<li>bits 0-7: firmware id</li>
+<li>bits 8-19: variant id</li>
+<li>bits 20-31: board id</li>
+</ul>
+<p>The "board id" identifies a particular devboard model.  The "variant id" identifies a variant of
+that devboard (eg. what FPGA size is fitted).  The "firmware id" identifies which firmware should
+be loaded for this board.</p>
+<p>The "firmware id" can be thought of as identifying an "equivalence class" of the board from
+the firmware's port of view:</p>
+<ul>
+<li>two completely different boards that both use the same set of subsystems (eg. both use DJTG+DEPP)
+and have the exact same control connections to the FX2/AT90USB are equivalent, and will have
+the same firmware id</li>
+<li>two minor revisions of the same board will get distinct firmware id if the connections to
+the AT90USB/FX2 were changed (eg. hooked up a "link activity" LED on the newer revision)</li>
+</ul>
+<p>The known firmware ids are:</p>
+<ul>
+<li><code>0x00-0x1f</code>: FX2-based; <code>0x01</code> and <code>0x02</code> are based on the original FX2, all others are
+based on FX2LP
+<ul>
+<li><code>0x01</code>: DJTG or DSPI; old JTAG-USB cable based on the original FX2, requires firmware swapping
+to switch between DJTG and DSPI</li>
+<li><code>0x02</code>: DJTG or DEPP: old USB2 module based on the original FX2, requires firmware swapping
+to switch between DJTG and DEPP</li>
+<li><code>0x03</code>: DJTG + DSPI; new FX2LP-based JTAG-USB cable</li>
+<li><code>0x04</code>: DJTG + DEPP; new FX2LP-based USB2 module</li>
+<li><code>0x05</code>: DJTG+DEPP+DSTM (used on Nexys 2)</li>
+<li><code>0x06</code>: DJTG+DEPP+DSTM+DSPI (X-board?)</li>
+<li><code>0x08</code>: DJTG+DEPP+DSTM</li>
+<li><code>0x09</code>: DJTG+DEPP+DSTM</li>
+<li><code>0x0a</code>: DJTG+DEPP+DSTM+DSPI (X-board?)</li>
+<li><code>0x0b</code>: ~DJTG+DEPP+DSTM</li>
+<li><code>0x0c</code>: DJTG+DEPP+DSTM (used on Atlys)</li>
+<li><code>0x0d</code>: DJTG+DEPP+DSTM (used on Nexys 3, FMC Carrier S6)</li>
+<li><code>0x0e</code>: DJTG+DEPP+DSTM</li>
+<li><code>0x0f</code>: ~DJTG+DEPP+DSTM</li>
+</ul>
+</li>
+<li><code>0x20-0x3f</code>: AT90USB-based
+<ul>
+<li><code>0x21</code>: DJTG? (JTAG-USB-FS cable)</li>
+<li><code>0x22</code>: DJTG+DEPP + prog + done (used on Basys 2)</li>
+<li><code>0x23</code>: DJTG+DEPP + ??? (used on other Basys 2 revisions?)</li>
+<li><code>0x26</code>: DJTG+DEPP+DSPI (used on Coolrunner 2 starter board)</li>
+<li><code>0x29</code>: DPIO+DSPI+DTWI+DACI+DAIO+DEMC+DGIO (IO explorer)</li>
+<li><code>0x2d</code>: DJTG+???</li>
+<li><code>0x2e</code>: DPIO+DEPP+DSPI; power control shared with DPIO (used on iCE40blink)</li>
+</ul>
+</li>
+<li><code>0x50-0x6f</code>: FTDI-based
+<ul>
+<li><code>0x50</code>: FT2232H DJTG+DSPI (JTAG-HS1)</li>
+<li><code>0x51</code>: FT2232H DJTG (used on JTAG-SMT1; Basys 3, Arty, USB104-A7, USRP onboard)</li>
+<li><code>0x52</code>: FT232H DJTG+DSPI (JTAG-HS2)</li>
+<li><code>0x53</code>: DJTG+SRST (JTAG-HS3; ZEDBOARD)</li>
+<li><code>0x54</code>: FT232H DJTG+DSPI+DPIO (JTAG-SMT2)</li>
+<li><code>0x55</code>: DJTG+DSPI+DPTI</li>
+<li><code>0x56</code>: DJTG+DSPI+DPTI</li>
+<li><code>0x57</code>: DJTG (ZYBO-Z7; TE07* onboard)</li>
+<li><code>0x58</code>: DJTG+DSPI</li>
+<li><code>0x59</code>: DPTI</li>
+<li><code>0x60</code>: ~DJTG+DPTI (analog discovery)</li>
+<li><code>0x61</code>: DJTG</li>
+<li><code>0x62</code>: DSPI+DPTI</li>
+</ul>
+</li>
+<li><code>0x80-0x8f</code>: FX3-based
+<ul>
+<li><code>0x80</code>: ???</li>
+<li><code>0x81</code>: ???</li>
+</ul>
+</li>
+</ul>
+<p>In addition to the binary product id, the boards also have a product name, which is hopefully in
+some correspondence with the product id.  However, it is probably more reliable to recognize
+the board by the binary id.</p>
+<h2 id="control-requests"><a class="header" href="#control-requests">Control requests</a></h2>
+<p>These control requests can be sent at any time, without any particular
+preparation.</p>
+<p>A few of the requests here deal with strings.  The strings are stored
+on the board in fixed-length storage (different for every string),
+and are NUL-terminated, except for the (legal) case of a string that takes
+up the entire length of the storage.  The requests will return the entire
+contents of the string storage, possibly including garbage beyond the NUL
+terminator (which is usually either all-NUL or all-<code>0xff</code>).  This garbage
+should be trimmed off.</p>
+<h3 id="get_product_name"><a class="header" href="#get_product_name"><code>GET_PRODUCT_NAME</code></a></h3>
+<p>Returns a product name describing the board.  The storage for that string
+is 28 bytes long.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0xc0</code></li>
+<li><code>bRequest</code>: <code>0xe1</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 28</li>
+</ul>
+<h3 id="get_user_name"><a class="header" href="#get_user_name"><code>GET_USER_NAME</code></a></h3>
+<p>Returns a "user name" describing the board.  It is a 16-byte string field.
+Allegedly it can be set by the user.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0xc0</code></li>
+<li><code>bRequest</code>: <code>0xe2</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 16</li>
+</ul>
+<h3 id="set_user_name"><a class="header" href="#set_user_name"><code>SET_USER_NAME</code></a></h3>
+<p>Sets the user name of this board.  It can be up to 16 bytes long.
+Doesn't seem to be actually supported on all boards?</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0x40</code></li>
+<li><code>bRequest</code>: <code>0xe3</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 16</li>
+</ul>
+<h3 id="get_serial_number"><a class="header" href="#get_serial_number"><code>GET_SERIAL_NUMBER</code></a></h3>
+<p>Returns the serial number of this board.  It is 12 bytes long.  It can be
+reprogrammed by the user.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0xc0</code></li>
+<li><code>bRequest</code>: <code>0xe4</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 12</li>
+</ul>
+<h3 id="set_serial_number"><a class="header" href="#set_serial_number"><code>SET_SERIAL_NUMBER</code></a></h3>
+<p>Sets the serial number of this board.  It can be up to 12 bytes long.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0x40</code></li>
+<li><code>bRequest</code>: <code>0xe5</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 12</li>
+</ul>
+<h3 id="get_firmware_version"><a class="header" href="#get_firmware_version"><code>GET_FIRMWARE_VERSION</code></a></h3>
+<p>Returns the firmware version of this board.  It is a 16-bit word.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0xc0</code></li>
+<li><code>bRequest</code>: <code>0xe6</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 2</li>
+</ul>
+<h3 id="get_caps"><a class="header" href="#get_caps"><code>GET_CAPS</code></a></h3>
+<p>Returns the capabilities of this board.  It is a 32-bit word.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0xc0</code></li>
+<li><code>bRequest</code>: <code>0xe7</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 4</li>
+</ul>
+<p>The capabilities are a bitfield describing the available subsystems:</p>
+<ul>
+<li>bit 0: DJTG</li>
+<li>bit 1: DPIO</li>
+<li>bit 2: DEPP</li>
+<li>bit 3: DSTM</li>
+<li>bit 4: DSPI</li>
+<li>bit 5: DTWI</li>
+<li>bit 6: DACI</li>
+<li>bit 7: DAIO</li>
+<li>bit 8: DEMC</li>
+<li>bit 9: DDCI</li>
+<li>bit 10: DGIO</li>
+</ul>
+<h3 id="set_secret_handshake"><a class="header" href="#set_secret_handshake"><code>SET_SECRET_HANDSHAKE</code></a></h3>
+<p>Sets a 16-bit number used in the secret handshake.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0x40</code></li>
+<li><code>bRequest</code>: <code>0xe8</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 2</li>
+</ul>
+<h3 id="get_product_id"><a class="header" href="#get_product_id"><code>GET_PRODUCT_ID</code></a></h3>
+<p>Returns the binary product ID of this board.  It is a little-endian 32-bit word, explained above.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0xc0</code></li>
+<li><code>bRequest</code>: <code>0xe9</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 4</li>
+</ul>
+<h3 id="get_secret_handshake"><a class="header" href="#get_secret_handshake"><code>GET_SECRET_HANDSHAKE</code></a></h3>
+<p>Gets a secret 32-bit handshake number from the board.  This is a strong
+cryptographic protocol used to verify the board as a genuine Digilent product.
+A secret 16-bit nonce must first be set via the <code>SET_SECRET_HANDSHAKE</code>
+request, then this request must be used to get a 32-bit MAC from the device.</p>
+<ul>
+<li><code>bmRequestType</code>: <code>0xc0</code></li>
+<li><code>bRequest</code>: <code>0xec</code></li>
+<li><code>wValue</code>: 0</li>
+<li><code>wIndex</code>: 0</li>
+<li><code>wLength</code>: 4</li>
+</ul>
+<p>To verify the device as a genuine Digilent board, check the MAC is correct
+as follows:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn correct_mac(nonce: u16, mac: u32) -&gt; bool {
+    let byte_nonce = (((nonce &gt;&gt; 8) ^ nonce) &amp; 0xff) as u32;
+    const DIGILENT_PUBLIC_KEY: u32 = 0x69676944;
+    mac == (DIGILENT_PUBLIC_KEY ^ (byte_nonce | byte_nonce &lt;&lt; 8 | byte_nonce &lt;&lt; 16 | byte_nonce &lt;&lt; 24))
+}
+<span class="boring">}</span></code></pre></pre>
+<h2 id="subsystem-commands"><a class="header" href="#subsystem-commands">Subsystem commands</a></h2>
+<p>All commands other than the above control requests are handled via a uniform
+protocol over endpoints 1-4.  Commands are targetted to particular "subsystem"
+and a particular "port" (or, in other words, instance) of that subsystem.
+The following subsystems can exist:</p>
+<ul>
+<li><code>0x00</code>: SYS (manages other subsystems, always present, always 1 "port")</li>
+<li><code>0x01</code>: DMGT (general board management, always present, always 1 "port")</li>
+<li><code>0x02</code>: DJTG (JTAG, bit 0 in <code>GET_CAPS</code>)</li>
+<li><code>0x03</code>: DPIO (simple GPIO, bit 1 in <code>GET_CAPS</code>)</li>
+<li><code>0x04</code>: DEPP (EPP-like parallel port, bit 2 in <code>GET_CAPS</code>)</li>
+<li><code>0x05</code>: DSTM (FX2 FIFO interface, bit 3 in <code>GET_CAPS</code>)</li>
+<li><code>0x06</code>: DSPI (SPI, bit 4 in <code>GET_CAPS</code>)</li>
+<li><code>0x07</code>: DTWI (I²C / SMBus, bit 5 in <code>GET_CAPS</code>)</li>
+<li><code>0x08</code>: DACI (UART, bit 6 in <code>GET_CAPS</code>)</li>
+<li><code>0x09</code>: DAIO (analog I/O, bit 7 in <code>GET_CAPS</code>)</li>
+<li><code>0x0a</code>: DEMC (electro-mechanical control, bit 8 in <code>GET_CAPS</code>)</li>
+<li><code>0x0c</code>: DGIO (general sensor and user I/O, bit 10 in <code>GET_CAPS</code>)</li>
+</ul>
+<p>TODO: list incomplete</p>
+<p>Commands are sent on endpoint 1, and have the following general format:</p>
+<ul>
+<li>byte 0: command length in bytes, minus one</li>
+<li>byte 1: target subsystem</li>
+<li>byte 2:
+<ul>
+<li>bits 0-6: command type</li>
+<li>bit 7:
+<ul>
+<li><code>0</code>: this is a short command, or the start of a long command</li>
+<li><code>1</code>: this is the end of a long command</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>byte 3: target port (if not applicable, set to 0)</li>
+<li>bytes 4 and up (if any): short payload, determined by subsystem and command type</li>
+</ul>
+<p>Responses to commands are received on endpoint 2, and have the following general format:</p>
+<ul>
+<li>byte 0: response length in bytes, minus one</li>
+<li>byte 1:
+<ul>
+<li>bits 0-5: status code
+<ul>
+<li><code>0x00</code>: success, payload determined by command type</li>
+<li><code>0x01</code>: command not supported (no payload)</li>
+<li><code>0x03</code>: resource in use (attempt to enable a port that is already enabled, or that uses resources shared with another enabled port), no payload</li>
+<li><code>0x04</code>: port disabled error (attempt to send a non-enable command to disabled port), no payload</li>
+<li><code>0x05</code>: DEPP address timeout (no payload)</li>
+<li><code>0x06</code>: DEPP data timeout
+<ul>
+<li>payload: 32-bit number (unknown semantics)</li>
+</ul>
+</li>
+<li><code>0x0d</code>: command parameter out of range (no payload)</li>
+<li><code>0x31</code>: unknown subsystem (no payload)</li>
+<li><code>0x32</code>: unknown command (no payload)</li>
+</ul>
+</li>
+<li>bit 6: if set, a "received byte count" field is present in the reply</li>
+<li>bit 7: if set, a "transmitted byte count" field is present in the reply</li>
+</ul>
+</li>
+<li>bytes 2 and up (if any): several packed fields, in order:
+<ul>
+<li>if status code is non-0: error payload specific to status code</li>
+<li>if bit 7 of byte 1 set: a 32-bit word containing "transmitted byte count" (the number of bytes sent over data out endpoint for a long command)</li>
+<li>if bit 6 of byte 1 set: a 32-bit word containing "received byte count" (the number of bytes sent over data in endpoint for a long command)</li>
+<li>if status code is 0: short response payload, determined by subsystem and command type</li>
+</ul>
+</li>
+</ul>
+<p>Commands and responses are short and fit in one USB packet, which can be at most 16 bytes for the relevant endpoints.</p>
+<p>Commands come in two kinds: short and long.  Whether a command is short
+or long depends only on its subsystem and command type.  A short command
+simply consists of two USB transfers:</p>
+<ul>
+<li>command endpoint: command to device</li>
+<li>response endpoint: response from device</li>
+</ul>
+<p>A long command is one that possibly takes a long time and can be aborted (via the <code>SYS_ABORT</code> command).
+Long commands can also involve large data transfers over endpoints 3 and 4.  A long consists of the following transfers:</p>
+<ul>
+<li>command endpoint: start command to device (bit 7 of byte 2 set to 0; short payload contains command arguments, if any)</li>
+<li>response endpoint: response from device (if not successful, the command is aborted now)</li>
+<li>data out endpoint and/or data in endpoint (if needed): large payload to/from device (if both are needed, the two transfers may have to be overlapped)</li>
+<li>command endpoint: end command to device (bit 7 of byte 2 set to 1; no short payload present)</li>
+<li>response endpoint: response from device (contains actual transmitted and received byte counts, as appropriate)</li>
+</ul>
+<h2 id="system-management-commands"><a class="header" href="#system-management-commands">System management commands</a></h2>
+<p>The "subsystem" 0 ("SYS") is special, always present, and always enabled.</p>
+<h3 id="sys_abort-command"><a class="header" href="#sys_abort-command"><code>SYS_ABORT</code> command</a></h3>
+<p>This command can be sent in the middle of a long command to abort the transfer.</p>
+<ul>
+<li>subsystem: <code>0x00</code> (SYS)</li>
+<li>command type: <code>0x02</code> (short)</li>
+<li>port: N/A, always 0</li>
+<li>command payload: none</li>
+<li>response payload: none</li>
+</ul>
+<h3 id="sys_reset-command"><a class="header" href="#sys_reset-command"><code>SYS_RESET</code> command</a></h3>
+<p>This command can be sent at any time to reset the current state of the device.
+This involves disabling all ports.</p>
+<ul>
+<li>subsystem: <code>0x00</code> (SYS)</li>
+<li>command type: <code>0x03</code> (short)</li>
+<li>port: N/A, always 0</li>
+<li>command payload: 32-bit word</li>
+<li>response payload: 32-bit word</li>
+</ul>
+<p>For unknown reasons, this command takes a 32-bit word payload, and returns as the response payload another 32-bit word, which is equal to <code>0x7a - command_payload</code>.</p>
+<h2 id="general-subsystem-commands"><a class="header" href="#general-subsystem-commands">General subsystem commands</a></h2>
+<p>These commands apply to all supported subsystems except <code>SYS</code> and <code>DMGT</code>.</p>
+<h3 id="enable-command"><a class="header" href="#enable-command"><code>ENABLE</code> command</a></h3>
+<p>This command enables a subsystem port, making it ready for use.  The only
+commands that can be sent to a disabled port are <code>ENABLE</code> and
+<code>GET_CAPABILITIES</code>.  All ports start out as disabled.  A port will fail
+to enable if it is already enabled, or if another port using the same hardware
+resources is currently enabled.</p>
+<ul>
+<li>subsystem: any except SYS and DMGT</li>
+<li>command type: <code>0x00</code> (short)</li>
+<li>port: port index</li>
+<li>command payload: none</li>
+<li>response payload: none</li>
+</ul>
+<h3 id="disable-command"><a class="header" href="#disable-command"><code>DISABLE</code> command</a></h3>
+<p>Disables a subsystem port, undoing the <code>ENABLE</code> command.</p>
+<ul>
+<li>subsystem: any except SYS and DMGT</li>
+<li>command type: <code>0x01</code> (short)</li>
+<li>port: port index</li>
+<li>command payload: none</li>
+<li>response payload: none</li>
+</ul>
+<h3 id="get_port_properties-command"><a class="header" href="#get_port_properties-command"><code>GET_PORT_PROPERTIES</code> command</a></h3>
+<p>Returns the properties of a given port of a subsystem, and also the available port count.</p>
+<ul>
+<li>subsystem: any except SYS and DMGT</li>
+<li>command type: <code>0x02</code> (short)</li>
+<li>port: port index; call with port 0 to obtain number of available ports</li>
+<li>command payload: 1 byte: requested data byte count (can be 1 or 5)</li>
+<li>response payload:
+<ul>
+<li>byte 0: port count</li>
+<li>bytes 1-4 (if requested): 32-bit word, port properties; exact meaning depends on subsystem</li>
+</ul>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../coolrunner2/devices/xc2c512.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../digilent/dmgt.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../coolrunner2/devices/xc2c512.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../digilent/dmgt.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

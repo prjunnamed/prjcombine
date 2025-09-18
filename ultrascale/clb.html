@@ -1,0 +1,665 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Logic block - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="logic-block"><a class="header" href="#logic-block">Logic block</a></h1>
+<h2 id="tile-clel"><a class="header" href="#tile-clel">Tile CLEL</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-slice"><a class="header" href="#bel-slice">Bel SLICE</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CLEL bel SLICE</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>A1</td><td>input</td><td>IMUX.IMUX.5</td></tr>
+<tr><td>A2</td><td>input</td><td>IMUX.IMUX.1</td></tr>
+<tr><td>A3</td><td>input</td><td>IMUX.IMUX.40</td></tr>
+<tr><td>A4</td><td>input</td><td>IMUX.IMUX.32</td></tr>
+<tr><td>A5</td><td>input</td><td>IMUX.IMUX.24</td></tr>
+<tr><td>A6</td><td>input</td><td>IMUX.IMUX.16</td></tr>
+<tr><td>AMUX</td><td>output</td><td>OUT.15</td></tr>
+<tr><td>AQ</td><td>output</td><td>OUT.1</td></tr>
+<tr><td>AQ2</td><td>output</td><td>OUT.12</td></tr>
+<tr><td>AX</td><td>input</td><td>IMUX.BYP.5</td></tr>
+<tr><td>A_I</td><td>input</td><td>IMUX.BYP.13</td></tr>
+<tr><td>A_O</td><td>output</td><td>OUT.2</td></tr>
+<tr><td>B1</td><td>input</td><td>IMUX.IMUX.4</td></tr>
+<tr><td>B2</td><td>input</td><td>IMUX.IMUX.0</td></tr>
+<tr><td>B3</td><td>input</td><td>IMUX.IMUX.41</td></tr>
+<tr><td>B4</td><td>input</td><td>IMUX.IMUX.33</td></tr>
+<tr><td>B5</td><td>input</td><td>IMUX.IMUX.25</td></tr>
+<tr><td>B6</td><td>input</td><td>IMUX.IMUX.17</td></tr>
+<tr><td>BMUX</td><td>output</td><td>OUT.10</td></tr>
+<tr><td>BQ</td><td>output</td><td>OUT.5</td></tr>
+<tr><td>BQ2</td><td>output</td><td>OUT.8</td></tr>
+<tr><td>BX</td><td>input</td><td>IMUX.BYP.4</td></tr>
+<tr><td>B_I</td><td>input</td><td>IMUX.BYP.12</td></tr>
+<tr><td>B_O</td><td>output</td><td>OUT.7</td></tr>
+<tr><td>C1</td><td>input</td><td>IMUX.IMUX.9</td></tr>
+<tr><td>C2</td><td>input</td><td>IMUX.IMUX.13</td></tr>
+<tr><td>C3</td><td>input</td><td>IMUX.IMUX.44</td></tr>
+<tr><td>C4</td><td>input</td><td>IMUX.IMUX.36</td></tr>
+<tr><td>C5</td><td>input</td><td>IMUX.IMUX.20</td></tr>
+<tr><td>C6</td><td>input</td><td>IMUX.IMUX.28</td></tr>
+<tr><td>CKEN_B1</td><td>input</td><td>IMUX.CTRL.0</td></tr>
+<tr><td>CKEN_B2</td><td>input</td><td>IMUX.CTRL.1</td></tr>
+<tr><td>CKEN_B3</td><td>input</td><td>IMUX.CTRL.2</td></tr>
+<tr><td>CKEN_B4</td><td>input</td><td>IMUX.CTRL.3</td></tr>
+<tr><td>CLK_B1</td><td>input</td><td>IMUX.CTRL.4</td></tr>
+<tr><td>CLK_B2</td><td>input</td><td>IMUX.CTRL.5</td></tr>
+<tr><td>CMUX</td><td>output</td><td>OUT.6</td></tr>
+<tr><td>CQ</td><td>output</td><td>OUT.9</td></tr>
+<tr><td>CQ2</td><td>output</td><td>OUT.4</td></tr>
+<tr><td>CX</td><td>input</td><td>IMUX.BYP.1</td></tr>
+<tr><td>C_I</td><td>input</td><td>IMUX.BYP.9</td></tr>
+<tr><td>C_O</td><td>output</td><td>OUT.11</td></tr>
+<tr><td>D1</td><td>input</td><td>IMUX.IMUX.8</td></tr>
+<tr><td>D2</td><td>input</td><td>IMUX.IMUX.12</td></tr>
+<tr><td>D3</td><td>input</td><td>IMUX.IMUX.45</td></tr>
+<tr><td>D4</td><td>input</td><td>IMUX.IMUX.37</td></tr>
+<tr><td>D5</td><td>input</td><td>IMUX.IMUX.21</td></tr>
+<tr><td>D6</td><td>input</td><td>IMUX.IMUX.29</td></tr>
+<tr><td>DMUX</td><td>output</td><td>OUT.3</td></tr>
+<tr><td>DQ</td><td>output</td><td>OUT.13</td></tr>
+<tr><td>DQ2</td><td>output</td><td>OUT.0</td></tr>
+<tr><td>DX</td><td>input</td><td>IMUX.BYP.0</td></tr>
+<tr><td>D_I</td><td>input</td><td>IMUX.BYP.8</td></tr>
+<tr><td>D_O</td><td>output</td><td>OUT.14</td></tr>
+<tr><td>E1</td><td>input</td><td>IMUX.IMUX.7</td></tr>
+<tr><td>E2</td><td>input</td><td>IMUX.IMUX.3</td></tr>
+<tr><td>E3</td><td>input</td><td>IMUX.IMUX.18</td></tr>
+<tr><td>E4</td><td>input</td><td>IMUX.IMUX.26</td></tr>
+<tr><td>E5</td><td>input</td><td>IMUX.IMUX.42</td></tr>
+<tr><td>E6</td><td>input</td><td>IMUX.IMUX.34</td></tr>
+<tr><td>EMUX</td><td>output</td><td>OUT.28</td></tr>
+<tr><td>EQ</td><td>output</td><td>OUT.19</td></tr>
+<tr><td>EQ2</td><td>output</td><td>OUT.30</td></tr>
+<tr><td>EX</td><td>input</td><td>IMUX.BYP.15</td></tr>
+<tr><td>E_I</td><td>input</td><td>IMUX.BYP.7</td></tr>
+<tr><td>E_O</td><td>output</td><td>OUT.17</td></tr>
+<tr><td>F1</td><td>input</td><td>IMUX.IMUX.6</td></tr>
+<tr><td>F2</td><td>input</td><td>IMUX.IMUX.2</td></tr>
+<tr><td>F3</td><td>input</td><td>IMUX.IMUX.19</td></tr>
+<tr><td>F4</td><td>input</td><td>IMUX.IMUX.27</td></tr>
+<tr><td>F5</td><td>input</td><td>IMUX.IMUX.43</td></tr>
+<tr><td>F6</td><td>input</td><td>IMUX.IMUX.35</td></tr>
+<tr><td>FMUX</td><td>output</td><td>OUT.25</td></tr>
+<tr><td>FQ</td><td>output</td><td>OUT.23</td></tr>
+<tr><td>FQ2</td><td>output</td><td>OUT.26</td></tr>
+<tr><td>FX</td><td>input</td><td>IMUX.BYP.14</td></tr>
+<tr><td>F_I</td><td>input</td><td>IMUX.BYP.6</td></tr>
+<tr><td>F_O</td><td>output</td><td>OUT.20</td></tr>
+<tr><td>G1</td><td>input</td><td>IMUX.IMUX.11</td></tr>
+<tr><td>G2</td><td>input</td><td>IMUX.IMUX.15</td></tr>
+<tr><td>G3</td><td>input</td><td>IMUX.IMUX.22</td></tr>
+<tr><td>G4</td><td>input</td><td>IMUX.IMUX.30</td></tr>
+<tr><td>G5</td><td>input</td><td>IMUX.IMUX.38</td></tr>
+<tr><td>G6</td><td>input</td><td>IMUX.IMUX.46</td></tr>
+<tr><td>GMUX</td><td>output</td><td>OUT.21</td></tr>
+<tr><td>GQ</td><td>output</td><td>OUT.27</td></tr>
+<tr><td>GQ2</td><td>output</td><td>OUT.22</td></tr>
+<tr><td>GX</td><td>input</td><td>IMUX.BYP.11</td></tr>
+<tr><td>G_I</td><td>input</td><td>IMUX.BYP.3</td></tr>
+<tr><td>G_O</td><td>output</td><td>OUT.24</td></tr>
+<tr><td>H1</td><td>input</td><td>IMUX.IMUX.10</td></tr>
+<tr><td>H2</td><td>input</td><td>IMUX.IMUX.14</td></tr>
+<tr><td>H3</td><td>input</td><td>IMUX.IMUX.23</td></tr>
+<tr><td>H4</td><td>input</td><td>IMUX.IMUX.31</td></tr>
+<tr><td>H5</td><td>input</td><td>IMUX.IMUX.39</td></tr>
+<tr><td>H6</td><td>input</td><td>IMUX.IMUX.47</td></tr>
+<tr><td>HMUX</td><td>output</td><td>OUT.16</td></tr>
+<tr><td>HQ</td><td>output</td><td>OUT.31</td></tr>
+<tr><td>HQ2</td><td>output</td><td>OUT.18</td></tr>
+<tr><td>HX</td><td>input</td><td>IMUX.BYP.10</td></tr>
+<tr><td>H_I</td><td>input</td><td>IMUX.BYP.2</td></tr>
+<tr><td>H_O</td><td>output</td><td>OUT.29</td></tr>
+<tr><td>SRST_B1</td><td>input</td><td>IMUX.CTRL.6</td></tr>
+<tr><td>SRST_B2</td><td>input</td><td>IMUX.CTRL.7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CLEL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT.0</td><td>SLICE.DQ2</td></tr>
+<tr><td>OUT.1</td><td>SLICE.AQ</td></tr>
+<tr><td>OUT.2</td><td>SLICE.A_O</td></tr>
+<tr><td>OUT.3</td><td>SLICE.DMUX</td></tr>
+<tr><td>OUT.4</td><td>SLICE.CQ2</td></tr>
+<tr><td>OUT.5</td><td>SLICE.BQ</td></tr>
+<tr><td>OUT.6</td><td>SLICE.CMUX</td></tr>
+<tr><td>OUT.7</td><td>SLICE.B_O</td></tr>
+<tr><td>OUT.8</td><td>SLICE.BQ2</td></tr>
+<tr><td>OUT.9</td><td>SLICE.CQ</td></tr>
+<tr><td>OUT.10</td><td>SLICE.BMUX</td></tr>
+<tr><td>OUT.11</td><td>SLICE.C_O</td></tr>
+<tr><td>OUT.12</td><td>SLICE.AQ2</td></tr>
+<tr><td>OUT.13</td><td>SLICE.DQ</td></tr>
+<tr><td>OUT.14</td><td>SLICE.D_O</td></tr>
+<tr><td>OUT.15</td><td>SLICE.AMUX</td></tr>
+<tr><td>OUT.16</td><td>SLICE.HMUX</td></tr>
+<tr><td>OUT.17</td><td>SLICE.E_O</td></tr>
+<tr><td>OUT.18</td><td>SLICE.HQ2</td></tr>
+<tr><td>OUT.19</td><td>SLICE.EQ</td></tr>
+<tr><td>OUT.20</td><td>SLICE.F_O</td></tr>
+<tr><td>OUT.21</td><td>SLICE.GMUX</td></tr>
+<tr><td>OUT.22</td><td>SLICE.GQ2</td></tr>
+<tr><td>OUT.23</td><td>SLICE.FQ</td></tr>
+<tr><td>OUT.24</td><td>SLICE.G_O</td></tr>
+<tr><td>OUT.25</td><td>SLICE.FMUX</td></tr>
+<tr><td>OUT.26</td><td>SLICE.FQ2</td></tr>
+<tr><td>OUT.27</td><td>SLICE.GQ</td></tr>
+<tr><td>OUT.28</td><td>SLICE.EMUX</td></tr>
+<tr><td>OUT.29</td><td>SLICE.H_O</td></tr>
+<tr><td>OUT.30</td><td>SLICE.EQ2</td></tr>
+<tr><td>OUT.31</td><td>SLICE.HQ</td></tr>
+<tr><td>IMUX.CTRL.0</td><td>SLICE.CKEN_B1</td></tr>
+<tr><td>IMUX.CTRL.1</td><td>SLICE.CKEN_B2</td></tr>
+<tr><td>IMUX.CTRL.2</td><td>SLICE.CKEN_B3</td></tr>
+<tr><td>IMUX.CTRL.3</td><td>SLICE.CKEN_B4</td></tr>
+<tr><td>IMUX.CTRL.4</td><td>SLICE.CLK_B1</td></tr>
+<tr><td>IMUX.CTRL.5</td><td>SLICE.CLK_B2</td></tr>
+<tr><td>IMUX.CTRL.6</td><td>SLICE.SRST_B1</td></tr>
+<tr><td>IMUX.CTRL.7</td><td>SLICE.SRST_B2</td></tr>
+<tr><td>IMUX.BYP.0</td><td>SLICE.DX</td></tr>
+<tr><td>IMUX.BYP.1</td><td>SLICE.CX</td></tr>
+<tr><td>IMUX.BYP.2</td><td>SLICE.H_I</td></tr>
+<tr><td>IMUX.BYP.3</td><td>SLICE.G_I</td></tr>
+<tr><td>IMUX.BYP.4</td><td>SLICE.BX</td></tr>
+<tr><td>IMUX.BYP.5</td><td>SLICE.AX</td></tr>
+<tr><td>IMUX.BYP.6</td><td>SLICE.F_I</td></tr>
+<tr><td>IMUX.BYP.7</td><td>SLICE.E_I</td></tr>
+<tr><td>IMUX.BYP.8</td><td>SLICE.D_I</td></tr>
+<tr><td>IMUX.BYP.9</td><td>SLICE.C_I</td></tr>
+<tr><td>IMUX.BYP.10</td><td>SLICE.HX</td></tr>
+<tr><td>IMUX.BYP.11</td><td>SLICE.GX</td></tr>
+<tr><td>IMUX.BYP.12</td><td>SLICE.B_I</td></tr>
+<tr><td>IMUX.BYP.13</td><td>SLICE.A_I</td></tr>
+<tr><td>IMUX.BYP.14</td><td>SLICE.FX</td></tr>
+<tr><td>IMUX.BYP.15</td><td>SLICE.EX</td></tr>
+<tr><td>IMUX.IMUX.0</td><td>SLICE.B2</td></tr>
+<tr><td>IMUX.IMUX.1</td><td>SLICE.A2</td></tr>
+<tr><td>IMUX.IMUX.2</td><td>SLICE.F2</td></tr>
+<tr><td>IMUX.IMUX.3</td><td>SLICE.E2</td></tr>
+<tr><td>IMUX.IMUX.4</td><td>SLICE.B1</td></tr>
+<tr><td>IMUX.IMUX.5</td><td>SLICE.A1</td></tr>
+<tr><td>IMUX.IMUX.6</td><td>SLICE.F1</td></tr>
+<tr><td>IMUX.IMUX.7</td><td>SLICE.E1</td></tr>
+<tr><td>IMUX.IMUX.8</td><td>SLICE.D1</td></tr>
+<tr><td>IMUX.IMUX.9</td><td>SLICE.C1</td></tr>
+<tr><td>IMUX.IMUX.10</td><td>SLICE.H1</td></tr>
+<tr><td>IMUX.IMUX.11</td><td>SLICE.G1</td></tr>
+<tr><td>IMUX.IMUX.12</td><td>SLICE.D2</td></tr>
+<tr><td>IMUX.IMUX.13</td><td>SLICE.C2</td></tr>
+<tr><td>IMUX.IMUX.14</td><td>SLICE.H2</td></tr>
+<tr><td>IMUX.IMUX.15</td><td>SLICE.G2</td></tr>
+<tr><td>IMUX.IMUX.16</td><td>SLICE.A6</td></tr>
+<tr><td>IMUX.IMUX.17</td><td>SLICE.B6</td></tr>
+<tr><td>IMUX.IMUX.18</td><td>SLICE.E3</td></tr>
+<tr><td>IMUX.IMUX.19</td><td>SLICE.F3</td></tr>
+<tr><td>IMUX.IMUX.20</td><td>SLICE.C5</td></tr>
+<tr><td>IMUX.IMUX.21</td><td>SLICE.D5</td></tr>
+<tr><td>IMUX.IMUX.22</td><td>SLICE.G3</td></tr>
+<tr><td>IMUX.IMUX.23</td><td>SLICE.H3</td></tr>
+<tr><td>IMUX.IMUX.24</td><td>SLICE.A5</td></tr>
+<tr><td>IMUX.IMUX.25</td><td>SLICE.B5</td></tr>
+<tr><td>IMUX.IMUX.26</td><td>SLICE.E4</td></tr>
+<tr><td>IMUX.IMUX.27</td><td>SLICE.F4</td></tr>
+<tr><td>IMUX.IMUX.28</td><td>SLICE.C6</td></tr>
+<tr><td>IMUX.IMUX.29</td><td>SLICE.D6</td></tr>
+<tr><td>IMUX.IMUX.30</td><td>SLICE.G4</td></tr>
+<tr><td>IMUX.IMUX.31</td><td>SLICE.H4</td></tr>
+<tr><td>IMUX.IMUX.32</td><td>SLICE.A4</td></tr>
+<tr><td>IMUX.IMUX.33</td><td>SLICE.B4</td></tr>
+<tr><td>IMUX.IMUX.34</td><td>SLICE.E6</td></tr>
+<tr><td>IMUX.IMUX.35</td><td>SLICE.F6</td></tr>
+<tr><td>IMUX.IMUX.36</td><td>SLICE.C4</td></tr>
+<tr><td>IMUX.IMUX.37</td><td>SLICE.D4</td></tr>
+<tr><td>IMUX.IMUX.38</td><td>SLICE.G5</td></tr>
+<tr><td>IMUX.IMUX.39</td><td>SLICE.H5</td></tr>
+<tr><td>IMUX.IMUX.40</td><td>SLICE.A3</td></tr>
+<tr><td>IMUX.IMUX.41</td><td>SLICE.B3</td></tr>
+<tr><td>IMUX.IMUX.42</td><td>SLICE.E5</td></tr>
+<tr><td>IMUX.IMUX.43</td><td>SLICE.F5</td></tr>
+<tr><td>IMUX.IMUX.44</td><td>SLICE.C3</td></tr>
+<tr><td>IMUX.IMUX.45</td><td>SLICE.D3</td></tr>
+<tr><td>IMUX.IMUX.46</td><td>SLICE.G6</td></tr>
+<tr><td>IMUX.IMUX.47</td><td>SLICE.H6</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clem"><a class="header" href="#tile-clem">Tile CLEM</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-slice-1"><a class="header" href="#bel-slice-1">Bel SLICE</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CLEM bel SLICE</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>A1</td><td>input</td><td>IMUX.IMUX.5</td></tr>
+<tr><td>A2</td><td>input</td><td>IMUX.IMUX.1</td></tr>
+<tr><td>A3</td><td>input</td><td>IMUX.IMUX.40</td></tr>
+<tr><td>A4</td><td>input</td><td>IMUX.IMUX.32</td></tr>
+<tr><td>A5</td><td>input</td><td>IMUX.IMUX.24</td></tr>
+<tr><td>A6</td><td>input</td><td>IMUX.IMUX.16</td></tr>
+<tr><td>AMUX</td><td>output</td><td>OUT.15</td></tr>
+<tr><td>AQ</td><td>output</td><td>OUT.1</td></tr>
+<tr><td>AQ2</td><td>output</td><td>OUT.12</td></tr>
+<tr><td>AX</td><td>input</td><td>IMUX.BYP.5</td></tr>
+<tr><td>A_I</td><td>input</td><td>IMUX.BYP.13</td></tr>
+<tr><td>A_O</td><td>output</td><td>OUT.2</td></tr>
+<tr><td>B1</td><td>input</td><td>IMUX.IMUX.4</td></tr>
+<tr><td>B2</td><td>input</td><td>IMUX.IMUX.0</td></tr>
+<tr><td>B3</td><td>input</td><td>IMUX.IMUX.41</td></tr>
+<tr><td>B4</td><td>input</td><td>IMUX.IMUX.33</td></tr>
+<tr><td>B5</td><td>input</td><td>IMUX.IMUX.25</td></tr>
+<tr><td>B6</td><td>input</td><td>IMUX.IMUX.17</td></tr>
+<tr><td>BMUX</td><td>output</td><td>OUT.10</td></tr>
+<tr><td>BQ</td><td>output</td><td>OUT.5</td></tr>
+<tr><td>BQ2</td><td>output</td><td>OUT.8</td></tr>
+<tr><td>BX</td><td>input</td><td>IMUX.BYP.4</td></tr>
+<tr><td>B_I</td><td>input</td><td>IMUX.BYP.12</td></tr>
+<tr><td>B_O</td><td>output</td><td>OUT.7</td></tr>
+<tr><td>C1</td><td>input</td><td>IMUX.IMUX.9</td></tr>
+<tr><td>C2</td><td>input</td><td>IMUX.IMUX.13</td></tr>
+<tr><td>C3</td><td>input</td><td>IMUX.IMUX.44</td></tr>
+<tr><td>C4</td><td>input</td><td>IMUX.IMUX.36</td></tr>
+<tr><td>C5</td><td>input</td><td>IMUX.IMUX.20</td></tr>
+<tr><td>C6</td><td>input</td><td>IMUX.IMUX.28</td></tr>
+<tr><td>CKEN_B1</td><td>input</td><td>IMUX.CTRL.0</td></tr>
+<tr><td>CKEN_B2</td><td>input</td><td>IMUX.CTRL.1</td></tr>
+<tr><td>CKEN_B3</td><td>input</td><td>IMUX.CTRL.2</td></tr>
+<tr><td>CKEN_B4</td><td>input</td><td>IMUX.CTRL.3</td></tr>
+<tr><td>CLK_B1</td><td>input</td><td>IMUX.CTRL.4</td></tr>
+<tr><td>CLK_B2</td><td>input</td><td>IMUX.CTRL.5</td></tr>
+<tr><td>CMUX</td><td>output</td><td>OUT.6</td></tr>
+<tr><td>CQ</td><td>output</td><td>OUT.9</td></tr>
+<tr><td>CQ2</td><td>output</td><td>OUT.4</td></tr>
+<tr><td>CX</td><td>input</td><td>IMUX.BYP.1</td></tr>
+<tr><td>C_I</td><td>input</td><td>IMUX.BYP.9</td></tr>
+<tr><td>C_O</td><td>output</td><td>OUT.11</td></tr>
+<tr><td>D1</td><td>input</td><td>IMUX.IMUX.8</td></tr>
+<tr><td>D2</td><td>input</td><td>IMUX.IMUX.12</td></tr>
+<tr><td>D3</td><td>input</td><td>IMUX.IMUX.45</td></tr>
+<tr><td>D4</td><td>input</td><td>IMUX.IMUX.37</td></tr>
+<tr><td>D5</td><td>input</td><td>IMUX.IMUX.21</td></tr>
+<tr><td>D6</td><td>input</td><td>IMUX.IMUX.29</td></tr>
+<tr><td>DMUX</td><td>output</td><td>OUT.3</td></tr>
+<tr><td>DQ</td><td>output</td><td>OUT.13</td></tr>
+<tr><td>DQ2</td><td>output</td><td>OUT.0</td></tr>
+<tr><td>DX</td><td>input</td><td>IMUX.BYP.0</td></tr>
+<tr><td>D_I</td><td>input</td><td>IMUX.BYP.8</td></tr>
+<tr><td>D_O</td><td>output</td><td>OUT.14</td></tr>
+<tr><td>E1</td><td>input</td><td>IMUX.IMUX.7</td></tr>
+<tr><td>E2</td><td>input</td><td>IMUX.IMUX.3</td></tr>
+<tr><td>E3</td><td>input</td><td>IMUX.IMUX.18</td></tr>
+<tr><td>E4</td><td>input</td><td>IMUX.IMUX.26</td></tr>
+<tr><td>E5</td><td>input</td><td>IMUX.IMUX.42</td></tr>
+<tr><td>E6</td><td>input</td><td>IMUX.IMUX.34</td></tr>
+<tr><td>EMUX</td><td>output</td><td>OUT.28</td></tr>
+<tr><td>EQ</td><td>output</td><td>OUT.19</td></tr>
+<tr><td>EQ2</td><td>output</td><td>OUT.30</td></tr>
+<tr><td>EX</td><td>input</td><td>IMUX.BYP.15</td></tr>
+<tr><td>E_I</td><td>input</td><td>IMUX.BYP.7</td></tr>
+<tr><td>E_O</td><td>output</td><td>OUT.17</td></tr>
+<tr><td>F1</td><td>input</td><td>IMUX.IMUX.6</td></tr>
+<tr><td>F2</td><td>input</td><td>IMUX.IMUX.2</td></tr>
+<tr><td>F3</td><td>input</td><td>IMUX.IMUX.19</td></tr>
+<tr><td>F4</td><td>input</td><td>IMUX.IMUX.27</td></tr>
+<tr><td>F5</td><td>input</td><td>IMUX.IMUX.43</td></tr>
+<tr><td>F6</td><td>input</td><td>IMUX.IMUX.35</td></tr>
+<tr><td>FMUX</td><td>output</td><td>OUT.25</td></tr>
+<tr><td>FQ</td><td>output</td><td>OUT.23</td></tr>
+<tr><td>FQ2</td><td>output</td><td>OUT.26</td></tr>
+<tr><td>FX</td><td>input</td><td>IMUX.BYP.14</td></tr>
+<tr><td>F_I</td><td>input</td><td>IMUX.BYP.6</td></tr>
+<tr><td>F_O</td><td>output</td><td>OUT.20</td></tr>
+<tr><td>G1</td><td>input</td><td>IMUX.IMUX.11</td></tr>
+<tr><td>G2</td><td>input</td><td>IMUX.IMUX.15</td></tr>
+<tr><td>G3</td><td>input</td><td>IMUX.IMUX.22</td></tr>
+<tr><td>G4</td><td>input</td><td>IMUX.IMUX.30</td></tr>
+<tr><td>G5</td><td>input</td><td>IMUX.IMUX.38</td></tr>
+<tr><td>G6</td><td>input</td><td>IMUX.IMUX.46</td></tr>
+<tr><td>GMUX</td><td>output</td><td>OUT.21</td></tr>
+<tr><td>GQ</td><td>output</td><td>OUT.27</td></tr>
+<tr><td>GQ2</td><td>output</td><td>OUT.22</td></tr>
+<tr><td>GX</td><td>input</td><td>IMUX.BYP.11</td></tr>
+<tr><td>G_I</td><td>input</td><td>IMUX.BYP.3</td></tr>
+<tr><td>G_O</td><td>output</td><td>OUT.24</td></tr>
+<tr><td>H1</td><td>input</td><td>IMUX.IMUX.10</td></tr>
+<tr><td>H2</td><td>input</td><td>IMUX.IMUX.14</td></tr>
+<tr><td>H3</td><td>input</td><td>IMUX.IMUX.23</td></tr>
+<tr><td>H4</td><td>input</td><td>IMUX.IMUX.31</td></tr>
+<tr><td>H5</td><td>input</td><td>IMUX.IMUX.39</td></tr>
+<tr><td>H6</td><td>input</td><td>IMUX.IMUX.47</td></tr>
+<tr><td>HMUX</td><td>output</td><td>OUT.16</td></tr>
+<tr><td>HQ</td><td>output</td><td>OUT.31</td></tr>
+<tr><td>HQ2</td><td>output</td><td>OUT.18</td></tr>
+<tr><td>HX</td><td>input</td><td>IMUX.BYP.10</td></tr>
+<tr><td>H_I</td><td>input</td><td>IMUX.BYP.2</td></tr>
+<tr><td>H_O</td><td>output</td><td>OUT.29</td></tr>
+<tr><td>LCLK_B</td><td>input</td><td>IMUX.CTRL.8</td></tr>
+<tr><td>SRST_B1</td><td>input</td><td>IMUX.CTRL.6</td></tr>
+<tr><td>SRST_B2</td><td>input</td><td>IMUX.CTRL.7</td></tr>
+<tr><td>WCKEN_B</td><td>input</td><td>IMUX.CTRL.9</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ultrascale CLEM bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT.0</td><td>SLICE.DQ2</td></tr>
+<tr><td>OUT.1</td><td>SLICE.AQ</td></tr>
+<tr><td>OUT.2</td><td>SLICE.A_O</td></tr>
+<tr><td>OUT.3</td><td>SLICE.DMUX</td></tr>
+<tr><td>OUT.4</td><td>SLICE.CQ2</td></tr>
+<tr><td>OUT.5</td><td>SLICE.BQ</td></tr>
+<tr><td>OUT.6</td><td>SLICE.CMUX</td></tr>
+<tr><td>OUT.7</td><td>SLICE.B_O</td></tr>
+<tr><td>OUT.8</td><td>SLICE.BQ2</td></tr>
+<tr><td>OUT.9</td><td>SLICE.CQ</td></tr>
+<tr><td>OUT.10</td><td>SLICE.BMUX</td></tr>
+<tr><td>OUT.11</td><td>SLICE.C_O</td></tr>
+<tr><td>OUT.12</td><td>SLICE.AQ2</td></tr>
+<tr><td>OUT.13</td><td>SLICE.DQ</td></tr>
+<tr><td>OUT.14</td><td>SLICE.D_O</td></tr>
+<tr><td>OUT.15</td><td>SLICE.AMUX</td></tr>
+<tr><td>OUT.16</td><td>SLICE.HMUX</td></tr>
+<tr><td>OUT.17</td><td>SLICE.E_O</td></tr>
+<tr><td>OUT.18</td><td>SLICE.HQ2</td></tr>
+<tr><td>OUT.19</td><td>SLICE.EQ</td></tr>
+<tr><td>OUT.20</td><td>SLICE.F_O</td></tr>
+<tr><td>OUT.21</td><td>SLICE.GMUX</td></tr>
+<tr><td>OUT.22</td><td>SLICE.GQ2</td></tr>
+<tr><td>OUT.23</td><td>SLICE.FQ</td></tr>
+<tr><td>OUT.24</td><td>SLICE.G_O</td></tr>
+<tr><td>OUT.25</td><td>SLICE.FMUX</td></tr>
+<tr><td>OUT.26</td><td>SLICE.FQ2</td></tr>
+<tr><td>OUT.27</td><td>SLICE.GQ</td></tr>
+<tr><td>OUT.28</td><td>SLICE.EMUX</td></tr>
+<tr><td>OUT.29</td><td>SLICE.H_O</td></tr>
+<tr><td>OUT.30</td><td>SLICE.EQ2</td></tr>
+<tr><td>OUT.31</td><td>SLICE.HQ</td></tr>
+<tr><td>IMUX.CTRL.0</td><td>SLICE.CKEN_B1</td></tr>
+<tr><td>IMUX.CTRL.1</td><td>SLICE.CKEN_B2</td></tr>
+<tr><td>IMUX.CTRL.2</td><td>SLICE.CKEN_B3</td></tr>
+<tr><td>IMUX.CTRL.3</td><td>SLICE.CKEN_B4</td></tr>
+<tr><td>IMUX.CTRL.4</td><td>SLICE.CLK_B1</td></tr>
+<tr><td>IMUX.CTRL.5</td><td>SLICE.CLK_B2</td></tr>
+<tr><td>IMUX.CTRL.6</td><td>SLICE.SRST_B1</td></tr>
+<tr><td>IMUX.CTRL.7</td><td>SLICE.SRST_B2</td></tr>
+<tr><td>IMUX.CTRL.8</td><td>SLICE.LCLK_B</td></tr>
+<tr><td>IMUX.CTRL.9</td><td>SLICE.WCKEN_B</td></tr>
+<tr><td>IMUX.BYP.0</td><td>SLICE.DX</td></tr>
+<tr><td>IMUX.BYP.1</td><td>SLICE.CX</td></tr>
+<tr><td>IMUX.BYP.2</td><td>SLICE.H_I</td></tr>
+<tr><td>IMUX.BYP.3</td><td>SLICE.G_I</td></tr>
+<tr><td>IMUX.BYP.4</td><td>SLICE.BX</td></tr>
+<tr><td>IMUX.BYP.5</td><td>SLICE.AX</td></tr>
+<tr><td>IMUX.BYP.6</td><td>SLICE.F_I</td></tr>
+<tr><td>IMUX.BYP.7</td><td>SLICE.E_I</td></tr>
+<tr><td>IMUX.BYP.8</td><td>SLICE.D_I</td></tr>
+<tr><td>IMUX.BYP.9</td><td>SLICE.C_I</td></tr>
+<tr><td>IMUX.BYP.10</td><td>SLICE.HX</td></tr>
+<tr><td>IMUX.BYP.11</td><td>SLICE.GX</td></tr>
+<tr><td>IMUX.BYP.12</td><td>SLICE.B_I</td></tr>
+<tr><td>IMUX.BYP.13</td><td>SLICE.A_I</td></tr>
+<tr><td>IMUX.BYP.14</td><td>SLICE.FX</td></tr>
+<tr><td>IMUX.BYP.15</td><td>SLICE.EX</td></tr>
+<tr><td>IMUX.IMUX.0</td><td>SLICE.B2</td></tr>
+<tr><td>IMUX.IMUX.1</td><td>SLICE.A2</td></tr>
+<tr><td>IMUX.IMUX.2</td><td>SLICE.F2</td></tr>
+<tr><td>IMUX.IMUX.3</td><td>SLICE.E2</td></tr>
+<tr><td>IMUX.IMUX.4</td><td>SLICE.B1</td></tr>
+<tr><td>IMUX.IMUX.5</td><td>SLICE.A1</td></tr>
+<tr><td>IMUX.IMUX.6</td><td>SLICE.F1</td></tr>
+<tr><td>IMUX.IMUX.7</td><td>SLICE.E1</td></tr>
+<tr><td>IMUX.IMUX.8</td><td>SLICE.D1</td></tr>
+<tr><td>IMUX.IMUX.9</td><td>SLICE.C1</td></tr>
+<tr><td>IMUX.IMUX.10</td><td>SLICE.H1</td></tr>
+<tr><td>IMUX.IMUX.11</td><td>SLICE.G1</td></tr>
+<tr><td>IMUX.IMUX.12</td><td>SLICE.D2</td></tr>
+<tr><td>IMUX.IMUX.13</td><td>SLICE.C2</td></tr>
+<tr><td>IMUX.IMUX.14</td><td>SLICE.H2</td></tr>
+<tr><td>IMUX.IMUX.15</td><td>SLICE.G2</td></tr>
+<tr><td>IMUX.IMUX.16</td><td>SLICE.A6</td></tr>
+<tr><td>IMUX.IMUX.17</td><td>SLICE.B6</td></tr>
+<tr><td>IMUX.IMUX.18</td><td>SLICE.E3</td></tr>
+<tr><td>IMUX.IMUX.19</td><td>SLICE.F3</td></tr>
+<tr><td>IMUX.IMUX.20</td><td>SLICE.C5</td></tr>
+<tr><td>IMUX.IMUX.21</td><td>SLICE.D5</td></tr>
+<tr><td>IMUX.IMUX.22</td><td>SLICE.G3</td></tr>
+<tr><td>IMUX.IMUX.23</td><td>SLICE.H3</td></tr>
+<tr><td>IMUX.IMUX.24</td><td>SLICE.A5</td></tr>
+<tr><td>IMUX.IMUX.25</td><td>SLICE.B5</td></tr>
+<tr><td>IMUX.IMUX.26</td><td>SLICE.E4</td></tr>
+<tr><td>IMUX.IMUX.27</td><td>SLICE.F4</td></tr>
+<tr><td>IMUX.IMUX.28</td><td>SLICE.C6</td></tr>
+<tr><td>IMUX.IMUX.29</td><td>SLICE.D6</td></tr>
+<tr><td>IMUX.IMUX.30</td><td>SLICE.G4</td></tr>
+<tr><td>IMUX.IMUX.31</td><td>SLICE.H4</td></tr>
+<tr><td>IMUX.IMUX.32</td><td>SLICE.A4</td></tr>
+<tr><td>IMUX.IMUX.33</td><td>SLICE.B4</td></tr>
+<tr><td>IMUX.IMUX.34</td><td>SLICE.E6</td></tr>
+<tr><td>IMUX.IMUX.35</td><td>SLICE.F6</td></tr>
+<tr><td>IMUX.IMUX.36</td><td>SLICE.C4</td></tr>
+<tr><td>IMUX.IMUX.37</td><td>SLICE.D4</td></tr>
+<tr><td>IMUX.IMUX.38</td><td>SLICE.G5</td></tr>
+<tr><td>IMUX.IMUX.39</td><td>SLICE.H5</td></tr>
+<tr><td>IMUX.IMUX.40</td><td>SLICE.A3</td></tr>
+<tr><td>IMUX.IMUX.41</td><td>SLICE.B3</td></tr>
+<tr><td>IMUX.IMUX.42</td><td>SLICE.E5</td></tr>
+<tr><td>IMUX.IMUX.43</td><td>SLICE.F5</td></tr>
+<tr><td>IMUX.IMUX.44</td><td>SLICE.C3</td></tr>
+<tr><td>IMUX.IMUX.45</td><td>SLICE.D3</td></tr>
+<tr><td>IMUX.IMUX.46</td><td>SLICE.G6</td></tr>
+<tr><td>IMUX.IMUX.47</td><td>SLICE.H6</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ultrascale/interconnect.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ultrascale/laguna.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ultrascale/interconnect.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ultrascale/laguna.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

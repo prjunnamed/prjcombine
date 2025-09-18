@@ -1,0 +1,1644 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>General interconnect - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="general-interconnect"><a class="header" href="#general-interconnect">General interconnect</a></h1>
+<p>The SiliconBlue general interconnect structure involves the following tile types:</p>
+<ul>
+<li><code>PLB</code> and <code>INT_BRAM</code>: the "center" tiles of the interconnect, connecting to four neighbouring tiles</li>
+<li><code>IOI_W</code>, <code>IOI_E</code>, <code>IOI_S</code>, <code>IOI_N</code>: the "edge" tiles of the interconnect, connecting to three neighbouring tiles</li>
+</ul>
+<h2 id="global-wires"><a class="header" href="#global-wires"><code>GLOBAL</code> wires</a></h2>
+<p>There are 8 global wires:</p>
+<ul>
+<li><code>GLOBAL.[0-7]</code>: global wires</li>
+</ul>
+<p>They are driven by the <a href="global.html">global interconnect</a>.  They can directly drive <code>IMUX.CLK</code>, <code>IMUX.IO.ICLK</code>, <code>IMUX.IO.OCLK</code>, <code>IMUX.CE</code>, <code>IMUX.RST</code> multiplexers.  In addition to that, every non-<code>IO</code> tile has 4 special intermediate wires that can be driven by the <code>GLOBAL.*</code> wires and can be used to route them further to the <code>LOCAL.*</code> lines:</p>
+<ul>
+<li><code>GOUT.[0-3]</code>: intermediate wires for routing <code>GLOBAL.*</code> to <code>LOCAL.*</code>; can only be driven by <code>GLOBAL.*</code></li>
+</ul>
+<h2 id="out-wires"><a class="header" href="#out-wires"><code>OUT</code> wires</a></h2>
+<p>Every tile (including the corner tiles, otherwise devoid of interconnect) has 8 output wires, which
+are driven by the various bels within the FPGA:</p>
+<ul>
+<li>
+<p><code>OUT.LC[0-7]</code>: bel output wires; note that, depending on tile type, some of them may actually alias other <code>OUT</code> wires, effectively making for fewer than 8 distinct outputs per tile:</p>
+<ul>
+<li><code>PLB</code>: all 8 wires are distinct; <code>OUT.LC{i}</code> corresponds directly to the output of LC <code>i</code></li>
+<li><code>INT_BRAM</code>: all 8 wires are distinct</li>
+<li><code>IOI_*</code>: there are 4 distinct wires; <code>OUT.LC[4-7]</code> are aliased to <code>OUT.LC[0-3]</code>:
+<ul>
+<li><code>OUT.LC[04]</code> is <code>IO0.DIN0</code></li>
+<li><code>OUT.LC[15]</code> is <code>IO0.DIN1</code></li>
+<li><code>OUT.LC[26]</code> is <code>IO1.DIN0</code></li>
+<li><code>OUT.LC[37]</code> is <code>IO1.DIN1</code></li>
+</ul>
+</li>
+<li>corner tiles: there's only one distinct wire (all 8 wires are aliased to each other)</li>
+</ul>
+</li>
+</ul>
+<p>The <code>OUT</code> wires are also visible in the 8 directly neighbouring tiles:</p>
+<ul>
+<li><code>OUT.LC[0-7].W</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x + 1, y)</code></li>
+<li><code>OUT.LC[0-7].E</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x - 1, y)</code></li>
+<li><code>OUT.LC[0-7].S</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x, y + 1)</code></li>
+<li><code>OUT.LC[0-7].N</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x, y - 1)</code></li>
+<li><code>OUT.LC[0-7].WS</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x + 1, y + 1)</code></li>
+<li><code>OUT.LC[0-7].WN</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x + 1, y - 1)</code></li>
+<li><code>OUT.LC[0-7].ES</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x - 1, y + 1)</code></li>
+<li><code>OUT.LC[0-7].EN</code>: the same as <code>OUT.LC[0-7]</code> of tile <code>(x - 1, y - 1)</code></li>
+</ul>
+<h2 id="quad-and-long-wires"><a class="header" href="#quad-and-long-wires"><code>QUAD</code> and <code>LONG</code> wires</a></h2>
+<p>The long-distance backbone of the interconnect consists of the <code>QUAD</code> (span-4) and <code>LONG</code> (span-12) wires:</p>
+<ul>
+<li>
+<p><code>QUAD.H[0-11].[0-4]</code>: horizontal length-4 wires</p>
+<ul>
+<li><code>QUAD.Ha.b</code> in tile <code>(x, y)</code> is the same as <code>QUAD.Ha.(b+1)</code> in tile <code>(x + 1, y)</code></li>
+</ul>
+</li>
+<li>
+<p><code>QUAD.V[0-11].[0-4]</code>, <code>QUAD.V[0-11].[1-4].W</code>: vertical length-4 wires</p>
+<ul>
+<li><code>QUAD.Va.b</code> in tile <code>(x, y)</code> is the same as <code>QUAD.Va.(b+1)</code> in tile <code>(x, y + 1)</code></li>
+<li><code>QUAD.Va.b.W</code> in tile <code>(x, y)</code> is the same as <code>QUAD.Va.b</code> in tile <code>(x + 1, y)</code></li>
+</ul>
+</li>
+<li>
+<p><code>LONG.H[01].[0-12]</code>: horizontal length-12 wires</p>
+<ul>
+<li><code>LONG.Ha.b</code> in tile <code>(x, y)</code> is the same as <code>LONG.Ha.(b+1)</code> in tile <code>(x + 1, y)</code></li>
+</ul>
+</li>
+<li>
+<p><code>LONG.V[01].[0-12]</code>: vertical length-12 wires</p>
+<ul>
+<li><code>LONG.Va.b</code> in tile <code>(x, y)</code> is the same as <code>LONG.Va.(b+1)</code> in tile <code>(x, y + 1)</code></li>
+</ul>
+</li>
+</ul>
+<p>The interconnect in <code>IO</code> tiles is special:</p>
+<ul>
+<li>in the <code>IOI_W</code> and <code>IOI_E</code> tiles:
+<ul>
+<li>there are no vertical <code>LONG</code> wires</li>
+<li>there are only 4 sets of vertical <code>QUAD</code> wires (<code>QUAD.V[0-3].*</code>)</li>
+</ul>
+</li>
+<li>in the <code>IOI_S</code> and <code>IOI_N</code> tiles:
+<ul>
+<li>there are no horizontal <code>LONG</code> wires</li>
+<li>there are only 4 sets of horizontal <code>QUAD</code> wires (<code>QUAD.H[0-3].*</code>)</li>
+</ul>
+</li>
+</ul>
+<p>Further, the corner tiles are special: the <code>QUAD.H*.*</code> wires of the horizontally adjacent <code>IOI_[WE]</code> tile are connected directly to the <code>QUAD.V*.*</code> wires of the vertically adjacent <code>IOI_[SN]</code> or <code>PLB</code> tile.</p>
+<p>The <code>LONG</code> wires can be driven:</p>
+<ul>
+<li>at many points along the wire: from <code>OUT</code> wires</li>
+<li>at endpoints within "center" tiles: from endpoints of other <code>LONG</code> wires</li>
+</ul>
+<p>The <code>QUAD</code> wires can be driven:</p>
+<ul>
+<li>at many points along the wire: from <code>OUT</code> wires</li>
+<li>at endpoints within "center" tiles: from endpoints of other <code>QUAD</code> wires</li>
+<li>at <code>.1</code> (for horizontal wires) or <code>.3</code> (for vertical wires): from various segments of <code>LONG</code> wires of the same direction</li>
+<li>at <code>IO</code> tiles: from other <code>QUAD</code> wires</li>
+</ul>
+<h2 id="local-wires"><a class="header" href="#local-wires"><code>LOCAL</code> wires</a></h2>
+<p>Every tile has 32 (<code>PLB</code>, <code>INT_BRAM</code>) or 16 (<code>IOI_*</code>) local wires:</p>
+<ul>
+<li>
+<p><code>LOCAL.[0-3].[0-7]</code>: local wires</p>
+<ul>
+<li><code>IOI_*</code> tiles only have <code>LOCAL.[0-1].[0-7]</code></li>
+</ul>
+</li>
+</ul>
+<p>The <code>LOCAL</code> wires are an intermediate step between <code>IMUX.*</code> wires and other interconnect — every signal routed to <code>IMUX.*</code> must first pass through a <code>LOCAL</code> wire, except for some multiplexers that can also be directly driven by <code>GLOBAL</code> wires.  They can be driven by:</p>
+<ul>
+<li><code>QUAD</code> wires</li>
+<li><code>LONG</code> wires</li>
+<li><code>OUT</code> wires (including ones of the 8 immediately neighbouring tiles)</li>
+<li><code>GOUT</code> wires (not in <code>IO</code> tiles)</li>
+</ul>
+<h2 id="imux-wires"><a class="header" href="#imux-wires"><code>IMUX</code> wires</a></h2>
+<p><code>IMUX</code> wires directly drive bel inputs.  <code>PLB</code> and <code>INT_BRAM</code> tiles contain the following wires:</p>
+<ul>
+<li><code>IMUX.LC[0-7].I[0-3]</code>: "normal" inputs; in <code>PLB</code> tiles, they correspond to LCs in the obvious way</li>
+<li><code>IMUX.CLK</code>: a clock input; freely invertible, can be driven directly by all <code>GLOBAL</code> wires</li>
+<li><code>IMUX.CE</code>: a clock enable input; gates the <code>IMUX.CLK</code> input, can be driven directly by some <code>GLOBAL</code> wires</li>
+<li><code>IMUX.RST</code>: a reset input; can be driven directly by some <code>GLOBAL</code> wires</li>
+</ul>
+<p><code>IOI_*</code> tiles contain the following wires:</p>
+<ul>
+<li><code>IMUX.IO[0-1].DOUT[0-1]</code>: "normal" inputs, I/O data</li>
+<li><code>IMUX.IO[0-1].OE</code>: "normal" inputs, I/O output enable</li>
+<li><code>IMUX.IO.EXTRA</code>: "normal" input, used for various irregularly placed bels (such as PLLs)</li>
+<li><code>IMUX.IO.ICLK</code> and <code>IMUX.IO.OCLK</code>: clock inputs; freely invertible, can be driven directly by all <code>GLOBAL</code> wires</li>
+<li><code>IMUX.CE</code>: a clock enable input; gates the <code>IMUX.IO.ICLK</code> and <code>IMUX.IO.OCLK</code> inputs, can be driven directly by some <code>GLOBAL</code> wires</li>
+</ul>
+<p>The <code>IMUX</code> wires can be driven by <code>LOCAL</code> wires.  Some of them can also be driven by <code>GLOBAL</code> wires.</p>
+<p>If an <code>IMUX</code> wire is not driven at all (the <code>MUX</code> field in the bitstream is set to <code>NONE</code>), it takes on a default value.  The default value is <code>1</code> for <code>IMUX.CE</code>, <code>0</code> for all other <code>IMUX</code> wires.</p>
+<h2 id="tile-slots"><a class="header" href="#tile-slots">Tile slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue tile slots</caption>
+<thead>
+<tr><th>Slot</th><th>Tiles</th><th>Bel slots</th></tr>
+</thead>
+<tbody>
+<tr><td>MAIN</td><td>PLB_L04, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, PLB_L08, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, PLB_P01, IOI_S_T04, IOI_N_T04</td><td>INT, LC0, LC1, LC2, LC3, LC4, LC5, LC6, LC7, IO0, IO1</td></tr>
+<tr><td>COLBUF</td><td>COLBUF_L01, COLBUF_IO_W, COLBUF_IO_E, COLBUF_P08</td><td></td></tr>
+<tr><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08</td><td>GB_ROOT</td></tr>
+<tr><td>BEL</td><td>BRAM_L04, IO_LATCH, GB_FABRIC, PLL_S_P04, BRAM_P01, PLL_S_P01, BRAM_P08, PLL_S_P08, PLL_N_P08, SPI_R04, I2C_R04, PLL_S_R04, PLL_N_R04, MAC16, SPI_T04, I2C_T04, MAC16_TRIM, SPI_T05, I3C, SPRAM, I2C_FIFO, PLL_S_T01</td><td>BRAM, IO_LATCH, GB_FABRIC, PLL, MAC16, SPI, I2C, I2C_FIFO, IO0_I3C, IO1_I3C, SPRAM0, SPRAM1, FILTER0, FILTER1</td></tr>
+<tr><td>IOB</td><td>IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04, IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04, IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08, IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01, IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01, IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08, IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03, IOB_S_R04, IOB_N_R04, IOB_S_T04, IOB_N_T04, IOB_S_T05, IOB_N_T05, IOB_S_T01, IOB_N_T01</td><td></td></tr>
+<tr><td>OSC</td><td>HSOSC, LSOSC, HFOSC_T04, LFOSC_T04, HFOSC_T01, LFOSC_T01</td><td>HSOSC, LSOSC, HFOSC, LFOSC</td></tr>
+<tr><td>TRIM</td><td>TRIM_T04, TRIM_T01</td><td></td></tr>
+<tr><td>LED_DRV</td><td>RGB_DRV, IR_DRV, RGBA_DRV_T05, RGBA_DRV_T01, IR500_DRV</td><td>RGB_DRV, IR_DRV, RGBA_DRV, IR400_DRV, BARCODE_DRV</td></tr>
+<tr><td>LED_IP</td><td>LEDD_IP, LEDDA_IP_T05, LEDDA_IP_T01, IR_IP</td><td>LEDD_IP, LEDDA_IP, IR_IP</td></tr>
+<tr><td>LED_DRV_CUR</td><td>LED_DRV_CUR_T04, LED_DRV_CUR_T05, LED_DRV_CUR_T01</td><td>LED_DRV_CUR</td></tr>
+<tr><td>PLL_STUB</td><td>PLL_STUB_S</td><td></td></tr>
+<tr><td>SMCCLK</td><td>SMCCLK_T04, SMCCLK_T05, SMCCLK_T01</td><td>SMCCLK</td></tr>
+<tr><td>WARMBOOT</td><td>WARMBOOT, WARMBOOT_T01</td><td>WARMBOOT</td></tr>
+</tbody>
+</table></div>
+<h2 id="bel-slots"><a class="header" href="#bel-slots">Bel slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue bel slots</caption>
+<thead>
+<tr><th>Slot</th><th>Tile slot</th><th>Tiles</th></tr>
+</thead>
+<tbody>
+<tr><td>INT</td><td>MAIN</td><td>PLB_L04, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, PLB_L08, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, PLB_P01, IOI_S_T04, IOI_N_T04</td></tr>
+<tr><td>LC0</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC1</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC2</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC3</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC4</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC5</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC6</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC7</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>IO0</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
+<tr><td>IO1</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
+<tr><td>BRAM</td><td>BEL</td><td>BRAM_L04, BRAM_P01, BRAM_P08</td></tr>
+<tr><td>IO_LATCH</td><td>BEL</td><td>IO_LATCH</td></tr>
+<tr><td>GB_FABRIC</td><td>BEL</td><td>GB_FABRIC</td></tr>
+<tr><td>GB_ROOT</td><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08</td></tr>
+<tr><td>WARMBOOT</td><td>WARMBOOT</td><td>WARMBOOT, WARMBOOT_T01</td></tr>
+<tr><td>PLL</td><td>BEL</td><td>PLL_S_P04, PLL_S_P01, PLL_S_P08, PLL_N_P08, PLL_S_R04, PLL_N_R04, PLL_S_T01</td></tr>
+<tr><td>MAC16</td><td>BEL</td><td>MAC16, MAC16_TRIM</td></tr>
+<tr><td>SPI</td><td>BEL</td><td>SPI_R04, SPI_T04, SPI_T05</td></tr>
+<tr><td>I2C</td><td>BEL</td><td>I2C_R04, I2C_T04</td></tr>
+<tr><td>I2C_FIFO</td><td>BEL</td><td>I2C_FIFO</td></tr>
+<tr><td>HSOSC</td><td>OSC</td><td>HSOSC</td></tr>
+<tr><td>LSOSC</td><td>OSC</td><td>LSOSC</td></tr>
+<tr><td>HFOSC</td><td>OSC</td><td>HFOSC_T04, HFOSC_T01</td></tr>
+<tr><td>LFOSC</td><td>OSC</td><td>LFOSC_T04, LFOSC_T01</td></tr>
+<tr><td>LEDD_IP</td><td>LED_IP</td><td>LEDD_IP</td></tr>
+<tr><td>LEDDA_IP</td><td>LED_IP</td><td>LEDDA_IP_T05, LEDDA_IP_T01</td></tr>
+<tr><td>IR_IP</td><td>LED_IP</td><td>IR_IP</td></tr>
+<tr><td>IO0_I3C</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>IO1_I3C</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>RGB_DRV</td><td>LED_DRV</td><td>RGB_DRV</td></tr>
+<tr><td>IR_DRV</td><td>LED_DRV</td><td>IR_DRV</td></tr>
+<tr><td>RGBA_DRV</td><td>LED_DRV</td><td>RGBA_DRV_T05, RGBA_DRV_T01</td></tr>
+<tr><td>IR400_DRV</td><td>LED_DRV</td><td>IR500_DRV</td></tr>
+<tr><td>BARCODE_DRV</td><td>LED_DRV</td><td>IR500_DRV</td></tr>
+<tr><td>LED_DRV_CUR</td><td>LED_DRV_CUR</td><td>LED_DRV_CUR_T04, LED_DRV_CUR_T05, LED_DRV_CUR_T01</td></tr>
+<tr><td>SPRAM0</td><td>BEL</td><td>SPRAM</td></tr>
+<tr><td>SPRAM1</td><td>BEL</td><td>SPRAM</td></tr>
+<tr><td>FILTER0</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>FILTER1</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>SMCCLK</td><td>SMCCLK</td><td>SMCCLK_T04, SMCCLK_T05, SMCCLK_T01</td></tr>
+</tbody>
+</table></div>
+<h2 id="connector-slots"><a class="header" href="#connector-slots">Connector slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue connector slots</caption>
+<thead>
+<tr><th>Slot</th><th>Opposite</th><th>Connectors</th></tr>
+</thead>
+<tbody>
+<tr><td>W</td><td>E</td><td>PASS_W</td></tr>
+<tr><td>E</td><td>W</td><td>PASS_E</td></tr>
+<tr><td>S</td><td>N</td><td>PASS_S</td></tr>
+<tr><td>N</td><td>S</td><td>PASS_N</td></tr>
+</tbody>
+</table></div>
+<h2 id="region-slots"><a class="header" href="#region-slots">Region slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue region slots</caption>
+<thead>
+<tr><th>Slot</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>GLOBAL</td><td>GLOBAL.0, GLOBAL.1, GLOBAL.2, GLOBAL.3, GLOBAL.4, GLOBAL.5, GLOBAL.6, GLOBAL.7</td></tr>
+<tr><td>COLBUF</td><td></td></tr>
+</tbody>
+</table></div>
+<h2 id="wires"><a class="header" href="#wires">Wires</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue wires</caption>
+<thead>
+<tr><th>Wire</th><th>Kind</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>GLOBAL.0</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL.1</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL.2</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL.3</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL.4</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL.5</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL.6</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL.7</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GOUT.0</td><td>MUX_OUT</td></tr>
+<tr><td>GOUT.1</td><td>MUX_OUT</td></tr>
+<tr><td>GOUT.2</td><td>MUX_OUT</td></tr>
+<tr><td>GOUT.3</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.H0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H0.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H0.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H0.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H0.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H1.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H1.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H1.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H1.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H2.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H2.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H2.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H2.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H2.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H3.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H3.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H3.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H3.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H3.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H4.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H4.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H4.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H4.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H4.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H5.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H5.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H5.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H5.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H5.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H6.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H6.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H6.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H6.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H6.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H7.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H7.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H7.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H7.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H7.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H8.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H8.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H8.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H8.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H8.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H9.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H9.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H9.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H9.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H9.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H10.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H10.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H10.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H10.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H10.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H11.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.H11.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H11.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H11.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.H11.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD.V0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V0.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V0.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V0.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V0.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V0.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V0.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V0.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V0.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V1.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V1.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V1.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V1.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V1.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V1.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V1.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V1.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V2.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V2.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V2.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V2.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V2.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V2.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V2.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V2.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V2.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V3.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V3.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V3.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V3.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V3.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V3.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V3.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V3.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V3.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V4.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V4.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V4.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V4.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V4.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V4.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V4.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V4.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V4.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V5.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V5.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V5.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V5.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V5.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V5.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V5.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V5.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V5.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V6.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V6.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V6.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V6.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V6.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V6.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V6.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V6.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V6.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V7.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V7.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V7.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V7.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V7.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V7.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V7.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V7.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V7.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V8.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V8.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V8.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V8.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V8.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V8.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V8.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V8.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V8.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V9.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V9.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V9.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V9.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V9.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V9.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V9.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V9.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V9.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V10.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V10.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V10.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V10.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V10.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V10.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V10.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V10.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V10.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V11.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD.V11.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V11.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V11.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V11.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V11.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V11.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD.V11.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD.V11.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>LONG.H0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>LONG.H0.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.5</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.6</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.7</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.8</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.9</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.10</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.11</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H0.12</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>LONG.H1.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.5</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.6</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.7</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.8</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.9</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.10</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.11</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.H1.12</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG.V0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>LONG.V0.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.5</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.6</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.7</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.8</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.9</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.10</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.11</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V0.12</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>LONG.V1.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.5</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.6</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.7</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.8</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.9</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.10</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.11</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG.V1.12</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LOCAL.0.0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.0.1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.0.2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.0.3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.0.4</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.0.5</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.0.6</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.0.7</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.4</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.5</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.6</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.1.7</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.4</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.5</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.6</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.2.7</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.4</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.5</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.6</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL.3.7</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC0.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC0.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC0.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC0.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC1.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC1.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC1.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC1.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC2.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC2.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC2.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC2.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC3.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC3.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC3.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC3.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC4.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC4.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC4.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC4.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC5.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC5.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC5.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC5.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC6.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC6.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC6.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC6.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC7.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC7.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC7.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LC7.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK.OPTINV</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.RST</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO0.DOUT0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO0.DOUT1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO0.OE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO1.DOUT0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO1.DOUT1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO1.OE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO.ICLK</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO.ICLK.OPTINV</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO.OCLK</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO.OCLK.OPTINV</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IO.EXTRA</td><td>MUX_OUT</td></tr>
+<tr><td>OUT.LC0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC0.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC0.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC0.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC0.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC0.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC0.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC0.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC0.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC1.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC1.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC1.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC1.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC1.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC1.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC1.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC1.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC2</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC2.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC2.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC2.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC2.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC2.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC2.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC2.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC2.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC3</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC3.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC3.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC3.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC3.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC3.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC3.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC3.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC3.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC4</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC4.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC4.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC4.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC4.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC4.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC4.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC4.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC4.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC5</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC5.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC5.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC5.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC5.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC5.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC5.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC5.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC5.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC6</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC6.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC6.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC6.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC6.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC6.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC6.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC6.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC6.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC7</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT.LC7.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC7.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC7.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT.LC7.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC7.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT.LC7.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT.LC7.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT.LC7.WS</td><td>BRANCH:N</td></tr>
+</tbody>
+</table></div>
+<h2 id="connectors--w"><a class="header" href="#connectors--w">Connectors — W</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>PASS_W</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>QUAD.H0.1</td>
+<td>→ QUAD.H0.0</td>
+</tr>
+<tr><td>QUAD.H0.2</td>
+<td>→ QUAD.H0.1</td>
+</tr>
+<tr><td>QUAD.H0.3</td>
+<td>→ QUAD.H0.2</td>
+</tr>
+<tr><td>QUAD.H0.4</td>
+<td>→ QUAD.H0.3</td>
+</tr>
+<tr><td>QUAD.H1.1</td>
+<td>→ QUAD.H1.0</td>
+</tr>
+<tr><td>QUAD.H1.2</td>
+<td>→ QUAD.H1.1</td>
+</tr>
+<tr><td>QUAD.H1.3</td>
+<td>→ QUAD.H1.2</td>
+</tr>
+<tr><td>QUAD.H1.4</td>
+<td>→ QUAD.H1.3</td>
+</tr>
+<tr><td>QUAD.H2.1</td>
+<td>→ QUAD.H2.0</td>
+</tr>
+<tr><td>QUAD.H2.2</td>
+<td>→ QUAD.H2.1</td>
+</tr>
+<tr><td>QUAD.H2.3</td>
+<td>→ QUAD.H2.2</td>
+</tr>
+<tr><td>QUAD.H2.4</td>
+<td>→ QUAD.H2.3</td>
+</tr>
+<tr><td>QUAD.H3.1</td>
+<td>→ QUAD.H3.0</td>
+</tr>
+<tr><td>QUAD.H3.2</td>
+<td>→ QUAD.H3.1</td>
+</tr>
+<tr><td>QUAD.H3.3</td>
+<td>→ QUAD.H3.2</td>
+</tr>
+<tr><td>QUAD.H3.4</td>
+<td>→ QUAD.H3.3</td>
+</tr>
+<tr><td>QUAD.H4.1</td>
+<td>→ QUAD.H4.0</td>
+</tr>
+<tr><td>QUAD.H4.2</td>
+<td>→ QUAD.H4.1</td>
+</tr>
+<tr><td>QUAD.H4.3</td>
+<td>→ QUAD.H4.2</td>
+</tr>
+<tr><td>QUAD.H4.4</td>
+<td>→ QUAD.H4.3</td>
+</tr>
+<tr><td>QUAD.H5.1</td>
+<td>→ QUAD.H5.0</td>
+</tr>
+<tr><td>QUAD.H5.2</td>
+<td>→ QUAD.H5.1</td>
+</tr>
+<tr><td>QUAD.H5.3</td>
+<td>→ QUAD.H5.2</td>
+</tr>
+<tr><td>QUAD.H5.4</td>
+<td>→ QUAD.H5.3</td>
+</tr>
+<tr><td>QUAD.H6.1</td>
+<td>→ QUAD.H6.0</td>
+</tr>
+<tr><td>QUAD.H6.2</td>
+<td>→ QUAD.H6.1</td>
+</tr>
+<tr><td>QUAD.H6.3</td>
+<td>→ QUAD.H6.2</td>
+</tr>
+<tr><td>QUAD.H6.4</td>
+<td>→ QUAD.H6.3</td>
+</tr>
+<tr><td>QUAD.H7.1</td>
+<td>→ QUAD.H7.0</td>
+</tr>
+<tr><td>QUAD.H7.2</td>
+<td>→ QUAD.H7.1</td>
+</tr>
+<tr><td>QUAD.H7.3</td>
+<td>→ QUAD.H7.2</td>
+</tr>
+<tr><td>QUAD.H7.4</td>
+<td>→ QUAD.H7.3</td>
+</tr>
+<tr><td>QUAD.H8.1</td>
+<td>→ QUAD.H8.0</td>
+</tr>
+<tr><td>QUAD.H8.2</td>
+<td>→ QUAD.H8.1</td>
+</tr>
+<tr><td>QUAD.H8.3</td>
+<td>→ QUAD.H8.2</td>
+</tr>
+<tr><td>QUAD.H8.4</td>
+<td>→ QUAD.H8.3</td>
+</tr>
+<tr><td>QUAD.H9.1</td>
+<td>→ QUAD.H9.0</td>
+</tr>
+<tr><td>QUAD.H9.2</td>
+<td>→ QUAD.H9.1</td>
+</tr>
+<tr><td>QUAD.H9.3</td>
+<td>→ QUAD.H9.2</td>
+</tr>
+<tr><td>QUAD.H9.4</td>
+<td>→ QUAD.H9.3</td>
+</tr>
+<tr><td>QUAD.H10.1</td>
+<td>→ QUAD.H10.0</td>
+</tr>
+<tr><td>QUAD.H10.2</td>
+<td>→ QUAD.H10.1</td>
+</tr>
+<tr><td>QUAD.H10.3</td>
+<td>→ QUAD.H10.2</td>
+</tr>
+<tr><td>QUAD.H10.4</td>
+<td>→ QUAD.H10.3</td>
+</tr>
+<tr><td>QUAD.H11.1</td>
+<td>→ QUAD.H11.0</td>
+</tr>
+<tr><td>QUAD.H11.2</td>
+<td>→ QUAD.H11.1</td>
+</tr>
+<tr><td>QUAD.H11.3</td>
+<td>→ QUAD.H11.2</td>
+</tr>
+<tr><td>QUAD.H11.4</td>
+<td>→ QUAD.H11.3</td>
+</tr>
+<tr><td>LONG.H0.1</td>
+<td>→ LONG.H0.0</td>
+</tr>
+<tr><td>LONG.H0.2</td>
+<td>→ LONG.H0.1</td>
+</tr>
+<tr><td>LONG.H0.3</td>
+<td>→ LONG.H0.2</td>
+</tr>
+<tr><td>LONG.H0.4</td>
+<td>→ LONG.H0.3</td>
+</tr>
+<tr><td>LONG.H0.5</td>
+<td>→ LONG.H0.4</td>
+</tr>
+<tr><td>LONG.H0.6</td>
+<td>→ LONG.H0.5</td>
+</tr>
+<tr><td>LONG.H0.7</td>
+<td>→ LONG.H0.6</td>
+</tr>
+<tr><td>LONG.H0.8</td>
+<td>→ LONG.H0.7</td>
+</tr>
+<tr><td>LONG.H0.9</td>
+<td>→ LONG.H0.8</td>
+</tr>
+<tr><td>LONG.H0.10</td>
+<td>→ LONG.H0.9</td>
+</tr>
+<tr><td>LONG.H0.11</td>
+<td>→ LONG.H0.10</td>
+</tr>
+<tr><td>LONG.H0.12</td>
+<td>→ LONG.H0.11</td>
+</tr>
+<tr><td>LONG.H1.1</td>
+<td>→ LONG.H1.0</td>
+</tr>
+<tr><td>LONG.H1.2</td>
+<td>→ LONG.H1.1</td>
+</tr>
+<tr><td>LONG.H1.3</td>
+<td>→ LONG.H1.2</td>
+</tr>
+<tr><td>LONG.H1.4</td>
+<td>→ LONG.H1.3</td>
+</tr>
+<tr><td>LONG.H1.5</td>
+<td>→ LONG.H1.4</td>
+</tr>
+<tr><td>LONG.H1.6</td>
+<td>→ LONG.H1.5</td>
+</tr>
+<tr><td>LONG.H1.7</td>
+<td>→ LONG.H1.6</td>
+</tr>
+<tr><td>LONG.H1.8</td>
+<td>→ LONG.H1.7</td>
+</tr>
+<tr><td>LONG.H1.9</td>
+<td>→ LONG.H1.8</td>
+</tr>
+<tr><td>LONG.H1.10</td>
+<td>→ LONG.H1.9</td>
+</tr>
+<tr><td>LONG.H1.11</td>
+<td>→ LONG.H1.10</td>
+</tr>
+<tr><td>LONG.H1.12</td>
+<td>→ LONG.H1.11</td>
+</tr>
+<tr><td>OUT.LC0.E</td>
+<td>→ OUT.LC0</td>
+</tr>
+<tr><td>OUT.LC1.E</td>
+<td>→ OUT.LC1</td>
+</tr>
+<tr><td>OUT.LC2.E</td>
+<td>→ OUT.LC2</td>
+</tr>
+<tr><td>OUT.LC3.E</td>
+<td>→ OUT.LC3</td>
+</tr>
+<tr><td>OUT.LC4.E</td>
+<td>→ OUT.LC4</td>
+</tr>
+<tr><td>OUT.LC5.E</td>
+<td>→ OUT.LC5</td>
+</tr>
+<tr><td>OUT.LC6.E</td>
+<td>→ OUT.LC6</td>
+</tr>
+<tr><td>OUT.LC7.E</td>
+<td>→ OUT.LC7</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--e"><a class="header" href="#connectors--e">Connectors — E</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>PASS_E</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>QUAD.V0.1.W</td>
+<td>→ QUAD.V0.1</td>
+</tr>
+<tr><td>QUAD.V0.2.W</td>
+<td>→ QUAD.V0.2</td>
+</tr>
+<tr><td>QUAD.V0.3.W</td>
+<td>→ QUAD.V0.3</td>
+</tr>
+<tr><td>QUAD.V0.4.W</td>
+<td>→ QUAD.V0.4</td>
+</tr>
+<tr><td>QUAD.V1.1.W</td>
+<td>→ QUAD.V1.1</td>
+</tr>
+<tr><td>QUAD.V1.2.W</td>
+<td>→ QUAD.V1.2</td>
+</tr>
+<tr><td>QUAD.V1.3.W</td>
+<td>→ QUAD.V1.3</td>
+</tr>
+<tr><td>QUAD.V1.4.W</td>
+<td>→ QUAD.V1.4</td>
+</tr>
+<tr><td>QUAD.V2.1.W</td>
+<td>→ QUAD.V2.1</td>
+</tr>
+<tr><td>QUAD.V2.2.W</td>
+<td>→ QUAD.V2.2</td>
+</tr>
+<tr><td>QUAD.V2.3.W</td>
+<td>→ QUAD.V2.3</td>
+</tr>
+<tr><td>QUAD.V2.4.W</td>
+<td>→ QUAD.V2.4</td>
+</tr>
+<tr><td>QUAD.V3.1.W</td>
+<td>→ QUAD.V3.1</td>
+</tr>
+<tr><td>QUAD.V3.2.W</td>
+<td>→ QUAD.V3.2</td>
+</tr>
+<tr><td>QUAD.V3.3.W</td>
+<td>→ QUAD.V3.3</td>
+</tr>
+<tr><td>QUAD.V3.4.W</td>
+<td>→ QUAD.V3.4</td>
+</tr>
+<tr><td>QUAD.V4.1.W</td>
+<td>→ QUAD.V4.1</td>
+</tr>
+<tr><td>QUAD.V4.2.W</td>
+<td>→ QUAD.V4.2</td>
+</tr>
+<tr><td>QUAD.V4.3.W</td>
+<td>→ QUAD.V4.3</td>
+</tr>
+<tr><td>QUAD.V4.4.W</td>
+<td>→ QUAD.V4.4</td>
+</tr>
+<tr><td>QUAD.V5.1.W</td>
+<td>→ QUAD.V5.1</td>
+</tr>
+<tr><td>QUAD.V5.2.W</td>
+<td>→ QUAD.V5.2</td>
+</tr>
+<tr><td>QUAD.V5.3.W</td>
+<td>→ QUAD.V5.3</td>
+</tr>
+<tr><td>QUAD.V5.4.W</td>
+<td>→ QUAD.V5.4</td>
+</tr>
+<tr><td>QUAD.V6.1.W</td>
+<td>→ QUAD.V6.1</td>
+</tr>
+<tr><td>QUAD.V6.2.W</td>
+<td>→ QUAD.V6.2</td>
+</tr>
+<tr><td>QUAD.V6.3.W</td>
+<td>→ QUAD.V6.3</td>
+</tr>
+<tr><td>QUAD.V6.4.W</td>
+<td>→ QUAD.V6.4</td>
+</tr>
+<tr><td>QUAD.V7.1.W</td>
+<td>→ QUAD.V7.1</td>
+</tr>
+<tr><td>QUAD.V7.2.W</td>
+<td>→ QUAD.V7.2</td>
+</tr>
+<tr><td>QUAD.V7.3.W</td>
+<td>→ QUAD.V7.3</td>
+</tr>
+<tr><td>QUAD.V7.4.W</td>
+<td>→ QUAD.V7.4</td>
+</tr>
+<tr><td>QUAD.V8.1.W</td>
+<td>→ QUAD.V8.1</td>
+</tr>
+<tr><td>QUAD.V8.2.W</td>
+<td>→ QUAD.V8.2</td>
+</tr>
+<tr><td>QUAD.V8.3.W</td>
+<td>→ QUAD.V8.3</td>
+</tr>
+<tr><td>QUAD.V8.4.W</td>
+<td>→ QUAD.V8.4</td>
+</tr>
+<tr><td>QUAD.V9.1.W</td>
+<td>→ QUAD.V9.1</td>
+</tr>
+<tr><td>QUAD.V9.2.W</td>
+<td>→ QUAD.V9.2</td>
+</tr>
+<tr><td>QUAD.V9.3.W</td>
+<td>→ QUAD.V9.3</td>
+</tr>
+<tr><td>QUAD.V9.4.W</td>
+<td>→ QUAD.V9.4</td>
+</tr>
+<tr><td>QUAD.V10.1.W</td>
+<td>→ QUAD.V10.1</td>
+</tr>
+<tr><td>QUAD.V10.2.W</td>
+<td>→ QUAD.V10.2</td>
+</tr>
+<tr><td>QUAD.V10.3.W</td>
+<td>→ QUAD.V10.3</td>
+</tr>
+<tr><td>QUAD.V10.4.W</td>
+<td>→ QUAD.V10.4</td>
+</tr>
+<tr><td>QUAD.V11.1.W</td>
+<td>→ QUAD.V11.1</td>
+</tr>
+<tr><td>QUAD.V11.2.W</td>
+<td>→ QUAD.V11.2</td>
+</tr>
+<tr><td>QUAD.V11.3.W</td>
+<td>→ QUAD.V11.3</td>
+</tr>
+<tr><td>QUAD.V11.4.W</td>
+<td>→ QUAD.V11.4</td>
+</tr>
+<tr><td>OUT.LC0.W</td>
+<td>→ OUT.LC0</td>
+</tr>
+<tr><td>OUT.LC1.W</td>
+<td>→ OUT.LC1</td>
+</tr>
+<tr><td>OUT.LC2.W</td>
+<td>→ OUT.LC2</td>
+</tr>
+<tr><td>OUT.LC3.W</td>
+<td>→ OUT.LC3</td>
+</tr>
+<tr><td>OUT.LC4.W</td>
+<td>→ OUT.LC4</td>
+</tr>
+<tr><td>OUT.LC5.W</td>
+<td>→ OUT.LC5</td>
+</tr>
+<tr><td>OUT.LC6.W</td>
+<td>→ OUT.LC6</td>
+</tr>
+<tr><td>OUT.LC7.W</td>
+<td>→ OUT.LC7</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--s"><a class="header" href="#connectors--s">Connectors — S</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>PASS_S</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>QUAD.V0.1</td>
+<td>→ QUAD.V0.0</td>
+</tr>
+<tr><td>QUAD.V0.2</td>
+<td>→ QUAD.V0.1</td>
+</tr>
+<tr><td>QUAD.V0.3</td>
+<td>→ QUAD.V0.2</td>
+</tr>
+<tr><td>QUAD.V0.4</td>
+<td>→ QUAD.V0.3</td>
+</tr>
+<tr><td>QUAD.V1.1</td>
+<td>→ QUAD.V1.0</td>
+</tr>
+<tr><td>QUAD.V1.2</td>
+<td>→ QUAD.V1.1</td>
+</tr>
+<tr><td>QUAD.V1.3</td>
+<td>→ QUAD.V1.2</td>
+</tr>
+<tr><td>QUAD.V1.4</td>
+<td>→ QUAD.V1.3</td>
+</tr>
+<tr><td>QUAD.V2.1</td>
+<td>→ QUAD.V2.0</td>
+</tr>
+<tr><td>QUAD.V2.2</td>
+<td>→ QUAD.V2.1</td>
+</tr>
+<tr><td>QUAD.V2.3</td>
+<td>→ QUAD.V2.2</td>
+</tr>
+<tr><td>QUAD.V2.4</td>
+<td>→ QUAD.V2.3</td>
+</tr>
+<tr><td>QUAD.V3.1</td>
+<td>→ QUAD.V3.0</td>
+</tr>
+<tr><td>QUAD.V3.2</td>
+<td>→ QUAD.V3.1</td>
+</tr>
+<tr><td>QUAD.V3.3</td>
+<td>→ QUAD.V3.2</td>
+</tr>
+<tr><td>QUAD.V3.4</td>
+<td>→ QUAD.V3.3</td>
+</tr>
+<tr><td>QUAD.V4.1</td>
+<td>→ QUAD.V4.0</td>
+</tr>
+<tr><td>QUAD.V4.2</td>
+<td>→ QUAD.V4.1</td>
+</tr>
+<tr><td>QUAD.V4.3</td>
+<td>→ QUAD.V4.2</td>
+</tr>
+<tr><td>QUAD.V4.4</td>
+<td>→ QUAD.V4.3</td>
+</tr>
+<tr><td>QUAD.V5.1</td>
+<td>→ QUAD.V5.0</td>
+</tr>
+<tr><td>QUAD.V5.2</td>
+<td>→ QUAD.V5.1</td>
+</tr>
+<tr><td>QUAD.V5.3</td>
+<td>→ QUAD.V5.2</td>
+</tr>
+<tr><td>QUAD.V5.4</td>
+<td>→ QUAD.V5.3</td>
+</tr>
+<tr><td>QUAD.V6.1</td>
+<td>→ QUAD.V6.0</td>
+</tr>
+<tr><td>QUAD.V6.2</td>
+<td>→ QUAD.V6.1</td>
+</tr>
+<tr><td>QUAD.V6.3</td>
+<td>→ QUAD.V6.2</td>
+</tr>
+<tr><td>QUAD.V6.4</td>
+<td>→ QUAD.V6.3</td>
+</tr>
+<tr><td>QUAD.V7.1</td>
+<td>→ QUAD.V7.0</td>
+</tr>
+<tr><td>QUAD.V7.2</td>
+<td>→ QUAD.V7.1</td>
+</tr>
+<tr><td>QUAD.V7.3</td>
+<td>→ QUAD.V7.2</td>
+</tr>
+<tr><td>QUAD.V7.4</td>
+<td>→ QUAD.V7.3</td>
+</tr>
+<tr><td>QUAD.V8.1</td>
+<td>→ QUAD.V8.0</td>
+</tr>
+<tr><td>QUAD.V8.2</td>
+<td>→ QUAD.V8.1</td>
+</tr>
+<tr><td>QUAD.V8.3</td>
+<td>→ QUAD.V8.2</td>
+</tr>
+<tr><td>QUAD.V8.4</td>
+<td>→ QUAD.V8.3</td>
+</tr>
+<tr><td>QUAD.V9.1</td>
+<td>→ QUAD.V9.0</td>
+</tr>
+<tr><td>QUAD.V9.2</td>
+<td>→ QUAD.V9.1</td>
+</tr>
+<tr><td>QUAD.V9.3</td>
+<td>→ QUAD.V9.2</td>
+</tr>
+<tr><td>QUAD.V9.4</td>
+<td>→ QUAD.V9.3</td>
+</tr>
+<tr><td>QUAD.V10.1</td>
+<td>→ QUAD.V10.0</td>
+</tr>
+<tr><td>QUAD.V10.2</td>
+<td>→ QUAD.V10.1</td>
+</tr>
+<tr><td>QUAD.V10.3</td>
+<td>→ QUAD.V10.2</td>
+</tr>
+<tr><td>QUAD.V10.4</td>
+<td>→ QUAD.V10.3</td>
+</tr>
+<tr><td>QUAD.V11.1</td>
+<td>→ QUAD.V11.0</td>
+</tr>
+<tr><td>QUAD.V11.2</td>
+<td>→ QUAD.V11.1</td>
+</tr>
+<tr><td>QUAD.V11.3</td>
+<td>→ QUAD.V11.2</td>
+</tr>
+<tr><td>QUAD.V11.4</td>
+<td>→ QUAD.V11.3</td>
+</tr>
+<tr><td>LONG.V0.1</td>
+<td>→ LONG.V0.0</td>
+</tr>
+<tr><td>LONG.V0.2</td>
+<td>→ LONG.V0.1</td>
+</tr>
+<tr><td>LONG.V0.3</td>
+<td>→ LONG.V0.2</td>
+</tr>
+<tr><td>LONG.V0.4</td>
+<td>→ LONG.V0.3</td>
+</tr>
+<tr><td>LONG.V0.5</td>
+<td>→ LONG.V0.4</td>
+</tr>
+<tr><td>LONG.V0.6</td>
+<td>→ LONG.V0.5</td>
+</tr>
+<tr><td>LONG.V0.7</td>
+<td>→ LONG.V0.6</td>
+</tr>
+<tr><td>LONG.V0.8</td>
+<td>→ LONG.V0.7</td>
+</tr>
+<tr><td>LONG.V0.9</td>
+<td>→ LONG.V0.8</td>
+</tr>
+<tr><td>LONG.V0.10</td>
+<td>→ LONG.V0.9</td>
+</tr>
+<tr><td>LONG.V0.11</td>
+<td>→ LONG.V0.10</td>
+</tr>
+<tr><td>LONG.V0.12</td>
+<td>→ LONG.V0.11</td>
+</tr>
+<tr><td>LONG.V1.1</td>
+<td>→ LONG.V1.0</td>
+</tr>
+<tr><td>LONG.V1.2</td>
+<td>→ LONG.V1.1</td>
+</tr>
+<tr><td>LONG.V1.3</td>
+<td>→ LONG.V1.2</td>
+</tr>
+<tr><td>LONG.V1.4</td>
+<td>→ LONG.V1.3</td>
+</tr>
+<tr><td>LONG.V1.5</td>
+<td>→ LONG.V1.4</td>
+</tr>
+<tr><td>LONG.V1.6</td>
+<td>→ LONG.V1.5</td>
+</tr>
+<tr><td>LONG.V1.7</td>
+<td>→ LONG.V1.6</td>
+</tr>
+<tr><td>LONG.V1.8</td>
+<td>→ LONG.V1.7</td>
+</tr>
+<tr><td>LONG.V1.9</td>
+<td>→ LONG.V1.8</td>
+</tr>
+<tr><td>LONG.V1.10</td>
+<td>→ LONG.V1.9</td>
+</tr>
+<tr><td>LONG.V1.11</td>
+<td>→ LONG.V1.10</td>
+</tr>
+<tr><td>LONG.V1.12</td>
+<td>→ LONG.V1.11</td>
+</tr>
+<tr><td>OUT.LC0.N</td>
+<td>→ OUT.LC0</td>
+</tr>
+<tr><td>OUT.LC0.EN</td>
+<td>→ OUT.LC0.E</td>
+</tr>
+<tr><td>OUT.LC0.WN</td>
+<td>→ OUT.LC0.W</td>
+</tr>
+<tr><td>OUT.LC1.N</td>
+<td>→ OUT.LC1</td>
+</tr>
+<tr><td>OUT.LC1.EN</td>
+<td>→ OUT.LC1.E</td>
+</tr>
+<tr><td>OUT.LC1.WN</td>
+<td>→ OUT.LC1.W</td>
+</tr>
+<tr><td>OUT.LC2.N</td>
+<td>→ OUT.LC2</td>
+</tr>
+<tr><td>OUT.LC2.EN</td>
+<td>→ OUT.LC2.E</td>
+</tr>
+<tr><td>OUT.LC2.WN</td>
+<td>→ OUT.LC2.W</td>
+</tr>
+<tr><td>OUT.LC3.N</td>
+<td>→ OUT.LC3</td>
+</tr>
+<tr><td>OUT.LC3.EN</td>
+<td>→ OUT.LC3.E</td>
+</tr>
+<tr><td>OUT.LC3.WN</td>
+<td>→ OUT.LC3.W</td>
+</tr>
+<tr><td>OUT.LC4.N</td>
+<td>→ OUT.LC4</td>
+</tr>
+<tr><td>OUT.LC4.EN</td>
+<td>→ OUT.LC4.E</td>
+</tr>
+<tr><td>OUT.LC4.WN</td>
+<td>→ OUT.LC4.W</td>
+</tr>
+<tr><td>OUT.LC5.N</td>
+<td>→ OUT.LC5</td>
+</tr>
+<tr><td>OUT.LC5.EN</td>
+<td>→ OUT.LC5.E</td>
+</tr>
+<tr><td>OUT.LC5.WN</td>
+<td>→ OUT.LC5.W</td>
+</tr>
+<tr><td>OUT.LC6.N</td>
+<td>→ OUT.LC6</td>
+</tr>
+<tr><td>OUT.LC6.EN</td>
+<td>→ OUT.LC6.E</td>
+</tr>
+<tr><td>OUT.LC6.WN</td>
+<td>→ OUT.LC6.W</td>
+</tr>
+<tr><td>OUT.LC7.N</td>
+<td>→ OUT.LC7</td>
+</tr>
+<tr><td>OUT.LC7.EN</td>
+<td>→ OUT.LC7.E</td>
+</tr>
+<tr><td>OUT.LC7.WN</td>
+<td>→ OUT.LC7.W</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--n"><a class="header" href="#connectors--n">Connectors — N</a></h2>
+<div class="table-wrapper"><table>
+<caption>siliconblue wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>PASS_N</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.LC0.S</td>
+<td>→ OUT.LC0</td>
+</tr>
+<tr><td>OUT.LC0.ES</td>
+<td>→ OUT.LC0.E</td>
+</tr>
+<tr><td>OUT.LC0.WS</td>
+<td>→ OUT.LC0.W</td>
+</tr>
+<tr><td>OUT.LC1.S</td>
+<td>→ OUT.LC1</td>
+</tr>
+<tr><td>OUT.LC1.ES</td>
+<td>→ OUT.LC1.E</td>
+</tr>
+<tr><td>OUT.LC1.WS</td>
+<td>→ OUT.LC1.W</td>
+</tr>
+<tr><td>OUT.LC2.S</td>
+<td>→ OUT.LC2</td>
+</tr>
+<tr><td>OUT.LC2.ES</td>
+<td>→ OUT.LC2.E</td>
+</tr>
+<tr><td>OUT.LC2.WS</td>
+<td>→ OUT.LC2.W</td>
+</tr>
+<tr><td>OUT.LC3.S</td>
+<td>→ OUT.LC3</td>
+</tr>
+<tr><td>OUT.LC3.ES</td>
+<td>→ OUT.LC3.E</td>
+</tr>
+<tr><td>OUT.LC3.WS</td>
+<td>→ OUT.LC3.W</td>
+</tr>
+<tr><td>OUT.LC4.S</td>
+<td>→ OUT.LC4</td>
+</tr>
+<tr><td>OUT.LC4.ES</td>
+<td>→ OUT.LC4.E</td>
+</tr>
+<tr><td>OUT.LC4.WS</td>
+<td>→ OUT.LC4.W</td>
+</tr>
+<tr><td>OUT.LC5.S</td>
+<td>→ OUT.LC5</td>
+</tr>
+<tr><td>OUT.LC5.ES</td>
+<td>→ OUT.LC5.E</td>
+</tr>
+<tr><td>OUT.LC5.WS</td>
+<td>→ OUT.LC5.W</td>
+</tr>
+<tr><td>OUT.LC6.S</td>
+<td>→ OUT.LC6</td>
+</tr>
+<tr><td>OUT.LC6.ES</td>
+<td>→ OUT.LC6.E</td>
+</tr>
+<tr><td>OUT.LC6.WS</td>
+<td>→ OUT.LC6.W</td>
+</tr>
+<tr><td>OUT.LC7.S</td>
+<td>→ OUT.LC7</td>
+</tr>
+<tr><td>OUT.LC7.ES</td>
+<td>→ OUT.LC7.E</td>
+</tr>
+<tr><td>OUT.LC7.WS</td>
+<td>→ OUT.LC7.W</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../siliconblue/geometry.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../siliconblue/global.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../siliconblue/geometry.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../siliconblue/global.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

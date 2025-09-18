@@ -1,0 +1,10118 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Global buffers - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="global-buffers"><a class="header" href="#global-buffers">Global buffers</a></h1>
+<h2 id="tile-clk_bufg"><a class="header" href="#tile-clk_bufg">Tile CLK_BUFG</a></h2>
+<p>Cells: 4</p>
+<h3 id="bel-bufgctrl0"><a class="header" href="#bel-bufgctrl0">Bel BUFGCTRL0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL0:IMUX.IMUX20</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL0:IMUX.IMUX16</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL0:IMUX.IMUX24</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL0:IMUX.IMUX28</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL0:OUT4.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL0:OUT0.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL0:IMUX.IMUX12</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL0:IMUX.IMUX8</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL0:IMUX.IMUX4</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL0:IMUX.IMUX0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl1"><a class="header" href="#bel-bufgctrl1">Bel BUFGCTRL1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL0:IMUX.IMUX21</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL0:IMUX.IMUX17</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL0:IMUX.IMUX25</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL0:IMUX.IMUX29</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL0:OUT5.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL0:OUT1.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL0:IMUX.IMUX13</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL0:IMUX.IMUX9</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL0:IMUX.IMUX5</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL0:IMUX.IMUX1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl2"><a class="header" href="#bel-bufgctrl2">Bel BUFGCTRL2</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL0:IMUX.IMUX22</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL0:IMUX.IMUX18</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL0:IMUX.IMUX26</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL0:IMUX.IMUX30</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL0:OUT6.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL0:OUT2.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL0:IMUX.IMUX14</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL0:IMUX.IMUX10</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL0:IMUX.IMUX6</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL0:IMUX.IMUX2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl3"><a class="header" href="#bel-bufgctrl3">Bel BUFGCTRL3</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL0:IMUX.IMUX23</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL0:IMUX.IMUX19</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL0:IMUX.IMUX27</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL0:IMUX.IMUX31</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL0:OUT7.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL0:OUT3.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL0:IMUX.IMUX15</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL0:IMUX.IMUX11</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL0:IMUX.IMUX7</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL0:IMUX.IMUX3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl4"><a class="header" href="#bel-bufgctrl4">Bel BUFGCTRL4</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL4</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL1:IMUX.IMUX20</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL1:IMUX.IMUX16</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.IMUX24</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL1:IMUX.IMUX28</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL1:OUT4.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL1:OUT0.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL1:IMUX.IMUX12</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL1:IMUX.IMUX8</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL1:IMUX.IMUX4</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL1:IMUX.IMUX0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl5"><a class="header" href="#bel-bufgctrl5">Bel BUFGCTRL5</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL5</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL1:IMUX.IMUX21</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL1:IMUX.IMUX17</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.IMUX25</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL1:IMUX.IMUX29</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL1:OUT5.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL1:OUT1.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL1:IMUX.IMUX13</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL1:IMUX.IMUX9</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL1:IMUX.IMUX5</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL1:IMUX.IMUX1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl6"><a class="header" href="#bel-bufgctrl6">Bel BUFGCTRL6</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL6</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL1:IMUX.IMUX22</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL1:IMUX.IMUX18</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.IMUX26</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL1:IMUX.IMUX30</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL1:OUT6.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL1:OUT2.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL1:IMUX.IMUX14</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL1:IMUX.IMUX10</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL1:IMUX.IMUX6</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL1:IMUX.IMUX2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl7"><a class="header" href="#bel-bufgctrl7">Bel BUFGCTRL7</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL7</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL1:IMUX.IMUX23</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL1:IMUX.IMUX19</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.IMUX27</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL1:IMUX.IMUX31</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL1:OUT7.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL1:OUT3.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL1:IMUX.IMUX15</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL1:IMUX.IMUX11</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL1:IMUX.IMUX7</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL1:IMUX.IMUX3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl8"><a class="header" href="#bel-bufgctrl8">Bel BUFGCTRL8</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL8</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL2:IMUX.IMUX20</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL2:IMUX.IMUX16</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL2:IMUX.IMUX24</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.IMUX28</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL2:OUT4.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL2:OUT0.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL2:IMUX.IMUX12</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL2:IMUX.IMUX8</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL2:IMUX.IMUX4</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL2:IMUX.IMUX0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl9"><a class="header" href="#bel-bufgctrl9">Bel BUFGCTRL9</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL9</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL2:IMUX.IMUX21</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL2:IMUX.IMUX17</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL2:IMUX.IMUX25</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.IMUX29</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL2:OUT5.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL2:OUT1.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL2:IMUX.IMUX13</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL2:IMUX.IMUX9</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL2:IMUX.IMUX5</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL2:IMUX.IMUX1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl10"><a class="header" href="#bel-bufgctrl10">Bel BUFGCTRL10</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL10</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL2:IMUX.IMUX22</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL2:IMUX.IMUX18</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL2:IMUX.IMUX26</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.IMUX30</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL2:OUT6.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL2:OUT2.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL2:IMUX.IMUX14</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL2:IMUX.IMUX10</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL2:IMUX.IMUX6</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL2:IMUX.IMUX2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl11"><a class="header" href="#bel-bufgctrl11">Bel BUFGCTRL11</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL11</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL2:IMUX.IMUX23</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL2:IMUX.IMUX19</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL2:IMUX.IMUX27</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.IMUX31</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL2:OUT7.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL2:OUT3.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL2:IMUX.IMUX15</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL2:IMUX.IMUX11</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL2:IMUX.IMUX7</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL2:IMUX.IMUX3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl12"><a class="header" href="#bel-bufgctrl12">Bel BUFGCTRL12</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL12</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL3:IMUX.IMUX20</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL3:IMUX.IMUX16</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL3:IMUX.IMUX24</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL3:IMUX.IMUX28</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL3:OUT4.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL3:OUT0.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL3:IMUX.IMUX12</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL3:IMUX.IMUX8</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL3:IMUX.IMUX4</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL3:IMUX.IMUX0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl13"><a class="header" href="#bel-bufgctrl13">Bel BUFGCTRL13</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL13</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL3:IMUX.IMUX21</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL3:IMUX.IMUX17</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL3:IMUX.IMUX25</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL3:IMUX.IMUX29</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL3:OUT5.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL3:OUT1.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL3:IMUX.IMUX13</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL3:IMUX.IMUX9</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL3:IMUX.IMUX5</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL3:IMUX.IMUX1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl14"><a class="header" href="#bel-bufgctrl14">Bel BUFGCTRL14</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL14</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL3:IMUX.IMUX22</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL3:IMUX.IMUX18</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL3:IMUX.IMUX26</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL3:IMUX.IMUX30</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL3:OUT6.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL3:OUT2.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL3:IMUX.IMUX14</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL3:IMUX.IMUX10</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL3:IMUX.IMUX6</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL3:IMUX.IMUX2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufgctrl15"><a class="header" href="#bel-bufgctrl15">Bel BUFGCTRL15</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel BUFGCTRL15</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE0</td><td>input</td><td>TCELL3:IMUX.IMUX23</td></tr>
+<tr><td>CE1</td><td>input</td><td>TCELL3:IMUX.IMUX19</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>TCELL3:IMUX.IMUX27</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL3:IMUX.IMUX31</td></tr>
+<tr><td>FB_TEST0</td><td>output</td><td>TCELL3:OUT7.TMIN</td></tr>
+<tr><td>FB_TEST1</td><td>output</td><td>TCELL3:OUT3.TMIN</td></tr>
+<tr><td>IGNORE0</td><td>input</td><td>TCELL3:IMUX.IMUX15</td></tr>
+<tr><td>IGNORE1</td><td>input</td><td>TCELL3:IMUX.IMUX11</td></tr>
+<tr><td>S0</td><td>input</td><td>TCELL3:IMUX.IMUX7</td></tr>
+<tr><td>S1</td><td>input</td><td>TCELL3:IMUX.IMUX3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.IMUX0</td><td>BUFGCTRL0.S1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX1</td><td>BUFGCTRL1.S1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX2</td><td>BUFGCTRL2.S1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX3</td><td>BUFGCTRL3.S1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX4</td><td>BUFGCTRL0.S0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX5</td><td>BUFGCTRL1.S0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX6</td><td>BUFGCTRL2.S0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX7</td><td>BUFGCTRL3.S0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX8</td><td>BUFGCTRL0.IGNORE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX9</td><td>BUFGCTRL1.IGNORE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX10</td><td>BUFGCTRL2.IGNORE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX11</td><td>BUFGCTRL3.IGNORE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX12</td><td>BUFGCTRL0.IGNORE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX13</td><td>BUFGCTRL1.IGNORE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX14</td><td>BUFGCTRL2.IGNORE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX15</td><td>BUFGCTRL3.IGNORE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX16</td><td>BUFGCTRL0.CE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX17</td><td>BUFGCTRL1.CE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX18</td><td>BUFGCTRL2.CE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX19</td><td>BUFGCTRL3.CE1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX20</td><td>BUFGCTRL0.CE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX21</td><td>BUFGCTRL1.CE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX22</td><td>BUFGCTRL2.CE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX23</td><td>BUFGCTRL3.CE0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX24</td><td>BUFGCTRL0.CKINT0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX25</td><td>BUFGCTRL1.CKINT0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX26</td><td>BUFGCTRL2.CKINT0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX27</td><td>BUFGCTRL3.CKINT0</td></tr>
+<tr><td>TCELL0:IMUX.IMUX28</td><td>BUFGCTRL0.CKINT1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX29</td><td>BUFGCTRL1.CKINT1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX30</td><td>BUFGCTRL2.CKINT1</td></tr>
+<tr><td>TCELL0:IMUX.IMUX31</td><td>BUFGCTRL3.CKINT1</td></tr>
+<tr><td>TCELL0:OUT0.TMIN</td><td>BUFGCTRL0.FB_TEST1</td></tr>
+<tr><td>TCELL0:OUT1.TMIN</td><td>BUFGCTRL1.FB_TEST1</td></tr>
+<tr><td>TCELL0:OUT2.TMIN</td><td>BUFGCTRL2.FB_TEST1</td></tr>
+<tr><td>TCELL0:OUT3.TMIN</td><td>BUFGCTRL3.FB_TEST1</td></tr>
+<tr><td>TCELL0:OUT4.TMIN</td><td>BUFGCTRL0.FB_TEST0</td></tr>
+<tr><td>TCELL0:OUT5.TMIN</td><td>BUFGCTRL1.FB_TEST0</td></tr>
+<tr><td>TCELL0:OUT6.TMIN</td><td>BUFGCTRL2.FB_TEST0</td></tr>
+<tr><td>TCELL0:OUT7.TMIN</td><td>BUFGCTRL3.FB_TEST0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX0</td><td>BUFGCTRL4.S1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX1</td><td>BUFGCTRL5.S1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX2</td><td>BUFGCTRL6.S1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX3</td><td>BUFGCTRL7.S1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX4</td><td>BUFGCTRL4.S0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX5</td><td>BUFGCTRL5.S0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX6</td><td>BUFGCTRL6.S0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX7</td><td>BUFGCTRL7.S0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX8</td><td>BUFGCTRL4.IGNORE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX9</td><td>BUFGCTRL5.IGNORE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX10</td><td>BUFGCTRL6.IGNORE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX11</td><td>BUFGCTRL7.IGNORE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX12</td><td>BUFGCTRL4.IGNORE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX13</td><td>BUFGCTRL5.IGNORE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX14</td><td>BUFGCTRL6.IGNORE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX15</td><td>BUFGCTRL7.IGNORE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX16</td><td>BUFGCTRL4.CE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX17</td><td>BUFGCTRL5.CE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX18</td><td>BUFGCTRL6.CE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX19</td><td>BUFGCTRL7.CE1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX20</td><td>BUFGCTRL4.CE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX21</td><td>BUFGCTRL5.CE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX22</td><td>BUFGCTRL6.CE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX23</td><td>BUFGCTRL7.CE0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX24</td><td>BUFGCTRL4.CKINT0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX25</td><td>BUFGCTRL5.CKINT0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX26</td><td>BUFGCTRL6.CKINT0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX27</td><td>BUFGCTRL7.CKINT0</td></tr>
+<tr><td>TCELL1:IMUX.IMUX28</td><td>BUFGCTRL4.CKINT1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX29</td><td>BUFGCTRL5.CKINT1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX30</td><td>BUFGCTRL6.CKINT1</td></tr>
+<tr><td>TCELL1:IMUX.IMUX31</td><td>BUFGCTRL7.CKINT1</td></tr>
+<tr><td>TCELL1:OUT0.TMIN</td><td>BUFGCTRL4.FB_TEST1</td></tr>
+<tr><td>TCELL1:OUT1.TMIN</td><td>BUFGCTRL5.FB_TEST1</td></tr>
+<tr><td>TCELL1:OUT2.TMIN</td><td>BUFGCTRL6.FB_TEST1</td></tr>
+<tr><td>TCELL1:OUT3.TMIN</td><td>BUFGCTRL7.FB_TEST1</td></tr>
+<tr><td>TCELL1:OUT4.TMIN</td><td>BUFGCTRL4.FB_TEST0</td></tr>
+<tr><td>TCELL1:OUT5.TMIN</td><td>BUFGCTRL5.FB_TEST0</td></tr>
+<tr><td>TCELL1:OUT6.TMIN</td><td>BUFGCTRL6.FB_TEST0</td></tr>
+<tr><td>TCELL1:OUT7.TMIN</td><td>BUFGCTRL7.FB_TEST0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX0</td><td>BUFGCTRL8.S1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX1</td><td>BUFGCTRL9.S1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX2</td><td>BUFGCTRL10.S1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX3</td><td>BUFGCTRL11.S1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX4</td><td>BUFGCTRL8.S0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX5</td><td>BUFGCTRL9.S0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX6</td><td>BUFGCTRL10.S0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX7</td><td>BUFGCTRL11.S0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX8</td><td>BUFGCTRL8.IGNORE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX9</td><td>BUFGCTRL9.IGNORE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX10</td><td>BUFGCTRL10.IGNORE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX11</td><td>BUFGCTRL11.IGNORE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX12</td><td>BUFGCTRL8.IGNORE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX13</td><td>BUFGCTRL9.IGNORE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX14</td><td>BUFGCTRL10.IGNORE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX15</td><td>BUFGCTRL11.IGNORE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX16</td><td>BUFGCTRL8.CE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX17</td><td>BUFGCTRL9.CE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX18</td><td>BUFGCTRL10.CE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX19</td><td>BUFGCTRL11.CE1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX20</td><td>BUFGCTRL8.CE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX21</td><td>BUFGCTRL9.CE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX22</td><td>BUFGCTRL10.CE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX23</td><td>BUFGCTRL11.CE0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX24</td><td>BUFGCTRL8.CKINT0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX25</td><td>BUFGCTRL9.CKINT0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX26</td><td>BUFGCTRL10.CKINT0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX27</td><td>BUFGCTRL11.CKINT0</td></tr>
+<tr><td>TCELL2:IMUX.IMUX28</td><td>BUFGCTRL8.CKINT1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX29</td><td>BUFGCTRL9.CKINT1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX30</td><td>BUFGCTRL10.CKINT1</td></tr>
+<tr><td>TCELL2:IMUX.IMUX31</td><td>BUFGCTRL11.CKINT1</td></tr>
+<tr><td>TCELL2:OUT0.TMIN</td><td>BUFGCTRL8.FB_TEST1</td></tr>
+<tr><td>TCELL2:OUT1.TMIN</td><td>BUFGCTRL9.FB_TEST1</td></tr>
+<tr><td>TCELL2:OUT2.TMIN</td><td>BUFGCTRL10.FB_TEST1</td></tr>
+<tr><td>TCELL2:OUT3.TMIN</td><td>BUFGCTRL11.FB_TEST1</td></tr>
+<tr><td>TCELL2:OUT4.TMIN</td><td>BUFGCTRL8.FB_TEST0</td></tr>
+<tr><td>TCELL2:OUT5.TMIN</td><td>BUFGCTRL9.FB_TEST0</td></tr>
+<tr><td>TCELL2:OUT6.TMIN</td><td>BUFGCTRL10.FB_TEST0</td></tr>
+<tr><td>TCELL2:OUT7.TMIN</td><td>BUFGCTRL11.FB_TEST0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX0</td><td>BUFGCTRL12.S1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX1</td><td>BUFGCTRL13.S1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX2</td><td>BUFGCTRL14.S1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX3</td><td>BUFGCTRL15.S1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX4</td><td>BUFGCTRL12.S0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX5</td><td>BUFGCTRL13.S0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX6</td><td>BUFGCTRL14.S0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX7</td><td>BUFGCTRL15.S0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX8</td><td>BUFGCTRL12.IGNORE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX9</td><td>BUFGCTRL13.IGNORE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX10</td><td>BUFGCTRL14.IGNORE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX11</td><td>BUFGCTRL15.IGNORE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX12</td><td>BUFGCTRL12.IGNORE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX13</td><td>BUFGCTRL13.IGNORE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX14</td><td>BUFGCTRL14.IGNORE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX15</td><td>BUFGCTRL15.IGNORE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX16</td><td>BUFGCTRL12.CE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX17</td><td>BUFGCTRL13.CE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX18</td><td>BUFGCTRL14.CE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX19</td><td>BUFGCTRL15.CE1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX20</td><td>BUFGCTRL12.CE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX21</td><td>BUFGCTRL13.CE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX22</td><td>BUFGCTRL14.CE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX23</td><td>BUFGCTRL15.CE0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX24</td><td>BUFGCTRL12.CKINT0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX25</td><td>BUFGCTRL13.CKINT0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX26</td><td>BUFGCTRL14.CKINT0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX27</td><td>BUFGCTRL15.CKINT0</td></tr>
+<tr><td>TCELL3:IMUX.IMUX28</td><td>BUFGCTRL12.CKINT1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX29</td><td>BUFGCTRL13.CKINT1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX30</td><td>BUFGCTRL14.CKINT1</td></tr>
+<tr><td>TCELL3:IMUX.IMUX31</td><td>BUFGCTRL15.CKINT1</td></tr>
+<tr><td>TCELL3:OUT0.TMIN</td><td>BUFGCTRL12.FB_TEST1</td></tr>
+<tr><td>TCELL3:OUT1.TMIN</td><td>BUFGCTRL13.FB_TEST1</td></tr>
+<tr><td>TCELL3:OUT2.TMIN</td><td>BUFGCTRL14.FB_TEST1</td></tr>
+<tr><td>TCELL3:OUT3.TMIN</td><td>BUFGCTRL15.FB_TEST1</td></tr>
+<tr><td>TCELL3:OUT4.TMIN</td><td>BUFGCTRL12.FB_TEST0</td></tr>
+<tr><td>TCELL3:OUT5.TMIN</td><td>BUFGCTRL13.FB_TEST0</td></tr>
+<tr><td>TCELL3:OUT6.TMIN</td><td>BUFGCTRL14.FB_TEST0</td></tr>
+<tr><td>TCELL3:OUT7.TMIN</td><td>BUFGCTRL15.FB_TEST0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.63">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:ENABLE">BUFGCTRL3:ENABLE</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:ENABLE.FB">BUFGCTRL3:ENABLE.FB</a>
+</td>
+<td title="0.27.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:ENABLE.GCLK">BUFGCTRL3:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.61">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:INIT_OUT">BUFGCTRL3:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:PRESELECT_I1">BUFGCTRL3:PRESELECT_I1</a>
+</td>
+<td title="0.27.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.IGNORE1">~BUFGCTRL3:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.S1">~BUFGCTRL3:INV.S1</a>
+</td>
+<td title="0.27.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.CE1">~BUFGCTRL3:INV.CE1</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.58">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:TEST_I1">BUFGCTRL3:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.57">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:TEST_I0">BUFGCTRL3:TEST_I0</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.56">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I0">BUFGCTRL3:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.55">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I0">BUFGCTRL3:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.54">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I0">BUFGCTRL3:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I1">BUFGCTRL3:MUX.I1[1]</a>
+</td>
+<td title="0.27.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I1">BUFGCTRL3:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.52">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I1">BUFGCTRL3:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.51">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.S0">~BUFGCTRL3:INV.S0</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:PRESELECT_I0">~BUFGCTRL3:PRESELECT_I0</a>
+</td>
+<td title="0.27.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.CE0">~BUFGCTRL3:INV.CE0</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.49">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.IGNORE0">~BUFGCTRL3:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.48">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL3:CREATE_EDGE">BUFGCTRL3:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.47">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:ENABLE">BUFGCTRL2:ENABLE</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:ENABLE.FB">BUFGCTRL2:ENABLE.FB</a>
+</td>
+<td title="0.27.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:ENABLE.GCLK">BUFGCTRL2:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.45">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:INIT_OUT">BUFGCTRL2:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:PRESELECT_I1">BUFGCTRL2:PRESELECT_I1</a>
+</td>
+<td title="0.27.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.IGNORE1">~BUFGCTRL2:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.S1">~BUFGCTRL2:INV.S1</a>
+</td>
+<td title="0.27.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.CE1">~BUFGCTRL2:INV.CE1</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.42">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:TEST_I1">BUFGCTRL2:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.41">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:TEST_I0">BUFGCTRL2:TEST_I0</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.40">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I0">BUFGCTRL2:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.39">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I0">BUFGCTRL2:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.38">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I0">BUFGCTRL2:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I1">BUFGCTRL2:MUX.I1[1]</a>
+</td>
+<td title="0.27.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I1">BUFGCTRL2:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.36">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I1">BUFGCTRL2:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.35">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.S0">~BUFGCTRL2:INV.S0</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:PRESELECT_I0">~BUFGCTRL2:PRESELECT_I0</a>
+</td>
+<td title="0.27.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.CE0">~BUFGCTRL2:INV.CE0</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.33">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.IGNORE0">~BUFGCTRL2:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.32">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL2:CREATE_EDGE">BUFGCTRL2:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.31">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:ENABLE">BUFGCTRL1:ENABLE</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:ENABLE.FB">BUFGCTRL1:ENABLE.FB</a>
+</td>
+<td title="0.27.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:ENABLE.GCLK">BUFGCTRL1:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.29">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:INIT_OUT">BUFGCTRL1:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:PRESELECT_I1">BUFGCTRL1:PRESELECT_I1</a>
+</td>
+<td title="0.27.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.IGNORE1">~BUFGCTRL1:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.S1">~BUFGCTRL1:INV.S1</a>
+</td>
+<td title="0.27.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.CE1">~BUFGCTRL1:INV.CE1</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.26">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:TEST_I1">BUFGCTRL1:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.25">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:TEST_I0">BUFGCTRL1:TEST_I0</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.24">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I0">BUFGCTRL1:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.23">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I0">BUFGCTRL1:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.22">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I0">BUFGCTRL1:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I1">BUFGCTRL1:MUX.I1[1]</a>
+</td>
+<td title="0.27.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I1">BUFGCTRL1:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.20">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I1">BUFGCTRL1:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.19">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.S0">~BUFGCTRL1:INV.S0</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:PRESELECT_I0">~BUFGCTRL1:PRESELECT_I0</a>
+</td>
+<td title="0.27.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.CE0">~BUFGCTRL1:INV.CE0</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.17">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.IGNORE0">~BUFGCTRL1:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.16">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL1:CREATE_EDGE">BUFGCTRL1:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.15">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:ENABLE">BUFGCTRL0:ENABLE</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:ENABLE.FB">BUFGCTRL0:ENABLE.FB</a>
+</td>
+<td title="0.27.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:ENABLE.GCLK">BUFGCTRL0:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.13">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:INIT_OUT">BUFGCTRL0:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:PRESELECT_I1">BUFGCTRL0:PRESELECT_I1</a>
+</td>
+<td title="0.27.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.IGNORE1">~BUFGCTRL0:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.S1">~BUFGCTRL0:INV.S1</a>
+</td>
+<td title="0.27.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.CE1">~BUFGCTRL0:INV.CE1</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.10">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:TEST_I1">BUFGCTRL0:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.9">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:TEST_I0">BUFGCTRL0:TEST_I0</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.8">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I0">BUFGCTRL0:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.7">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I0">BUFGCTRL0:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.6">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I0">BUFGCTRL0:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I1">BUFGCTRL0:MUX.I1[1]</a>
+</td>
+<td title="0.27.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I1">BUFGCTRL0:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.4">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I1">BUFGCTRL0:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.3">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.S0">~BUFGCTRL0:INV.S0</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:PRESELECT_I0">~BUFGCTRL0:PRESELECT_I0</a>
+</td>
+<td title="0.27.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.CE0">~BUFGCTRL0:INV.CE0</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.26.1">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.IGNORE0">~BUFGCTRL0:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.0">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL0:CREATE_EDGE">BUFGCTRL0:CREATE_EDGE</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bittile 1</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.63">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:ENABLE">BUFGCTRL7:ENABLE</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:ENABLE.FB">BUFGCTRL7:ENABLE.FB</a>
+</td>
+<td title="1.27.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:ENABLE.GCLK">BUFGCTRL7:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.61">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:INIT_OUT">BUFGCTRL7:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:PRESELECT_I1">BUFGCTRL7:PRESELECT_I1</a>
+</td>
+<td title="1.27.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.IGNORE1">~BUFGCTRL7:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.S1">~BUFGCTRL7:INV.S1</a>
+</td>
+<td title="1.27.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.CE1">~BUFGCTRL7:INV.CE1</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.58">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:TEST_I1">BUFGCTRL7:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.57">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:TEST_I0">BUFGCTRL7:TEST_I0</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.56">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I0">BUFGCTRL7:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.55">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I0">BUFGCTRL7:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.54">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I0">BUFGCTRL7:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I1">BUFGCTRL7:MUX.I1[1]</a>
+</td>
+<td title="1.27.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I1">BUFGCTRL7:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.52">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I1">BUFGCTRL7:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.51">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.S0">~BUFGCTRL7:INV.S0</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:PRESELECT_I0">~BUFGCTRL7:PRESELECT_I0</a>
+</td>
+<td title="1.27.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.CE0">~BUFGCTRL7:INV.CE0</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.49">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.IGNORE0">~BUFGCTRL7:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.48">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL7:CREATE_EDGE">BUFGCTRL7:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.47">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:ENABLE">BUFGCTRL6:ENABLE</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:ENABLE.FB">BUFGCTRL6:ENABLE.FB</a>
+</td>
+<td title="1.27.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:ENABLE.GCLK">BUFGCTRL6:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.45">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:INIT_OUT">BUFGCTRL6:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:PRESELECT_I1">BUFGCTRL6:PRESELECT_I1</a>
+</td>
+<td title="1.27.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.IGNORE1">~BUFGCTRL6:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.S1">~BUFGCTRL6:INV.S1</a>
+</td>
+<td title="1.27.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.CE1">~BUFGCTRL6:INV.CE1</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.42">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:TEST_I1">BUFGCTRL6:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.41">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:TEST_I0">BUFGCTRL6:TEST_I0</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.40">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I0">BUFGCTRL6:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.39">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I0">BUFGCTRL6:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.38">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I0">BUFGCTRL6:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I1">BUFGCTRL6:MUX.I1[1]</a>
+</td>
+<td title="1.27.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I1">BUFGCTRL6:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.36">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I1">BUFGCTRL6:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.35">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.S0">~BUFGCTRL6:INV.S0</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:PRESELECT_I0">~BUFGCTRL6:PRESELECT_I0</a>
+</td>
+<td title="1.27.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.CE0">~BUFGCTRL6:INV.CE0</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.33">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.IGNORE0">~BUFGCTRL6:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.32">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL6:CREATE_EDGE">BUFGCTRL6:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.31">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:ENABLE">BUFGCTRL5:ENABLE</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:ENABLE.FB">BUFGCTRL5:ENABLE.FB</a>
+</td>
+<td title="1.27.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:ENABLE.GCLK">BUFGCTRL5:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.29">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:INIT_OUT">BUFGCTRL5:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:PRESELECT_I1">BUFGCTRL5:PRESELECT_I1</a>
+</td>
+<td title="1.27.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.IGNORE1">~BUFGCTRL5:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.S1">~BUFGCTRL5:INV.S1</a>
+</td>
+<td title="1.27.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.CE1">~BUFGCTRL5:INV.CE1</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.26">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:TEST_I1">BUFGCTRL5:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.25">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:TEST_I0">BUFGCTRL5:TEST_I0</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.24">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I0">BUFGCTRL5:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.23">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I0">BUFGCTRL5:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.22">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I0">BUFGCTRL5:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I1">BUFGCTRL5:MUX.I1[1]</a>
+</td>
+<td title="1.27.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I1">BUFGCTRL5:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.20">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I1">BUFGCTRL5:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.19">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.S0">~BUFGCTRL5:INV.S0</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:PRESELECT_I0">~BUFGCTRL5:PRESELECT_I0</a>
+</td>
+<td title="1.27.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.CE0">~BUFGCTRL5:INV.CE0</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.17">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.IGNORE0">~BUFGCTRL5:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.16">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL5:CREATE_EDGE">BUFGCTRL5:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.15">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:ENABLE">BUFGCTRL4:ENABLE</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:ENABLE.FB">BUFGCTRL4:ENABLE.FB</a>
+</td>
+<td title="1.27.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:ENABLE.GCLK">BUFGCTRL4:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.13">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:INIT_OUT">BUFGCTRL4:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:PRESELECT_I1">BUFGCTRL4:PRESELECT_I1</a>
+</td>
+<td title="1.27.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.IGNORE1">~BUFGCTRL4:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.S1">~BUFGCTRL4:INV.S1</a>
+</td>
+<td title="1.27.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.CE1">~BUFGCTRL4:INV.CE1</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.10">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:TEST_I1">BUFGCTRL4:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.9">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:TEST_I0">BUFGCTRL4:TEST_I0</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.8">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I0">BUFGCTRL4:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.7">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I0">BUFGCTRL4:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.6">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I0">BUFGCTRL4:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I1">BUFGCTRL4:MUX.I1[1]</a>
+</td>
+<td title="1.27.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I1">BUFGCTRL4:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.4">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I1">BUFGCTRL4:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.3">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.S0">~BUFGCTRL4:INV.S0</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:PRESELECT_I0">~BUFGCTRL4:PRESELECT_I0</a>
+</td>
+<td title="1.27.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.CE0">~BUFGCTRL4:INV.CE0</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.26.1">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.IGNORE0">~BUFGCTRL4:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.27.0">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL4:CREATE_EDGE">BUFGCTRL4:CREATE_EDGE</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bittile 2</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.63">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:ENABLE">BUFGCTRL11:ENABLE</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:ENABLE.FB">BUFGCTRL11:ENABLE.FB</a>
+</td>
+<td title="2.27.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:ENABLE.GCLK">BUFGCTRL11:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.61">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:INIT_OUT">BUFGCTRL11:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:PRESELECT_I1">BUFGCTRL11:PRESELECT_I1</a>
+</td>
+<td title="2.27.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.IGNORE1">~BUFGCTRL11:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.S1">~BUFGCTRL11:INV.S1</a>
+</td>
+<td title="2.27.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.CE1">~BUFGCTRL11:INV.CE1</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.58">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:TEST_I1">BUFGCTRL11:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.57">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:TEST_I0">BUFGCTRL11:TEST_I0</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.56">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I0">BUFGCTRL11:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.55">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I0">BUFGCTRL11:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.54">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I0">BUFGCTRL11:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I1">BUFGCTRL11:MUX.I1[1]</a>
+</td>
+<td title="2.27.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I1">BUFGCTRL11:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.52">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I1">BUFGCTRL11:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.51">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.S0">~BUFGCTRL11:INV.S0</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:PRESELECT_I0">~BUFGCTRL11:PRESELECT_I0</a>
+</td>
+<td title="2.27.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.CE0">~BUFGCTRL11:INV.CE0</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.49">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.IGNORE0">~BUFGCTRL11:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.48">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL11:CREATE_EDGE">BUFGCTRL11:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.47">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:ENABLE">BUFGCTRL10:ENABLE</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:ENABLE.FB">BUFGCTRL10:ENABLE.FB</a>
+</td>
+<td title="2.27.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:ENABLE.GCLK">BUFGCTRL10:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.45">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:INIT_OUT">BUFGCTRL10:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:PRESELECT_I1">BUFGCTRL10:PRESELECT_I1</a>
+</td>
+<td title="2.27.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.IGNORE1">~BUFGCTRL10:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.S1">~BUFGCTRL10:INV.S1</a>
+</td>
+<td title="2.27.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.CE1">~BUFGCTRL10:INV.CE1</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.42">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:TEST_I1">BUFGCTRL10:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.41">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:TEST_I0">BUFGCTRL10:TEST_I0</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.40">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I0">BUFGCTRL10:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.39">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I0">BUFGCTRL10:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.38">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I0">BUFGCTRL10:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I1">BUFGCTRL10:MUX.I1[1]</a>
+</td>
+<td title="2.27.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I1">BUFGCTRL10:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.36">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I1">BUFGCTRL10:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.35">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.S0">~BUFGCTRL10:INV.S0</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:PRESELECT_I0">~BUFGCTRL10:PRESELECT_I0</a>
+</td>
+<td title="2.27.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.CE0">~BUFGCTRL10:INV.CE0</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.33">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.IGNORE0">~BUFGCTRL10:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.32">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL10:CREATE_EDGE">BUFGCTRL10:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.31">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:ENABLE">BUFGCTRL9:ENABLE</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:ENABLE.FB">BUFGCTRL9:ENABLE.FB</a>
+</td>
+<td title="2.27.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:ENABLE.GCLK">BUFGCTRL9:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.29">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:INIT_OUT">BUFGCTRL9:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:PRESELECT_I1">BUFGCTRL9:PRESELECT_I1</a>
+</td>
+<td title="2.27.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.IGNORE1">~BUFGCTRL9:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.S1">~BUFGCTRL9:INV.S1</a>
+</td>
+<td title="2.27.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.CE1">~BUFGCTRL9:INV.CE1</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.26">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:TEST_I1">BUFGCTRL9:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.25">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:TEST_I0">BUFGCTRL9:TEST_I0</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.24">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I0">BUFGCTRL9:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.23">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I0">BUFGCTRL9:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.22">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I0">BUFGCTRL9:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I1">BUFGCTRL9:MUX.I1[1]</a>
+</td>
+<td title="2.27.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I1">BUFGCTRL9:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.20">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I1">BUFGCTRL9:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.19">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.S0">~BUFGCTRL9:INV.S0</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:PRESELECT_I0">~BUFGCTRL9:PRESELECT_I0</a>
+</td>
+<td title="2.27.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.CE0">~BUFGCTRL9:INV.CE0</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.17">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.IGNORE0">~BUFGCTRL9:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.16">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL9:CREATE_EDGE">BUFGCTRL9:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.15">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:ENABLE">BUFGCTRL8:ENABLE</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:ENABLE.FB">BUFGCTRL8:ENABLE.FB</a>
+</td>
+<td title="2.27.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:ENABLE.GCLK">BUFGCTRL8:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.13">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:INIT_OUT">BUFGCTRL8:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:PRESELECT_I1">BUFGCTRL8:PRESELECT_I1</a>
+</td>
+<td title="2.27.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.IGNORE1">~BUFGCTRL8:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.S1">~BUFGCTRL8:INV.S1</a>
+</td>
+<td title="2.27.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.CE1">~BUFGCTRL8:INV.CE1</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.10">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:TEST_I1">BUFGCTRL8:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.9">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:TEST_I0">BUFGCTRL8:TEST_I0</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.8">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I0">BUFGCTRL8:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.7">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I0">BUFGCTRL8:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.6">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I0">BUFGCTRL8:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I1">BUFGCTRL8:MUX.I1[1]</a>
+</td>
+<td title="2.27.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I1">BUFGCTRL8:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.4">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I1">BUFGCTRL8:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.3">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.S0">~BUFGCTRL8:INV.S0</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:PRESELECT_I0">~BUFGCTRL8:PRESELECT_I0</a>
+</td>
+<td title="2.27.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.CE0">~BUFGCTRL8:INV.CE0</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.26.1">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.IGNORE0">~BUFGCTRL8:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.27.0">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL8:CREATE_EDGE">BUFGCTRL8:CREATE_EDGE</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex7 CLK_BUFG bittile 3</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.63">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:ENABLE">BUFGCTRL15:ENABLE</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:ENABLE.FB">BUFGCTRL15:ENABLE.FB</a>
+</td>
+<td title="3.27.62">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:ENABLE.GCLK">BUFGCTRL15:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.61">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:INIT_OUT">BUFGCTRL15:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:PRESELECT_I1">BUFGCTRL15:PRESELECT_I1</a>
+</td>
+<td title="3.27.60">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.IGNORE1">~BUFGCTRL15:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.S1">~BUFGCTRL15:INV.S1</a>
+</td>
+<td title="3.27.59">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.CE1">~BUFGCTRL15:INV.CE1</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.58">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:TEST_I1">BUFGCTRL15:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.57">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:TEST_I0">BUFGCTRL15:TEST_I0</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.56">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I0">BUFGCTRL15:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.55">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I0">BUFGCTRL15:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.54">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I0">BUFGCTRL15:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I1">BUFGCTRL15:MUX.I1[1]</a>
+</td>
+<td title="3.27.53">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I1">BUFGCTRL15:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.52">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I1">BUFGCTRL15:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.51">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.S0">~BUFGCTRL15:INV.S0</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:PRESELECT_I0">~BUFGCTRL15:PRESELECT_I0</a>
+</td>
+<td title="3.27.50">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.CE0">~BUFGCTRL15:INV.CE0</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.49">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.IGNORE0">~BUFGCTRL15:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.48">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL15:CREATE_EDGE">BUFGCTRL15:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.47">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:ENABLE">BUFGCTRL14:ENABLE</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:ENABLE.FB">BUFGCTRL14:ENABLE.FB</a>
+</td>
+<td title="3.27.46">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:ENABLE.GCLK">BUFGCTRL14:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.45">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:INIT_OUT">BUFGCTRL14:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:PRESELECT_I1">BUFGCTRL14:PRESELECT_I1</a>
+</td>
+<td title="3.27.44">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.IGNORE1">~BUFGCTRL14:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.S1">~BUFGCTRL14:INV.S1</a>
+</td>
+<td title="3.27.43">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.CE1">~BUFGCTRL14:INV.CE1</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.42">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:TEST_I1">BUFGCTRL14:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.41">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:TEST_I0">BUFGCTRL14:TEST_I0</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.40">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I0">BUFGCTRL14:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.39">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I0">BUFGCTRL14:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.38">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I0">BUFGCTRL14:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I1">BUFGCTRL14:MUX.I1[1]</a>
+</td>
+<td title="3.27.37">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I1">BUFGCTRL14:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.36">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I1">BUFGCTRL14:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.35">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.S0">~BUFGCTRL14:INV.S0</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:PRESELECT_I0">~BUFGCTRL14:PRESELECT_I0</a>
+</td>
+<td title="3.27.34">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.CE0">~BUFGCTRL14:INV.CE0</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.33">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.IGNORE0">~BUFGCTRL14:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.32">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL14:CREATE_EDGE">BUFGCTRL14:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.31">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:ENABLE">BUFGCTRL13:ENABLE</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:ENABLE.FB">BUFGCTRL13:ENABLE.FB</a>
+</td>
+<td title="3.27.30">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:ENABLE.GCLK">BUFGCTRL13:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.29">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:INIT_OUT">BUFGCTRL13:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:PRESELECT_I1">BUFGCTRL13:PRESELECT_I1</a>
+</td>
+<td title="3.27.28">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.IGNORE1">~BUFGCTRL13:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.S1">~BUFGCTRL13:INV.S1</a>
+</td>
+<td title="3.27.27">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.CE1">~BUFGCTRL13:INV.CE1</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.26">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:TEST_I1">BUFGCTRL13:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.25">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:TEST_I0">BUFGCTRL13:TEST_I0</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.24">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I0">BUFGCTRL13:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.23">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I0">BUFGCTRL13:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.22">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I0">BUFGCTRL13:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I1">BUFGCTRL13:MUX.I1[1]</a>
+</td>
+<td title="3.27.21">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I1">BUFGCTRL13:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.20">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I1">BUFGCTRL13:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.19">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.S0">~BUFGCTRL13:INV.S0</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:PRESELECT_I0">~BUFGCTRL13:PRESELECT_I0</a>
+</td>
+<td title="3.27.18">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.CE0">~BUFGCTRL13:INV.CE0</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.17">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.IGNORE0">~BUFGCTRL13:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.16">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL13:CREATE_EDGE">BUFGCTRL13:CREATE_EDGE</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.15">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:ENABLE">BUFGCTRL12:ENABLE</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:ENABLE.FB">BUFGCTRL12:ENABLE.FB</a>
+</td>
+<td title="3.27.14">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:ENABLE.GCLK">BUFGCTRL12:ENABLE.GCLK</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.13">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:INIT_OUT">BUFGCTRL12:INIT_OUT</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:PRESELECT_I1">BUFGCTRL12:PRESELECT_I1</a>
+</td>
+<td title="3.27.12">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.IGNORE1">~BUFGCTRL12:INV.IGNORE1</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.S1">~BUFGCTRL12:INV.S1</a>
+</td>
+<td title="3.27.11">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.CE1">~BUFGCTRL12:INV.CE1</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.10">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:TEST_I1">BUFGCTRL12:TEST_I1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.9">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:TEST_I0">BUFGCTRL12:TEST_I0</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.8">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I0">BUFGCTRL12:MUX.I0[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.7">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I0">BUFGCTRL12:MUX.I0[2]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.6">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I0">BUFGCTRL12:MUX.I0[1]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I1">BUFGCTRL12:MUX.I1[1]</a>
+</td>
+<td title="3.27.5">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I1">BUFGCTRL12:MUX.I1[2]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.4">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I1">BUFGCTRL12:MUX.I1[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.3">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.S0">~BUFGCTRL12:INV.S0</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:PRESELECT_I0">~BUFGCTRL12:PRESELECT_I0</a>
+</td>
+<td title="3.27.2">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.CE0">~BUFGCTRL12:INV.CE0</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.26.1">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.IGNORE0">~BUFGCTRL12:INV.IGNORE0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.27.0">
+<a href="#tile-virtex7-CLK_BUFG-BUFGCTRL12:CREATE_EDGE">BUFGCTRL12:CREATE_EDGE</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:CREATE_EDGE">BUFGCTRL0:CREATE_EDGE</th>
+<th>0.27.0</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:ENABLE">BUFGCTRL0:ENABLE</th>
+<th>0.27.15</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:ENABLE.FB">BUFGCTRL0:ENABLE.FB</th>
+<th>0.26.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:ENABLE.GCLK">BUFGCTRL0:ENABLE.GCLK</th>
+<th>0.27.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:INIT_OUT">BUFGCTRL0:INIT_OUT</th>
+<th>0.27.13</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:PRESELECT_I1">BUFGCTRL0:PRESELECT_I1</th>
+<th>0.26.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:TEST_I0">BUFGCTRL0:TEST_I0</th>
+<th>0.27.9</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:TEST_I1">BUFGCTRL0:TEST_I1</th>
+<th>0.26.10</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:CREATE_EDGE">BUFGCTRL10:CREATE_EDGE</th>
+<th>2.27.32</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:ENABLE">BUFGCTRL10:ENABLE</th>
+<th>2.27.47</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:ENABLE.FB">BUFGCTRL10:ENABLE.FB</th>
+<th>2.26.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:ENABLE.GCLK">BUFGCTRL10:ENABLE.GCLK</th>
+<th>2.27.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:INIT_OUT">BUFGCTRL10:INIT_OUT</th>
+<th>2.27.45</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:PRESELECT_I1">BUFGCTRL10:PRESELECT_I1</th>
+<th>2.26.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:TEST_I0">BUFGCTRL10:TEST_I0</th>
+<th>2.27.41</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:TEST_I1">BUFGCTRL10:TEST_I1</th>
+<th>2.26.42</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:CREATE_EDGE">BUFGCTRL11:CREATE_EDGE</th>
+<th>2.27.48</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:ENABLE">BUFGCTRL11:ENABLE</th>
+<th>2.27.63</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:ENABLE.FB">BUFGCTRL11:ENABLE.FB</th>
+<th>2.26.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:ENABLE.GCLK">BUFGCTRL11:ENABLE.GCLK</th>
+<th>2.27.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:INIT_OUT">BUFGCTRL11:INIT_OUT</th>
+<th>2.27.61</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:PRESELECT_I1">BUFGCTRL11:PRESELECT_I1</th>
+<th>2.26.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:TEST_I0">BUFGCTRL11:TEST_I0</th>
+<th>2.27.57</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:TEST_I1">BUFGCTRL11:TEST_I1</th>
+<th>2.26.58</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:CREATE_EDGE">BUFGCTRL12:CREATE_EDGE</th>
+<th>3.27.0</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:ENABLE">BUFGCTRL12:ENABLE</th>
+<th>3.27.15</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:ENABLE.FB">BUFGCTRL12:ENABLE.FB</th>
+<th>3.26.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:ENABLE.GCLK">BUFGCTRL12:ENABLE.GCLK</th>
+<th>3.27.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:INIT_OUT">BUFGCTRL12:INIT_OUT</th>
+<th>3.27.13</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:PRESELECT_I1">BUFGCTRL12:PRESELECT_I1</th>
+<th>3.26.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:TEST_I0">BUFGCTRL12:TEST_I0</th>
+<th>3.27.9</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:TEST_I1">BUFGCTRL12:TEST_I1</th>
+<th>3.26.10</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:CREATE_EDGE">BUFGCTRL13:CREATE_EDGE</th>
+<th>3.27.16</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:ENABLE">BUFGCTRL13:ENABLE</th>
+<th>3.27.31</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:ENABLE.FB">BUFGCTRL13:ENABLE.FB</th>
+<th>3.26.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:ENABLE.GCLK">BUFGCTRL13:ENABLE.GCLK</th>
+<th>3.27.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:INIT_OUT">BUFGCTRL13:INIT_OUT</th>
+<th>3.27.29</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:PRESELECT_I1">BUFGCTRL13:PRESELECT_I1</th>
+<th>3.26.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:TEST_I0">BUFGCTRL13:TEST_I0</th>
+<th>3.27.25</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:TEST_I1">BUFGCTRL13:TEST_I1</th>
+<th>3.26.26</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:CREATE_EDGE">BUFGCTRL14:CREATE_EDGE</th>
+<th>3.27.32</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:ENABLE">BUFGCTRL14:ENABLE</th>
+<th>3.27.47</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:ENABLE.FB">BUFGCTRL14:ENABLE.FB</th>
+<th>3.26.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:ENABLE.GCLK">BUFGCTRL14:ENABLE.GCLK</th>
+<th>3.27.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:INIT_OUT">BUFGCTRL14:INIT_OUT</th>
+<th>3.27.45</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:PRESELECT_I1">BUFGCTRL14:PRESELECT_I1</th>
+<th>3.26.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:TEST_I0">BUFGCTRL14:TEST_I0</th>
+<th>3.27.41</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:TEST_I1">BUFGCTRL14:TEST_I1</th>
+<th>3.26.42</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:CREATE_EDGE">BUFGCTRL15:CREATE_EDGE</th>
+<th>3.27.48</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:ENABLE">BUFGCTRL15:ENABLE</th>
+<th>3.27.63</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:ENABLE.FB">BUFGCTRL15:ENABLE.FB</th>
+<th>3.26.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:ENABLE.GCLK">BUFGCTRL15:ENABLE.GCLK</th>
+<th>3.27.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:INIT_OUT">BUFGCTRL15:INIT_OUT</th>
+<th>3.27.61</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:PRESELECT_I1">BUFGCTRL15:PRESELECT_I1</th>
+<th>3.26.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:TEST_I0">BUFGCTRL15:TEST_I0</th>
+<th>3.27.57</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:TEST_I1">BUFGCTRL15:TEST_I1</th>
+<th>3.26.58</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:CREATE_EDGE">BUFGCTRL1:CREATE_EDGE</th>
+<th>0.27.16</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:ENABLE">BUFGCTRL1:ENABLE</th>
+<th>0.27.31</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:ENABLE.FB">BUFGCTRL1:ENABLE.FB</th>
+<th>0.26.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:ENABLE.GCLK">BUFGCTRL1:ENABLE.GCLK</th>
+<th>0.27.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:INIT_OUT">BUFGCTRL1:INIT_OUT</th>
+<th>0.27.29</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:PRESELECT_I1">BUFGCTRL1:PRESELECT_I1</th>
+<th>0.26.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:TEST_I0">BUFGCTRL1:TEST_I0</th>
+<th>0.27.25</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:TEST_I1">BUFGCTRL1:TEST_I1</th>
+<th>0.26.26</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:CREATE_EDGE">BUFGCTRL2:CREATE_EDGE</th>
+<th>0.27.32</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:ENABLE">BUFGCTRL2:ENABLE</th>
+<th>0.27.47</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:ENABLE.FB">BUFGCTRL2:ENABLE.FB</th>
+<th>0.26.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:ENABLE.GCLK">BUFGCTRL2:ENABLE.GCLK</th>
+<th>0.27.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:INIT_OUT">BUFGCTRL2:INIT_OUT</th>
+<th>0.27.45</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:PRESELECT_I1">BUFGCTRL2:PRESELECT_I1</th>
+<th>0.26.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:TEST_I0">BUFGCTRL2:TEST_I0</th>
+<th>0.27.41</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:TEST_I1">BUFGCTRL2:TEST_I1</th>
+<th>0.26.42</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:CREATE_EDGE">BUFGCTRL3:CREATE_EDGE</th>
+<th>0.27.48</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:ENABLE">BUFGCTRL3:ENABLE</th>
+<th>0.27.63</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:ENABLE.FB">BUFGCTRL3:ENABLE.FB</th>
+<th>0.26.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:ENABLE.GCLK">BUFGCTRL3:ENABLE.GCLK</th>
+<th>0.27.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:INIT_OUT">BUFGCTRL3:INIT_OUT</th>
+<th>0.27.61</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:PRESELECT_I1">BUFGCTRL3:PRESELECT_I1</th>
+<th>0.26.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:TEST_I0">BUFGCTRL3:TEST_I0</th>
+<th>0.27.57</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:TEST_I1">BUFGCTRL3:TEST_I1</th>
+<th>0.26.58</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:CREATE_EDGE">BUFGCTRL4:CREATE_EDGE</th>
+<th>1.27.0</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:ENABLE">BUFGCTRL4:ENABLE</th>
+<th>1.27.15</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:ENABLE.FB">BUFGCTRL4:ENABLE.FB</th>
+<th>1.26.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:ENABLE.GCLK">BUFGCTRL4:ENABLE.GCLK</th>
+<th>1.27.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:INIT_OUT">BUFGCTRL4:INIT_OUT</th>
+<th>1.27.13</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:PRESELECT_I1">BUFGCTRL4:PRESELECT_I1</th>
+<th>1.26.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:TEST_I0">BUFGCTRL4:TEST_I0</th>
+<th>1.27.9</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:TEST_I1">BUFGCTRL4:TEST_I1</th>
+<th>1.26.10</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:CREATE_EDGE">BUFGCTRL5:CREATE_EDGE</th>
+<th>1.27.16</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:ENABLE">BUFGCTRL5:ENABLE</th>
+<th>1.27.31</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:ENABLE.FB">BUFGCTRL5:ENABLE.FB</th>
+<th>1.26.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:ENABLE.GCLK">BUFGCTRL5:ENABLE.GCLK</th>
+<th>1.27.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:INIT_OUT">BUFGCTRL5:INIT_OUT</th>
+<th>1.27.29</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:PRESELECT_I1">BUFGCTRL5:PRESELECT_I1</th>
+<th>1.26.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:TEST_I0">BUFGCTRL5:TEST_I0</th>
+<th>1.27.25</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:TEST_I1">BUFGCTRL5:TEST_I1</th>
+<th>1.26.26</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:CREATE_EDGE">BUFGCTRL6:CREATE_EDGE</th>
+<th>1.27.32</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:ENABLE">BUFGCTRL6:ENABLE</th>
+<th>1.27.47</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:ENABLE.FB">BUFGCTRL6:ENABLE.FB</th>
+<th>1.26.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:ENABLE.GCLK">BUFGCTRL6:ENABLE.GCLK</th>
+<th>1.27.46</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:INIT_OUT">BUFGCTRL6:INIT_OUT</th>
+<th>1.27.45</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:PRESELECT_I1">BUFGCTRL6:PRESELECT_I1</th>
+<th>1.26.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:TEST_I0">BUFGCTRL6:TEST_I0</th>
+<th>1.27.41</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:TEST_I1">BUFGCTRL6:TEST_I1</th>
+<th>1.26.42</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:CREATE_EDGE">BUFGCTRL7:CREATE_EDGE</th>
+<th>1.27.48</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:ENABLE">BUFGCTRL7:ENABLE</th>
+<th>1.27.63</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:ENABLE.FB">BUFGCTRL7:ENABLE.FB</th>
+<th>1.26.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:ENABLE.GCLK">BUFGCTRL7:ENABLE.GCLK</th>
+<th>1.27.62</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:INIT_OUT">BUFGCTRL7:INIT_OUT</th>
+<th>1.27.61</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:PRESELECT_I1">BUFGCTRL7:PRESELECT_I1</th>
+<th>1.26.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:TEST_I0">BUFGCTRL7:TEST_I0</th>
+<th>1.27.57</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:TEST_I1">BUFGCTRL7:TEST_I1</th>
+<th>1.26.58</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:CREATE_EDGE">BUFGCTRL8:CREATE_EDGE</th>
+<th>2.27.0</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:ENABLE">BUFGCTRL8:ENABLE</th>
+<th>2.27.15</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:ENABLE.FB">BUFGCTRL8:ENABLE.FB</th>
+<th>2.26.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:ENABLE.GCLK">BUFGCTRL8:ENABLE.GCLK</th>
+<th>2.27.14</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:INIT_OUT">BUFGCTRL8:INIT_OUT</th>
+<th>2.27.13</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:PRESELECT_I1">BUFGCTRL8:PRESELECT_I1</th>
+<th>2.26.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:TEST_I0">BUFGCTRL8:TEST_I0</th>
+<th>2.27.9</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:TEST_I1">BUFGCTRL8:TEST_I1</th>
+<th>2.26.10</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:CREATE_EDGE">BUFGCTRL9:CREATE_EDGE</th>
+<th>2.27.16</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:ENABLE">BUFGCTRL9:ENABLE</th>
+<th>2.27.31</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:ENABLE.FB">BUFGCTRL9:ENABLE.FB</th>
+<th>2.26.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:ENABLE.GCLK">BUFGCTRL9:ENABLE.GCLK</th>
+<th>2.27.30</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:INIT_OUT">BUFGCTRL9:INIT_OUT</th>
+<th>2.27.29</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:PRESELECT_I1">BUFGCTRL9:PRESELECT_I1</th>
+<th>2.26.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:TEST_I0">BUFGCTRL9:TEST_I0</th>
+<th>2.27.25</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:TEST_I1">BUFGCTRL9:TEST_I1</th>
+<th>2.26.26</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.CE0">BUFGCTRL0:INV.CE0</th>
+<th>0.27.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.CE1">BUFGCTRL0:INV.CE1</th>
+<th>0.27.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.IGNORE0">BUFGCTRL0:INV.IGNORE0</th>
+<th>0.26.1</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.IGNORE1">BUFGCTRL0:INV.IGNORE1</th>
+<th>0.27.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.S0">BUFGCTRL0:INV.S0</th>
+<th>0.27.3</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:INV.S1">BUFGCTRL0:INV.S1</th>
+<th>0.26.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:PRESELECT_I0">BUFGCTRL0:PRESELECT_I0</th>
+<th>0.26.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.CE0">BUFGCTRL10:INV.CE0</th>
+<th>2.27.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.CE1">BUFGCTRL10:INV.CE1</th>
+<th>2.27.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.IGNORE0">BUFGCTRL10:INV.IGNORE0</th>
+<th>2.26.33</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.IGNORE1">BUFGCTRL10:INV.IGNORE1</th>
+<th>2.27.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.S0">BUFGCTRL10:INV.S0</th>
+<th>2.27.35</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:INV.S1">BUFGCTRL10:INV.S1</th>
+<th>2.26.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:PRESELECT_I0">BUFGCTRL10:PRESELECT_I0</th>
+<th>2.26.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.CE0">BUFGCTRL11:INV.CE0</th>
+<th>2.27.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.CE1">BUFGCTRL11:INV.CE1</th>
+<th>2.27.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.IGNORE0">BUFGCTRL11:INV.IGNORE0</th>
+<th>2.26.49</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.IGNORE1">BUFGCTRL11:INV.IGNORE1</th>
+<th>2.27.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.S0">BUFGCTRL11:INV.S0</th>
+<th>2.27.51</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:INV.S1">BUFGCTRL11:INV.S1</th>
+<th>2.26.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:PRESELECT_I0">BUFGCTRL11:PRESELECT_I0</th>
+<th>2.26.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.CE0">BUFGCTRL12:INV.CE0</th>
+<th>3.27.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.CE1">BUFGCTRL12:INV.CE1</th>
+<th>3.27.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.IGNORE0">BUFGCTRL12:INV.IGNORE0</th>
+<th>3.26.1</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.IGNORE1">BUFGCTRL12:INV.IGNORE1</th>
+<th>3.27.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.S0">BUFGCTRL12:INV.S0</th>
+<th>3.27.3</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:INV.S1">BUFGCTRL12:INV.S1</th>
+<th>3.26.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:PRESELECT_I0">BUFGCTRL12:PRESELECT_I0</th>
+<th>3.26.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.CE0">BUFGCTRL13:INV.CE0</th>
+<th>3.27.18</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.CE1">BUFGCTRL13:INV.CE1</th>
+<th>3.27.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.IGNORE0">BUFGCTRL13:INV.IGNORE0</th>
+<th>3.26.17</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.IGNORE1">BUFGCTRL13:INV.IGNORE1</th>
+<th>3.27.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.S0">BUFGCTRL13:INV.S0</th>
+<th>3.27.19</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:INV.S1">BUFGCTRL13:INV.S1</th>
+<th>3.26.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:PRESELECT_I0">BUFGCTRL13:PRESELECT_I0</th>
+<th>3.26.18</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.CE0">BUFGCTRL14:INV.CE0</th>
+<th>3.27.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.CE1">BUFGCTRL14:INV.CE1</th>
+<th>3.27.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.IGNORE0">BUFGCTRL14:INV.IGNORE0</th>
+<th>3.26.33</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.IGNORE1">BUFGCTRL14:INV.IGNORE1</th>
+<th>3.27.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.S0">BUFGCTRL14:INV.S0</th>
+<th>3.27.35</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:INV.S1">BUFGCTRL14:INV.S1</th>
+<th>3.26.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:PRESELECT_I0">BUFGCTRL14:PRESELECT_I0</th>
+<th>3.26.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.CE0">BUFGCTRL15:INV.CE0</th>
+<th>3.27.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.CE1">BUFGCTRL15:INV.CE1</th>
+<th>3.27.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.IGNORE0">BUFGCTRL15:INV.IGNORE0</th>
+<th>3.26.49</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.IGNORE1">BUFGCTRL15:INV.IGNORE1</th>
+<th>3.27.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.S0">BUFGCTRL15:INV.S0</th>
+<th>3.27.51</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:INV.S1">BUFGCTRL15:INV.S1</th>
+<th>3.26.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:PRESELECT_I0">BUFGCTRL15:PRESELECT_I0</th>
+<th>3.26.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.CE0">BUFGCTRL1:INV.CE0</th>
+<th>0.27.18</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.CE1">BUFGCTRL1:INV.CE1</th>
+<th>0.27.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.IGNORE0">BUFGCTRL1:INV.IGNORE0</th>
+<th>0.26.17</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.IGNORE1">BUFGCTRL1:INV.IGNORE1</th>
+<th>0.27.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.S0">BUFGCTRL1:INV.S0</th>
+<th>0.27.19</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:INV.S1">BUFGCTRL1:INV.S1</th>
+<th>0.26.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:PRESELECT_I0">BUFGCTRL1:PRESELECT_I0</th>
+<th>0.26.18</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.CE0">BUFGCTRL2:INV.CE0</th>
+<th>0.27.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.CE1">BUFGCTRL2:INV.CE1</th>
+<th>0.27.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.IGNORE0">BUFGCTRL2:INV.IGNORE0</th>
+<th>0.26.33</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.IGNORE1">BUFGCTRL2:INV.IGNORE1</th>
+<th>0.27.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.S0">BUFGCTRL2:INV.S0</th>
+<th>0.27.35</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:INV.S1">BUFGCTRL2:INV.S1</th>
+<th>0.26.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:PRESELECT_I0">BUFGCTRL2:PRESELECT_I0</th>
+<th>0.26.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.CE0">BUFGCTRL3:INV.CE0</th>
+<th>0.27.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.CE1">BUFGCTRL3:INV.CE1</th>
+<th>0.27.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.IGNORE0">BUFGCTRL3:INV.IGNORE0</th>
+<th>0.26.49</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.IGNORE1">BUFGCTRL3:INV.IGNORE1</th>
+<th>0.27.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.S0">BUFGCTRL3:INV.S0</th>
+<th>0.27.51</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:INV.S1">BUFGCTRL3:INV.S1</th>
+<th>0.26.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:PRESELECT_I0">BUFGCTRL3:PRESELECT_I0</th>
+<th>0.26.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.CE0">BUFGCTRL4:INV.CE0</th>
+<th>1.27.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.CE1">BUFGCTRL4:INV.CE1</th>
+<th>1.27.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.IGNORE0">BUFGCTRL4:INV.IGNORE0</th>
+<th>1.26.1</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.IGNORE1">BUFGCTRL4:INV.IGNORE1</th>
+<th>1.27.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.S0">BUFGCTRL4:INV.S0</th>
+<th>1.27.3</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:INV.S1">BUFGCTRL4:INV.S1</th>
+<th>1.26.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:PRESELECT_I0">BUFGCTRL4:PRESELECT_I0</th>
+<th>1.26.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.CE0">BUFGCTRL5:INV.CE0</th>
+<th>1.27.18</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.CE1">BUFGCTRL5:INV.CE1</th>
+<th>1.27.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.IGNORE0">BUFGCTRL5:INV.IGNORE0</th>
+<th>1.26.17</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.IGNORE1">BUFGCTRL5:INV.IGNORE1</th>
+<th>1.27.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.S0">BUFGCTRL5:INV.S0</th>
+<th>1.27.19</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:INV.S1">BUFGCTRL5:INV.S1</th>
+<th>1.26.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:PRESELECT_I0">BUFGCTRL5:PRESELECT_I0</th>
+<th>1.26.18</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.CE0">BUFGCTRL6:INV.CE0</th>
+<th>1.27.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.CE1">BUFGCTRL6:INV.CE1</th>
+<th>1.27.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.IGNORE0">BUFGCTRL6:INV.IGNORE0</th>
+<th>1.26.33</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.IGNORE1">BUFGCTRL6:INV.IGNORE1</th>
+<th>1.27.44</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.S0">BUFGCTRL6:INV.S0</th>
+<th>1.27.35</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:INV.S1">BUFGCTRL6:INV.S1</th>
+<th>1.26.43</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:PRESELECT_I0">BUFGCTRL6:PRESELECT_I0</th>
+<th>1.26.34</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.CE0">BUFGCTRL7:INV.CE0</th>
+<th>1.27.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.CE1">BUFGCTRL7:INV.CE1</th>
+<th>1.27.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.IGNORE0">BUFGCTRL7:INV.IGNORE0</th>
+<th>1.26.49</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.IGNORE1">BUFGCTRL7:INV.IGNORE1</th>
+<th>1.27.60</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.S0">BUFGCTRL7:INV.S0</th>
+<th>1.27.51</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:INV.S1">BUFGCTRL7:INV.S1</th>
+<th>1.26.59</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:PRESELECT_I0">BUFGCTRL7:PRESELECT_I0</th>
+<th>1.26.50</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.CE0">BUFGCTRL8:INV.CE0</th>
+<th>2.27.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.CE1">BUFGCTRL8:INV.CE1</th>
+<th>2.27.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.IGNORE0">BUFGCTRL8:INV.IGNORE0</th>
+<th>2.26.1</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.IGNORE1">BUFGCTRL8:INV.IGNORE1</th>
+<th>2.27.12</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.S0">BUFGCTRL8:INV.S0</th>
+<th>2.27.3</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:INV.S1">BUFGCTRL8:INV.S1</th>
+<th>2.26.11</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:PRESELECT_I0">BUFGCTRL8:PRESELECT_I0</th>
+<th>2.26.2</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.CE0">BUFGCTRL9:INV.CE0</th>
+<th>2.27.18</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.CE1">BUFGCTRL9:INV.CE1</th>
+<th>2.27.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.IGNORE0">BUFGCTRL9:INV.IGNORE0</th>
+<th>2.26.17</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.IGNORE1">BUFGCTRL9:INV.IGNORE1</th>
+<th>2.27.28</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.S0">BUFGCTRL9:INV.S0</th>
+<th>2.27.19</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:INV.S1">BUFGCTRL9:INV.S1</th>
+<th>2.26.27</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:PRESELECT_I0">BUFGCTRL9:PRESELECT_I0</th>
+<th>2.26.18</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I0">BUFGCTRL0:MUX.I0</th>
+<th>0.26.7</th>
+<th>0.27.6</th>
+<th>0.26.8</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL0:MUX.I1">BUFGCTRL0:MUX.I1</th>
+<th>0.27.5</th>
+<th>0.26.5</th>
+<th>0.26.4</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I0">BUFGCTRL10:MUX.I0</th>
+<th>2.26.39</th>
+<th>2.27.38</th>
+<th>2.26.40</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL10:MUX.I1">BUFGCTRL10:MUX.I1</th>
+<th>2.27.37</th>
+<th>2.26.37</th>
+<th>2.26.36</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I0">BUFGCTRL11:MUX.I0</th>
+<th>2.26.55</th>
+<th>2.27.54</th>
+<th>2.26.56</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL11:MUX.I1">BUFGCTRL11:MUX.I1</th>
+<th>2.27.53</th>
+<th>2.26.53</th>
+<th>2.26.52</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I0">BUFGCTRL12:MUX.I0</th>
+<th>3.26.7</th>
+<th>3.27.6</th>
+<th>3.26.8</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL12:MUX.I1">BUFGCTRL12:MUX.I1</th>
+<th>3.27.5</th>
+<th>3.26.5</th>
+<th>3.26.4</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I0">BUFGCTRL13:MUX.I0</th>
+<th>3.26.23</th>
+<th>3.27.22</th>
+<th>3.26.24</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL13:MUX.I1">BUFGCTRL13:MUX.I1</th>
+<th>3.27.21</th>
+<th>3.26.21</th>
+<th>3.26.20</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I0">BUFGCTRL14:MUX.I0</th>
+<th>3.26.39</th>
+<th>3.27.38</th>
+<th>3.26.40</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL14:MUX.I1">BUFGCTRL14:MUX.I1</th>
+<th>3.27.37</th>
+<th>3.26.37</th>
+<th>3.26.36</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I0">BUFGCTRL15:MUX.I0</th>
+<th>3.26.55</th>
+<th>3.27.54</th>
+<th>3.26.56</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL15:MUX.I1">BUFGCTRL15:MUX.I1</th>
+<th>3.27.53</th>
+<th>3.26.53</th>
+<th>3.26.52</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I0">BUFGCTRL1:MUX.I0</th>
+<th>0.26.23</th>
+<th>0.27.22</th>
+<th>0.26.24</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL1:MUX.I1">BUFGCTRL1:MUX.I1</th>
+<th>0.27.21</th>
+<th>0.26.21</th>
+<th>0.26.20</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I0">BUFGCTRL2:MUX.I0</th>
+<th>0.26.39</th>
+<th>0.27.38</th>
+<th>0.26.40</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL2:MUX.I1">BUFGCTRL2:MUX.I1</th>
+<th>0.27.37</th>
+<th>0.26.37</th>
+<th>0.26.36</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I0">BUFGCTRL3:MUX.I0</th>
+<th>0.26.55</th>
+<th>0.27.54</th>
+<th>0.26.56</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL3:MUX.I1">BUFGCTRL3:MUX.I1</th>
+<th>0.27.53</th>
+<th>0.26.53</th>
+<th>0.26.52</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I0">BUFGCTRL4:MUX.I0</th>
+<th>1.26.7</th>
+<th>1.27.6</th>
+<th>1.26.8</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL4:MUX.I1">BUFGCTRL4:MUX.I1</th>
+<th>1.27.5</th>
+<th>1.26.5</th>
+<th>1.26.4</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I0">BUFGCTRL5:MUX.I0</th>
+<th>1.26.23</th>
+<th>1.27.22</th>
+<th>1.26.24</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL5:MUX.I1">BUFGCTRL5:MUX.I1</th>
+<th>1.27.21</th>
+<th>1.26.21</th>
+<th>1.26.20</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I0">BUFGCTRL6:MUX.I0</th>
+<th>1.26.39</th>
+<th>1.27.38</th>
+<th>1.26.40</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL6:MUX.I1">BUFGCTRL6:MUX.I1</th>
+<th>1.27.37</th>
+<th>1.26.37</th>
+<th>1.26.36</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I0">BUFGCTRL7:MUX.I0</th>
+<th>1.26.55</th>
+<th>1.27.54</th>
+<th>1.26.56</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL7:MUX.I1">BUFGCTRL7:MUX.I1</th>
+<th>1.27.53</th>
+<th>1.26.53</th>
+<th>1.26.52</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I0">BUFGCTRL8:MUX.I0</th>
+<th>2.26.7</th>
+<th>2.27.6</th>
+<th>2.26.8</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL8:MUX.I1">BUFGCTRL8:MUX.I1</th>
+<th>2.27.5</th>
+<th>2.26.5</th>
+<th>2.26.4</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I0">BUFGCTRL9:MUX.I0</th>
+<th>2.26.23</th>
+<th>2.27.22</th>
+<th>2.26.24</th>
+</tr>
+<tr><th id="tile-virtex7-CLK_BUFG-BUFGCTRL9:MUX.I1">BUFGCTRL9:MUX.I1</th>
+<th>2.27.21</th>
+<th>2.26.21</th>
+<th>2.26.20</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CKINT1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>CASCI</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>CKINT0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>FB_PREV</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>FB_NEXT</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../virtex7/clock/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../virtex7/clock/hrow.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../virtex7/clock/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../virtex7/clock/hrow.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

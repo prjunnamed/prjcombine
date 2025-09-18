@@ -1,0 +1,2614 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Input / Output - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="input--output"><a class="header" href="#input--output">Input / Output</a></h1>
+<p>TODO: document</p>
+<h2 id="io-interface"><a class="header" href="#io-interface">I/O interface</a></h2>
+<p>TODO: document</p>
+<h2 id="tile-ioifc"><a class="header" href="#tile-ioifc">Tile IOI.FC</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-ibuf0"><a class="header" href="#bel-ibuf0">Bel IBUF0</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel IBUF0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.DATA8</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK0</td></tr>
+<tr><td>I</td><td>output</td><td>OUT.FAN4</td></tr>
+<tr><td>IQ</td><td>output</td><td>OUT.SEC8</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA0</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.DATA12</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-ibuf1"><a class="header" href="#bel-ibuf1">Bel IBUF1</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel IBUF1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.DATA9</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK2</td></tr>
+<tr><td>I</td><td>output</td><td>OUT.FAN5</td></tr>
+<tr><td>IQ</td><td>output</td><td>OUT.SEC9</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA1</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.DATA13</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-ibuf2"><a class="header" href="#bel-ibuf2">Bel IBUF2</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel IBUF2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.DATA10</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK4</td></tr>
+<tr><td>I</td><td>output</td><td>OUT.FAN6</td></tr>
+<tr><td>IQ</td><td>output</td><td>OUT.SEC10</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA2</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.DATA14</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-ibuf3"><a class="header" href="#bel-ibuf3">Bel IBUF3</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel IBUF3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.DATA11</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK6</td></tr>
+<tr><td>I</td><td>output</td><td>OUT.FAN7</td></tr>
+<tr><td>IQ</td><td>output</td><td>OUT.SEC11</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA3</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.DATA15</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-obuf0"><a class="header" href="#bel-obuf0">Bel OBUF0</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel OBUF0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.CE0</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK1</td></tr>
+<tr><td>O</td><td>input</td><td>IMUX.DATA24</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA4</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.SR0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-obuf1"><a class="header" href="#bel-obuf1">Bel OBUF1</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel OBUF1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.CE1</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK3</td></tr>
+<tr><td>O</td><td>input</td><td>IMUX.DATA25</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA5</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.SR1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-obuf2"><a class="header" href="#bel-obuf2">Bel OBUF2</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel OBUF2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.CE2</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK5</td></tr>
+<tr><td>O</td><td>input</td><td>IMUX.DATA26</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA6</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.SR2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-obuf3"><a class="header" href="#bel-obuf3">Bel OBUF3</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel OBUF3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX.CE3</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX.IOCLK7</td></tr>
+<tr><td>O</td><td>input</td><td>IMUX.DATA27</td></tr>
+<tr><td>REV</td><td>input</td><td>IMUX.DATA7</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX.SR3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX.SR0</td><td>OBUF0.SR</td></tr>
+<tr><td>IMUX.SR1</td><td>OBUF1.SR</td></tr>
+<tr><td>IMUX.SR2</td><td>OBUF2.SR</td></tr>
+<tr><td>IMUX.SR3</td><td>OBUF3.SR</td></tr>
+<tr><td>IMUX.IOCLK0</td><td>IBUF0.CLK</td></tr>
+<tr><td>IMUX.IOCLK1</td><td>OBUF0.CLK</td></tr>
+<tr><td>IMUX.IOCLK2</td><td>IBUF1.CLK</td></tr>
+<tr><td>IMUX.IOCLK3</td><td>OBUF1.CLK</td></tr>
+<tr><td>IMUX.IOCLK4</td><td>IBUF2.CLK</td></tr>
+<tr><td>IMUX.IOCLK5</td><td>OBUF2.CLK</td></tr>
+<tr><td>IMUX.IOCLK6</td><td>IBUF3.CLK</td></tr>
+<tr><td>IMUX.IOCLK7</td><td>OBUF3.CLK</td></tr>
+<tr><td>IMUX.CE0</td><td>OBUF0.CE</td></tr>
+<tr><td>IMUX.CE1</td><td>OBUF1.CE</td></tr>
+<tr><td>IMUX.CE2</td><td>OBUF2.CE</td></tr>
+<tr><td>IMUX.CE3</td><td>OBUF3.CE</td></tr>
+<tr><td>IMUX.DATA0</td><td>IBUF0.REV</td></tr>
+<tr><td>IMUX.DATA1</td><td>IBUF1.REV</td></tr>
+<tr><td>IMUX.DATA2</td><td>IBUF2.REV</td></tr>
+<tr><td>IMUX.DATA3</td><td>IBUF3.REV</td></tr>
+<tr><td>IMUX.DATA4</td><td>OBUF0.REV</td></tr>
+<tr><td>IMUX.DATA5</td><td>OBUF1.REV</td></tr>
+<tr><td>IMUX.DATA6</td><td>OBUF2.REV</td></tr>
+<tr><td>IMUX.DATA7</td><td>OBUF3.REV</td></tr>
+<tr><td>IMUX.DATA8</td><td>IBUF0.CE</td></tr>
+<tr><td>IMUX.DATA9</td><td>IBUF1.CE</td></tr>
+<tr><td>IMUX.DATA10</td><td>IBUF2.CE</td></tr>
+<tr><td>IMUX.DATA11</td><td>IBUF3.CE</td></tr>
+<tr><td>IMUX.DATA12</td><td>IBUF0.SR</td></tr>
+<tr><td>IMUX.DATA13</td><td>IBUF1.SR</td></tr>
+<tr><td>IMUX.DATA14</td><td>IBUF2.SR</td></tr>
+<tr><td>IMUX.DATA15</td><td>IBUF3.SR</td></tr>
+<tr><td>IMUX.DATA24</td><td>OBUF0.O</td></tr>
+<tr><td>IMUX.DATA25</td><td>OBUF1.O</td></tr>
+<tr><td>IMUX.DATA26</td><td>OBUF2.O</td></tr>
+<tr><td>IMUX.DATA27</td><td>OBUF3.O</td></tr>
+<tr><td>OUT.FAN4</td><td>IBUF0.I</td></tr>
+<tr><td>OUT.FAN5</td><td>IBUF1.I</td></tr>
+<tr><td>OUT.FAN6</td><td>IBUF2.I</td></tr>
+<tr><td>OUT.FAN7</td><td>IBUF3.I</td></tr>
+<tr><td>OUT.SEC8</td><td>IBUF0.IQ</td></tr>
+<tr><td>OUT.SEC9</td><td>IBUF1.IQ</td></tr>
+<tr><td>OUT.SEC10</td><td>IBUF2.IQ</td></tr>
+<tr><td>OUT.SEC11</td><td>IBUF3.IQ</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOI.FC bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>63</td>
+<td title="0.0.63">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[7]</a>
+</td>
+<td>-</td>
+<td title="0.2.63">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[12]</a>
+</td>
+<td title="0.3.63">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:READBACK_I">IBUF3:READBACK_I</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td title="0.0.62">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[6]</a>
+</td>
+<td title="0.1.62">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[9]</a>
+</td>
+<td title="0.2.62">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[11]</a>
+</td>
+<td title="0.3.62">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:IFF_DELAY_ENABLE">IBUF3:IFF_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td title="0.0.61">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[5]</a>
+</td>
+<td title="0.1.61">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[8]</a>
+</td>
+<td>-</td>
+<td title="0.3.61">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:ENABLE_O2IQPATH">IBUF3:ENABLE_O2IQPATH</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td title="0.0.60">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>59</td>
+<td title="0.0.59">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[3]</a>
+</td>
+<td title="0.1.59">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:FF_SRVAL">~OBUF3:FF_SRVAL</a>
+</td>
+<td>-</td>
+<td title="0.3.59">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:ENABLE_O2I_O2IQ_PATH">IBUF3:ENABLE_O2I_O2IQ_PATH</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td title="0.0.58">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[2]</a>
+</td>
+<td title="0.1.58">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:INV.O">OBUF3:INV.O</a>
+</td>
+<td title="0.2.58">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[10]</a>
+</td>
+<td title="0.3.58">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[13]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td title="0.0.57">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[1]</a>
+</td>
+<td title="0.1.57">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:OMUX">OBUF3:OMUX[1]</a>
+</td>
+<td>-</td>
+<td title="0.3.57">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:ENABLE_O2IPATH">IBUF3:ENABLE_O2IPATH</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td title="0.1.56">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:FF_INIT">~OBUF3:FF_INIT</a>
+</td>
+<td>-</td>
+<td title="0.3.56">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:INV.REV">~IBUF3:INV.REV</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td title="0.0.55">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE[0]</a>
+</td>
+<td title="0.1.55">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:OMUX">OBUF3:OMUX[0]</a>
+</td>
+<td title="0.2.55">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:FF_LATCH">IBUF3:FF_LATCH</a>
+</td>
+<td title="0.3.55">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:I_DELAY_ENABLE">IBUF3:I_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td title="0.1.54">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:FF_REV_ENABLE">OBUF3:FF_REV_ENABLE</a>
+</td>
+<td title="0.2.54">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:FF_INIT">~IBUF3:FF_INIT</a>
+</td>
+<td title="0.3.54">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:INV.REV">~OBUF3:INV.REV</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td title="0.1.53">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:FF_SR_ENABLE">OBUF3:FF_SR_ENABLE</a>
+</td>
+<td title="0.2.53">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:FF_REV_ENABLE">IBUF3:FF_REV_ENABLE</a>
+</td>
+<td title="0.3.53">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:INV.CLK">~IBUF3:INV.CLK</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td title="0.1.52">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:FF_SR_SYNC">OBUF3:FF_SR_SYNC</a>
+</td>
+<td title="0.2.52">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:FF_SR_ENABLE">IBUF3:FF_SR_ENABLE</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.51">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:FF_SRVAL">~IBUF3:FF_SRVAL</a>
+</td>
+<td title="0.3.51">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:INV.CE">~IBUF3:INV.CE</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td title="0.1.50">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:FF_LATCH">OBUF3:FF_LATCH</a>
+</td>
+<td>-</td>
+<td title="0.3.50">
+<a href="#tile-fpgacore-IOI.FC-OBUF3:INV.CLK">~OBUF3:INV.CLK</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.48">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:FF_SR_SYNC">IBUF3:FF_SR_SYNC</a>
+</td>
+<td title="0.3.48">
+<a href="#tile-fpgacore-IOI.FC-IBUF3:INV.SR">~IBUF3:INV.SR</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td title="0.1.47">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:OMUX">OBUF2:OMUX[1]</a>
+</td>
+<td title="0.2.47">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:FF_SR_SYNC">IBUF2:FF_SR_SYNC</a>
+</td>
+<td title="0.3.47">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:INV.SR">~IBUF2:INV.SR</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td title="0.1.46">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:FF_LATCH">OBUF2:FF_LATCH</a>
+</td>
+<td>-</td>
+<td title="0.3.46">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:INV.CLK">~OBUF2:INV.CLK</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td title="0.1.44">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:OMUX">OBUF2:OMUX[0]</a>
+</td>
+<td>-</td>
+<td title="0.3.44">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:INV.CE">~IBUF2:INV.CE</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td title="0.1.43">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:FF_SR_SYNC">OBUF2:FF_SR_SYNC</a>
+</td>
+<td title="0.2.43">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:FF_SR_ENABLE">IBUF2:FF_SR_ENABLE</a>
+</td>
+<td title="0.3.43">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:INV.CLK">~IBUF2:INV.CLK</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td title="0.1.42">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:FF_SR_ENABLE">OBUF2:FF_SR_ENABLE</a>
+</td>
+<td title="0.2.42">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:FF_REV_ENABLE">IBUF2:FF_REV_ENABLE</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td title="0.1.41">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:FF_REV_ENABLE">OBUF2:FF_REV_ENABLE</a>
+</td>
+<td>-</td>
+<td title="0.3.41">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:INV.REV">~OBUF2:INV.REV</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="0.0.40">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[7]</a>
+</td>
+<td>-</td>
+<td title="0.2.40">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:FF_LATCH">IBUF2:FF_LATCH</a>
+</td>
+<td title="0.3.40">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:I_DELAY_ENABLE">IBUF2:I_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td title="0.1.39">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:FF_INIT">~OBUF2:FF_INIT</a>
+</td>
+<td>-</td>
+<td title="0.3.39">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:INV.REV">~IBUF2:INV.REV</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td title="0.0.38">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[6]</a>
+</td>
+<td>-</td>
+<td title="0.2.38">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:FF_INIT">~IBUF2:FF_INIT</a>
+</td>
+<td title="0.3.38">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:ENABLE_O2IPATH">IBUF2:ENABLE_O2IPATH</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="0.0.37">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[5]</a>
+</td>
+<td>-</td>
+<td title="0.2.37">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[12]</a>
+</td>
+<td title="0.3.37">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[13]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="0.0.36">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.36">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:ENABLE_O2I_O2IQ_PATH">IBUF2:ENABLE_O2I_O2IQ_PATH</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td title="0.0.35">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[3]</a>
+</td>
+<td title="0.1.35">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:FF_SRVAL">~OBUF2:FF_SRVAL</a>
+</td>
+<td title="0.2.35">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:FF_SRVAL">~IBUF2:FF_SRVAL</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td title="0.0.34">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[2]</a>
+</td>
+<td title="0.1.34">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[9]</a>
+</td>
+<td>-</td>
+<td title="0.3.34">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:ENABLE_O2IQPATH">IBUF2:ENABLE_O2IQPATH</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td title="0.0.33">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[1]</a>
+</td>
+<td title="0.1.33">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[8]</a>
+</td>
+<td title="0.2.33">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[11]</a>
+</td>
+<td title="0.3.33">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:IFF_DELAY_ENABLE">IBUF2:IFF_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>32</td>
+<td title="0.0.32">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[0]</a>
+</td>
+<td title="0.1.32">
+<a href="#tile-fpgacore-IOI.FC-OBUF2:INV.O">OBUF2:INV.O</a>
+</td>
+<td title="0.2.32">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE[10]</a>
+</td>
+<td title="0.3.32">
+<a href="#tile-fpgacore-IOI.FC-IBUF2:READBACK_I">IBUF2:READBACK_I</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td title="0.0.31">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[7]</a>
+</td>
+<td>-</td>
+<td title="0.2.31">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[12]</a>
+</td>
+<td title="0.3.31">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:READBACK_I">IBUF1:READBACK_I</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td title="0.0.30">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[6]</a>
+</td>
+<td title="0.1.30">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[9]</a>
+</td>
+<td title="0.2.30">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[11]</a>
+</td>
+<td title="0.3.30">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:IFF_DELAY_ENABLE">IBUF1:IFF_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td title="0.0.29">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[5]</a>
+</td>
+<td title="0.1.29">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[8]</a>
+</td>
+<td>-</td>
+<td title="0.3.29">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:ENABLE_O2IQPATH">IBUF1:ENABLE_O2IQPATH</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td title="0.0.28">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td title="0.0.27">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[3]</a>
+</td>
+<td title="0.1.27">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:FF_SRVAL">~OBUF1:FF_SRVAL</a>
+</td>
+<td>-</td>
+<td title="0.3.27">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:ENABLE_O2I_O2IQ_PATH">IBUF1:ENABLE_O2I_O2IQ_PATH</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="0.0.26">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[2]</a>
+</td>
+<td title="0.1.26">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:INV.O">OBUF1:INV.O</a>
+</td>
+<td title="0.2.26">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[10]</a>
+</td>
+<td title="0.3.26">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[13]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td title="0.0.25">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[1]</a>
+</td>
+<td title="0.1.25">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:OMUX">OBUF1:OMUX[1]</a>
+</td>
+<td>-</td>
+<td title="0.3.25">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:ENABLE_O2IPATH">IBUF1:ENABLE_O2IPATH</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td title="0.1.24">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:FF_INIT">~OBUF1:FF_INIT</a>
+</td>
+<td>-</td>
+<td title="0.3.24">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:INV.REV">~IBUF1:INV.REV</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="0.0.23">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE[0]</a>
+</td>
+<td title="0.1.23">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:OMUX">OBUF1:OMUX[0]</a>
+</td>
+<td title="0.2.23">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:FF_LATCH">IBUF1:FF_LATCH</a>
+</td>
+<td title="0.3.23">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:I_DELAY_ENABLE">IBUF1:I_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td title="0.1.22">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:FF_REV_ENABLE">OBUF1:FF_REV_ENABLE</a>
+</td>
+<td title="0.2.22">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:FF_INIT">~IBUF1:FF_INIT</a>
+</td>
+<td title="0.3.22">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:INV.REV">~OBUF1:INV.REV</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td title="0.1.21">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:FF_SR_ENABLE">OBUF1:FF_SR_ENABLE</a>
+</td>
+<td title="0.2.21">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:FF_REV_ENABLE">IBUF1:FF_REV_ENABLE</a>
+</td>
+<td title="0.3.21">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:INV.CLK">~IBUF1:INV.CLK</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td title="0.1.20">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:FF_SR_SYNC">OBUF1:FF_SR_SYNC</a>
+</td>
+<td title="0.2.20">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:FF_SR_ENABLE">IBUF1:FF_SR_ENABLE</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.19">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:FF_SRVAL">~IBUF1:FF_SRVAL</a>
+</td>
+<td title="0.3.19">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:INV.CE">~IBUF1:INV.CE</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td title="0.1.18">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:FF_LATCH">OBUF1:FF_LATCH</a>
+</td>
+<td>-</td>
+<td title="0.3.18">
+<a href="#tile-fpgacore-IOI.FC-OBUF1:INV.CLK">~OBUF1:INV.CLK</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.16">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:FF_SR_SYNC">IBUF1:FF_SR_SYNC</a>
+</td>
+<td title="0.3.16">
+<a href="#tile-fpgacore-IOI.FC-IBUF1:INV.SR">~IBUF1:INV.SR</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td title="0.1.15">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:OMUX">OBUF0:OMUX[1]</a>
+</td>
+<td title="0.2.15">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:FF_SR_SYNC">IBUF0:FF_SR_SYNC</a>
+</td>
+<td title="0.3.15">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:INV.SR">~IBUF0:INV.SR</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td title="0.1.14">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:FF_LATCH">OBUF0:FF_LATCH</a>
+</td>
+<td>-</td>
+<td title="0.3.14">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:INV.CLK">~OBUF0:INV.CLK</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td title="0.1.12">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:OMUX">OBUF0:OMUX[0]</a>
+</td>
+<td>-</td>
+<td title="0.3.12">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:INV.CE">~IBUF0:INV.CE</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td title="0.1.11">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:FF_SR_SYNC">OBUF0:FF_SR_SYNC</a>
+</td>
+<td title="0.2.11">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:FF_SR_ENABLE">IBUF0:FF_SR_ENABLE</a>
+</td>
+<td title="0.3.11">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:INV.CLK">~IBUF0:INV.CLK</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td title="0.1.10">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:FF_SR_ENABLE">OBUF0:FF_SR_ENABLE</a>
+</td>
+<td title="0.2.10">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:FF_REV_ENABLE">IBUF0:FF_REV_ENABLE</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td title="0.1.9">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:FF_REV_ENABLE">OBUF0:FF_REV_ENABLE</a>
+</td>
+<td>-</td>
+<td title="0.3.9">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:INV.REV">~OBUF0:INV.REV</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td title="0.0.8">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[7]</a>
+</td>
+<td>-</td>
+<td title="0.2.8">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:FF_LATCH">IBUF0:FF_LATCH</a>
+</td>
+<td title="0.3.8">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:I_DELAY_ENABLE">IBUF0:I_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td title="0.1.7">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:FF_INIT">~OBUF0:FF_INIT</a>
+</td>
+<td>-</td>
+<td title="0.3.7">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:INV.REV">~IBUF0:INV.REV</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td title="0.0.6">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[6]</a>
+</td>
+<td>-</td>
+<td title="0.2.6">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:FF_INIT">~IBUF0:FF_INIT</a>
+</td>
+<td title="0.3.6">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:ENABLE_O2IPATH">IBUF0:ENABLE_O2IPATH</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td title="0.0.5">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[5]</a>
+</td>
+<td>-</td>
+<td title="0.2.5">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[12]</a>
+</td>
+<td title="0.3.5">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[13]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td title="0.0.4">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.4">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:ENABLE_O2I_O2IQ_PATH">IBUF0:ENABLE_O2I_O2IQ_PATH</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td title="0.0.3">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[3]</a>
+</td>
+<td title="0.1.3">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:FF_SRVAL">~OBUF0:FF_SRVAL</a>
+</td>
+<td title="0.2.3">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:FF_SRVAL">~IBUF0:FF_SRVAL</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td title="0.0.2">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[2]</a>
+</td>
+<td title="0.1.2">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[9]</a>
+</td>
+<td>-</td>
+<td title="0.3.2">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:ENABLE_O2IQPATH">IBUF0:ENABLE_O2IQPATH</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td title="0.0.1">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[1]</a>
+</td>
+<td title="0.1.1">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[8]</a>
+</td>
+<td title="0.2.1">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[11]</a>
+</td>
+<td title="0.3.1">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:IFF_DELAY_ENABLE">IBUF0:IFF_DELAY_ENABLE</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td title="0.0.0">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[0]</a>
+</td>
+<td title="0.1.0">
+<a href="#tile-fpgacore-IOI.FC-OBUF0:INV.O">OBUF0:INV.O</a>
+</td>
+<td title="0.2.0">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE[10]</a>
+</td>
+<td title="0.3.0">
+<a href="#tile-fpgacore-IOI.FC-IBUF0:READBACK_I">IBUF0:READBACK_I</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:DELAY_ENABLE">IBUF0:DELAY_ENABLE</th>
+<th>0.3.5</th>
+<th>0.2.5</th>
+<th>0.2.1</th>
+<th>0.2.0</th>
+<th>0.1.2</th>
+<th>0.1.1</th>
+<th>0.0.8</th>
+<th>0.0.6</th>
+<th>0.0.5</th>
+<th>0.0.4</th>
+<th>0.0.3</th>
+<th>0.0.2</th>
+<th>0.0.1</th>
+<th>0.0.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:DELAY_ENABLE">IBUF1:DELAY_ENABLE</th>
+<th>0.3.26</th>
+<th>0.2.31</th>
+<th>0.2.30</th>
+<th>0.2.26</th>
+<th>0.1.30</th>
+<th>0.1.29</th>
+<th>0.0.31</th>
+<th>0.0.30</th>
+<th>0.0.29</th>
+<th>0.0.28</th>
+<th>0.0.27</th>
+<th>0.0.26</th>
+<th>0.0.25</th>
+<th>0.0.23</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:DELAY_ENABLE">IBUF2:DELAY_ENABLE</th>
+<th>0.3.37</th>
+<th>0.2.37</th>
+<th>0.2.33</th>
+<th>0.2.32</th>
+<th>0.1.34</th>
+<th>0.1.33</th>
+<th>0.0.40</th>
+<th>0.0.38</th>
+<th>0.0.37</th>
+<th>0.0.36</th>
+<th>0.0.35</th>
+<th>0.0.34</th>
+<th>0.0.33</th>
+<th>0.0.32</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:DELAY_ENABLE">IBUF3:DELAY_ENABLE</th>
+<th>0.3.58</th>
+<th>0.2.63</th>
+<th>0.2.62</th>
+<th>0.2.58</th>
+<th>0.1.62</th>
+<th>0.1.61</th>
+<th>0.0.63</th>
+<th>0.0.62</th>
+<th>0.0.61</th>
+<th>0.0.60</th>
+<th>0.0.59</th>
+<th>0.0.58</th>
+<th>0.0.57</th>
+<th>0.0.55</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[13]</td>
+<td>[12]</td>
+<td>[11]</td>
+<td>[10]</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:ENABLE_O2IPATH">IBUF0:ENABLE_O2IPATH</th>
+<th>0.3.6</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:ENABLE_O2IQPATH">IBUF0:ENABLE_O2IQPATH</th>
+<th>0.3.2</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:ENABLE_O2I_O2IQ_PATH">IBUF0:ENABLE_O2I_O2IQ_PATH</th>
+<th>0.3.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:FF_LATCH">IBUF0:FF_LATCH</th>
+<th>0.2.8</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:FF_REV_ENABLE">IBUF0:FF_REV_ENABLE</th>
+<th>0.2.10</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:FF_SR_ENABLE">IBUF0:FF_SR_ENABLE</th>
+<th>0.2.11</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:FF_SR_SYNC">IBUF0:FF_SR_SYNC</th>
+<th>0.2.15</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:IFF_DELAY_ENABLE">IBUF0:IFF_DELAY_ENABLE</th>
+<th>0.3.1</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:I_DELAY_ENABLE">IBUF0:I_DELAY_ENABLE</th>
+<th>0.3.8</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:READBACK_I">IBUF0:READBACK_I</th>
+<th>0.3.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:ENABLE_O2IPATH">IBUF1:ENABLE_O2IPATH</th>
+<th>0.3.25</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:ENABLE_O2IQPATH">IBUF1:ENABLE_O2IQPATH</th>
+<th>0.3.29</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:ENABLE_O2I_O2IQ_PATH">IBUF1:ENABLE_O2I_O2IQ_PATH</th>
+<th>0.3.27</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:FF_LATCH">IBUF1:FF_LATCH</th>
+<th>0.2.23</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:FF_REV_ENABLE">IBUF1:FF_REV_ENABLE</th>
+<th>0.2.21</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:FF_SR_ENABLE">IBUF1:FF_SR_ENABLE</th>
+<th>0.2.20</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:FF_SR_SYNC">IBUF1:FF_SR_SYNC</th>
+<th>0.2.16</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:IFF_DELAY_ENABLE">IBUF1:IFF_DELAY_ENABLE</th>
+<th>0.3.30</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:I_DELAY_ENABLE">IBUF1:I_DELAY_ENABLE</th>
+<th>0.3.23</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:READBACK_I">IBUF1:READBACK_I</th>
+<th>0.3.31</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:ENABLE_O2IPATH">IBUF2:ENABLE_O2IPATH</th>
+<th>0.3.38</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:ENABLE_O2IQPATH">IBUF2:ENABLE_O2IQPATH</th>
+<th>0.3.34</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:ENABLE_O2I_O2IQ_PATH">IBUF2:ENABLE_O2I_O2IQ_PATH</th>
+<th>0.3.36</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:FF_LATCH">IBUF2:FF_LATCH</th>
+<th>0.2.40</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:FF_REV_ENABLE">IBUF2:FF_REV_ENABLE</th>
+<th>0.2.42</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:FF_SR_ENABLE">IBUF2:FF_SR_ENABLE</th>
+<th>0.2.43</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:FF_SR_SYNC">IBUF2:FF_SR_SYNC</th>
+<th>0.2.47</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:IFF_DELAY_ENABLE">IBUF2:IFF_DELAY_ENABLE</th>
+<th>0.3.33</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:I_DELAY_ENABLE">IBUF2:I_DELAY_ENABLE</th>
+<th>0.3.40</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:READBACK_I">IBUF2:READBACK_I</th>
+<th>0.3.32</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:ENABLE_O2IPATH">IBUF3:ENABLE_O2IPATH</th>
+<th>0.3.57</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:ENABLE_O2IQPATH">IBUF3:ENABLE_O2IQPATH</th>
+<th>0.3.61</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:ENABLE_O2I_O2IQ_PATH">IBUF3:ENABLE_O2I_O2IQ_PATH</th>
+<th>0.3.59</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:FF_LATCH">IBUF3:FF_LATCH</th>
+<th>0.2.55</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:FF_REV_ENABLE">IBUF3:FF_REV_ENABLE</th>
+<th>0.2.53</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:FF_SR_ENABLE">IBUF3:FF_SR_ENABLE</th>
+<th>0.2.52</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:FF_SR_SYNC">IBUF3:FF_SR_SYNC</th>
+<th>0.2.48</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:IFF_DELAY_ENABLE">IBUF3:IFF_DELAY_ENABLE</th>
+<th>0.3.62</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:I_DELAY_ENABLE">IBUF3:I_DELAY_ENABLE</th>
+<th>0.3.55</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:READBACK_I">IBUF3:READBACK_I</th>
+<th>0.3.63</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:FF_LATCH">OBUF0:FF_LATCH</th>
+<th>0.1.14</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:FF_REV_ENABLE">OBUF0:FF_REV_ENABLE</th>
+<th>0.1.9</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:FF_SR_ENABLE">OBUF0:FF_SR_ENABLE</th>
+<th>0.1.10</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:FF_SR_SYNC">OBUF0:FF_SR_SYNC</th>
+<th>0.1.11</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:INV.O">OBUF0:INV.O</th>
+<th>0.1.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:FF_LATCH">OBUF1:FF_LATCH</th>
+<th>0.1.18</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:FF_REV_ENABLE">OBUF1:FF_REV_ENABLE</th>
+<th>0.1.22</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:FF_SR_ENABLE">OBUF1:FF_SR_ENABLE</th>
+<th>0.1.21</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:FF_SR_SYNC">OBUF1:FF_SR_SYNC</th>
+<th>0.1.20</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:INV.O">OBUF1:INV.O</th>
+<th>0.1.26</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:FF_LATCH">OBUF2:FF_LATCH</th>
+<th>0.1.46</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:FF_REV_ENABLE">OBUF2:FF_REV_ENABLE</th>
+<th>0.1.41</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:FF_SR_ENABLE">OBUF2:FF_SR_ENABLE</th>
+<th>0.1.42</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:FF_SR_SYNC">OBUF2:FF_SR_SYNC</th>
+<th>0.1.43</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:INV.O">OBUF2:INV.O</th>
+<th>0.1.32</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:FF_LATCH">OBUF3:FF_LATCH</th>
+<th>0.1.50</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:FF_REV_ENABLE">OBUF3:FF_REV_ENABLE</th>
+<th>0.1.54</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:FF_SR_ENABLE">OBUF3:FF_SR_ENABLE</th>
+<th>0.1.53</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:FF_SR_SYNC">OBUF3:FF_SR_SYNC</th>
+<th>0.1.52</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:INV.O">OBUF3:INV.O</th>
+<th>0.1.58</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:FF_INIT">IBUF0:FF_INIT</th>
+<th>0.2.6</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:FF_SRVAL">IBUF0:FF_SRVAL</th>
+<th>0.2.3</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:INV.CE">IBUF0:INV.CE</th>
+<th>0.3.12</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:INV.CLK">IBUF0:INV.CLK</th>
+<th>0.3.11</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:INV.REV">IBUF0:INV.REV</th>
+<th>0.3.7</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF0:INV.SR">IBUF0:INV.SR</th>
+<th>0.3.15</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:FF_INIT">IBUF1:FF_INIT</th>
+<th>0.2.22</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:FF_SRVAL">IBUF1:FF_SRVAL</th>
+<th>0.2.19</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:INV.CE">IBUF1:INV.CE</th>
+<th>0.3.19</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:INV.CLK">IBUF1:INV.CLK</th>
+<th>0.3.21</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:INV.REV">IBUF1:INV.REV</th>
+<th>0.3.24</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF1:INV.SR">IBUF1:INV.SR</th>
+<th>0.3.16</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:FF_INIT">IBUF2:FF_INIT</th>
+<th>0.2.38</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:FF_SRVAL">IBUF2:FF_SRVAL</th>
+<th>0.2.35</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:INV.CE">IBUF2:INV.CE</th>
+<th>0.3.44</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:INV.CLK">IBUF2:INV.CLK</th>
+<th>0.3.43</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:INV.REV">IBUF2:INV.REV</th>
+<th>0.3.39</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF2:INV.SR">IBUF2:INV.SR</th>
+<th>0.3.47</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:FF_INIT">IBUF3:FF_INIT</th>
+<th>0.2.54</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:FF_SRVAL">IBUF3:FF_SRVAL</th>
+<th>0.2.51</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:INV.CE">IBUF3:INV.CE</th>
+<th>0.3.51</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:INV.CLK">IBUF3:INV.CLK</th>
+<th>0.3.53</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:INV.REV">IBUF3:INV.REV</th>
+<th>0.3.56</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-IBUF3:INV.SR">IBUF3:INV.SR</th>
+<th>0.3.48</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:FF_INIT">OBUF0:FF_INIT</th>
+<th>0.1.7</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:FF_SRVAL">OBUF0:FF_SRVAL</th>
+<th>0.1.3</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:INV.CLK">OBUF0:INV.CLK</th>
+<th>0.3.14</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:INV.REV">OBUF0:INV.REV</th>
+<th>0.3.9</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:FF_INIT">OBUF1:FF_INIT</th>
+<th>0.1.24</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:FF_SRVAL">OBUF1:FF_SRVAL</th>
+<th>0.1.27</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:INV.CLK">OBUF1:INV.CLK</th>
+<th>0.3.18</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:INV.REV">OBUF1:INV.REV</th>
+<th>0.3.22</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:FF_INIT">OBUF2:FF_INIT</th>
+<th>0.1.39</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:FF_SRVAL">OBUF2:FF_SRVAL</th>
+<th>0.1.35</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:INV.CLK">OBUF2:INV.CLK</th>
+<th>0.3.46</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:INV.REV">OBUF2:INV.REV</th>
+<th>0.3.41</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:FF_INIT">OBUF3:FF_INIT</th>
+<th>0.1.56</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:FF_SRVAL">OBUF3:FF_SRVAL</th>
+<th>0.1.59</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:INV.CLK">OBUF3:INV.CLK</th>
+<th>0.3.50</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:INV.REV">OBUF3:INV.REV</th>
+<th>0.3.54</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF0:OMUX">OBUF0:OMUX</th>
+<th>0.1.15</th>
+<th>0.1.12</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF1:OMUX">OBUF1:OMUX</th>
+<th>0.1.25</th>
+<th>0.1.23</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF2:OMUX">OBUF2:OMUX</th>
+<th>0.1.47</th>
+<th>0.1.44</th>
+</tr>
+<tr><th id="tile-fpgacore-IOI.FC-OBUF3:OMUX">OBUF3:OMUX</th>
+<th>0.1.57</th>
+<th>0.1.55</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>O</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>OFF</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="io-buffer-tiles"><a class="header" href="#io-buffer-tiles">I/O buffer tiles</a></h2>
+<p>TODO: document</p>
+<h2 id="tile-iobsfct"><a class="header" href="#tile-iobsfct">Tile IOBS.FC.T</a></h2>
+<p>Cells: 1</p>
+<h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOBS.FC.T bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="15">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF0:ENABLE">IBUF0:ENABLE</a>
+</td>
+<td title="0.4.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.5.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.6.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF1:ENABLE">IBUF1:ENABLE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF2:ENABLE">IBUF2:ENABLE</a>
+</td>
+<td title="0.12.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.13.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.14.4">
+<a href="#tile-fpgacore-IOBS.FC.T-IBUF3:ENABLE">IBUF3:ENABLE</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</a>
+</td>
+<td title="0.4.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF0:ENABLE">OBUF0:ENABLE[1]</a>
+</td>
+<td title="0.5.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF1:ENABLE">OBUF1:ENABLE[1]</a>
+</td>
+<td title="0.6.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</a>
+</td>
+<td title="0.12.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF2:ENABLE">OBUF2:ENABLE[1]</a>
+</td>
+<td title="0.13.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF3:ENABLE">OBUF3:ENABLE[1]</a>
+</td>
+<td title="0.14.1">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.0">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF0:ENABLE">OBUF0:ENABLE[0]</a>
+</td>
+<td title="0.5.0">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF1:ENABLE">OBUF1:ENABLE[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.12.0">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF2:ENABLE">OBUF2:ENABLE[0]</a>
+</td>
+<td title="0.13.0">
+<a href="#tile-fpgacore-IOBS.FC.T-OBUF3:ENABLE">OBUF3:ENABLE[0]</a>
+</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF0:ENABLE">IBUF0:ENABLE</th>
+<th>0.3.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</th>
+<th>0.4.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF1:ENABLE">IBUF1:ENABLE</th>
+<th>0.6.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</th>
+<th>0.5.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF2:ENABLE">IBUF2:ENABLE</th>
+<th>0.11.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</th>
+<th>0.12.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF3:ENABLE">IBUF3:ENABLE</th>
+<th>0.14.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</th>
+<th>0.13.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</th>
+<th>0.3.1</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</th>
+<th>0.6.1</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</th>
+<th>0.11.1</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</th>
+<th>0.14.1</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF0:ENABLE">OBUF0:ENABLE</th>
+<th>0.4.1</th>
+<th>0.4.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF1:ENABLE">OBUF1:ENABLE</th>
+<th>0.5.1</th>
+<th>0.5.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF2:ENABLE">OBUF2:ENABLE</th>
+<th>0.12.1</th>
+<th>0.12.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.T-OBUF3:ENABLE">OBUF3:ENABLE</th>
+<th>0.13.1</th>
+<th>0.13.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-iobsfcr"><a class="header" href="#tile-iobsfcr">Tile IOBS.FC.R</a></h2>
+<p>Cells: 1</p>
+<h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOBS.FC.R bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>57</td>
+<td title="0.0.57">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td title="0.0.54">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF3:ENABLE">IBUF3:ENABLE</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td title="0.0.53">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF3:ENABLE">OBUF3:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td title="0.0.52">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF3:ENABLE">OBUF3:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td title="0.0.49">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="0.0.48">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td title="0.0.45">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF2:ENABLE">OBUF2:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="0.0.44">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF2:ENABLE">OBUF2:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="0.0.43">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF2:ENABLE">IBUF2:ENABLE</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+</tr>
+<tr><td>40</td>
+<td title="0.0.40">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td title="0.0.27">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td title="0.0.24">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF1:ENABLE">IBUF1:ENABLE</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="0.0.23">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF1:ENABLE">OBUF1:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td title="0.0.22">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF1:ENABLE">OBUF1:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td title="0.0.19">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="0.0.18">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF0:ENABLE">OBUF0:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF0:ENABLE">OBUF0:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="0.0.13">
+<a href="#tile-fpgacore-IOBS.FC.R-IBUF0:ENABLE">IBUF0:ENABLE</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td title="0.0.10">
+<a href="#tile-fpgacore-IOBS.FC.R-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF0:ENABLE">IBUF0:ENABLE</th>
+<th>0.0.13</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</th>
+<th>0.0.18</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF1:ENABLE">IBUF1:ENABLE</th>
+<th>0.0.24</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</th>
+<th>0.0.19</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF2:ENABLE">IBUF2:ENABLE</th>
+<th>0.0.43</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</th>
+<th>0.0.48</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF3:ENABLE">IBUF3:ENABLE</th>
+<th>0.0.54</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</th>
+<th>0.0.49</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</th>
+<th>0.0.10</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</th>
+<th>0.0.27</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</th>
+<th>0.0.40</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</th>
+<th>0.0.57</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF0:ENABLE">OBUF0:ENABLE</th>
+<th>0.0.15</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF1:ENABLE">OBUF1:ENABLE</th>
+<th>0.0.23</th>
+<th>0.0.22</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF2:ENABLE">OBUF2:ENABLE</th>
+<th>0.0.45</th>
+<th>0.0.44</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.R-OBUF3:ENABLE">OBUF3:ENABLE</th>
+<th>0.0.53</th>
+<th>0.0.52</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-iobsfcb"><a class="header" href="#tile-iobsfcb">Tile IOBS.FC.B</a></h2>
+<p>Cells: 1</p>
+<h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOBS.FC.B bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="15">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF3:ENABLE">IBUF3:ENABLE</a>
+</td>
+<td title="0.4.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.5.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.6.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF2:ENABLE">IBUF2:ENABLE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF1:ENABLE">IBUF1:ENABLE</a>
+</td>
+<td title="0.12.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.13.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</a>
+</td>
+<td title="0.14.4">
+<a href="#tile-fpgacore-IOBS.FC.B-IBUF0:ENABLE">IBUF0:ENABLE</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</a>
+</td>
+<td title="0.4.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF3:ENABLE">OBUF3:ENABLE[1]</a>
+</td>
+<td title="0.5.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF2:ENABLE">OBUF2:ENABLE[1]</a>
+</td>
+<td title="0.6.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</a>
+</td>
+<td title="0.12.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF1:ENABLE">OBUF1:ENABLE[1]</a>
+</td>
+<td title="0.13.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF0:ENABLE">OBUF0:ENABLE[1]</a>
+</td>
+<td title="0.14.1">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.0">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF3:ENABLE">OBUF3:ENABLE[0]</a>
+</td>
+<td title="0.5.0">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF2:ENABLE">OBUF2:ENABLE[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.12.0">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF1:ENABLE">OBUF1:ENABLE[0]</a>
+</td>
+<td title="0.13.0">
+<a href="#tile-fpgacore-IOBS.FC.B-OBUF0:ENABLE">OBUF0:ENABLE[0]</a>
+</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF0:ENABLE">IBUF0:ENABLE</th>
+<th>0.14.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</th>
+<th>0.13.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF1:ENABLE">IBUF1:ENABLE</th>
+<th>0.11.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</th>
+<th>0.12.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF2:ENABLE">IBUF2:ENABLE</th>
+<th>0.6.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</th>
+<th>0.5.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF3:ENABLE">IBUF3:ENABLE</th>
+<th>0.3.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</th>
+<th>0.4.4</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</th>
+<th>0.14.1</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</th>
+<th>0.11.1</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</th>
+<th>0.6.1</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</th>
+<th>0.3.1</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF0:ENABLE">OBUF0:ENABLE</th>
+<th>0.13.1</th>
+<th>0.13.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF1:ENABLE">OBUF1:ENABLE</th>
+<th>0.12.1</th>
+<th>0.12.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF2:ENABLE">OBUF2:ENABLE</th>
+<th>0.5.1</th>
+<th>0.5.0</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.B-OBUF3:ENABLE">OBUF3:ENABLE</th>
+<th>0.4.1</th>
+<th>0.4.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-iobsfcl"><a class="header" href="#tile-iobsfcl">Tile IOBS.FC.L</a></h2>
+<p>Cells: 1</p>
+<h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>fpgacore IOBS.FC.L bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>57</td>
+<td title="0.0.57">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td title="0.0.54">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF3:ENABLE">IBUF3:ENABLE</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td title="0.0.53">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF3:ENABLE">OBUF3:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td title="0.0.52">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF3:ENABLE">OBUF3:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td title="0.0.49">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="0.0.48">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td title="0.0.45">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF2:ENABLE">OBUF2:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="0.0.44">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF2:ENABLE">OBUF2:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="0.0.43">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF2:ENABLE">IBUF2:ENABLE</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+</tr>
+<tr><td>40</td>
+<td title="0.0.40">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td title="0.0.27">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td title="0.0.24">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF1:ENABLE">IBUF1:ENABLE</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="0.0.23">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF1:ENABLE">OBUF1:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td title="0.0.22">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF1:ENABLE">OBUF1:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td title="0.0.19">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="0.0.18">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF0:ENABLE">OBUF0:ENABLE[1]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF0:ENABLE">OBUF0:ENABLE[0]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="0.0.13">
+<a href="#tile-fpgacore-IOBS.FC.L-IBUF0:ENABLE">IBUF0:ENABLE</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td title="0.0.10">
+<a href="#tile-fpgacore-IOBS.FC.L-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF0:ENABLE">IBUF0:ENABLE</th>
+<th>0.0.13</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF0:ENABLE_O2IPADPATH">IBUF0:ENABLE_O2IPADPATH</th>
+<th>0.0.18</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF1:ENABLE">IBUF1:ENABLE</th>
+<th>0.0.24</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF1:ENABLE_O2IPADPATH">IBUF1:ENABLE_O2IPADPATH</th>
+<th>0.0.19</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF2:ENABLE">IBUF2:ENABLE</th>
+<th>0.0.43</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF2:ENABLE_O2IPADPATH">IBUF2:ENABLE_O2IPADPATH</th>
+<th>0.0.48</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF3:ENABLE">IBUF3:ENABLE</th>
+<th>0.0.54</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-IBUF3:ENABLE_O2IPADPATH">IBUF3:ENABLE_O2IPADPATH</th>
+<th>0.0.49</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF0:ENABLE_MISR">OBUF0:ENABLE_MISR</th>
+<th>0.0.10</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF1:ENABLE_MISR">OBUF1:ENABLE_MISR</th>
+<th>0.0.27</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF2:ENABLE_MISR">OBUF2:ENABLE_MISR</th>
+<th>0.0.40</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF3:ENABLE_MISR">OBUF3:ENABLE_MISR</th>
+<th>0.0.57</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF0:ENABLE">OBUF0:ENABLE</th>
+<th>0.0.15</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF1:ENABLE">OBUF1:ENABLE</th>
+<th>0.0.23</th>
+<th>0.0.22</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF2:ENABLE">OBUF2:ENABLE</th>
+<th>0.0.45</th>
+<th>0.0.44</th>
+</tr>
+<tr><th id="tile-fpgacore-IOBS.FC.L-OBUF3:ENABLE">OBUF3:ENABLE</th>
+<th>0.0.53</th>
+<th>0.0.52</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../fpgacore/clock/hclk.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../fpgacore/corners/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../fpgacore/clock/hclk.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../fpgacore/corners/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

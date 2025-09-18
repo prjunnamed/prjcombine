@@ -1,0 +1,1633 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Hard PCI logic - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="hard-pci-logic"><a class="header" href="#hard-pci-logic">Hard PCI logic</a></h1>
+<h2 id="tile-clkl"><a class="header" href="#tile-clkl">Tile CLKL</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-pci_int"><a class="header" href="#switchbox-pci_int">Switchbox PCI_INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKL switchbox PCI_INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="12">PCI.IMUX.I1</td><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="12">PCI.IMUX.I2</td><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">PCI.IMUX.I3</td><td>HEX.V1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.6</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-pcilogic"><a class="header" href="#bel-pcilogic">Bel PCILOGIC</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKL bel PCILOGIC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>I1</td><td>input</td><td>PCI.IMUX.I1</td></tr>
+<tr><td>I2</td><td>input</td><td>PCI.IMUX.I2</td></tr>
+<tr><td>I3</td><td>input</td><td>PCI.IMUX.I3</td></tr>
+<tr><td>PCI_CE</td><td>output</td><td>PCI_CE</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCI_CE</td><td>PCILOGIC.PCI_CE</td></tr>
+<tr><td>PCI.IMUX.I1</td><td>PCILOGIC.I1</td></tr>
+<tr><td>PCI.IMUX.I2</td><td>PCILOGIC.I2</td></tr>
+<tr><td>PCI.IMUX.I3</td><td>PCILOGIC.I3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKL bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+<th>39</th>
+<th>40</th>
+<th>41</th>
+<th>42</th>
+<th>43</th>
+<th>44</th>
+<th>45</th>
+<th>46</th>
+<th>47</th>
+<th>48</th>
+<th>49</th>
+<th>50</th>
+<th>51</th>
+<th>52</th>
+<th>53</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.5.4">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[0]</a>
+</td>
+<td title="0.6.4">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.9.4">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.4">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td title="0.0.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[3]</a>
+</td>
+<td title="0.1.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[0]</a>
+</td>
+<td title="0.2.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[0]</a>
+</td>
+<td title="0.3.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[1]</a>
+</td>
+<td title="0.4.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[3]</a>
+</td>
+<td title="0.5.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[4]</a>
+</td>
+<td title="0.6.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[5]</a>
+</td>
+<td title="0.7.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[6]</a>
+</td>
+<td title="0.8.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[1]</a>
+</td>
+<td title="0.9.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[2]</a>
+</td>
+<td title="0.10.3">
+<a href="#tile-virtex-CLKL-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[0]</a>
+</td>
+<td title="0.11.3">
+<a href="#tile-virtex-CLKL-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[4]</a>
+</td>
+<td title="0.49.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[2]</a>
+</td>
+<td title="0.50.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[5]</a>
+</td>
+<td title="0.51.3">
+<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[6]</a>
+</td>
+<td title="0.52.3">
+<a href="#tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I1">~PCI_INT:INV.PCI.IMUX.I1</a>
+</td>
+<td title="0.53.3">
+<a href="#tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I2">~PCI_INT:INV.PCI.IMUX.I2</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKL-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
+<th>0.11.3</th>
+<th>0.10.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I1">PCI_INT:INV.PCI.IMUX.I1</th>
+<th>0.52.3</th>
+</tr>
+<tr><th id="tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I2">PCI_INT:INV.PCI.IMUX.I2</th>
+<th>0.53.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1</th>
+<th>0.51.3</th>
+<th>0.50.3</th>
+<th>0.5.3</th>
+<th>0.4.3</th>
+<th>0.49.3</th>
+<th>0.3.3</th>
+<th>0.2.3</th>
+</tr>
+<tr><th id="tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2</th>
+<th>0.7.3</th>
+<th>0.6.3</th>
+<th>0.48.3</th>
+<th>0.0.3</th>
+<th>0.9.3</th>
+<th>0.8.3</th>
+<th>0.1.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V2.2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.6</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V3.2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3</th>
+<th>0.9.4</th>
+<th>0.48.4</th>
+<th>0.6.4</th>
+<th>0.5.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.6</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V1.5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V1.2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-clkr"><a class="header" href="#tile-clkr">Tile CLKR</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-pci_int-1"><a class="header" href="#switchbox-pci_int-1">Switchbox PCI_INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKR switchbox PCI_INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="12">PCI.IMUX.I1</td><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="12">PCI.IMUX.I2</td><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="6">PCI.IMUX.I3</td><td>HEX.V1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.6</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-pcilogic-1"><a class="header" href="#bel-pcilogic-1">Bel PCILOGIC</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKR bel PCILOGIC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>I1</td><td>input</td><td>PCI.IMUX.I1</td></tr>
+<tr><td>I2</td><td>input</td><td>PCI.IMUX.I2</td></tr>
+<tr><td>I3</td><td>input</td><td>PCI.IMUX.I3</td></tr>
+<tr><td>PCI_CE</td><td>output</td><td>PCI_CE</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCI_CE</td><td>PCILOGIC.PCI_CE</td></tr>
+<tr><td>PCI.IMUX.I1</td><td>PCILOGIC.I1</td></tr>
+<tr><td>PCI.IMUX.I2</td><td>PCILOGIC.I2</td></tr>
+<tr><td>PCI.IMUX.I3</td><td>PCILOGIC.I3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CLKR bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+<th>39</th>
+<th>40</th>
+<th>41</th>
+<th>42</th>
+<th>43</th>
+<th>44</th>
+<th>45</th>
+<th>46</th>
+<th>47</th>
+<th>48</th>
+<th>49</th>
+<th>50</th>
+<th>51</th>
+<th>52</th>
+<th>53</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.38.4">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.41.4">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[1]</a>
+</td>
+<td title="0.42.4">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.4">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.10.3">
+<a href="#tile-virtex-CLKR-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[0]</a>
+</td>
+<td title="0.11.3">
+<a href="#tile-virtex-CLKR-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.38.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[2]</a>
+</td>
+<td title="0.39.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[1]</a>
+</td>
+<td title="0.40.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[0]</a>
+</td>
+<td title="0.41.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[3]</a>
+</td>
+<td title="0.42.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[5]</a>
+</td>
+<td title="0.43.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[6]</a>
+</td>
+<td title="0.44.3">
+<a href="#tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I1">~PCI_INT:INV.PCI.IMUX.I1</a>
+</td>
+<td title="0.45.3">
+<a href="#tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I2">~PCI_INT:INV.PCI.IMUX.I2</a>
+</td>
+<td title="0.46.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[4]</a>
+</td>
+<td title="0.47.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[5]</a>
+</td>
+<td title="0.48.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[6]</a>
+</td>
+<td title="0.49.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[2]</a>
+</td>
+<td title="0.50.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[4]</a>
+</td>
+<td title="0.51.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[3]</a>
+</td>
+<td title="0.52.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[0]</a>
+</td>
+<td title="0.53.3">
+<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[1]</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKR-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
+<th>0.11.3</th>
+<th>0.10.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I1">PCI_INT:INV.PCI.IMUX.I1</th>
+<th>0.44.3</th>
+</tr>
+<tr><th id="tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I2">PCI_INT:INV.PCI.IMUX.I2</th>
+<th>0.45.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1</th>
+<th>0.48.3</th>
+<th>0.47.3</th>
+<th>0.46.3</th>
+<th>0.41.3</th>
+<th>0.49.3</th>
+<th>0.39.3</th>
+<th>0.40.3</th>
+</tr>
+<tr><th id="tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2</th>
+<th>0.43.3</th>
+<th>0.42.3</th>
+<th>0.50.3</th>
+<th>0.51.3</th>
+<th>0.38.3</th>
+<th>0.53.3</th>
+<th>0.52.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V2.2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.6</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V3.2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3</th>
+<th>0.38.4</th>
+<th>0.48.4</th>
+<th>0.41.4</th>
+<th>0.42.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.6</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V1.5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V1.2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../virtex/dll.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../virtex/corners/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../virtex/dll.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../virtex/corners/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

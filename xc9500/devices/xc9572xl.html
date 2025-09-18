@@ -1,0 +1,6414 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>XC9572XL, XA9572XL - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="xc9572xl-xa9572xl"><a class="header" href="#xc9572xl-xa9572xl">XC9572XL, XA9572XL</a></h1>
+<div class="table-wrapper"><table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>
+<tr><td>IDCODE</td><td>0x09604093</td></tr>
+<tr><td>Block count</td><td>4</td></tr>
+<tr><td>I/O bank count</td><td>1</td></tr>
+<tr><td>FPGM/FPGMI time</td><td>20000</td></tr>
+<tr><td>FERASE/FBULK time</td><td>200000</td></tr>
+</tbody></table>
+</div>
+<h2 id="io-pins"><a class="header" href="#io-pins">I/O pins</a></h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Bank</th>
+<th>xc9572xl-pc44</th>
+<th>xc9572xl-vq44<br>xa9572xl-vq44</th>
+<th>xc9572xl-cs48</th>
+<th>xc9572xl-vq64<br>xa9572xl-vq64</th>
+<th>xc9572xl-tq100<br>xa9572xl-tq100</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IOB_C0B0MC0</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P16</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC1</td>
+<td>BANK0</td>
+<td>P1</td>
+<td>P39</td>
+<td>D7</td>
+<td>P8</td>
+<td>P13</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC2</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>D4</td>
+<td>P12</td>
+<td>P18</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC3</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P13</td>
+<td>P20</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC4</td>
+<td>BANK0</td>
+<td>P2</td>
+<td>P40</td>
+<td>D6</td>
+<td>P9</td>
+<td>P14</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC5</td>
+<td>BANK0</td>
+<td>P3</td>
+<td>P41</td>
+<td>C7</td>
+<td>P10</td>
+<td>P15</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC6</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P25</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC7</td>
+<td>BANK0</td>
+<td>P4</td>
+<td>P42</td>
+<td>C6</td>
+<td>P11</td>
+<td>P17</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC8</td>
+<td>BANK0</td>
+<td>P5 (GCLK0)</td>
+<td>P43 (GCLK0)</td>
+<td>B7 (GCLK0)</td>
+<td>P15 (GCLK0)</td>
+<td>P22 (GCLK0)</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC9</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P18</td>
+<td>P28</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC10</td>
+<td>BANK0</td>
+<td>P6 (GCLK1)</td>
+<td>P44 (GCLK1)</td>
+<td>B6 (GCLK1)</td>
+<td>P16 (GCLK1)</td>
+<td>P23 (GCLK1)</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC11</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P23</td>
+<td>P33</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC12</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P36</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC13</td>
+<td>BANK0</td>
+<td>P7 (GCLK2)</td>
+<td>P1 (GCLK2)</td>
+<td>A7 (GCLK2)</td>
+<td>P17 (GCLK2)</td>
+<td>P27 (GCLK2)</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC14</td>
+<td>BANK0</td>
+<td>P8</td>
+<td>P2</td>
+<td>A6</td>
+<td>P19</td>
+<td>P29</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC15</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P39</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC16</td>
+<td>BANK0</td>
+<td>P9</td>
+<td>P3</td>
+<td>C5</td>
+<td>P20</td>
+<td>P30</td>
+</tr>
+<tr>
+<td>IOB_C0B0MC17</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P40</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC0</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P87</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC1</td>
+<td>BANK0</td>
+<td>P35</td>
+<td>P29</td>
+<td>F4</td>
+<td>P60</td>
+<td>P94</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC2</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P58</td>
+<td>P91</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC3</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P59</td>
+<td>P93</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC4</td>
+<td>BANK0</td>
+<td>P36</td>
+<td>P30</td>
+<td>G5</td>
+<td>P61</td>
+<td>P95</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC5</td>
+<td>BANK0</td>
+<td>P37</td>
+<td>P31</td>
+<td>F5</td>
+<td>P62</td>
+<td>P96</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC6</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P3 (GOE0)</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC7</td>
+<td>BANK0</td>
+<td>P38</td>
+<td>P32</td>
+<td>G6</td>
+<td>P63</td>
+<td>P97</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC8</td>
+<td>BANK0</td>
+<td>P39 (GSR)</td>
+<td>P33 (GSR)</td>
+<td>G7 (GSR)</td>
+<td>P64 (GSR)</td>
+<td>P99 (GSR)</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC9</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P1</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC10</td>
+<td>BANK0</td>
+<td>P40 (GOE1)</td>
+<td>P34 (GOE1)</td>
+<td>F6 (GOE1)</td>
+<td>P2 (GOE1)</td>
+<td>P4 (GOE1)</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC11</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P4</td>
+<td>P6</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC12</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P8</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC13</td>
+<td>BANK0</td>
+<td>P42 (GOE0)</td>
+<td>P36 (GOE0)</td>
+<td>E6 (GOE0)</td>
+<td>P5 (GOE0)</td>
+<td>P9</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC14</td>
+<td>BANK0</td>
+<td>P43</td>
+<td>P37</td>
+<td>E7</td>
+<td>P6</td>
+<td>P11</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC15</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P10</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC16</td>
+<td>BANK0</td>
+<td>P44</td>
+<td>P38</td>
+<td>E5</td>
+<td>P7</td>
+<td>P12</td>
+</tr>
+<tr>
+<td>IOB_C0B1MC17</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P92</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC0</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P41</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC1</td>
+<td>BANK0</td>
+<td>P11</td>
+<td>P5</td>
+<td>B5</td>
+<td>P22</td>
+<td>P32</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC2</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>C4</td>
+<td>P31</td>
+<td>P49</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC3</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P32</td>
+<td>P50</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC4</td>
+<td>BANK0</td>
+<td>P12</td>
+<td>P6</td>
+<td>A4</td>
+<td>P24</td>
+<td>P35</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC5</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P34</td>
+<td>P53</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC6</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P54</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC7</td>
+<td>BANK0</td>
+<td>P13</td>
+<td>P7</td>
+<td>B4</td>
+<td>P25</td>
+<td>P37</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC8</td>
+<td>BANK0</td>
+<td>P14</td>
+<td>P8</td>
+<td>A3</td>
+<td>P27</td>
+<td>P42</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC9</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>D3</td>
+<td>P39</td>
+<td>P60</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC10</td>
+<td>BANK0</td>
+<td>P18</td>
+<td>P12</td>
+<td>B2</td>
+<td>P33</td>
+<td>P52</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC11</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P40</td>
+<td>P61</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC12</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P63</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC13</td>
+<td>BANK0</td>
+<td>P19</td>
+<td>P13</td>
+<td>B1</td>
+<td>P35</td>
+<td>P55</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC14</td>
+<td>BANK0</td>
+<td>P20</td>
+<td>P14</td>
+<td>C2</td>
+<td>P36</td>
+<td>P56</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC15</td>
+<td>BANK0</td>
+<td>P24</td>
+<td>P18</td>
+<td>D2</td>
+<td>P42</td>
+<td>P64</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC16</td>
+<td>BANK0</td>
+<td>P22</td>
+<td>P16</td>
+<td>C3</td>
+<td>P38</td>
+<td>P58</td>
+</tr>
+<tr>
+<td>IOB_C0B2MC17</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P59</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC0</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P65</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC1</td>
+<td>BANK0</td>
+<td>P25</td>
+<td>P19</td>
+<td>E1</td>
+<td>P43</td>
+<td>P67</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC2</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P46</td>
+<td>P71</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC3</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P47</td>
+<td>P72</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC4</td>
+<td>BANK0</td>
+<td>P26</td>
+<td>P20</td>
+<td>E2</td>
+<td>P44</td>
+<td>P68</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC5</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>E4</td>
+<td>P49</td>
+<td>P76</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC6</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P77</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC7</td>
+<td>BANK0</td>
+<td>P27</td>
+<td>P21</td>
+<td>F1</td>
+<td>P45</td>
+<td>P70</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC8</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P66</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC9</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P51</td>
+<td>P81</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC10</td>
+<td>BANK0</td>
+<td>P28</td>
+<td>P22</td>
+<td>G1</td>
+<td>P48</td>
+<td>P74</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC11</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P52</td>
+<td>P82</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC12</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P85</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC13</td>
+<td>BANK0</td>
+<td>P29</td>
+<td>P23</td>
+<td>F2</td>
+<td>P50</td>
+<td>P78</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC14</td>
+<td>BANK0</td>
+<td>P33</td>
+<td>P27</td>
+<td>E3</td>
+<td>P56</td>
+<td>P89</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC15</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P86</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC16</td>
+<td>BANK0</td>
+<td>P34</td>
+<td>P28</td>
+<td>G4</td>
+<td>P57</td>
+<td>P90</td>
+</tr>
+<tr>
+<td>IOB_C0B3MC17</td>
+<td>BANK0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P79</td>
+</tr>
+<tr>
+<td>TCK</td>
+<td>-</td>
+<td>P17</td>
+<td>P11</td>
+<td>A1</td>
+<td>P30</td>
+<td>P48</td>
+</tr>
+<tr>
+<td>TMS</td>
+<td>-</td>
+<td>P16</td>
+<td>P10</td>
+<td>A2</td>
+<td>P29</td>
+<td>P47</td>
+</tr>
+<tr>
+<td>TDI</td>
+<td>-</td>
+<td>P15</td>
+<td>P9</td>
+<td>B3</td>
+<td>P28</td>
+<td>P45</td>
+</tr>
+<tr>
+<td>TDO</td>
+<td>BANK0</td>
+<td>P30</td>
+<td>P24</td>
+<td>G2</td>
+<td>P53</td>
+<td>P83</td>
+</tr>
+<tr>
+<td>GND</td>
+<td>-</td>
+<td>P10<br>P23<br>P31</td>
+<td>P17<br>P25<br>P4</td>
+<td>A5<br>D1<br>F3</td>
+<td>P14<br>P21<br>P41<br>P54</td>
+<td>P100<br>P21<br>P31<br>P44<br>P62<br>P69<br>P75<br>P84</td>
+</tr>
+<tr>
+<td>VCCINT</td>
+<td>-</td>
+<td>P21<br>P41</td>
+<td>P15<br>P35</td>
+<td>C1<br>F7</td>
+<td>P3<br>P37</td>
+<td>P5<br>P57<br>P98</td>
+</tr>
+<tr>
+<td>VCCIO0</td>
+<td>BANK0</td>
+<td>P32</td>
+<td>P26</td>
+<td>G3</td>
+<td>P26<br>P55</td>
+<td>P26<br>P38<br>P51<br>P88</td>
+</tr>
+<tr>
+<td>NC</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>P19<br>P2<br>P24<br>P34<br>P43<br>P46<br>P7<br>P73<br>P80</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="speed-data"><a class="header" href="#speed-data">Speed data</a></h2>
+<div class="table-wrapper"><table>
+<caption>xc9572xl speed data</caption>
+<thead>
+<tr>
+<th colspan="2">Key</th>
+<th>
+xc9572xl-5
+</th>
+<th>
+xc9572xl-7
+</th>
+<th>
+xc9572xl-10
+</th>
+<th>
+xa9572xl-15
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td colspan="2">DEL_CLK_Q</td>
+<td>400ps</td>
+<td>500ps</td>
+<td>1000ps</td>
+<td>1000ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_D_Q_COMB</td>
+<td>500ps</td>
+<td>1300ps</td>
+<td>1700ps</td>
+<td>1700ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_EXP_D</td>
+<td>700ps</td>
+<td>800ps</td>
+<td>1000ps</td>
+<td>1000ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_EXP_EXP</td>
+<td>300ps</td>
+<td>300ps</td>
+<td>400ps</td>
+<td>400ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IBUF_FCLK</td>
+<td>1100ps</td>
+<td>1500ps</td>
+<td>1800ps</td>
+<td>1800ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IBUF_FOE</td>
+<td>4000ps</td>
+<td>5000ps</td>
+<td>7000ps</td>
+<td>7000ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IBUF_FSR</td>
+<td>2000ps</td>
+<td>3100ps</td>
+<td>4500ps</td>
+<td>4500ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IBUF_IMUX</td>
+<td>1500ps</td>
+<td>2300ps</td>
+<td>3500ps</td>
+<td>3500ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IMUX_D_HP</td>
+<td>1000ps</td>
+<td>1400ps</td>
+<td>1800ps</td>
+<td>7300ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IMUX_D_LP</td>
+<td>5000ps</td>
+<td>6400ps</td>
+<td>7300ps</td>
+<td>7300ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IMUX_PT_CE</td>
+<td>1000ps</td>
+<td>1400ps</td>
+<td>1800ps</td>
+<td>1800ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IMUX_PT_CLK</td>
+<td>1600ps</td>
+<td>2400ps</td>
+<td>2700ps</td>
+<td>2700ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IMUX_PT_OE</td>
+<td>5500ps</td>
+<td>7200ps</td>
+<td>7500ps</td>
+<td>7500ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_IMUX_PT_SR</td>
+<td>1000ps</td>
+<td>1400ps</td>
+<td>1800ps</td>
+<td>1800ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_OBUF_FAST</td>
+<td>2000ps</td>
+<td>2500ps</td>
+<td>3000ps</td>
+<td>3000ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_OBUF_SLOW</td>
+<td>5000ps</td>
+<td>6500ps</td>
+<td>7500ps</td>
+<td>7500ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_SR_Q</td>
+<td>6000ps</td>
+<td>6400ps</td>
+<td>7000ps</td>
+<td>7000ps</td>
+</tr>
+<tr>
+<td colspan="2">DEL_UIM_IMUX</td>
+<td>1900ps</td>
+<td>3500ps</td>
+<td>4200ps</td>
+<td>4200ps</td>
+</tr>
+<tr>
+<td rowspan="2">RECREM_SR_CLK</td><td>recovery</td>
+<td>5000ps</td>
+<td>7500ps</td>
+<td>10000ps</td>
+<td>10000ps</td>
+</tr>
+<tr>
+<td>removal</td>
+<td>0ps</td>
+<td>0ps</td>
+<td>0ps</td>
+<td>0ps</td>
+</tr>
+<tr>
+<td rowspan="2">SETUPHOLD_CE_CLK</td><td>hold</td>
+<td>1400ps</td>
+<td>2200ps</td>
+<td>3500ps</td>
+<td>3500ps</td>
+</tr>
+<tr>
+<td>setup</td>
+<td>2300ps</td>
+<td>2600ps</td>
+<td>3000ps</td>
+<td>3000ps</td>
+</tr>
+<tr>
+<td rowspan="2">SETUPHOLD_D_CLK</td><td>hold</td>
+<td>1400ps</td>
+<td>2200ps</td>
+<td>3500ps</td>
+<td>3500ps</td>
+</tr>
+<tr>
+<td>setup</td>
+<td>2300ps</td>
+<td>2600ps</td>
+<td>3000ps</td>
+<td>3000ps</td>
+</tr>
+<tr>
+<td colspan="2">WIDTH_CLK</td>
+<td>2800ps</td>
+<td>4000ps</td>
+<td>4500ps</td>
+<td>4500ps</td>
+</tr>
+<tr>
+<td colspan="2">WIDTH_CLK_PT</td>
+<td>5000ps</td>
+<td>6500ps</td>
+<td>7000ps</td>
+<td>7000ps</td>
+</tr>
+<tr>
+<td colspan="2">WIDTH_SR</td>
+<td>5000ps</td>
+<td>6500ps</td>
+<td>7000ps</td>
+<td>7000ps</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="imux-bits"><a class="header" href="#imux-bits">IMUX bits</a></h2>
+<div class="table-wrapper"><table>
+<caption>xc9572xl imux bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="14">Bit</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td title="0.50.0">
+<a href="#tile-xc9572xl-imux-IM[0].MUX">IM[0].MUX[0]</a>
+</td>
+<td title="0.50.1">
+<a href="#tile-xc9572xl-imux-IM[0].MUX">IM[0].MUX[1]</a>
+</td>
+<td title="0.50.2">
+<a href="#tile-xc9572xl-imux-IM[0].MUX">IM[0].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.50.4">
+<a href="#tile-xc9572xl-imux-IM[0].MUX">IM[0].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.50.9">
+<a href="#tile-xc9572xl-imux-IM[27].MUX">IM[27].MUX[0]</a>
+</td>
+<td title="0.50.10">
+<a href="#tile-xc9572xl-imux-IM[27].MUX">IM[27].MUX[1]</a>
+</td>
+<td title="0.50.11">
+<a href="#tile-xc9572xl-imux-IM[27].MUX">IM[27].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.50.13">
+<a href="#tile-xc9572xl-imux-IM[27].MUX">IM[27].MUX[3]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td title="0.51.0">
+<a href="#tile-xc9572xl-imux-IM[1].MUX">IM[1].MUX[0]</a>
+</td>
+<td title="0.51.1">
+<a href="#tile-xc9572xl-imux-IM[1].MUX">IM[1].MUX[1]</a>
+</td>
+<td title="0.51.2">
+<a href="#tile-xc9572xl-imux-IM[1].MUX">IM[1].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.51.4">
+<a href="#tile-xc9572xl-imux-IM[1].MUX">IM[1].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.51.9">
+<a href="#tile-xc9572xl-imux-IM[28].MUX">IM[28].MUX[0]</a>
+</td>
+<td title="0.51.10">
+<a href="#tile-xc9572xl-imux-IM[28].MUX">IM[28].MUX[1]</a>
+</td>
+<td title="0.51.11">
+<a href="#tile-xc9572xl-imux-IM[28].MUX">IM[28].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.51.13">
+<a href="#tile-xc9572xl-imux-IM[28].MUX">IM[28].MUX[3]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td title="0.52.0">
+<a href="#tile-xc9572xl-imux-IM[2].MUX">IM[2].MUX[0]</a>
+</td>
+<td title="0.52.1">
+<a href="#tile-xc9572xl-imux-IM[2].MUX">IM[2].MUX[1]</a>
+</td>
+<td title="0.52.2">
+<a href="#tile-xc9572xl-imux-IM[2].MUX">IM[2].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.52.4">
+<a href="#tile-xc9572xl-imux-IM[2].MUX">IM[2].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.52.9">
+<a href="#tile-xc9572xl-imux-IM[29].MUX">IM[29].MUX[0]</a>
+</td>
+<td title="0.52.10">
+<a href="#tile-xc9572xl-imux-IM[29].MUX">IM[29].MUX[1]</a>
+</td>
+<td title="0.52.11">
+<a href="#tile-xc9572xl-imux-IM[29].MUX">IM[29].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.52.13">
+<a href="#tile-xc9572xl-imux-IM[29].MUX">IM[29].MUX[3]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td title="0.53.0">
+<a href="#tile-xc9572xl-imux-IM[3].MUX">IM[3].MUX[0]</a>
+</td>
+<td title="0.53.1">
+<a href="#tile-xc9572xl-imux-IM[3].MUX">IM[3].MUX[1]</a>
+</td>
+<td title="0.53.2">
+<a href="#tile-xc9572xl-imux-IM[3].MUX">IM[3].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.53.4">
+<a href="#tile-xc9572xl-imux-IM[3].MUX">IM[3].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.53.9">
+<a href="#tile-xc9572xl-imux-IM[30].MUX">IM[30].MUX[0]</a>
+</td>
+<td title="0.53.10">
+<a href="#tile-xc9572xl-imux-IM[30].MUX">IM[30].MUX[1]</a>
+</td>
+<td title="0.53.11">
+<a href="#tile-xc9572xl-imux-IM[30].MUX">IM[30].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.53.13">
+<a href="#tile-xc9572xl-imux-IM[30].MUX">IM[30].MUX[3]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td title="0.54.0">
+<a href="#tile-xc9572xl-imux-IM[4].MUX">IM[4].MUX[0]</a>
+</td>
+<td title="0.54.1">
+<a href="#tile-xc9572xl-imux-IM[4].MUX">IM[4].MUX[1]</a>
+</td>
+<td title="0.54.2">
+<a href="#tile-xc9572xl-imux-IM[4].MUX">IM[4].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.54.4">
+<a href="#tile-xc9572xl-imux-IM[4].MUX">IM[4].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.54.9">
+<a href="#tile-xc9572xl-imux-IM[31].MUX">IM[31].MUX[0]</a>
+</td>
+<td title="0.54.10">
+<a href="#tile-xc9572xl-imux-IM[31].MUX">IM[31].MUX[1]</a>
+</td>
+<td title="0.54.11">
+<a href="#tile-xc9572xl-imux-IM[31].MUX">IM[31].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.54.13">
+<a href="#tile-xc9572xl-imux-IM[31].MUX">IM[31].MUX[3]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td title="0.55.0">
+<a href="#tile-xc9572xl-imux-IM[5].MUX">IM[5].MUX[0]</a>
+</td>
+<td title="0.55.1">
+<a href="#tile-xc9572xl-imux-IM[5].MUX">IM[5].MUX[1]</a>
+</td>
+<td title="0.55.2">
+<a href="#tile-xc9572xl-imux-IM[5].MUX">IM[5].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.55.4">
+<a href="#tile-xc9572xl-imux-IM[5].MUX">IM[5].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.55.9">
+<a href="#tile-xc9572xl-imux-IM[32].MUX">IM[32].MUX[0]</a>
+</td>
+<td title="0.55.10">
+<a href="#tile-xc9572xl-imux-IM[32].MUX">IM[32].MUX[1]</a>
+</td>
+<td title="0.55.11">
+<a href="#tile-xc9572xl-imux-IM[32].MUX">IM[32].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.55.13">
+<a href="#tile-xc9572xl-imux-IM[32].MUX">IM[32].MUX[3]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td title="0.56.0">
+<a href="#tile-xc9572xl-imux-IM[6].MUX">IM[6].MUX[0]</a>
+</td>
+<td title="0.56.1">
+<a href="#tile-xc9572xl-imux-IM[6].MUX">IM[6].MUX[1]</a>
+</td>
+<td title="0.56.2">
+<a href="#tile-xc9572xl-imux-IM[6].MUX">IM[6].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.56.4">
+<a href="#tile-xc9572xl-imux-IM[6].MUX">IM[6].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.56.9">
+<a href="#tile-xc9572xl-imux-IM[33].MUX">IM[33].MUX[0]</a>
+</td>
+<td title="0.56.10">
+<a href="#tile-xc9572xl-imux-IM[33].MUX">IM[33].MUX[1]</a>
+</td>
+<td title="0.56.11">
+<a href="#tile-xc9572xl-imux-IM[33].MUX">IM[33].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.56.13">
+<a href="#tile-xc9572xl-imux-IM[33].MUX">IM[33].MUX[3]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td title="0.57.0">
+<a href="#tile-xc9572xl-imux-IM[7].MUX">IM[7].MUX[0]</a>
+</td>
+<td title="0.57.1">
+<a href="#tile-xc9572xl-imux-IM[7].MUX">IM[7].MUX[1]</a>
+</td>
+<td title="0.57.2">
+<a href="#tile-xc9572xl-imux-IM[7].MUX">IM[7].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.57.4">
+<a href="#tile-xc9572xl-imux-IM[7].MUX">IM[7].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.57.9">
+<a href="#tile-xc9572xl-imux-IM[34].MUX">IM[34].MUX[0]</a>
+</td>
+<td title="0.57.10">
+<a href="#tile-xc9572xl-imux-IM[34].MUX">IM[34].MUX[1]</a>
+</td>
+<td title="0.57.11">
+<a href="#tile-xc9572xl-imux-IM[34].MUX">IM[34].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.57.13">
+<a href="#tile-xc9572xl-imux-IM[34].MUX">IM[34].MUX[3]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td title="0.58.0">
+<a href="#tile-xc9572xl-imux-IM[8].MUX">IM[8].MUX[0]</a>
+</td>
+<td title="0.58.1">
+<a href="#tile-xc9572xl-imux-IM[8].MUX">IM[8].MUX[1]</a>
+</td>
+<td title="0.58.2">
+<a href="#tile-xc9572xl-imux-IM[8].MUX">IM[8].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.58.4">
+<a href="#tile-xc9572xl-imux-IM[8].MUX">IM[8].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.58.9">
+<a href="#tile-xc9572xl-imux-IM[35].MUX">IM[35].MUX[0]</a>
+</td>
+<td title="0.58.10">
+<a href="#tile-xc9572xl-imux-IM[35].MUX">IM[35].MUX[1]</a>
+</td>
+<td title="0.58.11">
+<a href="#tile-xc9572xl-imux-IM[35].MUX">IM[35].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.58.13">
+<a href="#tile-xc9572xl-imux-IM[35].MUX">IM[35].MUX[3]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td title="0.59.0">
+<a href="#tile-xc9572xl-imux-IM[9].MUX">IM[9].MUX[0]</a>
+</td>
+<td title="0.59.1">
+<a href="#tile-xc9572xl-imux-IM[9].MUX">IM[9].MUX[1]</a>
+</td>
+<td title="0.59.2">
+<a href="#tile-xc9572xl-imux-IM[9].MUX">IM[9].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.59.4">
+<a href="#tile-xc9572xl-imux-IM[9].MUX">IM[9].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.59.9">
+<a href="#tile-xc9572xl-imux-IM[36].MUX">IM[36].MUX[0]</a>
+</td>
+<td title="0.59.10">
+<a href="#tile-xc9572xl-imux-IM[36].MUX">IM[36].MUX[1]</a>
+</td>
+<td title="0.59.11">
+<a href="#tile-xc9572xl-imux-IM[36].MUX">IM[36].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.59.13">
+<a href="#tile-xc9572xl-imux-IM[36].MUX">IM[36].MUX[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td title="0.60.0">
+<a href="#tile-xc9572xl-imux-IM[10].MUX">IM[10].MUX[0]</a>
+</td>
+<td title="0.60.1">
+<a href="#tile-xc9572xl-imux-IM[10].MUX">IM[10].MUX[1]</a>
+</td>
+<td title="0.60.2">
+<a href="#tile-xc9572xl-imux-IM[10].MUX">IM[10].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.60.4">
+<a href="#tile-xc9572xl-imux-IM[10].MUX">IM[10].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.60.9">
+<a href="#tile-xc9572xl-imux-IM[37].MUX">IM[37].MUX[0]</a>
+</td>
+<td title="0.60.10">
+<a href="#tile-xc9572xl-imux-IM[37].MUX">IM[37].MUX[1]</a>
+</td>
+<td title="0.60.11">
+<a href="#tile-xc9572xl-imux-IM[37].MUX">IM[37].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.60.13">
+<a href="#tile-xc9572xl-imux-IM[37].MUX">IM[37].MUX[3]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td title="0.61.0">
+<a href="#tile-xc9572xl-imux-IM[11].MUX">IM[11].MUX[0]</a>
+</td>
+<td title="0.61.1">
+<a href="#tile-xc9572xl-imux-IM[11].MUX">IM[11].MUX[1]</a>
+</td>
+<td title="0.61.2">
+<a href="#tile-xc9572xl-imux-IM[11].MUX">IM[11].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.61.4">
+<a href="#tile-xc9572xl-imux-IM[11].MUX">IM[11].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.61.9">
+<a href="#tile-xc9572xl-imux-IM[38].MUX">IM[38].MUX[0]</a>
+</td>
+<td title="0.61.10">
+<a href="#tile-xc9572xl-imux-IM[38].MUX">IM[38].MUX[1]</a>
+</td>
+<td title="0.61.11">
+<a href="#tile-xc9572xl-imux-IM[38].MUX">IM[38].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.61.13">
+<a href="#tile-xc9572xl-imux-IM[38].MUX">IM[38].MUX[3]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td title="0.62.0">
+<a href="#tile-xc9572xl-imux-IM[12].MUX">IM[12].MUX[0]</a>
+</td>
+<td title="0.62.1">
+<a href="#tile-xc9572xl-imux-IM[12].MUX">IM[12].MUX[1]</a>
+</td>
+<td title="0.62.2">
+<a href="#tile-xc9572xl-imux-IM[12].MUX">IM[12].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.62.4">
+<a href="#tile-xc9572xl-imux-IM[12].MUX">IM[12].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.62.9">
+<a href="#tile-xc9572xl-imux-IM[39].MUX">IM[39].MUX[0]</a>
+</td>
+<td title="0.62.10">
+<a href="#tile-xc9572xl-imux-IM[39].MUX">IM[39].MUX[1]</a>
+</td>
+<td title="0.62.11">
+<a href="#tile-xc9572xl-imux-IM[39].MUX">IM[39].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.62.13">
+<a href="#tile-xc9572xl-imux-IM[39].MUX">IM[39].MUX[3]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td title="0.63.0">
+<a href="#tile-xc9572xl-imux-IM[13].MUX">IM[13].MUX[0]</a>
+</td>
+<td title="0.63.1">
+<a href="#tile-xc9572xl-imux-IM[13].MUX">IM[13].MUX[1]</a>
+</td>
+<td title="0.63.2">
+<a href="#tile-xc9572xl-imux-IM[13].MUX">IM[13].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.63.4">
+<a href="#tile-xc9572xl-imux-IM[13].MUX">IM[13].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.63.9">
+<a href="#tile-xc9572xl-imux-IM[40].MUX">IM[40].MUX[0]</a>
+</td>
+<td title="0.63.10">
+<a href="#tile-xc9572xl-imux-IM[40].MUX">IM[40].MUX[1]</a>
+</td>
+<td title="0.63.11">
+<a href="#tile-xc9572xl-imux-IM[40].MUX">IM[40].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.63.13">
+<a href="#tile-xc9572xl-imux-IM[40].MUX">IM[40].MUX[3]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td title="0.64.0">
+<a href="#tile-xc9572xl-imux-IM[14].MUX">IM[14].MUX[0]</a>
+</td>
+<td title="0.64.1">
+<a href="#tile-xc9572xl-imux-IM[14].MUX">IM[14].MUX[1]</a>
+</td>
+<td title="0.64.2">
+<a href="#tile-xc9572xl-imux-IM[14].MUX">IM[14].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.64.4">
+<a href="#tile-xc9572xl-imux-IM[14].MUX">IM[14].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.64.9">
+<a href="#tile-xc9572xl-imux-IM[41].MUX">IM[41].MUX[0]</a>
+</td>
+<td title="0.64.10">
+<a href="#tile-xc9572xl-imux-IM[41].MUX">IM[41].MUX[1]</a>
+</td>
+<td title="0.64.11">
+<a href="#tile-xc9572xl-imux-IM[41].MUX">IM[41].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.64.13">
+<a href="#tile-xc9572xl-imux-IM[41].MUX">IM[41].MUX[3]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td title="0.65.0">
+<a href="#tile-xc9572xl-imux-IM[15].MUX">IM[15].MUX[0]</a>
+</td>
+<td title="0.65.1">
+<a href="#tile-xc9572xl-imux-IM[15].MUX">IM[15].MUX[1]</a>
+</td>
+<td title="0.65.2">
+<a href="#tile-xc9572xl-imux-IM[15].MUX">IM[15].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.65.4">
+<a href="#tile-xc9572xl-imux-IM[15].MUX">IM[15].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.65.9">
+<a href="#tile-xc9572xl-imux-IM[42].MUX">IM[42].MUX[0]</a>
+</td>
+<td title="0.65.10">
+<a href="#tile-xc9572xl-imux-IM[42].MUX">IM[42].MUX[1]</a>
+</td>
+<td title="0.65.11">
+<a href="#tile-xc9572xl-imux-IM[42].MUX">IM[42].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.65.13">
+<a href="#tile-xc9572xl-imux-IM[42].MUX">IM[42].MUX[3]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td title="0.66.0">
+<a href="#tile-xc9572xl-imux-IM[16].MUX">IM[16].MUX[0]</a>
+</td>
+<td title="0.66.1">
+<a href="#tile-xc9572xl-imux-IM[16].MUX">IM[16].MUX[1]</a>
+</td>
+<td title="0.66.2">
+<a href="#tile-xc9572xl-imux-IM[16].MUX">IM[16].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.66.4">
+<a href="#tile-xc9572xl-imux-IM[16].MUX">IM[16].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.66.9">
+<a href="#tile-xc9572xl-imux-IM[43].MUX">IM[43].MUX[0]</a>
+</td>
+<td title="0.66.10">
+<a href="#tile-xc9572xl-imux-IM[43].MUX">IM[43].MUX[1]</a>
+</td>
+<td title="0.66.11">
+<a href="#tile-xc9572xl-imux-IM[43].MUX">IM[43].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.66.13">
+<a href="#tile-xc9572xl-imux-IM[43].MUX">IM[43].MUX[3]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td title="0.67.0">
+<a href="#tile-xc9572xl-imux-IM[17].MUX">IM[17].MUX[0]</a>
+</td>
+<td title="0.67.1">
+<a href="#tile-xc9572xl-imux-IM[17].MUX">IM[17].MUX[1]</a>
+</td>
+<td title="0.67.2">
+<a href="#tile-xc9572xl-imux-IM[17].MUX">IM[17].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.67.4">
+<a href="#tile-xc9572xl-imux-IM[17].MUX">IM[17].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.67.9">
+<a href="#tile-xc9572xl-imux-IM[44].MUX">IM[44].MUX[0]</a>
+</td>
+<td title="0.67.10">
+<a href="#tile-xc9572xl-imux-IM[44].MUX">IM[44].MUX[1]</a>
+</td>
+<td title="0.67.11">
+<a href="#tile-xc9572xl-imux-IM[44].MUX">IM[44].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.67.13">
+<a href="#tile-xc9572xl-imux-IM[44].MUX">IM[44].MUX[3]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td title="0.68.0">
+<a href="#tile-xc9572xl-imux-IM[18].MUX">IM[18].MUX[0]</a>
+</td>
+<td title="0.68.1">
+<a href="#tile-xc9572xl-imux-IM[18].MUX">IM[18].MUX[1]</a>
+</td>
+<td title="0.68.2">
+<a href="#tile-xc9572xl-imux-IM[18].MUX">IM[18].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.68.4">
+<a href="#tile-xc9572xl-imux-IM[18].MUX">IM[18].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.68.9">
+<a href="#tile-xc9572xl-imux-IM[45].MUX">IM[45].MUX[0]</a>
+</td>
+<td title="0.68.10">
+<a href="#tile-xc9572xl-imux-IM[45].MUX">IM[45].MUX[1]</a>
+</td>
+<td title="0.68.11">
+<a href="#tile-xc9572xl-imux-IM[45].MUX">IM[45].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.68.13">
+<a href="#tile-xc9572xl-imux-IM[45].MUX">IM[45].MUX[3]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td title="0.69.0">
+<a href="#tile-xc9572xl-imux-IM[19].MUX">IM[19].MUX[0]</a>
+</td>
+<td title="0.69.1">
+<a href="#tile-xc9572xl-imux-IM[19].MUX">IM[19].MUX[1]</a>
+</td>
+<td title="0.69.2">
+<a href="#tile-xc9572xl-imux-IM[19].MUX">IM[19].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.69.4">
+<a href="#tile-xc9572xl-imux-IM[19].MUX">IM[19].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.69.9">
+<a href="#tile-xc9572xl-imux-IM[46].MUX">IM[46].MUX[0]</a>
+</td>
+<td title="0.69.10">
+<a href="#tile-xc9572xl-imux-IM[46].MUX">IM[46].MUX[1]</a>
+</td>
+<td title="0.69.11">
+<a href="#tile-xc9572xl-imux-IM[46].MUX">IM[46].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.69.13">
+<a href="#tile-xc9572xl-imux-IM[46].MUX">IM[46].MUX[3]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td title="0.70.0">
+<a href="#tile-xc9572xl-imux-IM[20].MUX">IM[20].MUX[0]</a>
+</td>
+<td title="0.70.1">
+<a href="#tile-xc9572xl-imux-IM[20].MUX">IM[20].MUX[1]</a>
+</td>
+<td title="0.70.2">
+<a href="#tile-xc9572xl-imux-IM[20].MUX">IM[20].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.70.4">
+<a href="#tile-xc9572xl-imux-IM[20].MUX">IM[20].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.70.9">
+<a href="#tile-xc9572xl-imux-IM[47].MUX">IM[47].MUX[0]</a>
+</td>
+<td title="0.70.10">
+<a href="#tile-xc9572xl-imux-IM[47].MUX">IM[47].MUX[1]</a>
+</td>
+<td title="0.70.11">
+<a href="#tile-xc9572xl-imux-IM[47].MUX">IM[47].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.70.13">
+<a href="#tile-xc9572xl-imux-IM[47].MUX">IM[47].MUX[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td title="0.71.0">
+<a href="#tile-xc9572xl-imux-IM[21].MUX">IM[21].MUX[0]</a>
+</td>
+<td title="0.71.1">
+<a href="#tile-xc9572xl-imux-IM[21].MUX">IM[21].MUX[1]</a>
+</td>
+<td title="0.71.2">
+<a href="#tile-xc9572xl-imux-IM[21].MUX">IM[21].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.71.4">
+<a href="#tile-xc9572xl-imux-IM[21].MUX">IM[21].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.71.9">
+<a href="#tile-xc9572xl-imux-IM[48].MUX">IM[48].MUX[0]</a>
+</td>
+<td title="0.71.10">
+<a href="#tile-xc9572xl-imux-IM[48].MUX">IM[48].MUX[1]</a>
+</td>
+<td title="0.71.11">
+<a href="#tile-xc9572xl-imux-IM[48].MUX">IM[48].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.71.13">
+<a href="#tile-xc9572xl-imux-IM[48].MUX">IM[48].MUX[3]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td title="0.72.0">
+<a href="#tile-xc9572xl-imux-IM[22].MUX">IM[22].MUX[0]</a>
+</td>
+<td title="0.72.1">
+<a href="#tile-xc9572xl-imux-IM[22].MUX">IM[22].MUX[1]</a>
+</td>
+<td title="0.72.2">
+<a href="#tile-xc9572xl-imux-IM[22].MUX">IM[22].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.72.4">
+<a href="#tile-xc9572xl-imux-IM[22].MUX">IM[22].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.72.9">
+<a href="#tile-xc9572xl-imux-IM[49].MUX">IM[49].MUX[0]</a>
+</td>
+<td title="0.72.10">
+<a href="#tile-xc9572xl-imux-IM[49].MUX">IM[49].MUX[1]</a>
+</td>
+<td title="0.72.11">
+<a href="#tile-xc9572xl-imux-IM[49].MUX">IM[49].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.72.13">
+<a href="#tile-xc9572xl-imux-IM[49].MUX">IM[49].MUX[3]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td title="0.73.0">
+<a href="#tile-xc9572xl-imux-IM[23].MUX">IM[23].MUX[0]</a>
+</td>
+<td title="0.73.1">
+<a href="#tile-xc9572xl-imux-IM[23].MUX">IM[23].MUX[1]</a>
+</td>
+<td title="0.73.2">
+<a href="#tile-xc9572xl-imux-IM[23].MUX">IM[23].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.73.4">
+<a href="#tile-xc9572xl-imux-IM[23].MUX">IM[23].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.73.9">
+<a href="#tile-xc9572xl-imux-IM[50].MUX">IM[50].MUX[0]</a>
+</td>
+<td title="0.73.10">
+<a href="#tile-xc9572xl-imux-IM[50].MUX">IM[50].MUX[1]</a>
+</td>
+<td title="0.73.11">
+<a href="#tile-xc9572xl-imux-IM[50].MUX">IM[50].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.73.13">
+<a href="#tile-xc9572xl-imux-IM[50].MUX">IM[50].MUX[3]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td title="0.74.0">
+<a href="#tile-xc9572xl-imux-IM[24].MUX">IM[24].MUX[0]</a>
+</td>
+<td title="0.74.1">
+<a href="#tile-xc9572xl-imux-IM[24].MUX">IM[24].MUX[1]</a>
+</td>
+<td title="0.74.2">
+<a href="#tile-xc9572xl-imux-IM[24].MUX">IM[24].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.74.4">
+<a href="#tile-xc9572xl-imux-IM[24].MUX">IM[24].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.74.9">
+<a href="#tile-xc9572xl-imux-IM[51].MUX">IM[51].MUX[0]</a>
+</td>
+<td title="0.74.10">
+<a href="#tile-xc9572xl-imux-IM[51].MUX">IM[51].MUX[1]</a>
+</td>
+<td title="0.74.11">
+<a href="#tile-xc9572xl-imux-IM[51].MUX">IM[51].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.74.13">
+<a href="#tile-xc9572xl-imux-IM[51].MUX">IM[51].MUX[3]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td title="0.75.0">
+<a href="#tile-xc9572xl-imux-IM[25].MUX">IM[25].MUX[0]</a>
+</td>
+<td title="0.75.1">
+<a href="#tile-xc9572xl-imux-IM[25].MUX">IM[25].MUX[1]</a>
+</td>
+<td title="0.75.2">
+<a href="#tile-xc9572xl-imux-IM[25].MUX">IM[25].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.75.4">
+<a href="#tile-xc9572xl-imux-IM[25].MUX">IM[25].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.75.9">
+<a href="#tile-xc9572xl-imux-IM[52].MUX">IM[52].MUX[0]</a>
+</td>
+<td title="0.75.10">
+<a href="#tile-xc9572xl-imux-IM[52].MUX">IM[52].MUX[1]</a>
+</td>
+<td title="0.75.11">
+<a href="#tile-xc9572xl-imux-IM[52].MUX">IM[52].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.75.13">
+<a href="#tile-xc9572xl-imux-IM[52].MUX">IM[52].MUX[3]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td title="0.76.0">
+<a href="#tile-xc9572xl-imux-IM[26].MUX">IM[26].MUX[0]</a>
+</td>
+<td title="0.76.1">
+<a href="#tile-xc9572xl-imux-IM[26].MUX">IM[26].MUX[1]</a>
+</td>
+<td title="0.76.2">
+<a href="#tile-xc9572xl-imux-IM[26].MUX">IM[26].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.76.4">
+<a href="#tile-xc9572xl-imux-IM[26].MUX">IM[26].MUX[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.76.9">
+<a href="#tile-xc9572xl-imux-IM[53].MUX">IM[53].MUX[0]</a>
+</td>
+<td title="0.76.10">
+<a href="#tile-xc9572xl-imux-IM[53].MUX">IM[53].MUX[1]</a>
+</td>
+<td title="0.76.11">
+<a href="#tile-xc9572xl-imux-IM[53].MUX">IM[53].MUX[2]</a>
+</td>
+<td>-</td>
+<td title="0.76.13">
+<a href="#tile-xc9572xl-imux-IM[53].MUX">IM[53].MUX[3]</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[0].MUX">IM[0].MUX</th>
+<th>0.50.4</th>
+<th>0.50.2</th>
+<th>0.50.1</th>
+<th>0.50.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC13</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[10].MUX">IM[10].MUX</th>
+<th>0.60.4</th>
+<th>0.60.2</th>
+<th>0.60.1</th>
+<th>0.60.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC5</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC15</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC11</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC10</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC10</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC10</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC10</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[11].MUX">IM[11].MUX</th>
+<th>0.61.4</th>
+<th>0.61.2</th>
+<th>0.61.1</th>
+<th>0.61.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC11</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC7</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC17</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC8</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC11</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC11</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC11</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC11</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[12].MUX">IM[12].MUX</th>
+<th>0.62.4</th>
+<th>0.62.2</th>
+<th>0.62.1</th>
+<th>0.62.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC7</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC14</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC12</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC12</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC12</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC12</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[13].MUX">IM[13].MUX</th>
+<th>0.63.4</th>
+<th>0.63.2</th>
+<th>0.63.1</th>
+<th>0.63.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC16</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC13</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC13</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC13</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC13</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[14].MUX">IM[14].MUX</th>
+<th>0.64.4</th>
+<th>0.64.2</th>
+<th>0.64.1</th>
+<th>0.64.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC8</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC16</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC12</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC14</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC14</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC14</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC14</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[15].MUX">IM[15].MUX</th>
+<th>0.65.4</th>
+<th>0.65.2</th>
+<th>0.65.1</th>
+<th>0.65.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC17</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC14</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC17</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC15</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC15</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC15</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC15</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[16].MUX">IM[16].MUX</th>
+<th>0.66.4</th>
+<th>0.66.2</th>
+<th>0.66.1</th>
+<th>0.66.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC7</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC16</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC16</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[17].MUX">IM[17].MUX</th>
+<th>0.67.4</th>
+<th>0.67.2</th>
+<th>0.67.1</th>
+<th>0.67.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC13</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC13</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC15</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC17</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC17</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC17</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC17</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[18].MUX">IM[18].MUX</th>
+<th>0.68.4</th>
+<th>0.68.2</th>
+<th>0.68.1</th>
+<th>0.68.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC14</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC15</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC8</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC3</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[19].MUX">IM[19].MUX</th>
+<th>0.69.4</th>
+<th>0.69.2</th>
+<th>0.69.1</th>
+<th>0.69.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC16</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC7</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC14</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC7</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC13</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[1].MUX">IM[1].MUX</th>
+<th>0.51.4</th>
+<th>0.51.2</th>
+<th>0.51.1</th>
+<th>0.51.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC16</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC6</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[20].MUX">IM[20].MUX</th>
+<th>0.70.4</th>
+<th>0.70.2</th>
+<th>0.70.1</th>
+<th>0.70.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC10</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC14</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[21].MUX">IM[21].MUX</th>
+<th>0.71.4</th>
+<th>0.71.2</th>
+<th>0.71.1</th>
+<th>0.71.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC11</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC15</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC10</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[22].MUX">IM[22].MUX</th>
+<th>0.72.4</th>
+<th>0.72.2</th>
+<th>0.72.1</th>
+<th>0.72.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC15</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC13</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC14</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[23].MUX">IM[23].MUX</th>
+<th>0.73.4</th>
+<th>0.73.2</th>
+<th>0.73.1</th>
+<th>0.73.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC17</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC17</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC15</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC14</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC14</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[24].MUX">IM[24].MUX</th>
+<th>0.74.4</th>
+<th>0.74.2</th>
+<th>0.74.1</th>
+<th>0.74.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC14</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC13</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC7</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC7</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[25].MUX">IM[25].MUX</th>
+<th>0.75.4</th>
+<th>0.75.2</th>
+<th>0.75.1</th>
+<th>0.75.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC5</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC12</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC7</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC13</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC13</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[26].MUX">IM[26].MUX</th>
+<th>0.76.4</th>
+<th>0.76.2</th>
+<th>0.76.1</th>
+<th>0.76.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC12</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC7</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC12</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC11</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC15</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[27].MUX">IM[27].MUX</th>
+<th>0.50.13</th>
+<th>0.50.11</th>
+<th>0.50.10</th>
+<th>0.50.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC14</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC7</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC17</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC14</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC16</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC14</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[28].MUX">IM[28].MUX</th>
+<th>0.51.13</th>
+<th>0.51.11</th>
+<th>0.51.10</th>
+<th>0.51.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC5</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC13</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC6</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC8</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC8</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC7</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC12</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[29].MUX">IM[29].MUX</th>
+<th>0.52.13</th>
+<th>0.52.11</th>
+<th>0.52.10</th>
+<th>0.52.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC16</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC9</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC13</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC13</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[2].MUX">IM[2].MUX</th>
+<th>0.52.4</th>
+<th>0.52.2</th>
+<th>0.52.1</th>
+<th>0.52.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC17</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC9</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[30].MUX">IM[30].MUX</th>
+<th>0.53.13</th>
+<th>0.53.11</th>
+<th>0.53.10</th>
+<th>0.53.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC13</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC14</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC13</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC15</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[31].MUX">IM[31].MUX</th>
+<th>0.54.13</th>
+<th>0.54.11</th>
+<th>0.54.10</th>
+<th>0.54.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC12</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC13</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC13</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC7</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC3</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[32].MUX">IM[32].MUX</th>
+<th>0.55.13</th>
+<th>0.55.11</th>
+<th>0.55.10</th>
+<th>0.55.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC7</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC9</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC16</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC9</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC8</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC7</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[33].MUX">IM[33].MUX</th>
+<th>0.56.13</th>
+<th>0.56.11</th>
+<th>0.56.10</th>
+<th>0.56.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC11</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC5</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC17</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC8</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[34].MUX">IM[34].MUX</th>
+<th>0.57.13</th>
+<th>0.57.11</th>
+<th>0.57.10</th>
+<th>0.57.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC17</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC17</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC7</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC12</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC3</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC11</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[35].MUX">IM[35].MUX</th>
+<th>0.58.13</th>
+<th>0.58.11</th>
+<th>0.58.10</th>
+<th>0.58.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC11</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC11</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC10</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC14</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC15</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[36].MUX">IM[36].MUX</th>
+<th>0.59.13</th>
+<th>0.59.11</th>
+<th>0.59.10</th>
+<th>0.59.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC16</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC12</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC15</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC15</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC12</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC8</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[37].MUX">IM[37].MUX</th>
+<th>0.60.13</th>
+<th>0.60.11</th>
+<th>0.60.10</th>
+<th>0.60.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC15</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC10</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[38].MUX">IM[38].MUX</th>
+<th>0.61.13</th>
+<th>0.61.11</th>
+<th>0.61.10</th>
+<th>0.61.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC13</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC9</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC15</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC11</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC8</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC16</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC9</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[39].MUX">IM[39].MUX</th>
+<th>0.62.13</th>
+<th>0.62.11</th>
+<th>0.62.10</th>
+<th>0.62.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC15</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC11</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC8</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[3].MUX">IM[3].MUX</th>
+<th>0.53.4</th>
+<th>0.53.2</th>
+<th>0.53.1</th>
+<th>0.53.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC14</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC15</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC5</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC3</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC3</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[40].MUX">IM[40].MUX</th>
+<th>0.63.13</th>
+<th>0.63.11</th>
+<th>0.63.10</th>
+<th>0.63.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC8</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC7</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC9</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[41].MUX">IM[41].MUX</th>
+<th>0.64.13</th>
+<th>0.64.11</th>
+<th>0.64.10</th>
+<th>0.64.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC17</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC7</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC6</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC8</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC12</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC10</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[42].MUX">IM[42].MUX</th>
+<th>0.65.13</th>
+<th>0.65.11</th>
+<th>0.65.10</th>
+<th>0.65.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC14</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC13</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC11</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC12</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC12</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC11</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC10</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[43].MUX">IM[43].MUX</th>
+<th>0.66.13</th>
+<th>0.66.11</th>
+<th>0.66.10</th>
+<th>0.66.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC7</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC16</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC17</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC17</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC9</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC10</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[44].MUX">IM[44].MUX</th>
+<th>0.67.13</th>
+<th>0.67.11</th>
+<th>0.67.10</th>
+<th>0.67.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC17</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC12</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC16</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC15</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC11</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[45].MUX">IM[45].MUX</th>
+<th>0.68.13</th>
+<th>0.68.11</th>
+<th>0.68.10</th>
+<th>0.68.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC16</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC14</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC12</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC15</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC9</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC16</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[46].MUX">IM[46].MUX</th>
+<th>0.69.13</th>
+<th>0.69.11</th>
+<th>0.69.10</th>
+<th>0.69.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC13</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC16</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[47].MUX">IM[47].MUX</th>
+<th>0.70.13</th>
+<th>0.70.11</th>
+<th>0.70.10</th>
+<th>0.70.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC16</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC12</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC10</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC9</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC17</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[48].MUX">IM[48].MUX</th>
+<th>0.71.13</th>
+<th>0.71.11</th>
+<th>0.71.10</th>
+<th>0.71.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC9</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC11</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC12</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC13</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC3</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[49].MUX">IM[49].MUX</th>
+<th>0.72.13</th>
+<th>0.72.11</th>
+<th>0.72.10</th>
+<th>0.72.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC15</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC9</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC7</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC10</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC17</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[4].MUX">IM[4].MUX</th>
+<th>0.54.4</th>
+<th>0.54.2</th>
+<th>0.54.1</th>
+<th>0.54.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC11</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC14</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[50].MUX">IM[50].MUX</th>
+<th>0.73.13</th>
+<th>0.73.11</th>
+<th>0.73.10</th>
+<th>0.73.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC5</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC10</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC11</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC11</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC9</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[51].MUX">IM[51].MUX</th>
+<th>0.74.13</th>
+<th>0.74.11</th>
+<th>0.74.10</th>
+<th>0.74.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC8</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC11</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC14</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC12</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[52].MUX">IM[52].MUX</th>
+<th>0.75.13</th>
+<th>0.75.11</th>
+<th>0.75.10</th>
+<th>0.75.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC8</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC11</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC15</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC17</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC9</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[53].MUX">IM[53].MUX</th>
+<th>0.76.13</th>
+<th>0.76.11</th>
+<th>0.76.10</th>
+<th>0.76.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC17</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC14</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC17</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC17</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[5].MUX">IM[5].MUX</th>
+<th>0.55.4</th>
+<th>0.55.2</th>
+<th>0.55.1</th>
+<th>0.55.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC10</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC12</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC10</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[6].MUX">IM[6].MUX</th>
+<th>0.56.4</th>
+<th>0.56.2</th>
+<th>0.56.1</th>
+<th>0.56.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC12</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC7</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B0MC16</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[7].MUX">IM[7].MUX</th>
+<th>0.57.4</th>
+<th>0.57.2</th>
+<th>0.57.1</th>
+<th>0.57.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC15</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC11</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC7</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC7</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC7</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC7</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[8].MUX">IM[8].MUX</th>
+<th>0.58.4</th>
+<th>0.58.2</th>
+<th>0.58.1</th>
+<th>0.58.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B1MC4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B1MC13</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B0MC2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC8</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC8</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC8</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC8</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9572xl-imux-IM[9].MUX">IM[9].MUX</th>
+<th>0.59.4</th>
+<th>0.59.2</th>
+<th>0.59.1</th>
+<th>0.59.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B3MC12</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B3MC2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IOB_C0B2MC9</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IOB_C0B2MC2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B0MC9</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B2MC9</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>MC_C0B1MC9</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>MC_C0B3MC9</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../xc9500/devices/xc9536xl.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../xc9500/devices/xc95144xl.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../xc9500/devices/xc9536xl.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../xc9500/devices/xc95144xl.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,693 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Internal oscillators - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="internal-oscillators"><a class="header" href="#internal-oscillators">Internal oscillators</a></h1>
+<h2 id="tile-lsosc"><a class="header" href="#tile-lsosc">Tile LSOSC</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-lsosc"><a class="header" href="#bel-lsosc">Bel LSOSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue LSOSC bel LSOSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLKK</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC4</td></tr>
+<tr><td>ENACLKK</td><td>input</td><td>TCELL0:IMUX.IO.EXTRA</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue LSOSC bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.IO.EXTRA</td><td>LSOSC.ENACLKK</td></tr>
+<tr><td>TCELL1:OUT.LC0</td><td>LSOSC.CLKK</td></tr>
+<tr><td>TCELL1:OUT.LC4</td><td>LSOSC.CLKK</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-hsosc"><a class="header" href="#tile-hsosc">Tile HSOSC</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-hsosc"><a class="header" href="#bel-hsosc">Bel HSOSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue HSOSC bel HSOSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLKM</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC4</td></tr>
+<tr><td>ENACLKM</td><td>input</td><td>TCELL0:IMUX.IO.EXTRA</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue HSOSC bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.IO.EXTRA</td><td>HSOSC.ENACLKM</td></tr>
+<tr><td>TCELL1:OUT.LC0</td><td>HSOSC.CLKM</td></tr>
+<tr><td>TCELL1:OUT.LC4</td><td>HSOSC.CLKM</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-lfosc_t04"><a class="header" href="#tile-lfosc_t04">Tile LFOSC_T04</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-lfosc"><a class="header" href="#bel-lfosc">Bel LFOSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue LFOSC_T04 bel LFOSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLKLF</td><td>output</td><td>TCELL1:OUT.LC0</td></tr>
+<tr><td>CLKLFEN</td><td>input</td><td>TCELL1:IMUX.LC7.I3</td></tr>
+<tr><td>CLKLFPU</td><td>input</td><td>TCELL1:IMUX.LC0.I1</td></tr>
+<tr><td>TRIM0</td><td>input</td><td>TCELL0:IMUX.LC2.I1</td></tr>
+<tr><td>TRIM1</td><td>input</td><td>TCELL0:IMUX.LC3.I1</td></tr>
+<tr><td>TRIM2</td><td>input</td><td>TCELL0:IMUX.LC4.I1</td></tr>
+<tr><td>TRIM3</td><td>input</td><td>TCELL0:IMUX.LC5.I1</td></tr>
+<tr><td>TRIM4</td><td>input</td><td>TCELL0:IMUX.LC6.I1</td></tr>
+<tr><td>TRIM5</td><td>input</td><td>TCELL0:IMUX.LC7.I1</td></tr>
+<tr><td>TRIM6</td><td>input</td><td>TCELL0:IMUX.LC0.I0</td></tr>
+<tr><td>TRIM7</td><td>input</td><td>TCELL0:IMUX.LC1.I0</td></tr>
+<tr><td>TRIM8</td><td>input</td><td>TCELL0:IMUX.LC2.I0</td></tr>
+<tr><td>TRIM9</td><td>input</td><td>TCELL0:IMUX.LC3.I0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue LFOSC_T04 bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.LC0.I0</td><td>LFOSC.TRIM6</td></tr>
+<tr><td>TCELL0:IMUX.LC1.I0</td><td>LFOSC.TRIM7</td></tr>
+<tr><td>TCELL0:IMUX.LC2.I0</td><td>LFOSC.TRIM8</td></tr>
+<tr><td>TCELL0:IMUX.LC2.I1</td><td>LFOSC.TRIM0</td></tr>
+<tr><td>TCELL0:IMUX.LC3.I0</td><td>LFOSC.TRIM9</td></tr>
+<tr><td>TCELL0:IMUX.LC3.I1</td><td>LFOSC.TRIM1</td></tr>
+<tr><td>TCELL0:IMUX.LC4.I1</td><td>LFOSC.TRIM2</td></tr>
+<tr><td>TCELL0:IMUX.LC5.I1</td><td>LFOSC.TRIM3</td></tr>
+<tr><td>TCELL0:IMUX.LC6.I1</td><td>LFOSC.TRIM4</td></tr>
+<tr><td>TCELL0:IMUX.LC7.I1</td><td>LFOSC.TRIM5</td></tr>
+<tr><td>TCELL1:IMUX.LC0.I1</td><td>LFOSC.CLKLFPU</td></tr>
+<tr><td>TCELL1:IMUX.LC7.I3</td><td>LFOSC.CLKLFEN</td></tr>
+<tr><td>TCELL1:OUT.LC0</td><td>LFOSC.CLKLF</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-lfosc_t01"><a class="header" href="#tile-lfosc_t01">Tile LFOSC_T01</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-lfosc-1"><a class="header" href="#bel-lfosc-1">Bel LFOSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue LFOSC_T01 bel LFOSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLKLF</td><td>output</td><td>TCELL0:OUT.LC4</td></tr>
+<tr><td>CLKLFEN</td><td>input</td><td>TCELL1:IMUX.LC4.I3</td></tr>
+<tr><td>CLKLFPU</td><td>input</td><td>TCELL1:IMUX.LC3.I3</td></tr>
+<tr><td>TRIM0</td><td>input</td><td>TCELL1:IMUX.LC6.I3</td></tr>
+<tr><td>TRIM1</td><td>input</td><td>TCELL1:IMUX.LC7.I3</td></tr>
+<tr><td>TRIM2</td><td>input</td><td>TCELL1:IMUX.LC0.I1</td></tr>
+<tr><td>TRIM3</td><td>input</td><td>TCELL1:IMUX.LC1.I1</td></tr>
+<tr><td>TRIM4</td><td>input</td><td>TCELL1:IMUX.LC2.I1</td></tr>
+<tr><td>TRIM5</td><td>input</td><td>TCELL1:IMUX.LC3.I1</td></tr>
+<tr><td>TRIM6</td><td>input</td><td>TCELL1:IMUX.LC4.I1</td></tr>
+<tr><td>TRIM7</td><td>input</td><td>TCELL1:IMUX.LC5.I1</td></tr>
+<tr><td>TRIM8</td><td>input</td><td>TCELL1:IMUX.LC6.I1</td></tr>
+<tr><td>TRIM9</td><td>input</td><td>TCELL1:IMUX.LC7.I1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue LFOSC_T01 bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:OUT.LC4</td><td>LFOSC.CLKLF</td></tr>
+<tr><td>TCELL1:IMUX.LC0.I1</td><td>LFOSC.TRIM2</td></tr>
+<tr><td>TCELL1:IMUX.LC1.I1</td><td>LFOSC.TRIM3</td></tr>
+<tr><td>TCELL1:IMUX.LC2.I1</td><td>LFOSC.TRIM4</td></tr>
+<tr><td>TCELL1:IMUX.LC3.I1</td><td>LFOSC.TRIM5</td></tr>
+<tr><td>TCELL1:IMUX.LC3.I3</td><td>LFOSC.CLKLFPU</td></tr>
+<tr><td>TCELL1:IMUX.LC4.I1</td><td>LFOSC.TRIM6</td></tr>
+<tr><td>TCELL1:IMUX.LC4.I3</td><td>LFOSC.CLKLFEN</td></tr>
+<tr><td>TCELL1:IMUX.LC5.I1</td><td>LFOSC.TRIM7</td></tr>
+<tr><td>TCELL1:IMUX.LC6.I1</td><td>LFOSC.TRIM8</td></tr>
+<tr><td>TCELL1:IMUX.LC6.I3</td><td>LFOSC.TRIM0</td></tr>
+<tr><td>TCELL1:IMUX.LC7.I1</td><td>LFOSC.TRIM9</td></tr>
+<tr><td>TCELL1:IMUX.LC7.I3</td><td>LFOSC.TRIM1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-hfosc_t04"><a class="header" href="#tile-hfosc_t04">Tile HFOSC_T04</a></h2>
+<p>Cells: 4</p>
+<h3 id="bel-hfosc"><a class="header" href="#bel-hfosc">Bel HFOSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue HFOSC_T04 bel HFOSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLKHF</td><td>output</td><td>TCELL0:OUT.LC7</td></tr>
+<tr><td>CLKHFEN</td><td>input</td><td>TCELL1:IMUX.LC7.I3</td></tr>
+<tr><td>CLKHFPU</td><td>input</td><td>TCELL1:IMUX.LC0.I1</td></tr>
+<tr><td>TRIM0</td><td>input</td><td>TCELL2:IMUX.LC4.I0</td></tr>
+<tr><td>TRIM1</td><td>input</td><td>TCELL2:IMUX.LC5.I0</td></tr>
+<tr><td>TRIM2</td><td>input</td><td>TCELL2:IMUX.LC6.I0</td></tr>
+<tr><td>TRIM3</td><td>input</td><td>TCELL2:IMUX.LC7.I0</td></tr>
+<tr><td>TRIM4</td><td>input</td><td>TCELL3:IMUX.LC0.I3</td></tr>
+<tr><td>TRIM5</td><td>input</td><td>TCELL3:IMUX.LC1.I3</td></tr>
+<tr><td>TRIM6</td><td>input</td><td>TCELL3:IMUX.LC2.I3</td></tr>
+<tr><td>TRIM7</td><td>input</td><td>TCELL3:IMUX.LC3.I3</td></tr>
+<tr><td>TRIM8</td><td>input</td><td>TCELL3:IMUX.LC4.I3</td></tr>
+<tr><td>TRIM9</td><td>input</td><td>TCELL3:IMUX.LC5.I3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue HFOSC_T04 bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:OUT.LC7</td><td>HFOSC.CLKHF</td></tr>
+<tr><td>TCELL1:IMUX.LC0.I1</td><td>HFOSC.CLKHFPU</td></tr>
+<tr><td>TCELL1:IMUX.LC7.I3</td><td>HFOSC.CLKHFEN</td></tr>
+<tr><td>TCELL2:IMUX.LC4.I0</td><td>HFOSC.TRIM0</td></tr>
+<tr><td>TCELL2:IMUX.LC5.I0</td><td>HFOSC.TRIM1</td></tr>
+<tr><td>TCELL2:IMUX.LC6.I0</td><td>HFOSC.TRIM2</td></tr>
+<tr><td>TCELL2:IMUX.LC7.I0</td><td>HFOSC.TRIM3</td></tr>
+<tr><td>TCELL3:IMUX.LC0.I3</td><td>HFOSC.TRIM4</td></tr>
+<tr><td>TCELL3:IMUX.LC1.I3</td><td>HFOSC.TRIM5</td></tr>
+<tr><td>TCELL3:IMUX.LC2.I3</td><td>HFOSC.TRIM6</td></tr>
+<tr><td>TCELL3:IMUX.LC3.I3</td><td>HFOSC.TRIM7</td></tr>
+<tr><td>TCELL3:IMUX.LC4.I3</td><td>HFOSC.TRIM8</td></tr>
+<tr><td>TCELL3:IMUX.LC5.I3</td><td>HFOSC.TRIM9</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-hfosc_t01"><a class="header" href="#tile-hfosc_t01">Tile HFOSC_T01</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-hfosc-1"><a class="header" href="#bel-hfosc-1">Bel HFOSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue HFOSC_T01 bel HFOSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLKHF</td><td>output</td><td>TCELL0:OUT.LC4</td></tr>
+<tr><td>CLKHFEN</td><td>input</td><td>TCELL1:IMUX.LC4.I1</td></tr>
+<tr><td>CLKHFPU</td><td>input</td><td>TCELL1:IMUX.LC5.I1</td></tr>
+<tr><td>TRIM0</td><td>input</td><td>TCELL1:IMUX.LC2.I3</td></tr>
+<tr><td>TRIM1</td><td>input</td><td>TCELL1:IMUX.LC3.I3</td></tr>
+<tr><td>TRIM2</td><td>input</td><td>TCELL1:IMUX.LC4.I3</td></tr>
+<tr><td>TRIM3</td><td>input</td><td>TCELL1:IMUX.LC5.I3</td></tr>
+<tr><td>TRIM4</td><td>input</td><td>TCELL1:IMUX.LC6.I3</td></tr>
+<tr><td>TRIM5</td><td>input</td><td>TCELL1:IMUX.LC7.I3</td></tr>
+<tr><td>TRIM6</td><td>input</td><td>TCELL1:IMUX.LC0.I1</td></tr>
+<tr><td>TRIM7</td><td>input</td><td>TCELL1:IMUX.LC1.I1</td></tr>
+<tr><td>TRIM8</td><td>input</td><td>TCELL1:IMUX.LC2.I1</td></tr>
+<tr><td>TRIM9</td><td>input</td><td>TCELL1:IMUX.LC3.I1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue HFOSC_T01 bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:OUT.LC4</td><td>HFOSC.CLKHF</td></tr>
+<tr><td>TCELL1:IMUX.LC0.I1</td><td>HFOSC.TRIM6</td></tr>
+<tr><td>TCELL1:IMUX.LC1.I1</td><td>HFOSC.TRIM7</td></tr>
+<tr><td>TCELL1:IMUX.LC2.I1</td><td>HFOSC.TRIM8</td></tr>
+<tr><td>TCELL1:IMUX.LC2.I3</td><td>HFOSC.TRIM0</td></tr>
+<tr><td>TCELL1:IMUX.LC3.I1</td><td>HFOSC.TRIM9</td></tr>
+<tr><td>TCELL1:IMUX.LC3.I3</td><td>HFOSC.TRIM1</td></tr>
+<tr><td>TCELL1:IMUX.LC4.I1</td><td>HFOSC.CLKHFEN</td></tr>
+<tr><td>TCELL1:IMUX.LC4.I3</td><td>HFOSC.TRIM2</td></tr>
+<tr><td>TCELL1:IMUX.LC5.I1</td><td>HFOSC.CLKHFPU</td></tr>
+<tr><td>TCELL1:IMUX.LC5.I3</td><td>HFOSC.TRIM3</td></tr>
+<tr><td>TCELL1:IMUX.LC6.I3</td><td>HFOSC.TRIM4</td></tr>
+<tr><td>TCELL1:IMUX.LC7.I3</td><td>HFOSC.TRIM5</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-trim_t04"><a class="header" href="#tile-trim_t04">Tile TRIM_T04</a></h2>
+<p>Cells: 1</p>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue TRIM_T04 bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.0.7">
+<a href="#tile-siliconblue-TRIM_T04-LED_DRV_CUR:TRIM_FABRIC">LED_DRV_CUR:TRIM_FABRIC</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.7">
+<a href="#tile-siliconblue-TRIM_T04-HFOSC:CLKHF_DIV">HFOSC:CLKHF_DIV[0]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.7">
+<a href="#tile-siliconblue-TRIM_T04-LFOSC:TRIM_FABRIC">LFOSC:TRIM_FABRIC</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.7">
+<a href="#tile-siliconblue-TRIM_T04-HFOSC:TRIM_FABRIC">HFOSC:TRIM_FABRIC</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.5.7">
+<a href="#tile-siliconblue-TRIM_T04-HFOSC:CLKHF_DIV">HFOSC:CLKHF_DIV[1]</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-siliconblue-TRIM_T04-HFOSC:CLKHF_DIV">HFOSC:CLKHF_DIV</th>
+<th>0.5.7</th>
+<th>0.2.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-siliconblue-TRIM_T04-HFOSC:TRIM_FABRIC">HFOSC:TRIM_FABRIC</th>
+<th>0.4.7</th>
+</tr>
+<tr><th id="tile-siliconblue-TRIM_T04-LED_DRV_CUR:TRIM_FABRIC">LED_DRV_CUR:TRIM_FABRIC</th>
+<th>0.0.7</th>
+</tr>
+<tr><th id="tile-siliconblue-TRIM_T04-LFOSC:TRIM_FABRIC">LFOSC:TRIM_FABRIC</th>
+<th>0.3.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-trim_t01"><a class="header" href="#tile-trim_t01">Tile TRIM_T01</a></h2>
+<p>Cells: 1</p>
+<h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue TRIM_T01 bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.0.7">
+<a href="#tile-siliconblue-TRIM_T01-LFOSC:TRIM_FABRIC">LFOSC:TRIM_FABRIC</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.7">
+<a href="#tile-siliconblue-TRIM_T01-LED_DRV_CUR:TRIM_FABRIC">LED_DRV_CUR:TRIM_FABRIC</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.7">
+<a href="#tile-siliconblue-TRIM_T01-HFOSC:CLKHF_DIV">HFOSC:CLKHF_DIV[1]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.7">
+<a href="#tile-siliconblue-TRIM_T01-HFOSC:CLKHF_DIV">HFOSC:CLKHF_DIV[0]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.5.7">
+<a href="#tile-siliconblue-TRIM_T01-HFOSC:TRIM_FABRIC">HFOSC:TRIM_FABRIC</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-siliconblue-TRIM_T01-HFOSC:CLKHF_DIV">HFOSC:CLKHF_DIV</th>
+<th>0.2.7</th>
+<th>0.3.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-siliconblue-TRIM_T01-HFOSC:TRIM_FABRIC">HFOSC:TRIM_FABRIC</th>
+<th>0.5.7</th>
+</tr>
+<tr><th id="tile-siliconblue-TRIM_T01-LED_DRV_CUR:TRIM_FABRIC">LED_DRV_CUR:TRIM_FABRIC</th>
+<th>0.1.7</th>
+</tr>
+<tr><th id="tile-siliconblue-TRIM_T01-LFOSC:TRIM_FABRIC">LFOSC:TRIM_FABRIC</th>
+<th>0.0.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../siliconblue/filter.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../siliconblue/led_drv.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../siliconblue/filter.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../siliconblue/led_drv.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

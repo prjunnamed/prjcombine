@@ -1,0 +1,1967 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>General interconnect - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="general-interconnect"><a class="header" href="#general-interconnect">General interconnect</a></h1>
+<h2 id="tile-slots"><a class="header" href="#tile-slots">Tile slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 tile slots</caption>
+<thead>
+<tr><th>Slot</th><th>Tiles</th><th>Bel slots</th></tr>
+</thead>
+<tbody>
+<tr><td>INT</td><td>INT, INT.IOI</td><td>INT</td></tr>
+<tr><td>INTF</td><td>INTF, INTF.CMT, INTF.CMT.IOI, INTF.IOI</td><td>INTF_TESTMUX</td></tr>
+<tr><td>BEL</td><td>CLEXL, CLEXM, BRAM, DSP, LL, UL, LR, UR, IOI.LR, IOI.BT, PCILOGICSE, MCB, CLKC, CMT_DCM, CMT_PLL, PCIE, GTP</td><td>SLICE0, SLICE1, BRAM_F, BRAM_H0, BRAM_H1, DSP, ILOGIC0, ILOGIC1, OLOGIC0, OLOGIC1, IODELAY0, IODELAY1, IOICLK0, IOICLK1, IOI, DCM0, DCM1, PLL, CMT, MCB, PCIE, GTP, BUFDS0, BUFDS1, PCILOGICSE, OCT_CAL0, OCT_CAL1, OCT_CAL2, OCT_CAL3, OCT_CAL4, OCT_CAL5, PMV, DNA_PORT, ICAP, SPI_ACCESS, SUSPEND_SYNC, POST_CRC_INTERNAL, STARTUP, SLAVE_SPI, BSCAN0, BSCAN1, BSCAN2, BSCAN3, BUFGMUX0, BUFGMUX1, BUFGMUX2, BUFGMUX3, BUFGMUX4, BUFGMUX5, BUFGMUX6, BUFGMUX7, BUFGMUX8, BUFGMUX9, BUFGMUX10, BUFGMUX11, BUFGMUX12, BUFGMUX13, BUFGMUX14, BUFGMUX15, CLKC, CLKC_BUFPLL, MCB_TIE_CLK, MCB_TIE_DQS0, MCB_TIE_DQS1, TIEOFF_IOI, TIEOFF_PLL, TIEOFF_CLK, TIEOFF_DQS0, TIEOFF_DQS1, IPAD_RXP0, IPAD_RXN0, IPAD_RXP1, IPAD_RXN1, IPAD_CLKP0, IPAD_CLKN0, IPAD_CLKP1, IPAD_CLKN1, OPAD_TXP0, OPAD_TXN0, OPAD_TXP1, OPAD_TXN1, GTP_BUF</td></tr>
+<tr><td>IOB</td><td>IOB</td><td>IOB0, IOB1</td></tr>
+<tr><td>HCLK</td><td>HCLK</td><td>HCLK</td></tr>
+<tr><td>HCLK_ROW</td><td>HCLK_ROW</td><td>BUFH_W0, BUFH_W1, BUFH_W2, BUFH_W3, BUFH_W4, BUFH_W5, BUFH_W6, BUFH_W7, BUFH_W8, BUFH_W9, BUFH_W10, BUFH_W11, BUFH_W12, BUFH_W13, BUFH_W14, BUFH_W15, BUFH_E0, BUFH_E1, BUFH_E2, BUFH_E3, BUFH_E4, BUFH_E5, BUFH_E6, BUFH_E7, BUFH_E8, BUFH_E9, BUFH_E10, BUFH_E11, BUFH_E12, BUFH_E13, BUFH_E14, BUFH_E15, HCLK_ROW</td></tr>
+<tr><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td><td>REG_INT, BUFIO2_0, BUFIO2_1, BUFIO2_2, BUFIO2_3, BUFIO2_4, BUFIO2_5, BUFIO2_6, BUFIO2_7, BUFIO2FB_0, BUFIO2FB_1, BUFIO2FB_2, BUFIO2FB_3, BUFIO2FB_4, BUFIO2FB_5, BUFIO2FB_6, BUFIO2FB_7, BUFPLL0, BUFPLL1, BUFPLL_MCB, BUFPLL_OUT, BUFPLL_INS_LR, BUFPLL_INS_BT, BUFIO2_INS, BUFIO2_CKPIN, BUFPLL_BUF, GTP_H_BUF, TIEOFF_REG</td></tr>
+<tr><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S, DCM_BUFPLL_BUF_N, PLL_BUFPLL_OUT1, DCM_BUFPLL_BUF_S_MID, DCM_BUFPLL_BUF_N_MID, PLL_BUFPLL_OUT0, PLL_BUFPLL_B, PLL_BUFPLL_T</td><td>DCM_BUFPLL_BUF_S, DCM_BUFPLL_BUF_S_MID, DCM_BUFPLL_BUF_N, DCM_BUFPLL_BUF_N_MID, PLL_BUFPLL</td></tr>
+<tr><td>IOI_CLK</td><td>BTIOI_CLK, LRIOI_CLK</td><td>BTIOI_CLK, LRIOI_CLK, LRIOI_CLK_TERM</td></tr>
+<tr><td>CLK_BUF</td><td>HCLK_V_MIDBUF, CKPIN_V_MIDBUF, CKPIN_H_MIDBUF, CLKPIN_BUF, HCLK_H_MIDBUF</td><td>HCLK_V_MIDBUF, CKPIN_V_MIDBUF, CKPIN_H_MIDBUF, HCLK_H_MIDBUF, CLKPIN_BUF</td></tr>
+<tr><td>PCI_CE_TRUNK_BUF</td><td>PCI_CE_TRUNK_BUF</td><td>PCI_CE_TRUNK_BUF</td></tr>
+<tr><td>PCI_CE_BUF</td><td>PCI_CE_V_BUF, PCI_CE_SPLIT, PCI_CE_H_BUF</td><td>PCI_CE_V_BUF, PCI_CE_H_BUF, PCI_CE_SPLIT</td></tr>
+</tbody>
+</table></div>
+<h2 id="bel-slots"><a class="header" href="#bel-slots">Bel slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 bel slots</caption>
+<thead>
+<tr><th>Slot</th><th>Tile slot</th><th>Tiles</th></tr>
+</thead>
+<tbody>
+<tr><td>INT</td><td>INT</td><td>INT, INT.IOI</td></tr>
+<tr><td>INTF_TESTMUX</td><td>INTF</td><td>INTF, INTF.CMT, INTF.CMT.IOI, INTF.IOI</td></tr>
+<tr><td>REG_INT</td><td>REG</td><td>REG_B, REG_T</td></tr>
+<tr><td>SLICE0</td><td>BEL</td><td>CLEXL, CLEXM</td></tr>
+<tr><td>SLICE1</td><td>BEL</td><td>CLEXL, CLEXM</td></tr>
+<tr><td>BRAM_F</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>BRAM_H0</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>BRAM_H1</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>DSP</td><td>BEL</td><td>DSP</td></tr>
+<tr><td>ILOGIC0</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>ILOGIC1</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>OLOGIC0</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>OLOGIC1</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>IODELAY0</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>IODELAY1</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>IOB0</td><td>IOB</td><td>IOB</td></tr>
+<tr><td>IOB1</td><td>IOB</td><td>IOB</td></tr>
+<tr><td>IOICLK0</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>IOICLK1</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>IOI</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>DCM0</td><td>BEL</td><td>CMT_DCM</td></tr>
+<tr><td>DCM1</td><td>BEL</td><td>CMT_DCM</td></tr>
+<tr><td>PLL</td><td>BEL</td><td>CMT_PLL</td></tr>
+<tr><td>CMT</td><td>BEL</td><td>CMT_DCM, CMT_PLL</td></tr>
+<tr><td>DCM_BUFPLL_BUF_S</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S</td></tr>
+<tr><td>DCM_BUFPLL_BUF_S_MID</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_S_MID</td></tr>
+<tr><td>DCM_BUFPLL_BUF_N</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_N</td></tr>
+<tr><td>DCM_BUFPLL_BUF_N_MID</td><td>CMT_BUF</td><td>DCM_BUFPLL_BUF_N_MID</td></tr>
+<tr><td>PLL_BUFPLL</td><td>CMT_BUF</td><td>PLL_BUFPLL_OUT1, PLL_BUFPLL_OUT0</td></tr>
+<tr><td>MCB</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>PCIE</td><td>BEL</td><td>PCIE</td></tr>
+<tr><td>GTP</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFDS0</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>BUFDS1</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>PCILOGICSE</td><td>BEL</td><td>PCILOGICSE</td></tr>
+<tr><td>OCT_CAL0</td><td>BEL</td><td>UL</td></tr>
+<tr><td>OCT_CAL1</td><td>BEL</td><td>LR</td></tr>
+<tr><td>OCT_CAL2</td><td>BEL</td><td>LL</td></tr>
+<tr><td>OCT_CAL3</td><td>BEL</td><td>LL</td></tr>
+<tr><td>OCT_CAL4</td><td>BEL</td><td>UL</td></tr>
+<tr><td>OCT_CAL5</td><td>BEL</td><td>UR</td></tr>
+<tr><td>PMV</td><td>BEL</td><td>UL</td></tr>
+<tr><td>DNA_PORT</td><td>BEL</td><td>UL</td></tr>
+<tr><td>ICAP</td><td>BEL</td><td>LR</td></tr>
+<tr><td>SPI_ACCESS</td><td>BEL</td><td>LR</td></tr>
+<tr><td>SUSPEND_SYNC</td><td>BEL</td><td>LR</td></tr>
+<tr><td>POST_CRC_INTERNAL</td><td>BEL</td><td>LR</td></tr>
+<tr><td>STARTUP</td><td>BEL</td><td>LR</td></tr>
+<tr><td>SLAVE_SPI</td><td>BEL</td><td>LR</td></tr>
+<tr><td>BSCAN0</td><td>BEL</td><td>UR</td></tr>
+<tr><td>BSCAN1</td><td>BEL</td><td>UR</td></tr>
+<tr><td>BSCAN2</td><td>BEL</td><td>UR</td></tr>
+<tr><td>BSCAN3</td><td>BEL</td><td>UR</td></tr>
+<tr><td>HCLK</td><td>HCLK</td><td>HCLK</td></tr>
+<tr><td>BUFH_W0</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W1</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W2</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W3</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W4</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W5</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W6</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W7</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W8</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W9</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W10</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W11</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W12</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W13</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W14</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_W15</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E0</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E1</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E2</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E3</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E4</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E5</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E6</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E7</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E8</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E9</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E10</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E11</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E12</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E13</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E14</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFH_E15</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>HCLK_ROW</td><td>HCLK_ROW</td><td>HCLK_ROW</td></tr>
+<tr><td>BUFGMUX0</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX1</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX2</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX3</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX4</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX5</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX6</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX7</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX8</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX9</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX10</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX11</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX12</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX13</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX14</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFGMUX15</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>CLKC</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>CLKC_BUFPLL</td><td>BEL</td><td>CLKC</td></tr>
+<tr><td>BUFIO2_0</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_1</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_2</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_3</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_4</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_5</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_6</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_7</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_0</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_1</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_2</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_3</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_4</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_5</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_6</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2FB_7</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFPLL0</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFPLL1</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFPLL_MCB</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFPLL_OUT</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFPLL_INS_LR</td><td>REG</td><td>REG_L, REG_R</td></tr>
+<tr><td>BUFPLL_INS_BT</td><td>REG</td><td>REG_B, REG_T</td></tr>
+<tr><td>BTIOI_CLK</td><td>IOI_CLK</td><td>BTIOI_CLK</td></tr>
+<tr><td>LRIOI_CLK</td><td>IOI_CLK</td><td>LRIOI_CLK</td></tr>
+<tr><td>LRIOI_CLK_TERM</td><td>IOI_CLK</td><td>LRIOI_CLK</td></tr>
+<tr><td>PCI_CE_TRUNK_BUF</td><td>PCI_CE_TRUNK_BUF</td><td>PCI_CE_TRUNK_BUF</td></tr>
+<tr><td>PCI_CE_V_BUF</td><td>PCI_CE_BUF</td><td>PCI_CE_V_BUF</td></tr>
+<tr><td>PCI_CE_H_BUF</td><td>PCI_CE_BUF</td><td>PCI_CE_H_BUF</td></tr>
+<tr><td>PCI_CE_SPLIT</td><td>PCI_CE_BUF</td><td>PCI_CE_SPLIT</td></tr>
+<tr><td>HCLK_V_MIDBUF</td><td>CLK_BUF</td><td>HCLK_V_MIDBUF</td></tr>
+<tr><td>CKPIN_V_MIDBUF</td><td>CLK_BUF</td><td>CKPIN_V_MIDBUF</td></tr>
+<tr><td>CKPIN_H_MIDBUF</td><td>CLK_BUF</td><td>CKPIN_H_MIDBUF</td></tr>
+<tr><td>HCLK_H_MIDBUF</td><td>CLK_BUF</td><td>HCLK_H_MIDBUF</td></tr>
+<tr><td>BUFIO2_INS</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFIO2_CKPIN</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>BUFPLL_BUF</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>CLKPIN_BUF</td><td>CLK_BUF</td><td>CLKPIN_BUF</td></tr>
+<tr><td>GTP_H_BUF</td><td>REG</td><td>REG_B, REG_T</td></tr>
+<tr><td>MCB_TIE_CLK</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>MCB_TIE_DQS0</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>MCB_TIE_DQS1</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>TIEOFF_IOI</td><td>BEL</td><td>IOI.LR, IOI.BT</td></tr>
+<tr><td>TIEOFF_REG</td><td>REG</td><td>REG_L, REG_R, REG_B, REG_T</td></tr>
+<tr><td>TIEOFF_PLL</td><td>BEL</td><td>CMT_PLL</td></tr>
+<tr><td>TIEOFF_CLK</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>TIEOFF_DQS0</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>TIEOFF_DQS1</td><td>BEL</td><td>MCB</td></tr>
+<tr><td>IPAD_RXP0</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>IPAD_RXN0</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>IPAD_RXP1</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>IPAD_RXN1</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>IPAD_CLKP0</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>IPAD_CLKN0</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>IPAD_CLKP1</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>IPAD_CLKN1</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>OPAD_TXP0</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>OPAD_TXN0</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>OPAD_TXP1</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>OPAD_TXN1</td><td>BEL</td><td>GTP</td></tr>
+<tr><td>GTP_BUF</td><td>BEL</td><td>GTP</td></tr>
+</tbody>
+</table></div>
+<h2 id="connector-slots"><a class="header" href="#connector-slots">Connector slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 connector slots</caption>
+<thead>
+<tr><th>Slot</th><th>Opposite</th><th>Connectors</th></tr>
+</thead>
+<tbody>
+<tr><td>W</td><td>E</td><td>MAIN.W, TERM.W</td></tr>
+<tr><td>E</td><td>W</td><td>MAIN.E, TERM.E</td></tr>
+<tr><td>S</td><td>N</td><td>MAIN.S, TERM.S</td></tr>
+<tr><td>N</td><td>S</td><td>MAIN.N, TERM.N</td></tr>
+</tbody>
+</table></div>
+<h2 id="region-slots"><a class="header" href="#region-slots">Region slots</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 region slots</caption>
+<thead>
+<tr><th>Slot</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>HCLK</td><td></td></tr>
+<tr><td>LEAF</td><td>GCLK0, GCLK1, GCLK2, GCLK3, GCLK4, GCLK5, GCLK6, GCLK7, GCLK8, GCLK9, GCLK10, GCLK11, GCLK12, GCLK13, GCLK14, GCLK15</td></tr>
+</tbody>
+</table></div>
+<h2 id="wires"><a class="header" href="#wires">Wires</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th><th>Kind</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PULLUP</td><td>TIE_PULLUP</td></tr>
+<tr><td>GND</td><td>TIE_0</td></tr>
+<tr><td>VCC</td><td>TIE_1</td></tr>
+<tr><td>GCLK0</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK1</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK2</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK3</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK4</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK5</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK6</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK7</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK8</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK9</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK10</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK11</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK12</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK13</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK14</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>GCLK15</td><td>REGIONAL:LEAF</td></tr>
+<tr><td>SNG.EL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL0.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.EL0.2</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.EL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL1.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.EL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL2.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.EL3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL3.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER0.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER1.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER2.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER3.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER3.2</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.WL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL0.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL1.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL2.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL3.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL3.2</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.WR0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR0.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WR0.2</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.WR1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR1.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WR2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR2.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WR3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR3.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.NL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL0.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NL0.2</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.NL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL1.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL2.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NL3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL3.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR0.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR1.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR2.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR3.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.SL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL0.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL1.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL2.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SL3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL3.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR0.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR1.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR2.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR3.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR3.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.EE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE0.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE1.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE2.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE3.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.WW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW0.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW1.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW2.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW3.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW3.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN0.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN0.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.NN1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN1.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN1.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN2.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN2.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN3.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN3.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE0.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NE0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.NE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE1.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE2.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE3.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW0.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.NW0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.NW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW1.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.NW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW2.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.NW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW3.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SS0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS0.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS0.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS1.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS1.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS2.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS2.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS3.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS3.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS3.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.SE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE0.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE1.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE2.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE3.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW0.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW1.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW2.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW3.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW3.3</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.EE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE0.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE0.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE0.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE1.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE2.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE3.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.WW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW0.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.5</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.WW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW1.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW1.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW1.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW2.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW3.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NN0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NN0.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN0.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN0.3</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN0.4</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NN1.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN1.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN1.3</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN1.4</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NN2.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN2.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN2.3</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN2.4</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NN3.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN3.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN3.3</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NN3.4</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NE0.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE0.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE0.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NE0.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NE1.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE1.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE1.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NE1.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NE2.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE2.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE2.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NE2.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NE3.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE3.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NE3.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NE3.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.NW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NW0.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW0.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW0.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NW0.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NW0.5</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.NW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NW1.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW1.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW1.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NW1.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NW2.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW2.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW2.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NW2.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.NW3.1</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW3.2</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.NW3.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.NW3.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SS0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SS0.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS0.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS0.3</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS0.4</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SS1.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS1.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS1.3</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS1.4</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SS2.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS2.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS2.3</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS2.4</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SS3.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS3.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS3.3</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS3.4</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SS3.5</td><td>BRANCH:S</td></tr>
+<tr><td>QUAD.SE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SE0.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE0.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE0.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SE0.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SE1.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE1.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE1.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SE1.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SE2.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE2.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE2.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SE2.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SE3.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE3.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SE3.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SE3.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.SW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SW0.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW0.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW0.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW0.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SW1.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW1.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW1.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW1.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SW2.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW2.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW2.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW2.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.SW3.1</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW3.2</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.SW3.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW3.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.SW3.5</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.GFAN0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.GFAN1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.SR0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.SR1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN4</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN5</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN6</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN7</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN8</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN9</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN10</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN11</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN12</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN13</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN14</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN15</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN16</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN17</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN18</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN19</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN20</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN20.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN20.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.LOGICIN21</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN21.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN21.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.LOGICIN22</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN23</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN24</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN25</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN26</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN27</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN28</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN28.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN28.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.LOGICIN29</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN30</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN31</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN32</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN33</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN34</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN35</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN36</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN36.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN36.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.LOGICIN37</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN38</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN39</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN40</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN41</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN42</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN43</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN44</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN44.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN44.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.LOGICIN45</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN46</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN47</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN48</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN49</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN50</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN51</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN52</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN52.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN52.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.LOGICIN53</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN54</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN55</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN56</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN57</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN58</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN59</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN60</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN60.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN60.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.LOGICIN61</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN62</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN62.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.LOGICIN62.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.LOGICIN63</td><td>MUX_OUT</td></tr>
+<tr><td>OUT0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT2</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT2.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT3</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT3.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT4</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT4.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT5</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT5.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT6</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT6.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT7</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT7.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT8</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT8.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT9</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT9.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT10</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT10.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT11</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT11.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT12</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT12.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT13</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT13.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT14</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT14.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT15</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT15.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT16</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT16.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT17</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT17.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT18</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT18.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT19</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT19.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT20</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT20.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT21</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT21.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT22</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT22.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT23</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT23.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>IMUX.REGB.GCLK0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.REGB.GCLK1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.REGT.GCLK0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.REGT.GCLK1</td><td>MUX_OUT</td></tr>
+</tbody>
+</table></div>
+<h2 id="connectors--w"><a class="header" href="#connectors--w">Connectors — W</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.W</th>
+<th>TERM.W</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SNG.EL0.1</td>
+<td>→ SNG.EL0.0</td>
+<td>← SNG.WL0.0</td>
+</tr>
+<tr><td>SNG.EL1.1</td>
+<td>→ SNG.EL1.0</td>
+<td>← SNG.WL1.0</td>
+</tr>
+<tr><td>SNG.EL2.1</td>
+<td>→ SNG.EL2.0</td>
+<td>← SNG.WL2.0</td>
+</tr>
+<tr><td>SNG.EL3.1</td>
+<td>→ SNG.EL3.0</td>
+<td>← SNG.WL3.0</td>
+</tr>
+<tr><td>SNG.ER0.1</td>
+<td>→ SNG.ER0.0</td>
+<td>← SNG.WR0.0</td>
+</tr>
+<tr><td>SNG.ER1.1</td>
+<td>→ SNG.ER1.0</td>
+<td>← SNG.WR1.0</td>
+</tr>
+<tr><td>SNG.ER2.1</td>
+<td>→ SNG.ER2.0</td>
+<td>← SNG.WR2.0</td>
+</tr>
+<tr><td>SNG.ER3.1</td>
+<td>→ SNG.ER3.0</td>
+<td>← SNG.WR3.0</td>
+</tr>
+<tr><td>DBL.EE0.1</td>
+<td>→ DBL.EE0.0</td>
+<td>← DBL.WW0.0</td>
+</tr>
+<tr><td>DBL.EE0.2</td>
+<td>→ DBL.EE0.1</td>
+<td>← DBL.WW0.1</td>
+</tr>
+<tr><td>DBL.EE1.1</td>
+<td>→ DBL.EE1.0</td>
+<td>← DBL.WW1.0</td>
+</tr>
+<tr><td>DBL.EE1.2</td>
+<td>→ DBL.EE1.1</td>
+<td>← DBL.WW1.1</td>
+</tr>
+<tr><td>DBL.EE2.1</td>
+<td>→ DBL.EE2.0</td>
+<td>← DBL.WW2.0</td>
+</tr>
+<tr><td>DBL.EE2.2</td>
+<td>→ DBL.EE2.1</td>
+<td>← DBL.WW2.1</td>
+</tr>
+<tr><td>DBL.EE3.1</td>
+<td>→ DBL.EE3.0</td>
+<td>← DBL.WW3.0</td>
+</tr>
+<tr><td>DBL.EE3.2</td>
+<td>→ DBL.EE3.1</td>
+<td>← DBL.WW3.1</td>
+</tr>
+<tr><td>DBL.NE0.2</td>
+<td>→ DBL.NE0.1</td>
+<td>← DBL.NW0.1</td>
+</tr>
+<tr><td>DBL.NE1.2</td>
+<td>→ DBL.NE1.1</td>
+<td>← DBL.NW1.1</td>
+</tr>
+<tr><td>DBL.NE2.2</td>
+<td>→ DBL.NE2.1</td>
+<td>← DBL.NW2.1</td>
+</tr>
+<tr><td>DBL.NE3.2</td>
+<td>→ DBL.NE3.1</td>
+<td>← DBL.NW3.1</td>
+</tr>
+<tr><td>DBL.SE0.2</td>
+<td>→ DBL.SE0.1</td>
+<td>← DBL.SW0.1</td>
+</tr>
+<tr><td>DBL.SE1.2</td>
+<td>→ DBL.SE1.1</td>
+<td>← DBL.SW1.1</td>
+</tr>
+<tr><td>DBL.SE2.2</td>
+<td>→ DBL.SE2.1</td>
+<td>← DBL.SW2.1</td>
+</tr>
+<tr><td>DBL.SE3.2</td>
+<td>→ DBL.SE3.1</td>
+<td>← DBL.SW3.1</td>
+</tr>
+<tr><td>QUAD.EE0.1</td>
+<td>→ QUAD.EE0.0</td>
+<td>← QUAD.WW0.0</td>
+</tr>
+<tr><td>QUAD.EE0.2</td>
+<td>→ QUAD.EE0.1</td>
+<td>← QUAD.WW0.1</td>
+</tr>
+<tr><td>QUAD.EE0.3</td>
+<td>→ QUAD.EE0.2</td>
+<td>← QUAD.WW0.2</td>
+</tr>
+<tr><td>QUAD.EE0.4</td>
+<td>→ QUAD.EE0.3</td>
+<td>← QUAD.WW0.3</td>
+</tr>
+<tr><td>QUAD.EE1.1</td>
+<td>→ QUAD.EE1.0</td>
+<td>← QUAD.WW1.0</td>
+</tr>
+<tr><td>QUAD.EE1.2</td>
+<td>→ QUAD.EE1.1</td>
+<td>← QUAD.WW1.1</td>
+</tr>
+<tr><td>QUAD.EE1.3</td>
+<td>→ QUAD.EE1.2</td>
+<td>← QUAD.WW1.2</td>
+</tr>
+<tr><td>QUAD.EE1.4</td>
+<td>→ QUAD.EE1.3</td>
+<td>← QUAD.WW1.3</td>
+</tr>
+<tr><td>QUAD.EE2.1</td>
+<td>→ QUAD.EE2.0</td>
+<td>← QUAD.WW2.0</td>
+</tr>
+<tr><td>QUAD.EE2.2</td>
+<td>→ QUAD.EE2.1</td>
+<td>← QUAD.WW2.1</td>
+</tr>
+<tr><td>QUAD.EE2.3</td>
+<td>→ QUAD.EE2.2</td>
+<td>← QUAD.WW2.2</td>
+</tr>
+<tr><td>QUAD.EE2.4</td>
+<td>→ QUAD.EE2.3</td>
+<td>← QUAD.WW2.3</td>
+</tr>
+<tr><td>QUAD.EE3.1</td>
+<td>→ QUAD.EE3.0</td>
+<td>← QUAD.WW3.0</td>
+</tr>
+<tr><td>QUAD.EE3.2</td>
+<td>→ QUAD.EE3.1</td>
+<td>← QUAD.WW3.1</td>
+</tr>
+<tr><td>QUAD.EE3.3</td>
+<td>→ QUAD.EE3.2</td>
+<td>← QUAD.WW3.2</td>
+</tr>
+<tr><td>QUAD.EE3.4</td>
+<td>→ QUAD.EE3.3</td>
+<td>← QUAD.WW3.3</td>
+</tr>
+<tr><td>QUAD.NE0.3</td>
+<td>→ QUAD.NE0.2</td>
+<td>-</td>
+</tr>
+<tr><td>QUAD.NE0.4</td>
+<td>→ QUAD.NE0.3</td>
+<td>← QUAD.NW0.3</td>
+</tr>
+<tr><td>QUAD.NE1.3</td>
+<td>→ QUAD.NE1.2</td>
+<td>-</td>
+</tr>
+<tr><td>QUAD.NE1.4</td>
+<td>→ QUAD.NE1.3</td>
+<td>← QUAD.NW1.3</td>
+</tr>
+<tr><td>QUAD.NE2.3</td>
+<td>→ QUAD.NE2.2</td>
+<td>-</td>
+</tr>
+<tr><td>QUAD.NE2.4</td>
+<td>→ QUAD.NE2.3</td>
+<td>← QUAD.NW2.3</td>
+</tr>
+<tr><td>QUAD.NE3.3</td>
+<td>→ QUAD.NE3.2</td>
+<td>-</td>
+</tr>
+<tr><td>QUAD.NE3.4</td>
+<td>→ QUAD.NE3.3</td>
+<td>← QUAD.NW3.3</td>
+</tr>
+<tr><td>QUAD.SE0.3</td>
+<td>→ QUAD.SE0.2</td>
+<td>← QUAD.SW0.2</td>
+</tr>
+<tr><td>QUAD.SE0.4</td>
+<td>→ QUAD.SE0.3</td>
+<td>← QUAD.SW0.3</td>
+</tr>
+<tr><td>QUAD.SE1.3</td>
+<td>→ QUAD.SE1.2</td>
+<td>← QUAD.SW1.2</td>
+</tr>
+<tr><td>QUAD.SE1.4</td>
+<td>→ QUAD.SE1.3</td>
+<td>← QUAD.SW1.3</td>
+</tr>
+<tr><td>QUAD.SE2.3</td>
+<td>→ QUAD.SE2.2</td>
+<td>← QUAD.SW2.2</td>
+</tr>
+<tr><td>QUAD.SE2.4</td>
+<td>→ QUAD.SE2.3</td>
+<td>← QUAD.SW2.3</td>
+</tr>
+<tr><td>QUAD.SE3.3</td>
+<td>→ QUAD.SE3.2</td>
+<td>← QUAD.SW3.2</td>
+</tr>
+<tr><td>QUAD.SE3.4</td>
+<td>→ QUAD.SE3.3</td>
+<td>← QUAD.SW3.3</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--e"><a class="header" href="#connectors--e">Connectors — E</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.E</th>
+<th>TERM.E</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SNG.WL0.1</td>
+<td>→ SNG.WL0.0</td>
+<td>← SNG.EL0.0</td>
+</tr>
+<tr><td>SNG.WL1.1</td>
+<td>→ SNG.WL1.0</td>
+<td>← SNG.EL1.0</td>
+</tr>
+<tr><td>SNG.WL2.1</td>
+<td>→ SNG.WL2.0</td>
+<td>← SNG.EL2.0</td>
+</tr>
+<tr><td>SNG.WL3.1</td>
+<td>→ SNG.WL3.0</td>
+<td>← SNG.EL3.0</td>
+</tr>
+<tr><td>SNG.WR0.1</td>
+<td>→ SNG.WR0.0</td>
+<td>← SNG.ER0.0</td>
+</tr>
+<tr><td>SNG.WR1.1</td>
+<td>→ SNG.WR1.0</td>
+<td>← SNG.ER1.0</td>
+</tr>
+<tr><td>SNG.WR2.1</td>
+<td>→ SNG.WR2.0</td>
+<td>← SNG.ER2.0</td>
+</tr>
+<tr><td>SNG.WR3.1</td>
+<td>→ SNG.WR3.0</td>
+<td>← SNG.ER3.0</td>
+</tr>
+<tr><td>DBL.WW0.1</td>
+<td>→ DBL.WW0.0</td>
+<td>← DBL.EE0.0</td>
+</tr>
+<tr><td>DBL.WW0.2</td>
+<td>→ DBL.WW0.1</td>
+<td>← DBL.EE0.1</td>
+</tr>
+<tr><td>DBL.WW1.1</td>
+<td>→ DBL.WW1.0</td>
+<td>← DBL.EE1.0</td>
+</tr>
+<tr><td>DBL.WW1.2</td>
+<td>→ DBL.WW1.1</td>
+<td>← DBL.EE1.1</td>
+</tr>
+<tr><td>DBL.WW2.1</td>
+<td>→ DBL.WW2.0</td>
+<td>← DBL.EE2.0</td>
+</tr>
+<tr><td>DBL.WW2.2</td>
+<td>→ DBL.WW2.1</td>
+<td>← DBL.EE2.1</td>
+</tr>
+<tr><td>DBL.WW3.1</td>
+<td>→ DBL.WW3.0</td>
+<td>← DBL.EE3.0</td>
+</tr>
+<tr><td>DBL.WW3.2</td>
+<td>→ DBL.WW3.1</td>
+<td>← DBL.EE3.1</td>
+</tr>
+<tr><td>DBL.NW0.2</td>
+<td>→ DBL.NW0.1</td>
+<td>← DBL.NE0.1</td>
+</tr>
+<tr><td>DBL.NW1.2</td>
+<td>→ DBL.NW1.1</td>
+<td>← DBL.NE1.1</td>
+</tr>
+<tr><td>DBL.NW2.2</td>
+<td>→ DBL.NW2.1</td>
+<td>← DBL.NE2.1</td>
+</tr>
+<tr><td>DBL.NW3.2</td>
+<td>→ DBL.NW3.1</td>
+<td>← DBL.NE3.1</td>
+</tr>
+<tr><td>DBL.SW0.2</td>
+<td>→ DBL.SW0.1</td>
+<td>← DBL.SE0.1</td>
+</tr>
+<tr><td>DBL.SW1.2</td>
+<td>→ DBL.SW1.1</td>
+<td>← DBL.SE1.1</td>
+</tr>
+<tr><td>DBL.SW2.2</td>
+<td>→ DBL.SW2.1</td>
+<td>← DBL.SE2.1</td>
+</tr>
+<tr><td>DBL.SW3.2</td>
+<td>→ DBL.SW3.1</td>
+<td>← DBL.SE3.1</td>
+</tr>
+<tr><td>QUAD.WW0.1</td>
+<td>→ QUAD.WW0.0</td>
+<td>← QUAD.EE0.0</td>
+</tr>
+<tr><td>QUAD.WW0.2</td>
+<td>→ QUAD.WW0.1</td>
+<td>← QUAD.EE0.1</td>
+</tr>
+<tr><td>QUAD.WW0.3</td>
+<td>→ QUAD.WW0.2</td>
+<td>← QUAD.EE0.2</td>
+</tr>
+<tr><td>QUAD.WW0.4</td>
+<td>→ QUAD.WW0.3</td>
+<td>← QUAD.EE0.3</td>
+</tr>
+<tr><td>QUAD.WW1.1</td>
+<td>→ QUAD.WW1.0</td>
+<td>← QUAD.EE1.0</td>
+</tr>
+<tr><td>QUAD.WW1.2</td>
+<td>→ QUAD.WW1.1</td>
+<td>← QUAD.EE1.1</td>
+</tr>
+<tr><td>QUAD.WW1.3</td>
+<td>→ QUAD.WW1.2</td>
+<td>← QUAD.EE1.2</td>
+</tr>
+<tr><td>QUAD.WW1.4</td>
+<td>→ QUAD.WW1.3</td>
+<td>← QUAD.EE1.3</td>
+</tr>
+<tr><td>QUAD.WW2.1</td>
+<td>→ QUAD.WW2.0</td>
+<td>← QUAD.EE2.0</td>
+</tr>
+<tr><td>QUAD.WW2.2</td>
+<td>→ QUAD.WW2.1</td>
+<td>← QUAD.EE2.1</td>
+</tr>
+<tr><td>QUAD.WW2.3</td>
+<td>→ QUAD.WW2.2</td>
+<td>← QUAD.EE2.2</td>
+</tr>
+<tr><td>QUAD.WW2.4</td>
+<td>→ QUAD.WW2.3</td>
+<td>← QUAD.EE2.3</td>
+</tr>
+<tr><td>QUAD.WW3.1</td>
+<td>→ QUAD.WW3.0</td>
+<td>← QUAD.EE3.0</td>
+</tr>
+<tr><td>QUAD.WW3.2</td>
+<td>→ QUAD.WW3.1</td>
+<td>← QUAD.EE3.1</td>
+</tr>
+<tr><td>QUAD.WW3.3</td>
+<td>→ QUAD.WW3.2</td>
+<td>← QUAD.EE3.2</td>
+</tr>
+<tr><td>QUAD.WW3.4</td>
+<td>→ QUAD.WW3.3</td>
+<td>← QUAD.EE3.3</td>
+</tr>
+<tr><td>QUAD.NW0.3</td>
+<td>→ QUAD.NW0.2</td>
+<td>← QUAD.NE0.2</td>
+</tr>
+<tr><td>QUAD.NW0.4</td>
+<td>→ QUAD.NW0.3</td>
+<td>← QUAD.NE0.3</td>
+</tr>
+<tr><td>QUAD.NW1.3</td>
+<td>→ QUAD.NW1.2</td>
+<td>← QUAD.NE1.2</td>
+</tr>
+<tr><td>QUAD.NW1.4</td>
+<td>→ QUAD.NW1.3</td>
+<td>← QUAD.NE1.3</td>
+</tr>
+<tr><td>QUAD.NW2.3</td>
+<td>→ QUAD.NW2.2</td>
+<td>← QUAD.NE2.2</td>
+</tr>
+<tr><td>QUAD.NW2.4</td>
+<td>→ QUAD.NW2.3</td>
+<td>← QUAD.NE2.3</td>
+</tr>
+<tr><td>QUAD.NW3.3</td>
+<td>→ QUAD.NW3.2</td>
+<td>← QUAD.NE3.2</td>
+</tr>
+<tr><td>QUAD.NW3.4</td>
+<td>→ QUAD.NW3.3</td>
+<td>← QUAD.NE3.3</td>
+</tr>
+<tr><td>QUAD.SW0.3</td>
+<td>→ QUAD.SW0.2</td>
+<td>← QUAD.SE0.2</td>
+</tr>
+<tr><td>QUAD.SW0.4</td>
+<td>→ QUAD.SW0.3</td>
+<td>← QUAD.SE0.3</td>
+</tr>
+<tr><td>QUAD.SW1.3</td>
+<td>→ QUAD.SW1.2</td>
+<td>← QUAD.SE1.2</td>
+</tr>
+<tr><td>QUAD.SW1.4</td>
+<td>→ QUAD.SW1.3</td>
+<td>← QUAD.SE1.3</td>
+</tr>
+<tr><td>QUAD.SW2.3</td>
+<td>→ QUAD.SW2.2</td>
+<td>← QUAD.SE2.2</td>
+</tr>
+<tr><td>QUAD.SW2.4</td>
+<td>→ QUAD.SW2.3</td>
+<td>← QUAD.SE2.3</td>
+</tr>
+<tr><td>QUAD.SW3.3</td>
+<td>→ QUAD.SW3.2</td>
+<td>← QUAD.SE3.2</td>
+</tr>
+<tr><td>QUAD.SW3.4</td>
+<td>→ QUAD.SW3.3</td>
+<td>← QUAD.SE3.3</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--s"><a class="header" href="#connectors--s">Connectors — S</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.S</th>
+<th>TERM.S</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SNG.ER3.2</td>
+<td>→ SNG.ER3.1</td>
+<td>← SNG.EL0.1</td>
+</tr>
+<tr><td>SNG.WL3.2</td>
+<td>→ SNG.WL3.1</td>
+<td>← SNG.WR0.1</td>
+</tr>
+<tr><td>SNG.NL0.1</td>
+<td>→ SNG.NL0.0</td>
+<td>-</td>
+</tr>
+<tr><td>SNG.NL1.1</td>
+<td>→ SNG.NL1.0</td>
+<td>-</td>
+</tr>
+<tr><td>SNG.NL2.1</td>
+<td>→ SNG.NL2.0</td>
+<td>-</td>
+</tr>
+<tr><td>SNG.NL3.1</td>
+<td>→ SNG.NL3.0</td>
+<td>-</td>
+</tr>
+<tr><td>SNG.NR0.1</td>
+<td>→ SNG.NR0.0</td>
+<td>← SNG.SR0.0</td>
+</tr>
+<tr><td>SNG.NR1.1</td>
+<td>→ SNG.NR1.0</td>
+<td>← SNG.SR1.0</td>
+</tr>
+<tr><td>SNG.NR2.1</td>
+<td>→ SNG.NR2.0</td>
+<td>← SNG.SR2.0</td>
+</tr>
+<tr><td>SNG.NR3.1</td>
+<td>→ SNG.NR3.0</td>
+<td>← SNG.SR3.0</td>
+</tr>
+<tr><td>SNG.SR3.2</td>
+<td>→ SNG.SR3.1</td>
+<td>← SNG.NL0.1</td>
+</tr>
+<tr><td>DBL.WW3.3</td>
+<td>→ DBL.WW3.2</td>
+<td>← DBL.NW0.2</td>
+</tr>
+<tr><td>DBL.NN0.1</td>
+<td>→ DBL.NN0.0</td>
+<td>← DBL.SS0.0</td>
+</tr>
+<tr><td>DBL.NN0.2</td>
+<td>→ DBL.NN0.1</td>
+<td>← DBL.SS0.1</td>
+</tr>
+<tr><td>DBL.NN1.1</td>
+<td>→ DBL.NN1.0</td>
+<td>← DBL.SS1.0</td>
+</tr>
+<tr><td>DBL.NN1.2</td>
+<td>→ DBL.NN1.1</td>
+<td>← DBL.SS1.1</td>
+</tr>
+<tr><td>DBL.NN2.1</td>
+<td>→ DBL.NN2.0</td>
+<td>← DBL.SS2.0</td>
+</tr>
+<tr><td>DBL.NN2.2</td>
+<td>→ DBL.NN2.1</td>
+<td>← DBL.SS2.1</td>
+</tr>
+<tr><td>DBL.NN3.1</td>
+<td>→ DBL.NN3.0</td>
+<td>← DBL.SS3.0</td>
+</tr>
+<tr><td>DBL.NN3.2</td>
+<td>→ DBL.NN3.1</td>
+<td>← DBL.SS3.1</td>
+</tr>
+<tr><td>DBL.NE0.1</td>
+<td>→ DBL.NE0.0</td>
+<td>← DBL.SE0.0</td>
+</tr>
+<tr><td>DBL.NE1.1</td>
+<td>→ DBL.NE1.0</td>
+<td>← DBL.SE1.0</td>
+</tr>
+<tr><td>DBL.NE2.1</td>
+<td>→ DBL.NE2.0</td>
+<td>← DBL.SE2.0</td>
+</tr>
+<tr><td>DBL.NE3.1</td>
+<td>→ DBL.NE3.0</td>
+<td>← DBL.SE3.0</td>
+</tr>
+<tr><td>DBL.NW0.1</td>
+<td>→ DBL.NW0.0</td>
+<td>← DBL.SW0.0</td>
+</tr>
+<tr><td>DBL.NW1.1</td>
+<td>→ DBL.NW1.0</td>
+<td>← DBL.SW1.0</td>
+</tr>
+<tr><td>DBL.NW2.1</td>
+<td>→ DBL.NW2.0</td>
+<td>← DBL.SW2.0</td>
+</tr>
+<tr><td>DBL.NW3.1</td>
+<td>→ DBL.NW3.0</td>
+<td>← DBL.SW3.0</td>
+</tr>
+<tr><td>DBL.SS3.3</td>
+<td>→ DBL.SS3.2</td>
+<td>← DBL.NN0.2</td>
+</tr>
+<tr><td>DBL.SW3.3</td>
+<td>→ DBL.SW3.2</td>
+<td>← DBL.NE0.2</td>
+</tr>
+<tr><td>QUAD.NN0.1</td>
+<td>→ QUAD.NN0.0</td>
+<td>← QUAD.SS0.0</td>
+</tr>
+<tr><td>QUAD.NN0.2</td>
+<td>→ QUAD.NN0.1</td>
+<td>← QUAD.SS0.1</td>
+</tr>
+<tr><td>QUAD.NN0.3</td>
+<td>→ QUAD.NN0.2</td>
+<td>← QUAD.SS0.2</td>
+</tr>
+<tr><td>QUAD.NN0.4</td>
+<td>→ QUAD.NN0.3</td>
+<td>← QUAD.SS0.3</td>
+</tr>
+<tr><td>QUAD.NN1.1</td>
+<td>→ QUAD.NN1.0</td>
+<td>← QUAD.SS1.0</td>
+</tr>
+<tr><td>QUAD.NN1.2</td>
+<td>→ QUAD.NN1.1</td>
+<td>← QUAD.SS1.1</td>
+</tr>
+<tr><td>QUAD.NN1.3</td>
+<td>→ QUAD.NN1.2</td>
+<td>← QUAD.SS1.2</td>
+</tr>
+<tr><td>QUAD.NN1.4</td>
+<td>→ QUAD.NN1.3</td>
+<td>← QUAD.SS1.3</td>
+</tr>
+<tr><td>QUAD.NN2.1</td>
+<td>→ QUAD.NN2.0</td>
+<td>← QUAD.SS2.0</td>
+</tr>
+<tr><td>QUAD.NN2.2</td>
+<td>→ QUAD.NN2.1</td>
+<td>← QUAD.SS2.1</td>
+</tr>
+<tr><td>QUAD.NN2.3</td>
+<td>→ QUAD.NN2.2</td>
+<td>← QUAD.SS2.2</td>
+</tr>
+<tr><td>QUAD.NN2.4</td>
+<td>→ QUAD.NN2.3</td>
+<td>← QUAD.SS2.3</td>
+</tr>
+<tr><td>QUAD.NN3.1</td>
+<td>→ QUAD.NN3.0</td>
+<td>← QUAD.SS3.0</td>
+</tr>
+<tr><td>QUAD.NN3.2</td>
+<td>→ QUAD.NN3.1</td>
+<td>← QUAD.SS3.1</td>
+</tr>
+<tr><td>QUAD.NN3.3</td>
+<td>→ QUAD.NN3.2</td>
+<td>← QUAD.SS3.2</td>
+</tr>
+<tr><td>QUAD.NN3.4</td>
+<td>→ QUAD.NN3.3</td>
+<td>← QUAD.SS3.3</td>
+</tr>
+<tr><td>QUAD.NE0.1</td>
+<td>→ QUAD.NE0.0</td>
+<td>← QUAD.SE0.0</td>
+</tr>
+<tr><td>QUAD.NE0.2</td>
+<td>→ QUAD.NE0.1</td>
+<td>← QUAD.SE0.1</td>
+</tr>
+<tr><td>QUAD.NE1.1</td>
+<td>→ QUAD.NE1.0</td>
+<td>← QUAD.SE1.0</td>
+</tr>
+<tr><td>QUAD.NE1.2</td>
+<td>→ QUAD.NE1.1</td>
+<td>← QUAD.SE1.1</td>
+</tr>
+<tr><td>QUAD.NE2.1</td>
+<td>→ QUAD.NE2.0</td>
+<td>← QUAD.SE2.0</td>
+</tr>
+<tr><td>QUAD.NE2.2</td>
+<td>→ QUAD.NE2.1</td>
+<td>← QUAD.SE2.1</td>
+</tr>
+<tr><td>QUAD.NE3.1</td>
+<td>→ QUAD.NE3.0</td>
+<td>← QUAD.SE3.0</td>
+</tr>
+<tr><td>QUAD.NE3.2</td>
+<td>→ QUAD.NE3.1</td>
+<td>← QUAD.SE3.1</td>
+</tr>
+<tr><td>QUAD.NW0.1</td>
+<td>→ QUAD.NW0.0</td>
+<td>← QUAD.SW0.0</td>
+</tr>
+<tr><td>QUAD.NW0.2</td>
+<td>→ QUAD.NW0.1</td>
+<td>← QUAD.SW0.1</td>
+</tr>
+<tr><td>QUAD.NW1.1</td>
+<td>→ QUAD.NW1.0</td>
+<td>← QUAD.SW1.0</td>
+</tr>
+<tr><td>QUAD.NW1.2</td>
+<td>→ QUAD.NW1.1</td>
+<td>← QUAD.SW1.1</td>
+</tr>
+<tr><td>QUAD.NW2.1</td>
+<td>→ QUAD.NW2.0</td>
+<td>← QUAD.SW2.0</td>
+</tr>
+<tr><td>QUAD.NW2.2</td>
+<td>→ QUAD.NW2.1</td>
+<td>← QUAD.SW2.1</td>
+</tr>
+<tr><td>QUAD.NW3.1</td>
+<td>→ QUAD.NW3.0</td>
+<td>← QUAD.SW3.0</td>
+</tr>
+<tr><td>QUAD.NW3.2</td>
+<td>→ QUAD.NW3.1</td>
+<td>← QUAD.SW3.1</td>
+</tr>
+<tr><td>QUAD.SS3.5</td>
+<td>→ QUAD.SS3.4</td>
+<td>← QUAD.NW0.4</td>
+</tr>
+<tr><td>QUAD.SW3.5</td>
+<td>→ QUAD.SW3.4</td>
+<td>← QUAD.WW0.4</td>
+</tr>
+<tr><td>IMUX.LOGICIN21.BOUNCE.N</td>
+<td>→ IMUX.LOGICIN21.BOUNCE</td>
+<td>← IMUX.LOGICIN20.BOUNCE</td>
+</tr>
+<tr><td>IMUX.LOGICIN28.BOUNCE.N</td>
+<td>→ IMUX.LOGICIN28.BOUNCE</td>
+<td>← IMUX.LOGICIN36.BOUNCE</td>
+</tr>
+<tr><td>IMUX.LOGICIN52.BOUNCE.N</td>
+<td>→ IMUX.LOGICIN52.BOUNCE</td>
+<td>← IMUX.LOGICIN44.BOUNCE</td>
+</tr>
+<tr><td>IMUX.LOGICIN60.BOUNCE.N</td>
+<td>→ IMUX.LOGICIN60.BOUNCE</td>
+<td>← IMUX.LOGICIN62.BOUNCE</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="connectors--n"><a class="header" href="#connectors--n">Connectors — N</a></h2>
+<div class="table-wrapper"><table>
+<caption>spartan6 wires</caption>
+<thead>
+<tr><th>Wire</th>
+<th>MAIN.N</th>
+<th>TERM.N</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SNG.EL0.2</td>
+<td>→ SNG.EL0.1</td>
+<td>← SNG.ER3.1</td>
+</tr>
+<tr><td>SNG.WR0.2</td>
+<td>→ SNG.WR0.1</td>
+<td>← SNG.WL3.1</td>
+</tr>
+<tr><td>SNG.NL0.2</td>
+<td>→ SNG.NL0.1</td>
+<td>← SNG.SR3.1</td>
+</tr>
+<tr><td>SNG.SL0.1</td>
+<td>→ SNG.SL0.0</td>
+<td>← SNG.NL0.0</td>
+</tr>
+<tr><td>SNG.SL1.1</td>
+<td>→ SNG.SL1.0</td>
+<td>← SNG.NL1.0</td>
+</tr>
+<tr><td>SNG.SL2.1</td>
+<td>→ SNG.SL2.0</td>
+<td>← SNG.NL2.0</td>
+</tr>
+<tr><td>SNG.SL3.1</td>
+<td>→ SNG.SL3.0</td>
+<td>← SNG.NL3.0</td>
+</tr>
+<tr><td>SNG.SR0.1</td>
+<td>→ SNG.SR0.0</td>
+<td>← SNG.NR0.0</td>
+</tr>
+<tr><td>SNG.SR1.1</td>
+<td>→ SNG.SR1.0</td>
+<td>← SNG.NR1.0</td>
+</tr>
+<tr><td>SNG.SR2.1</td>
+<td>→ SNG.SR2.0</td>
+<td>← SNG.NR2.0</td>
+</tr>
+<tr><td>SNG.SR3.1</td>
+<td>→ SNG.SR3.0</td>
+<td>← SNG.NR3.0</td>
+</tr>
+<tr><td>DBL.NN0.3</td>
+<td>→ DBL.NN0.2</td>
+<td>← DBL.SS3.2</td>
+</tr>
+<tr><td>DBL.NE0.3</td>
+<td>→ DBL.NE0.2</td>
+<td>← DBL.SW3.2</td>
+</tr>
+<tr><td>DBL.NW0.3</td>
+<td>→ DBL.NW0.2</td>
+<td>← DBL.WW3.2</td>
+</tr>
+<tr><td>DBL.SS0.1</td>
+<td>→ DBL.SS0.0</td>
+<td>← DBL.NN0.0</td>
+</tr>
+<tr><td>DBL.SS0.2</td>
+<td>→ DBL.SS0.1</td>
+<td>← DBL.NN0.1</td>
+</tr>
+<tr><td>DBL.SS1.1</td>
+<td>→ DBL.SS1.0</td>
+<td>← DBL.NN1.0</td>
+</tr>
+<tr><td>DBL.SS1.2</td>
+<td>→ DBL.SS1.1</td>
+<td>← DBL.NN1.1</td>
+</tr>
+<tr><td>DBL.SS2.1</td>
+<td>→ DBL.SS2.0</td>
+<td>← DBL.NN2.0</td>
+</tr>
+<tr><td>DBL.SS2.2</td>
+<td>→ DBL.SS2.1</td>
+<td>← DBL.NN2.1</td>
+</tr>
+<tr><td>DBL.SS3.1</td>
+<td>→ DBL.SS3.0</td>
+<td>← DBL.NN3.0</td>
+</tr>
+<tr><td>DBL.SS3.2</td>
+<td>→ DBL.SS3.1</td>
+<td>← DBL.NN3.1</td>
+</tr>
+<tr><td>DBL.SE0.1</td>
+<td>→ DBL.SE0.0</td>
+<td>← DBL.NE0.0</td>
+</tr>
+<tr><td>DBL.SE1.1</td>
+<td>→ DBL.SE1.0</td>
+<td>← DBL.NE1.0</td>
+</tr>
+<tr><td>DBL.SE2.1</td>
+<td>→ DBL.SE2.0</td>
+<td>← DBL.NE2.0</td>
+</tr>
+<tr><td>DBL.SE3.1</td>
+<td>→ DBL.SE3.0</td>
+<td>← DBL.NE3.0</td>
+</tr>
+<tr><td>DBL.SW0.1</td>
+<td>→ DBL.SW0.0</td>
+<td>← DBL.NW0.0</td>
+</tr>
+<tr><td>DBL.SW1.1</td>
+<td>→ DBL.SW1.0</td>
+<td>← DBL.NW1.0</td>
+</tr>
+<tr><td>DBL.SW2.1</td>
+<td>→ DBL.SW2.0</td>
+<td>← DBL.NW2.0</td>
+</tr>
+<tr><td>DBL.SW3.1</td>
+<td>→ DBL.SW3.0</td>
+<td>← DBL.NW3.0</td>
+</tr>
+<tr><td>QUAD.WW0.5</td>
+<td>→ QUAD.WW0.4</td>
+<td>← QUAD.SW3.4</td>
+</tr>
+<tr><td>QUAD.NW0.5</td>
+<td>→ QUAD.NW0.4</td>
+<td>← QUAD.SS3.4</td>
+</tr>
+<tr><td>QUAD.SS0.1</td>
+<td>→ QUAD.SS0.0</td>
+<td>← QUAD.NN0.0</td>
+</tr>
+<tr><td>QUAD.SS0.2</td>
+<td>→ QUAD.SS0.1</td>
+<td>← QUAD.NN0.1</td>
+</tr>
+<tr><td>QUAD.SS0.3</td>
+<td>→ QUAD.SS0.2</td>
+<td>← QUAD.NN0.2</td>
+</tr>
+<tr><td>QUAD.SS0.4</td>
+<td>→ QUAD.SS0.3</td>
+<td>← QUAD.NN0.3</td>
+</tr>
+<tr><td>QUAD.SS1.1</td>
+<td>→ QUAD.SS1.0</td>
+<td>← QUAD.NN1.0</td>
+</tr>
+<tr><td>QUAD.SS1.2</td>
+<td>→ QUAD.SS1.1</td>
+<td>← QUAD.NN1.1</td>
+</tr>
+<tr><td>QUAD.SS1.3</td>
+<td>→ QUAD.SS1.2</td>
+<td>← QUAD.NN1.2</td>
+</tr>
+<tr><td>QUAD.SS1.4</td>
+<td>→ QUAD.SS1.3</td>
+<td>← QUAD.NN1.3</td>
+</tr>
+<tr><td>QUAD.SS2.1</td>
+<td>→ QUAD.SS2.0</td>
+<td>← QUAD.NN2.0</td>
+</tr>
+<tr><td>QUAD.SS2.2</td>
+<td>→ QUAD.SS2.1</td>
+<td>← QUAD.NN2.1</td>
+</tr>
+<tr><td>QUAD.SS2.3</td>
+<td>→ QUAD.SS2.2</td>
+<td>← QUAD.NN2.2</td>
+</tr>
+<tr><td>QUAD.SS2.4</td>
+<td>→ QUAD.SS2.3</td>
+<td>← QUAD.NN2.3</td>
+</tr>
+<tr><td>QUAD.SS3.1</td>
+<td>→ QUAD.SS3.0</td>
+<td>← QUAD.NN3.0</td>
+</tr>
+<tr><td>QUAD.SS3.2</td>
+<td>→ QUAD.SS3.1</td>
+<td>← QUAD.NN3.1</td>
+</tr>
+<tr><td>QUAD.SS3.3</td>
+<td>→ QUAD.SS3.2</td>
+<td>← QUAD.NN3.2</td>
+</tr>
+<tr><td>QUAD.SS3.4</td>
+<td>→ QUAD.SS3.3</td>
+<td>← QUAD.NN3.3</td>
+</tr>
+<tr><td>QUAD.SE0.1</td>
+<td>→ QUAD.SE0.0</td>
+<td>← QUAD.NE0.0</td>
+</tr>
+<tr><td>QUAD.SE0.2</td>
+<td>→ QUAD.SE0.1</td>
+<td>← QUAD.NE0.1</td>
+</tr>
+<tr><td>QUAD.SE1.1</td>
+<td>→ QUAD.SE1.0</td>
+<td>← QUAD.NE1.0</td>
+</tr>
+<tr><td>QUAD.SE1.2</td>
+<td>→ QUAD.SE1.1</td>
+<td>← QUAD.NE1.1</td>
+</tr>
+<tr><td>QUAD.SE2.1</td>
+<td>→ QUAD.SE2.0</td>
+<td>← QUAD.NE2.0</td>
+</tr>
+<tr><td>QUAD.SE2.2</td>
+<td>→ QUAD.SE2.1</td>
+<td>← QUAD.NE2.1</td>
+</tr>
+<tr><td>QUAD.SE3.1</td>
+<td>→ QUAD.SE3.0</td>
+<td>← QUAD.NE3.0</td>
+</tr>
+<tr><td>QUAD.SE3.2</td>
+<td>→ QUAD.SE3.1</td>
+<td>← QUAD.NE3.1</td>
+</tr>
+<tr><td>QUAD.SW0.1</td>
+<td>→ QUAD.SW0.0</td>
+<td>← QUAD.NW0.0</td>
+</tr>
+<tr><td>QUAD.SW0.2</td>
+<td>→ QUAD.SW0.1</td>
+<td>← QUAD.NW0.1</td>
+</tr>
+<tr><td>QUAD.SW1.1</td>
+<td>→ QUAD.SW1.0</td>
+<td>← QUAD.NW1.0</td>
+</tr>
+<tr><td>QUAD.SW1.2</td>
+<td>→ QUAD.SW1.1</td>
+<td>← QUAD.NW1.1</td>
+</tr>
+<tr><td>QUAD.SW2.1</td>
+<td>→ QUAD.SW2.0</td>
+<td>← QUAD.NW2.0</td>
+</tr>
+<tr><td>QUAD.SW2.2</td>
+<td>→ QUAD.SW2.1</td>
+<td>← QUAD.NW2.1</td>
+</tr>
+<tr><td>QUAD.SW3.1</td>
+<td>→ QUAD.SW3.0</td>
+<td>← QUAD.NW3.0</td>
+</tr>
+<tr><td>QUAD.SW3.2</td>
+<td>→ QUAD.SW3.1</td>
+<td>← QUAD.NW3.1</td>
+</tr>
+<tr><td>IMUX.LOGICIN20.BOUNCE.S</td>
+<td>→ IMUX.LOGICIN20.BOUNCE</td>
+<td>← IMUX.LOGICIN21.BOUNCE</td>
+</tr>
+<tr><td>IMUX.LOGICIN36.BOUNCE.S</td>
+<td>→ IMUX.LOGICIN36.BOUNCE</td>
+<td>← IMUX.LOGICIN28.BOUNCE</td>
+</tr>
+<tr><td>IMUX.LOGICIN44.BOUNCE.S</td>
+<td>→ IMUX.LOGICIN44.BOUNCE</td>
+<td>← IMUX.LOGICIN52.BOUNCE</td>
+</tr>
+<tr><td>IMUX.LOGICIN62.BOUNCE.S</td>
+<td>→ IMUX.LOGICIN62.BOUNCE</td>
+<td>← IMUX.LOGICIN60.BOUNCE</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../spartan6/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../spartan6/interconnect/tiles-int.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../spartan6/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../spartan6/interconnect/tiles-int.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

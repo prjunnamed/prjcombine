@@ -1,0 +1,548 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>FPGA grids and interconnect - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="fpga-grids-and-interconnect"><a class="header" href="#fpga-grids-and-interconnect">FPGA grids and interconnect</a></h1>
+<p>This document describes the Project Combine model for FPGA tile grid structure and interconnect</p>
+<p>The provided databases include an <em>interconnect database</em> for each target, which describes tile types, wire types, wire connections, and other objects that can be found in the devices.  An <em>expanded grid</em> structure describes how they are instantiated combined together within a given <em>device</em>.  Both <em>interconnect database</em> and <em>expanded grid</em> are target-independent structures.</p>
+<p>Project Combine provides per-target Rust crates that construct an <em>expanded device</em> given the <em>device</em>.  The <em>expanded device</em> is a target-dependent structure that contains the <em>expanded grid</em> as one of its fields.</p>
+<p>TODO: the currently implemented interconnect model differs from the one described here in multiple places (mostly in naming, but there are more complex mismatches as well).  This document describes the <em>intended</em> model — the plan is to change the code to reflect this document.</p>
+<h2 id="general-notes-and-scope"><a class="header" href="#general-notes-and-scope">General notes and scope</a></h2>
+<p>The generic FPGA grid and interconnect system described here is designed for the objects that would be subject to generic place and route.  Thus, it is only used to describe general interconnect and the actual FPGA grid.  In particular, the following features are considered out of scope and are (usually) handled by target-specific means instead:</p>
+<ol>
+<li>
+<p>Dedicated interconnect (connections between predefined bel pins that are not routable to/from the general interconnect) and any bel pins using only dedicated interconnect.  This includes:</p>
+<ul>
+<li>carry or cascade chains of all sorts
+<ul>
+<li>if the carry chain can be sourced from the general interconnect at the start, or sunk into the general interconnect at the end, such entry / exit points are represented as special bels</li>
+</ul>
+</li>
+<li>direct connections to and from dedicated or semi-dedicated I/O pads, such as:
+<ul>
+<li>dedicated clock input pads</li>
+<li>dedicated PLL input or output pads</li>
+<li>designated I/O pads for a hard logic block, such as a memory controller, SPI or I²C controller, PCI logic, and so on</li>
+</ul>
+</li>
+<li>fixed connections between bels that can be "combined together" and used as a larger bel, such as:
+<ul>
+<li>wide mux connections between SLICEs</li>
+<li>SLICEs that can be combined together to form a large LUT-RAM</li>
+<li>two 18kbit blockRAMs that can be combined to form a 36kbit blockRAM</li>
+</ul>
+</li>
+</ul>
+<p>From a placer's point of view, dedicated interconnect behaves like a placement constraint (as opposed to general interconnect, which imposes no placement constraints other than those implied by timing requirements).  From a router's point of view, dedicated interconnect should be handled by dedicated router, as the routing resources involved are independent from the bulk of work involved in general interconnect routing, and routing failures tend to result from violations of relatively simple constraints that can be communicated to the user.  Thus, there is no need to represent it in the same data structures.</p>
+</li>
+<li>
+<p>Global / clock interconnect, except for the "last mile" where it enters the general interconnect muxes.</p>
+<p>Clock interconnect tends to have special properties:</p>
+<ul>
+<li>is usually closely tied to clock enable / divider / multiplexer bels</li>
+<li>has low-skew properties that make the usual "Euclidean distance" approximate metric inapplicable for timing</li>
+<li>is scarce and should be allocated intentionally</li>
+</ul>
+<p>These properties usually make it inconvenient to handle clock interconnect by the same means as general interconnect.</p>
+</li>
+<li>
+<p>Any sort of circuitry that's outside of the interconnect grid, except as needed to represent its connections to the general interconnect.</p>
+<p>This includes things such as:</p>
+<ul>
+<li>the configuration logic, on targets where it doesn't have any routable pins</li>
+<li>on hard SoC devices such as Zynq, any sort of CPU cores, peripherials, or dedicated I/O pads</li>
+<li>the Virtex 7 GTZ transceivers</li>
+<li>on Versal:
+<ul>
+<li>the NoC horizontal rows on the north and south edges of the device</li>
+<li>XPIO banks and their associated logic</li>
+<li>DDR and HBM memory controllers</li>
+<li>the AI engine grid</li>
+</ul>
+</li>
+</ul>
+<p>This sort of circuitry is exposed via target-specific means, as applicable.</p>
+</li>
+</ol>
+<p>Further, grid columns and rows are intended to correspond 1-to-1 with columns and rows of interconnect tiles (tiles containing general interconnect muxes).  This means:</p>
+<ul>
+<li>if the tile grid, as understood by vendor tools, has separate columns for interconnect and actual logic associated with that interconnect (such as later Xilinx FPGAs), we disregard this separation and treat both of those together as a single column
+<ul>
+<li>for the special case of Ultrascale and Versal, which have independent logic columns on both sides of an interconnect column, we treat each vendor interconnect column as <em>two</em> grid columns (so that bels on both sides gets separate X coordinates)</li>
+</ul>
+</li>
+<li>any sort of special columns and rows (clock distribution, edge terminators, I/O buffers, ...) in between "normal" columns and rows or at the edges are not assigned their own grid coordinates; any sort of logic and wiring within is considered to be part of a nearby interconnect column or row:
+<ul>
+<li>for a special column in between two interconnect columns, the column to the east is used</li>
+<li>for a special row in between two interconnect rows, the row to the north is used</li>
+<li>for a special column or row at the edge, the outermost column or row in the given direction is used</li>
+</ul>
+</li>
+</ul>
+<p>The above rules aren't completely hard, and are mostly based on vibes and on how hard it would be to squash a given thing to match the grid model.</p>
+<h2 id="the-grid"><a class="header" href="#the-grid">The grid</a></h2>
+<p>An <em>expanded grid</em> is made of one or more <em>die</em>, which are identified by <code>DieId</code>.  The target-specific <em>chip</em> structure generally describes a particular model of a <em>die</em>.  A <em>die</em> is a 2D array of <em>cells</em>, organized in <em>columns</em> and <em>rows</em>.  A <em>cell</em> is identified by its <code>(DieId, ColId, RowId)</code> coordinates.  There is no requirement that the <em>die</em> within the device have the same dimensions.</p>
+<p>The directions within a die are:</p>
+<ul>
+<li><em>west</em>: towards smaller column index (usually to the left when displayed on screen)</li>
+<li><em>east</em>: towards larger column index (usually to the right when displayed on screen)</li>
+<li><em>south</em>: towards smaller row index (usually to the bottom when displayed on screen)</li>
+<li><em>north</em>: towards larger row index (usually to the top when displayed on screen)</li>
+</ul>
+<p>The directions are always relative to the silicon die, not the package.  Thus, for flip-chip packages, package left tends to be east.  Note that for multi-die devices the orientation of individual die may vary (ie. some of them may be rotated).</p>
+<h2 id="wires-wire-segments-connectors"><a class="header" href="#wires-wire-segments-connectors">Wires, wire segments, connectors</a></h2>
+<p>The general interconnect is made of <em>wires</em> and <em>muxes</em>, which connect wires together.  A <em>wire</em> is a physical net, or a set of nets that are always logically connected together (through always-on buffers or similar means).  A <em>wire segment</em> is a part of wire contained in a particular <em>cell</em>.</p>
+<p>The interconnect database contains a list of wire segments present in each cell, indexed by <code>WireId</code>.</p>
+<p>A <em>wire segment</em> in the device is identified by a tuple of <code>(DieId, ColId, RowId, WireId)</code>, which is also known as <code>WireCoord</code>.  A <em>wire</em> is identified by choosing a <em>canonical wire segment</em> to represent it.  If the wire can only be driven in one cell, the single segment that can be driven is considered the canonical one.  Otherwise, the canonical segment is chosen by whatever means are convenient to get the device to fit in the interconnect model — it tends to be either an endpoint or a midpoint of the wire.</p>
+<p>For every <code>WireId</code>, the database has:</p>
+<ul>
+<li>a name</li>
+<li>the segment's <em>kind</em> and kind-dependent information; the segment kind describes, among other things, how to determine how to find the <em>canonical wire segment</em> given a <em>wire segment</em></li>
+</ul>
+<p>The segment kinds are:</p>
+<ul>
+<li><em>tie to 0</em> and <em>tie to 1</em>:
+<ul>
+<li>permanently driven to a given constant value</li>
+<li>this segment is the canonical wire segment</li>
+<li>no other segment can be driven</li>
+</ul>
+</li>
+<li><em>pullup tie</em>:
+<ul>
+<li>weakly driven to a const-1 value</li>
+<li>generally identical to <em>tie to 1</em>, except for edge cases involving partial reconfiguration</li>
+</ul>
+</li>
+<li><em>regional</em>:
+<ul>
+<li>has an associated <code>RegionSlotId</code></li>
+<li>every <em>cell</em> in the <em>expanded grid</em> has a map from <code>RegionSlotId</code> to <code>(DieId, ColId, RowId)</code>; the canonical wire segment is the same <code>WireId</code> at the given coordinates</li>
+<li>used for clock networks and other cases where a wire is widely distributed in a way that's not easily described by the branch construct</li>
+</ul>
+</li>
+<li><em>mux output</em>:
+<ul>
+<li>this segment is the canonical wire segment</li>
+<li>this segment is driven by interconnect muxes</li>
+<li>no other segment can be driven</li>
+<li>other segments of this wire, if any, will be of type <em>branch</em></li>
+</ul>
+</li>
+<li><em>logic output</em>:
+<ul>
+<li>this segment is the canonical wire segment</li>
+<li>this segment is driven by a bel</li>
+<li>no other segment can be driven</li>
+<li>other segments of this wire, if any, will be of type <em>branch</em></li>
+</ul>
+</li>
+<li><em>test output</em>:
+<ul>
+<li>mostly like <em>logic output</em>, with the following differences:</li>
+<li>the wire segment and any associated bel outputs are considered to be test-only (should not be used except when testing the device itself)</li>
+<li>the output may not be routable without using special test muxes within interface logic</li>
+</ul>
+</li>
+<li><em>multi mux output</em>:
+<ul>
+<li>this segment is the canonical wire segment</li>
+<li>this segment is driven by interconnect muxes</li>
+<li>other segments can also be driven; they will be of type <em>multi branch</em></li>
+</ul>
+</li>
+<li><em>pass output</em>:
+<ul>
+<li>this segment is the canonical wire segment</li>
+<li>this segment is driven by interconnect pass transistors</li>
+<li>other segments can also be driven; they will be of type <em>pass branch</em></li>
+</ul>
+</li>
+<li><em>branch</em>:
+<ul>
+<li>has an associated <code>ConnectorSlotId</code></li>
+<li>the canonical segment can be found by consulting the given connector at the current cell</li>
+<li>the canonical segment will be a <em>mux output</em>, <em>logic output</em>, <em>test output</em>, or (usually around the edges of the die) <em>branch</em></li>
+<li>only the canonical segment can be driven</li>
+</ul>
+</li>
+<li><em>multi branch</em>:
+<ul>
+<li>has an associated <code>ConnectorSlotId</code></li>
+<li>the canonical segment can be found by consulting the given connector at the current cell</li>
+<li>the canonical segment will be a <em>multi mux output</em> or <em>multi branch</em></li>
+<li>any segment can be driven</li>
+</ul>
+</li>
+<li><em>pass branch</em>:
+<ul>
+<li>has an associated <code>ConnectorSlotId</code></li>
+<li>the canonical segment can be found by consulting the given connector at the current cell</li>
+<li>the canonical segment will be a <em>pass output</em> or <em>pass branch</em></li>
+<li>any segment can be driven</li>
+</ul>
+</li>
+<li><em>buffer</em>:
+<ul>
+<li>has an associated <code>WireId</code></li>
+<li>is a buffered version of the given segment; essentially an alias, except for timing analysis</li>
+</ul>
+</li>
+</ul>
+<p>With the exception of <em>regional</em> wires, connections between <em>wire segments</em> in adjacent <em>cells</em> are described through <em>connectors</em>.  A <em>connector</em> is essentially a map describing how to walk from a given wire segment one step towards the canonical wire segment.</p>
+<p>Every <em>cell</em> has a fixed number of <em>connector slots</em>, identified by <code>ConnectorSlotId</code>.  Most targets have four connector slots, corresponding to the four directions, but more complex arrangements are possible.  Every <code>(DieId, ColId, RowId, ConnectorSlotId)</code> tuple in the <em>expanded grid</em> may or may not have a <em>connector</em>.  If it has a connector, it has the following associated data:</p>
+<ul>
+<li>the <em>connector class</em> (<code>ConnectorClassId</code>)</li>
+<li>optionally, <em>target cell</em> of the connector (<code>(ColId, RowId)</code>; the target cell is assumed to be within the same die)
+<ul>
+<li>connectors without a target cell are usually used at the die edges to "reflect" some of the wires back to the same cell</li>
+</ul>
+</li>
+</ul>
+<p>The <em>connector slots</em> are described in the interconnect database.  For every <code>ConnectorSlotId</code>, it has:</p>
+<ul>
+<li>the connector slot name</li>
+<li>the <em>opposite</em> connector slot
+<ul>
+<li>connectors are usually used in pairs: if cell A is connected to cell B via a "west" slot connector, then cell B must be connected to cell A via an "east" slot connector, "east" being the opposite of "west"</li>
+<li>however, sometimes a connector slot is only used to mirror a cell's own wire segments back to itself, without ever involving a target cell; in this case, the connector slot is considered to be its own opposite</li>
+</ul>
+</li>
+</ul>
+<p>The <em>connector classes</em> are also described in the interconnect database.  For every <code>ConnectorClassId</code>, it has:</p>
+<ul>
+<li>
+<p>the connector class name</p>
+</li>
+<li>
+<p>the corresponding <em>connector slot</em></p>
+</li>
+<li>
+<p>a partial map from <code>WireId</code> to its disposition, which is one of:</p>
+<ul>
+<li>none: wire segment not covered by this connector slot, or not connected to anything upstream; in the latter case, this is the canonical wire segment</li>
+<li><em>blackhole</em>: the wire segment is considered to be unusable, and should be disregarded because no wire exists to operate and only crimes are occuring</li>
+<li><em>reflect</em> to a given <code>WireId</code>: the wire segment is connected to the given other wire segment within the same cell, which is closer to the canonical wire segments</li>
+<li><em>pass</em> to a given <code>WireId</code>: wire segment is connected to the given wire segment within the <em>target cell</em> of the connector, which is closer to the canonical wire segment</li>
+</ul>
+<p>This map must only contain wires that have a <em>kind</em> of <em>branch</em>, <em>multi branch</em>, or <em>pass branch</em>, with the same <code>ConnectorSlotId</code> as this connector class.</p>
+</li>
+</ul>
+<p>In addition to the <em>regional</em> wires and <em>connectors</em>, some targets have weird one-off connections that defy normal rules.  For these cases, the <em>expanded grid</em> has a last-resort <code>extra_conns</code> map of <code>WireCoord</code> to <code>WireCoord</code> describing the irregular connections.  Currently this map is used on the following targets:</p>
+<ul>
+<li>Virtex 7: for inter-die connections through the interposer (later Xilinx FPGAs use dedicated bels for such interconnections, instead of directly connecting wire segments)</li>
+<li>SiliconBlue iCE65 and iCE40: for connecting <code>QUAD.H</code> wires to <code>QUAD.V</code> wires at the corners, which is too irregular to be done by normal means</li>
+</ul>
+<p>The complete algorithm for determining the canonical wire segment is:</p>
+<ol>
+<li>
+<p>If the current segment's kind is <em>branch</em>, <em>multi branch</em>, or <em>pass branch</em>:</p>
+<ul>
+<li>obtain the connector from the current cell and the segment's <code>ConnectorSlotId</code> from the database</li>
+<li>if no connector exists in this slot, proceed to step 3</li>
+<li>look up the current segment's disposition within the connector's class in the database:
+<ul>
+<li>none: proceed to step 3</li>
+<li><em>blackhole</em>: the wire segment should be considered unusable and correspond to no wire; no mission can continue and all segments are surrendered to FBI</li>
+<li><em>reflect</em>: replace the current segment's <code>WireId</code> with the one from the disposition, repeat step 1 with the newly obtained segment</li>
+<li><em>pass</em>: replace the current segment's <code>WireId</code> with the one from the disposition, and replace <code>ColId</code> and <code>RowId</code> with the connector's target cell, repeat step 1 with the newly obtained segment; the <em>expanded grid</em> is considered ill-formed if the connector has no target cell but the class has <em>pass</em> dispositions</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>If the current segment's kind is <em>regional</em>: replace the current segment's cell with the one obtained by looking up the segment's <code>RegionSlotId</code> on the current cell; <code>WireId</code> stays the same.</p>
+</li>
+<li>
+<p>Look up the current segment in the <em>expanded grid</em>'s <code>extra_conns</code> map; if found, the result of the lookup is the canonical segment; otherwise, the current segment is the canonical segment.</p>
+</li>
+</ol>
+<h2 id="tiles"><a class="header" href="#tiles">Tiles</a></h2>
+<p>A <em>tile</em> is a block of logic occupying some area on the grid.  A <em>tile</em> is defined by:</p>
+<ul>
+<li>its <em>tile class</em> (a <code>TileClassId</code>)</li>
+<li>its <em>anchor cell</em> (a <code>(DieId, ColId, RowId)</code>)</li>
+<li>its list of referenced cells (a list of <code>(ColId, RowId)</code>, indexed by <code>TileCellId</code>)
+<ul>
+<li>the anchor cell is generally included on this list, though not necessarily at the first position</li>
+<li>the <code>DieId</code> of referenced cells is implicitly assumed to be the same as the anchor cell's</li>
+</ul>
+</li>
+</ul>
+<p>Every cell in an <em>expanded grid</em> contains a list of <em>tiles</em> for which it is an anchor cell.  A <em>tile</em> is identified by a tuple of <code>(DieId, ColId, RowId, TileClassId)</code>, known as a <code>TileCoord</code> (there cannot be more than one tile of the same class anchored at a given cell).</p>
+<p>The contents of a tile are described by its <em>tile class</em>.  The interconnect database has the following information about each <code>TileClassId</code>:</p>
+<ul>
+<li>the name of the tile class</li>
+<li>the number of referenced cells (every tile of this class must have this amount of cells on its referenced cell list)</li>
+<li>interconnect muxes in the tile</li>
+<li>interface logic in the tile</li>
+<li>bels in the tile</li>
+</ul>
+<p>Within the tile class description, wire segments are identified by <code>(TileCellId, WireId)</code> tuples, also known as <code>TileClassWire</code>.  For a given tile, they can be translated to a <code>WireCoord</code> by using the tile anchor's <code>DieId</code> and looking up the <code>TileCellId</code> in the tile's referenced cells list to obtain <code>ColId</code> and <code>RowId</code>.</p>
+<p>Grid <em>tiles</em> correspond directly to the bitstream concept with the same name — each tile class will usually have a corresponding entry in the bitstream database (the exception is tile classes that have no associated bitstream bits).  If this is the case, then every grid tile of this class will have an associated bitstream tile, and vice versa.  However, a target may have bitstream tile classes that do not correspond to grid tile classes — these are used to describe configurable logic outside of the interconnect grid, such as the special configuration logic registers on most targets.</p>
+<h3 id="interconnect-muxes"><a class="header" href="#interconnect-muxes">Interconnect muxes</a></h3>
+<p>The tile class definition contains a list of interconnect muxes present within the tile.  Each mux has:</p>
+<ul>
+<li>a destination wire segment (<code>TileClassWire</code>)</li>
+<li>a list of source wire segments (set of <code>TileClassWire</code>)</li>
+<li>a mux kind, one of:
+<ul>
+<li>non-inverting (the signal on the output is the same as the input)</li>
+<li>inverting (the signal on the output is a complement of the input)</li>
+<li>optionally-inverting (the mux can be programmed as inverting or non-inverting by the bitstream)</li>
+</ul>
+</li>
+</ul>
+<p>An interconnect mux can be programmed by the bitstream to drive any of its inputs on its output, or disabled.</p>
+<p>A mux within a tile is identified by the destination <code>TileClassWire</code> — multiple muxes driving the same wire segment are not currently supported.  No other programmable connections between wires are supported either (except ones going through bels) — all pass gates, standalone buffers, and actual muxes that can drive a given wire segment are consolidated as a single virtual mux.</p>
+<p>TODO: this model needs to be revisited:</p>
+<ul>
+<li>it could be more convenient to be able to represent multiple entities driving a given wire segment, as well as their kind (mux, buf, pass gate) — this would match the bitstream encoding</li>
+<li>it is not clear whether the fixed inversion should be an attribute of the mux, or of the mux input (no currently supported target uses inverting muxes in general interconnect)</li>
+<li>it is not clear whether the optional inversion should be included here or as part of the interface construct</li>
+</ul>
+<h3 id="interface-logic"><a class="header" href="#interface-logic">Interface logic</a></h3>
+<p>A tile may contain <em>interface logic</em>.</p>
+<p>TODO: the current interface logic model is unfit for purpose, and should be replaced with something better.  The following is a rough sketch of what we <em>want</em> to represent.</p>
+<p><em>Interface logic</em> is all sort of circuitry that sits between general interconnect and a bel input or output.  This includes:</p>
+<ol>
+<li>
+<p><em>Test muxes</em>, which are special muxes used only for testing the FPGA interconnect itself.  Test muxes are usually inserted between the bel outputs and the actual interconnect wire.  They have the following kinds of inputs:</p>
+<ul>
+<li>the actual bel non-test output (at most one)</li>
+<li>interconnect wires usually connected to bel inputs</li>
+<li>bel test outputs</li>
+</ul>
+<p>A distinguishing feature of test muxes is they don't have independent input selection — there may be a shared bitstream field controlling the selection of all test muxes within a tile.  This tends to make them unusable outside of testing conditions.</p>
+</li>
+<li>
+<p>Programmable input delay, generally found in front of bel input pins.  Used for hold time fixups.</p>
+</li>
+<li>
+<p>Optional input registers, generally found in front of bel input pins.  Used for two purposes:</p>
+<ul>
+<li>pipelining</li>
+<li>hold time fixup</li>
+</ul>
+</li>
+</ol>
+<h3 id="bels"><a class="header" href="#bels">Bels</a></h3>
+<p>A <em>bel</em> (basic element of logic) is a block of logic that is a part of a <em>tile</em> that is not representable as an interconnect mux nor interface logic.</p>
+<p>Anything that can drive a signal onto general interconnect (ie. has an output pin) or sample a signal from general interconnect (ie. has an input pin) is considered a bel.  This includes ingress/egress points of clock and dedicated routing.  Additionally, pin-less bels may exist if deemed useful by the target for some reason.</p>
+<p>Every target has a fixed list of <em>bel slots</em> that are availble in each cell.  The bel slots are identified by <code>BelSlotId</code>, and bels are identified by <code>(DieId, ColId, RowId, BelSlotId)</code> (also known as <code>BelCoord</code>).  The interconnect database has a name for every <em>BelSlotId</em>, which generally roughly identifies the type of bels occupying the slot (eg. a target where a cell can contain 8 logic cells or one blockRAM will have bel slots of <code>LC0</code> through <code>LC7</code> and <code>BRAM</code>).</p>
+<p>Bels belong to tiles, and the bel's cell is considered to be the same as its tile's anchor cell.  An <em>expanded grid</em> is considered ill-formed if a given cell anchors more than one tile that contains a bel with a given <code>BelSlotId</code>.</p>
+<p>A tile class definition has a list of contained bels.  For each bel it has:</p>
+<ul>
+<li>
+<p>the occupied slot (<code>BelSlotId</code>; the slots are unique within a tile)</p>
+</li>
+<li>
+<p>a list of pins; for each pin:</p>
+<ul>
+<li>pin name</li>
+<li>pin direction (input or output)</li>
+<li>for an input pin: the wire segment connected to the pin (<code>TileClassWire</code>)</li>
+<li>for an output pin: list of wire segments connected to the pin (nonempty list of <code>TileClassWire</code>)</li>
+</ul>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="terminology.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="siliconblue/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="terminology.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="siliconblue/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

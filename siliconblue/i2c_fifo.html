@@ -1,0 +1,317 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>I2C_FIFO controller - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="i2c_fifo-controller"><a class="header" href="#i2c_fifo-controller">I2C_FIFO controller</a></h1>
+<h2 id="tile-i2c_fifo"><a class="header" href="#tile-i2c_fifo">Tile I2C_FIFO</a></h2>
+<p>Cells: 4</p>
+<h3 id="bel-i2c_fifo"><a class="header" href="#bel-i2c_fifo">Bel I2C_FIFO</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue I2C_FIFO bel I2C_FIFO</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ACKO</td><td>output</td><td>TCELL2:OUT.LC2</td></tr>
+<tr><td>ADRI0</td><td>input</td><td>TCELL1:IMUX.LC0.I3</td></tr>
+<tr><td>ADRI1</td><td>input</td><td>TCELL1:IMUX.LC1.I3</td></tr>
+<tr><td>ADRI2</td><td>input</td><td>TCELL1:IMUX.LC2.I3</td></tr>
+<tr><td>ADRI3</td><td>input</td><td>TCELL1:IMUX.LC3.I3</td></tr>
+<tr><td>CLKI</td><td>input</td><td>TCELL0:IMUX.CLK.OPTINV</td></tr>
+<tr><td>CSI</td><td>input</td><td>TCELL1:IMUX.LC4.I3</td></tr>
+<tr><td>DATI0</td><td>input</td><td>TCELL0:IMUX.LC6.I1</td></tr>
+<tr><td>DATI1</td><td>input</td><td>TCELL0:IMUX.LC7.I1</td></tr>
+<tr><td>DATI2</td><td>input</td><td>TCELL0:IMUX.LC0.I0</td></tr>
+<tr><td>DATI3</td><td>input</td><td>TCELL0:IMUX.LC1.I0</td></tr>
+<tr><td>DATI4</td><td>input</td><td>TCELL0:IMUX.LC2.I0</td></tr>
+<tr><td>DATI5</td><td>input</td><td>TCELL0:IMUX.LC3.I0</td></tr>
+<tr><td>DATI6</td><td>input</td><td>TCELL0:IMUX.LC4.I0</td></tr>
+<tr><td>DATI7</td><td>input</td><td>TCELL0:IMUX.LC5.I0</td></tr>
+<tr><td>DATI8</td><td>input</td><td>TCELL0:IMUX.LC6.I0</td></tr>
+<tr><td>DATI9</td><td>input</td><td>TCELL0:IMUX.LC7.I0</td></tr>
+<tr><td>DATO0</td><td>output</td><td>TCELL1:OUT.LC0</td></tr>
+<tr><td>DATO1</td><td>output</td><td>TCELL1:OUT.LC1</td></tr>
+<tr><td>DATO2</td><td>output</td><td>TCELL1:OUT.LC2</td></tr>
+<tr><td>DATO3</td><td>output</td><td>TCELL1:OUT.LC3</td></tr>
+<tr><td>DATO4</td><td>output</td><td>TCELL1:OUT.LC4</td></tr>
+<tr><td>DATO5</td><td>output</td><td>TCELL1:OUT.LC5</td></tr>
+<tr><td>DATO6</td><td>output</td><td>TCELL1:OUT.LC6</td></tr>
+<tr><td>DATO7</td><td>output</td><td>TCELL1:OUT.LC7</td></tr>
+<tr><td>DATO8</td><td>output</td><td>TCELL2:OUT.LC0</td></tr>
+<tr><td>DATO9</td><td>output</td><td>TCELL2:OUT.LC1</td></tr>
+<tr><td>FIFORST</td><td>input</td><td>TCELL1:IMUX.LC5.I3</td></tr>
+<tr><td>I2CIRQ</td><td>output</td><td>TCELL2:OUT.LC3</td></tr>
+<tr><td>I2CWKUP</td><td>output</td><td>TCELL0:OUT.LC6</td></tr>
+<tr><td>MRDCMPL</td><td>output</td><td>TCELL0:OUT.LC5</td></tr>
+<tr><td>RXFIFOAFULL</td><td>output</td><td>TCELL2:OUT.LC7</td></tr>
+<tr><td>RXFIFOEMPTY</td><td>output</td><td>TCELL3:OUT.LC0</td></tr>
+<tr><td>RXFIFOFULL</td><td>output</td><td>TCELL3:OUT.LC1</td></tr>
+<tr><td>SCLI</td><td>input</td><td>TCELL0:IMUX.LC3.I1</td></tr>
+<tr><td>SCLO</td><td>output</td><td>TCELL0:OUT.LC2</td></tr>
+<tr><td>SCLOE</td><td>output</td><td>TCELL0:OUT.LC3</td></tr>
+<tr><td>SDAI</td><td>input</td><td>TCELL0:IMUX.LC2.I1</td></tr>
+<tr><td>SDAO</td><td>output</td><td>TCELL0:OUT.LC0</td></tr>
+<tr><td>SDAOE</td><td>output</td><td>TCELL0:OUT.LC1</td></tr>
+<tr><td>SRWO</td><td>output</td><td>TCELL0:OUT.LC7</td></tr>
+<tr><td>STBI</td><td>input</td><td>TCELL0:IMUX.LC4.I1</td></tr>
+<tr><td>TXFIFOAEMPTY</td><td>output</td><td>TCELL2:OUT.LC4</td></tr>
+<tr><td>TXFIFOEMPTY</td><td>output</td><td>TCELL2:OUT.LC5</td></tr>
+<tr><td>TXFIFOFULL</td><td>output</td><td>TCELL2:OUT.LC6</td></tr>
+<tr><td>WEI</td><td>input</td><td>TCELL0:IMUX.LC5.I1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>siliconblue I2C_FIFO bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.LC0.I0</td><td>I2C_FIFO.DATI2</td></tr>
+<tr><td>TCELL0:IMUX.LC1.I0</td><td>I2C_FIFO.DATI3</td></tr>
+<tr><td>TCELL0:IMUX.LC2.I0</td><td>I2C_FIFO.DATI4</td></tr>
+<tr><td>TCELL0:IMUX.LC2.I1</td><td>I2C_FIFO.SDAI</td></tr>
+<tr><td>TCELL0:IMUX.LC3.I0</td><td>I2C_FIFO.DATI5</td></tr>
+<tr><td>TCELL0:IMUX.LC3.I1</td><td>I2C_FIFO.SCLI</td></tr>
+<tr><td>TCELL0:IMUX.LC4.I0</td><td>I2C_FIFO.DATI6</td></tr>
+<tr><td>TCELL0:IMUX.LC4.I1</td><td>I2C_FIFO.STBI</td></tr>
+<tr><td>TCELL0:IMUX.LC5.I0</td><td>I2C_FIFO.DATI7</td></tr>
+<tr><td>TCELL0:IMUX.LC5.I1</td><td>I2C_FIFO.WEI</td></tr>
+<tr><td>TCELL0:IMUX.LC6.I0</td><td>I2C_FIFO.DATI8</td></tr>
+<tr><td>TCELL0:IMUX.LC6.I1</td><td>I2C_FIFO.DATI0</td></tr>
+<tr><td>TCELL0:IMUX.LC7.I0</td><td>I2C_FIFO.DATI9</td></tr>
+<tr><td>TCELL0:IMUX.LC7.I1</td><td>I2C_FIFO.DATI1</td></tr>
+<tr><td>TCELL0:IMUX.CLK.OPTINV</td><td>I2C_FIFO.CLKI</td></tr>
+<tr><td>TCELL0:OUT.LC0</td><td>I2C_FIFO.SDAO</td></tr>
+<tr><td>TCELL0:OUT.LC1</td><td>I2C_FIFO.SDAOE</td></tr>
+<tr><td>TCELL0:OUT.LC2</td><td>I2C_FIFO.SCLO</td></tr>
+<tr><td>TCELL0:OUT.LC3</td><td>I2C_FIFO.SCLOE</td></tr>
+<tr><td>TCELL0:OUT.LC5</td><td>I2C_FIFO.MRDCMPL</td></tr>
+<tr><td>TCELL0:OUT.LC6</td><td>I2C_FIFO.I2CWKUP</td></tr>
+<tr><td>TCELL0:OUT.LC7</td><td>I2C_FIFO.SRWO</td></tr>
+<tr><td>TCELL1:IMUX.LC0.I3</td><td>I2C_FIFO.ADRI0</td></tr>
+<tr><td>TCELL1:IMUX.LC1.I3</td><td>I2C_FIFO.ADRI1</td></tr>
+<tr><td>TCELL1:IMUX.LC2.I3</td><td>I2C_FIFO.ADRI2</td></tr>
+<tr><td>TCELL1:IMUX.LC3.I3</td><td>I2C_FIFO.ADRI3</td></tr>
+<tr><td>TCELL1:IMUX.LC4.I3</td><td>I2C_FIFO.CSI</td></tr>
+<tr><td>TCELL1:IMUX.LC5.I3</td><td>I2C_FIFO.FIFORST</td></tr>
+<tr><td>TCELL1:OUT.LC0</td><td>I2C_FIFO.DATO0</td></tr>
+<tr><td>TCELL1:OUT.LC1</td><td>I2C_FIFO.DATO1</td></tr>
+<tr><td>TCELL1:OUT.LC2</td><td>I2C_FIFO.DATO2</td></tr>
+<tr><td>TCELL1:OUT.LC3</td><td>I2C_FIFO.DATO3</td></tr>
+<tr><td>TCELL1:OUT.LC4</td><td>I2C_FIFO.DATO4</td></tr>
+<tr><td>TCELL1:OUT.LC5</td><td>I2C_FIFO.DATO5</td></tr>
+<tr><td>TCELL1:OUT.LC6</td><td>I2C_FIFO.DATO6</td></tr>
+<tr><td>TCELL1:OUT.LC7</td><td>I2C_FIFO.DATO7</td></tr>
+<tr><td>TCELL2:OUT.LC0</td><td>I2C_FIFO.DATO8</td></tr>
+<tr><td>TCELL2:OUT.LC1</td><td>I2C_FIFO.DATO9</td></tr>
+<tr><td>TCELL2:OUT.LC2</td><td>I2C_FIFO.ACKO</td></tr>
+<tr><td>TCELL2:OUT.LC3</td><td>I2C_FIFO.I2CIRQ</td></tr>
+<tr><td>TCELL2:OUT.LC4</td><td>I2C_FIFO.TXFIFOAEMPTY</td></tr>
+<tr><td>TCELL2:OUT.LC5</td><td>I2C_FIFO.TXFIFOEMPTY</td></tr>
+<tr><td>TCELL2:OUT.LC6</td><td>I2C_FIFO.TXFIFOFULL</td></tr>
+<tr><td>TCELL2:OUT.LC7</td><td>I2C_FIFO.RXFIFOAFULL</td></tr>
+<tr><td>TCELL3:OUT.LC0</td><td>I2C_FIFO.RXFIFOEMPTY</td></tr>
+<tr><td>TCELL3:OUT.LC1</td><td>I2C_FIFO.RXFIFOFULL</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../siliconblue/i2c.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../siliconblue/filter.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../siliconblue/i2c.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../siliconblue/filter.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

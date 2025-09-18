@@ -1,0 +1,5112 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>North-west - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="north-west"><a class="header" href="#north-west">North-west</a></h1>
+<h2 id="tile-cnrtl"><a class="header" href="#tile-cnrtl">Tile CNR.TL</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-int"><a class="header" href="#switchbox-int">Switchbox INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CNR.TL switchbox INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="3">HEX.H0.3</td><td>HEX.V0.4</td><td>mux</td>
+</tr>
+<tr><td>LH.9</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H0.2</td><td>HEX.V0.3</td><td>mux</td>
+</tr>
+<tr><td>LH.10</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H0.1</td><td>HEX.V0.2</td><td>mux</td>
+</tr>
+<tr><td>LH.11</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H0.0</td><td>HEX.V0.1</td><td>mux</td>
+</tr>
+<tr><td>LH.0</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H0.4</td><td>HEX.V0.5</td><td>mux</td>
+</tr>
+<tr><td>LH.8</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H0.5</td><td>HEX.V0.6</td><td>mux</td>
+</tr>
+<tr><td>LH.7</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H1.3</td><td>HEX.V1.4</td><td>mux</td>
+</tr>
+<tr><td>LH.9</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H1.2</td><td>HEX.V1.3</td><td>mux</td>
+</tr>
+<tr><td>LH.10</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H1.1</td><td>HEX.V1.2</td><td>mux</td>
+</tr>
+<tr><td>LH.11</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H1.0</td><td>HEX.V1.1</td><td>mux</td>
+</tr>
+<tr><td>LH.0</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H1.4</td><td>HEX.V1.5</td><td>mux</td>
+</tr>
+<tr><td>LH.8</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H1.5</td><td>HEX.V1.6</td><td>mux</td>
+</tr>
+<tr><td>LH.7</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.TDI</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H2.3</td><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>LH.3</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.TDI</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H2.2</td><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>LH.4</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H2.1</td><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>LH.5</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H2.0</td><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>LH.6</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H2.4</td><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>LH.2</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H2.5</td><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>LH.1</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H3.3</td><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>LH.3</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H3.2</td><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>LH.4</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H3.1</td><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>LH.5</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.TDI</td><td>mux</td>
+</tr>
+<tr><td rowspan="4">HEX.H3.0</td><td>PCI_CE</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>LH.6</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H3.4</td><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>LH.2</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.H3.5</td><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td>LH.1</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK1</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H4.3</td><td>LH.3</td><td>mux</td>
+</tr>
+<tr><td>LH.9</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H4.2</td><td>LH.4</td><td>mux</td>
+</tr>
+<tr><td>LH.10</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H4.1</td><td>LH.5</td><td>mux</td>
+</tr>
+<tr><td>LH.11</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H4.0</td><td>LH.0</td><td>mux</td>
+</tr>
+<tr><td>LH.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H4.4</td><td>LH.2</td><td>mux</td>
+</tr>
+<tr><td>LH.8</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H4.5</td><td>LH.1</td><td>mux</td>
+</tr>
+<tr><td>LH.7</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H5.3</td><td>LH.3</td><td>mux</td>
+</tr>
+<tr><td>LH.9</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H5.2</td><td>LH.4</td><td>mux</td>
+</tr>
+<tr><td>LH.10</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H5.1</td><td>LH.5</td><td>mux</td>
+</tr>
+<tr><td>LH.11</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H5.0</td><td>LH.0</td><td>mux</td>
+</tr>
+<tr><td>LH.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H5.4</td><td>LH.2</td><td>mux</td>
+</tr>
+<tr><td>LH.8</td><td>mux</td>
+</tr>
+<tr><td rowspan="2">HEX.H5.5</td><td>LH.1</td><td>mux</td>
+</tr>
+<tr><td>LH.7</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V0.3</td><td>HEX.H0.2</td><td>mux</td>
+</tr>
+<tr><td>LV.3</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V0.2</td><td>HEX.H0.1</td><td>mux</td>
+</tr>
+<tr><td>LV.4</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V0.1</td><td>HEX.H0.0</td><td>mux</td>
+</tr>
+<tr><td>LV.5</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V0.4</td><td>HEX.H0.3</td><td>mux</td>
+</tr>
+<tr><td>LV.2</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.TDI</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V0.5</td><td>HEX.H0.4</td><td>mux</td>
+</tr>
+<tr><td>LV.1</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V0.6</td><td>HEX.H0.5</td><td>mux</td>
+</tr>
+<tr><td>LV.0</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V1.3</td><td>HEX.H1.2</td><td>mux</td>
+</tr>
+<tr><td>LV.3</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V1.2</td><td>HEX.H1.1</td><td>mux</td>
+</tr>
+<tr><td>LV.4</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.TDI</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V1.1</td><td>HEX.H1.0</td><td>mux</td>
+</tr>
+<tr><td>LV.5</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V1.4</td><td>HEX.H1.3</td><td>mux</td>
+</tr>
+<tr><td>LV.2</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V1.5</td><td>HEX.H1.4</td><td>mux</td>
+</tr>
+<tr><td>LV.1</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V1.6</td><td>HEX.H1.5</td><td>mux</td>
+</tr>
+<tr><td>LV.0</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V2.3</td><td>HEX.H2.2</td><td>mux</td>
+</tr>
+<tr><td>LV.9</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V2.2</td><td>HEX.H2.1</td><td>mux</td>
+</tr>
+<tr><td>LV.10</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V2.1</td><td>HEX.H2.0</td><td>mux</td>
+</tr>
+<tr><td>LV.11</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V2.4</td><td>HEX.H2.3</td><td>mux</td>
+</tr>
+<tr><td>LV.8</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V2.5</td><td>HEX.H2.4</td><td>mux</td>
+</tr>
+<tr><td>LV.7</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V2.6</td><td>HEX.H2.5</td><td>mux</td>
+</tr>
+<tr><td>LV.6</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V3.3</td><td>HEX.H3.2</td><td>mux</td>
+</tr>
+<tr><td>LV.9</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK2</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V3.2</td><td>HEX.H3.1</td><td>mux</td>
+</tr>
+<tr><td>LV.10</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.DRCK1</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V3.1</td><td>HEX.H3.0</td><td>mux</td>
+</tr>
+<tr><td>LV.11</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V3.4</td><td>HEX.H3.3</td><td>mux</td>
+</tr>
+<tr><td>LV.8</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V3.5</td><td>HEX.H3.4</td><td>mux</td>
+</tr>
+<tr><td>LV.7</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>mux</td>
+</tr>
+<tr><td rowspan="3">HEX.V3.6</td><td>HEX.H3.5</td><td>mux</td>
+</tr>
+<tr><td>LV.6</td><td>mux</td>
+</tr>
+<tr><td>OUT.BSCAN.TDI</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.0</td><td>HEX.H5.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.1</td><td>HEX.H5.5</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.2</td><td>HEX.H5.4</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.3</td><td>HEX.H5.3</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.4</td><td>HEX.H5.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.5</td><td>HEX.H5.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.6</td><td>HEX.H4.0</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.7</td><td>HEX.H4.5</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.8</td><td>HEX.H4.4</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.9</td><td>HEX.H4.3</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.10</td><td>HEX.H4.2</td><td>mux</td>
+</tr>
+<tr><td rowspan="1">LV.11</td><td>HEX.H4.1</td><td>mux</td>
+</tr>
+<tr><td rowspan="28">IMUX.STARTUP.CLK</td><td>GCLK0</td><td>mux</td>
+</tr>
+<tr><td>GCLK1</td><td>mux</td>
+</tr>
+<tr><td>GCLK2</td><td>mux</td>
+</tr>
+<tr><td>GCLK3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="24">IMUX.STARTUP.GSR</td><td>HEX.H2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="24">IMUX.STARTUP.GTS</td><td>HEX.H2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="24">IMUX.STARTUP.GWE</td><td>HEX.H0.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="24">IMUX.BSCAN.TDO1</td><td>HEX.H0.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H0.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V2.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V3.6</td><td>mux</td>
+</tr>
+<tr><td rowspan="24">IMUX.BSCAN.TDO2</td><td>HEX.H2.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H2.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.0</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.H3.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V0.6</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.3</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.2</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.1</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.4</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.5</td><td>mux</td>
+</tr>
+<tr><td>HEX.V1.6</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-startup"><a class="header" href="#bel-startup">Bel STARTUP</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CNR.TL bel STARTUP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK</td><td>input</td><td>IMUX.STARTUP.CLK</td></tr>
+<tr><td>GSR</td><td>input</td><td>IMUX.STARTUP.GSR</td></tr>
+<tr><td>GTS</td><td>input</td><td>IMUX.STARTUP.GTS</td></tr>
+<tr><td>GWE</td><td>input</td><td>IMUX.STARTUP.GWE</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bscan"><a class="header" href="#bel-bscan">Bel BSCAN</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CNR.TL bel BSCAN</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DRCK1</td><td>output</td><td>OUT.BSCAN.DRCK1</td></tr>
+<tr><td>DRCK2</td><td>output</td><td>OUT.BSCAN.DRCK2</td></tr>
+<tr><td>RESET</td><td>output</td><td>OUT.BSCAN.RESET</td></tr>
+<tr><td>SEL1</td><td>output</td><td>OUT.BSCAN.SEL1</td></tr>
+<tr><td>SEL2</td><td>output</td><td>OUT.BSCAN.SEL2</td></tr>
+<tr><td>SHIFT</td><td>output</td><td>OUT.BSCAN.SHIFT</td></tr>
+<tr><td>TDI</td><td>output</td><td>OUT.BSCAN.TDI</td></tr>
+<tr><td>TDO1</td><td>input</td><td>IMUX.BSCAN.TDO1</td></tr>
+<tr><td>TDO2</td><td>input</td><td>IMUX.BSCAN.TDO2</td></tr>
+<tr><td>UPDATE</td><td>output</td><td>OUT.BSCAN.UPDATE</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CNR.TL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX.STARTUP.CLK</td><td>STARTUP.CLK</td></tr>
+<tr><td>IMUX.STARTUP.GSR</td><td>STARTUP.GSR</td></tr>
+<tr><td>IMUX.STARTUP.GTS</td><td>STARTUP.GTS</td></tr>
+<tr><td>IMUX.STARTUP.GWE</td><td>STARTUP.GWE</td></tr>
+<tr><td>IMUX.BSCAN.TDO1</td><td>BSCAN.TDO1</td></tr>
+<tr><td>IMUX.BSCAN.TDO2</td><td>BSCAN.TDO2</td></tr>
+<tr><td>OUT.BSCAN.RESET</td><td>BSCAN.RESET</td></tr>
+<tr><td>OUT.BSCAN.DRCK1</td><td>BSCAN.DRCK1</td></tr>
+<tr><td>OUT.BSCAN.DRCK2</td><td>BSCAN.DRCK2</td></tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>BSCAN.SHIFT</td></tr>
+<tr><td>OUT.BSCAN.TDI</td><td>BSCAN.TDI</td></tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>BSCAN.UPDATE</td></tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>BSCAN.SEL1</td></tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>BSCAN.SEL2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex CNR.TL bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="48">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+<th>39</th>
+<th>40</th>
+<th>41</th>
+<th>42</th>
+<th>43</th>
+<th>44</th>
+<th>45</th>
+<th>46</th>
+<th>47</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.13.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[16]</a>
+</td>
+<td title="0.14.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[15]</a>
+</td>
+<td title="0.15.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[17]</a>
+</td>
+<td title="0.16.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[14]</a>
+</td>
+<td title="0.17.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[18]</a>
+</td>
+<td title="0.18.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[13]</a>
+</td>
+<td title="0.19.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[19]</a>
+</td>
+<td title="0.20.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[12]</a>
+</td>
+<td title="0.21.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[20]</a>
+</td>
+<td title="0.22.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[11]</a>
+</td>
+<td>-</td>
+<td title="0.24.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[21]</a>
+</td>
+<td title="0.25.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[10]</a>
+</td>
+<td title="0.26.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[22]</a>
+</td>
+<td title="0.27.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[9]</a>
+</td>
+<td>-</td>
+<td title="0.29.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[23]</a>
+</td>
+<td title="0.30.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[8]</a>
+</td>
+<td title="0.31.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[24]</a>
+</td>
+<td title="0.32.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[7]</a>
+</td>
+<td title="0.33.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[25]</a>
+</td>
+<td title="0.34.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[6]</a>
+</td>
+<td title="0.35.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[26]</a>
+</td>
+<td title="0.36.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[5]</a>
+</td>
+<td title="0.37.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[27]</a>
+</td>
+<td title="0.38.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[4]</a>
+</td>
+<td title="0.39.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[28]</a>
+</td>
+<td title="0.40.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[3]</a>
+</td>
+<td title="0.41.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[29]</a>
+</td>
+<td title="0.42.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[2]</a>
+</td>
+<td title="0.43.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[30]</a>
+</td>
+<td title="0.44.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[1]</a>
+</td>
+<td>-</td>
+<td title="0.46.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[31]</a>
+</td>
+<td title="0.47.16">
+<a href="#tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID[0]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.8.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[7]</a>
+</td>
+<td title="0.9.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[8]</a>
+</td>
+<td title="0.10.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[3]</a>
+</td>
+<td title="0.11.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[2]</a>
+</td>
+<td title="0.12.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[4]</a>
+</td>
+<td title="0.13.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[0]</a>
+</td>
+<td title="0.14.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[1]</a>
+</td>
+<td title="0.15.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[6]</a>
+</td>
+<td title="0.16.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[5]</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK[9]</a>
+</td>
+<td title="0.18.14">
+<a href="#tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.CLK">~INT:INV.IMUX.STARTUP.CLK</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.30.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[5]</a>
+</td>
+<td title="0.31.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[6]</a>
+</td>
+<td title="0.32.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[1]</a>
+</td>
+<td title="0.33.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[0]</a>
+</td>
+<td title="0.34.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[2]</a>
+</td>
+<td title="0.35.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[3]</a>
+</td>
+<td title="0.36.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[4]</a>
+</td>
+<td title="0.37.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE[7]</a>
+</td>
+<td title="0.38.14">
+<a href="#tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.GWE">~INT:INV.IMUX.STARTUP.GWE</a>
+</td>
+<td title="0.39.14">
+<a href="#tile-virtex-CNR.TL-INT:INV.IMUX.BSCAN.TDO1">~INT:INV.IMUX.BSCAN.TDO1</a>
+</td>
+<td title="0.40.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[7]</a>
+</td>
+<td title="0.41.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[4]</a>
+</td>
+<td title="0.42.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[3]</a>
+</td>
+<td title="0.43.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[2]</a>
+</td>
+<td title="0.44.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[0]</a>
+</td>
+<td title="0.45.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[1]</a>
+</td>
+<td title="0.46.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[6]</a>
+</td>
+<td title="0.47.14">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[5]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.8.13">
+<a href="#tile-virtex-CNR.TL-MISC:BCLK_DIV2">MISC:BCLK_DIV2[1]</a>
+</td>
+<td title="0.9.13">
+<a href="#tile-virtex-CNR.TL-MISC:DLL_ENABLE">MISC:DLL_ENABLE</a>
+</td>
+<td title="0.10.13">
+<a href="#tile-virtex-CNR.TL-MISC:TCKPIN">MISC:TCKPIN[1]</a>
+</td>
+<td title="0.11.13">
+<a href="#tile-virtex-CNR.TL-MISC:TCKPIN">MISC:TCKPIN[0]</a>
+</td>
+<td title="0.12.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[5]</a>
+</td>
+<td title="0.13.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[6]</a>
+</td>
+<td title="0.14.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[1]</a>
+</td>
+<td title="0.15.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[0]</a>
+</td>
+<td title="0.16.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[2]</a>
+</td>
+<td title="0.17.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[3]</a>
+</td>
+<td title="0.18.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[4]</a>
+</td>
+<td title="0.19.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[7]</a>
+</td>
+<td title="0.20.13">
+<a href="#tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.GTS">INT:INV.IMUX.STARTUP.GTS</a>
+</td>
+<td title="0.21.13">
+<a href="#tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.GSR">INT:INV.IMUX.STARTUP.GSR</a>
+</td>
+<td title="0.22.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[7]</a>
+</td>
+<td title="0.23.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[4]</a>
+</td>
+<td title="0.24.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[3]</a>
+</td>
+<td title="0.25.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[2]</a>
+</td>
+<td title="0.26.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[0]</a>
+</td>
+<td title="0.27.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[1]</a>
+</td>
+<td title="0.28.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[6]</a>
+</td>
+<td title="0.29.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR[5]</a>
+</td>
+<td title="0.30.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[5]</a>
+</td>
+<td title="0.31.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[6]</a>
+</td>
+<td title="0.32.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[1]</a>
+</td>
+<td title="0.33.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[0]</a>
+</td>
+<td title="0.34.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[2]</a>
+</td>
+<td title="0.35.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[3]</a>
+</td>
+<td title="0.36.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[4]</a>
+</td>
+<td title="0.37.13">
+<a href="#tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[7]</a>
+</td>
+<td title="0.38.13">
+<a href="#tile-virtex-CNR.TL-INT:INV.IMUX.BSCAN.TDO2">~INT:INV.IMUX.BSCAN.TDO2</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.8.9">
+<a href="#tile-virtex-CNR.TL-MISC:BCLK_DIV2">MISC:BCLK_DIV2[4]</a>
+</td>
+<td title="0.9.9">
+<a href="#tile-virtex-CNR.TL-MISC:BCLK_DIV2">MISC:BCLK_DIV2[0]</a>
+</td>
+<td title="0.10.9">
+<a href="#tile-virtex-CNR.TL-MISC:BCLK_DIV2">MISC:BCLK_DIV2[3]</a>
+</td>
+<td title="0.11.9">
+<a href="#tile-virtex-CNR.TL-MISC:BCLK_DIV2">MISC:BCLK_DIV2[2]</a>
+</td>
+<td title="0.12.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.0">INT:DRIVE.HEX.H5.0</a>
+</td>
+<td title="0.13.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H5.0">INT:MUX.HEX.H5.0[0]</a>
+</td>
+<td title="0.14.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.0">INT:DRIVE.HEX.H4.0</a>
+</td>
+<td title="0.15.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.1">INT:DRIVE.HEX.H5.1</a>
+</td>
+<td title="0.16.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H4.1">INT:MUX.HEX.H4.1[0]</a>
+</td>
+<td title="0.17.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.1">INT:DRIVE.HEX.H4.1</a>
+</td>
+<td title="0.18.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.2">INT:DRIVE.HEX.H5.2</a>
+</td>
+<td title="0.19.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H5.2">INT:MUX.HEX.H5.2[0]</a>
+</td>
+<td title="0.20.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.2">INT:DRIVE.HEX.H4.2</a>
+</td>
+<td title="0.21.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.3">INT:DRIVE.HEX.H5.3</a>
+</td>
+<td title="0.22.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H5.3">INT:MUX.HEX.H5.3[0]</a>
+</td>
+<td title="0.23.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.3">INT:DRIVE.HEX.H4.3</a>
+</td>
+<td title="0.24.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.4">INT:DRIVE.HEX.H5.4</a>
+</td>
+<td title="0.25.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H5.4">INT:MUX.HEX.H5.4[0]</a>
+</td>
+<td title="0.26.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H4.4">INT:MUX.HEX.H4.4[0]</a>
+</td>
+<td title="0.27.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.5">INT:DRIVE.HEX.H5.5</a>
+</td>
+<td title="0.28.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H5.5">INT:MUX.HEX.H5.5[0]</a>
+</td>
+<td title="0.29.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.5">INT:DRIVE.HEX.H4.5</a>
+</td>
+<td title="0.30.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H4.0">INT:MUX.HEX.H4.0[0]</a>
+</td>
+<td title="0.31.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H5.1">INT:MUX.HEX.H5.1[0]</a>
+</td>
+<td title="0.32.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H4.2">INT:MUX.HEX.H4.2[0]</a>
+</td>
+<td title="0.33.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H4.3">INT:MUX.HEX.H4.3[0]</a>
+</td>
+<td title="0.34.9">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.4">INT:DRIVE.HEX.H4.4</a>
+</td>
+<td title="0.35.9">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H4.5">INT:MUX.HEX.H4.5[0]</a>
+</td>
+<td title="0.36.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.11.HEX.H4.1">INT:BUF.LV.11.HEX.H4.1</a>
+</td>
+<td title="0.37.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.10.HEX.H4.2">INT:BUF.LV.10.HEX.H4.2</a>
+</td>
+<td title="0.38.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.9.HEX.H4.3">INT:BUF.LV.9.HEX.H4.3</a>
+</td>
+<td title="0.39.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.8.HEX.H4.4">INT:BUF.LV.8.HEX.H4.4</a>
+</td>
+<td title="0.40.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.7.HEX.H4.5">INT:BUF.LV.7.HEX.H4.5</a>
+</td>
+<td title="0.41.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.6.HEX.H4.0">INT:BUF.LV.6.HEX.H4.0</a>
+</td>
+<td title="0.42.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.5.HEX.H5.1">INT:BUF.LV.5.HEX.H5.1</a>
+</td>
+<td title="0.43.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.4.HEX.H5.2">INT:BUF.LV.4.HEX.H5.2</a>
+</td>
+<td title="0.44.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.3.HEX.H5.3">INT:BUF.LV.3.HEX.H5.3</a>
+</td>
+<td title="0.45.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.2.HEX.H5.4">INT:BUF.LV.2.HEX.H5.4</a>
+</td>
+<td title="0.46.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.1.HEX.H5.5">INT:BUF.LV.1.HEX.H5.5</a>
+</td>
+<td title="0.47.9">
+<a href="#tile-virtex-CNR.TL-INT:BUF.LV.0.HEX.H5.0">INT:BUF.LV.0.HEX.H5.0</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.8.8">
+<a href="#tile-virtex-CNR.TL-STARTUP:GSR_GTS_GWE_ENABLE">~STARTUP:GSR_GTS_GWE_ENABLE</a>
+</td>
+<td title="0.9.8">
+<a href="#tile-virtex-CNR.TL-STARTUP:GTS_SYNC">~STARTUP:GTS_SYNC</a>
+</td>
+<td title="0.10.8">
+<a href="#tile-virtex-CNR.TL-STARTUP:GWE_SYNC">~STARTUP:GWE_SYNC</a>
+</td>
+<td title="0.11.8">
+<a href="#tile-virtex-CNR.TL-STARTUP:GSR_SYNC">~STARTUP:GSR_SYNC</a>
+</td>
+<td title="0.12.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.0">INT:DRIVE.HEX.H3.0</a>
+</td>
+<td title="0.13.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.0">INT:MUX.HEX.H3.0[0]</a>
+</td>
+<td title="0.14.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.0">INT:MUX.HEX.H3.0[1]</a>
+</td>
+<td title="0.15.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.0">INT:MUX.HEX.H2.0[1]</a>
+</td>
+<td title="0.16.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.0">INT:MUX.HEX.H2.0[0]</a>
+</td>
+<td title="0.17.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.0">INT:DRIVE.HEX.H2.0</a>
+</td>
+<td title="0.18.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.1">INT:DRIVE.HEX.H3.1</a>
+</td>
+<td title="0.19.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.1">INT:MUX.HEX.H3.1[0]</a>
+</td>
+<td title="0.20.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.1">INT:MUX.HEX.H3.1[1]</a>
+</td>
+<td title="0.21.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.1">INT:MUX.HEX.H2.1[1]</a>
+</td>
+<td title="0.22.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.1">INT:MUX.HEX.H2.1[0]</a>
+</td>
+<td title="0.23.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.1">INT:DRIVE.HEX.H2.1</a>
+</td>
+<td title="0.24.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.2">INT:DRIVE.HEX.H3.2</a>
+</td>
+<td title="0.25.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.2">INT:MUX.HEX.H3.2[0]</a>
+</td>
+<td title="0.26.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.2">INT:MUX.HEX.H3.2[1]</a>
+</td>
+<td title="0.27.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.2">INT:MUX.HEX.H2.2[1]</a>
+</td>
+<td title="0.28.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.2">INT:MUX.HEX.H2.2[0]</a>
+</td>
+<td title="0.29.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.2">INT:DRIVE.HEX.H2.2</a>
+</td>
+<td title="0.30.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.0">INT:DRIVE.HEX.H1.0</a>
+</td>
+<td title="0.31.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.0">INT:MUX.HEX.H1.0[0]</a>
+</td>
+<td title="0.32.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.0">INT:MUX.HEX.H1.0[1]</a>
+</td>
+<td title="0.33.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.0">INT:MUX.HEX.H0.0[1]</a>
+</td>
+<td title="0.34.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.0">INT:MUX.HEX.H0.0[0]</a>
+</td>
+<td title="0.35.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.0">INT:DRIVE.HEX.H0.0</a>
+</td>
+<td title="0.36.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.1">INT:DRIVE.HEX.H1.1</a>
+</td>
+<td title="0.37.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.1">INT:MUX.HEX.H1.1[0]</a>
+</td>
+<td title="0.38.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.1">INT:MUX.HEX.H1.1[1]</a>
+</td>
+<td title="0.39.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.1">INT:MUX.HEX.H0.1[1]</a>
+</td>
+<td title="0.40.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.1">INT:MUX.HEX.H0.1[0]</a>
+</td>
+<td title="0.41.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.1">INT:DRIVE.HEX.H0.1</a>
+</td>
+<td title="0.42.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.2">INT:DRIVE.HEX.H1.2</a>
+</td>
+<td title="0.43.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.2">INT:MUX.HEX.H1.2[0]</a>
+</td>
+<td title="0.44.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.2">INT:MUX.HEX.H1.2[1]</a>
+</td>
+<td title="0.45.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.2">INT:MUX.HEX.H0.2[1]</a>
+</td>
+<td title="0.46.8">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.2">INT:MUX.HEX.H0.2[0]</a>
+</td>
+<td title="0.47.8">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.2">INT:DRIVE.HEX.H0.2</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.4">
+<a href="#tile-virtex-CNR.TL-MISC:POWERUP_CLK">MISC:POWERUP_CLK[0]</a>
+</td>
+<td title="0.12.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.3">INT:DRIVE.HEX.H3.3</a>
+</td>
+<td title="0.13.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.3">INT:MUX.HEX.H3.3[0]</a>
+</td>
+<td title="0.14.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.3">INT:MUX.HEX.H3.3[1]</a>
+</td>
+<td title="0.15.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.3">INT:MUX.HEX.H2.3[1]</a>
+</td>
+<td title="0.16.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.3">INT:MUX.HEX.H2.3[0]</a>
+</td>
+<td title="0.17.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.3">INT:DRIVE.HEX.H2.3</a>
+</td>
+<td title="0.18.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.4">INT:DRIVE.HEX.H3.4</a>
+</td>
+<td title="0.19.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.4">INT:MUX.HEX.H3.4[0]</a>
+</td>
+<td title="0.20.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.4">INT:MUX.HEX.H3.4[1]</a>
+</td>
+<td title="0.21.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.4">INT:MUX.HEX.H2.4[1]</a>
+</td>
+<td title="0.22.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.4">INT:MUX.HEX.H2.4[0]</a>
+</td>
+<td title="0.23.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.4">INT:DRIVE.HEX.H2.4</a>
+</td>
+<td title="0.24.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.5">INT:DRIVE.HEX.H3.5</a>
+</td>
+<td title="0.25.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.5">INT:MUX.HEX.H3.5[0]</a>
+</td>
+<td title="0.26.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H3.5">INT:MUX.HEX.H3.5[1]</a>
+</td>
+<td title="0.27.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.5">INT:MUX.HEX.H2.5[1]</a>
+</td>
+<td title="0.28.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H2.5">INT:MUX.HEX.H2.5[0]</a>
+</td>
+<td title="0.29.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.5">INT:DRIVE.HEX.H2.5</a>
+</td>
+<td title="0.30.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.3">INT:DRIVE.HEX.H1.3</a>
+</td>
+<td title="0.31.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.3">INT:MUX.HEX.H1.3[0]</a>
+</td>
+<td title="0.32.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.3">INT:MUX.HEX.H1.3[1]</a>
+</td>
+<td title="0.33.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.3">INT:MUX.HEX.H0.3[1]</a>
+</td>
+<td title="0.34.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.3">INT:MUX.HEX.H0.3[0]</a>
+</td>
+<td title="0.35.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.3">INT:DRIVE.HEX.H0.3</a>
+</td>
+<td title="0.36.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.4">INT:DRIVE.HEX.H1.4</a>
+</td>
+<td title="0.37.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.4">INT:MUX.HEX.H1.4[0]</a>
+</td>
+<td title="0.38.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.4">INT:MUX.HEX.H1.4[1]</a>
+</td>
+<td title="0.39.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.4">INT:MUX.HEX.H0.4[1]</a>
+</td>
+<td title="0.40.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.4">INT:MUX.HEX.H0.4[0]</a>
+</td>
+<td title="0.41.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.4">INT:DRIVE.HEX.H0.4</a>
+</td>
+<td title="0.42.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.5">INT:DRIVE.HEX.H1.5</a>
+</td>
+<td title="0.43.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.5">INT:MUX.HEX.H1.5[0]</a>
+</td>
+<td title="0.44.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H1.5">INT:MUX.HEX.H1.5[1]</a>
+</td>
+<td title="0.45.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.5">INT:MUX.HEX.H0.5[1]</a>
+</td>
+<td title="0.46.4">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.H0.5">INT:MUX.HEX.H0.5[0]</a>
+</td>
+<td title="0.47.4">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.5">INT:DRIVE.HEX.H0.5</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.2">
+<a href="#tile-virtex-CNR.TL-MISC:POWERUP_CLK">MISC:POWERUP_CLK[1]</a>
+</td>
+<td title="0.12.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.1">INT:DRIVE.HEX.V3.1</a>
+</td>
+<td title="0.13.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.1">INT:MUX.HEX.V3.1[0]</a>
+</td>
+<td title="0.14.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.1">INT:MUX.HEX.V3.1[1]</a>
+</td>
+<td title="0.15.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.1">INT:MUX.HEX.V2.1[1]</a>
+</td>
+<td title="0.16.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.1">INT:MUX.HEX.V2.1[0]</a>
+</td>
+<td title="0.17.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.1">INT:DRIVE.HEX.V2.1</a>
+</td>
+<td title="0.18.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.2">INT:DRIVE.HEX.V3.2</a>
+</td>
+<td title="0.19.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.2">INT:MUX.HEX.V3.2[0]</a>
+</td>
+<td title="0.20.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.2">INT:MUX.HEX.V3.2[1]</a>
+</td>
+<td title="0.21.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.2">INT:MUX.HEX.V2.2[1]</a>
+</td>
+<td title="0.22.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.2">INT:MUX.HEX.V2.2[0]</a>
+</td>
+<td title="0.23.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.2">INT:DRIVE.HEX.V2.2</a>
+</td>
+<td title="0.24.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.3">INT:DRIVE.HEX.V3.3</a>
+</td>
+<td title="0.25.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.3">INT:MUX.HEX.V3.3[0]</a>
+</td>
+<td title="0.26.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.3">INT:MUX.HEX.V3.3[1]</a>
+</td>
+<td title="0.27.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.3">INT:MUX.HEX.V2.3[1]</a>
+</td>
+<td title="0.28.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.3">INT:MUX.HEX.V2.3[0]</a>
+</td>
+<td title="0.29.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.3">INT:DRIVE.HEX.V2.3</a>
+</td>
+<td title="0.30.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.1">INT:DRIVE.HEX.V1.1</a>
+</td>
+<td title="0.31.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.1">INT:MUX.HEX.V1.1[0]</a>
+</td>
+<td title="0.32.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.1">INT:MUX.HEX.V1.1[1]</a>
+</td>
+<td title="0.33.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.1">INT:MUX.HEX.V0.1[1]</a>
+</td>
+<td title="0.34.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.1">INT:MUX.HEX.V0.1[0]</a>
+</td>
+<td title="0.35.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.1">INT:DRIVE.HEX.V0.1</a>
+</td>
+<td title="0.36.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.2">INT:DRIVE.HEX.V1.2</a>
+</td>
+<td title="0.37.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.2">INT:MUX.HEX.V1.2[0]</a>
+</td>
+<td title="0.38.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.2">INT:MUX.HEX.V1.2[1]</a>
+</td>
+<td title="0.39.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.2">INT:MUX.HEX.V0.2[1]</a>
+</td>
+<td title="0.40.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.2">INT:MUX.HEX.V0.2[0]</a>
+</td>
+<td title="0.41.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.2">INT:DRIVE.HEX.V0.2</a>
+</td>
+<td title="0.42.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.3">INT:DRIVE.HEX.V1.3</a>
+</td>
+<td title="0.43.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.3">INT:MUX.HEX.V1.3[0]</a>
+</td>
+<td title="0.44.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.3">INT:MUX.HEX.V1.3[1]</a>
+</td>
+<td title="0.45.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.3">INT:MUX.HEX.V0.3[1]</a>
+</td>
+<td title="0.46.2">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.3">INT:MUX.HEX.V0.3[0]</a>
+</td>
+<td title="0.47.2">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.3">INT:DRIVE.HEX.V0.3</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.9.0">
+<a href="#tile-virtex-CNR.TL-INT:BUF.HEX.H3.0.PCI_CE">INT:BUF.HEX.H3.0.PCI_CE</a>
+</td>
+<td title="0.10.0">
+<a href="#tile-virtex-CNR.TL-MISC:TMSPIN">MISC:TMSPIN[1]</a>
+</td>
+<td title="0.11.0">
+<a href="#tile-virtex-CNR.TL-MISC:TMSPIN">MISC:TMSPIN[0]</a>
+</td>
+<td title="0.12.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.4">INT:DRIVE.HEX.V3.4</a>
+</td>
+<td title="0.13.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.4">INT:MUX.HEX.V3.4[0]</a>
+</td>
+<td title="0.14.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.4">INT:MUX.HEX.V3.4[1]</a>
+</td>
+<td title="0.15.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.4">INT:MUX.HEX.V2.4[1]</a>
+</td>
+<td title="0.16.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.4">INT:MUX.HEX.V2.4[0]</a>
+</td>
+<td title="0.17.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.4">INT:DRIVE.HEX.V2.4</a>
+</td>
+<td title="0.18.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.5">INT:DRIVE.HEX.V3.5</a>
+</td>
+<td title="0.19.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.5">INT:MUX.HEX.V3.5[0]</a>
+</td>
+<td title="0.20.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.5">INT:MUX.HEX.V3.5[1]</a>
+</td>
+<td title="0.21.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.5">INT:MUX.HEX.V2.5[1]</a>
+</td>
+<td title="0.22.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.5">INT:MUX.HEX.V2.5[0]</a>
+</td>
+<td title="0.23.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.5">INT:DRIVE.HEX.V2.5</a>
+</td>
+<td title="0.24.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.6">INT:DRIVE.HEX.V3.6</a>
+</td>
+<td title="0.25.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.6">INT:MUX.HEX.V3.6[0]</a>
+</td>
+<td title="0.26.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V3.6">INT:MUX.HEX.V3.6[1]</a>
+</td>
+<td title="0.27.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.6">INT:MUX.HEX.V2.6[1]</a>
+</td>
+<td title="0.28.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V2.6">INT:MUX.HEX.V2.6[0]</a>
+</td>
+<td title="0.29.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.6">INT:DRIVE.HEX.V2.6</a>
+</td>
+<td title="0.30.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.4">INT:DRIVE.HEX.V1.4</a>
+</td>
+<td title="0.31.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.4">INT:MUX.HEX.V1.4[0]</a>
+</td>
+<td title="0.32.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.4">INT:MUX.HEX.V1.4[1]</a>
+</td>
+<td title="0.33.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.4">INT:MUX.HEX.V0.4[1]</a>
+</td>
+<td title="0.34.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.4">INT:MUX.HEX.V0.4[0]</a>
+</td>
+<td title="0.35.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.4">INT:DRIVE.HEX.V0.4</a>
+</td>
+<td title="0.36.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.5">INT:DRIVE.HEX.V1.5</a>
+</td>
+<td title="0.37.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.5">INT:MUX.HEX.V1.5[0]</a>
+</td>
+<td title="0.38.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.5">INT:MUX.HEX.V1.5[1]</a>
+</td>
+<td title="0.39.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.5">INT:MUX.HEX.V0.5[1]</a>
+</td>
+<td title="0.40.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.5">INT:MUX.HEX.V0.5[0]</a>
+</td>
+<td title="0.41.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.5">INT:DRIVE.HEX.V0.5</a>
+</td>
+<td title="0.42.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.6">INT:DRIVE.HEX.V1.6</a>
+</td>
+<td title="0.43.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.6">INT:MUX.HEX.V1.6[0]</a>
+</td>
+<td title="0.44.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V1.6">INT:MUX.HEX.V1.6[1]</a>
+</td>
+<td title="0.45.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.6">INT:MUX.HEX.V0.6[1]</a>
+</td>
+<td title="0.46.0">
+<a href="#tile-virtex-CNR.TL-INT:MUX.HEX.V0.6">INT:MUX.HEX.V0.6[0]</a>
+</td>
+<td title="0.47.0">
+<a href="#tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.6">INT:DRIVE.HEX.V0.6</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-BSCAN:USERID">BSCAN:USERID</th>
+<th>0.46.16</th>
+<th>0.43.16</th>
+<th>0.41.16</th>
+<th>0.39.16</th>
+<th>0.37.16</th>
+<th>0.35.16</th>
+<th>0.33.16</th>
+<th>0.31.16</th>
+<th>0.29.16</th>
+<th>0.26.16</th>
+<th>0.24.16</th>
+<th>0.21.16</th>
+<th>0.19.16</th>
+<th>0.17.16</th>
+<th>0.15.16</th>
+<th>0.13.16</th>
+<th>0.14.16</th>
+<th>0.16.16</th>
+<th>0.18.16</th>
+<th>0.20.16</th>
+<th>0.22.16</th>
+<th>0.25.16</th>
+<th>0.27.16</th>
+<th>0.30.16</th>
+<th>0.32.16</th>
+<th>0.34.16</th>
+<th>0.36.16</th>
+<th>0.38.16</th>
+<th>0.40.16</th>
+<th>0.42.16</th>
+<th>0.44.16</th>
+<th>0.47.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[31]</td>
+<td>[30]</td>
+<td>[29]</td>
+<td>[28]</td>
+<td>[27]</td>
+<td>[26]</td>
+<td>[25]</td>
+<td>[24]</td>
+<td>[23]</td>
+<td>[22]</td>
+<td>[21]</td>
+<td>[20]</td>
+<td>[19]</td>
+<td>[18]</td>
+<td>[17]</td>
+<td>[16]</td>
+<td>[15]</td>
+<td>[14]</td>
+<td>[13]</td>
+<td>[12]</td>
+<td>[11]</td>
+<td>[10]</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.HEX.H3.0.PCI_CE">INT:BUF.HEX.H3.0.PCI_CE</th>
+<th>0.9.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.0.HEX.H5.0">INT:BUF.LV.0.HEX.H5.0</th>
+<th>0.47.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.1.HEX.H5.5">INT:BUF.LV.1.HEX.H5.5</th>
+<th>0.46.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.10.HEX.H4.2">INT:BUF.LV.10.HEX.H4.2</th>
+<th>0.37.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.11.HEX.H4.1">INT:BUF.LV.11.HEX.H4.1</th>
+<th>0.36.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.2.HEX.H5.4">INT:BUF.LV.2.HEX.H5.4</th>
+<th>0.45.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.3.HEX.H5.3">INT:BUF.LV.3.HEX.H5.3</th>
+<th>0.44.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.4.HEX.H5.2">INT:BUF.LV.4.HEX.H5.2</th>
+<th>0.43.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.5.HEX.H5.1">INT:BUF.LV.5.HEX.H5.1</th>
+<th>0.42.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.6.HEX.H4.0">INT:BUF.LV.6.HEX.H4.0</th>
+<th>0.41.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.7.HEX.H4.5">INT:BUF.LV.7.HEX.H4.5</th>
+<th>0.40.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.8.HEX.H4.4">INT:BUF.LV.8.HEX.H4.4</th>
+<th>0.39.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:BUF.LV.9.HEX.H4.3">INT:BUF.LV.9.HEX.H4.3</th>
+<th>0.38.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.0">INT:DRIVE.HEX.H0.0</th>
+<th>0.35.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.1">INT:DRIVE.HEX.H0.1</th>
+<th>0.41.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.2">INT:DRIVE.HEX.H0.2</th>
+<th>0.47.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.3">INT:DRIVE.HEX.H0.3</th>
+<th>0.35.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.4">INT:DRIVE.HEX.H0.4</th>
+<th>0.41.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H0.5">INT:DRIVE.HEX.H0.5</th>
+<th>0.47.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.0">INT:DRIVE.HEX.H1.0</th>
+<th>0.30.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.1">INT:DRIVE.HEX.H1.1</th>
+<th>0.36.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.2">INT:DRIVE.HEX.H1.2</th>
+<th>0.42.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.3">INT:DRIVE.HEX.H1.3</th>
+<th>0.30.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.4">INT:DRIVE.HEX.H1.4</th>
+<th>0.36.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H1.5">INT:DRIVE.HEX.H1.5</th>
+<th>0.42.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.0">INT:DRIVE.HEX.H2.0</th>
+<th>0.17.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.1">INT:DRIVE.HEX.H2.1</th>
+<th>0.23.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.2">INT:DRIVE.HEX.H2.2</th>
+<th>0.29.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.3">INT:DRIVE.HEX.H2.3</th>
+<th>0.17.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.4">INT:DRIVE.HEX.H2.4</th>
+<th>0.23.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H2.5">INT:DRIVE.HEX.H2.5</th>
+<th>0.29.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.0">INT:DRIVE.HEX.H3.0</th>
+<th>0.12.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.1">INT:DRIVE.HEX.H3.1</th>
+<th>0.18.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.2">INT:DRIVE.HEX.H3.2</th>
+<th>0.24.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.3">INT:DRIVE.HEX.H3.3</th>
+<th>0.12.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.4">INT:DRIVE.HEX.H3.4</th>
+<th>0.18.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H3.5">INT:DRIVE.HEX.H3.5</th>
+<th>0.24.4</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.0">INT:DRIVE.HEX.H4.0</th>
+<th>0.14.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.1">INT:DRIVE.HEX.H4.1</th>
+<th>0.17.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.2">INT:DRIVE.HEX.H4.2</th>
+<th>0.20.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.3">INT:DRIVE.HEX.H4.3</th>
+<th>0.23.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.4">INT:DRIVE.HEX.H4.4</th>
+<th>0.34.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H4.5">INT:DRIVE.HEX.H4.5</th>
+<th>0.29.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.0">INT:DRIVE.HEX.H5.0</th>
+<th>0.12.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.1">INT:DRIVE.HEX.H5.1</th>
+<th>0.15.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.2">INT:DRIVE.HEX.H5.2</th>
+<th>0.18.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.3">INT:DRIVE.HEX.H5.3</th>
+<th>0.21.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.4">INT:DRIVE.HEX.H5.4</th>
+<th>0.24.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.H5.5">INT:DRIVE.HEX.H5.5</th>
+<th>0.27.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.1">INT:DRIVE.HEX.V0.1</th>
+<th>0.35.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.2">INT:DRIVE.HEX.V0.2</th>
+<th>0.41.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.3">INT:DRIVE.HEX.V0.3</th>
+<th>0.47.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.4">INT:DRIVE.HEX.V0.4</th>
+<th>0.35.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.5">INT:DRIVE.HEX.V0.5</th>
+<th>0.41.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V0.6">INT:DRIVE.HEX.V0.6</th>
+<th>0.47.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.1">INT:DRIVE.HEX.V1.1</th>
+<th>0.30.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.2">INT:DRIVE.HEX.V1.2</th>
+<th>0.36.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.3">INT:DRIVE.HEX.V1.3</th>
+<th>0.42.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.4">INT:DRIVE.HEX.V1.4</th>
+<th>0.30.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.5">INT:DRIVE.HEX.V1.5</th>
+<th>0.36.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V1.6">INT:DRIVE.HEX.V1.6</th>
+<th>0.42.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.1">INT:DRIVE.HEX.V2.1</th>
+<th>0.17.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.2">INT:DRIVE.HEX.V2.2</th>
+<th>0.23.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.3">INT:DRIVE.HEX.V2.3</th>
+<th>0.29.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.4">INT:DRIVE.HEX.V2.4</th>
+<th>0.17.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.5">INT:DRIVE.HEX.V2.5</th>
+<th>0.23.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V2.6">INT:DRIVE.HEX.V2.6</th>
+<th>0.29.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.1">INT:DRIVE.HEX.V3.1</th>
+<th>0.12.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.2">INT:DRIVE.HEX.V3.2</th>
+<th>0.18.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.3">INT:DRIVE.HEX.V3.3</th>
+<th>0.24.2</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.4">INT:DRIVE.HEX.V3.4</th>
+<th>0.12.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.5">INT:DRIVE.HEX.V3.5</th>
+<th>0.18.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:DRIVE.HEX.V3.6">INT:DRIVE.HEX.V3.6</th>
+<th>0.24.0</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.GSR">INT:INV.IMUX.STARTUP.GSR</th>
+<th>0.21.13</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.GTS">INT:INV.IMUX.STARTUP.GTS</th>
+<th>0.20.13</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-MISC:DLL_ENABLE">MISC:DLL_ENABLE</th>
+<th>0.9.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:INV.IMUX.BSCAN.TDO1">INT:INV.IMUX.BSCAN.TDO1</th>
+<th>0.39.14</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:INV.IMUX.BSCAN.TDO2">INT:INV.IMUX.BSCAN.TDO2</th>
+<th>0.38.13</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.CLK">INT:INV.IMUX.STARTUP.CLK</th>
+<th>0.18.14</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:INV.IMUX.STARTUP.GWE">INT:INV.IMUX.STARTUP.GWE</th>
+<th>0.38.14</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-STARTUP:GSR_GTS_GWE_ENABLE">STARTUP:GSR_GTS_GWE_ENABLE</th>
+<th>0.8.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-STARTUP:GSR_SYNC">STARTUP:GSR_SYNC</th>
+<th>0.11.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-STARTUP:GTS_SYNC">STARTUP:GTS_SYNC</th>
+<th>0.9.8</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-STARTUP:GWE_SYNC">STARTUP:GWE_SYNC</th>
+<th>0.10.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H0.0">INT:MUX.HEX.H0.0</th>
+<th>0.33.8</th>
+<th>0.34.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H0.1">INT:MUX.HEX.H0.1</th>
+<th>0.39.8</th>
+<th>0.40.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.11</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H0.2">INT:MUX.HEX.H0.2</th>
+<th>0.45.8</th>
+<th>0.46.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.RESET</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.10</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H0.3">INT:MUX.HEX.H0.3</th>
+<th>0.33.4</th>
+<th>0.34.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.9</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H0.4">INT:MUX.HEX.H0.4</th>
+<th>0.39.4</th>
+<th>0.40.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.8</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H0.5">INT:MUX.HEX.H0.5</th>
+<th>0.45.4</th>
+<th>0.46.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.UPDATE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.6</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.7</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H1.0">INT:MUX.HEX.H1.0</th>
+<th>0.32.8</th>
+<th>0.31.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.RESET</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H1.1">INT:MUX.HEX.H1.1</th>
+<th>0.38.8</th>
+<th>0.37.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.11</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H1.2">INT:MUX.HEX.H1.2</th>
+<th>0.44.8</th>
+<th>0.43.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.10</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H1.3">INT:MUX.HEX.H1.3</th>
+<th>0.32.4</th>
+<th>0.31.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.UPDATE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.9</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H1.4">INT:MUX.HEX.H1.4</th>
+<th>0.38.4</th>
+<th>0.37.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SHIFT</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.8</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H1.5">INT:MUX.HEX.H1.5</th>
+<th>0.44.4</th>
+<th>0.43.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.TDI</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.6</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.7</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H2.0">INT:MUX.HEX.H2.0</th>
+<th>0.15.8</th>
+<th>0.16.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.6</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H2.1">INT:MUX.HEX.H2.1</th>
+<th>0.21.8</th>
+<th>0.22.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.UPDATE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.5</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H2.2">INT:MUX.HEX.H2.2</th>
+<th>0.27.8</th>
+<th>0.28.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SHIFT</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.4</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H2.3">INT:MUX.HEX.H2.3</th>
+<th>0.15.4</th>
+<th>0.16.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.TDI</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H2.4">INT:MUX.HEX.H2.4</th>
+<th>0.21.4</th>
+<th>0.22.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.2</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H2.5">INT:MUX.HEX.H2.5</th>
+<th>0.27.4</th>
+<th>0.28.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.6</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H3.0">INT:MUX.HEX.H3.0</th>
+<th>0.14.8</th>
+<th>0.13.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SHIFT</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.6</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H3.1">INT:MUX.HEX.H3.1</th>
+<th>0.20.8</th>
+<th>0.19.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.TDI</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.5</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H3.2">INT:MUX.HEX.H3.2</th>
+<th>0.26.8</th>
+<th>0.25.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.4</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H3.3">INT:MUX.HEX.H3.3</th>
+<th>0.14.4</th>
+<th>0.13.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H3.4">INT:MUX.HEX.H3.4</th>
+<th>0.20.4</th>
+<th>0.19.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.RESET</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.2</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H3.5">INT:MUX.HEX.H3.5</th>
+<th>0.26.4</th>
+<th>0.25.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.6</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LH.1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H4.0">INT:MUX.HEX.H4.0</th>
+<th>0.30.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H5.0">INT:MUX.HEX.H5.0</th>
+<th>0.13.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LH.0</td>
+<td>0</td>
+</tr>
+<tr><td>LH.6</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H4.1">INT:MUX.HEX.H4.1</th>
+<th>0.16.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H5.1">INT:MUX.HEX.H5.1</th>
+<th>0.31.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LH.11</td>
+<td>0</td>
+</tr>
+<tr><td>LH.5</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H4.2">INT:MUX.HEX.H4.2</th>
+<th>0.32.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H5.2">INT:MUX.HEX.H5.2</th>
+<th>0.19.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LH.10</td>
+<td>0</td>
+</tr>
+<tr><td>LH.4</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H4.3">INT:MUX.HEX.H4.3</th>
+<th>0.33.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H5.3">INT:MUX.HEX.H5.3</th>
+<th>0.22.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LH.9</td>
+<td>0</td>
+</tr>
+<tr><td>LH.3</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H4.4">INT:MUX.HEX.H4.4</th>
+<th>0.26.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H5.4">INT:MUX.HEX.H5.4</th>
+<th>0.25.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LH.8</td>
+<td>0</td>
+</tr>
+<tr><td>LH.2</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H4.5">INT:MUX.HEX.H4.5</th>
+<th>0.35.9</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.H5.5">INT:MUX.HEX.H5.5</th>
+<th>0.28.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LH.7</td>
+<td>0</td>
+</tr>
+<tr><td>LH.1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V0.1">INT:MUX.HEX.V0.1</th>
+<th>0.33.2</th>
+<th>0.34.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.5</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V0.2">INT:MUX.HEX.V0.2</th>
+<th>0.39.2</th>
+<th>0.40.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.UPDATE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.4</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V0.3">INT:MUX.HEX.V0.3</th>
+<th>0.45.2</th>
+<th>0.46.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SHIFT</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V0.4">INT:MUX.HEX.V0.4</th>
+<th>0.33.0</th>
+<th>0.34.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.TDI</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.2</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V0.5">INT:MUX.HEX.V0.5</th>
+<th>0.39.0</th>
+<th>0.40.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V0.6">INT:MUX.HEX.V0.6</th>
+<th>0.45.0</th>
+<th>0.46.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V1.1">INT:MUX.HEX.V1.1</th>
+<th>0.32.2</th>
+<th>0.31.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SHIFT</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.5</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V1.2">INT:MUX.HEX.V1.2</th>
+<th>0.38.2</th>
+<th>0.37.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.TDI</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.4</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V1.3">INT:MUX.HEX.V1.3</th>
+<th>0.44.2</th>
+<th>0.43.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V1.4">INT:MUX.HEX.V1.4</th>
+<th>0.32.0</th>
+<th>0.31.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.2</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V1.5">INT:MUX.HEX.V1.5</th>
+<th>0.38.0</th>
+<th>0.37.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.RESET</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V1.6">INT:MUX.HEX.V1.6</th>
+<th>0.44.0</th>
+<th>0.43.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V2.1">INT:MUX.HEX.V2.1</th>
+<th>0.15.2</th>
+<th>0.16.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.11</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V2.2">INT:MUX.HEX.V2.2</th>
+<th>0.21.2</th>
+<th>0.22.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SEL2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.10</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V2.3">INT:MUX.HEX.V2.3</th>
+<th>0.27.2</th>
+<th>0.28.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.RESET</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.9</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V2.4">INT:MUX.HEX.V2.4</th>
+<th>0.15.0</th>
+<th>0.16.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.8</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V2.5">INT:MUX.HEX.V2.5</th>
+<th>0.21.0</th>
+<th>0.22.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.7</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V2.6">INT:MUX.HEX.V2.6</th>
+<th>0.27.0</th>
+<th>0.28.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.UPDATE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.6</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V3.1">INT:MUX.HEX.V3.1</th>
+<th>0.14.2</th>
+<th>0.13.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.RESET</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.11</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V3.2">INT:MUX.HEX.V3.2</th>
+<th>0.20.2</th>
+<th>0.19.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.10</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V3.3">INT:MUX.HEX.V3.3</th>
+<th>0.26.2</th>
+<th>0.25.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.DRCK2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.9</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V3.4">INT:MUX.HEX.V3.4</th>
+<th>0.14.0</th>
+<th>0.13.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.UPDATE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.8</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V3.5">INT:MUX.HEX.V3.5</th>
+<th>0.20.0</th>
+<th>0.19.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.SHIFT</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.7</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.HEX.V3.6">INT:MUX.HEX.V3.6</th>
+<th>0.26.0</th>
+<th>0.25.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>OUT.BSCAN.TDI</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.5</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LV.6</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1</th>
+<th>0.40.14</th>
+<th>0.46.14</th>
+<th>0.47.14</th>
+<th>0.41.14</th>
+<th>0.42.14</th>
+<th>0.43.14</th>
+<th>0.45.14</th>
+<th>0.44.14</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GWE">INT:MUX.IMUX.STARTUP.GWE</th>
+<th>0.37.14</th>
+<th>0.31.14</th>
+<th>0.30.14</th>
+<th>0.36.14</th>
+<th>0.35.14</th>
+<th>0.34.14</th>
+<th>0.32.14</th>
+<th>0.33.14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V2.3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.6</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.5</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V3.5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V3.1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H0.2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H1.4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H1.0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.3</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2</th>
+<th>0.37.13</th>
+<th>0.31.13</th>
+<th>0.30.13</th>
+<th>0.36.13</th>
+<th>0.35.13</th>
+<th>0.34.13</th>
+<th>0.32.13</th>
+<th>0.33.13</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GSR">INT:MUX.IMUX.STARTUP.GSR</th>
+<th>0.22.13</th>
+<th>0.28.13</th>
+<th>0.29.13</th>
+<th>0.23.13</th>
+<th>0.24.13</th>
+<th>0.25.13</th>
+<th>0.27.13</th>
+<th>0.26.13</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS</th>
+<th>0.19.13</th>
+<th>0.13.13</th>
+<th>0.12.13</th>
+<th>0.18.13</th>
+<th>0.17.13</th>
+<th>0.16.13</th>
+<th>0.14.13</th>
+<th>0.15.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V0.3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.6</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.5</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V1.5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V0.1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V1.1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V1.3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H2.2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H3.4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H2.0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H3.0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.3</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H3.2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-INT:MUX.IMUX.STARTUP.CLK">INT:MUX.IMUX.STARTUP.CLK</th>
+<th>0.17.14</th>
+<th>0.9.14</th>
+<th>0.8.14</th>
+<th>0.15.14</th>
+<th>0.16.14</th>
+<th>0.12.14</th>
+<th>0.10.14</th>
+<th>0.11.14</th>
+<th>0.14.14</th>
+<th>0.13.14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>GCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>GCLK1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>GCLK2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>GCLK3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.5</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H0.4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H0.1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H0.0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.H1.2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.H1.0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V2.5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V2.2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V2.1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.4</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HEX.V3.3</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HEX.V3.1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-MISC:BCLK_DIV2">MISC:BCLK_DIV2</th>
+<th>0.8.9</th>
+<th>0.10.9</th>
+<th>0.11.9</th>
+<th>0.8.13</th>
+<th>0.9.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-MISC:POWERUP_CLK">MISC:POWERUP_CLK</th>
+<th>0.11.2</th>
+<th>0.11.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>INTOSC</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>USERCLK</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>CCLK</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-CNR.TL-MISC:TCKPIN">MISC:TCKPIN</th>
+<th>0.10.13</th>
+<th>0.11.13</th>
+</tr>
+<tr><th id="tile-virtex-CNR.TL-MISC:TMSPIN">MISC:TMSPIN</th>
+<th>0.10.0</th>
+<th>0.11.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PULLDOWN</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>PULLNONE</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>PULLUP</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../virtex/corners/sw.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../virtex/corners/se.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../virtex/corners/sw.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../virtex/corners/se.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

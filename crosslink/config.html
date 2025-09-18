@@ -1,0 +1,353 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Configuration center - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="configuration-center"><a class="header" href="#configuration-center">Configuration center</a></h1>
+<h2 id="tile-config"><a class="header" href="#tile-config">Tile CONFIG</a></h2>
+<p>Cells: 4</p>
+<h3 id="bel-gsr"><a class="header" href="#bel-gsr">Bel GSR</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CONFIG bel GSR</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK</td><td>input</td><td>TCELL3:IMUX_CLK0</td></tr>
+<tr><td>GSR</td><td>input</td><td>TCELL0:IMUX_D4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-cfgtest"><a class="header" href="#bel-cfgtest">Bel CFGTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CONFIG bel CFGTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CFGSCANCLK</td><td>input</td><td>TCELL2:IMUX_B4</td></tr>
+<tr><td>CFGSCANRESET</td><td>input</td><td>TCELL2:IMUX_D5</td></tr>
+<tr><td>CFGSCANSDI</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+<tr><td>CFGSCANSDO</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+<tr><td>CFGSCANSHIFTEN</td><td>input</td><td>TCELL2:IMUX_D4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CONFIG bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_D4</td><td>GSR.GSR</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>CFGTEST.CFGSCANSDO</td></tr>
+<tr><td>TCELL2:IMUX_B4</td><td>CFGTEST.CFGSCANCLK</td></tr>
+<tr><td>TCELL2:IMUX_B5</td><td>CFGTEST.CFGSCANSDI</td></tr>
+<tr><td>TCELL2:IMUX_D4</td><td>CFGTEST.CFGSCANSHIFTEN</td></tr>
+<tr><td>TCELL2:IMUX_D5</td><td>CFGTEST.CFGSCANRESET</td></tr>
+<tr><td>TCELL3:IMUX_CLK0</td><td>GSR.CLK</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-osc"><a class="header" href="#tile-osc">Tile OSC</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-osc"><a class="header" href="#bel-osc">Bel OSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink OSC bel OSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>HFCLKDIV0</td><td>input</td><td>IMUX_A1</td></tr>
+<tr><td>HFCLKDIV1</td><td>input</td><td>IMUX_C1</td></tr>
+<tr><td>HFCLKOUT</td><td>output</td><td>OUT_F1</td></tr>
+<tr><td>HFOUTEN</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>LFCLKOUT</td><td>output</td><td>OUT_F0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink OSC bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX_A1</td><td>OSC.HFCLKDIV0</td></tr>
+<tr><td>IMUX_C1</td><td>OSC.HFCLKDIV1</td></tr>
+<tr><td>IMUX_D7</td><td>OSC.HFOUTEN</td></tr>
+<tr><td>OUT_F0</td><td>OSC.LFCLKOUT</td></tr>
+<tr><td>OUT_F1</td><td>OSC.HFCLKOUT</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pmu"><a class="header" href="#tile-pmu">Tile PMU</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pmu"><a class="header" href="#bel-pmu">Bel PMU</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink PMU bel PMU</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SLEEP</td><td>input</td><td>IMUX_B7</td></tr>
+<tr><td>USRADR0</td><td>input</td><td>IMUX_C2</td></tr>
+<tr><td>USRADR1</td><td>input</td><td>IMUX_D3</td></tr>
+<tr><td>USRADR2</td><td>input</td><td>IMUX_B3</td></tr>
+<tr><td>USRADR3</td><td>input</td><td>IMUX_C3</td></tr>
+<tr><td>USRCLK</td><td>input</td><td>IMUX_CLK1</td></tr>
+<tr><td>USRCS</td><td>input</td><td>IMUX_A2</td></tr>
+<tr><td>USRDATA0</td><td>input</td><td>IMUX_C4</td></tr>
+<tr><td>USRDATA1</td><td>input</td><td>IMUX_A5</td></tr>
+<tr><td>USRDATA2</td><td>input</td><td>IMUX_B5</td></tr>
+<tr><td>USRDATA3</td><td>input</td><td>IMUX_C5</td></tr>
+<tr><td>USRDATA4</td><td>input</td><td>IMUX_A6</td></tr>
+<tr><td>USRDATA5</td><td>input</td><td>IMUX_C6</td></tr>
+<tr><td>USRDATA6</td><td>input</td><td>IMUX_A7</td></tr>
+<tr><td>USRDATA7</td><td>input</td><td>IMUX_C7</td></tr>
+<tr><td>USRSTB</td><td>input</td><td>IMUX_B2</td></tr>
+<tr><td>USRWDTDONE</td><td>output</td><td>OUT_F0</td></tr>
+<tr><td>USRWDTINT</td><td>output</td><td>OUT_F2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pmutest"><a class="header" href="#bel-pmutest">Bel PMUTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink PMU bel PMUTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PMUSCANCLK</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>PMUSCANRESET</td><td>input</td><td>IMUX_LSR1</td></tr>
+<tr><td>PMUSCANSDI</td><td>input</td><td>IMUX_B6</td></tr>
+<tr><td>PMUSCANSDO</td><td>output</td><td>OUT_F3</td></tr>
+<tr><td>PMUSCANSHIFTEN</td><td>input</td><td>IMUX_D7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink PMU bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX_A2</td><td>PMU.USRCS</td></tr>
+<tr><td>IMUX_A5</td><td>PMU.USRDATA1</td></tr>
+<tr><td>IMUX_A6</td><td>PMU.USRDATA4</td></tr>
+<tr><td>IMUX_A7</td><td>PMU.USRDATA6</td></tr>
+<tr><td>IMUX_B2</td><td>PMU.USRSTB</td></tr>
+<tr><td>IMUX_B3</td><td>PMU.USRADR2</td></tr>
+<tr><td>IMUX_B5</td><td>PMU.USRDATA2</td></tr>
+<tr><td>IMUX_B6</td><td>PMUTEST.PMUSCANSDI</td></tr>
+<tr><td>IMUX_B7</td><td>PMU.SLEEP</td></tr>
+<tr><td>IMUX_C2</td><td>PMU.USRADR0</td></tr>
+<tr><td>IMUX_C3</td><td>PMU.USRADR3</td></tr>
+<tr><td>IMUX_C4</td><td>PMU.USRDATA0</td></tr>
+<tr><td>IMUX_C5</td><td>PMU.USRDATA3</td></tr>
+<tr><td>IMUX_C6</td><td>PMU.USRDATA5</td></tr>
+<tr><td>IMUX_C7</td><td>PMU.USRDATA7</td></tr>
+<tr><td>IMUX_D3</td><td>PMU.USRADR1</td></tr>
+<tr><td>IMUX_D6</td><td>PMUTEST.PMUSCANCLK</td></tr>
+<tr><td>IMUX_D7</td><td>PMUTEST.PMUSCANSHIFTEN</td></tr>
+<tr><td>IMUX_CLK1</td><td>PMU.USRCLK</td></tr>
+<tr><td>IMUX_LSR1</td><td>PMUTEST.PMUSCANRESET</td></tr>
+<tr><td>OUT_F0</td><td>PMU.USRWDTDONE</td></tr>
+<tr><td>OUT_F2</td><td>PMU.USRWDTINT</td></tr>
+<tr><td>OUT_F3</td><td>PMUTEST.PMUSCANSDO</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crosslink/i2c.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../xc9500/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crosslink/i2c.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../xc9500/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

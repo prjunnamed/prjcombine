@@ -1,0 +1,1409 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>SERDES - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="serdes"><a class="header" href="#serdes">SERDES</a></h1>
+<h2 id="tile-serdes_w"><a class="header" href="#tile-serdes_w">Tile SERDES_W</a></h2>
+<p>Cells: 7</p>
+<h3 id="bel-serdes"><a class="header" href="#bel-serdes">Bel SERDES</a></h3>
+<div class="table-wrapper"><table>
+<caption>scm SERDES_W bel SERDES</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>BS4PAD_0</td><td>output</td><td>TCELL4:OUT_OFX0</td></tr>
+<tr><td>BS4PAD_1</td><td>output</td><td>TCELL4:OUT_OFX1</td></tr>
+<tr><td>BS4PAD_2</td><td>output</td><td>TCELL4:OUT_OFX2</td></tr>
+<tr><td>BS4PAD_3</td><td>output</td><td>TCELL4:OUT_OFX3</td></tr>
+<tr><td>FB_RXD_0_0</td><td>output</td><td>TCELL2:OUT_F6</td></tr>
+<tr><td>FB_RXD_0_1</td><td>output</td><td>TCELL2:OUT_F7</td></tr>
+<tr><td>FB_RXD_0_10</td><td>output</td><td>TCELL1:OUT_Q0</td></tr>
+<tr><td>FB_RXD_0_11</td><td>output</td><td>TCELL1:OUT_Q1</td></tr>
+<tr><td>FB_RXD_0_12</td><td>output</td><td>TCELL1:OUT_Q2</td></tr>
+<tr><td>FB_RXD_0_13</td><td>output</td><td>TCELL1:OUT_Q3</td></tr>
+<tr><td>FB_RXD_0_14</td><td>output</td><td>TCELL1:OUT_Q4</td></tr>
+<tr><td>FB_RXD_0_15</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+<tr><td>FB_RXD_0_16</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+<tr><td>FB_RXD_0_17</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+<tr><td>FB_RXD_0_18</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+<tr><td>FB_RXD_0_19</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+<tr><td>FB_RXD_0_2</td><td>output</td><td>TCELL1:OUT_OFX0</td></tr>
+<tr><td>FB_RXD_0_20</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+<tr><td>FB_RXD_0_21</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+<tr><td>FB_RXD_0_22</td><td>output</td><td>TCELL1:OUT_F4</td></tr>
+<tr><td>FB_RXD_0_23</td><td>output</td><td>TCELL1:OUT_F5</td></tr>
+<tr><td>FB_RXD_0_3</td><td>output</td><td>TCELL1:OUT_OFX1</td></tr>
+<tr><td>FB_RXD_0_4</td><td>output</td><td>TCELL1:OUT_OFX2</td></tr>
+<tr><td>FB_RXD_0_5</td><td>output</td><td>TCELL1:OUT_OFX3</td></tr>
+<tr><td>FB_RXD_0_6</td><td>output</td><td>TCELL1:OUT_OFX4</td></tr>
+<tr><td>FB_RXD_0_7</td><td>output</td><td>TCELL1:OUT_OFX5</td></tr>
+<tr><td>FB_RXD_0_8</td><td>output</td><td>TCELL1:OUT_OFX6</td></tr>
+<tr><td>FB_RXD_0_9</td><td>output</td><td>TCELL1:OUT_OFX7</td></tr>
+<tr><td>FB_RXD_1_0</td><td>output</td><td>TCELL3:OUT_Q0</td></tr>
+<tr><td>FB_RXD_1_1</td><td>output</td><td>TCELL3:OUT_Q1</td></tr>
+<tr><td>FB_RXD_1_10</td><td>output</td><td>TCELL3:OUT_F2</td></tr>
+<tr><td>FB_RXD_1_11</td><td>output</td><td>TCELL3:OUT_F3</td></tr>
+<tr><td>FB_RXD_1_12</td><td>output</td><td>TCELL3:OUT_F4</td></tr>
+<tr><td>FB_RXD_1_13</td><td>output</td><td>TCELL3:OUT_F5</td></tr>
+<tr><td>FB_RXD_1_14</td><td>output</td><td>TCELL3:OUT_F6</td></tr>
+<tr><td>FB_RXD_1_15</td><td>output</td><td>TCELL3:OUT_F7</td></tr>
+<tr><td>FB_RXD_1_16</td><td>output</td><td>TCELL2:OUT_OFX0</td></tr>
+<tr><td>FB_RXD_1_17</td><td>output</td><td>TCELL2:OUT_OFX1</td></tr>
+<tr><td>FB_RXD_1_18</td><td>output</td><td>TCELL2:OUT_OFX2</td></tr>
+<tr><td>FB_RXD_1_19</td><td>output</td><td>TCELL2:OUT_OFX3</td></tr>
+<tr><td>FB_RXD_1_2</td><td>output</td><td>TCELL3:OUT_Q2</td></tr>
+<tr><td>FB_RXD_1_20</td><td>output</td><td>TCELL2:OUT_OFX4</td></tr>
+<tr><td>FB_RXD_1_21</td><td>output</td><td>TCELL2:OUT_OFX5</td></tr>
+<tr><td>FB_RXD_1_22</td><td>output</td><td>TCELL2:OUT_OFX6</td></tr>
+<tr><td>FB_RXD_1_23</td><td>output</td><td>TCELL2:OUT_OFX7</td></tr>
+<tr><td>FB_RXD_1_3</td><td>output</td><td>TCELL3:OUT_Q3</td></tr>
+<tr><td>FB_RXD_1_4</td><td>output</td><td>TCELL3:OUT_Q4</td></tr>
+<tr><td>FB_RXD_1_5</td><td>output</td><td>TCELL3:OUT_Q5</td></tr>
+<tr><td>FB_RXD_1_6</td><td>output</td><td>TCELL3:OUT_Q6</td></tr>
+<tr><td>FB_RXD_1_7</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+<tr><td>FB_RXD_1_8</td><td>output</td><td>TCELL3:OUT_F0</td></tr>
+<tr><td>FB_RXD_1_9</td><td>output</td><td>TCELL3:OUT_F1</td></tr>
+<tr><td>FB_RXD_2_0</td><td>output</td><td>TCELL5:OUT_Q7</td></tr>
+<tr><td>FB_RXD_2_1</td><td>output</td><td>TCELL5:OUT_F0</td></tr>
+<tr><td>FB_RXD_2_10</td><td>output</td><td>TCELL4:OUT_Q0</td></tr>
+<tr><td>FB_RXD_2_11</td><td>output</td><td>TCELL4:OUT_Q1</td></tr>
+<tr><td>FB_RXD_2_12</td><td>output</td><td>TCELL4:OUT_Q2</td></tr>
+<tr><td>FB_RXD_2_13</td><td>output</td><td>TCELL4:OUT_Q3</td></tr>
+<tr><td>FB_RXD_2_14</td><td>output</td><td>TCELL4:OUT_Q4</td></tr>
+<tr><td>FB_RXD_2_15</td><td>output</td><td>TCELL4:OUT_Q5</td></tr>
+<tr><td>FB_RXD_2_16</td><td>output</td><td>TCELL4:OUT_Q6</td></tr>
+<tr><td>FB_RXD_2_17</td><td>output</td><td>TCELL4:OUT_Q7</td></tr>
+<tr><td>FB_RXD_2_18</td><td>output</td><td>TCELL4:OUT_F0</td></tr>
+<tr><td>FB_RXD_2_19</td><td>output</td><td>TCELL4:OUT_F1</td></tr>
+<tr><td>FB_RXD_2_2</td><td>output</td><td>TCELL5:OUT_F1</td></tr>
+<tr><td>FB_RXD_2_20</td><td>output</td><td>TCELL4:OUT_F2</td></tr>
+<tr><td>FB_RXD_2_21</td><td>output</td><td>TCELL4:OUT_F3</td></tr>
+<tr><td>FB_RXD_2_22</td><td>output</td><td>TCELL4:OUT_F4</td></tr>
+<tr><td>FB_RXD_2_23</td><td>output</td><td>TCELL4:OUT_F5</td></tr>
+<tr><td>FB_RXD_2_3</td><td>output</td><td>TCELL5:OUT_F2</td></tr>
+<tr><td>FB_RXD_2_4</td><td>output</td><td>TCELL5:OUT_F3</td></tr>
+<tr><td>FB_RXD_2_5</td><td>output</td><td>TCELL5:OUT_F4</td></tr>
+<tr><td>FB_RXD_2_6</td><td>output</td><td>TCELL5:OUT_F5</td></tr>
+<tr><td>FB_RXD_2_7</td><td>output</td><td>TCELL5:OUT_F6</td></tr>
+<tr><td>FB_RXD_2_8</td><td>output</td><td>TCELL5:OUT_F7</td></tr>
+<tr><td>FB_RXD_2_9</td><td>output</td><td>TCELL4:OUT_OFX7</td></tr>
+<tr><td>FB_RXD_3_0</td><td>output</td><td>TCELL6:OUT_OFX2</td></tr>
+<tr><td>FB_RXD_3_1</td><td>output</td><td>TCELL6:OUT_OFX3</td></tr>
+<tr><td>FB_RXD_3_10</td><td>output</td><td>TCELL6:OUT_Q4</td></tr>
+<tr><td>FB_RXD_3_11</td><td>output</td><td>TCELL6:OUT_Q5</td></tr>
+<tr><td>FB_RXD_3_12</td><td>output</td><td>TCELL6:OUT_Q6</td></tr>
+<tr><td>FB_RXD_3_13</td><td>output</td><td>TCELL6:OUT_Q7</td></tr>
+<tr><td>FB_RXD_3_14</td><td>output</td><td>TCELL6:OUT_F0</td></tr>
+<tr><td>FB_RXD_3_15</td><td>output</td><td>TCELL6:OUT_F1</td></tr>
+<tr><td>FB_RXD_3_16</td><td>output</td><td>TCELL6:OUT_F2</td></tr>
+<tr><td>FB_RXD_3_17</td><td>output</td><td>TCELL6:OUT_F3</td></tr>
+<tr><td>FB_RXD_3_18</td><td>output</td><td>TCELL6:OUT_F4</td></tr>
+<tr><td>FB_RXD_3_19</td><td>output</td><td>TCELL6:OUT_F5</td></tr>
+<tr><td>FB_RXD_3_2</td><td>output</td><td>TCELL6:OUT_OFX4</td></tr>
+<tr><td>FB_RXD_3_20</td><td>output</td><td>TCELL5:OUT_Q3</td></tr>
+<tr><td>FB_RXD_3_21</td><td>output</td><td>TCELL5:OUT_Q4</td></tr>
+<tr><td>FB_RXD_3_22</td><td>output</td><td>TCELL5:OUT_Q5</td></tr>
+<tr><td>FB_RXD_3_23</td><td>output</td><td>TCELL5:OUT_Q6</td></tr>
+<tr><td>FB_RXD_3_3</td><td>output</td><td>TCELL6:OUT_OFX5</td></tr>
+<tr><td>FB_RXD_3_4</td><td>output</td><td>TCELL6:OUT_OFX6</td></tr>
+<tr><td>FB_RXD_3_5</td><td>output</td><td>TCELL6:OUT_OFX7</td></tr>
+<tr><td>FB_RXD_3_6</td><td>output</td><td>TCELL6:OUT_Q0</td></tr>
+<tr><td>FB_RXD_3_7</td><td>output</td><td>TCELL6:OUT_Q1</td></tr>
+<tr><td>FB_RXD_3_8</td><td>output</td><td>TCELL6:OUT_Q2</td></tr>
+<tr><td>FB_RXD_3_9</td><td>output</td><td>TCELL6:OUT_Q3</td></tr>
+<tr><td>FFC_AB_RESET</td><td>input</td><td>TCELL1:IMUX_CE0</td></tr>
+<tr><td>FFC_ALIGN_EN_0</td><td>input</td><td>TCELL1:IMUX_D4</td></tr>
+<tr><td>FFC_ALIGN_EN_1</td><td>input</td><td>TCELL2:IMUX_D4</td></tr>
+<tr><td>FFC_ALIGN_EN_2</td><td>input</td><td>TCELL5:IMUX_D4</td></tr>
+<tr><td>FFC_ALIGN_EN_3</td><td>input</td><td>TCELL6:IMUX_D4</td></tr>
+<tr><td>FFC_CD_RESET</td><td>input</td><td>TCELL6:IMUX_CE0</td></tr>
+<tr><td>FFC_CK_CORE_RX</td><td>input</td><td>TCELL4:IMUX_CLK2</td></tr>
+<tr><td>FFC_EN_CGA_0</td><td>input</td><td>TCELL1:IMUX_D5</td></tr>
+<tr><td>FFC_EN_CGA_1</td><td>input</td><td>TCELL2:IMUX_D5</td></tr>
+<tr><td>FFC_EN_CGA_2</td><td>input</td><td>TCELL5:IMUX_D5</td></tr>
+<tr><td>FFC_EN_CGA_3</td><td>input</td><td>TCELL6:IMUX_D5</td></tr>
+<tr><td>FFC_FB_LB_0</td><td>input</td><td>TCELL1:IMUX_D3</td></tr>
+<tr><td>FFC_FB_LB_1</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+<tr><td>FFC_FB_LB_2</td><td>input</td><td>TCELL5:IMUX_D3</td></tr>
+<tr><td>FFC_FB_LB_3</td><td>input</td><td>TCELL6:IMUX_D3</td></tr>
+<tr><td>FFC_LANE_RX_RST0</td><td>input</td><td>TCELL1:IMUX_CE1</td></tr>
+<tr><td>FFC_LANE_RX_RST1</td><td>input</td><td>TCELL2:IMUX_CE1</td></tr>
+<tr><td>FFC_LANE_RX_RST2</td><td>input</td><td>TCELL5:IMUX_CE1</td></tr>
+<tr><td>FFC_LANE_RX_RST3</td><td>input</td><td>TCELL6:IMUX_CE1</td></tr>
+<tr><td>FFC_LANE_TX_RST0</td><td>input</td><td>TCELL1:IMUX_CE2</td></tr>
+<tr><td>FFC_LANE_TX_RST1</td><td>input</td><td>TCELL2:IMUX_CE2</td></tr>
+<tr><td>FFC_LANE_TX_RST2</td><td>input</td><td>TCELL5:IMUX_CE2</td></tr>
+<tr><td>FFC_LANE_TX_RST3</td><td>input</td><td>TCELL6:IMUX_CE2</td></tr>
+<tr><td>FFC_MACRO_RST</td><td>input</td><td>TCELL4:IMUX_CE0</td></tr>
+<tr><td>FFC_PCIE_CT_0</td><td>input</td><td>TCELL1:IMUX_D1</td></tr>
+<tr><td>FFC_PCIE_CT_1</td><td>input</td><td>TCELL2:IMUX_D1</td></tr>
+<tr><td>FFC_PCIE_CT_2</td><td>input</td><td>TCELL5:IMUX_D1</td></tr>
+<tr><td>FFC_PCIE_CT_3</td><td>input</td><td>TCELL6:IMUX_D1</td></tr>
+<tr><td>FFC_PCIE_EI_EN_0</td><td>input</td><td>TCELL1:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_EI_EN_1</td><td>input</td><td>TCELL2:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_EI_EN_2</td><td>input</td><td>TCELL5:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_EI_EN_3</td><td>input</td><td>TCELL6:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_RX_0</td><td>input</td><td>TCELL4:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_RX_1</td><td>input</td><td>TCELL4:IMUX_D6</td></tr>
+<tr><td>FFC_PCIE_RX_2</td><td>input</td><td>TCELL4:IMUX_D1</td></tr>
+<tr><td>FFC_PCIE_RX_3</td><td>input</td><td>TCELL4:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_TX_0</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_TX_1</td><td>input</td><td>TCELL2:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_TX_2</td><td>input</td><td>TCELL5:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_TX_3</td><td>input</td><td>TCELL6:IMUX_D0</td></tr>
+<tr><td>FFC_QUAD_RST</td><td>input</td><td>TCELL4:IMUX_LSR3</td></tr>
+<tr><td>FFC_SB_INV_RX_0</td><td>input</td><td>TCELL1:IMUX_D2</td></tr>
+<tr><td>FFC_SB_INV_RX_1</td><td>input</td><td>TCELL2:IMUX_D2</td></tr>
+<tr><td>FFC_SB_INV_RX_2</td><td>input</td><td>TCELL5:IMUX_D2</td></tr>
+<tr><td>FFC_SB_INV_RX_3</td><td>input</td><td>TCELL6:IMUX_D2</td></tr>
+<tr><td>FFC_SD_0</td><td>input</td><td>TCELL1:IMUX_D6</td></tr>
+<tr><td>FFC_SD_1</td><td>input</td><td>TCELL2:IMUX_D6</td></tr>
+<tr><td>FFC_SD_2</td><td>input</td><td>TCELL5:IMUX_D6</td></tr>
+<tr><td>FFC_SD_3</td><td>input</td><td>TCELL6:IMUX_D6</td></tr>
+<tr><td>FFS_AB_ALIGNED</td><td>output</td><td>TCELL2:OUT_Q6</td></tr>
+<tr><td>FFS_AB_FAILED</td><td>output</td><td>TCELL2:OUT_Q5</td></tr>
+<tr><td>FFS_AB_STATUS</td><td>output</td><td>TCELL2:OUT_Q7</td></tr>
+<tr><td>FFS_CC_ORUN_0</td><td>output</td><td>TCELL2:OUT_F1</td></tr>
+<tr><td>FFS_CC_ORUN_1</td><td>output</td><td>TCELL3:OUT_OFX3</td></tr>
+<tr><td>FFS_CC_ORUN_2</td><td>output</td><td>TCELL5:OUT_OFX7</td></tr>
+<tr><td>FFS_CC_ORUN_3</td><td>output</td><td>TCELL6:OUT_OFX1</td></tr>
+<tr><td>FFS_CC_URUN_0</td><td>output</td><td>TCELL2:OUT_F0</td></tr>
+<tr><td>FFS_CC_URUN_1</td><td>output</td><td>TCELL3:OUT_OFX2</td></tr>
+<tr><td>FFS_CC_URUN_2</td><td>output</td><td>TCELL5:OUT_OFX6</td></tr>
+<tr><td>FFS_CC_URUN_3</td><td>output</td><td>TCELL6:OUT_OFX0</td></tr>
+<tr><td>FFS_CD_ALIGNED</td><td>output</td><td>TCELL5:OUT_OFX4</td></tr>
+<tr><td>FFS_CD_FAILED</td><td>output</td><td>TCELL5:OUT_OFX3</td></tr>
+<tr><td>FFS_CD_STATUS</td><td>output</td><td>TCELL5:OUT_OFX5</td></tr>
+<tr><td>FFS_LS_STATUS_0</td><td>output</td><td>TCELL2:OUT_F3</td></tr>
+<tr><td>FFS_LS_STATUS_1</td><td>output</td><td>TCELL3:OUT_OFX5</td></tr>
+<tr><td>FFS_LS_STATUS_2</td><td>output</td><td>TCELL5:OUT_Q0</td></tr>
+<tr><td>FFS_LS_STATUS_3</td><td>output</td><td>TCELL5:OUT_OFX0</td></tr>
+<tr><td>FFS_PCIE_CON_0</td><td>output</td><td>TCELL2:OUT_F5</td></tr>
+<tr><td>FFS_PCIE_CON_1</td><td>output</td><td>TCELL3:OUT_OFX7</td></tr>
+<tr><td>FFS_PCIE_CON_2</td><td>output</td><td>TCELL5:OUT_Q2</td></tr>
+<tr><td>FFS_PCIE_CON_3</td><td>output</td><td>TCELL5:OUT_OFX2</td></tr>
+<tr><td>FFS_PCIE_DONE_0</td><td>output</td><td>TCELL2:OUT_F4</td></tr>
+<tr><td>FFS_PCIE_DONE_1</td><td>output</td><td>TCELL3:OUT_OFX6</td></tr>
+<tr><td>FFS_PCIE_DONE_2</td><td>output</td><td>TCELL5:OUT_Q1</td></tr>
+<tr><td>FFS_PCIE_DONE_3</td><td>output</td><td>TCELL5:OUT_OFX1</td></tr>
+<tr><td>FFS_RLOS_LO0</td><td>output</td><td>TCELL2:OUT_Q4</td></tr>
+<tr><td>FFS_RLOS_LO1</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+<tr><td>FFS_RLOS_LO2</td><td>output</td><td>TCELL4:OUT_OFX6</td></tr>
+<tr><td>FFS_RLOS_LO3</td><td>output</td><td>TCELL4:OUT_OFX5</td></tr>
+<tr><td>FF_RCLK0</td><td>input</td><td>TCELL1:IMUX_CLK2</td></tr>
+<tr><td>FF_RCLK1</td><td>input</td><td>TCELL2:IMUX_CLK2</td></tr>
+<tr><td>FF_RCLK2</td><td>input</td><td>TCELL5:IMUX_CLK2</td></tr>
+<tr><td>FF_RCLK3</td><td>input</td><td>TCELL6:IMUX_CLK2</td></tr>
+<tr><td>FF_RXCLK0</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+<tr><td>FF_RXCLK1</td><td>output</td><td>TCELL2:OUT_Q0</td></tr>
+<tr><td>FF_RXCLK2</td><td>output</td><td>TCELL4:OUT_F6</td></tr>
+<tr><td>FF_RXCLK3</td><td>output</td><td>TCELL6:OUT_F6</td></tr>
+<tr><td>FF_SYSCLK0</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+<tr><td>FF_SYSCLK1</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+<tr><td>FF_SYSCLK2</td><td>output</td><td>TCELL4:OUT_F7</td></tr>
+<tr><td>FF_SYSCLK3</td><td>output</td><td>TCELL6:OUT_F7</td></tr>
+<tr><td>FF_TCLK0</td><td>input</td><td>TCELL1:IMUX_CLK3</td></tr>
+<tr><td>FF_TCLK1</td><td>input</td><td>TCELL2:IMUX_CLK3</td></tr>
+<tr><td>FF_TCLK2</td><td>input</td><td>TCELL5:IMUX_CLK3</td></tr>
+<tr><td>FF_TCLK3</td><td>input</td><td>TCELL6:IMUX_CLK3</td></tr>
+<tr><td>FF_TXD_0_0</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+<tr><td>FF_TXD_0_1</td><td>input</td><td>TCELL1:IMUX_C1</td></tr>
+<tr><td>FF_TXD_0_10</td><td>input</td><td>TCELL1:IMUX_B2</td></tr>
+<tr><td>FF_TXD_0_11</td><td>input</td><td>TCELL1:IMUX_B3</td></tr>
+<tr><td>FF_TXD_0_12</td><td>input</td><td>TCELL1:IMUX_B4</td></tr>
+<tr><td>FF_TXD_0_13</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+<tr><td>FF_TXD_0_14</td><td>input</td><td>TCELL1:IMUX_B6</td></tr>
+<tr><td>FF_TXD_0_15</td><td>input</td><td>TCELL1:IMUX_B7</td></tr>
+<tr><td>FF_TXD_0_16</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+<tr><td>FF_TXD_0_17</td><td>input</td><td>TCELL1:IMUX_A1</td></tr>
+<tr><td>FF_TXD_0_18</td><td>input</td><td>TCELL1:IMUX_A2</td></tr>
+<tr><td>FF_TXD_0_19</td><td>input</td><td>TCELL1:IMUX_A3</td></tr>
+<tr><td>FF_TXD_0_2</td><td>input</td><td>TCELL1:IMUX_C2</td></tr>
+<tr><td>FF_TXD_0_20</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+<tr><td>FF_TXD_0_21</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>FF_TXD_0_22</td><td>input</td><td>TCELL1:IMUX_A6</td></tr>
+<tr><td>FF_TXD_0_23</td><td>input</td><td>TCELL1:IMUX_A7</td></tr>
+<tr><td>FF_TXD_0_3</td><td>input</td><td>TCELL1:IMUX_C3</td></tr>
+<tr><td>FF_TXD_0_4</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+<tr><td>FF_TXD_0_5</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+<tr><td>FF_TXD_0_6</td><td>input</td><td>TCELL1:IMUX_C6</td></tr>
+<tr><td>FF_TXD_0_7</td><td>input</td><td>TCELL1:IMUX_C7</td></tr>
+<tr><td>FF_TXD_0_8</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+<tr><td>FF_TXD_0_9</td><td>input</td><td>TCELL1:IMUX_B1</td></tr>
+<tr><td>FF_TXD_1_0</td><td>input</td><td>TCELL2:IMUX_C0</td></tr>
+<tr><td>FF_TXD_1_1</td><td>input</td><td>TCELL2:IMUX_C1</td></tr>
+<tr><td>FF_TXD_1_10</td><td>input</td><td>TCELL2:IMUX_B2</td></tr>
+<tr><td>FF_TXD_1_11</td><td>input</td><td>TCELL2:IMUX_B3</td></tr>
+<tr><td>FF_TXD_1_12</td><td>input</td><td>TCELL2:IMUX_B4</td></tr>
+<tr><td>FF_TXD_1_13</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+<tr><td>FF_TXD_1_14</td><td>input</td><td>TCELL2:IMUX_B6</td></tr>
+<tr><td>FF_TXD_1_15</td><td>input</td><td>TCELL2:IMUX_B7</td></tr>
+<tr><td>FF_TXD_1_16</td><td>input</td><td>TCELL2:IMUX_A0</td></tr>
+<tr><td>FF_TXD_1_17</td><td>input</td><td>TCELL2:IMUX_A1</td></tr>
+<tr><td>FF_TXD_1_18</td><td>input</td><td>TCELL2:IMUX_A2</td></tr>
+<tr><td>FF_TXD_1_19</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+<tr><td>FF_TXD_1_2</td><td>input</td><td>TCELL2:IMUX_C2</td></tr>
+<tr><td>FF_TXD_1_20</td><td>input</td><td>TCELL2:IMUX_A4</td></tr>
+<tr><td>FF_TXD_1_21</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+<tr><td>FF_TXD_1_22</td><td>input</td><td>TCELL2:IMUX_A6</td></tr>
+<tr><td>FF_TXD_1_23</td><td>input</td><td>TCELL2:IMUX_A7</td></tr>
+<tr><td>FF_TXD_1_3</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+<tr><td>FF_TXD_1_4</td><td>input</td><td>TCELL2:IMUX_C4</td></tr>
+<tr><td>FF_TXD_1_5</td><td>input</td><td>TCELL2:IMUX_C5</td></tr>
+<tr><td>FF_TXD_1_6</td><td>input</td><td>TCELL2:IMUX_C6</td></tr>
+<tr><td>FF_TXD_1_7</td><td>input</td><td>TCELL2:IMUX_C7</td></tr>
+<tr><td>FF_TXD_1_8</td><td>input</td><td>TCELL2:IMUX_B0</td></tr>
+<tr><td>FF_TXD_1_9</td><td>input</td><td>TCELL2:IMUX_B1</td></tr>
+<tr><td>FF_TXD_2_0</td><td>input</td><td>TCELL5:IMUX_C0</td></tr>
+<tr><td>FF_TXD_2_1</td><td>input</td><td>TCELL5:IMUX_C1</td></tr>
+<tr><td>FF_TXD_2_10</td><td>input</td><td>TCELL5:IMUX_B2</td></tr>
+<tr><td>FF_TXD_2_11</td><td>input</td><td>TCELL5:IMUX_B3</td></tr>
+<tr><td>FF_TXD_2_12</td><td>input</td><td>TCELL5:IMUX_B4</td></tr>
+<tr><td>FF_TXD_2_13</td><td>input</td><td>TCELL5:IMUX_B5</td></tr>
+<tr><td>FF_TXD_2_14</td><td>input</td><td>TCELL5:IMUX_B6</td></tr>
+<tr><td>FF_TXD_2_15</td><td>input</td><td>TCELL5:IMUX_B7</td></tr>
+<tr><td>FF_TXD_2_16</td><td>input</td><td>TCELL5:IMUX_A0</td></tr>
+<tr><td>FF_TXD_2_17</td><td>input</td><td>TCELL5:IMUX_A1</td></tr>
+<tr><td>FF_TXD_2_18</td><td>input</td><td>TCELL5:IMUX_A2</td></tr>
+<tr><td>FF_TXD_2_19</td><td>input</td><td>TCELL5:IMUX_A3</td></tr>
+<tr><td>FF_TXD_2_2</td><td>input</td><td>TCELL5:IMUX_C2</td></tr>
+<tr><td>FF_TXD_2_20</td><td>input</td><td>TCELL5:IMUX_A4</td></tr>
+<tr><td>FF_TXD_2_21</td><td>input</td><td>TCELL5:IMUX_A5</td></tr>
+<tr><td>FF_TXD_2_22</td><td>input</td><td>TCELL5:IMUX_A6</td></tr>
+<tr><td>FF_TXD_2_23</td><td>input</td><td>TCELL5:IMUX_A7</td></tr>
+<tr><td>FF_TXD_2_3</td><td>input</td><td>TCELL5:IMUX_C3</td></tr>
+<tr><td>FF_TXD_2_4</td><td>input</td><td>TCELL5:IMUX_C4</td></tr>
+<tr><td>FF_TXD_2_5</td><td>input</td><td>TCELL5:IMUX_C5</td></tr>
+<tr><td>FF_TXD_2_6</td><td>input</td><td>TCELL5:IMUX_C6</td></tr>
+<tr><td>FF_TXD_2_7</td><td>input</td><td>TCELL5:IMUX_C7</td></tr>
+<tr><td>FF_TXD_2_8</td><td>input</td><td>TCELL5:IMUX_B0</td></tr>
+<tr><td>FF_TXD_2_9</td><td>input</td><td>TCELL5:IMUX_B1</td></tr>
+<tr><td>FF_TXD_3_0</td><td>input</td><td>TCELL6:IMUX_C0</td></tr>
+<tr><td>FF_TXD_3_1</td><td>input</td><td>TCELL6:IMUX_C1</td></tr>
+<tr><td>FF_TXD_3_10</td><td>input</td><td>TCELL6:IMUX_B2</td></tr>
+<tr><td>FF_TXD_3_11</td><td>input</td><td>TCELL6:IMUX_B3</td></tr>
+<tr><td>FF_TXD_3_12</td><td>input</td><td>TCELL6:IMUX_B4</td></tr>
+<tr><td>FF_TXD_3_13</td><td>input</td><td>TCELL6:IMUX_B5</td></tr>
+<tr><td>FF_TXD_3_14</td><td>input</td><td>TCELL6:IMUX_B6</td></tr>
+<tr><td>FF_TXD_3_15</td><td>input</td><td>TCELL6:IMUX_B7</td></tr>
+<tr><td>FF_TXD_3_16</td><td>input</td><td>TCELL6:IMUX_A0</td></tr>
+<tr><td>FF_TXD_3_17</td><td>input</td><td>TCELL6:IMUX_A1</td></tr>
+<tr><td>FF_TXD_3_18</td><td>input</td><td>TCELL6:IMUX_A2</td></tr>
+<tr><td>FF_TXD_3_19</td><td>input</td><td>TCELL6:IMUX_A3</td></tr>
+<tr><td>FF_TXD_3_2</td><td>input</td><td>TCELL6:IMUX_C2</td></tr>
+<tr><td>FF_TXD_3_20</td><td>input</td><td>TCELL6:IMUX_A4</td></tr>
+<tr><td>FF_TXD_3_21</td><td>input</td><td>TCELL6:IMUX_A5</td></tr>
+<tr><td>FF_TXD_3_22</td><td>input</td><td>TCELL6:IMUX_A6</td></tr>
+<tr><td>FF_TXD_3_23</td><td>input</td><td>TCELL6:IMUX_A7</td></tr>
+<tr><td>FF_TXD_3_3</td><td>input</td><td>TCELL6:IMUX_C3</td></tr>
+<tr><td>FF_TXD_3_4</td><td>input</td><td>TCELL6:IMUX_C4</td></tr>
+<tr><td>FF_TXD_3_5</td><td>input</td><td>TCELL6:IMUX_C5</td></tr>
+<tr><td>FF_TXD_3_6</td><td>input</td><td>TCELL6:IMUX_C6</td></tr>
+<tr><td>FF_TXD_3_7</td><td>input</td><td>TCELL6:IMUX_C7</td></tr>
+<tr><td>FF_TXD_3_8</td><td>input</td><td>TCELL6:IMUX_B0</td></tr>
+<tr><td>FF_TXD_3_9</td><td>input</td><td>TCELL6:IMUX_B1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>scm SERDES_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL1:IMUX_A0</td><td>SERDES.FF_TXD_0_16</td></tr>
+<tr><td>TCELL1:IMUX_A1</td><td>SERDES.FF_TXD_0_17</td></tr>
+<tr><td>TCELL1:IMUX_A2</td><td>SERDES.FF_TXD_0_18</td></tr>
+<tr><td>TCELL1:IMUX_A3</td><td>SERDES.FF_TXD_0_19</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>SERDES.FF_TXD_0_20</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>SERDES.FF_TXD_0_21</td></tr>
+<tr><td>TCELL1:IMUX_A6</td><td>SERDES.FF_TXD_0_22</td></tr>
+<tr><td>TCELL1:IMUX_A7</td><td>SERDES.FF_TXD_0_23</td></tr>
+<tr><td>TCELL1:IMUX_B0</td><td>SERDES.FF_TXD_0_8</td></tr>
+<tr><td>TCELL1:IMUX_B1</td><td>SERDES.FF_TXD_0_9</td></tr>
+<tr><td>TCELL1:IMUX_B2</td><td>SERDES.FF_TXD_0_10</td></tr>
+<tr><td>TCELL1:IMUX_B3</td><td>SERDES.FF_TXD_0_11</td></tr>
+<tr><td>TCELL1:IMUX_B4</td><td>SERDES.FF_TXD_0_12</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>SERDES.FF_TXD_0_13</td></tr>
+<tr><td>TCELL1:IMUX_B6</td><td>SERDES.FF_TXD_0_14</td></tr>
+<tr><td>TCELL1:IMUX_B7</td><td>SERDES.FF_TXD_0_15</td></tr>
+<tr><td>TCELL1:IMUX_C0</td><td>SERDES.FF_TXD_0_0</td></tr>
+<tr><td>TCELL1:IMUX_C1</td><td>SERDES.FF_TXD_0_1</td></tr>
+<tr><td>TCELL1:IMUX_C2</td><td>SERDES.FF_TXD_0_2</td></tr>
+<tr><td>TCELL1:IMUX_C3</td><td>SERDES.FF_TXD_0_3</td></tr>
+<tr><td>TCELL1:IMUX_C4</td><td>SERDES.FF_TXD_0_4</td></tr>
+<tr><td>TCELL1:IMUX_C5</td><td>SERDES.FF_TXD_0_5</td></tr>
+<tr><td>TCELL1:IMUX_C6</td><td>SERDES.FF_TXD_0_6</td></tr>
+<tr><td>TCELL1:IMUX_C7</td><td>SERDES.FF_TXD_0_7</td></tr>
+<tr><td>TCELL1:IMUX_D0</td><td>SERDES.FFC_PCIE_TX_0</td></tr>
+<tr><td>TCELL1:IMUX_D1</td><td>SERDES.FFC_PCIE_CT_0</td></tr>
+<tr><td>TCELL1:IMUX_D2</td><td>SERDES.FFC_SB_INV_RX_0</td></tr>
+<tr><td>TCELL1:IMUX_D3</td><td>SERDES.FFC_FB_LB_0</td></tr>
+<tr><td>TCELL1:IMUX_D4</td><td>SERDES.FFC_ALIGN_EN_0</td></tr>
+<tr><td>TCELL1:IMUX_D5</td><td>SERDES.FFC_EN_CGA_0</td></tr>
+<tr><td>TCELL1:IMUX_D6</td><td>SERDES.FFC_SD_0</td></tr>
+<tr><td>TCELL1:IMUX_D7</td><td>SERDES.FFC_PCIE_EI_EN_0</td></tr>
+<tr><td>TCELL1:IMUX_CLK2</td><td>SERDES.FF_RCLK0</td></tr>
+<tr><td>TCELL1:IMUX_CLK3</td><td>SERDES.FF_TCLK0</td></tr>
+<tr><td>TCELL1:IMUX_CE0</td><td>SERDES.FFC_AB_RESET</td></tr>
+<tr><td>TCELL1:IMUX_CE1</td><td>SERDES.FFC_LANE_RX_RST0</td></tr>
+<tr><td>TCELL1:IMUX_CE2</td><td>SERDES.FFC_LANE_TX_RST0</td></tr>
+<tr><td>TCELL1:OUT_F0</td><td>SERDES.FB_RXD_0_18</td></tr>
+<tr><td>TCELL1:OUT_F1</td><td>SERDES.FB_RXD_0_19</td></tr>
+<tr><td>TCELL1:OUT_F2</td><td>SERDES.FB_RXD_0_20</td></tr>
+<tr><td>TCELL1:OUT_F3</td><td>SERDES.FB_RXD_0_21</td></tr>
+<tr><td>TCELL1:OUT_F4</td><td>SERDES.FB_RXD_0_22</td></tr>
+<tr><td>TCELL1:OUT_F5</td><td>SERDES.FB_RXD_0_23</td></tr>
+<tr><td>TCELL1:OUT_F6</td><td>SERDES.FF_RXCLK0</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>SERDES.FF_SYSCLK0</td></tr>
+<tr><td>TCELL1:OUT_Q0</td><td>SERDES.FB_RXD_0_10</td></tr>
+<tr><td>TCELL1:OUT_Q1</td><td>SERDES.FB_RXD_0_11</td></tr>
+<tr><td>TCELL1:OUT_Q2</td><td>SERDES.FB_RXD_0_12</td></tr>
+<tr><td>TCELL1:OUT_Q3</td><td>SERDES.FB_RXD_0_13</td></tr>
+<tr><td>TCELL1:OUT_Q4</td><td>SERDES.FB_RXD_0_14</td></tr>
+<tr><td>TCELL1:OUT_Q5</td><td>SERDES.FB_RXD_0_15</td></tr>
+<tr><td>TCELL1:OUT_Q6</td><td>SERDES.FB_RXD_0_16</td></tr>
+<tr><td>TCELL1:OUT_Q7</td><td>SERDES.FB_RXD_0_17</td></tr>
+<tr><td>TCELL1:OUT_OFX0</td><td>SERDES.FB_RXD_0_2</td></tr>
+<tr><td>TCELL1:OUT_OFX1</td><td>SERDES.FB_RXD_0_3</td></tr>
+<tr><td>TCELL1:OUT_OFX2</td><td>SERDES.FB_RXD_0_4</td></tr>
+<tr><td>TCELL1:OUT_OFX3</td><td>SERDES.FB_RXD_0_5</td></tr>
+<tr><td>TCELL1:OUT_OFX4</td><td>SERDES.FB_RXD_0_6</td></tr>
+<tr><td>TCELL1:OUT_OFX5</td><td>SERDES.FB_RXD_0_7</td></tr>
+<tr><td>TCELL1:OUT_OFX6</td><td>SERDES.FB_RXD_0_8</td></tr>
+<tr><td>TCELL1:OUT_OFX7</td><td>SERDES.FB_RXD_0_9</td></tr>
+<tr><td>TCELL2:IMUX_A0</td><td>SERDES.FF_TXD_1_16</td></tr>
+<tr><td>TCELL2:IMUX_A1</td><td>SERDES.FF_TXD_1_17</td></tr>
+<tr><td>TCELL2:IMUX_A2</td><td>SERDES.FF_TXD_1_18</td></tr>
+<tr><td>TCELL2:IMUX_A3</td><td>SERDES.FF_TXD_1_19</td></tr>
+<tr><td>TCELL2:IMUX_A4</td><td>SERDES.FF_TXD_1_20</td></tr>
+<tr><td>TCELL2:IMUX_A5</td><td>SERDES.FF_TXD_1_21</td></tr>
+<tr><td>TCELL2:IMUX_A6</td><td>SERDES.FF_TXD_1_22</td></tr>
+<tr><td>TCELL2:IMUX_A7</td><td>SERDES.FF_TXD_1_23</td></tr>
+<tr><td>TCELL2:IMUX_B0</td><td>SERDES.FF_TXD_1_8</td></tr>
+<tr><td>TCELL2:IMUX_B1</td><td>SERDES.FF_TXD_1_9</td></tr>
+<tr><td>TCELL2:IMUX_B2</td><td>SERDES.FF_TXD_1_10</td></tr>
+<tr><td>TCELL2:IMUX_B3</td><td>SERDES.FF_TXD_1_11</td></tr>
+<tr><td>TCELL2:IMUX_B4</td><td>SERDES.FF_TXD_1_12</td></tr>
+<tr><td>TCELL2:IMUX_B5</td><td>SERDES.FF_TXD_1_13</td></tr>
+<tr><td>TCELL2:IMUX_B6</td><td>SERDES.FF_TXD_1_14</td></tr>
+<tr><td>TCELL2:IMUX_B7</td><td>SERDES.FF_TXD_1_15</td></tr>
+<tr><td>TCELL2:IMUX_C0</td><td>SERDES.FF_TXD_1_0</td></tr>
+<tr><td>TCELL2:IMUX_C1</td><td>SERDES.FF_TXD_1_1</td></tr>
+<tr><td>TCELL2:IMUX_C2</td><td>SERDES.FF_TXD_1_2</td></tr>
+<tr><td>TCELL2:IMUX_C3</td><td>SERDES.FF_TXD_1_3</td></tr>
+<tr><td>TCELL2:IMUX_C4</td><td>SERDES.FF_TXD_1_4</td></tr>
+<tr><td>TCELL2:IMUX_C5</td><td>SERDES.FF_TXD_1_5</td></tr>
+<tr><td>TCELL2:IMUX_C6</td><td>SERDES.FF_TXD_1_6</td></tr>
+<tr><td>TCELL2:IMUX_C7</td><td>SERDES.FF_TXD_1_7</td></tr>
+<tr><td>TCELL2:IMUX_D0</td><td>SERDES.FFC_PCIE_TX_1</td></tr>
+<tr><td>TCELL2:IMUX_D1</td><td>SERDES.FFC_PCIE_CT_1</td></tr>
+<tr><td>TCELL2:IMUX_D2</td><td>SERDES.FFC_SB_INV_RX_1</td></tr>
+<tr><td>TCELL2:IMUX_D3</td><td>SERDES.FFC_FB_LB_1</td></tr>
+<tr><td>TCELL2:IMUX_D4</td><td>SERDES.FFC_ALIGN_EN_1</td></tr>
+<tr><td>TCELL2:IMUX_D5</td><td>SERDES.FFC_EN_CGA_1</td></tr>
+<tr><td>TCELL2:IMUX_D6</td><td>SERDES.FFC_SD_1</td></tr>
+<tr><td>TCELL2:IMUX_D7</td><td>SERDES.FFC_PCIE_EI_EN_1</td></tr>
+<tr><td>TCELL2:IMUX_CLK2</td><td>SERDES.FF_RCLK1</td></tr>
+<tr><td>TCELL2:IMUX_CLK3</td><td>SERDES.FF_TCLK1</td></tr>
+<tr><td>TCELL2:IMUX_CE1</td><td>SERDES.FFC_LANE_RX_RST1</td></tr>
+<tr><td>TCELL2:IMUX_CE2</td><td>SERDES.FFC_LANE_TX_RST1</td></tr>
+<tr><td>TCELL2:OUT_F0</td><td>SERDES.FFS_CC_URUN_0</td></tr>
+<tr><td>TCELL2:OUT_F1</td><td>SERDES.FFS_CC_ORUN_0</td></tr>
+<tr><td>TCELL2:OUT_F3</td><td>SERDES.FFS_LS_STATUS_0</td></tr>
+<tr><td>TCELL2:OUT_F4</td><td>SERDES.FFS_PCIE_DONE_0</td></tr>
+<tr><td>TCELL2:OUT_F5</td><td>SERDES.FFS_PCIE_CON_0</td></tr>
+<tr><td>TCELL2:OUT_F6</td><td>SERDES.FB_RXD_0_0</td></tr>
+<tr><td>TCELL2:OUT_F7</td><td>SERDES.FB_RXD_0_1</td></tr>
+<tr><td>TCELL2:OUT_Q0</td><td>SERDES.FF_RXCLK1</td></tr>
+<tr><td>TCELL2:OUT_Q1</td><td>SERDES.FF_SYSCLK1</td></tr>
+<tr><td>TCELL2:OUT_Q3</td><td>SERDES.FFS_RLOS_LO1</td></tr>
+<tr><td>TCELL2:OUT_Q4</td><td>SERDES.FFS_RLOS_LO0</td></tr>
+<tr><td>TCELL2:OUT_Q5</td><td>SERDES.FFS_AB_FAILED</td></tr>
+<tr><td>TCELL2:OUT_Q6</td><td>SERDES.FFS_AB_ALIGNED</td></tr>
+<tr><td>TCELL2:OUT_Q7</td><td>SERDES.FFS_AB_STATUS</td></tr>
+<tr><td>TCELL2:OUT_OFX0</td><td>SERDES.FB_RXD_1_16</td></tr>
+<tr><td>TCELL2:OUT_OFX1</td><td>SERDES.FB_RXD_1_17</td></tr>
+<tr><td>TCELL2:OUT_OFX2</td><td>SERDES.FB_RXD_1_18</td></tr>
+<tr><td>TCELL2:OUT_OFX3</td><td>SERDES.FB_RXD_1_19</td></tr>
+<tr><td>TCELL2:OUT_OFX4</td><td>SERDES.FB_RXD_1_20</td></tr>
+<tr><td>TCELL2:OUT_OFX5</td><td>SERDES.FB_RXD_1_21</td></tr>
+<tr><td>TCELL2:OUT_OFX6</td><td>SERDES.FB_RXD_1_22</td></tr>
+<tr><td>TCELL2:OUT_OFX7</td><td>SERDES.FB_RXD_1_23</td></tr>
+<tr><td>TCELL3:OUT_F0</td><td>SERDES.FB_RXD_1_8</td></tr>
+<tr><td>TCELL3:OUT_F1</td><td>SERDES.FB_RXD_1_9</td></tr>
+<tr><td>TCELL3:OUT_F2</td><td>SERDES.FB_RXD_1_10</td></tr>
+<tr><td>TCELL3:OUT_F3</td><td>SERDES.FB_RXD_1_11</td></tr>
+<tr><td>TCELL3:OUT_F4</td><td>SERDES.FB_RXD_1_12</td></tr>
+<tr><td>TCELL3:OUT_F5</td><td>SERDES.FB_RXD_1_13</td></tr>
+<tr><td>TCELL3:OUT_F6</td><td>SERDES.FB_RXD_1_14</td></tr>
+<tr><td>TCELL3:OUT_F7</td><td>SERDES.FB_RXD_1_15</td></tr>
+<tr><td>TCELL3:OUT_Q0</td><td>SERDES.FB_RXD_1_0</td></tr>
+<tr><td>TCELL3:OUT_Q1</td><td>SERDES.FB_RXD_1_1</td></tr>
+<tr><td>TCELL3:OUT_Q2</td><td>SERDES.FB_RXD_1_2</td></tr>
+<tr><td>TCELL3:OUT_Q3</td><td>SERDES.FB_RXD_1_3</td></tr>
+<tr><td>TCELL3:OUT_Q4</td><td>SERDES.FB_RXD_1_4</td></tr>
+<tr><td>TCELL3:OUT_Q5</td><td>SERDES.FB_RXD_1_5</td></tr>
+<tr><td>TCELL3:OUT_Q6</td><td>SERDES.FB_RXD_1_6</td></tr>
+<tr><td>TCELL3:OUT_Q7</td><td>SERDES.FB_RXD_1_7</td></tr>
+<tr><td>TCELL3:OUT_OFX2</td><td>SERDES.FFS_CC_URUN_1</td></tr>
+<tr><td>TCELL3:OUT_OFX3</td><td>SERDES.FFS_CC_ORUN_1</td></tr>
+<tr><td>TCELL3:OUT_OFX5</td><td>SERDES.FFS_LS_STATUS_1</td></tr>
+<tr><td>TCELL3:OUT_OFX6</td><td>SERDES.FFS_PCIE_DONE_1</td></tr>
+<tr><td>TCELL3:OUT_OFX7</td><td>SERDES.FFS_PCIE_CON_1</td></tr>
+<tr><td>TCELL4:IMUX_D0</td><td>SERDES.FFC_PCIE_RX_3</td></tr>
+<tr><td>TCELL4:IMUX_D1</td><td>SERDES.FFC_PCIE_RX_2</td></tr>
+<tr><td>TCELL4:IMUX_D6</td><td>SERDES.FFC_PCIE_RX_1</td></tr>
+<tr><td>TCELL4:IMUX_D7</td><td>SERDES.FFC_PCIE_RX_0</td></tr>
+<tr><td>TCELL4:IMUX_CLK2</td><td>SERDES.FFC_CK_CORE_RX</td></tr>
+<tr><td>TCELL4:IMUX_LSR3</td><td>SERDES.FFC_QUAD_RST</td></tr>
+<tr><td>TCELL4:IMUX_CE0</td><td>SERDES.FFC_MACRO_RST</td></tr>
+<tr><td>TCELL4:OUT_F0</td><td>SERDES.FB_RXD_2_18</td></tr>
+<tr><td>TCELL4:OUT_F1</td><td>SERDES.FB_RXD_2_19</td></tr>
+<tr><td>TCELL4:OUT_F2</td><td>SERDES.FB_RXD_2_20</td></tr>
+<tr><td>TCELL4:OUT_F3</td><td>SERDES.FB_RXD_2_21</td></tr>
+<tr><td>TCELL4:OUT_F4</td><td>SERDES.FB_RXD_2_22</td></tr>
+<tr><td>TCELL4:OUT_F5</td><td>SERDES.FB_RXD_2_23</td></tr>
+<tr><td>TCELL4:OUT_F6</td><td>SERDES.FF_RXCLK2</td></tr>
+<tr><td>TCELL4:OUT_F7</td><td>SERDES.FF_SYSCLK2</td></tr>
+<tr><td>TCELL4:OUT_Q0</td><td>SERDES.FB_RXD_2_10</td></tr>
+<tr><td>TCELL4:OUT_Q1</td><td>SERDES.FB_RXD_2_11</td></tr>
+<tr><td>TCELL4:OUT_Q2</td><td>SERDES.FB_RXD_2_12</td></tr>
+<tr><td>TCELL4:OUT_Q3</td><td>SERDES.FB_RXD_2_13</td></tr>
+<tr><td>TCELL4:OUT_Q4</td><td>SERDES.FB_RXD_2_14</td></tr>
+<tr><td>TCELL4:OUT_Q5</td><td>SERDES.FB_RXD_2_15</td></tr>
+<tr><td>TCELL4:OUT_Q6</td><td>SERDES.FB_RXD_2_16</td></tr>
+<tr><td>TCELL4:OUT_Q7</td><td>SERDES.FB_RXD_2_17</td></tr>
+<tr><td>TCELL4:OUT_OFX0</td><td>SERDES.BS4PAD_0</td></tr>
+<tr><td>TCELL4:OUT_OFX1</td><td>SERDES.BS4PAD_1</td></tr>
+<tr><td>TCELL4:OUT_OFX2</td><td>SERDES.BS4PAD_2</td></tr>
+<tr><td>TCELL4:OUT_OFX3</td><td>SERDES.BS4PAD_3</td></tr>
+<tr><td>TCELL4:OUT_OFX5</td><td>SERDES.FFS_RLOS_LO3</td></tr>
+<tr><td>TCELL4:OUT_OFX6</td><td>SERDES.FFS_RLOS_LO2</td></tr>
+<tr><td>TCELL4:OUT_OFX7</td><td>SERDES.FB_RXD_2_9</td></tr>
+<tr><td>TCELL5:IMUX_A0</td><td>SERDES.FF_TXD_2_16</td></tr>
+<tr><td>TCELL5:IMUX_A1</td><td>SERDES.FF_TXD_2_17</td></tr>
+<tr><td>TCELL5:IMUX_A2</td><td>SERDES.FF_TXD_2_18</td></tr>
+<tr><td>TCELL5:IMUX_A3</td><td>SERDES.FF_TXD_2_19</td></tr>
+<tr><td>TCELL5:IMUX_A4</td><td>SERDES.FF_TXD_2_20</td></tr>
+<tr><td>TCELL5:IMUX_A5</td><td>SERDES.FF_TXD_2_21</td></tr>
+<tr><td>TCELL5:IMUX_A6</td><td>SERDES.FF_TXD_2_22</td></tr>
+<tr><td>TCELL5:IMUX_A7</td><td>SERDES.FF_TXD_2_23</td></tr>
+<tr><td>TCELL5:IMUX_B0</td><td>SERDES.FF_TXD_2_8</td></tr>
+<tr><td>TCELL5:IMUX_B1</td><td>SERDES.FF_TXD_2_9</td></tr>
+<tr><td>TCELL5:IMUX_B2</td><td>SERDES.FF_TXD_2_10</td></tr>
+<tr><td>TCELL5:IMUX_B3</td><td>SERDES.FF_TXD_2_11</td></tr>
+<tr><td>TCELL5:IMUX_B4</td><td>SERDES.FF_TXD_2_12</td></tr>
+<tr><td>TCELL5:IMUX_B5</td><td>SERDES.FF_TXD_2_13</td></tr>
+<tr><td>TCELL5:IMUX_B6</td><td>SERDES.FF_TXD_2_14</td></tr>
+<tr><td>TCELL5:IMUX_B7</td><td>SERDES.FF_TXD_2_15</td></tr>
+<tr><td>TCELL5:IMUX_C0</td><td>SERDES.FF_TXD_2_0</td></tr>
+<tr><td>TCELL5:IMUX_C1</td><td>SERDES.FF_TXD_2_1</td></tr>
+<tr><td>TCELL5:IMUX_C2</td><td>SERDES.FF_TXD_2_2</td></tr>
+<tr><td>TCELL5:IMUX_C3</td><td>SERDES.FF_TXD_2_3</td></tr>
+<tr><td>TCELL5:IMUX_C4</td><td>SERDES.FF_TXD_2_4</td></tr>
+<tr><td>TCELL5:IMUX_C5</td><td>SERDES.FF_TXD_2_5</td></tr>
+<tr><td>TCELL5:IMUX_C6</td><td>SERDES.FF_TXD_2_6</td></tr>
+<tr><td>TCELL5:IMUX_C7</td><td>SERDES.FF_TXD_2_7</td></tr>
+<tr><td>TCELL5:IMUX_D0</td><td>SERDES.FFC_PCIE_TX_2</td></tr>
+<tr><td>TCELL5:IMUX_D1</td><td>SERDES.FFC_PCIE_CT_2</td></tr>
+<tr><td>TCELL5:IMUX_D2</td><td>SERDES.FFC_SB_INV_RX_2</td></tr>
+<tr><td>TCELL5:IMUX_D3</td><td>SERDES.FFC_FB_LB_2</td></tr>
+<tr><td>TCELL5:IMUX_D4</td><td>SERDES.FFC_ALIGN_EN_2</td></tr>
+<tr><td>TCELL5:IMUX_D5</td><td>SERDES.FFC_EN_CGA_2</td></tr>
+<tr><td>TCELL5:IMUX_D6</td><td>SERDES.FFC_SD_2</td></tr>
+<tr><td>TCELL5:IMUX_D7</td><td>SERDES.FFC_PCIE_EI_EN_2</td></tr>
+<tr><td>TCELL5:IMUX_CLK2</td><td>SERDES.FF_RCLK2</td></tr>
+<tr><td>TCELL5:IMUX_CLK3</td><td>SERDES.FF_TCLK2</td></tr>
+<tr><td>TCELL5:IMUX_CE1</td><td>SERDES.FFC_LANE_RX_RST2</td></tr>
+<tr><td>TCELL5:IMUX_CE2</td><td>SERDES.FFC_LANE_TX_RST2</td></tr>
+<tr><td>TCELL5:OUT_F0</td><td>SERDES.FB_RXD_2_1</td></tr>
+<tr><td>TCELL5:OUT_F1</td><td>SERDES.FB_RXD_2_2</td></tr>
+<tr><td>TCELL5:OUT_F2</td><td>SERDES.FB_RXD_2_3</td></tr>
+<tr><td>TCELL5:OUT_F3</td><td>SERDES.FB_RXD_2_4</td></tr>
+<tr><td>TCELL5:OUT_F4</td><td>SERDES.FB_RXD_2_5</td></tr>
+<tr><td>TCELL5:OUT_F5</td><td>SERDES.FB_RXD_2_6</td></tr>
+<tr><td>TCELL5:OUT_F6</td><td>SERDES.FB_RXD_2_7</td></tr>
+<tr><td>TCELL5:OUT_F7</td><td>SERDES.FB_RXD_2_8</td></tr>
+<tr><td>TCELL5:OUT_Q0</td><td>SERDES.FFS_LS_STATUS_2</td></tr>
+<tr><td>TCELL5:OUT_Q1</td><td>SERDES.FFS_PCIE_DONE_2</td></tr>
+<tr><td>TCELL5:OUT_Q2</td><td>SERDES.FFS_PCIE_CON_2</td></tr>
+<tr><td>TCELL5:OUT_Q3</td><td>SERDES.FB_RXD_3_20</td></tr>
+<tr><td>TCELL5:OUT_Q4</td><td>SERDES.FB_RXD_3_21</td></tr>
+<tr><td>TCELL5:OUT_Q5</td><td>SERDES.FB_RXD_3_22</td></tr>
+<tr><td>TCELL5:OUT_Q6</td><td>SERDES.FB_RXD_3_23</td></tr>
+<tr><td>TCELL5:OUT_Q7</td><td>SERDES.FB_RXD_2_0</td></tr>
+<tr><td>TCELL5:OUT_OFX0</td><td>SERDES.FFS_LS_STATUS_3</td></tr>
+<tr><td>TCELL5:OUT_OFX1</td><td>SERDES.FFS_PCIE_DONE_3</td></tr>
+<tr><td>TCELL5:OUT_OFX2</td><td>SERDES.FFS_PCIE_CON_3</td></tr>
+<tr><td>TCELL5:OUT_OFX3</td><td>SERDES.FFS_CD_FAILED</td></tr>
+<tr><td>TCELL5:OUT_OFX4</td><td>SERDES.FFS_CD_ALIGNED</td></tr>
+<tr><td>TCELL5:OUT_OFX5</td><td>SERDES.FFS_CD_STATUS</td></tr>
+<tr><td>TCELL5:OUT_OFX6</td><td>SERDES.FFS_CC_URUN_2</td></tr>
+<tr><td>TCELL5:OUT_OFX7</td><td>SERDES.FFS_CC_ORUN_2</td></tr>
+<tr><td>TCELL6:IMUX_A0</td><td>SERDES.FF_TXD_3_16</td></tr>
+<tr><td>TCELL6:IMUX_A1</td><td>SERDES.FF_TXD_3_17</td></tr>
+<tr><td>TCELL6:IMUX_A2</td><td>SERDES.FF_TXD_3_18</td></tr>
+<tr><td>TCELL6:IMUX_A3</td><td>SERDES.FF_TXD_3_19</td></tr>
+<tr><td>TCELL6:IMUX_A4</td><td>SERDES.FF_TXD_3_20</td></tr>
+<tr><td>TCELL6:IMUX_A5</td><td>SERDES.FF_TXD_3_21</td></tr>
+<tr><td>TCELL6:IMUX_A6</td><td>SERDES.FF_TXD_3_22</td></tr>
+<tr><td>TCELL6:IMUX_A7</td><td>SERDES.FF_TXD_3_23</td></tr>
+<tr><td>TCELL6:IMUX_B0</td><td>SERDES.FF_TXD_3_8</td></tr>
+<tr><td>TCELL6:IMUX_B1</td><td>SERDES.FF_TXD_3_9</td></tr>
+<tr><td>TCELL6:IMUX_B2</td><td>SERDES.FF_TXD_3_10</td></tr>
+<tr><td>TCELL6:IMUX_B3</td><td>SERDES.FF_TXD_3_11</td></tr>
+<tr><td>TCELL6:IMUX_B4</td><td>SERDES.FF_TXD_3_12</td></tr>
+<tr><td>TCELL6:IMUX_B5</td><td>SERDES.FF_TXD_3_13</td></tr>
+<tr><td>TCELL6:IMUX_B6</td><td>SERDES.FF_TXD_3_14</td></tr>
+<tr><td>TCELL6:IMUX_B7</td><td>SERDES.FF_TXD_3_15</td></tr>
+<tr><td>TCELL6:IMUX_C0</td><td>SERDES.FF_TXD_3_0</td></tr>
+<tr><td>TCELL6:IMUX_C1</td><td>SERDES.FF_TXD_3_1</td></tr>
+<tr><td>TCELL6:IMUX_C2</td><td>SERDES.FF_TXD_3_2</td></tr>
+<tr><td>TCELL6:IMUX_C3</td><td>SERDES.FF_TXD_3_3</td></tr>
+<tr><td>TCELL6:IMUX_C4</td><td>SERDES.FF_TXD_3_4</td></tr>
+<tr><td>TCELL6:IMUX_C5</td><td>SERDES.FF_TXD_3_5</td></tr>
+<tr><td>TCELL6:IMUX_C6</td><td>SERDES.FF_TXD_3_6</td></tr>
+<tr><td>TCELL6:IMUX_C7</td><td>SERDES.FF_TXD_3_7</td></tr>
+<tr><td>TCELL6:IMUX_D0</td><td>SERDES.FFC_PCIE_TX_3</td></tr>
+<tr><td>TCELL6:IMUX_D1</td><td>SERDES.FFC_PCIE_CT_3</td></tr>
+<tr><td>TCELL6:IMUX_D2</td><td>SERDES.FFC_SB_INV_RX_3</td></tr>
+<tr><td>TCELL6:IMUX_D3</td><td>SERDES.FFC_FB_LB_3</td></tr>
+<tr><td>TCELL6:IMUX_D4</td><td>SERDES.FFC_ALIGN_EN_3</td></tr>
+<tr><td>TCELL6:IMUX_D5</td><td>SERDES.FFC_EN_CGA_3</td></tr>
+<tr><td>TCELL6:IMUX_D6</td><td>SERDES.FFC_SD_3</td></tr>
+<tr><td>TCELL6:IMUX_D7</td><td>SERDES.FFC_PCIE_EI_EN_3</td></tr>
+<tr><td>TCELL6:IMUX_CLK2</td><td>SERDES.FF_RCLK3</td></tr>
+<tr><td>TCELL6:IMUX_CLK3</td><td>SERDES.FF_TCLK3</td></tr>
+<tr><td>TCELL6:IMUX_CE0</td><td>SERDES.FFC_CD_RESET</td></tr>
+<tr><td>TCELL6:IMUX_CE1</td><td>SERDES.FFC_LANE_RX_RST3</td></tr>
+<tr><td>TCELL6:IMUX_CE2</td><td>SERDES.FFC_LANE_TX_RST3</td></tr>
+<tr><td>TCELL6:OUT_F0</td><td>SERDES.FB_RXD_3_14</td></tr>
+<tr><td>TCELL6:OUT_F1</td><td>SERDES.FB_RXD_3_15</td></tr>
+<tr><td>TCELL6:OUT_F2</td><td>SERDES.FB_RXD_3_16</td></tr>
+<tr><td>TCELL6:OUT_F3</td><td>SERDES.FB_RXD_3_17</td></tr>
+<tr><td>TCELL6:OUT_F4</td><td>SERDES.FB_RXD_3_18</td></tr>
+<tr><td>TCELL6:OUT_F5</td><td>SERDES.FB_RXD_3_19</td></tr>
+<tr><td>TCELL6:OUT_F6</td><td>SERDES.FF_RXCLK3</td></tr>
+<tr><td>TCELL6:OUT_F7</td><td>SERDES.FF_SYSCLK3</td></tr>
+<tr><td>TCELL6:OUT_Q0</td><td>SERDES.FB_RXD_3_6</td></tr>
+<tr><td>TCELL6:OUT_Q1</td><td>SERDES.FB_RXD_3_7</td></tr>
+<tr><td>TCELL6:OUT_Q2</td><td>SERDES.FB_RXD_3_8</td></tr>
+<tr><td>TCELL6:OUT_Q3</td><td>SERDES.FB_RXD_3_9</td></tr>
+<tr><td>TCELL6:OUT_Q4</td><td>SERDES.FB_RXD_3_10</td></tr>
+<tr><td>TCELL6:OUT_Q5</td><td>SERDES.FB_RXD_3_11</td></tr>
+<tr><td>TCELL6:OUT_Q6</td><td>SERDES.FB_RXD_3_12</td></tr>
+<tr><td>TCELL6:OUT_Q7</td><td>SERDES.FB_RXD_3_13</td></tr>
+<tr><td>TCELL6:OUT_OFX0</td><td>SERDES.FFS_CC_URUN_3</td></tr>
+<tr><td>TCELL6:OUT_OFX1</td><td>SERDES.FFS_CC_ORUN_3</td></tr>
+<tr><td>TCELL6:OUT_OFX2</td><td>SERDES.FB_RXD_3_0</td></tr>
+<tr><td>TCELL6:OUT_OFX3</td><td>SERDES.FB_RXD_3_1</td></tr>
+<tr><td>TCELL6:OUT_OFX4</td><td>SERDES.FB_RXD_3_2</td></tr>
+<tr><td>TCELL6:OUT_OFX5</td><td>SERDES.FB_RXD_3_3</td></tr>
+<tr><td>TCELL6:OUT_OFX6</td><td>SERDES.FB_RXD_3_4</td></tr>
+<tr><td>TCELL6:OUT_OFX7</td><td>SERDES.FB_RXD_3_5</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-serdes_e"><a class="header" href="#tile-serdes_e">Tile SERDES_E</a></h2>
+<p>Cells: 7</p>
+<h3 id="bel-serdes-1"><a class="header" href="#bel-serdes-1">Bel SERDES</a></h3>
+<div class="table-wrapper"><table>
+<caption>scm SERDES_E bel SERDES</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>BS4PAD_0</td><td>output</td><td>TCELL2:OUT_OFX7</td></tr>
+<tr><td>BS4PAD_1</td><td>output</td><td>TCELL2:OUT_OFX6</td></tr>
+<tr><td>BS4PAD_2</td><td>output</td><td>TCELL2:OUT_OFX5</td></tr>
+<tr><td>BS4PAD_3</td><td>output</td><td>TCELL2:OUT_OFX4</td></tr>
+<tr><td>FB_RXD_0_0</td><td>output</td><td>TCELL4:OUT_F1</td></tr>
+<tr><td>FB_RXD_0_1</td><td>output</td><td>TCELL4:OUT_F0</td></tr>
+<tr><td>FB_RXD_0_10</td><td>output</td><td>TCELL5:OUT_Q7</td></tr>
+<tr><td>FB_RXD_0_11</td><td>output</td><td>TCELL5:OUT_Q6</td></tr>
+<tr><td>FB_RXD_0_12</td><td>output</td><td>TCELL5:OUT_Q5</td></tr>
+<tr><td>FB_RXD_0_13</td><td>output</td><td>TCELL5:OUT_Q4</td></tr>
+<tr><td>FB_RXD_0_14</td><td>output</td><td>TCELL5:OUT_Q3</td></tr>
+<tr><td>FB_RXD_0_15</td><td>output</td><td>TCELL5:OUT_Q2</td></tr>
+<tr><td>FB_RXD_0_16</td><td>output</td><td>TCELL5:OUT_Q1</td></tr>
+<tr><td>FB_RXD_0_17</td><td>output</td><td>TCELL5:OUT_Q0</td></tr>
+<tr><td>FB_RXD_0_18</td><td>output</td><td>TCELL5:OUT_F7</td></tr>
+<tr><td>FB_RXD_0_19</td><td>output</td><td>TCELL5:OUT_F6</td></tr>
+<tr><td>FB_RXD_0_2</td><td>output</td><td>TCELL5:OUT_OFX7</td></tr>
+<tr><td>FB_RXD_0_20</td><td>output</td><td>TCELL5:OUT_F5</td></tr>
+<tr><td>FB_RXD_0_21</td><td>output</td><td>TCELL5:OUT_F4</td></tr>
+<tr><td>FB_RXD_0_22</td><td>output</td><td>TCELL5:OUT_F3</td></tr>
+<tr><td>FB_RXD_0_23</td><td>output</td><td>TCELL5:OUT_F2</td></tr>
+<tr><td>FB_RXD_0_3</td><td>output</td><td>TCELL5:OUT_OFX6</td></tr>
+<tr><td>FB_RXD_0_4</td><td>output</td><td>TCELL5:OUT_OFX5</td></tr>
+<tr><td>FB_RXD_0_5</td><td>output</td><td>TCELL5:OUT_OFX4</td></tr>
+<tr><td>FB_RXD_0_6</td><td>output</td><td>TCELL5:OUT_OFX3</td></tr>
+<tr><td>FB_RXD_0_7</td><td>output</td><td>TCELL5:OUT_OFX2</td></tr>
+<tr><td>FB_RXD_0_8</td><td>output</td><td>TCELL5:OUT_OFX1</td></tr>
+<tr><td>FB_RXD_0_9</td><td>output</td><td>TCELL5:OUT_OFX0</td></tr>
+<tr><td>FB_RXD_1_0</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+<tr><td>FB_RXD_1_1</td><td>output</td><td>TCELL3:OUT_Q6</td></tr>
+<tr><td>FB_RXD_1_10</td><td>output</td><td>TCELL3:OUT_F5</td></tr>
+<tr><td>FB_RXD_1_11</td><td>output</td><td>TCELL3:OUT_F4</td></tr>
+<tr><td>FB_RXD_1_12</td><td>output</td><td>TCELL3:OUT_F3</td></tr>
+<tr><td>FB_RXD_1_13</td><td>output</td><td>TCELL3:OUT_F2</td></tr>
+<tr><td>FB_RXD_1_14</td><td>output</td><td>TCELL3:OUT_F1</td></tr>
+<tr><td>FB_RXD_1_15</td><td>output</td><td>TCELL3:OUT_F0</td></tr>
+<tr><td>FB_RXD_1_16</td><td>output</td><td>TCELL4:OUT_OFX7</td></tr>
+<tr><td>FB_RXD_1_17</td><td>output</td><td>TCELL4:OUT_OFX6</td></tr>
+<tr><td>FB_RXD_1_18</td><td>output</td><td>TCELL4:OUT_OFX5</td></tr>
+<tr><td>FB_RXD_1_19</td><td>output</td><td>TCELL4:OUT_OFX4</td></tr>
+<tr><td>FB_RXD_1_2</td><td>output</td><td>TCELL3:OUT_Q5</td></tr>
+<tr><td>FB_RXD_1_20</td><td>output</td><td>TCELL4:OUT_OFX3</td></tr>
+<tr><td>FB_RXD_1_21</td><td>output</td><td>TCELL4:OUT_OFX2</td></tr>
+<tr><td>FB_RXD_1_22</td><td>output</td><td>TCELL4:OUT_OFX1</td></tr>
+<tr><td>FB_RXD_1_23</td><td>output</td><td>TCELL4:OUT_OFX0</td></tr>
+<tr><td>FB_RXD_1_3</td><td>output</td><td>TCELL3:OUT_Q4</td></tr>
+<tr><td>FB_RXD_1_4</td><td>output</td><td>TCELL3:OUT_Q3</td></tr>
+<tr><td>FB_RXD_1_5</td><td>output</td><td>TCELL3:OUT_Q2</td></tr>
+<tr><td>FB_RXD_1_6</td><td>output</td><td>TCELL3:OUT_Q1</td></tr>
+<tr><td>FB_RXD_1_7</td><td>output</td><td>TCELL3:OUT_Q0</td></tr>
+<tr><td>FB_RXD_1_8</td><td>output</td><td>TCELL3:OUT_F7</td></tr>
+<tr><td>FB_RXD_1_9</td><td>output</td><td>TCELL3:OUT_F6</td></tr>
+<tr><td>FB_RXD_2_0</td><td>output</td><td>TCELL1:OUT_Q0</td></tr>
+<tr><td>FB_RXD_2_1</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+<tr><td>FB_RXD_2_10</td><td>output</td><td>TCELL2:OUT_Q7</td></tr>
+<tr><td>FB_RXD_2_11</td><td>output</td><td>TCELL2:OUT_Q6</td></tr>
+<tr><td>FB_RXD_2_12</td><td>output</td><td>TCELL2:OUT_Q5</td></tr>
+<tr><td>FB_RXD_2_13</td><td>output</td><td>TCELL2:OUT_Q4</td></tr>
+<tr><td>FB_RXD_2_14</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+<tr><td>FB_RXD_2_15</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+<tr><td>FB_RXD_2_16</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+<tr><td>FB_RXD_2_17</td><td>output</td><td>TCELL2:OUT_Q0</td></tr>
+<tr><td>FB_RXD_2_18</td><td>output</td><td>TCELL2:OUT_F7</td></tr>
+<tr><td>FB_RXD_2_19</td><td>output</td><td>TCELL2:OUT_F6</td></tr>
+<tr><td>FB_RXD_2_2</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+<tr><td>FB_RXD_2_20</td><td>output</td><td>TCELL2:OUT_F5</td></tr>
+<tr><td>FB_RXD_2_21</td><td>output</td><td>TCELL2:OUT_F4</td></tr>
+<tr><td>FB_RXD_2_22</td><td>output</td><td>TCELL2:OUT_F3</td></tr>
+<tr><td>FB_RXD_2_23</td><td>output</td><td>TCELL2:OUT_F2</td></tr>
+<tr><td>FB_RXD_2_3</td><td>output</td><td>TCELL1:OUT_F5</td></tr>
+<tr><td>FB_RXD_2_4</td><td>output</td><td>TCELL1:OUT_F4</td></tr>
+<tr><td>FB_RXD_2_5</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+<tr><td>FB_RXD_2_6</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+<tr><td>FB_RXD_2_7</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+<tr><td>FB_RXD_2_8</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+<tr><td>FB_RXD_2_9</td><td>output</td><td>TCELL2:OUT_OFX0</td></tr>
+<tr><td>FB_RXD_3_0</td><td>output</td><td>TCELL0:OUT_OFX5</td></tr>
+<tr><td>FB_RXD_3_1</td><td>output</td><td>TCELL0:OUT_OFX4</td></tr>
+<tr><td>FB_RXD_3_10</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+<tr><td>FB_RXD_3_11</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+<tr><td>FB_RXD_3_12</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+<tr><td>FB_RXD_3_13</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+<tr><td>FB_RXD_3_14</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+<tr><td>FB_RXD_3_15</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+<tr><td>FB_RXD_3_16</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+<tr><td>FB_RXD_3_17</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+<tr><td>FB_RXD_3_18</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+<tr><td>FB_RXD_3_19</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+<tr><td>FB_RXD_3_2</td><td>output</td><td>TCELL0:OUT_OFX3</td></tr>
+<tr><td>FB_RXD_3_20</td><td>output</td><td>TCELL1:OUT_Q4</td></tr>
+<tr><td>FB_RXD_3_21</td><td>output</td><td>TCELL1:OUT_Q3</td></tr>
+<tr><td>FB_RXD_3_22</td><td>output</td><td>TCELL1:OUT_Q2</td></tr>
+<tr><td>FB_RXD_3_23</td><td>output</td><td>TCELL1:OUT_Q1</td></tr>
+<tr><td>FB_RXD_3_3</td><td>output</td><td>TCELL0:OUT_OFX2</td></tr>
+<tr><td>FB_RXD_3_4</td><td>output</td><td>TCELL0:OUT_OFX1</td></tr>
+<tr><td>FB_RXD_3_5</td><td>output</td><td>TCELL0:OUT_OFX0</td></tr>
+<tr><td>FB_RXD_3_6</td><td>output</td><td>TCELL0:OUT_Q7</td></tr>
+<tr><td>FB_RXD_3_7</td><td>output</td><td>TCELL0:OUT_Q6</td></tr>
+<tr><td>FB_RXD_3_8</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+<tr><td>FB_RXD_3_9</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+<tr><td>FFC_AB_RESET</td><td>input</td><td>TCELL5:IMUX_CE3</td></tr>
+<tr><td>FFC_ALIGN_EN_0</td><td>input</td><td>TCELL5:IMUX_D3</td></tr>
+<tr><td>FFC_ALIGN_EN_1</td><td>input</td><td>TCELL4:IMUX_D3</td></tr>
+<tr><td>FFC_ALIGN_EN_2</td><td>input</td><td>TCELL1:IMUX_D3</td></tr>
+<tr><td>FFC_ALIGN_EN_3</td><td>input</td><td>TCELL0:IMUX_D3</td></tr>
+<tr><td>FFC_CD_RESET</td><td>input</td><td>TCELL0:IMUX_CE3</td></tr>
+<tr><td>FFC_CK_CORE_RX</td><td>input</td><td>TCELL2:IMUX_CLK1</td></tr>
+<tr><td>FFC_EN_CGA_0</td><td>input</td><td>TCELL5:IMUX_D2</td></tr>
+<tr><td>FFC_EN_CGA_1</td><td>input</td><td>TCELL4:IMUX_D2</td></tr>
+<tr><td>FFC_EN_CGA_2</td><td>input</td><td>TCELL1:IMUX_D2</td></tr>
+<tr><td>FFC_EN_CGA_3</td><td>input</td><td>TCELL0:IMUX_D2</td></tr>
+<tr><td>FFC_FB_LB_0</td><td>input</td><td>TCELL5:IMUX_D4</td></tr>
+<tr><td>FFC_FB_LB_1</td><td>input</td><td>TCELL4:IMUX_D4</td></tr>
+<tr><td>FFC_FB_LB_2</td><td>input</td><td>TCELL1:IMUX_D4</td></tr>
+<tr><td>FFC_FB_LB_3</td><td>input</td><td>TCELL0:IMUX_D4</td></tr>
+<tr><td>FFC_LANE_RX_RST0</td><td>input</td><td>TCELL5:IMUX_CE2</td></tr>
+<tr><td>FFC_LANE_RX_RST1</td><td>input</td><td>TCELL4:IMUX_CE2</td></tr>
+<tr><td>FFC_LANE_RX_RST2</td><td>input</td><td>TCELL1:IMUX_CE2</td></tr>
+<tr><td>FFC_LANE_RX_RST3</td><td>input</td><td>TCELL0:IMUX_CE2</td></tr>
+<tr><td>FFC_LANE_TX_RST0</td><td>input</td><td>TCELL5:IMUX_CE1</td></tr>
+<tr><td>FFC_LANE_TX_RST1</td><td>input</td><td>TCELL4:IMUX_CE1</td></tr>
+<tr><td>FFC_LANE_TX_RST2</td><td>input</td><td>TCELL1:IMUX_CE1</td></tr>
+<tr><td>FFC_LANE_TX_RST3</td><td>input</td><td>TCELL0:IMUX_CE1</td></tr>
+<tr><td>FFC_MACRO_RST</td><td>input</td><td>TCELL2:IMUX_CE3</td></tr>
+<tr><td>FFC_PCIE_CT_0</td><td>input</td><td>TCELL5:IMUX_D6</td></tr>
+<tr><td>FFC_PCIE_CT_1</td><td>input</td><td>TCELL4:IMUX_D6</td></tr>
+<tr><td>FFC_PCIE_CT_2</td><td>input</td><td>TCELL1:IMUX_D6</td></tr>
+<tr><td>FFC_PCIE_CT_3</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>FFC_PCIE_EI_EN_0</td><td>input</td><td>TCELL5:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_EI_EN_1</td><td>input</td><td>TCELL4:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_EI_EN_2</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_EI_EN_3</td><td>input</td><td>TCELL0:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_RX_0</td><td>input</td><td>TCELL2:IMUX_D0</td></tr>
+<tr><td>FFC_PCIE_RX_1</td><td>input</td><td>TCELL2:IMUX_D1</td></tr>
+<tr><td>FFC_PCIE_RX_2</td><td>input</td><td>TCELL2:IMUX_D6</td></tr>
+<tr><td>FFC_PCIE_RX_3</td><td>input</td><td>TCELL2:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_TX_0</td><td>input</td><td>TCELL5:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_TX_1</td><td>input</td><td>TCELL4:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_TX_2</td><td>input</td><td>TCELL1:IMUX_D7</td></tr>
+<tr><td>FFC_PCIE_TX_3</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>FFC_QUAD_RST</td><td>input</td><td>TCELL2:IMUX_LSR0</td></tr>
+<tr><td>FFC_SB_INV_RX_0</td><td>input</td><td>TCELL5:IMUX_D5</td></tr>
+<tr><td>FFC_SB_INV_RX_1</td><td>input</td><td>TCELL4:IMUX_D5</td></tr>
+<tr><td>FFC_SB_INV_RX_2</td><td>input</td><td>TCELL1:IMUX_D5</td></tr>
+<tr><td>FFC_SB_INV_RX_3</td><td>input</td><td>TCELL0:IMUX_D5</td></tr>
+<tr><td>FFC_SD_0</td><td>input</td><td>TCELL5:IMUX_D1</td></tr>
+<tr><td>FFC_SD_1</td><td>input</td><td>TCELL4:IMUX_D1</td></tr>
+<tr><td>FFC_SD_2</td><td>input</td><td>TCELL1:IMUX_D1</td></tr>
+<tr><td>FFC_SD_3</td><td>input</td><td>TCELL0:IMUX_D1</td></tr>
+<tr><td>FFS_AB_ALIGNED</td><td>output</td><td>TCELL4:OUT_Q1</td></tr>
+<tr><td>FFS_AB_FAILED</td><td>output</td><td>TCELL4:OUT_Q2</td></tr>
+<tr><td>FFS_AB_STATUS</td><td>output</td><td>TCELL4:OUT_Q0</td></tr>
+<tr><td>FFS_CC_ORUN_0</td><td>output</td><td>TCELL4:OUT_F6</td></tr>
+<tr><td>FFS_CC_ORUN_1</td><td>output</td><td>TCELL3:OUT_OFX4</td></tr>
+<tr><td>FFS_CC_ORUN_2</td><td>output</td><td>TCELL1:OUT_OFX0</td></tr>
+<tr><td>FFS_CC_ORUN_3</td><td>output</td><td>TCELL0:OUT_OFX6</td></tr>
+<tr><td>FFS_CC_URUN_0</td><td>output</td><td>TCELL4:OUT_F7</td></tr>
+<tr><td>FFS_CC_URUN_1</td><td>output</td><td>TCELL3:OUT_OFX5</td></tr>
+<tr><td>FFS_CC_URUN_2</td><td>output</td><td>TCELL1:OUT_OFX1</td></tr>
+<tr><td>FFS_CC_URUN_3</td><td>output</td><td>TCELL0:OUT_OFX7</td></tr>
+<tr><td>FFS_CD_ALIGNED</td><td>output</td><td>TCELL1:OUT_OFX3</td></tr>
+<tr><td>FFS_CD_FAILED</td><td>output</td><td>TCELL1:OUT_OFX4</td></tr>
+<tr><td>FFS_CD_STATUS</td><td>output</td><td>TCELL1:OUT_OFX2</td></tr>
+<tr><td>FFS_LS_STATUS_0</td><td>output</td><td>TCELL4:OUT_F4</td></tr>
+<tr><td>FFS_LS_STATUS_1</td><td>output</td><td>TCELL3:OUT_OFX2</td></tr>
+<tr><td>FFS_LS_STATUS_2</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+<tr><td>FFS_LS_STATUS_3</td><td>output</td><td>TCELL1:OUT_OFX7</td></tr>
+<tr><td>FFS_PCIE_CON_0</td><td>output</td><td>TCELL4:OUT_F2</td></tr>
+<tr><td>FFS_PCIE_CON_1</td><td>output</td><td>TCELL3:OUT_OFX0</td></tr>
+<tr><td>FFS_PCIE_CON_2</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+<tr><td>FFS_PCIE_CON_3</td><td>output</td><td>TCELL1:OUT_OFX5</td></tr>
+<tr><td>FFS_PCIE_DONE_0</td><td>output</td><td>TCELL4:OUT_F3</td></tr>
+<tr><td>FFS_PCIE_DONE_1</td><td>output</td><td>TCELL3:OUT_OFX1</td></tr>
+<tr><td>FFS_PCIE_DONE_2</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+<tr><td>FFS_PCIE_DONE_3</td><td>output</td><td>TCELL1:OUT_OFX6</td></tr>
+<tr><td>FFS_RLOS_LO0</td><td>output</td><td>TCELL4:OUT_Q3</td></tr>
+<tr><td>FFS_RLOS_LO1</td><td>output</td><td>TCELL4:OUT_Q4</td></tr>
+<tr><td>FFS_RLOS_LO2</td><td>output</td><td>TCELL2:OUT_OFX1</td></tr>
+<tr><td>FFS_RLOS_LO3</td><td>output</td><td>TCELL2:OUT_OFX2</td></tr>
+<tr><td>FF_RCLK0</td><td>input</td><td>TCELL5:IMUX_CLK1</td></tr>
+<tr><td>FF_RCLK1</td><td>input</td><td>TCELL4:IMUX_CLK1</td></tr>
+<tr><td>FF_RCLK2</td><td>input</td><td>TCELL1:IMUX_CLK1</td></tr>
+<tr><td>FF_RCLK3</td><td>input</td><td>TCELL0:IMUX_CLK1</td></tr>
+<tr><td>FF_RXCLK0</td><td>output</td><td>TCELL5:OUT_F1</td></tr>
+<tr><td>FF_RXCLK1</td><td>output</td><td>TCELL4:OUT_Q7</td></tr>
+<tr><td>FF_RXCLK2</td><td>output</td><td>TCELL2:OUT_F1</td></tr>
+<tr><td>FF_RXCLK3</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+<tr><td>FF_SYSCLK0</td><td>output</td><td>TCELL5:OUT_F0</td></tr>
+<tr><td>FF_SYSCLK1</td><td>output</td><td>TCELL4:OUT_Q6</td></tr>
+<tr><td>FF_SYSCLK2</td><td>output</td><td>TCELL2:OUT_F0</td></tr>
+<tr><td>FF_SYSCLK3</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+<tr><td>FF_TCLK0</td><td>input</td><td>TCELL5:IMUX_CLK0</td></tr>
+<tr><td>FF_TCLK1</td><td>input</td><td>TCELL4:IMUX_CLK0</td></tr>
+<tr><td>FF_TCLK2</td><td>input</td><td>TCELL1:IMUX_CLK0</td></tr>
+<tr><td>FF_TCLK3</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+<tr><td>FF_TXD_0_0</td><td>input</td><td>TCELL5:IMUX_C7</td></tr>
+<tr><td>FF_TXD_0_1</td><td>input</td><td>TCELL5:IMUX_C6</td></tr>
+<tr><td>FF_TXD_0_10</td><td>input</td><td>TCELL5:IMUX_B5</td></tr>
+<tr><td>FF_TXD_0_11</td><td>input</td><td>TCELL5:IMUX_B4</td></tr>
+<tr><td>FF_TXD_0_12</td><td>input</td><td>TCELL5:IMUX_B3</td></tr>
+<tr><td>FF_TXD_0_13</td><td>input</td><td>TCELL5:IMUX_B2</td></tr>
+<tr><td>FF_TXD_0_14</td><td>input</td><td>TCELL5:IMUX_B1</td></tr>
+<tr><td>FF_TXD_0_15</td><td>input</td><td>TCELL5:IMUX_B0</td></tr>
+<tr><td>FF_TXD_0_16</td><td>input</td><td>TCELL5:IMUX_A7</td></tr>
+<tr><td>FF_TXD_0_17</td><td>input</td><td>TCELL5:IMUX_A6</td></tr>
+<tr><td>FF_TXD_0_18</td><td>input</td><td>TCELL5:IMUX_A5</td></tr>
+<tr><td>FF_TXD_0_19</td><td>input</td><td>TCELL5:IMUX_A4</td></tr>
+<tr><td>FF_TXD_0_2</td><td>input</td><td>TCELL5:IMUX_C5</td></tr>
+<tr><td>FF_TXD_0_20</td><td>input</td><td>TCELL5:IMUX_A3</td></tr>
+<tr><td>FF_TXD_0_21</td><td>input</td><td>TCELL5:IMUX_A2</td></tr>
+<tr><td>FF_TXD_0_22</td><td>input</td><td>TCELL5:IMUX_A1</td></tr>
+<tr><td>FF_TXD_0_23</td><td>input</td><td>TCELL5:IMUX_A0</td></tr>
+<tr><td>FF_TXD_0_3</td><td>input</td><td>TCELL5:IMUX_C4</td></tr>
+<tr><td>FF_TXD_0_4</td><td>input</td><td>TCELL5:IMUX_C3</td></tr>
+<tr><td>FF_TXD_0_5</td><td>input</td><td>TCELL5:IMUX_C2</td></tr>
+<tr><td>FF_TXD_0_6</td><td>input</td><td>TCELL5:IMUX_C1</td></tr>
+<tr><td>FF_TXD_0_7</td><td>input</td><td>TCELL5:IMUX_C0</td></tr>
+<tr><td>FF_TXD_0_8</td><td>input</td><td>TCELL5:IMUX_B7</td></tr>
+<tr><td>FF_TXD_0_9</td><td>input</td><td>TCELL5:IMUX_B6</td></tr>
+<tr><td>FF_TXD_1_0</td><td>input</td><td>TCELL4:IMUX_C7</td></tr>
+<tr><td>FF_TXD_1_1</td><td>input</td><td>TCELL4:IMUX_C6</td></tr>
+<tr><td>FF_TXD_1_10</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+<tr><td>FF_TXD_1_11</td><td>input</td><td>TCELL4:IMUX_B4</td></tr>
+<tr><td>FF_TXD_1_12</td><td>input</td><td>TCELL4:IMUX_B3</td></tr>
+<tr><td>FF_TXD_1_13</td><td>input</td><td>TCELL4:IMUX_B2</td></tr>
+<tr><td>FF_TXD_1_14</td><td>input</td><td>TCELL4:IMUX_B1</td></tr>
+<tr><td>FF_TXD_1_15</td><td>input</td><td>TCELL4:IMUX_B0</td></tr>
+<tr><td>FF_TXD_1_16</td><td>input</td><td>TCELL4:IMUX_A7</td></tr>
+<tr><td>FF_TXD_1_17</td><td>input</td><td>TCELL4:IMUX_A6</td></tr>
+<tr><td>FF_TXD_1_18</td><td>input</td><td>TCELL4:IMUX_A5</td></tr>
+<tr><td>FF_TXD_1_19</td><td>input</td><td>TCELL4:IMUX_A4</td></tr>
+<tr><td>FF_TXD_1_2</td><td>input</td><td>TCELL4:IMUX_C5</td></tr>
+<tr><td>FF_TXD_1_20</td><td>input</td><td>TCELL4:IMUX_A3</td></tr>
+<tr><td>FF_TXD_1_21</td><td>input</td><td>TCELL4:IMUX_A2</td></tr>
+<tr><td>FF_TXD_1_22</td><td>input</td><td>TCELL4:IMUX_A1</td></tr>
+<tr><td>FF_TXD_1_23</td><td>input</td><td>TCELL4:IMUX_A0</td></tr>
+<tr><td>FF_TXD_1_3</td><td>input</td><td>TCELL4:IMUX_C4</td></tr>
+<tr><td>FF_TXD_1_4</td><td>input</td><td>TCELL4:IMUX_C3</td></tr>
+<tr><td>FF_TXD_1_5</td><td>input</td><td>TCELL4:IMUX_C2</td></tr>
+<tr><td>FF_TXD_1_6</td><td>input</td><td>TCELL4:IMUX_C1</td></tr>
+<tr><td>FF_TXD_1_7</td><td>input</td><td>TCELL4:IMUX_C0</td></tr>
+<tr><td>FF_TXD_1_8</td><td>input</td><td>TCELL4:IMUX_B7</td></tr>
+<tr><td>FF_TXD_1_9</td><td>input</td><td>TCELL4:IMUX_B6</td></tr>
+<tr><td>FF_TXD_2_0</td><td>input</td><td>TCELL1:IMUX_C7</td></tr>
+<tr><td>FF_TXD_2_1</td><td>input</td><td>TCELL1:IMUX_C6</td></tr>
+<tr><td>FF_TXD_2_10</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+<tr><td>FF_TXD_2_11</td><td>input</td><td>TCELL1:IMUX_B4</td></tr>
+<tr><td>FF_TXD_2_12</td><td>input</td><td>TCELL1:IMUX_B3</td></tr>
+<tr><td>FF_TXD_2_13</td><td>input</td><td>TCELL1:IMUX_B2</td></tr>
+<tr><td>FF_TXD_2_14</td><td>input</td><td>TCELL1:IMUX_B1</td></tr>
+<tr><td>FF_TXD_2_15</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+<tr><td>FF_TXD_2_16</td><td>input</td><td>TCELL1:IMUX_A7</td></tr>
+<tr><td>FF_TXD_2_17</td><td>input</td><td>TCELL1:IMUX_A6</td></tr>
+<tr><td>FF_TXD_2_18</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>FF_TXD_2_19</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+<tr><td>FF_TXD_2_2</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+<tr><td>FF_TXD_2_20</td><td>input</td><td>TCELL1:IMUX_A3</td></tr>
+<tr><td>FF_TXD_2_21</td><td>input</td><td>TCELL1:IMUX_A2</td></tr>
+<tr><td>FF_TXD_2_22</td><td>input</td><td>TCELL1:IMUX_A1</td></tr>
+<tr><td>FF_TXD_2_23</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+<tr><td>FF_TXD_2_3</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+<tr><td>FF_TXD_2_4</td><td>input</td><td>TCELL1:IMUX_C3</td></tr>
+<tr><td>FF_TXD_2_5</td><td>input</td><td>TCELL1:IMUX_C2</td></tr>
+<tr><td>FF_TXD_2_6</td><td>input</td><td>TCELL1:IMUX_C1</td></tr>
+<tr><td>FF_TXD_2_7</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+<tr><td>FF_TXD_2_8</td><td>input</td><td>TCELL1:IMUX_B7</td></tr>
+<tr><td>FF_TXD_2_9</td><td>input</td><td>TCELL1:IMUX_B6</td></tr>
+<tr><td>FF_TXD_3_0</td><td>input</td><td>TCELL0:IMUX_C7</td></tr>
+<tr><td>FF_TXD_3_1</td><td>input</td><td>TCELL0:IMUX_C6</td></tr>
+<tr><td>FF_TXD_3_10</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+<tr><td>FF_TXD_3_11</td><td>input</td><td>TCELL0:IMUX_B4</td></tr>
+<tr><td>FF_TXD_3_12</td><td>input</td><td>TCELL0:IMUX_B3</td></tr>
+<tr><td>FF_TXD_3_13</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+<tr><td>FF_TXD_3_14</td><td>input</td><td>TCELL0:IMUX_B1</td></tr>
+<tr><td>FF_TXD_3_15</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+<tr><td>FF_TXD_3_16</td><td>input</td><td>TCELL0:IMUX_A7</td></tr>
+<tr><td>FF_TXD_3_17</td><td>input</td><td>TCELL0:IMUX_A6</td></tr>
+<tr><td>FF_TXD_3_18</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+<tr><td>FF_TXD_3_19</td><td>input</td><td>TCELL0:IMUX_A4</td></tr>
+<tr><td>FF_TXD_3_2</td><td>input</td><td>TCELL0:IMUX_C5</td></tr>
+<tr><td>FF_TXD_3_20</td><td>input</td><td>TCELL0:IMUX_A3</td></tr>
+<tr><td>FF_TXD_3_21</td><td>input</td><td>TCELL0:IMUX_A2</td></tr>
+<tr><td>FF_TXD_3_22</td><td>input</td><td>TCELL0:IMUX_A1</td></tr>
+<tr><td>FF_TXD_3_23</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+<tr><td>FF_TXD_3_3</td><td>input</td><td>TCELL0:IMUX_C4</td></tr>
+<tr><td>FF_TXD_3_4</td><td>input</td><td>TCELL0:IMUX_C3</td></tr>
+<tr><td>FF_TXD_3_5</td><td>input</td><td>TCELL0:IMUX_C2</td></tr>
+<tr><td>FF_TXD_3_6</td><td>input</td><td>TCELL0:IMUX_C1</td></tr>
+<tr><td>FF_TXD_3_7</td><td>input</td><td>TCELL0:IMUX_C0</td></tr>
+<tr><td>FF_TXD_3_8</td><td>input</td><td>TCELL0:IMUX_B7</td></tr>
+<tr><td>FF_TXD_3_9</td><td>input</td><td>TCELL0:IMUX_B6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>scm SERDES_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A0</td><td>SERDES.FF_TXD_3_23</td></tr>
+<tr><td>TCELL0:IMUX_A1</td><td>SERDES.FF_TXD_3_22</td></tr>
+<tr><td>TCELL0:IMUX_A2</td><td>SERDES.FF_TXD_3_21</td></tr>
+<tr><td>TCELL0:IMUX_A3</td><td>SERDES.FF_TXD_3_20</td></tr>
+<tr><td>TCELL0:IMUX_A4</td><td>SERDES.FF_TXD_3_19</td></tr>
+<tr><td>TCELL0:IMUX_A5</td><td>SERDES.FF_TXD_3_18</td></tr>
+<tr><td>TCELL0:IMUX_A6</td><td>SERDES.FF_TXD_3_17</td></tr>
+<tr><td>TCELL0:IMUX_A7</td><td>SERDES.FF_TXD_3_16</td></tr>
+<tr><td>TCELL0:IMUX_B0</td><td>SERDES.FF_TXD_3_15</td></tr>
+<tr><td>TCELL0:IMUX_B1</td><td>SERDES.FF_TXD_3_14</td></tr>
+<tr><td>TCELL0:IMUX_B2</td><td>SERDES.FF_TXD_3_13</td></tr>
+<tr><td>TCELL0:IMUX_B3</td><td>SERDES.FF_TXD_3_12</td></tr>
+<tr><td>TCELL0:IMUX_B4</td><td>SERDES.FF_TXD_3_11</td></tr>
+<tr><td>TCELL0:IMUX_B5</td><td>SERDES.FF_TXD_3_10</td></tr>
+<tr><td>TCELL0:IMUX_B6</td><td>SERDES.FF_TXD_3_9</td></tr>
+<tr><td>TCELL0:IMUX_B7</td><td>SERDES.FF_TXD_3_8</td></tr>
+<tr><td>TCELL0:IMUX_C0</td><td>SERDES.FF_TXD_3_7</td></tr>
+<tr><td>TCELL0:IMUX_C1</td><td>SERDES.FF_TXD_3_6</td></tr>
+<tr><td>TCELL0:IMUX_C2</td><td>SERDES.FF_TXD_3_5</td></tr>
+<tr><td>TCELL0:IMUX_C3</td><td>SERDES.FF_TXD_3_4</td></tr>
+<tr><td>TCELL0:IMUX_C4</td><td>SERDES.FF_TXD_3_3</td></tr>
+<tr><td>TCELL0:IMUX_C5</td><td>SERDES.FF_TXD_3_2</td></tr>
+<tr><td>TCELL0:IMUX_C6</td><td>SERDES.FF_TXD_3_1</td></tr>
+<tr><td>TCELL0:IMUX_C7</td><td>SERDES.FF_TXD_3_0</td></tr>
+<tr><td>TCELL0:IMUX_D0</td><td>SERDES.FFC_PCIE_EI_EN_3</td></tr>
+<tr><td>TCELL0:IMUX_D1</td><td>SERDES.FFC_SD_3</td></tr>
+<tr><td>TCELL0:IMUX_D2</td><td>SERDES.FFC_EN_CGA_3</td></tr>
+<tr><td>TCELL0:IMUX_D3</td><td>SERDES.FFC_ALIGN_EN_3</td></tr>
+<tr><td>TCELL0:IMUX_D4</td><td>SERDES.FFC_FB_LB_3</td></tr>
+<tr><td>TCELL0:IMUX_D5</td><td>SERDES.FFC_SB_INV_RX_3</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>SERDES.FFC_PCIE_CT_3</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>SERDES.FFC_PCIE_TX_3</td></tr>
+<tr><td>TCELL0:IMUX_CLK0</td><td>SERDES.FF_TCLK3</td></tr>
+<tr><td>TCELL0:IMUX_CLK1</td><td>SERDES.FF_RCLK3</td></tr>
+<tr><td>TCELL0:IMUX_CE1</td><td>SERDES.FFC_LANE_TX_RST3</td></tr>
+<tr><td>TCELL0:IMUX_CE2</td><td>SERDES.FFC_LANE_RX_RST3</td></tr>
+<tr><td>TCELL0:IMUX_CE3</td><td>SERDES.FFC_CD_RESET</td></tr>
+<tr><td>TCELL0:OUT_F0</td><td>SERDES.FF_SYSCLK3</td></tr>
+<tr><td>TCELL0:OUT_F1</td><td>SERDES.FF_RXCLK3</td></tr>
+<tr><td>TCELL0:OUT_F2</td><td>SERDES.FB_RXD_3_19</td></tr>
+<tr><td>TCELL0:OUT_F3</td><td>SERDES.FB_RXD_3_18</td></tr>
+<tr><td>TCELL0:OUT_F4</td><td>SERDES.FB_RXD_3_17</td></tr>
+<tr><td>TCELL0:OUT_F5</td><td>SERDES.FB_RXD_3_16</td></tr>
+<tr><td>TCELL0:OUT_F6</td><td>SERDES.FB_RXD_3_15</td></tr>
+<tr><td>TCELL0:OUT_F7</td><td>SERDES.FB_RXD_3_14</td></tr>
+<tr><td>TCELL0:OUT_Q0</td><td>SERDES.FB_RXD_3_13</td></tr>
+<tr><td>TCELL0:OUT_Q1</td><td>SERDES.FB_RXD_3_12</td></tr>
+<tr><td>TCELL0:OUT_Q2</td><td>SERDES.FB_RXD_3_11</td></tr>
+<tr><td>TCELL0:OUT_Q3</td><td>SERDES.FB_RXD_3_10</td></tr>
+<tr><td>TCELL0:OUT_Q4</td><td>SERDES.FB_RXD_3_9</td></tr>
+<tr><td>TCELL0:OUT_Q5</td><td>SERDES.FB_RXD_3_8</td></tr>
+<tr><td>TCELL0:OUT_Q6</td><td>SERDES.FB_RXD_3_7</td></tr>
+<tr><td>TCELL0:OUT_Q7</td><td>SERDES.FB_RXD_3_6</td></tr>
+<tr><td>TCELL0:OUT_OFX0</td><td>SERDES.FB_RXD_3_5</td></tr>
+<tr><td>TCELL0:OUT_OFX1</td><td>SERDES.FB_RXD_3_4</td></tr>
+<tr><td>TCELL0:OUT_OFX2</td><td>SERDES.FB_RXD_3_3</td></tr>
+<tr><td>TCELL0:OUT_OFX3</td><td>SERDES.FB_RXD_3_2</td></tr>
+<tr><td>TCELL0:OUT_OFX4</td><td>SERDES.FB_RXD_3_1</td></tr>
+<tr><td>TCELL0:OUT_OFX5</td><td>SERDES.FB_RXD_3_0</td></tr>
+<tr><td>TCELL0:OUT_OFX6</td><td>SERDES.FFS_CC_ORUN_3</td></tr>
+<tr><td>TCELL0:OUT_OFX7</td><td>SERDES.FFS_CC_URUN_3</td></tr>
+<tr><td>TCELL1:IMUX_A0</td><td>SERDES.FF_TXD_2_23</td></tr>
+<tr><td>TCELL1:IMUX_A1</td><td>SERDES.FF_TXD_2_22</td></tr>
+<tr><td>TCELL1:IMUX_A2</td><td>SERDES.FF_TXD_2_21</td></tr>
+<tr><td>TCELL1:IMUX_A3</td><td>SERDES.FF_TXD_2_20</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>SERDES.FF_TXD_2_19</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>SERDES.FF_TXD_2_18</td></tr>
+<tr><td>TCELL1:IMUX_A6</td><td>SERDES.FF_TXD_2_17</td></tr>
+<tr><td>TCELL1:IMUX_A7</td><td>SERDES.FF_TXD_2_16</td></tr>
+<tr><td>TCELL1:IMUX_B0</td><td>SERDES.FF_TXD_2_15</td></tr>
+<tr><td>TCELL1:IMUX_B1</td><td>SERDES.FF_TXD_2_14</td></tr>
+<tr><td>TCELL1:IMUX_B2</td><td>SERDES.FF_TXD_2_13</td></tr>
+<tr><td>TCELL1:IMUX_B3</td><td>SERDES.FF_TXD_2_12</td></tr>
+<tr><td>TCELL1:IMUX_B4</td><td>SERDES.FF_TXD_2_11</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>SERDES.FF_TXD_2_10</td></tr>
+<tr><td>TCELL1:IMUX_B6</td><td>SERDES.FF_TXD_2_9</td></tr>
+<tr><td>TCELL1:IMUX_B7</td><td>SERDES.FF_TXD_2_8</td></tr>
+<tr><td>TCELL1:IMUX_C0</td><td>SERDES.FF_TXD_2_7</td></tr>
+<tr><td>TCELL1:IMUX_C1</td><td>SERDES.FF_TXD_2_6</td></tr>
+<tr><td>TCELL1:IMUX_C2</td><td>SERDES.FF_TXD_2_5</td></tr>
+<tr><td>TCELL1:IMUX_C3</td><td>SERDES.FF_TXD_2_4</td></tr>
+<tr><td>TCELL1:IMUX_C4</td><td>SERDES.FF_TXD_2_3</td></tr>
+<tr><td>TCELL1:IMUX_C5</td><td>SERDES.FF_TXD_2_2</td></tr>
+<tr><td>TCELL1:IMUX_C6</td><td>SERDES.FF_TXD_2_1</td></tr>
+<tr><td>TCELL1:IMUX_C7</td><td>SERDES.FF_TXD_2_0</td></tr>
+<tr><td>TCELL1:IMUX_D0</td><td>SERDES.FFC_PCIE_EI_EN_2</td></tr>
+<tr><td>TCELL1:IMUX_D1</td><td>SERDES.FFC_SD_2</td></tr>
+<tr><td>TCELL1:IMUX_D2</td><td>SERDES.FFC_EN_CGA_2</td></tr>
+<tr><td>TCELL1:IMUX_D3</td><td>SERDES.FFC_ALIGN_EN_2</td></tr>
+<tr><td>TCELL1:IMUX_D4</td><td>SERDES.FFC_FB_LB_2</td></tr>
+<tr><td>TCELL1:IMUX_D5</td><td>SERDES.FFC_SB_INV_RX_2</td></tr>
+<tr><td>TCELL1:IMUX_D6</td><td>SERDES.FFC_PCIE_CT_2</td></tr>
+<tr><td>TCELL1:IMUX_D7</td><td>SERDES.FFC_PCIE_TX_2</td></tr>
+<tr><td>TCELL1:IMUX_CLK0</td><td>SERDES.FF_TCLK2</td></tr>
+<tr><td>TCELL1:IMUX_CLK1</td><td>SERDES.FF_RCLK2</td></tr>
+<tr><td>TCELL1:IMUX_CE1</td><td>SERDES.FFC_LANE_TX_RST2</td></tr>
+<tr><td>TCELL1:IMUX_CE2</td><td>SERDES.FFC_LANE_RX_RST2</td></tr>
+<tr><td>TCELL1:OUT_F0</td><td>SERDES.FB_RXD_2_8</td></tr>
+<tr><td>TCELL1:OUT_F1</td><td>SERDES.FB_RXD_2_7</td></tr>
+<tr><td>TCELL1:OUT_F2</td><td>SERDES.FB_RXD_2_6</td></tr>
+<tr><td>TCELL1:OUT_F3</td><td>SERDES.FB_RXD_2_5</td></tr>
+<tr><td>TCELL1:OUT_F4</td><td>SERDES.FB_RXD_2_4</td></tr>
+<tr><td>TCELL1:OUT_F5</td><td>SERDES.FB_RXD_2_3</td></tr>
+<tr><td>TCELL1:OUT_F6</td><td>SERDES.FB_RXD_2_2</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>SERDES.FB_RXD_2_1</td></tr>
+<tr><td>TCELL1:OUT_Q0</td><td>SERDES.FB_RXD_2_0</td></tr>
+<tr><td>TCELL1:OUT_Q1</td><td>SERDES.FB_RXD_3_23</td></tr>
+<tr><td>TCELL1:OUT_Q2</td><td>SERDES.FB_RXD_3_22</td></tr>
+<tr><td>TCELL1:OUT_Q3</td><td>SERDES.FB_RXD_3_21</td></tr>
+<tr><td>TCELL1:OUT_Q4</td><td>SERDES.FB_RXD_3_20</td></tr>
+<tr><td>TCELL1:OUT_Q5</td><td>SERDES.FFS_PCIE_CON_2</td></tr>
+<tr><td>TCELL1:OUT_Q6</td><td>SERDES.FFS_PCIE_DONE_2</td></tr>
+<tr><td>TCELL1:OUT_Q7</td><td>SERDES.FFS_LS_STATUS_2</td></tr>
+<tr><td>TCELL1:OUT_OFX0</td><td>SERDES.FFS_CC_ORUN_2</td></tr>
+<tr><td>TCELL1:OUT_OFX1</td><td>SERDES.FFS_CC_URUN_2</td></tr>
+<tr><td>TCELL1:OUT_OFX2</td><td>SERDES.FFS_CD_STATUS</td></tr>
+<tr><td>TCELL1:OUT_OFX3</td><td>SERDES.FFS_CD_ALIGNED</td></tr>
+<tr><td>TCELL1:OUT_OFX4</td><td>SERDES.FFS_CD_FAILED</td></tr>
+<tr><td>TCELL1:OUT_OFX5</td><td>SERDES.FFS_PCIE_CON_3</td></tr>
+<tr><td>TCELL1:OUT_OFX6</td><td>SERDES.FFS_PCIE_DONE_3</td></tr>
+<tr><td>TCELL1:OUT_OFX7</td><td>SERDES.FFS_LS_STATUS_3</td></tr>
+<tr><td>TCELL2:IMUX_D0</td><td>SERDES.FFC_PCIE_RX_0</td></tr>
+<tr><td>TCELL2:IMUX_D1</td><td>SERDES.FFC_PCIE_RX_1</td></tr>
+<tr><td>TCELL2:IMUX_D6</td><td>SERDES.FFC_PCIE_RX_2</td></tr>
+<tr><td>TCELL2:IMUX_D7</td><td>SERDES.FFC_PCIE_RX_3</td></tr>
+<tr><td>TCELL2:IMUX_CLK1</td><td>SERDES.FFC_CK_CORE_RX</td></tr>
+<tr><td>TCELL2:IMUX_LSR0</td><td>SERDES.FFC_QUAD_RST</td></tr>
+<tr><td>TCELL2:IMUX_CE3</td><td>SERDES.FFC_MACRO_RST</td></tr>
+<tr><td>TCELL2:OUT_F0</td><td>SERDES.FF_SYSCLK2</td></tr>
+<tr><td>TCELL2:OUT_F1</td><td>SERDES.FF_RXCLK2</td></tr>
+<tr><td>TCELL2:OUT_F2</td><td>SERDES.FB_RXD_2_23</td></tr>
+<tr><td>TCELL2:OUT_F3</td><td>SERDES.FB_RXD_2_22</td></tr>
+<tr><td>TCELL2:OUT_F4</td><td>SERDES.FB_RXD_2_21</td></tr>
+<tr><td>TCELL2:OUT_F5</td><td>SERDES.FB_RXD_2_20</td></tr>
+<tr><td>TCELL2:OUT_F6</td><td>SERDES.FB_RXD_2_19</td></tr>
+<tr><td>TCELL2:OUT_F7</td><td>SERDES.FB_RXD_2_18</td></tr>
+<tr><td>TCELL2:OUT_Q0</td><td>SERDES.FB_RXD_2_17</td></tr>
+<tr><td>TCELL2:OUT_Q1</td><td>SERDES.FB_RXD_2_16</td></tr>
+<tr><td>TCELL2:OUT_Q2</td><td>SERDES.FB_RXD_2_15</td></tr>
+<tr><td>TCELL2:OUT_Q3</td><td>SERDES.FB_RXD_2_14</td></tr>
+<tr><td>TCELL2:OUT_Q4</td><td>SERDES.FB_RXD_2_13</td></tr>
+<tr><td>TCELL2:OUT_Q5</td><td>SERDES.FB_RXD_2_12</td></tr>
+<tr><td>TCELL2:OUT_Q6</td><td>SERDES.FB_RXD_2_11</td></tr>
+<tr><td>TCELL2:OUT_Q7</td><td>SERDES.FB_RXD_2_10</td></tr>
+<tr><td>TCELL2:OUT_OFX0</td><td>SERDES.FB_RXD_2_9</td></tr>
+<tr><td>TCELL2:OUT_OFX1</td><td>SERDES.FFS_RLOS_LO2</td></tr>
+<tr><td>TCELL2:OUT_OFX2</td><td>SERDES.FFS_RLOS_LO3</td></tr>
+<tr><td>TCELL2:OUT_OFX4</td><td>SERDES.BS4PAD_3</td></tr>
+<tr><td>TCELL2:OUT_OFX5</td><td>SERDES.BS4PAD_2</td></tr>
+<tr><td>TCELL2:OUT_OFX6</td><td>SERDES.BS4PAD_1</td></tr>
+<tr><td>TCELL2:OUT_OFX7</td><td>SERDES.BS4PAD_0</td></tr>
+<tr><td>TCELL3:OUT_F0</td><td>SERDES.FB_RXD_1_15</td></tr>
+<tr><td>TCELL3:OUT_F1</td><td>SERDES.FB_RXD_1_14</td></tr>
+<tr><td>TCELL3:OUT_F2</td><td>SERDES.FB_RXD_1_13</td></tr>
+<tr><td>TCELL3:OUT_F3</td><td>SERDES.FB_RXD_1_12</td></tr>
+<tr><td>TCELL3:OUT_F4</td><td>SERDES.FB_RXD_1_11</td></tr>
+<tr><td>TCELL3:OUT_F5</td><td>SERDES.FB_RXD_1_10</td></tr>
+<tr><td>TCELL3:OUT_F6</td><td>SERDES.FB_RXD_1_9</td></tr>
+<tr><td>TCELL3:OUT_F7</td><td>SERDES.FB_RXD_1_8</td></tr>
+<tr><td>TCELL3:OUT_Q0</td><td>SERDES.FB_RXD_1_7</td></tr>
+<tr><td>TCELL3:OUT_Q1</td><td>SERDES.FB_RXD_1_6</td></tr>
+<tr><td>TCELL3:OUT_Q2</td><td>SERDES.FB_RXD_1_5</td></tr>
+<tr><td>TCELL3:OUT_Q3</td><td>SERDES.FB_RXD_1_4</td></tr>
+<tr><td>TCELL3:OUT_Q4</td><td>SERDES.FB_RXD_1_3</td></tr>
+<tr><td>TCELL3:OUT_Q5</td><td>SERDES.FB_RXD_1_2</td></tr>
+<tr><td>TCELL3:OUT_Q6</td><td>SERDES.FB_RXD_1_1</td></tr>
+<tr><td>TCELL3:OUT_Q7</td><td>SERDES.FB_RXD_1_0</td></tr>
+<tr><td>TCELL3:OUT_OFX0</td><td>SERDES.FFS_PCIE_CON_1</td></tr>
+<tr><td>TCELL3:OUT_OFX1</td><td>SERDES.FFS_PCIE_DONE_1</td></tr>
+<tr><td>TCELL3:OUT_OFX2</td><td>SERDES.FFS_LS_STATUS_1</td></tr>
+<tr><td>TCELL3:OUT_OFX4</td><td>SERDES.FFS_CC_ORUN_1</td></tr>
+<tr><td>TCELL3:OUT_OFX5</td><td>SERDES.FFS_CC_URUN_1</td></tr>
+<tr><td>TCELL4:IMUX_A0</td><td>SERDES.FF_TXD_1_23</td></tr>
+<tr><td>TCELL4:IMUX_A1</td><td>SERDES.FF_TXD_1_22</td></tr>
+<tr><td>TCELL4:IMUX_A2</td><td>SERDES.FF_TXD_1_21</td></tr>
+<tr><td>TCELL4:IMUX_A3</td><td>SERDES.FF_TXD_1_20</td></tr>
+<tr><td>TCELL4:IMUX_A4</td><td>SERDES.FF_TXD_1_19</td></tr>
+<tr><td>TCELL4:IMUX_A5</td><td>SERDES.FF_TXD_1_18</td></tr>
+<tr><td>TCELL4:IMUX_A6</td><td>SERDES.FF_TXD_1_17</td></tr>
+<tr><td>TCELL4:IMUX_A7</td><td>SERDES.FF_TXD_1_16</td></tr>
+<tr><td>TCELL4:IMUX_B0</td><td>SERDES.FF_TXD_1_15</td></tr>
+<tr><td>TCELL4:IMUX_B1</td><td>SERDES.FF_TXD_1_14</td></tr>
+<tr><td>TCELL4:IMUX_B2</td><td>SERDES.FF_TXD_1_13</td></tr>
+<tr><td>TCELL4:IMUX_B3</td><td>SERDES.FF_TXD_1_12</td></tr>
+<tr><td>TCELL4:IMUX_B4</td><td>SERDES.FF_TXD_1_11</td></tr>
+<tr><td>TCELL4:IMUX_B5</td><td>SERDES.FF_TXD_1_10</td></tr>
+<tr><td>TCELL4:IMUX_B6</td><td>SERDES.FF_TXD_1_9</td></tr>
+<tr><td>TCELL4:IMUX_B7</td><td>SERDES.FF_TXD_1_8</td></tr>
+<tr><td>TCELL4:IMUX_C0</td><td>SERDES.FF_TXD_1_7</td></tr>
+<tr><td>TCELL4:IMUX_C1</td><td>SERDES.FF_TXD_1_6</td></tr>
+<tr><td>TCELL4:IMUX_C2</td><td>SERDES.FF_TXD_1_5</td></tr>
+<tr><td>TCELL4:IMUX_C3</td><td>SERDES.FF_TXD_1_4</td></tr>
+<tr><td>TCELL4:IMUX_C4</td><td>SERDES.FF_TXD_1_3</td></tr>
+<tr><td>TCELL4:IMUX_C5</td><td>SERDES.FF_TXD_1_2</td></tr>
+<tr><td>TCELL4:IMUX_C6</td><td>SERDES.FF_TXD_1_1</td></tr>
+<tr><td>TCELL4:IMUX_C7</td><td>SERDES.FF_TXD_1_0</td></tr>
+<tr><td>TCELL4:IMUX_D0</td><td>SERDES.FFC_PCIE_EI_EN_1</td></tr>
+<tr><td>TCELL4:IMUX_D1</td><td>SERDES.FFC_SD_1</td></tr>
+<tr><td>TCELL4:IMUX_D2</td><td>SERDES.FFC_EN_CGA_1</td></tr>
+<tr><td>TCELL4:IMUX_D3</td><td>SERDES.FFC_ALIGN_EN_1</td></tr>
+<tr><td>TCELL4:IMUX_D4</td><td>SERDES.FFC_FB_LB_1</td></tr>
+<tr><td>TCELL4:IMUX_D5</td><td>SERDES.FFC_SB_INV_RX_1</td></tr>
+<tr><td>TCELL4:IMUX_D6</td><td>SERDES.FFC_PCIE_CT_1</td></tr>
+<tr><td>TCELL4:IMUX_D7</td><td>SERDES.FFC_PCIE_TX_1</td></tr>
+<tr><td>TCELL4:IMUX_CLK0</td><td>SERDES.FF_TCLK1</td></tr>
+<tr><td>TCELL4:IMUX_CLK1</td><td>SERDES.FF_RCLK1</td></tr>
+<tr><td>TCELL4:IMUX_CE1</td><td>SERDES.FFC_LANE_TX_RST1</td></tr>
+<tr><td>TCELL4:IMUX_CE2</td><td>SERDES.FFC_LANE_RX_RST1</td></tr>
+<tr><td>TCELL4:OUT_F0</td><td>SERDES.FB_RXD_0_1</td></tr>
+<tr><td>TCELL4:OUT_F1</td><td>SERDES.FB_RXD_0_0</td></tr>
+<tr><td>TCELL4:OUT_F2</td><td>SERDES.FFS_PCIE_CON_0</td></tr>
+<tr><td>TCELL4:OUT_F3</td><td>SERDES.FFS_PCIE_DONE_0</td></tr>
+<tr><td>TCELL4:OUT_F4</td><td>SERDES.FFS_LS_STATUS_0</td></tr>
+<tr><td>TCELL4:OUT_F6</td><td>SERDES.FFS_CC_ORUN_0</td></tr>
+<tr><td>TCELL4:OUT_F7</td><td>SERDES.FFS_CC_URUN_0</td></tr>
+<tr><td>TCELL4:OUT_Q0</td><td>SERDES.FFS_AB_STATUS</td></tr>
+<tr><td>TCELL4:OUT_Q1</td><td>SERDES.FFS_AB_ALIGNED</td></tr>
+<tr><td>TCELL4:OUT_Q2</td><td>SERDES.FFS_AB_FAILED</td></tr>
+<tr><td>TCELL4:OUT_Q3</td><td>SERDES.FFS_RLOS_LO0</td></tr>
+<tr><td>TCELL4:OUT_Q4</td><td>SERDES.FFS_RLOS_LO1</td></tr>
+<tr><td>TCELL4:OUT_Q6</td><td>SERDES.FF_SYSCLK1</td></tr>
+<tr><td>TCELL4:OUT_Q7</td><td>SERDES.FF_RXCLK1</td></tr>
+<tr><td>TCELL4:OUT_OFX0</td><td>SERDES.FB_RXD_1_23</td></tr>
+<tr><td>TCELL4:OUT_OFX1</td><td>SERDES.FB_RXD_1_22</td></tr>
+<tr><td>TCELL4:OUT_OFX2</td><td>SERDES.FB_RXD_1_21</td></tr>
+<tr><td>TCELL4:OUT_OFX3</td><td>SERDES.FB_RXD_1_20</td></tr>
+<tr><td>TCELL4:OUT_OFX4</td><td>SERDES.FB_RXD_1_19</td></tr>
+<tr><td>TCELL4:OUT_OFX5</td><td>SERDES.FB_RXD_1_18</td></tr>
+<tr><td>TCELL4:OUT_OFX6</td><td>SERDES.FB_RXD_1_17</td></tr>
+<tr><td>TCELL4:OUT_OFX7</td><td>SERDES.FB_RXD_1_16</td></tr>
+<tr><td>TCELL5:IMUX_A0</td><td>SERDES.FF_TXD_0_23</td></tr>
+<tr><td>TCELL5:IMUX_A1</td><td>SERDES.FF_TXD_0_22</td></tr>
+<tr><td>TCELL5:IMUX_A2</td><td>SERDES.FF_TXD_0_21</td></tr>
+<tr><td>TCELL5:IMUX_A3</td><td>SERDES.FF_TXD_0_20</td></tr>
+<tr><td>TCELL5:IMUX_A4</td><td>SERDES.FF_TXD_0_19</td></tr>
+<tr><td>TCELL5:IMUX_A5</td><td>SERDES.FF_TXD_0_18</td></tr>
+<tr><td>TCELL5:IMUX_A6</td><td>SERDES.FF_TXD_0_17</td></tr>
+<tr><td>TCELL5:IMUX_A7</td><td>SERDES.FF_TXD_0_16</td></tr>
+<tr><td>TCELL5:IMUX_B0</td><td>SERDES.FF_TXD_0_15</td></tr>
+<tr><td>TCELL5:IMUX_B1</td><td>SERDES.FF_TXD_0_14</td></tr>
+<tr><td>TCELL5:IMUX_B2</td><td>SERDES.FF_TXD_0_13</td></tr>
+<tr><td>TCELL5:IMUX_B3</td><td>SERDES.FF_TXD_0_12</td></tr>
+<tr><td>TCELL5:IMUX_B4</td><td>SERDES.FF_TXD_0_11</td></tr>
+<tr><td>TCELL5:IMUX_B5</td><td>SERDES.FF_TXD_0_10</td></tr>
+<tr><td>TCELL5:IMUX_B6</td><td>SERDES.FF_TXD_0_9</td></tr>
+<tr><td>TCELL5:IMUX_B7</td><td>SERDES.FF_TXD_0_8</td></tr>
+<tr><td>TCELL5:IMUX_C0</td><td>SERDES.FF_TXD_0_7</td></tr>
+<tr><td>TCELL5:IMUX_C1</td><td>SERDES.FF_TXD_0_6</td></tr>
+<tr><td>TCELL5:IMUX_C2</td><td>SERDES.FF_TXD_0_5</td></tr>
+<tr><td>TCELL5:IMUX_C3</td><td>SERDES.FF_TXD_0_4</td></tr>
+<tr><td>TCELL5:IMUX_C4</td><td>SERDES.FF_TXD_0_3</td></tr>
+<tr><td>TCELL5:IMUX_C5</td><td>SERDES.FF_TXD_0_2</td></tr>
+<tr><td>TCELL5:IMUX_C6</td><td>SERDES.FF_TXD_0_1</td></tr>
+<tr><td>TCELL5:IMUX_C7</td><td>SERDES.FF_TXD_0_0</td></tr>
+<tr><td>TCELL5:IMUX_D0</td><td>SERDES.FFC_PCIE_EI_EN_0</td></tr>
+<tr><td>TCELL5:IMUX_D1</td><td>SERDES.FFC_SD_0</td></tr>
+<tr><td>TCELL5:IMUX_D2</td><td>SERDES.FFC_EN_CGA_0</td></tr>
+<tr><td>TCELL5:IMUX_D3</td><td>SERDES.FFC_ALIGN_EN_0</td></tr>
+<tr><td>TCELL5:IMUX_D4</td><td>SERDES.FFC_FB_LB_0</td></tr>
+<tr><td>TCELL5:IMUX_D5</td><td>SERDES.FFC_SB_INV_RX_0</td></tr>
+<tr><td>TCELL5:IMUX_D6</td><td>SERDES.FFC_PCIE_CT_0</td></tr>
+<tr><td>TCELL5:IMUX_D7</td><td>SERDES.FFC_PCIE_TX_0</td></tr>
+<tr><td>TCELL5:IMUX_CLK0</td><td>SERDES.FF_TCLK0</td></tr>
+<tr><td>TCELL5:IMUX_CLK1</td><td>SERDES.FF_RCLK0</td></tr>
+<tr><td>TCELL5:IMUX_CE1</td><td>SERDES.FFC_LANE_TX_RST0</td></tr>
+<tr><td>TCELL5:IMUX_CE2</td><td>SERDES.FFC_LANE_RX_RST0</td></tr>
+<tr><td>TCELL5:IMUX_CE3</td><td>SERDES.FFC_AB_RESET</td></tr>
+<tr><td>TCELL5:OUT_F0</td><td>SERDES.FF_SYSCLK0</td></tr>
+<tr><td>TCELL5:OUT_F1</td><td>SERDES.FF_RXCLK0</td></tr>
+<tr><td>TCELL5:OUT_F2</td><td>SERDES.FB_RXD_0_23</td></tr>
+<tr><td>TCELL5:OUT_F3</td><td>SERDES.FB_RXD_0_22</td></tr>
+<tr><td>TCELL5:OUT_F4</td><td>SERDES.FB_RXD_0_21</td></tr>
+<tr><td>TCELL5:OUT_F5</td><td>SERDES.FB_RXD_0_20</td></tr>
+<tr><td>TCELL5:OUT_F6</td><td>SERDES.FB_RXD_0_19</td></tr>
+<tr><td>TCELL5:OUT_F7</td><td>SERDES.FB_RXD_0_18</td></tr>
+<tr><td>TCELL5:OUT_Q0</td><td>SERDES.FB_RXD_0_17</td></tr>
+<tr><td>TCELL5:OUT_Q1</td><td>SERDES.FB_RXD_0_16</td></tr>
+<tr><td>TCELL5:OUT_Q2</td><td>SERDES.FB_RXD_0_15</td></tr>
+<tr><td>TCELL5:OUT_Q3</td><td>SERDES.FB_RXD_0_14</td></tr>
+<tr><td>TCELL5:OUT_Q4</td><td>SERDES.FB_RXD_0_13</td></tr>
+<tr><td>TCELL5:OUT_Q5</td><td>SERDES.FB_RXD_0_12</td></tr>
+<tr><td>TCELL5:OUT_Q6</td><td>SERDES.FB_RXD_0_11</td></tr>
+<tr><td>TCELL5:OUT_Q7</td><td>SERDES.FB_RXD_0_10</td></tr>
+<tr><td>TCELL5:OUT_OFX0</td><td>SERDES.FB_RXD_0_9</td></tr>
+<tr><td>TCELL5:OUT_OFX1</td><td>SERDES.FB_RXD_0_8</td></tr>
+<tr><td>TCELL5:OUT_OFX2</td><td>SERDES.FB_RXD_0_7</td></tr>
+<tr><td>TCELL5:OUT_OFX3</td><td>SERDES.FB_RXD_0_6</td></tr>
+<tr><td>TCELL5:OUT_OFX4</td><td>SERDES.FB_RXD_0_5</td></tr>
+<tr><td>TCELL5:OUT_OFX5</td><td>SERDES.FB_RXD_0_4</td></tr>
+<tr><td>TCELL5:OUT_OFX6</td><td>SERDES.FB_RXD_0_3</td></tr>
+<tr><td>TCELL5:OUT_OFX7</td><td>SERDES.FB_RXD_0_2</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../scm/pll.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../scm/config.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../scm/pll.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../scm/config.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

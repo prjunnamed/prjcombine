@@ -1,0 +1,794 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Device structure - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="device-structure"><a class="header" href="#device-structure">Device structure</a></h1>
+<p>An XC9500 family device is made of:</p>
+<ul>
+<li>the UIM (universal interconnect matrix), which routes MC and IOB outputs to FB inputs</li>
+<li>2-16 FBs (function blocks), each of which has:k
+<ul>
+<li>36 (XC9500) or 54 (XC9500XL/XV) routable inputs from UIM</li>
+<li>18 MCs (macrocells), each of which has:
+<ul>
+<li>configurable low power / high performance mode</li>
+<li>5 PTs (product terms)</li>
+<li>PT router, which can route PTs to:
+<ul>
+<li>the sum term for this MC</li>
+<li>the sum term for export into neighbouring MCs</li>
+<li>a special function (OE, RST, SET, CLK, CE, XOR depending on the PT)</li>
+</ul>
+</li>
+<li>PT export/import logic for borrowing PTs between neighbouring MCs</li>
+<li>a sum term</li>
+<li>a dedicated XOR gate</li>
+<li>optional inverter</li>
+<li>a flip-flop, with:
+<ul>
+<li>configurable DFF or TFF function</li>
+<li>configurable initial value</li>
+<li>clock (freely invertible on XC9500XL/XV), routable from FCLK or PT</li>
+<li>async reset, routable from FSR or PT</li>
+<li>async set, routable from FSR or PT</li>
+<li>(XC9500XL/XV only) clock enable, routable from PT</li>
+</ul>
+</li>
+<li>a single output (selectable from combinatorial or FF output), routed to IOB and UIM</li>
+<li>(XC9500 only) UIM output enable and inversion</li>
+<li>IOB (input/output buffer) (on larger devices, not all macrocells have an IOB), with:
+<ul>
+<li>input buffer (routed to UIM)</li>
+<li>output enable (freely invertible on XC9500XL/XV), routable from FOE or PT</li>
+<li>configurable slew rate (fast or slow)</li>
+<li>programmable ground</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>global signals
+<ul>
+<li>3 FCLK (fast clock) signals
+<ul>
+<li>(XC9500) freely invertible and routable from GCLK pins</li>
+<li>(XC9500XL/XV) hardwired 1-1 to GCLK pins</li>
+</ul>
+</li>
+<li>1 FSR (fast set/reset) signal
+<ul>
+<li>freely invertible</li>
+<li>always routed from GSR pin</li>
+</ul>
+</li>
+<li>2-4 FOE (fast output enable) signals
+<ul>
+<li>(XC9500) freely invertible and routable from GOE pins</li>
+<li>(XC9500XL/XV) hardwired 1-1 to GOE pins</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>global pull-up enable (only meant to be used in unconfigured devices)</li>
+<li>(XC9500XL/XV) global bus keeper enable</li>
+<li>special global configuration bits
+<ul>
+<li>32-bit standard JTAG USERCODE</li>
+<li>read protection enable</li>
+<li>write protection enable</li>
+<li>(XC9500XV only) DONE bit</li>
+</ul>
+</li>
+</ul>
+<h2 id="uim-and-fb-inputs--xc9500"><a class="header" href="#uim-and-fb-inputs--xc9500">UIM and FB inputs — XC9500</a></h2>
+<p>The core interconnect structure in XC9500 devices is the UIM, Universal Interconnect Matrix.
+The name is quite appropriate, at least for internal signals: any FB input can be routed
+to any MC output.  More than that, any FB input can be routed to a <em>wire-AND</em> of an arbitrary
+subset of MC outputs from the entire device.  Together with the UIM OE functionality within
+the MC, this can be used for emulated internal tri-state buses.</p>
+<p>The name is, however, less appropriate when it comes to external signals: a given FB input
+can only be routed to some subset of input signals from IOBs.  The set of routable IOBs
+depends on the FB input index and the device.</p>
+<p>Additionally, on devices other than XC9536, some FB inputs can be routed to "fast feedback"
+paths, which come straight from MC outputs within the same FB.  This is functionally redundant
+with the wire-AND path, but much faster.</p>
+<p>Each FB has 36 inputs, which we call <code>FB[i].IM[j]</code>.  Each FB input is controlled by two sets of fuses:</p>
+<ul>
+<li>
+<p>mux fuses (<code>FB[i].IM[j].MUX</code>) select what is routed to the input.  The combinations include:</p>
+<ul>
+<li><code>NONE</code>: the input is a constant 0 (for unused inputs)</li>
+<li><code>UIM</code>: the input is a wire-AND of MC outputs (and the second set of fuses is relevant)</li>
+<li><code>FBK_{k}</code>: the input is routed through fast feedback path from <code>FB[i].MC[k].OUT</code></li>
+<li><code>IOB_{k}_{l}</code>: the input is routed from an input buffer <code>FB[k].MC[l].IOB.I</code></li>
+</ul>
+<p>The allowable combinations differ between inputs within a single FB, but don't differ across
+FBs within a single device.  In other words, the set of allowed values for these fuses
+depends only on the <code>j</code> coordinate, but not on <code>i</code>.</p>
+</li>
+<li>
+<p>wire-AND fuses (<code>FB[i].IM[j].UIM.FB[k].MC[l]</code>) select which MC outputs participate in the
+wire-AND.  If a given fuse is set to 1 (ie. <em>not</em> programmed), it means that <code>FB[k].MC[l].OUT_UIM</code>
+is included in the product.  These fuses are only relevant when the mux fuse set is set to <code>UIM</code>.</p>
+</li>
+</ul>
+<h2 id="uim-and-fb-inputs--xc9500xlxv"><a class="header" href="#uim-and-fb-inputs--xc9500xlxv">UIM and FB inputs — XC9500XL/XV</a></h2>
+<p>The core interconnect structure in XC9500XL/XV devices is the UIM 2.  This version of the UIM
+is not really universal, and is much more of a classic CPLD design.</p>
+<p>Each FB has 54 inputs, which we call <code>FB[i].IM[j]</code>.  Each FB input is controlled by a set of fuses:</p>
+<ul>
+<li>
+<p>mux fuses (<code>FB[i].IM[j].MUX</code>) select what is routed to the input.  The combinations include:</p>
+<ul>
+<li><code>NONE</code>: the input is disabled and will have indeterminate state (for unused inputs)</li>
+<li><code>MC_{k}_{l}</code>: the input is routed from the macrocell output <code>FB[k].MC[l].OUT</code></li>
+<li><code>IOB_{k}_{l}</code>: the input is routed from the input buffer <code>FB[k].MC[l].IOB.I</code></li>
+</ul>
+<p>The allowable combinations differ between inputs within a single FB, but don't differ across
+FBs within a single device.  In other words, the set of allowed values for these fuses
+depends only on the <code>j</code> coordinate, but not on <code>i</code>.</p>
+</li>
+</ul>
+<h2 id="fb-global-fuses"><a class="header" href="#fb-global-fuses">FB global fuses</a></h2>
+<p>Each function block has two fuses controlling the entire FB:</p>
+<ul>
+<li><code>FB[i].ENABLE</code>: function block enable; needs to be programmed to use this function block;
+when not programmed, the product term circuitry will be powered off and all PTs will read as <code>1</code></li>
+<li><code>FB[i].EXPORT_ENABLE</code>: function block PT export enable; should be programmed to use PT
+import/export within this function block; disabling this masks MC 0 upwards chain export, breaking
+a combinatorial loop that would otherwise form when no exports are used within a FB</li>
+</ul>
+<h2 id="product-terms"><a class="header" href="#product-terms">Product terms</a></h2>
+<p>Each function block has 90 product terms, 5 per macrocell.  We call them <code>FB[i].MC[j].PT[k]</code>.
+Each of the 5 PTs has a dedicated function, as follows:</p>
+<ul>
+<li><code>*.PT[0]</code>: clock</li>
+<li><code>*.PT[1]</code>: output enable</li>
+<li><code>*.PT[2]</code>: async reset (or clock enable on XC9500XL/XV)</li>
+<li><code>*.PT[3]</code>: async set (or clock enable on XC9500XL/XV)</li>
+<li><code>*.PT[4]</code>: second XOR input</li>
+</ul>
+<p>The inputs to all product terms within a FB are the same, and consist of all FB inputs, in both
+true and inverted forms.</p>
+<p>Each product term can be individually configured as low power or high performance.  This affects propagation time.</p>
+<p>Each product term can be routed to at most one of three destinations:</p>
+<ul>
+<li><code>SUM</code>: input to the MC's sum term</li>
+<li><code>EXPORT</code>: input to the export OR gate</li>
+<li><code>SPECIAL</code>: used for the dedicated function</li>
+</ul>
+<p>The fuses controlling a product term are:</p>
+<ul>
+<li><code>FB[i].MC[j].PT[k].IM[l].P</code>: if set to 1, <code>FB[i].IM[l]</code> is included in the product term (true polarity)</li>
+<li><code>FB[i].MC[j].PT[k].IM[l].N</code>: if set to 1, <code>~FB[i].IM[l]</code> is included in the product term (inverted polarity)</li>
+<li><code>FB[i].MC[j].PT[k].HP</code>: if programmed, the product term is in high performance mode; otherwise, it is in low power mode</li>
+<li><code>FB[i].MC[j].PT[k].ALLOC</code>: has one of four values:
+<ul>
+<li><code>NONE</code>: product term is unused</li>
+<li><code>SUM</code>: product term is used for MC's sum term; dedicated function wired to 0</li>
+<li><code>EXPORT</code> product term is used for export sum term; dedicated function wired to 0</li>
+<li><code>SPECIAL</code>: product term is used for the dedicated function</li>
+</ul>
+</li>
+</ul>
+<p>The product term's corresponding dedicated function is called <code>FB[i].MC[j].PT[k].SPECIAL</code>.
+It is equal to <code>FB[i].MC[j].PT[k]</code> if the dedicated function is enabled in <code>ALLOC</code>, 0 otherwise.</p>
+<p>Note that the main product term control fuses are active-high on both XC9500 and XC9500XL/XV.  This effectively
+means that an unprogrammed XC9500 chip has all product term inputs enabled, while an unprogrammed XC9500XL device
+has all product term inputs disabled.</p>
+<h3 id="pt-importexport"><a class="header" href="#pt-importexport">PT import/export</a></h3>
+<p>Product terms can be borrowed between neighbouring MCs within a FB.  To this end, each MC has three outputs,
+<code>FB[i].MC[j].EXPORT{_SUM|_CHAIN_UP|_CHAIN_DOWN}</code>, and four inputs, <code>FB[i].MC[j].IMPORT_{CHAIN|SUM}_{UP|DOWN}</code>.  The "down" direction
+corresponds to exporting PTs toward lower-numbered MCs (with a wraparound from 0 to 17), and the "up"
+direction corresponds to exporting PTs towards higher-numbered MCs (with a wraparound from 17 to 0).
+Accordingly, we have:</p>
+<pre><code>FB[i].MC[j].IMPORT_CHAIN_DOWN = FB[i].MC[(j + 1) % 18].EXPORT_CHAIN_DOWN;
+FB[i].MC[j].IMPORT_CHAIN_UP = FB[i].MC[(j - 1) % 18].EXPORT_CHAIN_UP;
+FB[i].MC[j].IMPORT_SUM_DOWN = FB[i].MC[(j + 1) % 18].EXPORT_SUM;
+FB[i].MC[j].IMPORT_SUM_UP = FB[i].MC[(j - 1) % 18].EXPORT_SUM;
+</code></pre>
+<p>For chaining purposes, a MC can only export product terms in one direction (up or down).
+Product terms can be imported from both directions at once.
+Imported terms from a given direction can be used for either the main sum term, or for further export, but not both at once.</p>
+<p>Note that export behavior is slightly different depending on whether the importing MC allocates the imported
+terms towards its own sum term or reexport: if <code>SUM</code> allocation is selected, the exporting MC's PTs are always
+visible.  However, if <code>EXPORT</code> allocation is selected, the exporting MC's PTs are visible only if its <code>EXPORT_CHAIN_DIR</code>
+matches the import direction.</p>
+<p>PT import/export is controlled by the following per-MC fuses:</p>
+<ul>
+<li><code>FB[i].MC[j].EXPORT_CHAIN_DIR</code>: one of:
+<ul>
+<li><code>DOWN</code>: enables export through <code>EXPORT_CHAIN_DOWN</code></li>
+<li><code>UP</code>: enables export through <code>EXPORT_CHAIN_UP</code></li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].IMPORT_UP_ALLOC</code>: one of:
+<ul>
+<li><code>SUM</code>: includes PTs imported upwards in the main sum term</li>
+<li><code>EXPORT</code>: includes PTs imported upwards in the export sum term</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].IMPORT_DOWN_ALLOC</code>: one of:
+<ul>
+<li><code>SUM</code>: includes PTs imported downwards in the main sum term</li>
+<li><code>EXPORT</code>: includes PTs imported downwards in the export sum term</li>
+</ul>
+</li>
+</ul>
+<p>Additionally, the per-FB <code>FB[i].EXPORT_ENABLE</code> fuse needs to be set if any term within a FB is exported or imported.</p>
+<p>Export works as follows:</p>
+<pre><code>FB[i].MC[j].EXPORT_SUM = 
+    (FB[i].MC[j].IMPORT_UP_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_CHAIN_UP : 0) |
+    (FB[i].MC[j].IMPORT_DOWN_ALLOC == EXPORT ? FB[i].MC[j].IMPORT_CHAIN_DOWN : 0) |
+    (FB[i].MC[j].PT[0].ALLOC == EXPORT ? FB[i].MC[j].PT[0] : 0) |
+    (FB[i].MC[j].PT[1].ALLOC == EXPORT ? FB[i].MC[j].PT[1] : 0) |
+    (FB[i].MC[j].PT[2].ALLOC == EXPORT ? FB[i].MC[j].PT[2] : 0) |
+    (FB[i].MC[j].PT[3].ALLOC == EXPORT ? FB[i].MC[j].PT[3] : 0) |
+    (FB[i].MC[j].PT[4].ALLOC == EXPORT ? FB[i].MC[j].PT[4] : 0);
+FB[i].MC[j].EXPORT_CHAIN_UP = ((FB[i].MC[j].EXPORT_CHAIN_DIR == UP &amp;&amp; (FB[i].EXPORT_ENABLE || j != 0)) ? FB[i].MC[j].EXPORT_SUM : 0);
+FB[i].MC[j].EXPORT_CHAIN_DOWN = (FB[i].MC[j].EXPORT_CHAIN_DIR == DOWN ? FB[i].MC[j].EXPORT_SUM : 0);
+</code></pre>
+<h2 id="sum-term-xor-gate"><a class="header" href="#sum-term-xor-gate">Sum term, XOR gate</a></h2>
+<p>Each macrocell has a main sum term, which includes all product terms and imports routed towards it:</p>
+<pre><code>FB[i].MC[j].SUM = 
+    (FB[i].MC[j].IMPORT_UP_ALLOC == SUM ? FB[i].MC[j].IMPORT_SUM_UP : 0) |
+    (FB[i].MC[j].IMPORT_DOWN_ALLOC == SUM ? FB[i].MC[j].IMPORT_SUM_DOWN : 0) |
+    (FB[i].MC[j].PT[0].ALLOC == SUM ? FB[i].MC[j].PT[0] : 0) |
+    (FB[i].MC[j].PT[1].ALLOC == SUM ? FB[i].MC[j].PT[1] : 0) |
+    (FB[i].MC[j].PT[2].ALLOC == SUM ? FB[i].MC[j].PT[2] : 0) |
+    (FB[i].MC[j].PT[3].ALLOC == SUM ? FB[i].MC[j].PT[3] : 0) |
+    (FB[i].MC[j].PT[4].ALLOC == SUM ? FB[i].MC[j].PT[4] : 0);
+</code></pre>
+<p>The sum term then goes through a XOR gate (whose other input is either 0 or a dedicated PT) and a programmable inverter:</p>
+<pre><code>FB[i].MC[j].XOR = FB[i].MC[j].SUM ^ FB[i].MC[j].PT[4].SPECIAL ^ FB[i].MC[j].INV;
+</code></pre>
+<p>The fuses involved are:</p>
+<ul>
+<li><code>FB[i].MC[j].SUM_HP</code>: if programmed, the sum term is in high performance mode; otherwise, it's in low power mode</li>
+<li><code>FB[i].MC[j].INV</code>: if programmed, the output of the XOR gate is further inverted</li>
+</ul>
+<h2 id="flip-flop"><a class="header" href="#flip-flop">Flip-flop</a></h2>
+<p>Each macrocell includes a flip-flop.  It has:</p>
+<ul>
+<li>configurable DFF or TFF function</li>
+<li>D or T input connected to the (potentially inverted) XOR gate output</li>
+<li>configurable initial value</li>
+<li>clock (freely invertible on XC9500XL/XV), routable from FCLK or <code>PT[0]</code></li>
+<li>async reset, routable from FSR or <code>PT[2]</code></li>
+<li>async set, routable from FSR or <code>PT[3]</code></li>
+<li>(XC9500XL/XV only) clock enable, routable from <code>PT[2]</code> or <code>PT[3]</code></li>
+</ul>
+<p>The fuses involved are:</p>
+<ul>
+<li><code>FB[i].MC[j].CLK_MUX</code>: selects CLK input
+<ul>
+<li><code>PT</code>: product term 0 dedicated function</li>
+<li><code>FCLK[0-2]</code>: global <code>FCLK[0-2]</code> network</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].CLK_INV</code>: if programmed, the CLK input is inverted (ie. clock is negedge) (XC9500XL/XV only)</li>
+<li><code>FB[i].MC[j].RST_MUX</code>: selects RST input
+<ul>
+<li><code>PT</code>: product term 2 dedicated function or 0; if PT 2 is used for clock enable, it will not be routed to RST (0 will be substituted)</li>
+<li><code>FSR</code>: global <code>FSR</code> network</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].SET_MUX</code>: selects SET input
+<ul>
+<li><code>PT</code>: product term 3 dedicated function or 0; if PT 3 is used for clock enable, it will not be routed to SET (0 will be substituted)</li>
+<li><code>FSR</code>: global <code>FSR</code> network</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].CE_MUX</code>: selects CE input (XC9500XL/XV only)
+<ul>
+<li><code>NONE</code>: const 1</li>
+<li><code>PT2</code>: product term 2 dedicated function</li>
+<li><code>PT3</code>: product term 3 dedicated function</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].REG_INIT</code>: if programmed, the initial value of the FF is 1; otherwise, it is 0</li>
+<li><code>FB[i].MC[j].REG_MODE</code>: selects FF mode
+<ul>
+<li><code>DFF</code></li>
+<li><code>TFF</code></li>
+</ul>
+</li>
+</ul>
+<p>On XC9500, the FF works as follows:</p>
+<pre><code>case(FB[i].MC[j].CLK_MUX)
+    PT: FB[i].MC[j].CLK = FB[i].MC[j].PT[0].SPECIAL;
+    FCLK0: FB[i].MC[j].CLK = FCLK0;
+    FCLK1: FB[i].MC[j].CLK = FCLK1;
+    FCLK2: FB[i].MC[j].CLK = FCLK2;
+endcase
+
+case(FB[i].MC[j].RST_MUX)
+    PT: FB[i].MC[j].RST = FB[i].MC[j].PT[2].SPECIAL;
+    FSR: FB[i].MC[j].RST = FSR;
+endcase
+
+case(FB[i].MC[j].SET_MUX)
+    PT: FB[i].MC[j].SET = FB[i].MC[j].PT[3].SPECIAL;
+    FSR: FB[i].MC[j].SET = FSR;
+endcase
+
+initial FB[i].MC[j].FF = FB[i].MC[j].REG_INIT;
+
+// Pretend the usual synth/sim mismatch doesn't happen.
+always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST, posedge FB[i].MC[j].SET)
+    if (FB[i].MC[j].RST)
+        FB[i].MC[j].FF = 0;
+    else if (FB[i].MC[j].SET)
+        FB[i].MC[j].FF = 1;
+    else if (FB[i].MC[j].REG_MODE == TFF)
+        FB[i].MC[j].FF ^= FB[i].MC[j].XOR;
+    else
+        FB[i].MC[j].FF = FB[i].MC[j].XOR;
+</code></pre>
+<p>On XC9500XL/XV, the FF works as follows:</p>
+<pre><code>case(FB[i].MC[j].CLK_MUX)
+    PT: FB[i].MC[j].CLK = FB[i].MC[j].PT[0].SPECIAL ^ FB[i].MC[j].CLK_INV;
+    FCLK0: FB[i].MC[j].CLK = FCLK0 ^ FB[i].MC[j].CLK_INV;
+    FCLK1: FB[i].MC[j].CLK = FCLK1 ^ FB[i].MC[j].CLK_INV;
+    FCLK2: FB[i].MC[j].CLK = FCLK2 ^ FB[i].MC[j].CLK_INV;
+endcase
+
+case(FB[i].MC[j].RST_MUX)
+    PT: FB[i].MC[j].RST = (FB[i].MC[j].CE_MUX == PT2 ? 0 : FB[i].MC[j].PT[2].SPECIAL);
+    FSR: FB[i].MC[j].RST = FSR;
+endcase
+
+case(FB[i].MC[j].SET_MUX)
+    PT: FB[i].MC[j].SET = (FB[i].MC[j].CE_MUX == PT3 ? 0 : FB[i].MC[j].PT[3].SPECIAL);
+    FSR: FB[i].MC[j].SET = FSR;
+endcase
+
+case(FB[i].MC[j].CE_MUX)
+    PT2: FB[i].MC[j].CE = FB[i].MC[j].PT[2].SPECIAL;
+    PT3: FB[i].MC[j].CE = FB[i].MC[j].PT[3].SPECIAL;
+    NONE: FB[i].MC[j].CE = 1;
+endcase
+
+initial FB[i].MC[j].FF = FB[i].MC[j].REG_INIT;
+
+// Pretend the usual synth/sim mismatch doesn't happen.
+always @(posedge FB[i].MC[j].CLK, posedge FB[i].MC[j].RST_MUX, posedge FB[i].MC[j].SET_MUX)
+    if (FB[i].MC[j].RST_MUX)
+        FB[i].MC[j].FF = 0;
+    else if (FB[i].MC[j].SET_MUX)
+        FB[i].MC[j].FF = 1;
+    else if (FB[i].MC[j].CE)
+        if (FB[i].MC[j].REG_MODE == TFF)
+            FB[i].MC[j].FF ^= FB[i].MC[j].XOR;
+        else
+            FB[i].MC[j].FF = FB[i].MC[j].XOR;
+</code></pre>
+<h2 id="macrocell-output--xc9500"><a class="header" href="#macrocell-output--xc9500">Macrocell output — XC9500</a></h2>
+<p>The output of the macrocell can be selected from combinatorial (XOR gate output) or registered (FF output):</p>
+<pre><code>FB[i].MC[j].OUT = (FB[i].MC[j].OUT_MUX == COMB ? FB[i].MC[j].XOR : FB[i].MC[j].FF);
+</code></pre>
+<p>The macrocell also has an output enable, which can be from a product term, or a global network.
+It can be used for the IOB output buffer, for UIM output, or both:</p>
+<pre><code>case(FB[i].MC[j].OE_MUX)
+    PT: FB[i].MC[j].OE = FB[i].MC[j].PT[1].SPECIAL;
+    FOE0: FB[i].MC[j].OE = FOE[0];
+    FOE1: FB[i].MC[j].OE = FOE[1];
+    FOE2: FB[i].MC[j].OE = FOE[2];
+    FOE3: FB[i].MC[j].OE = FOE[3];
+endcase
+
+case(FB[i].MC[j].UIM_OE_MUX)
+    GND: FB[i].MC[j].UIM_OE = 0;
+    VCC: FB[i].MC[j].UIM_OE = 1;
+    OE_MUX: FB[i].MC[j].UIM_OE = FB[i].MC[j].OE;
+endcase
+
+case(FB[i].MC[j].IOB_OE_MUX)
+    GND: FB[i].MC[j].IOB_OE = 0;
+    VCC: FB[i].MC[j].IOB_OE = 1;
+    OE_MUX: FB[i].MC[j].IOB_OE = FB[i].MC[j].OE;
+endcase
+</code></pre>
+<p>The output is routed to up to three places:</p>
+<ul>
+<li>this MC's IOB (<code>FB[i].MC[j].OUT</code>)</li>
+<li>this FB's inputs via the feedback path (<code>FB[i].MC[j].OUT</code>)</li>
+<li>the UIM (<code>FB[i].MC[j].OUT_UIM</code>)</li>
+</ul>
+<p>The output to UIM additionally goes through (emulated) output enable logic, which can be used
+to implement emulated on-chip tristate buses in conjunction with the UIM wire-AND logic:</p>
+<pre><code>FB[i].MC[j].OUT_UIM = (FB[i].MC[j].UIM_OE ? FB[i].MC[j].OUT : 1) ^ FB[i].MC[j].UIM_OUT_INV;
+</code></pre>
+<p>The fuses involved are:</p>
+<ul>
+<li><code>FB[i].MC[j].OUT_MUX</code>: selects output mode
+<ul>
+<li><code>COMB</code>: combinatorial, the output is connected to XOR gate output</li>
+<li><code>FF</code>: registered, the output is connected to FF output</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].OE_MUX</code>: selects output enable source
+<ul>
+<li><code>PT</code>: product term 1 dedicated function or 0</li>
+<li><code>FOE[0-3]</code>: global <code>FOE[0-3]</code> network</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].UIM_OE_MUX</code>: selects output enable for UIM output
+<ul>
+<li><code>GND</code>: const 0</li>
+<li><code>VCC</code>: const 1</li>
+<li><code>OE_MUX</code>: the input selected by the <code>OE_MUX</code> fuses</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].IOB_OE_MUX</code>: selects output enable for IOB output
+<ul>
+<li><code>GND</code>: const 0</li>
+<li><code>VCC</code>: const 1</li>
+<li><code>OE_MUX</code>: the input selected by the <code>OE_MUX</code> fuses</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].UIM_OUT_INV</code>: if programmed, the output to UIM is inverted</li>
+</ul>
+<h2 id="macrocell-output--xc9500xlxv"><a class="header" href="#macrocell-output--xc9500xlxv">Macrocell output — XC9500XL/XV</a></h2>
+<p>The output of the macrocell can be selected from combinatorial (XOR gate output) or registered (FF output):</p>
+<pre><code>FB[i].MC[j].OUT = (FB[i].MC[j].OUT_MUX == COMB ? FB[i].MC[j].XOR : FB[i].MC[j].FF);
+</code></pre>
+<p>The output is routed to the UIM and this MC's IOB.</p>
+<p>The macrocell also has an output enable, which can be from a product term, or a global network, and can
+be freely inverted.  It is used for the IOB output buffer:</p>
+<pre><code>case(FB[i].MC[j].OE_MUX)
+    PT: FB[i].MC[j].IOB_OE = FB[i].MC[j].PT[1].SPECIAL ^ FB[i].MC[j].OE_INV;
+    FOE0: FB[i].MC[j].IOB_OE = FOE[0] ^ FB[i].MC[j].OE_INV;
+    FOE1: FB[i].MC[j].IOB_OE = FOE[1] ^ FB[i].MC[j].OE_INV;
+    FOE2: FB[i].MC[j].IOB_OE = FOE[2] ^ FB[i].MC[j].OE_INV;
+    FOE3: FB[i].MC[j].IOB_OE = FOE[3] ^ FB[i].MC[j].OE_INV;
+endcase
+</code></pre>
+<p>The fuses involved are:</p>
+<ul>
+<li><code>FB[i].MC[j].OUT_MUX</code>: selects output mode
+<ul>
+<li><code>COMB</code>: combinatorial, the output is connected to XOR gate output</li>
+<li><code>FF</code>: registered, the output is connected to FF output</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].OE_MUX</code>: selects output enable source
+<ul>
+<li><code>PT</code>: product term 1 dedicated function or 0</li>
+<li><code>FOE[0-3]</code>: global <code>FOE[0-3]</code> network</li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].OE_INV</code>: if programmed, the output enable is inverted</li>
+</ul>
+<h2 id="inputoutput-buffer"><a class="header" href="#inputoutput-buffer">Input/output buffer</a></h2>
+<p>All I/O buffers (except dedicated JTAG pins) are associated with a macrocell.  Not all MCs
+have associated IOBs.</p>
+<p>The output buffer is controlled by the <code>FB[i].MC[j].OUT</code> and <code>FB[i].MC[j].IOB_OE</code> signals of the macrocell.
+If the pad is supposed to be input only, the OE signal should be programmed to be always 0:</p>
+<ul>
+<li>on XC9500, <code>IOB_OE_MUX</code> should be set to <code>GND</code></li>
+<li>on XC9500XL/XV, <code>OE_MUX</code> should be set to <code>PT</code>, <code>OE_INV</code> should be unset, and <code>PT[1]</code> should not be allocated to its dedicated function</li>
+</ul>
+<p>Likewise, if the pad is supposed to be an always-on output, the OE signal should be programmed to be always 1:</p>
+<ul>
+<li>on XC9500, <code>IOB_OE_MUX</code> should be set to <code>VCC</code></li>
+<li>on XC9500XL/XV, <code>OE_MUX</code> should be set to <code>PT</code>, <code>OE_INV</code> should be set, and <code>PT[1]</code> should not be allocated to its dedicated function</li>
+</ul>
+<p>The output slew rate is programmable between two settings, "fast" and "slow".</p>
+<p>Instead of being connected to MC output, an IOB can also be a "programmed ground", ie be set to always output a const 0
+regardless of the <code>IOB_OE</code> and <code>OUT</code> signals.  In this case, <code>IOB_OE</code> should be 0.</p>
+<p>The input buffer is connected to the <code>FB[i].MC[j].IOB.I</code> network.  On all devices other than XC95288 (non-XL/XV),
+it is directly connected to the UIM.  On XC95288, there are additional enable fuses for this connection.</p>
+<p>Each I/O buffer has the following fuses:</p>
+<ul>
+<li><code>FB[i].MC[j].IOB_GND</code>: if programmed, this pin is "programmed ground" and will always output a const 0</li>
+<li><code>FB[i].MC[j].IOB_SLEW</code>: selects slew rate, one of:
+<ul>
+<li><code>SLOW</code></li>
+<li><code>FAST</code></li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].IBUF_UIM_ENABLE</code> (XC95288 only): when programmed, the input buffer is active and connected to UIM</li>
+</ul>
+<p>TODO: figure out the IBUF_ENABLE thing</p>
+<h2 id="configuration-pull-ups"><a class="header" href="#configuration-pull-ups">Configuration pull-ups</a></h2>
+<p>Before the device is configured, all IOBs are configured with a very weak pull-up
+resistor (XC9500) or a bus keeper (XC9500XL/XV).  To disable this pull-up, a per-FB fuse
+is used which is set in the bitstream:</p>
+<ul>
+<li><code>FB[i].PULLUP_DISABLE</code>: if programmed, disables the pre-configuration pull-ups / bus keepers for all IOBs in this FB</li>
+</ul>
+<h2 id="xc9500xlxv-bus-keeper"><a class="header" href="#xc9500xlxv-bus-keeper">XC9500XL/XV bus keeper</a></h2>
+<p>The XC9500XL/XV have a weak bus keeper in each IOB.  The keeper functionality can only be enabled
+globally for all pads on the device, or not at all, via a global fuse:</p>
+<ul>
+<li><code>TERM_MODE</code>: selects termination mode of all IOBs
+<ul>
+<li><code>KEEPER</code>: bus keeper is enabled</li>
+<li><code>FLOAT</code>: bus keeper is disabled, all inputs float</li>
+</ul>
+</li>
+</ul>
+<h2 id="global-networks--xc9500"><a class="header" href="#global-networks--xc9500">Global networks — XC9500</a></h2>
+<p>The device has several global networks for fast control signals.  The networks are always driven by special pads
+on the device (which can also be used as normal I/O).  The networks are:</p>
+<ul>
+<li><code>FCLK[0-2]</code>: clock</li>
+<li><code>FSR</code>: async set or reset</li>
+<li><code>FOE[0-1]</code> (XC9536, XC9572, XC95108) or <code>FOE[0-3]</code> (XC95144, XC95216, XC95288): output enable</li>
+</ul>
+<p>The special pads are:</p>
+<ul>
+<li><code>GCLK[0-2]</code>: clock</li>
+<li><code>GSR</code>: async set or reset</li>
+<li><code>GOE[0-1]</code> (XC9536, XC9572, XC95108) or <code>GOE[0-3]</code> (XC95144, XC95216, XC95288): output enable</li>
+</ul>
+<p>The mapping of <code>G*</code> special pads to MCs depends on the device and, in at least one case, the package (!).</p>
+<p>The allowed mappings are:</p>
+<ul>
+<li><code>FCLK0</code>: <code>GCLK0</code>, <code>GCLK1</code></li>
+<li><code>FCLK1</code>: <code>GCLK1</code>, <code>GCLK2</code></li>
+<li><code>FCLK2</code>: <code>GCLK2</code>, <code>GCLK0</code></li>
+<li><code>FSR</code>: <code>GSR</code></li>
+<li><code>FOE0</code> (XC9536, XC9572, XC95108): <code>GOE0</code>, <code>GOE1</code></li>
+<li><code>FOE1</code> (XC9536, XC9572, XC95108): <code>GOE0</code>, <code>GOE1</code></li>
+<li><code>FOE0</code> (XC95144, XC95216, XC95288): <code>GOE0</code>, <code>GOE1</code></li>
+<li><code>FOE1</code> (XC95144, XC95216, XC95288): <code>GOE1</code>, <code>GOE2</code></li>
+<li><code>FOE2</code> (XC95144, XC95216, XC95288): <code>GOE2</code>, <code>GOE3</code></li>
+<li><code>FOE3</code> (XC95144, XC95216, XC95288): <code>GOE3</code>, <code>GOE0</code></li>
+</ul>
+<p>Additionally, all networks can be inverted from their source pins.</p>
+<p>The fuses involved are:</p>
+<ul>
+<li>
+<p><code>FCLK{i}_MUX</code>: selects the input routed to <code>FCLK{i}</code></p>
+<ul>
+<li><code>NONE</code>: const 0</li>
+<li><code>GCLK{i}</code>: the corresponding <code>GCLK</code> pad</li>
+</ul>
+</li>
+<li>
+<p><code>FOE{i}_MUX</code>: selects the input routed to <code>FOE{i}</code></p>
+<ul>
+<li><code>NONE</code>: const 0</li>
+<li><code>FOE{i}</code>: the corresponding <code>GOE</code> pad</li>
+</ul>
+<p>These fuses have two variants in the database: the <code>SMALL</code> variant is applicable
+for devices with 2 GOE pins, and the <code>LARGE</code> variant is applicable for devices
+with 4 GOE pins.</p>
+</li>
+<li>
+<p><code>FCLK{i}_INV</code>: if programmed, the <code>GCLK</code> pad is inverted before driving <code>FCLK{i}</code> network</p>
+</li>
+<li>
+<p><code>FSR_INV</code>: if programmed, the <code>GSR</code> pad is inverted before driving <code>FSR</code> network</p>
+</li>
+<li>
+<p><code>FOE{i}_INV</code>: if programmed, the <code>GOE</code> pad is inverted before driving <code>FOE{i}</code> network</p>
+</li>
+</ul>
+<p>TODO: no, really, what is it with the XC9572 GOE mapping varying between packages</p>
+<h2 id="global-networks--xc9500xlxv"><a class="header" href="#global-networks--xc9500xlxv">Global networks — XC9500XL/XV</a></h2>
+<p>Global networks on XC9500XL/XV work similarly, except there are no muxes and no inversion (except for <code>FSR</code>).
+Thus the <code>GCLK{i}</code> and <code>GOE{i}</code> pads are mapped 1-1 directly to <code>FCLK{i}</code> and <code>FOE{i}</code> networks, with only
+an enable fuse.</p>
+<p>The fuses involved are:</p>
+<ul>
+<li><code>FCLK{i}.ENABLE</code>: if programmed, the given <code>FCLK</code> network is active and connected to the <code>GCLK{i}</code> pad; otherwise, it's const-0</li>
+<li><code>FOE{i}_ENABLE</code>: if programmed, the given <code>FOE</code> network is active and connected to the <code>GOE{i}</code> pad; otherwise, it's const-0</li>
+<li><code>FSR_INV</code>: if programmed, the <code>GSR</code> pad is inverted before driving <code>FSR</code> network</li>
+</ul>
+<p>The <code>FSR</code> network is always enabled.</p>
+<h2 id="misc-configuration"><a class="header" href="#misc-configuration">Misc configuration</a></h2>
+<p>The devices also include the following misc fuses:</p>
+<ul>
+<li><code>USERCODE</code>: 32-bit fuse set, readable via the JTAG USERCODE instruction</li>
+<li><code>FB[i].READ_PROT_{A|B}</code> (XC9500): if programmed, the device is read protected</li>
+<li><code>FB[i].READ_PROT</code> (XC9500XL/XV): if programmed, the device is read protected</li>
+<li><code>FB[i].WRITE_PROT</code>: if programmed, the device is write protected (needs a special JTAG instruction sequence
+to program/erase)</li>
+<li><code>DONE</code> (XC9500XV only): used to mark a fully programmed device; if programmed, the device will complete its
+boot sequence and activate I/O buffers; otherwise, all output buffers will be disabled</li>
+</ul>
+<p>Due to their special semantics, the protection fuses and the <code>DONE</code> fuse should be programmed last, after all other fuses in the bitstream.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../xc9500/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../xc9500/bitstream-xc9500.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../xc9500/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../xc9500/bitstream-xc9500.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

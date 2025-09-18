@@ -1,0 +1,443 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Project Combine - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="project-combine"><a class="header" href="#project-combine">Project Combine</a></h1>
+<p>Project Combine aims to provide comprehensive documentation of CPLD and FPGA internals, particularly in the areas where vendor documentation is lacking, such as routing structure, bitstream format, and internal timings.  This includes both prose (such as this book) and machine-readable databases that would be useful for toolchain development.</p>
+<p>Project Combine covers multiple <em>targets</em> (ie. supported device families).  The targets vary widely in their completeness levels.  While Project Combine aims to share data structures and code paths between targets as much as possible, this is not always practical due to the sheer variety of supported devices.</p>
+<p>Project Combine consists of:</p>
+<ol>
+<li>
+<p>The database files (<code>databases/</code> directory), one or more per target.  Some targets have a single database file covering all devices, while others have per-device databases, or something in between.</p>
+<p>Each individual database file is provided in two forms:</p>
+<ul>
+<li>zstd-compressed bincode-serialized Rust structures, suitable for use with the provided Rust crates</li>
+<li>JSON</li>
+</ul>
+<p>The database format is target-dependent, though there are broad similarities.</p>
+<p>One of the project goals is providing highly compact databases, via aggressive deduplication.  For instance, the databases do not contain the full list of primitives and nets for a given FPGA — instead, they contain just enough information to allow recreating the full geometry via target-specific means.  You can use the provided Rust code to expand and navigate this information.</p>
+</li>
+<li>
+<p>The mdBook documentation (<code>docs/</code> directory), which you are reading right now.  Large parts of the documentation are generated from the database files (via an mdBook plugin implemented in <code>docgen/</code>).  The goal is to include all data within the database as part of the documentation, but this is far from done.</p>
+</li>
+<li>
+<p>The public interface Rust crates (<code>public/</code> directory).  They provide:</p>
+<ul>
+<li>data structures for deserializing the binary database</li>
+<li>functions for recreating the full tile grid of a given device from the target-specific description</li>
+<li>all sort of target-specific queries about a device (eg. list all IO pads in BSCAN order)</li>
+<li>parsing and emitting bitstreams</li>
+</ul>
+<p>The public crates include:</p>
+<ul>
+<li><code>prjcombine-types</code>: common data types used across multiple targets
+<ul>
+<li><code>bsdata</code>: bitstream format description (for the databases)</li>
+<li><code>speed</code>: raw speed data description (for the databases)</li>
+<li><code>units</code>: newtypes over <code>f64</code> associated with physical units (used for speed data)</li>
+<li><code>bscan</code>: boundary scan chain description</li>
+</ul>
+</li>
+<li><code>prjcombine-interconnect</code>: implements data structures for FPGA-like tile grids and general interconnect; this is the crate that FPGA targets are generally based around</li>
+<li><code>prjcombine-jed</code>: implements JESD3 bitstream format, also known as the <code>.jed</code> file format</li>
+<li><code>prjcombine-xilinx-bitstream</code>: the Xilinx bitstream format (common across Xilinx FPGA targets)</li>
+<li>per-target crates (listed below)</li>
+</ul>
+</li>
+<li>
+<p>The reverse engineering tools (<code>re/</code> directory).</p>
+<p>These crates contain code that has been used to create the database files.  Because of their characteristics (essentially, this is the "only has to work once" kind of code), little to no documentation is provided for them, or their usage.  More often than not, they require very specific environment to work in that is hard to recreate (such as heavily patched versions of vendor toolchains).</p>
+</li>
+</ol>
+<h2 id="supported-targets"><a class="header" href="#supported-targets">Supported targets</a></h2>
+<p>The currently supported top-level FPGA targets and their corresponding crates are:</p>
+<ul>
+<li>
+<p><code>prjcombine-siliconblue</code>: SiliconBlue / Lattice iCE40 and iCE65 FPGAs; has one database:</p>
+<ul>
+<li><code>siliconblue</code>: iCE65, iCE40</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry and bitstream data: ✅ complete</li>
+<li>speed data: 👷🏼‍♀️ mostly complete (missing DSP timings)</li>
+<li>documentation: 👷🏼‍♀️ in progress</li>
+<li>verification: ❌ not started</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-xc2000</code>: Earliest Xilinx devices; has several databases, corresponding to the subtargets:</p>
+<ul>
+<li><code>xc2000</code>: XC2000, XC2000L</li>
+<li><code>xc3000</code>: XC3000, XC3100</li>
+<li><code>xc3000a</code>: XC3000A, XC3000L, XC3100A, XC3100L</li>
+<li><code>xc4000</code>: XC4000, XC4000D</li>
+<li><code>xc4000a</code>: XC4000A</li>
+<li><code>xc4000h</code>: XC4000H</li>
+<li><code>xc4000e</code>: XC4000E, XC4000L, Spartan</li>
+<li><code>xc4000ex</code>: XC4000EX, XC4000XL</li>
+<li><code>xc4000xla</code>: XC4000XLA</li>
+<li><code>xc4000xv</code>: XC4000XV</li>
+<li><code>spartanxl</code>: Spartan XL</li>
+<li><code>xc5200</code>: XC5200, XC5200L</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry and bitstream data: ✅ complete</li>
+<li>speed data, documentation, verification: ❌ not started</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-virtex</code>: Xilinx Virtex and related devices; has one database:</p>
+<ul>
+<li><code>virtex</code>: Virtex, Virtex-E, Spartan-II, Spartan-IIE</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry and bitstream data: ✅ complete</li>
+<li>speed data, documentation, verification: ❌ not started</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-virtex2</code>: Xilinx Virtex-II and Spartan-3; has three databases:</p>
+<ul>
+<li><code>virtex2</code>:
+<ul>
+<li>Virtex-II</li>
+<li>Virtex-II Pro</li>
+</ul>
+</li>
+<li><code>spartan3</code>:
+<ul>
+<li>Spartan-3</li>
+<li>Spartan-3E</li>
+<li>Spartan-3A and Spartan-3AN</li>
+<li>Spartan-3A DSP</li>
+</ul>
+</li>
+<li><code>fpgacore</code>:
+<ul>
+<li>FPGAcore eFPGA</li>
+</ul>
+</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry and bitstream data: ✅ complete</li>
+<li>documentation: 👷🏼‍♀️ in progress</li>
+<li>speed data, verification: ❌ not started</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-spartan6</code>: Xilinx Spartan-6; has one database:</p>
+<ul>
+<li><code>spartan6</code>: Spartan-6 LX, LXT</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry and bitstream data: ✅ complete</li>
+<li>speed data, documentation, verification: ❌ not started</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-virtex4</code>: Xilinx Virtex-4, -5, -6, -7 devices; has four databases:</p>
+<ul>
+<li><code>virtex4</code>: Virtex-4 LX, SX, FX</li>
+<li><code>virtex5</code>: Virtex-5 LX, LXT, SXT, FXT, TXT</li>
+<li><code>virtex6</code>: Virtex-6 LX, LXT, SXT, HXT, CXT</li>
+<li><code>virtex7</code>:
+<ul>
+<li>Spartan-7</li>
+<li>Artix-7</li>
+<li>Kintex-7</li>
+<li>Virtex-7</li>
+<li>Zynq-7000</li>
+</ul>
+</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry and bitstream data: ✅ complete</li>
+<li>documentation: 👷🏼‍♀️ in progress</li>
+<li>speed data, verification: ❌ not started</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-ultrascale</code>: Xilinx/AMD UltraScale devices; has two databases:</p>
+<ul>
+<li><code>ultrascale</code>:
+<ul>
+<li>Kintex UltraScale</li>
+<li>Virtex UltraScale</li>
+</ul>
+</li>
+<li><code>ultrascaleplus</code>:
+<ul>
+<li>Spartan UltraScale+</li>
+<li>Artix UltraScale+</li>
+<li>Kintex UltraScale+</li>
+<li>Virtex UltraScale+</li>
+<li>Zynq UltraScale+ MPSoC</li>
+<li>Zynq UltraScale+ RFSoC</li>
+</ul>
+</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry data: ✅ complete</li>
+<li>bitstream and speed data, documentation, verification: ❌ not started</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-versal</code>: Xilinx/AMD Versal devices; will have one database:</p>
+<ul>
+<li><code>versal</code>:
+<ul>
+<li>Versal Prime</li>
+<li>Versal Prime Gen 2</li>
+<li>Versal AI Core</li>
+<li>Versal AI Edge</li>
+<li>Versal AI Edge Gen 2</li>
+<li>Versal RF</li>
+<li>Versal Network</li>
+<li>Versal Premium</li>
+<li>Versal Premium Gen 2</li>
+<li>Versal HBM</li>
+</ul>
+</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry data: 👷🏼‍♀️ in progress</li>
+<li>bitstream and speed data, documentation, verification: ❌ not started</li>
+</ul>
+</li>
+</ul>
+<p>The currently supported top-level CPLD targets and their corresponding crates are:</p>
+<ul>
+<li>
+<p><code>prjcombine-xc9500</code>: Xilinx XC9500 and variants; has three databases:</p>
+<ul>
+<li><code>xc9500</code>: XC9500</li>
+<li><code>xc9500xl</code>: XC9500XL</li>
+<li><code>xc9500xv</code>: XC9500XV</li>
+</ul>
+<p>Status: ✅ complete.</p>
+</li>
+<li>
+<p><code>prjcombine-xpla3</code>: Philips/Xilinx CoolRunner XPLA3 devices; has one database:</p>
+<ul>
+<li><code>xpla3</code>: CoolRunner XPLA3</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry, bitstream, speed data, and verification: ✅ complete</li>
+<li>documentation: 👷🏼‍♀️ mostly complete (missing JTAG commands)</li>
+</ul>
+</li>
+<li>
+<p><code>prjcombine-coolrunner2</code>: Xilinx CoolRunner-II devices; has one database:</p>
+<ul>
+<li><code>coolrunner2</code>: CoolRunner-II</li>
+</ul>
+<p>Status:</p>
+<ul>
+<li>geometry, bitstream, speed data, and verification: ✅ complete</li>
+<li>documentation: 👷🏼‍♀️ in progress</li>
+</ul>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="terminology.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="terminology.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

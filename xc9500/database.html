@@ -1,0 +1,393 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Database - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="database-schema"><a class="header" href="#database-schema">Database schema</a></h1>
+<p>The device database is provided in machine-readable form as three JSON files:</p>
+<ul>
+<li><a href="https://raw.githubusercontent.com/prjunnamed/prjcombine/main/databases/xc9500.json"><code>xc9500.json</code></a>, describing all XC9500 devices</li>
+<li><a href="https://raw.githubusercontent.com/prjunnamed/prjcombine/main/databases/xc9500xl.json"><code>xc9500xl.json</code></a>, describing all XC9500XL devices</li>
+<li><a href="https://raw.githubusercontent.com/prjunnamed/prjcombine/main/databases/xc9500xv.json"><code>xc9500xv.json</code></a>, describing all XC9500XV devices</li>
+</ul>
+<p>All three files have the same schema.</p>
+<h2 id="top-level"><a class="header" href="#top-level">Top level</a></h2>
+<p>The top level of the database is an object, with the following fields:</p>
+<ul>
+<li><code>chips</code> (list of object): list of <a href="#chip">chip</a></li>
+<li><code>bonds</code> (list of object): list of <a href="#bond">bond</a></li>
+<li><code>speeds</code> (list of object): list of <a href="#speed">speed</a></li>
+<li><code>parts</code> (list of object): list of <a href="#part">part</a></li>
+<li><code>mc_bits</code> (object): a <a href="#tile">tile</a> describing per-MC bits</li>
+<li><code>fb_bits</code> (object): a <a href="#tile">tile</a> describing per-FB bits</li>
+<li><code>global_bits</code> (object): a <a href="#tile">tile</a> describing global bits</li>
+</ul>
+<h2 id="chip"><a class="header" href="#chip">Chip</a></h2>
+<p>A chip is a structure describing a particular XC9500 die.  A chip is referenced
+from a <a href="#part">part</a>.  A chip is an object with the following fields:</p>
+<ul>
+<li>
+<p><code>kind</code> (string): the kind of the chip, one of:</p>
+<ul>
+<li><code>"xc9500"</code></li>
+<li><code>"xc9500xl"</code></li>
+<li><code>"xc9500xv"</code></li>
+</ul>
+<p>All chips within a single file will have the same kind.</p>
+</li>
+<li>
+<p><code>idcode</code> (number): the JTAG IDCODE of the chip</p>
+</li>
+<li>
+<p><code>fbs</code> (number): the number of FBs in the chip</p>
+</li>
+<li>
+<p><code>ios</code> (map from string to number): describes the I/O pads available on the chip.
+The keys are of the form <code>"IOB_{fb_idx}_{mc_idx}"</code> and identify the MC that owns the IOB.
+The value corresponding to the key is the bank index that the IOB belongs to.</p>
+</li>
+<li>
+<p><code>banks</code> (number): the number of I/O banks in the chip</p>
+</li>
+<li>
+<p><code>tdo_bank</code> (number): the I/O bank index that is used to drive the TDO special pin</p>
+</li>
+<li>
+<p><code>io_special</code> (map from string to pair of numbers): describes the I/O pads with special functions on the chip.
+The keys can be:</p>
+<ul>
+<li><code>"GCLK[0-2]"</code></li>
+<li><code>"GSR"</code></li>
+<li><code>"GOE[0-3]"</code></li>
+</ul>
+<p>The values are of the form <code>"IOB_{fb_idx}_{mc_idx}"</code>.  Note that sometimes items in this map are overriden by the bond.</p>
+</li>
+<li>
+<p><code>imux_bits</code> (object) : a :ref:<code>tile &lt;xc9500-db-tile&gt;</code> describing per-FB bits corresponding to IMUX</p>
+</li>
+<li>
+<p><code>uim_ibuf_bits</code> (object or null): for XC95288 chip, a :ref:<code>tile &lt;xc9500-db-tile&gt;</code> describing the UIM IBUF bits; for every other chip, <code>null</code></p>
+</li>
+<li>
+<p><code>program_time</code> (number): maximum time required by a program operation, in µs</p>
+</li>
+<li>
+<p><code>erase_time</code> (number): maximum time required by an erase operation, in µs</p>
+</li>
+</ul>
+<h2 id="bond"><a class="header" href="#bond">Bond</a></h2>
+<p>A bond is a structure describing the mapping of chip pads to package pins.
+Bonds are referenced from <a href="#part">part</a> packages.  A bond is an object
+with the following fields:</p>
+<ul>
+<li>
+<p><code>io_special_override</code> (map from string to pair of numbers): a map like the chip's <code>io_special</code> map, containing per-bond overrides
+to the defaults (usually empty)</p>
+</li>
+<li>
+<p><code>pins</code> (map from string to string): the pins of the package; they keys are package pin names, and the values are:</p>
+<ul>
+<li><code>NC</code>: unconnected pin</li>
+<li><code>GND</code>, <code>VCCINT</code>, <code>VCCIO{bank}</code>: power and ground pins</li>
+<li><code>IOB_{fb}_{mc}</code>: an I/O pin</li>
+<li><code>TMS</code>, <code>TCK</code>, <code>TDI</code>, <code>TDO</code>: JTAG pins</li>
+</ul>
+</li>
+</ul>
+<h2 id="speed"><a class="header" href="#speed">Speed</a></h2>
+<p>A speed is a structure describing the timings of a device.  They are referenced from
+<a href="#part">part</a> speed grades.  A speed is an object with one field:</p>
+<ul>
+<li><code>timing</code> (map of string to number): a map from timing parameter name to timing data.
+All timing data is given in picoseconds, and is always an integer number.</li>
+</ul>
+<h2 id="part"><a class="header" href="#part">Part</a></h2>
+<p>A part is a structure describing a particular commercially available part number.
+Several parts may correspond to the same chip.  A part is an object with the following fields:</p>
+<ul>
+<li><code>name</code> (string): the base name of the part, in lowercase</li>
+<li><code>chip</code> (number): the index of the corresponding chip in the <code>chips</code> field
+of the database</li>
+<li><code>packages</code> (map from string to int): the packages in which this part is available;
+the key is package name, and the value is the index of the corresponding bond in the <code>bonds</code> database field</li>
+<li><code>speeds</code> (map from string to int): the speed grades in which this part is available;
+the key is speed grade name (including the leading <code>-</code>), and the value is the index of the corresponding speed in the <code>speeds</code> database field</li>
+</ul>
+<h2 id="tile"><a class="header" href="#tile">Tile</a></h2>
+<p>A tile is a structure describing a set of chip fuses.  There are multiple kinds
+of tiles used to describe the bitstream.  The base structure of a tile is the same
+for all of these kinds.</p>
+<p>A tile is an object where the keys are fuse set names, and the values are objects
+with the following keys:</p>
+<ul>
+<li>
+<p><code>bits</code> (list of coordinate): the list of fuse coordinates in this fuse set</p>
+</li>
+<li>
+<p>one of:</p>
+<ul>
+<li><code>values</code> (map of string to list of bool): used for an enumerated fuse set;
+the list of possible values for this fuse set; the value is a list of fuse values, corresponding one
+to one to the coordinates in <code>bits</code></li>
+<li><code>invert</code> (bool): used for a plain bool / bitvec fuse set; if true, it means
+that the value of this bitvec or bool is stored inverted in the datastream
+(0 means true, 1 means false); if false, the value is stored directly without
+inversion</li>
+</ul>
+</li>
+</ul>
+<p>The type and interpretation of coordinate depends on the tile kind.</p>
+<p>The following tile kinds exist:</p>
+<ul>
+<li>
+<p>per-MC bits tile: identical for all chips in the database, the coordinate is a list of three numbers, in order:</p>
+<ul>
+<li>always 0</li>
+<li>row coordinate of the fuse</li>
+<li>always 0</li>
+</ul>
+</li>
+<li>
+<p>per-FB bits tile: identical for all chips in the database, the coordinate
+is a list of 3 numbers, in order:</p>
+<ul>
+<li>
+<p>always 0</p>
+</li>
+<li>
+<p>row</p>
+</li>
+<li>
+<p>bit within row; this should be decoded into column and bit as follows:</p>
+<ul>
+<li>column: <code>crd.bit % 9</code></li>
+<li>bit: <code>6 + crd.bit // 9</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>IMUX bits tile: chip-specific, the coordinate is the same as for per-FB bits tile</p>
+</li>
+<li>
+<p>global bits tile: identical for all chips in the database, the coordinate
+is a list of 4 numbers, in order:</p>
+<ul>
+<li>
+<p>fb</p>
+</li>
+<li>
+<p>row</p>
+</li>
+<li>
+<p>bit within row; this should be decoded into column and bit as follows:</p>
+<ul>
+<li>column: <code>crd.bit % 9</code></li>
+<li>bit: <code>6 + crd.bit // 9</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>UIM IBUF bits tile: chip-specific, only for XC995288, the coordinate is the same as for global bits tile</p>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../xc9500/bitstream-xc9500xl.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../xc9500/jtag.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../xc9500/bitstream-xc9500xl.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../xc9500/jtag.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

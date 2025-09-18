@@ -1,0 +1,543 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Device geometry - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="device-geometry"><a class="header" href="#device-geometry">Device geometry</a></h1>
+<p>Spartan 3 geometry is largely the same as <a href="../virtex2/geometry.html">Virtex 2</a>. The changes are:</p>
+<ul>
+<li>in addition to the primary vertical clock spine, there are now two secondary vertical clock spines that distribute clocks to <code>GCLKH</code> tiles; there is also the new horizontal clock spine that connects them together</li>
+<li>the <code>TERM.*</code> tiles no longer have multiplexers, and thus are no longer present in the bitstream</li>
+<li>when more than 2 BRAM columns are present, only the leftmost and rightmost ones have DCMs; the others have empty DCM stubs</li>
+<li>the <code>CLKB</code> and <code>CLKT</code> tiles contain 4 <code>BUFGMUX</code> primitives each, making for 8 global clocks total; this eliminates muxes from clock distribution</li>
+<li><code>PCILOGIC</code> is removed</li>
+</ul>
+<p>Spartan 3E includes more changes:</p>
+<ul>
+<li>BRAM columns no longer take up the whole height of the device; instead, a BRAM column is a 4-CLBs-wide hole in the CLB grid which spans most of the height of the device</li>
+<li>DCMs are no longer located at the top and bottom of BRAM columns; instead, they are located in 4×4 holes in the CLB grid, close to the <code>CLK[LRTB]</code> tiles</li>
+<li>in addition to the <code>CLKB</code> and <code>CLKT</code> tiles, there are new <code>CLKL</code> and <code>CLKR</code> tiles, with 8 <code>BUFGMUX</code> each, located on the ends of the horizontal clock spine; the clocks are usable only in the left and right half of the device, respectively; the <code>GCLKVM</code> tiles now contain per-device-quadrant muxes that can select 8 clocks from the set of clocks driven by <code>CLK[LR]</code> and <code>CLK[BT]</code> tiles</li>
+<li>the <code>CLK[LR]</code> tiles also contain the new <code>PCILOGICSE</code> primitive that contains a bit of hard logic helping with PCI implementation</li>
+<li>on larger devices, the <code>LV.*</code> and <code>LH.*</code> long lines are optionally split in the middle; new <code>LLV.*</code> and <code>LLH.*</code> tiles are added that contain the buffers that can optionally join the two segments together; they are located on the horizontal clock spine and primary vertical clock spine</li>
+</ul>
+<p>Spartan 3A includes the following changes to Spartan 3E geometry:</p>
+<ul>
+<li>the BRAM columns now span almost the entire height of the device, with no CLBs above or below, but with IOI tiles still present</li>
+<li>the 4×4 DCM holes are sometimes located within BRAM columns instead of CLB grid; a DCM replaces one BRAM</li>
+</ul>
+<p>The <code>xc3s50a</code> is a special small Spartan 3A device with unusual geometry:</p>
+<ul>
+<li>there are no secondary clock spines</li>
+<li>there is only one clock row</li>
+<li>the role of <code>GCLKVM</code> multiplexer tiles is taken by the new <code>CLKC_50A</code> tile in the middle of the device, which directly drives the single clock row</li>
+</ul>
+<p>Spartan 3A DSP includes the following changes to Spartan 3A geometry:</p>
+<ul>
+<li>BRAM columns are now 3 IOI tiles wide instead of 4</li>
+<li>a new type of column is introduced, the DSP column; like BRAM, it has IOI tiles on top and bottom, but is only one IOI tile wide; a DSP column is always located immediately to the right of BRAM column</li>
+<li>the DCM holes in BRAM column also extend to the DSP column</li>
+</ul>
+<h2 id="general-structure"><a class="header" href="#general-structure">General structure</a></h2>
+<p>The Spartan 3 devices are made of a rectangular grid of interconnect tiles.</p>
+<p>Interconnect rows come in three kinds:</p>
+<ul>
+<li>bottom IOI row (the bottommost row)</li>
+<li>top IOI row (the topmost row)</li>
+<li>general row (all other rows)</li>
+</ul>
+<p>Interconnect columns come in several kinds:</p>
+<ul>
+<li>left IOI column (the leftmost column)
+<ul>
+<li>contains <code>INT.CNR</code> and the <code>LL</code> (lower left) corner tile in the bottom IOI row</li>
+<li>contains <code>INT.CNR</code> and the <code>UL</code> (upper left) corner tile in the top IOI row</li>
+<li>contains <code>INT.IOI</code> and an <code>IOI</code> tile in remaining rows</li>
+</ul>
+</li>
+<li>right IOI column (the rightmost column)
+<ul>
+<li>contains <code>INT.CNR</code> and the <code>LR</code> (lower right) corner tile in the bottom IOI row</li>
+<li>contains <code>INT.CNR</code> and the <code>UR</code> (upper right) corner tile in the top IOI row</li>
+<li>contains <code>INT.IOI</code> and an <code>IOI</code> tile in remaining rows</li>
+</ul>
+</li>
+<li>CLB columns (most of the inner columns)
+<ul>
+<li>contains <code>INT.IOI</code> and an <code>IOI</code> IO tile in the bottom and top IOI rows</li>
+<li>contains <code>INT.CLB</code> and a <code>CLB</code> tile in the remaining rows (except for holes on Spartan 3E and up)</li>
+</ul>
+</li>
+<li>(plain Spartan 3) BRAM columns (some of the inner columns)
+<ul>
+<li>contains <code>INT.DCM.*</code> and a <code>DCM</code> tile in the bottom and top IOI rows</li>
+<li>contains <code>INT.BRAM.S3</code> in the remaining rows, and a <code>BRAM</code> tile every 4 rows</li>
+</ul>
+</li>
+<li>(Spartan 3E) BRAM columns, which actually take up 4 interconnect columns
+<ul>
+<li>the top and bottom of each of the 4 interconnect columns is identical to a CLB column</li>
+<li>the bottom BRAM row contains nothing in the leftmost column (vertical and horizontal interconnect lines pass right through it), and <code>TERM.BRAM.N</code> in the other 3 columns, terminating the vertical interconnect but passing through horizontal interconnect</li>
+<li>likewise, the top BRAM row contains nothing in the leftmost column, and <code>TERM.BRAM.S</code> in the other 3 columns</li>
+<li>the rows between the bottom and top BRAM row contain <code>INT.BRAM.S3E</code> tiles in each row of the leftmost column, and a <code>BRAM</code> tile every 4 rows</li>
+</ul>
+</li>
+<li>(Spartan 3A) BRAM columns, which actually take up 4 interconnect columns
+<ul>
+<li>the top IOI and bottom IOI row of each of the 4 interconnect columns contains an <code>INT.IOI</code> and <code>IOI</code> tiles just like CLB columns</li>
+<li>the remaining rows contain <code>INT.BRAM.S3A.*</code> in every row of the leftmost column, and <code>BRAM</code> every 4 rows (except for DCM holes)</li>
+</ul>
+</li>
+<li>(Spartan 3A DSP) BRAM columns, which actually take up 3 interconnect columns
+<ul>
+<li>like Spartan 3A, but with only 3 columns instead of 4 and with <code>INT.BRAM.S3ADSP</code> tiles</li>
+</ul>
+</li>
+<li>(Spartan 3A DSP) DSP columns
+<ul>
+<li>contains <code>INT.IOI</code> and an <code>IOI</code> IO tile in the bottom and top IOI rows</li>
+<li>contains <code>INT.BRAM.S3ADSP</code> in the remaining rows, and a <code>DSP</code> tile every 4 rows</li>
+</ul>
+</li>
+</ul>
+<p>The interconnect contains holes; depending on the type of the hole, some interconnect lines are either bounced back at the edges (via <code>TERM.*</code> tiles), or pass through the hole unaffected. Whenever interconnect skips across a hole, the hole is not counted towards the conceptual length of the interconnect lines — eg. a <code>HEX</code> line will always span the distance of 6 <code>INT.*</code> tiles, even if it takes 9 interconnect columns because of a 3 tile wide hole in the middle. Likewise, <code>LV.*</code> and <code>LH.*</code> lines are only rotated when crossing an actual <code>INT.*</code> tile.</p>
+<h3 id="spartan-3e-bram-columns"><a class="header" href="#spartan-3e-bram-columns">Spartan 3E BRAM columns</a></h3>
+<p>A BRAM column makes a hole in the interconnect structure. The hole works as follows:</p>
+<ul>
+<li>the 3 interconnect columns to the right of an <code>INT.BRAM.*</code> tile contain no interconnect tiles; horizontal interconnect passes through them to the next <code>INT.CLB</code> tile in the row</li>
+<li>the bottom and top row of the column contain no interconnect tiles
+<ul>
+<li>horizontal interconnect passes through them (directly between the <code>INT.CLB</code> to the left and to the right of the column)</li>
+<li>vertical interconnect passes through the leftmost tile in the row (directly between <code>INT.CLB</code> and <code>INT.BRAM.*</code>)</li>
+<li>the remaining 3 tiles contain <code>TERM.BRAM.[NS]</code> terminators that bounce most of the vertical interconnect back; long lines (<code>LV.*</code> and <code>LH.*</code>) are an exception, and pass the whole height of the BRAM column</li>
+</ul>
+</li>
+</ul>
+<h3 id="spartan-3a-and-3a-dsp-bram-columns"><a class="header" href="#spartan-3a-and-3a-dsp-bram-columns">Spartan 3A and 3A DSP BRAM columns</a></h3>
+<p>A BRAM column makes a hole in the interconnect structure. The hole works as follows:</p>
+<ul>
+<li>the 3 (Spartan 3A) or 2 (Spartan 3A DSP) columns to the right of an <code>INT.BRAM.*</code> tile contain no interconnect tiles; horizontal interconnect passes through them</li>
+<li>vertical interconnect doesn't pass through the 3 or 2 rightmost columns — the <code>INT.IOI</code> tiles on the top and bottom of the column aren't connected by vertical interconnect in any way</li>
+</ul>
+<h3 id="spartan-3e-dcms"><a class="header" href="#spartan-3e-dcms">Spartan 3E DCMs</a></h3>
+<p>Spartan 3E devices can have 2, 4, or 8 DCMs:</p>
+<ul>
+<li>the devices with 2 DCMs have one DCM at the top, close to <code>CLKT</code>, and one DCM at the bottom, close to <code>CLKB</code></li>
+<li>the devices with 4 DCMs have two DCMs at the top, close to <code>CLKT</code>, and two DCMs at the bottom, close to <code>CLKB</code></li>
+<li>the devices with 8 DCMs have the 4 DCMs above, and also two DCMs on the left, close to <code>CLKL</code>, and two DCMs on the right, close to <code>CLKR</code></li>
+</ul>
+<p>Spartan 3E DCMs are designed to work in pairs, with some shared circuitry between them. The devices with 2 DCMs instead contain single DCMs. The single DCMs are actually a cut-down version of a DCM pair, and contain a stub DCM tile.</p>
+<p>The top and bottom holes work as follows:</p>
+<ul>
+<li>the DCM hole spans the bottom 4 or top 4 general rows (displacing some CLBs but not IOIs)</li>
+<li>on devices with 2 DCMs, the DCM hole spans 5 columns, from the column immediately to the left of the clock spine, to the 4th column right from the primary clock spine</li>
+<li>on devices with 4 or more DCMs, the DCM hole spans 8 columns, from the 4th column to the left of the clock spine, to the 4th column right from the primary clock spine</li>
+<li>the two tiles closest to the <code>CLKB</code> / <code>CLKT</code> contain <code>INT.DCM.*</code> interconnect tiles; the remaining tiles contain no <code>INT.*</code> tiles and interconnect passes right through them</li>
+<li>on devices with 2 DCMs, the <code>INT.DCM.*</code> tile to the right is associated with a <code>DCM</code> tile; the tile to the left is a stub</li>
+<li>on other devices, both <code>INT.DCM.*</code> tiles are associated with a DCM</li>
+</ul>
+<p>The left and right holes (present only on devices with 8 DCMs) work as follows:</p>
+<ul>
+<li>the hole spans 4 columns and 8 rows</li>
+<li>the hole spans rows from the 4th row below the horizontal clock spine to the 4th row above the horizontal clock spine</li>
+<li>the left hole spans from column 9 to column 12 (there is a space of 8 columns between the DCM and the left IOIs)</li>
+<li>the right hole spans from column <code>width - 13</code> to <code>width - 10</code> (there is likewise a space of 8 columns between the DCM and the right IOIs)</li>
+<li>the hole contains two <code>INT.DCM.*</code> tiles in the column closest to the IOIs, in the two rows closest to the horizontal clock spine; each of them is associated with a <code>DCM</code> tile</li>
+<li>remaining tiles of the hole have no <code>INT.*</code> tiles and interconnect passes right through them</li>
+</ul>
+<h3 id="spartan-3a-dcms"><a class="header" href="#spartan-3a-dcms">Spartan 3A DCMs</a></h3>
+<p>Spartan 3A (and 3A DSP) devices have 2, 4, or 8 DCMs:</p>
+<ul>
+<li>the devices with 2 DCMs have two DCMs at the top, close to <code>CLKT</code></li>
+<li>the devices with 4 DCMs have two DCMs at the top, close to <code>CLKT</code>, and two DCMs at the bottom, close to <code>CLKB</code> (like Spartan 3E)</li>
+<li>the devices with 8 DCMs have the 4 DCMs above, and also two DCMs on the left, close to <code>CLKL</code>, and two DCMs on the right, close to <code>CLKR</code></li>
+</ul>
+<p>The placement of the top and bottom holes is identical to Spartan 3E, except that devices with 2 DCMs have both DCMs in the top hole (which is 8×4 tiles), and no bottom hole. On the smallest device, the top DCM hole displaces BRAM tiles instead of CLB tiles.</p>
+<p>The left and right holes (present only on devices with 8 DCMs) work as follows:</p>
+<ul>
+<li>the hole spans 4 columns and 8 rows</li>
+<li>the hole spans rows from the 4th row below the horizontal clock spine to the 4th row above the horizontal clock spine</li>
+<li>the left hole spans from column 3 to column 6 (there is a space of 2 CLB columns between the DCM and the left IOIs)</li>
+<li>the right hole spans from column <code>width - 7</code> to <code>width - 4</code> (there is likewise a space of 2 CLB columns between the DCM and the right IOIs)</li>
+<li>the hole is always placed in the middle of a BRAM column (or, for Spartan 3A DSP devices, a BRAM column and a DSP column)</li>
+<li>the hole contains two <code>INT.DCM.*</code> tiles in the leftmost column, in the two rows closest to the horizontal clock spine; each of them is associated with a <code>DCM</code> tile</li>
+<li>remaining tiles of the hole have no <code>INT.*</code> tiles and interconnect passes right through them</li>
+</ul>
+<h2 id="clock-rows"><a class="header" href="#clock-rows">Clock rows</a></h2>
+<p>The device has some amount of clock rows. They exist in between interconnect rows, and are not counted in the coordinate system. Each clock row provides dedicated clock routing to some range of interconnect rows.</p>
+<p>On the intersection of every clock row and interconnect column there is a <code>GCLKH.*</code> tile, which distributes the clocks vertically to some segment of interconnect tiles.</p>
+<p>The horizontal clock lines in the clock row are driven from <code>GCLKVC.*</code> tiles at the intersections with the secondary vertical clock spines.</p>
+<p>The <code>xc3s50a</code> device is an exception — on that device, there is only one clock row (colocated with horizontal clock spine), and it is driven from the <code>CLKC_50A</code> tile at the intersection with primary vertical clock spine.</p>
+<h2 id="primary-vertical-clock-spine"><a class="header" href="#primary-vertical-clock-spine">Primary vertical clock spine</a></h2>
+<p>The device has a special column, called the primary vertical clock spine. It is located in between two interconnect columns, somewhere in the middle of the device. It is not counted in the coordinate system.</p>
+<p>The clock spine has special tiles dealing with clock interconnect:</p>
+<ul>
+<li>the bottom IOI row has the <code>CLKB.*</code> tile, with 4 <code>BUFGMUX</code> primitives</li>
+<li>the top IOI row has the <code>CLKT.*</code> tile, with 4 <code>BUFGMUX</code> primitives</li>
+<li>the intersection with horizontal clock spine has the <code>CLKC</code> tile, which buffers the vertical clock lines onto horizontal clock lines, going to <code>GCLKVM</code> tiles</li>
+<li>on <code>xc3s50a</code>, the <code>CLKC</code> tile is replaced with the <code>CLKC_50A</code> tile, which instead multiplexes the vertical and horizontal clock lines (from the horizontal clock spine) directly onto the clock row</li>
+</ul>
+<h2 id="horizontal-clock-spine"><a class="header" href="#horizontal-clock-spine">Horizontal clock spine</a></h2>
+<p>The device has a special row, called the horizontal clock spine. It is located in between two interconnect rows, exactly in the middle of the device. It is not counted in the coordinate system.</p>
+<p>The horizontal clock spine has special tiles dealing with clock interconnect:</p>
+<ul>
+<li>the left IOI column has the <code>CLKL.*</code> tile, with 8 <code>BUFGMUX</code> primitives and a <code>PCILOGICSE</code> primitive</li>
+<li>the right IOI column has the <code>CLKR.*</code> tile, with 8 <code>BUFGMUX</code> primitives and a <code>PCILOGICSE</code> primitive</li>
+<li>the intersection with the primary vertical clock spine has the <code>CLKC</code> tile, which buffers the vertical clock lines onto horizontal clock lines</li>
+<li>the intersections with the secondary vertical clock spines have <code>GCLKVM</code> tiles, which multiplex between clock signals from <code>CLKC</code> and <code>CLKL</code> or <code>CLKR</code>, and drive vertical clock lines towards <code>GCLKVC</code> tiles</li>
+<li>on <code>xc3s50a</code>, there are no <code>GCLKVM</code> tiles, and the <code>CLKC</code> tile is replaced with <code>CLKC_50A</code> that multiplexes the clocks and drives the clock row directly</li>
+</ul>
+<h2 id="secondary-vertical-clock-spines"><a class="header" href="#secondary-vertical-clock-spines">Secondary vertical clock spines</a></h2>
+<p>The device has two special columns, the left and right secondary vertical clock spines. Like the primary clock spine, they are located in between two interconnect columns and don't count towards the coordinate system. The secondary clock spines are located somewhere to the left and to the right of the primary clock spine, and together with the primary clock spine divide the device roughly in 4 equal parts.</p>
+<p>The secondary clock spines have special tiles dealing with clock interconnect:</p>
+<ul>
+<li>the intersection with the horizontal clock spine has a <code>GCLKVM</code> tile that multiplexes clocks signals and drives the vertical clock lines in the column</li>
+<li>the intersections with the clock rows have <code>GCLKVC</code> tiles that drive the horizontal clock signals in the clock row</li>
+</ul>
+<p>The <code>xc3s50a</code> device is special and doesn't have secondary clock spines.</p>
+<h2 id="io-banks-and-io-buffers"><a class="header" href="#io-banks-and-io-buffers">IO banks and IO buffers</a></h2>
+<p>Spartan 3 devices have 8 IO banks, numbered 0 through 7 in clockwise fashion:</p>
+<ul>
+<li>0: top IO row, to the left of primary clock spine</li>
+<li>1: top IO row, to the right of primary clock spine</li>
+<li>2: right IO column, top half</li>
+<li>3: right IO column, bottom half</li>
+<li>4: bottom IO row, to the right of primary clock spine</li>
+<li>5: bottom IO row, to the left of primary clock spine</li>
+<li>6: left IO column, bottom half</li>
+<li>7: left IO column, top half</li>
+</ul>
+<p>Spartan 3E and 3A devices have 4 IO banks, numbered 0 through 3 in clockwise fashion:</p>
+<ul>
+<li>0: top IO row</li>
+<li>1: right IO column</li>
+<li>2: bottom IO row</li>
+<li>3: left IO column</li>
+</ul>
+<p>The edges of the device have <code>IOI.*</code> tiles, each of which contains 3 or 2 <code>IOI</code> (IO interface) primitives that implement IO registers. However, not all <code>IOI</code> primitives have an associated IO buffer.</p>
+<p>The IO buffers live in special <code>IOBS.*</code> tiles, contained in:</p>
+<ul>
+<li>top IOB row, above the top IOI row</li>
+<li>bottom IOB row, below the bottom IOI row</li>
+<li>left IOB column, to the left of the left IOI column</li>
+<li>right IOB column, to the right of the right IOI column</li>
+</ul>
+<p>The <code>IOBS.*</code> tiles come in multiple variants, and can span one or two <code>IOI</code> tiles.</p>
+<p>TODO: more details</p>
+<h2 id="bitstream-geometry"><a class="header" href="#bitstream-geometry">Bitstream geometry</a></h2>
+<p>The bitstream is made of frames, which come in three types:</p>
+<ul>
+<li>0: main area</li>
+<li>1: BRAM data area</li>
+<li>2: BRAM interconnect area</li>
+</ul>
+<p>Frames are identified by their type, major and minor numbers. The major number identifies a column (interconnect column, clock spine, or IOB column), and the minor number identifies a frame within a column. The major numbers are counted separately for each type of frame.</p>
+<p>The main area contains the following columns, in order (with major numbers assigned sequentially from 0, one for each column):</p>
+<ul>
+<li>a special column for the vertical clock spines (2, 3, or 4 frames)
+<ul>
+<li>Spartan 3 devices and Spartan 3E devices without <code>LL*</code> tiles have 3 frames
+<ul>
+<li>frame 0 corresponds to left secondary clock spine</li>
+<li>frame 1 corresponds to right secondary clock spine</li>
+<li>frame 2 corresponds to primary clock spine</li>
+</ul>
+</li>
+<li>Spartan 3E devices with <code>LL*</code> tiles and Spartan 3A devices other than <code>xc3s50a</code> have 4 frames
+<ul>
+<li>frames 0-1 are allocated as above</li>
+<li>frames 2-3 correspond to primary clock spine</li>
+</ul>
+</li>
+<li>the <code>xc3s50a</code> device has 2 frames, corresponding to the primary clock spine</li>
+</ul>
+</li>
+<li>the left IOB column (2 frames)</li>
+<li>the left IOI column (19 frames)</li>
+<li>the CLB and DSP columns, in order (19 frames each)</li>
+<li>the right IOI column (19 frames)</li>
+<li>the right IOB column (2 frames)</li>
+</ul>
+<p>The BRAM data area contains 76 frames for each BRAM column, in order from left. The major numbers are assigned sequentially for each BRAM column starting from 0.</p>
+<p>The BRAM interconnect area contains 19 frames for each BRAM column, in order from left. The major numbers are assigned sequentially for each BRAM column starting from 0.</p>
+<p>On Spartan 3E and 3A, the BRAM tiles are special in that they span several interconnect columns. The data for interconnect columns is placed as follows:</p>
+<ul>
+<li>the leftmost interconnect column (which has <code>INT.*</code> for (almost) the whole height of the device) is placed in the BRAM interconnect area</li>
+<li>the remaining interconnect columns, where they have <code>INT.*</code> tiles, are placed in the BRAM data area (which, in the relevant rows, is not used for actual BRAM data):
+<ul>
+<li>column 1 of the hole is placed in frames 0-18 of the BRAM data area</li>
+<li>column 2 of the hole is placed in frames 19-37 of the BRAM data area</li>
+<li>column 3 of the hole (on devices other than Spartan 3A DSP) is placed in frames 38-56 of the BRAM data area</li>
+</ul>
+</li>
+</ul>
+<p>For example, <code>xc3s100e</code> has the following frames (<code>type.major.minor</code>):</p>
+<ul>
+<li><code>0.0.0-2</code>: clock spines</li>
+<li><code>0.1.0-1</code>: left IOB column</li>
+<li><code>0.2.0-18</code>: left IOI column (interconnect X == 0)</li>
+<li><code>0.3.0-18</code>: CLB column 1 (interconnect X == 1)</li>
+<li><code>0.4.0-18</code>: CLB column 2 (interconnect X == 2)</li>
+<li><code>0.5.0-18</code>: CLB column 3 (interconnect X == 7)</li>
+<li><code>0.6.0-18</code>: CLB column 4 (interconnect X == 8)</li>
+<li><code>0.7.0-18</code>: CLB column 5 (interconnect X == 9)</li>
+<li><code>0.8.0-18</code>: CLB column 6 (interconnect X == 10)</li>
+<li><code>0.9.0-18</code>: CLB column 7 (interconnect X == 11)</li>
+<li><code>0.10.0-18</code>: CLB column 8 (interconnect X == 12)</li>
+<li><code>0.11.0-18</code>: CLB column 9 (interconnect X == 13)</li>
+<li><code>0.12.0-18</code>: CLB column 10 (interconnect X == 14)</li>
+<li><code>0.13.0-18</code>: CLB column 11 (interconnect X == 15)</li>
+<li><code>0.14.0-18</code>: CLB column 12 (interconnect X == 16)</li>
+<li><code>0.15.0-18</code>: right IOI column (interconnect X == 17)</li>
+<li><code>0.16.0-1</code>: right IOB column</li>
+<li><code>1.0.0-75</code>: BRAM column 1 data
+<ul>
+<li><code>1.0.0-18</code>: data for CLBs in interconnect X == 4</li>
+<li><code>1.0.18-37</code>: data for CLBs in interconnect X == 5</li>
+<li><code>1.0.38-56</code>: data for CLBs in interconnect X == 6</li>
+</ul>
+</li>
+<li><code>2.0.0-18</code>: BRAM column 1 interconnect (interconnect X == 3)</li>
+</ul>
+<p>Each bitstream frame within a device has the same size. The size is <code>32 + num_interconnect_rows * 64</code> bits. The bits are, in order:</p>
+<ul>
+<li>16 special bits, assigned as follows:
+<ul>
+<li>Spartan 3 and Spartan 3E:
+<ul>
+<li>bits 0-3: clock rows in bottom half of the device (one bit per clock row, in order from bottom), then one bit for <code>LLV</code> tiles (if any)</li>
+<li>bits 7-11: bottom IOB row</li>
+</ul>
+</li>
+<li>Spartan 3A (and 3A DSP):
+<ul>
+<li>bits 0-5: bottom IOB row</li>
+<li>bits 11-15: clock rows in bottom half of the device (one bit per clock row, in order from bottom)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>64 bits for every interconnect row, in order</li>
+<li>16 special bits, assigned as follows:
+<ul>
+<li>Spartan 3 and Spartan 3E:
+<ul>
+<li>bits 0-4: bottom IOB row</li>
+<li>bits 12-15 (devices without <code>LLV</code> tiles): clock rows in top half of the device (one bit per clock row, in order from top)</li>
+<li>bits 11-15 (devices with <code>LLV</code> tiles): clock rows in top half of the device (one bit per clock row, in order from top), then two bits for <code>LLV</code> tiles</li>
+</ul>
+</li>
+<li>Spartan 3A (and 3A DSP):
+<ul>
+<li>bits 0-5: bottom IOB row</li>
+<li>bits 8-10: <code>LLV</code> tiles</li>
+<li>bits 11-15: clock rows in top half of the device (one bit per clock row, in order from top)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Thus, every interconnect tile corresponds to a bitstream tile of 19×64 bits. Such bitstream tiles are shared between the interconnect tiles and their associated primitives.</p>
+<p>The IOB row tiles are 19×5 or 19×6 bits, and belong to <code>IOBS.*</code> tiles. Likewise, IOB column tiles are 2×64 bits and are belong to <code>IOBS.*</code>.  The corner tiles also reuse some tiles in IOB area with the same dimensions.</p>
+<p>Blockram data tiles are 76×256 bits (corresponding to 4 interconnect rows). The blockram data frame space to non-BRAM rows is repurposed for interconnect tile storage as described above.</p>
+<p>The space in the intersection of IOB columns and IOB or clock rows is unused.</p>
+<p>On Spartan 3E, the <code>LLV</code> tiles are split in two parts, a 19×1 one in the low special area, and a 19×2 one in the high special area. On Spartan 3A, <code>LLV</code> tiles are 19×3 bits.</p>
+<p>The <code>GCLKH</code> tiles have 19×1 bits.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../spartan3/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../spartan3/interconnect/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../spartan3/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../spartan3/interconnect/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

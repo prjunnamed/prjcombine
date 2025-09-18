@@ -1,0 +1,317 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Device geometry - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="device-geometry"><a class="header" href="#device-geometry">Device geometry</a></h1>
+<p>The SiliconBlue devices up to iCE40R04 largely follow the classic column-based FPGA structure, with IO surrounding the device:</p>
+<ul>
+<li>every cell in the westernmost column (except for corners) contains an <code>IOI_W</code> tile and an <code>IOB_W</code> tile</li>
+<li>every cell in the easternmost column (except for corners) contains an <code>IOI_E</code> tile and an <code>IOB_E</code> tile</li>
+<li>every cell in the southmost row (except for corners) contains an <code>IOI_S</code> tile and an <code>IOB_S</code> tile</li>
+<li>every cell in the northmost row (except for corners) contains an <code>IOI_N</code> tile and an <code>IOB_N</code> tile</li>
+<li>each of the <code>IOI_*</code> tiles contains two IO bels (with I/O registers); each of the <code>IOB_*</code> tiles contains two corresponding IOB bels</li>
+<li>there are 5 IO banks in the device:
+<ul>
+<li>bank 0 (<code>IOB_N</code> tiles)</li>
+<li>bank 1 (<code>IOB_E</code> tiles)</li>
+<li>bank 2 (<code>IOB_S</code> tiles except the ones included in SPI bank)</li>
+<li>bank 3 (<code>IOB_W</code> tiles)</li>
+<li>SPI bank (known as bank 4 in Project Combine), containing just the 2 <code>IOB_S</code> tiles involved in the SPI configuration interface</li>
+</ul>
+</li>
+<li>the corner cells are empty</li>
+<li>two columns of the device are designated as BRAM columns
+<ul>
+<li>they are located at around ¼ and ¾ of the device</li>
+<li>every cell of the column (excluding the southmost and northmost ones) contains an <code>INT_BRAM</code> tile</li>
+<li>there is a <code>BRAM</code> cell for every two <code>INT_BRAM</code> cells, with a single block RAM primitive</li>
+<li>the iCE40P03 device is an exception; it does not have any BRAM columns</li>
+</ul>
+</li>
+<li>all remaining cells contain one <code>PLB</code> tile
+<ul>
+<li>each <code>PLB</code> tile contains 8 "logic cells"</li>
+<li>a "logic cell" consists of a LUT4, a register, and a carry primitive</li>
+</ul>
+</li>
+<li>PLLs and other "miscellaneous" bels have irregular placement, are largely outside of the tile structure
+<ul>
+<li>input interconnect is borrowed from IO tiles, which have one extra input multiplexer each</li>
+<li>output interconnect is connected at the corners, which otherwise have no interconnect at all</li>
+</ul>
+</li>
+</ul>
+<p>The new iCE40R04 hard IP was added in a rather cursed way: instead of integrating it into the device structure in any ordinary way, it was added at the west and east edges of the device, replacing the I/O buffers (<code>IOB_W</code> and <code>IOB_E</code> tiles), while reusing the IO tiles as interconnect.  The IO logic part of the tiles is still present (including the IO registers), and has to be configured in "bypass" combinational mode to actually make use of the hard IP.  IO banks 1 and 3 are thus entirely gone, replaced by the hard IP.</p>
+<p>The iCE40T0* series does different, but similar crimes:</p>
+<ul>
+<li>the <code>IOI_W</code> and <code>IOI_E</code> tiles are gone, replaced by more <code>PLB</code> tiles</li>
+<li>the <code>PLB</code> cells in the westernmost and easternmost columns are, however, special
+<ul>
+<li>the input multiplexers to the LUTs are used as inputs to hard IP blocks (thus likely making them unusable as actual LUT inputs)</li>
+<li>the "cascade" inputs to the LUTs are not connected to the previous LUT as usual; instead, they are connected to the outputs of the hard IP blocks</li>
+<li>to use the hard IP block outputs, the relevant LUTs should thus be configured to a "bypass" configuration from the cascade inputs</li>
+<li>on the <code>iCE40T01</code> device, only the three southmost and three northmost <code>PLB</code> tiles in these columns are special; the rest have normal cascade connections and no associated hard IP</li>
+</ul>
+</li>
+<li>the corner cells are still empty</li>
+<li>there are 3 IO banks in the device:
+<ul>
+<li>bank 0 (<code>IOB_N</code> tiles)</li>
+<li>bank 1 (eastern <code>IOB_S</code> tiles; includes the SPI configuration interface)</li>
+<li>bank 2 (western <code>IOB_S</code> tiles)</li>
+</ul>
+</li>
+</ul>
+<h2 id="bitstream-geometry"><a class="header" href="#bitstream-geometry">Bitstream geometry</a></h2>
+<p>The bitstream is split into two areas: the BRAM area, containing BRAM initialization data, and the main area, containing everything else.</p>
+<p>Both areas are split into 4 banks (unrelated to the IO banks):</p>
+<ul>
+<li>bank 0: southwest quadrant of the device</li>
+<li>bank 1: northwest quadrant</li>
+<li>bank 2: southeast quadrant</li>
+<li>bank 3: northeast quadrant</li>
+</ul>
+<p>The boundary between west and east quadrants of the device goes through the exact middle of the device.  The boundary between south and north quadrants varies, and can be quite far from the geometric center.  It is stored in the database as the <code>row_mid</code> field.</p>
+<p>Every bank is a 2D array of configuration bits:</p>
+<ul>
+<li>each bank is divided into many "frames" of equal lengths</li>
+<li>for the main area:
+<ul>
+<li>each row corresponds to exactly 16 frames</li>
+<li>the rows and frames are enumerated starting from the outside and going towards the middle</li>
+<li>the frame numbers in the database are always counted from the south
+<ul>
+<li>for the southern quadrants, the numbering matches frame order within the bitstream</li>
+<li>for the northern quadrants, the numbering is reversed wrt the bitstream</li>
+</ul>
+</li>
+<li>each column corresponds to some amount of bits within a frame:
+<ul>
+<li>an <code>IOI_W</code> or <code>IOI_E</code> column corresponds to 18 bits</li>
+<li>a BRAM column corresponds to 42 bits</li>
+<li>a PLB column corresponds to 54 bits</li>
+</ul>
+</li>
+<li>the columns and bits within columns are likewise enumerated starting from the outside and going towards the middle</li>
+<li>the bit numbers in the database are always counted from the west
+<ul>
+<li>for the western quadrants, the numbering matches bit order within the frame</li>
+<li>for the eastern quadrants, the numbering is reversed wrt the bitstream order</li>
+</ul>
+</li>
+<li>in addition to all the ordinary columns, there are two extra bits at the end of every frame, containing configuration for the global clocks and the iCE65 PLL
+<ul>
+<li>the two 2×16 bittiles at the northeast corner of bank 0 and southeast corner of bank 1 configure global clocks; they are represented as the <code>GB_ROOT</code> tile in the database</li>
+<li>on the iCE65P04 only, the two 2×16 bittiles at southeast corner of bank 0 and southwest corner of bank 2 configure the PLL</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>for the BRAM area:
+<ul>
+<li>there are exactly <code>0x100</code> frames</li>
+<li>each frame consists of 16 bits for each <code>BRAM</code> tile within the quadrant, starting from the south</li>
+<li>the bits in the database are always in bitstream order</li>
+</ul>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../siliconblue/index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../siliconblue/interconnect.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../siliconblue/index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../siliconblue/interconnect.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

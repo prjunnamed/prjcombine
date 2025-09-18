@@ -1,0 +1,986 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>DSP - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="dsp"><a class="header" href="#dsp">DSP</a></h1>
+<p>TODO: document</p>
+<h2 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h2>
+<p>The data for a DSP is spread across the 4 bitstream tiles belonging to the corresponding <code>INT</code> tiles, in order from the bottom row.</p>
+<h2 id="tile-dsp"><a class="header" href="#tile-dsp">Tile DSP</a></h2>
+<p>Cells: 4</p>
+<h3 id="bel-dsp"><a class="header" href="#bel-dsp">Bel DSP</a></h3>
+<div class="table-wrapper"><table>
+<caption>spartan3 DSP bel DSP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>A0</td><td>input</td><td>TCELL1:IMUX.FAN.BX0</td></tr>
+<tr><td>A1</td><td>input</td><td>TCELL1:IMUX.FAN.BY0</td></tr>
+<tr><td>A10</td><td>input</td><td>TCELL2:IMUX.FAN.BY0</td></tr>
+<tr><td>A11</td><td>input</td><td>TCELL2:IMUX.FAN.BX2</td></tr>
+<tr><td>A12</td><td>input</td><td>TCELL2:IMUX.FAN.BY2</td></tr>
+<tr><td>A13</td><td>input</td><td>TCELL2:IMUX.FAN.BX1</td></tr>
+<tr><td>A14</td><td>input</td><td>TCELL2:IMUX.FAN.BY1</td></tr>
+<tr><td>A15</td><td>input</td><td>TCELL2:IMUX.FAN.BX3</td></tr>
+<tr><td>A16</td><td>input</td><td>TCELL2:IMUX.FAN.BY3</td></tr>
+<tr><td>A17</td><td>input</td><td>TCELL2:IMUX.DATA2</td></tr>
+<tr><td>A2</td><td>input</td><td>TCELL1:IMUX.FAN.BX2</td></tr>
+<tr><td>A3</td><td>input</td><td>TCELL1:IMUX.FAN.BY2</td></tr>
+<tr><td>A4</td><td>input</td><td>TCELL1:IMUX.FAN.BX1</td></tr>
+<tr><td>A5</td><td>input</td><td>TCELL1:IMUX.FAN.BY1</td></tr>
+<tr><td>A6</td><td>input</td><td>TCELL1:IMUX.FAN.BX3</td></tr>
+<tr><td>A7</td><td>input</td><td>TCELL1:IMUX.FAN.BY3</td></tr>
+<tr><td>A8</td><td>input</td><td>TCELL1:IMUX.DATA2</td></tr>
+<tr><td>A9</td><td>input</td><td>TCELL2:IMUX.FAN.BX0</td></tr>
+<tr><td>B0</td><td>input</td><td>TCELL0:IMUX.DATA1</td></tr>
+<tr><td>B1</td><td>input</td><td>TCELL0:IMUX.DATA17</td></tr>
+<tr><td>B10</td><td>input</td><td>TCELL3:IMUX.DATA30</td></tr>
+<tr><td>B11</td><td>input</td><td>TCELL3:IMUX.FAN.BY0</td></tr>
+<tr><td>B12</td><td>input</td><td>TCELL3:IMUX.FAN.BY2</td></tr>
+<tr><td>B13</td><td>input</td><td>TCELL3:IMUX.FAN.BY1</td></tr>
+<tr><td>B14</td><td>input</td><td>TCELL3:IMUX.FAN.BY3</td></tr>
+<tr><td>B15</td><td>input</td><td>TCELL3:IMUX.DATA5</td></tr>
+<tr><td>B16</td><td>input</td><td>TCELL3:IMUX.DATA10</td></tr>
+<tr><td>B17</td><td>input</td><td>TCELL3:IMUX.DATA26</td></tr>
+<tr><td>B2</td><td>input</td><td>TCELL0:IMUX.DATA22</td></tr>
+<tr><td>B3</td><td>input</td><td>TCELL0:IMUX.FAN.BY1</td></tr>
+<tr><td>B4</td><td>input</td><td>TCELL0:IMUX.FAN.BY2</td></tr>
+<tr><td>B5</td><td>input</td><td>TCELL0:IMUX.FAN.BY0</td></tr>
+<tr><td>B6</td><td>input</td><td>TCELL0:IMUX.FAN.BY3</td></tr>
+<tr><td>B7</td><td>input</td><td>TCELL0:IMUX.DATA13</td></tr>
+<tr><td>B8</td><td>input</td><td>TCELL0:IMUX.DATA10</td></tr>
+<tr><td>B9</td><td>input</td><td>TCELL0:IMUX.DATA26</td></tr>
+<tr><td>C0</td><td>input</td><td>TCELL0:IMUX.DATA6</td></tr>
+<tr><td>C1</td><td>input</td><td>TCELL0:IMUX.DATA14</td></tr>
+<tr><td>C10</td><td>input</td><td>TCELL0:IMUX.DATA29</td></tr>
+<tr><td>C11</td><td>input</td><td>TCELL0:IMUX.DATA21</td></tr>
+<tr><td>C12</td><td>input</td><td>TCELL1:IMUX.DATA6</td></tr>
+<tr><td>C13</td><td>input</td><td>TCELL1:IMUX.DATA14</td></tr>
+<tr><td>C14</td><td>input</td><td>TCELL1:IMUX.DATA11</td></tr>
+<tr><td>C15</td><td>input</td><td>TCELL1:IMUX.DATA3</td></tr>
+<tr><td>C16</td><td>input</td><td>TCELL1:IMUX.DATA27</td></tr>
+<tr><td>C17</td><td>input</td><td>TCELL1:IMUX.DATA19</td></tr>
+<tr><td>C18</td><td>input</td><td>TCELL1:IMUX.DATA0</td></tr>
+<tr><td>C19</td><td>input</td><td>TCELL1:IMUX.DATA8</td></tr>
+<tr><td>C2</td><td>input</td><td>TCELL0:IMUX.DATA11</td></tr>
+<tr><td>C20</td><td>input</td><td>TCELL1:IMUX.DATA16</td></tr>
+<tr><td>C21</td><td>input</td><td>TCELL1:IMUX.DATA24</td></tr>
+<tr><td>C22</td><td>input</td><td>TCELL1:IMUX.DATA29</td></tr>
+<tr><td>C23</td><td>input</td><td>TCELL1:IMUX.DATA21</td></tr>
+<tr><td>C24</td><td>input</td><td>TCELL2:IMUX.DATA6</td></tr>
+<tr><td>C25</td><td>input</td><td>TCELL2:IMUX.DATA14</td></tr>
+<tr><td>C26</td><td>input</td><td>TCELL2:IMUX.DATA11</td></tr>
+<tr><td>C27</td><td>input</td><td>TCELL2:IMUX.DATA3</td></tr>
+<tr><td>C28</td><td>input</td><td>TCELL2:IMUX.DATA27</td></tr>
+<tr><td>C29</td><td>input</td><td>TCELL2:IMUX.DATA19</td></tr>
+<tr><td>C3</td><td>input</td><td>TCELL0:IMUX.DATA3</td></tr>
+<tr><td>C30</td><td>input</td><td>TCELL2:IMUX.DATA0</td></tr>
+<tr><td>C31</td><td>input</td><td>TCELL2:IMUX.DATA8</td></tr>
+<tr><td>C32</td><td>input</td><td>TCELL2:IMUX.DATA16</td></tr>
+<tr><td>C33</td><td>input</td><td>TCELL2:IMUX.DATA24</td></tr>
+<tr><td>C34</td><td>input</td><td>TCELL2:IMUX.DATA29</td></tr>
+<tr><td>C35</td><td>input</td><td>TCELL2:IMUX.DATA21</td></tr>
+<tr><td>C36</td><td>input</td><td>TCELL3:IMUX.DATA6</td></tr>
+<tr><td>C37</td><td>input</td><td>TCELL3:IMUX.DATA14</td></tr>
+<tr><td>C38</td><td>input</td><td>TCELL3:IMUX.DATA11</td></tr>
+<tr><td>C39</td><td>input</td><td>TCELL3:IMUX.DATA3</td></tr>
+<tr><td>C4</td><td>input</td><td>TCELL0:IMUX.DATA27</td></tr>
+<tr><td>C40</td><td>input</td><td>TCELL3:IMUX.DATA27</td></tr>
+<tr><td>C41</td><td>input</td><td>TCELL3:IMUX.DATA19</td></tr>
+<tr><td>C42</td><td>input</td><td>TCELL3:IMUX.DATA0</td></tr>
+<tr><td>C43</td><td>input</td><td>TCELL3:IMUX.DATA8</td></tr>
+<tr><td>C44</td><td>input</td><td>TCELL3:IMUX.DATA16</td></tr>
+<tr><td>C45</td><td>input</td><td>TCELL3:IMUX.DATA24</td></tr>
+<tr><td>C46</td><td>input</td><td>TCELL3:IMUX.DATA29</td></tr>
+<tr><td>C47</td><td>input</td><td>TCELL3:IMUX.DATA21</td></tr>
+<tr><td>C5</td><td>input</td><td>TCELL0:IMUX.DATA19</td></tr>
+<tr><td>C6</td><td>input</td><td>TCELL0:IMUX.DATA0</td></tr>
+<tr><td>C7</td><td>input</td><td>TCELL0:IMUX.DATA8</td></tr>
+<tr><td>C8</td><td>input</td><td>TCELL0:IMUX.DATA16</td></tr>
+<tr><td>C9</td><td>input</td><td>TCELL0:IMUX.DATA24</td></tr>
+<tr><td>CEA</td><td>input</td><td>TCELL3:IMUX.CE0</td></tr>
+<tr><td>CEB</td><td>input</td><td>TCELL3:IMUX.CE1</td></tr>
+<tr><td>CEC</td><td>input</td><td>TCELL3:IMUX.CE2</td></tr>
+<tr><td>CECARRYIN</td><td>input</td><td>TCELL2:IMUX.CE3</td></tr>
+<tr><td>CED</td><td>input</td><td>TCELL3:IMUX.CE3</td></tr>
+<tr><td>CEM</td><td>input</td><td>TCELL2:IMUX.CE2</td></tr>
+<tr><td>CEOPMODE</td><td>input</td><td>TCELL2:IMUX.CE0</td></tr>
+<tr><td>CEP</td><td>input</td><td>TCELL2:IMUX.CE1</td></tr>
+<tr><td>CLK</td><td>input</td><td>TCELL2:IMUX.CLK3</td></tr>
+<tr><td>D0</td><td>input</td><td>TCELL0:IMUX.DATA9</td></tr>
+<tr><td>D1</td><td>input</td><td>TCELL0:IMUX.DATA25</td></tr>
+<tr><td>D10</td><td>input</td><td>TCELL3:IMUX.DATA22</td></tr>
+<tr><td>D11</td><td>input</td><td>TCELL3:IMUX.FAN.BX0</td></tr>
+<tr><td>D12</td><td>input</td><td>TCELL3:IMUX.FAN.BX2</td></tr>
+<tr><td>D13</td><td>input</td><td>TCELL3:IMUX.FAN.BX1</td></tr>
+<tr><td>D14</td><td>input</td><td>TCELL3:IMUX.FAN.BX3</td></tr>
+<tr><td>D15</td><td>input</td><td>TCELL3:IMUX.DATA13</td></tr>
+<tr><td>D16</td><td>input</td><td>TCELL3:IMUX.DATA2</td></tr>
+<tr><td>D17</td><td>input</td><td>TCELL3:IMUX.DATA18</td></tr>
+<tr><td>D2</td><td>input</td><td>TCELL0:IMUX.DATA30</td></tr>
+<tr><td>D3</td><td>input</td><td>TCELL0:IMUX.FAN.BX0</td></tr>
+<tr><td>D4</td><td>input</td><td>TCELL0:IMUX.FAN.BX2</td></tr>
+<tr><td>D5</td><td>input</td><td>TCELL0:IMUX.FAN.BX1</td></tr>
+<tr><td>D6</td><td>input</td><td>TCELL0:IMUX.FAN.BX3</td></tr>
+<tr><td>D7</td><td>input</td><td>TCELL0:IMUX.DATA5</td></tr>
+<tr><td>D8</td><td>input</td><td>TCELL0:IMUX.DATA2</td></tr>
+<tr><td>D9</td><td>input</td><td>TCELL0:IMUX.DATA18</td></tr>
+<tr><td>OPMODE0</td><td>input</td><td>TCELL1:IMUX.DATA1</td></tr>
+<tr><td>OPMODE1</td><td>input</td><td>TCELL1:IMUX.DATA9</td></tr>
+<tr><td>OPMODE2</td><td>input</td><td>TCELL1:IMUX.DATA17</td></tr>
+<tr><td>OPMODE3</td><td>input</td><td>TCELL1:IMUX.DATA25</td></tr>
+<tr><td>OPMODE4</td><td>input</td><td>TCELL1:IMUX.DATA13</td></tr>
+<tr><td>OPMODE5</td><td>input</td><td>TCELL1:IMUX.DATA30</td></tr>
+<tr><td>OPMODE6</td><td>input</td><td>TCELL1:IMUX.DATA5</td></tr>
+<tr><td>OPMODE7</td><td>input</td><td>TCELL1:IMUX.DATA22</td></tr>
+<tr><td>P0</td><td>output</td><td>TCELL0:OUT.FAN6.TMIN</td></tr>
+<tr><td>P1</td><td>output</td><td>TCELL0:OUT.FAN1.TMIN</td></tr>
+<tr><td>P10</td><td>output</td><td>TCELL0:OUT.SEC15.TMIN</td></tr>
+<tr><td>P11</td><td>output</td><td>TCELL0:OUT.SEC14.TMIN</td></tr>
+<tr><td>P12</td><td>output</td><td>TCELL1:OUT.FAN6.TMIN</td></tr>
+<tr><td>P13</td><td>output</td><td>TCELL1:OUT.FAN1.TMIN</td></tr>
+<tr><td>P14</td><td>output</td><td>TCELL1:OUT.FAN0.TMIN</td></tr>
+<tr><td>P15</td><td>output</td><td>TCELL1:OUT.FAN5.TMIN</td></tr>
+<tr><td>P16</td><td>output</td><td>TCELL1:OUT.FAN4.TMIN</td></tr>
+<tr><td>P17</td><td>output</td><td>TCELL1:OUT.SEC13.TMIN</td></tr>
+<tr><td>P18</td><td>output</td><td>TCELL1:OUT.SEC12.TMIN</td></tr>
+<tr><td>P19</td><td>output</td><td>TCELL1:OUT.FAN3.TMIN</td></tr>
+<tr><td>P2</td><td>output</td><td>TCELL0:OUT.FAN0.TMIN</td></tr>
+<tr><td>P20</td><td>output</td><td>TCELL1:OUT.FAN2.TMIN</td></tr>
+<tr><td>P21</td><td>output</td><td>TCELL1:OUT.FAN7.TMIN</td></tr>
+<tr><td>P22</td><td>output</td><td>TCELL1:OUT.SEC15.TMIN</td></tr>
+<tr><td>P23</td><td>output</td><td>TCELL1:OUT.SEC14.TMIN</td></tr>
+<tr><td>P24</td><td>output</td><td>TCELL2:OUT.FAN6.TMIN</td></tr>
+<tr><td>P25</td><td>output</td><td>TCELL2:OUT.FAN1.TMIN</td></tr>
+<tr><td>P26</td><td>output</td><td>TCELL2:OUT.FAN0.TMIN</td></tr>
+<tr><td>P27</td><td>output</td><td>TCELL2:OUT.FAN5.TMIN</td></tr>
+<tr><td>P28</td><td>output</td><td>TCELL2:OUT.FAN4.TMIN</td></tr>
+<tr><td>P29</td><td>output</td><td>TCELL2:OUT.SEC13.TMIN</td></tr>
+<tr><td>P3</td><td>output</td><td>TCELL0:OUT.FAN5.TMIN</td></tr>
+<tr><td>P30</td><td>output</td><td>TCELL2:OUT.SEC12.TMIN</td></tr>
+<tr><td>P31</td><td>output</td><td>TCELL2:OUT.FAN3.TMIN</td></tr>
+<tr><td>P32</td><td>output</td><td>TCELL2:OUT.FAN2.TMIN</td></tr>
+<tr><td>P33</td><td>output</td><td>TCELL2:OUT.FAN7.TMIN</td></tr>
+<tr><td>P34</td><td>output</td><td>TCELL2:OUT.SEC15.TMIN</td></tr>
+<tr><td>P35</td><td>output</td><td>TCELL2:OUT.SEC14.TMIN</td></tr>
+<tr><td>P36</td><td>output</td><td>TCELL3:OUT.FAN6.TMIN</td></tr>
+<tr><td>P37</td><td>output</td><td>TCELL3:OUT.FAN1.TMIN</td></tr>
+<tr><td>P38</td><td>output</td><td>TCELL3:OUT.FAN0.TMIN</td></tr>
+<tr><td>P39</td><td>output</td><td>TCELL3:OUT.FAN5.TMIN</td></tr>
+<tr><td>P4</td><td>output</td><td>TCELL0:OUT.FAN4.TMIN</td></tr>
+<tr><td>P40</td><td>output</td><td>TCELL3:OUT.FAN4.TMIN</td></tr>
+<tr><td>P41</td><td>output</td><td>TCELL3:OUT.SEC13.TMIN</td></tr>
+<tr><td>P42</td><td>output</td><td>TCELL3:OUT.SEC12.TMIN</td></tr>
+<tr><td>P43</td><td>output</td><td>TCELL3:OUT.FAN3.TMIN</td></tr>
+<tr><td>P44</td><td>output</td><td>TCELL3:OUT.FAN2.TMIN</td></tr>
+<tr><td>P45</td><td>output</td><td>TCELL3:OUT.FAN7.TMIN</td></tr>
+<tr><td>P46</td><td>output</td><td>TCELL3:OUT.SEC15.TMIN</td></tr>
+<tr><td>P47</td><td>output</td><td>TCELL3:OUT.SEC14.TMIN</td></tr>
+<tr><td>P5</td><td>output</td><td>TCELL0:OUT.SEC13.TMIN</td></tr>
+<tr><td>P6</td><td>output</td><td>TCELL0:OUT.SEC12.TMIN</td></tr>
+<tr><td>P7</td><td>output</td><td>TCELL0:OUT.FAN3.TMIN</td></tr>
+<tr><td>P8</td><td>output</td><td>TCELL0:OUT.FAN2.TMIN</td></tr>
+<tr><td>P9</td><td>output</td><td>TCELL0:OUT.FAN7.TMIN</td></tr>
+<tr><td>RSTA</td><td>input</td><td>TCELL0:IMUX.SR0</td></tr>
+<tr><td>RSTB</td><td>input</td><td>TCELL0:IMUX.SR1</td></tr>
+<tr><td>RSTC</td><td>input</td><td>TCELL0:IMUX.SR2</td></tr>
+<tr><td>RSTCARRYIN</td><td>input</td><td>TCELL1:IMUX.SR3</td></tr>
+<tr><td>RSTD</td><td>input</td><td>TCELL0:IMUX.SR3</td></tr>
+<tr><td>RSTM</td><td>input</td><td>TCELL1:IMUX.SR2</td></tr>
+<tr><td>RSTOPMODE</td><td>input</td><td>TCELL1:IMUX.SR0</td></tr>
+<tr><td>RSTP</td><td>input</td><td>TCELL1:IMUX.SR1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>spartan3 DSP bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.SR0</td><td>DSP.RSTA</td></tr>
+<tr><td>TCELL0:IMUX.SR1</td><td>DSP.RSTB</td></tr>
+<tr><td>TCELL0:IMUX.SR2</td><td>DSP.RSTC</td></tr>
+<tr><td>TCELL0:IMUX.SR3</td><td>DSP.RSTD</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BX0</td><td>DSP.D3</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BX1</td><td>DSP.D5</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BX2</td><td>DSP.D4</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BX3</td><td>DSP.D6</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BY0</td><td>DSP.B5</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BY1</td><td>DSP.B3</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BY2</td><td>DSP.B4</td></tr>
+<tr><td>TCELL0:IMUX.FAN.BY3</td><td>DSP.B6</td></tr>
+<tr><td>TCELL0:IMUX.DATA0</td><td>DSP.C6</td></tr>
+<tr><td>TCELL0:IMUX.DATA1</td><td>DSP.B0</td></tr>
+<tr><td>TCELL0:IMUX.DATA2</td><td>DSP.D8</td></tr>
+<tr><td>TCELL0:IMUX.DATA3</td><td>DSP.C3</td></tr>
+<tr><td>TCELL0:IMUX.DATA5</td><td>DSP.D7</td></tr>
+<tr><td>TCELL0:IMUX.DATA6</td><td>DSP.C0</td></tr>
+<tr><td>TCELL0:IMUX.DATA8</td><td>DSP.C7</td></tr>
+<tr><td>TCELL0:IMUX.DATA9</td><td>DSP.D0</td></tr>
+<tr><td>TCELL0:IMUX.DATA10</td><td>DSP.B8</td></tr>
+<tr><td>TCELL0:IMUX.DATA11</td><td>DSP.C2</td></tr>
+<tr><td>TCELL0:IMUX.DATA13</td><td>DSP.B7</td></tr>
+<tr><td>TCELL0:IMUX.DATA14</td><td>DSP.C1</td></tr>
+<tr><td>TCELL0:IMUX.DATA16</td><td>DSP.C8</td></tr>
+<tr><td>TCELL0:IMUX.DATA17</td><td>DSP.B1</td></tr>
+<tr><td>TCELL0:IMUX.DATA18</td><td>DSP.D9</td></tr>
+<tr><td>TCELL0:IMUX.DATA19</td><td>DSP.C5</td></tr>
+<tr><td>TCELL0:IMUX.DATA21</td><td>DSP.C11</td></tr>
+<tr><td>TCELL0:IMUX.DATA22</td><td>DSP.B2</td></tr>
+<tr><td>TCELL0:IMUX.DATA24</td><td>DSP.C9</td></tr>
+<tr><td>TCELL0:IMUX.DATA25</td><td>DSP.D1</td></tr>
+<tr><td>TCELL0:IMUX.DATA26</td><td>DSP.B9</td></tr>
+<tr><td>TCELL0:IMUX.DATA27</td><td>DSP.C4</td></tr>
+<tr><td>TCELL0:IMUX.DATA29</td><td>DSP.C10</td></tr>
+<tr><td>TCELL0:IMUX.DATA30</td><td>DSP.D2</td></tr>
+<tr><td>TCELL0:OUT.FAN0.TMIN</td><td>DSP.P2</td></tr>
+<tr><td>TCELL0:OUT.FAN1.TMIN</td><td>DSP.P1</td></tr>
+<tr><td>TCELL0:OUT.FAN2.TMIN</td><td>DSP.P8</td></tr>
+<tr><td>TCELL0:OUT.FAN3.TMIN</td><td>DSP.P7</td></tr>
+<tr><td>TCELL0:OUT.FAN4.TMIN</td><td>DSP.P4</td></tr>
+<tr><td>TCELL0:OUT.FAN5.TMIN</td><td>DSP.P3</td></tr>
+<tr><td>TCELL0:OUT.FAN6.TMIN</td><td>DSP.P0</td></tr>
+<tr><td>TCELL0:OUT.FAN7.TMIN</td><td>DSP.P9</td></tr>
+<tr><td>TCELL0:OUT.SEC12.TMIN</td><td>DSP.P6</td></tr>
+<tr><td>TCELL0:OUT.SEC13.TMIN</td><td>DSP.P5</td></tr>
+<tr><td>TCELL0:OUT.SEC14.TMIN</td><td>DSP.P11</td></tr>
+<tr><td>TCELL0:OUT.SEC15.TMIN</td><td>DSP.P10</td></tr>
+<tr><td>TCELL1:IMUX.SR0</td><td>DSP.RSTOPMODE</td></tr>
+<tr><td>TCELL1:IMUX.SR1</td><td>DSP.RSTP</td></tr>
+<tr><td>TCELL1:IMUX.SR2</td><td>DSP.RSTM</td></tr>
+<tr><td>TCELL1:IMUX.SR3</td><td>DSP.RSTCARRYIN</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BX0</td><td>DSP.A0</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BX1</td><td>DSP.A4</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BX2</td><td>DSP.A2</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BX3</td><td>DSP.A6</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BY0</td><td>DSP.A1</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BY1</td><td>DSP.A5</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BY2</td><td>DSP.A3</td></tr>
+<tr><td>TCELL1:IMUX.FAN.BY3</td><td>DSP.A7</td></tr>
+<tr><td>TCELL1:IMUX.DATA0</td><td>DSP.C18</td></tr>
+<tr><td>TCELL1:IMUX.DATA1</td><td>DSP.OPMODE0</td></tr>
+<tr><td>TCELL1:IMUX.DATA2</td><td>DSP.A8</td></tr>
+<tr><td>TCELL1:IMUX.DATA3</td><td>DSP.C15</td></tr>
+<tr><td>TCELL1:IMUX.DATA5</td><td>DSP.OPMODE6</td></tr>
+<tr><td>TCELL1:IMUX.DATA6</td><td>DSP.C12</td></tr>
+<tr><td>TCELL1:IMUX.DATA8</td><td>DSP.C19</td></tr>
+<tr><td>TCELL1:IMUX.DATA9</td><td>DSP.OPMODE1</td></tr>
+<tr><td>TCELL1:IMUX.DATA11</td><td>DSP.C14</td></tr>
+<tr><td>TCELL1:IMUX.DATA13</td><td>DSP.OPMODE4</td></tr>
+<tr><td>TCELL1:IMUX.DATA14</td><td>DSP.C13</td></tr>
+<tr><td>TCELL1:IMUX.DATA16</td><td>DSP.C20</td></tr>
+<tr><td>TCELL1:IMUX.DATA17</td><td>DSP.OPMODE2</td></tr>
+<tr><td>TCELL1:IMUX.DATA19</td><td>DSP.C17</td></tr>
+<tr><td>TCELL1:IMUX.DATA21</td><td>DSP.C23</td></tr>
+<tr><td>TCELL1:IMUX.DATA22</td><td>DSP.OPMODE7</td></tr>
+<tr><td>TCELL1:IMUX.DATA24</td><td>DSP.C21</td></tr>
+<tr><td>TCELL1:IMUX.DATA25</td><td>DSP.OPMODE3</td></tr>
+<tr><td>TCELL1:IMUX.DATA27</td><td>DSP.C16</td></tr>
+<tr><td>TCELL1:IMUX.DATA29</td><td>DSP.C22</td></tr>
+<tr><td>TCELL1:IMUX.DATA30</td><td>DSP.OPMODE5</td></tr>
+<tr><td>TCELL1:OUT.FAN0.TMIN</td><td>DSP.P14</td></tr>
+<tr><td>TCELL1:OUT.FAN1.TMIN</td><td>DSP.P13</td></tr>
+<tr><td>TCELL1:OUT.FAN2.TMIN</td><td>DSP.P20</td></tr>
+<tr><td>TCELL1:OUT.FAN3.TMIN</td><td>DSP.P19</td></tr>
+<tr><td>TCELL1:OUT.FAN4.TMIN</td><td>DSP.P16</td></tr>
+<tr><td>TCELL1:OUT.FAN5.TMIN</td><td>DSP.P15</td></tr>
+<tr><td>TCELL1:OUT.FAN6.TMIN</td><td>DSP.P12</td></tr>
+<tr><td>TCELL1:OUT.FAN7.TMIN</td><td>DSP.P21</td></tr>
+<tr><td>TCELL1:OUT.SEC12.TMIN</td><td>DSP.P18</td></tr>
+<tr><td>TCELL1:OUT.SEC13.TMIN</td><td>DSP.P17</td></tr>
+<tr><td>TCELL1:OUT.SEC14.TMIN</td><td>DSP.P23</td></tr>
+<tr><td>TCELL1:OUT.SEC15.TMIN</td><td>DSP.P22</td></tr>
+<tr><td>TCELL2:IMUX.CLK3</td><td>DSP.CLK</td></tr>
+<tr><td>TCELL2:IMUX.CE0</td><td>DSP.CEOPMODE</td></tr>
+<tr><td>TCELL2:IMUX.CE1</td><td>DSP.CEP</td></tr>
+<tr><td>TCELL2:IMUX.CE2</td><td>DSP.CEM</td></tr>
+<tr><td>TCELL2:IMUX.CE3</td><td>DSP.CECARRYIN</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BX0</td><td>DSP.A9</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BX1</td><td>DSP.A13</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BX2</td><td>DSP.A11</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BX3</td><td>DSP.A15</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BY0</td><td>DSP.A10</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BY1</td><td>DSP.A14</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BY2</td><td>DSP.A12</td></tr>
+<tr><td>TCELL2:IMUX.FAN.BY3</td><td>DSP.A16</td></tr>
+<tr><td>TCELL2:IMUX.DATA0</td><td>DSP.C30</td></tr>
+<tr><td>TCELL2:IMUX.DATA2</td><td>DSP.A17</td></tr>
+<tr><td>TCELL2:IMUX.DATA3</td><td>DSP.C27</td></tr>
+<tr><td>TCELL2:IMUX.DATA6</td><td>DSP.C24</td></tr>
+<tr><td>TCELL2:IMUX.DATA8</td><td>DSP.C31</td></tr>
+<tr><td>TCELL2:IMUX.DATA11</td><td>DSP.C26</td></tr>
+<tr><td>TCELL2:IMUX.DATA14</td><td>DSP.C25</td></tr>
+<tr><td>TCELL2:IMUX.DATA16</td><td>DSP.C32</td></tr>
+<tr><td>TCELL2:IMUX.DATA19</td><td>DSP.C29</td></tr>
+<tr><td>TCELL2:IMUX.DATA21</td><td>DSP.C35</td></tr>
+<tr><td>TCELL2:IMUX.DATA24</td><td>DSP.C33</td></tr>
+<tr><td>TCELL2:IMUX.DATA27</td><td>DSP.C28</td></tr>
+<tr><td>TCELL2:IMUX.DATA29</td><td>DSP.C34</td></tr>
+<tr><td>TCELL2:OUT.FAN0.TMIN</td><td>DSP.P26</td></tr>
+<tr><td>TCELL2:OUT.FAN1.TMIN</td><td>DSP.P25</td></tr>
+<tr><td>TCELL2:OUT.FAN2.TMIN</td><td>DSP.P32</td></tr>
+<tr><td>TCELL2:OUT.FAN3.TMIN</td><td>DSP.P31</td></tr>
+<tr><td>TCELL2:OUT.FAN4.TMIN</td><td>DSP.P28</td></tr>
+<tr><td>TCELL2:OUT.FAN5.TMIN</td><td>DSP.P27</td></tr>
+<tr><td>TCELL2:OUT.FAN6.TMIN</td><td>DSP.P24</td></tr>
+<tr><td>TCELL2:OUT.FAN7.TMIN</td><td>DSP.P33</td></tr>
+<tr><td>TCELL2:OUT.SEC12.TMIN</td><td>DSP.P30</td></tr>
+<tr><td>TCELL2:OUT.SEC13.TMIN</td><td>DSP.P29</td></tr>
+<tr><td>TCELL2:OUT.SEC14.TMIN</td><td>DSP.P35</td></tr>
+<tr><td>TCELL2:OUT.SEC15.TMIN</td><td>DSP.P34</td></tr>
+<tr><td>TCELL3:IMUX.CE0</td><td>DSP.CEA</td></tr>
+<tr><td>TCELL3:IMUX.CE1</td><td>DSP.CEB</td></tr>
+<tr><td>TCELL3:IMUX.CE2</td><td>DSP.CEC</td></tr>
+<tr><td>TCELL3:IMUX.CE3</td><td>DSP.CED</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BX0</td><td>DSP.D11</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BX1</td><td>DSP.D13</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BX2</td><td>DSP.D12</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BX3</td><td>DSP.D14</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BY0</td><td>DSP.B11</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BY1</td><td>DSP.B13</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BY2</td><td>DSP.B12</td></tr>
+<tr><td>TCELL3:IMUX.FAN.BY3</td><td>DSP.B14</td></tr>
+<tr><td>TCELL3:IMUX.DATA0</td><td>DSP.C42</td></tr>
+<tr><td>TCELL3:IMUX.DATA2</td><td>DSP.D16</td></tr>
+<tr><td>TCELL3:IMUX.DATA3</td><td>DSP.C39</td></tr>
+<tr><td>TCELL3:IMUX.DATA5</td><td>DSP.B15</td></tr>
+<tr><td>TCELL3:IMUX.DATA6</td><td>DSP.C36</td></tr>
+<tr><td>TCELL3:IMUX.DATA8</td><td>DSP.C43</td></tr>
+<tr><td>TCELL3:IMUX.DATA10</td><td>DSP.B16</td></tr>
+<tr><td>TCELL3:IMUX.DATA11</td><td>DSP.C38</td></tr>
+<tr><td>TCELL3:IMUX.DATA13</td><td>DSP.D15</td></tr>
+<tr><td>TCELL3:IMUX.DATA14</td><td>DSP.C37</td></tr>
+<tr><td>TCELL3:IMUX.DATA16</td><td>DSP.C44</td></tr>
+<tr><td>TCELL3:IMUX.DATA18</td><td>DSP.D17</td></tr>
+<tr><td>TCELL3:IMUX.DATA19</td><td>DSP.C41</td></tr>
+<tr><td>TCELL3:IMUX.DATA21</td><td>DSP.C47</td></tr>
+<tr><td>TCELL3:IMUX.DATA22</td><td>DSP.D10</td></tr>
+<tr><td>TCELL3:IMUX.DATA24</td><td>DSP.C45</td></tr>
+<tr><td>TCELL3:IMUX.DATA26</td><td>DSP.B17</td></tr>
+<tr><td>TCELL3:IMUX.DATA27</td><td>DSP.C40</td></tr>
+<tr><td>TCELL3:IMUX.DATA29</td><td>DSP.C46</td></tr>
+<tr><td>TCELL3:IMUX.DATA30</td><td>DSP.B10</td></tr>
+<tr><td>TCELL3:OUT.FAN0.TMIN</td><td>DSP.P38</td></tr>
+<tr><td>TCELL3:OUT.FAN1.TMIN</td><td>DSP.P37</td></tr>
+<tr><td>TCELL3:OUT.FAN2.TMIN</td><td>DSP.P44</td></tr>
+<tr><td>TCELL3:OUT.FAN3.TMIN</td><td>DSP.P43</td></tr>
+<tr><td>TCELL3:OUT.FAN4.TMIN</td><td>DSP.P40</td></tr>
+<tr><td>TCELL3:OUT.FAN5.TMIN</td><td>DSP.P39</td></tr>
+<tr><td>TCELL3:OUT.FAN6.TMIN</td><td>DSP.P36</td></tr>
+<tr><td>TCELL3:OUT.FAN7.TMIN</td><td>DSP.P45</td></tr>
+<tr><td>TCELL3:OUT.SEC12.TMIN</td><td>DSP.P42</td></tr>
+<tr><td>TCELL3:OUT.SEC13.TMIN</td><td>DSP.P41</td></tr>
+<tr><td>TCELL3:OUT.SEC14.TMIN</td><td>DSP.P47</td></tr>
+<tr><td>TCELL3:OUT.SEC15.TMIN</td><td>DSP.P46</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>spartan3 DSP bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+<tr>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>spartan3 DSP bittile 1</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+<tr>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>spartan3 DSP bittile 2</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+<tr>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>spartan3 DSP bittile 3</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>62</td>
+<td title="3.0.62">
+<a href="#tile-spartan3-DSP-DSP:OPMODEREG">DSP:OPMODEREG[0]</a>
+</td>
+<td title="3.1.62">
+<a href="#tile-spartan3-DSP-DSP:A1REG">DSP:A1REG[0]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td title="3.0.61">
+<a href="#tile-spartan3-DSP-DSP:DREG">DSP:DREG[0]</a>
+</td>
+<td title="3.1.61">
+<a href="#tile-spartan3-DSP-DSP:A0REG">DSP:A0REG[0]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td title="3.0.60">
+<a href="#tile-spartan3-DSP-DSP:B_INPUT">DSP:B_INPUT[0]</a>
+</td>
+<td title="3.1.60">
+<a href="#tile-spartan3-DSP-DSP:B0REG">DSP:B0REG[0]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td title="3.0.59">
+<a href="#tile-spartan3-DSP-DSP:CARRYINSEL">DSP:CARRYINSEL[0]</a>
+</td>
+<td title="3.1.59">
+<a href="#tile-spartan3-DSP-DSP:RSTTYPE">DSP:RSTTYPE[0]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td title="3.0.58">
+<a href="#tile-spartan3-DSP-DSP:PREG">DSP:PREG[0]</a>
+</td>
+<td title="3.1.58">
+<a href="#tile-spartan3-DSP-DSP:B1REG">DSP:B1REG[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td title="3.0.57">
+<a href="#tile-spartan3-DSP-DSP:CARRYINREG">DSP:CARRYINREG[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>56</td>
+<td title="3.0.56">
+<a href="#tile-spartan3-DSP-DSP:CREG">DSP:CREG[0]</a>
+</td>
+<td title="3.1.56">
+<a href="#tile-spartan3-DSP-DSP:MREG">DSP:MREG[0]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-spartan3-DSP-DSP:A0REG">DSP:A0REG</th>
+<th>3.1.61</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:A1REG">DSP:A1REG</th>
+<th>3.1.62</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:B0REG">DSP:B0REG</th>
+<th>3.1.60</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:B1REG">DSP:B1REG</th>
+<th>3.1.58</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:CARRYINREG">DSP:CARRYINREG</th>
+<th>3.0.57</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:CREG">DSP:CREG</th>
+<th>3.0.56</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:DREG">DSP:DREG</th>
+<th>3.0.61</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:MREG">DSP:MREG</th>
+<th>3.1.56</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:OPMODEREG">DSP:OPMODEREG</th>
+<th>3.0.62</th>
+</tr>
+<tr><th id="tile-spartan3-DSP-DSP:PREG">DSP:PREG</th>
+<th>3.0.58</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>0</td>
+</tr>
+<tr><td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-spartan3-DSP-DSP:B_INPUT">DSP:B_INPUT</th>
+<th>3.0.60</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>DIRECT</td>
+<td>0</td>
+</tr>
+<tr><td>CASCADE</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-spartan3-DSP-DSP:CARRYINSEL">DSP:CARRYINSEL</th>
+<th>3.0.59</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CARRYIN</td>
+<td>0</td>
+</tr>
+<tr><td>OPMODE5</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-spartan3-DSP-DSP:RSTTYPE">DSP:RSTTYPE</th>
+<th>3.1.59</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SYNC</td>
+<td>0</td>
+</tr>
+<tr><td>ASYNC</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../spartan3/bram.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../spartan3/clock/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../spartan3/bram.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../spartan3/clock/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

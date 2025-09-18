@@ -1,0 +1,438 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>I2C - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="i2c"><a class="header" href="#i2c">I2C</a></h1>
+<h2 id="tile-i2c_w"><a class="header" href="#tile-i2c_w">Tile I2C_W</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-i2c"><a class="header" href="#bel-i2c">Bel I2C</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink I2C_W bel I2C</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ACKO</td><td>output</td><td>TCELL1:OUT_Q3</td></tr>
+<tr><td>ADRI0</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+<tr><td>ADRI1</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+<tr><td>ADRI2</td><td>input</td><td>TCELL1:IMUX_C6</td></tr>
+<tr><td>ADRI3</td><td>input</td><td>TCELL1:IMUX_A6</td></tr>
+<tr><td>CLKI</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+<tr><td>CSI</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+<tr><td>DATI0</td><td>input</td><td>TCELL0:IMUX_D0</td></tr>
+<tr><td>DATI1</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+<tr><td>DATI2</td><td>input</td><td>TCELL0:IMUX_D2</td></tr>
+<tr><td>DATI3</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+<tr><td>DATI4</td><td>input</td><td>TCELL0:IMUX_D4</td></tr>
+<tr><td>DATI5</td><td>input</td><td>TCELL0:IMUX_B4</td></tr>
+<tr><td>DATI6</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>DATI7</td><td>input</td><td>TCELL0:IMUX_B6</td></tr>
+<tr><td>DATI8</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+<tr><td>DATI9</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+<tr><td>DATO0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+<tr><td>DATO1</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+<tr><td>DATO2</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+<tr><td>DATO3</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+<tr><td>DATO4</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+<tr><td>DATO5</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+<tr><td>DATO6</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+<tr><td>DATO7</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+<tr><td>DATO8</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+<tr><td>DATO9</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+<tr><td>FIFORST</td><td>input</td><td>TCELL0:IMUX_LSR0</td></tr>
+<tr><td>I2CIRQ</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+<tr><td>I2CWKUP</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+<tr><td>MRDCMPL</td><td>output</td><td>TCELL1:OUT_Q2</td></tr>
+<tr><td>RXFIFOAF</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+<tr><td>RXFIFOE</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+<tr><td>RXFIFOF</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+<tr><td>SCLI</td><td>input</td><td>TCELL0:IMUX_C4</td></tr>
+<tr><td>SCLO</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+<tr><td>SCLOEN</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+<tr><td>SDAI</td><td>input</td><td>TCELL0:IMUX_A4</td></tr>
+<tr><td>SDAO</td><td>output</td><td>TCELL1:OUT_F5</td></tr>
+<tr><td>SDAOEN</td><td>output</td><td>TCELL1:OUT_F4</td></tr>
+<tr><td>SRDWR</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+<tr><td>STBI</td><td>input</td><td>TCELL1:IMUX_B2</td></tr>
+<tr><td>TXFIFOAE</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+<tr><td>TXFIFOE</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+<tr><td>TXFIFOF</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+<tr><td>WEI</td><td>input</td><td>TCELL1:IMUX_D4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink I2C_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A4</td><td>I2C.SDAI</td></tr>
+<tr><td>TCELL0:IMUX_B0</td><td>I2C.DATI1</td></tr>
+<tr><td>TCELL0:IMUX_B2</td><td>I2C.DATI3</td></tr>
+<tr><td>TCELL0:IMUX_B4</td><td>I2C.DATI5</td></tr>
+<tr><td>TCELL0:IMUX_B6</td><td>I2C.DATI7</td></tr>
+<tr><td>TCELL0:IMUX_C4</td><td>I2C.SCLI</td></tr>
+<tr><td>TCELL0:IMUX_D0</td><td>I2C.DATI0</td></tr>
+<tr><td>TCELL0:IMUX_D2</td><td>I2C.DATI2</td></tr>
+<tr><td>TCELL0:IMUX_D4</td><td>I2C.DATI4</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>I2C.DATI6</td></tr>
+<tr><td>TCELL0:IMUX_CLK0</td><td>I2C.CLKI</td></tr>
+<tr><td>TCELL0:IMUX_LSR0</td><td>I2C.FIFORST</td></tr>
+<tr><td>TCELL0:OUT_F0</td><td>I2C.DATO0</td></tr>
+<tr><td>TCELL0:OUT_F1</td><td>I2C.DATO1</td></tr>
+<tr><td>TCELL0:OUT_F2</td><td>I2C.DATO2</td></tr>
+<tr><td>TCELL0:OUT_F3</td><td>I2C.DATO3</td></tr>
+<tr><td>TCELL0:OUT_F4</td><td>I2C.DATO4</td></tr>
+<tr><td>TCELL0:OUT_F5</td><td>I2C.DATO5</td></tr>
+<tr><td>TCELL0:OUT_F6</td><td>I2C.DATO6</td></tr>
+<tr><td>TCELL0:OUT_F7</td><td>I2C.DATO7</td></tr>
+<tr><td>TCELL0:OUT_Q0</td><td>I2C.I2CWKUP</td></tr>
+<tr><td>TCELL0:OUT_Q1</td><td>I2C.RXFIFOAF</td></tr>
+<tr><td>TCELL0:OUT_Q4</td><td>I2C.RXFIFOE</td></tr>
+<tr><td>TCELL0:OUT_Q5</td><td>I2C.RXFIFOF</td></tr>
+<tr><td>TCELL1:IMUX_A0</td><td>I2C.CSI</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>I2C.ADRI1</td></tr>
+<tr><td>TCELL1:IMUX_A6</td><td>I2C.ADRI3</td></tr>
+<tr><td>TCELL1:IMUX_B0</td><td>I2C.DATI9</td></tr>
+<tr><td>TCELL1:IMUX_B2</td><td>I2C.STBI</td></tr>
+<tr><td>TCELL1:IMUX_C4</td><td>I2C.ADRI0</td></tr>
+<tr><td>TCELL1:IMUX_C6</td><td>I2C.ADRI2</td></tr>
+<tr><td>TCELL1:IMUX_D0</td><td>I2C.DATI8</td></tr>
+<tr><td>TCELL1:IMUX_D4</td><td>I2C.WEI</td></tr>
+<tr><td>TCELL1:OUT_F0</td><td>I2C.DATO8</td></tr>
+<tr><td>TCELL1:OUT_F1</td><td>I2C.DATO9</td></tr>
+<tr><td>TCELL1:OUT_F2</td><td>I2C.SCLOEN</td></tr>
+<tr><td>TCELL1:OUT_F3</td><td>I2C.SCLO</td></tr>
+<tr><td>TCELL1:OUT_F4</td><td>I2C.SDAOEN</td></tr>
+<tr><td>TCELL1:OUT_F5</td><td>I2C.SDAO</td></tr>
+<tr><td>TCELL1:OUT_F6</td><td>I2C.SRDWR</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>I2C.I2CIRQ</td></tr>
+<tr><td>TCELL1:OUT_Q2</td><td>I2C.MRDCMPL</td></tr>
+<tr><td>TCELL1:OUT_Q3</td><td>I2C.ACKO</td></tr>
+<tr><td>TCELL1:OUT_Q5</td><td>I2C.TXFIFOAE</td></tr>
+<tr><td>TCELL1:OUT_Q6</td><td>I2C.TXFIFOE</td></tr>
+<tr><td>TCELL1:OUT_Q7</td><td>I2C.TXFIFOF</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-i2c_e"><a class="header" href="#tile-i2c_e">Tile I2C_E</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-i2c-1"><a class="header" href="#bel-i2c-1">Bel I2C</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink I2C_E bel I2C</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ACKO</td><td>output</td><td>TCELL1:OUT_Q3</td></tr>
+<tr><td>ADRI0</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+<tr><td>ADRI1</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+<tr><td>ADRI2</td><td>input</td><td>TCELL1:IMUX_C6</td></tr>
+<tr><td>ADRI3</td><td>input</td><td>TCELL1:IMUX_A6</td></tr>
+<tr><td>CLKI</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+<tr><td>CSI</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+<tr><td>DATI0</td><td>input</td><td>TCELL0:IMUX_D0</td></tr>
+<tr><td>DATI1</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+<tr><td>DATI2</td><td>input</td><td>TCELL0:IMUX_D2</td></tr>
+<tr><td>DATI3</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+<tr><td>DATI4</td><td>input</td><td>TCELL0:IMUX_D4</td></tr>
+<tr><td>DATI5</td><td>input</td><td>TCELL0:IMUX_B4</td></tr>
+<tr><td>DATI6</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>DATI7</td><td>input</td><td>TCELL0:IMUX_B6</td></tr>
+<tr><td>DATI8</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+<tr><td>DATI9</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+<tr><td>DATO0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+<tr><td>DATO1</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+<tr><td>DATO2</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+<tr><td>DATO3</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+<tr><td>DATO4</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+<tr><td>DATO5</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+<tr><td>DATO6</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+<tr><td>DATO7</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+<tr><td>DATO8</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+<tr><td>DATO9</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+<tr><td>FIFORST</td><td>input</td><td>TCELL0:IMUX_LSR0</td></tr>
+<tr><td>I2CIRQ</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+<tr><td>I2CWKUP</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+<tr><td>MRDCMPL</td><td>output</td><td>TCELL1:OUT_Q2</td></tr>
+<tr><td>RXFIFOAF</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+<tr><td>RXFIFOE</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+<tr><td>RXFIFOF</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+<tr><td>SRDWR</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+<tr><td>STBI</td><td>input</td><td>TCELL1:IMUX_B2</td></tr>
+<tr><td>TXFIFOAE</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+<tr><td>TXFIFOE</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+<tr><td>TXFIFOF</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+<tr><td>WEI</td><td>input</td><td>TCELL1:IMUX_D4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-nvcmtest"><a class="header" href="#bel-nvcmtest">Bel NVCMTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink I2C_E bel NVCMTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>NVSCANCLK</td><td>input</td><td>TCELL1:IMUX_A7</td></tr>
+<tr><td>NVSCANRESET</td><td>input</td><td>TCELL1:IMUX_LSR0</td></tr>
+<tr><td>NVSCANSDI</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>NVSCANSDO</td><td>output</td><td>TCELL1:OUT_Q4</td></tr>
+<tr><td>NVSCANSHIFTEN</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+<tr><td>SCANTESTMODE</td><td>output</td><td>TCELL1:OUT_Q1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink I2C_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_B0</td><td>I2C.DATI1</td></tr>
+<tr><td>TCELL0:IMUX_B2</td><td>I2C.DATI3</td></tr>
+<tr><td>TCELL0:IMUX_B4</td><td>I2C.DATI5</td></tr>
+<tr><td>TCELL0:IMUX_B6</td><td>I2C.DATI7</td></tr>
+<tr><td>TCELL0:IMUX_D0</td><td>I2C.DATI0</td></tr>
+<tr><td>TCELL0:IMUX_D2</td><td>I2C.DATI2</td></tr>
+<tr><td>TCELL0:IMUX_D4</td><td>I2C.DATI4</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>I2C.DATI6</td></tr>
+<tr><td>TCELL0:IMUX_CLK0</td><td>I2C.CLKI</td></tr>
+<tr><td>TCELL0:IMUX_LSR0</td><td>I2C.FIFORST</td></tr>
+<tr><td>TCELL0:OUT_F0</td><td>I2C.DATO0</td></tr>
+<tr><td>TCELL0:OUT_F1</td><td>I2C.DATO1</td></tr>
+<tr><td>TCELL0:OUT_F2</td><td>I2C.DATO2</td></tr>
+<tr><td>TCELL0:OUT_F3</td><td>I2C.DATO3</td></tr>
+<tr><td>TCELL0:OUT_F4</td><td>I2C.DATO4</td></tr>
+<tr><td>TCELL0:OUT_F5</td><td>I2C.DATO5</td></tr>
+<tr><td>TCELL0:OUT_F6</td><td>I2C.DATO6</td></tr>
+<tr><td>TCELL0:OUT_F7</td><td>I2C.DATO7</td></tr>
+<tr><td>TCELL0:OUT_Q0</td><td>I2C.I2CWKUP</td></tr>
+<tr><td>TCELL0:OUT_Q1</td><td>I2C.RXFIFOAF</td></tr>
+<tr><td>TCELL0:OUT_Q4</td><td>I2C.RXFIFOE</td></tr>
+<tr><td>TCELL0:OUT_Q5</td><td>I2C.RXFIFOF</td></tr>
+<tr><td>TCELL1:IMUX_A0</td><td>I2C.CSI</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>I2C.ADRI1</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>NVCMTEST.NVSCANSDI</td></tr>
+<tr><td>TCELL1:IMUX_A6</td><td>I2C.ADRI3</td></tr>
+<tr><td>TCELL1:IMUX_A7</td><td>NVCMTEST.NVSCANCLK</td></tr>
+<tr><td>TCELL1:IMUX_B0</td><td>I2C.DATI9</td></tr>
+<tr><td>TCELL1:IMUX_B2</td><td>I2C.STBI</td></tr>
+<tr><td>TCELL1:IMUX_C4</td><td>I2C.ADRI0</td></tr>
+<tr><td>TCELL1:IMUX_C5</td><td>NVCMTEST.NVSCANSHIFTEN</td></tr>
+<tr><td>TCELL1:IMUX_C6</td><td>I2C.ADRI2</td></tr>
+<tr><td>TCELL1:IMUX_D0</td><td>I2C.DATI8</td></tr>
+<tr><td>TCELL1:IMUX_D4</td><td>I2C.WEI</td></tr>
+<tr><td>TCELL1:IMUX_LSR0</td><td>NVCMTEST.NVSCANRESET</td></tr>
+<tr><td>TCELL1:OUT_F0</td><td>I2C.DATO8</td></tr>
+<tr><td>TCELL1:OUT_F1</td><td>I2C.DATO9</td></tr>
+<tr><td>TCELL1:OUT_F6</td><td>I2C.SRDWR</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>I2C.I2CIRQ</td></tr>
+<tr><td>TCELL1:OUT_Q1</td><td>NVCMTEST.SCANTESTMODE</td></tr>
+<tr><td>TCELL1:OUT_Q2</td><td>I2C.MRDCMPL</td></tr>
+<tr><td>TCELL1:OUT_Q3</td><td>I2C.ACKO</td></tr>
+<tr><td>TCELL1:OUT_Q4</td><td>NVCMTEST.NVSCANSDO</td></tr>
+<tr><td>TCELL1:OUT_Q5</td><td>I2C.TXFIFOAE</td></tr>
+<tr><td>TCELL1:OUT_Q6</td><td>I2C.TXFIFOE</td></tr>
+<tr><td>TCELL1:OUT_Q7</td><td>I2C.TXFIFOF</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crosslink/mipi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../crosslink/config.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crosslink/mipi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../crosslink/config.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

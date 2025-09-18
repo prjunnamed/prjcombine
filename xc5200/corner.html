@@ -1,0 +1,3806 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Corners - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="corners"><a class="header" href="#corners">Corners</a></h1>
+<h2 id="tile-cnrbl"><a class="header" href="#tile-cnrbl">Tile CNR.BL</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-int"><a class="header" href="#switchbox-int">Switchbox INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BL switchbox INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">IO.SINGLE.L.N0</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.L.N1</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.L.N2</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.L.N3</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.L.N4</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.L.N5</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.L.N6</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.L.N7</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H0</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H1</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H2</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H3</td><td>OUT.RDBK.RIP</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H4</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H5</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H6</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H7</td><td>OUT.RDBK.DATA</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V0</td><td>LONG.H0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V1</td><td>LONG.H1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V2</td><td>LONG.H2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V3</td><td>LONG.H3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V4</td><td>LONG.H4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V5</td><td>LONG.H5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V6</td><td>LONG.H6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V7</td><td>LONG.H7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="8">IMUX.RDBK.RCLK</td><td>IO.SINGLE.L.N0</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N1</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N2</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N3</td><td>mux</td>
+</tr>
+<tr><td>LONG.H0</td><td>mux</td>
+</tr>
+<tr><td>LONG.H1</td><td>mux</td>
+</tr>
+<tr><td>LONG.H2</td><td>mux</td>
+</tr>
+<tr><td>LONG.H3</td><td>mux</td>
+</tr>
+<tr><td rowspan="8">IMUX.RDBK.TRIG</td><td>GND</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N4</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N5</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N6</td><td>mux</td>
+</tr>
+<tr><td>LONG.H4</td><td>mux</td>
+</tr>
+<tr><td>LONG.H5</td><td>mux</td>
+</tr>
+<tr><td>LONG.H6</td><td>mux</td>
+</tr>
+<tr><td>LONG.H7</td><td>mux</td>
+</tr>
+<tr><td rowspan="10">IMUX.BUFG</td><td>GND</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N0</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N1</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N2</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.L.N3</td><td>mux</td>
+</tr>
+<tr><td>LONG.V4</td><td>mux</td>
+</tr>
+<tr><td>LONG.V5</td><td>mux</td>
+</tr>
+<tr><td>LONG.V6</td><td>mux</td>
+</tr>
+<tr><td>LONG.V7</td><td>mux</td>
+</tr>
+<tr><td>OUT.CLKIOB</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufg"><a class="header" href="#bel-bufg">Bel BUFG</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BL bel BUFG</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>I</td><td>input</td><td>IMUX.BUFG</td></tr>
+<tr><td>O</td><td>output</td><td>GLOBAL.BL</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkiob"><a class="header" href="#bel-clkiob">Bel CLKIOB</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BL bel CLKIOB</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>output</td><td>OUT.CLKIOB</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-rdbk"><a class="header" href="#bel-rdbk">Bel RDBK</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BL bel RDBK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CK</td><td>input</td><td>IMUX.RDBK.RCLK</td></tr>
+<tr><td>DATA</td><td>output</td><td>OUT.RDBK.DATA</td></tr>
+<tr><td>RIP</td><td>output</td><td>OUT.RDBK.RIP</td></tr>
+<tr><td>TRIG</td><td>input</td><td>IMUX.RDBK.TRIG</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>GLOBAL.BL</td><td>BUFG.O</td></tr>
+<tr><td>OUT.CLKIOB</td><td>CLKIOB.OUT</td></tr>
+<tr><td>OUT.RDBK.RIP</td><td>RDBK.RIP</td></tr>
+<tr><td>OUT.RDBK.DATA</td><td>RDBK.DATA</td></tr>
+<tr><td>IMUX.RDBK.RCLK</td><td>RDBK.CK</td></tr>
+<tr><td>IMUX.RDBK.TRIG</td><td>RDBK.TRIG</td></tr>
+<tr><td>IMUX.BUFG</td><td>BUFG.I</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BL bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="7">Frame</th></tr>
+<tr>
+<th>6</th>
+<th>5</th>
+<th>4</th>
+<th>3</th>
+<th>2</th>
+<th>1</th>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>27</td>
+<td title="0.6.27">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[5]</a>
+</td>
+<td title="0.5.27">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[8]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.27">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.TRIG">INT:MUX.IMUX.RDBK.TRIG[2]</a>
+</td>
+<td title="0.1.27">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.TRIG">INT:MUX.IMUX.RDBK.TRIG[1]</a>
+</td>
+<td title="0.0.27">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N7.OUT.RDBK.DATA">~INT:PASS.IO.SINGLE.L.N7.OUT.RDBK.DATA</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="0.6.26">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[6]</a>
+</td>
+<td title="0.5.26">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[7]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.26">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.TRIG">INT:MUX.IMUX.RDBK.TRIG[0]</a>
+</td>
+<td title="0.1.26">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N6.OUT.RDBK.DATA">~INT:PASS.IO.SINGLE.L.N6.OUT.RDBK.DATA</a>
+</td>
+<td title="0.0.26">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H6.OUT.RDBK.DATA">~INT:PASS.LONG.H6.OUT.RDBK.DATA</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.25">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.RCLK">INT:MUX.IMUX.RDBK.RCLK[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.24">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.RCLK">INT:MUX.IMUX.RDBK.RCLK[2]</a>
+</td>
+<td title="0.1.24">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H7.OUT.RDBK.DATA">~INT:PASS.LONG.H7.OUT.RDBK.DATA</a>
+</td>
+<td title="0.0.24">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N5.OUT.RDBK.DATA">~INT:PASS.IO.SINGLE.L.N5.OUT.RDBK.DATA</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.23">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.RCLK">INT:MUX.IMUX.RDBK.RCLK[0]</a>
+</td>
+<td title="0.1.23">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N4.OUT.RDBK.DATA">~INT:PASS.IO.SINGLE.L.N4.OUT.RDBK.DATA</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.22">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H5.OUT.RDBK.DATA">~INT:PASS.LONG.H5.OUT.RDBK.DATA</a>
+</td>
+<td title="0.0.22">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H4.OUT.RDBK.DATA">~INT:PASS.LONG.H4.OUT.RDBK.DATA</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.20">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N2.OUT.RDBK.RIP">~INT:PASS.IO.SINGLE.L.N2.OUT.RDBK.RIP</a>
+</td>
+<td title="0.0.20">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N3.OUT.RDBK.RIP">~INT:PASS.IO.SINGLE.L.N3.OUT.RDBK.RIP</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.18">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[4]</a>
+</td>
+<td title="0.1.18">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H3.OUT.RDBK.RIP">~INT:PASS.LONG.H3.OUT.RDBK.RIP</a>
+</td>
+<td title="0.0.18">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H2.OUT.RDBK.RIP">~INT:PASS.LONG.H2.OUT.RDBK.RIP</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.17">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.16">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[2]</a>
+</td>
+<td title="0.1.16">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N0.OUT.RDBK.RIP">~INT:PASS.IO.SINGLE.L.N0.OUT.RDBK.RIP</a>
+</td>
+<td title="0.0.16">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N1.OUT.RDBK.RIP">~INT:PASS.IO.SINGLE.L.N1.OUT.RDBK.RIP</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.15">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[1]</a>
+</td>
+<td title="0.1.15">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H1.OUT.RDBK.RIP">~INT:PASS.LONG.H1.OUT.RDBK.RIP</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.14">
+<a href="#tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[0]</a>
+</td>
+<td title="0.1.14">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H2.LONG.V2">~INT:BIPASS.LONG.H2.LONG.V2</a>
+</td>
+<td title="0.0.14">
+<a href="#tile-xc5200-CNR.BL-INT:PASS.LONG.H0.OUT.RDBK.RIP">~INT:PASS.LONG.H0.OUT.RDBK.RIP</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.13">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H1.LONG.V1">~INT:BIPASS.LONG.H1.LONG.V1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.11">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H0.LONG.V0">~INT:BIPASS.LONG.H0.LONG.V0</a>
+</td>
+<td title="0.0.11">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H4.LONG.V4">~INT:BIPASS.LONG.H4.LONG.V4</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.0.10">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H3.LONG.V3">~INT:BIPASS.LONG.H3.LONG.V3</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.9">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H5.LONG.V5">~INT:BIPASS.LONG.H5.LONG.V5</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.8">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H7.LONG.V7">~INT:BIPASS.LONG.H7.LONG.V7</a>
+</td>
+<td title="0.0.8">
+<a href="#tile-xc5200-CNR.BL-INT:BIPASS.LONG.H6.LONG.V6">~INT:BIPASS.LONG.H6.LONG.V6</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.6">
+<a href="#tile-xc5200-CNR.BL-RDBK:READ_CLK">RDBK:READ_CLK[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.4">
+<a href="#tile-xc5200-CNR.BL-MISC:READ_CAPTURE">~MISC:READ_CAPTURE</a>
+</td>
+<td title="0.1.4">
+<a href="#tile-xc5200-CNR.BL-MISC:READ_ABORT">~MISC:READ_ABORT</a>
+</td>
+<td title="0.0.4">
+<a href="#tile-xc5200-CNR.BL-MISC:SCAN_TEST">MISC:SCAN_TEST[2]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.3">
+<a href="#tile-xc5200-CNR.BL-MISC:SCAN_TEST">MISC:SCAN_TEST[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.2">
+<a href="#tile-xc5200-CNR.BL-MISC:SCAN_TEST">MISC:SCAN_TEST[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H0.LONG.V0">INT:BIPASS.LONG.H0.LONG.V0</th>
+<th>0.1.11</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H1.LONG.V1">INT:BIPASS.LONG.H1.LONG.V1</th>
+<th>0.1.13</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H2.LONG.V2">INT:BIPASS.LONG.H2.LONG.V2</th>
+<th>0.1.14</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H3.LONG.V3">INT:BIPASS.LONG.H3.LONG.V3</th>
+<th>0.0.10</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H4.LONG.V4">INT:BIPASS.LONG.H4.LONG.V4</th>
+<th>0.0.11</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H5.LONG.V5">INT:BIPASS.LONG.H5.LONG.V5</th>
+<th>0.1.9</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H6.LONG.V6">INT:BIPASS.LONG.H6.LONG.V6</th>
+<th>0.0.8</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:BIPASS.LONG.H7.LONG.V7">INT:BIPASS.LONG.H7.LONG.V7</th>
+<th>0.1.8</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N0.OUT.RDBK.RIP">INT:PASS.IO.SINGLE.L.N0.OUT.RDBK.RIP</th>
+<th>0.1.16</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N1.OUT.RDBK.RIP">INT:PASS.IO.SINGLE.L.N1.OUT.RDBK.RIP</th>
+<th>0.0.16</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N2.OUT.RDBK.RIP">INT:PASS.IO.SINGLE.L.N2.OUT.RDBK.RIP</th>
+<th>0.1.20</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N3.OUT.RDBK.RIP">INT:PASS.IO.SINGLE.L.N3.OUT.RDBK.RIP</th>
+<th>0.0.20</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N4.OUT.RDBK.DATA">INT:PASS.IO.SINGLE.L.N4.OUT.RDBK.DATA</th>
+<th>0.1.23</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N5.OUT.RDBK.DATA">INT:PASS.IO.SINGLE.L.N5.OUT.RDBK.DATA</th>
+<th>0.0.24</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N6.OUT.RDBK.DATA">INT:PASS.IO.SINGLE.L.N6.OUT.RDBK.DATA</th>
+<th>0.1.26</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.IO.SINGLE.L.N7.OUT.RDBK.DATA">INT:PASS.IO.SINGLE.L.N7.OUT.RDBK.DATA</th>
+<th>0.0.27</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H0.OUT.RDBK.RIP">INT:PASS.LONG.H0.OUT.RDBK.RIP</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H1.OUT.RDBK.RIP">INT:PASS.LONG.H1.OUT.RDBK.RIP</th>
+<th>0.1.15</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H2.OUT.RDBK.RIP">INT:PASS.LONG.H2.OUT.RDBK.RIP</th>
+<th>0.0.18</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H3.OUT.RDBK.RIP">INT:PASS.LONG.H3.OUT.RDBK.RIP</th>
+<th>0.1.18</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H4.OUT.RDBK.DATA">INT:PASS.LONG.H4.OUT.RDBK.DATA</th>
+<th>0.0.22</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H5.OUT.RDBK.DATA">INT:PASS.LONG.H5.OUT.RDBK.DATA</th>
+<th>0.1.22</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H6.OUT.RDBK.DATA">INT:PASS.LONG.H6.OUT.RDBK.DATA</th>
+<th>0.0.26</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-INT:PASS.LONG.H7.OUT.RDBK.DATA">INT:PASS.LONG.H7.OUT.RDBK.DATA</th>
+<th>0.1.24</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-MISC:READ_ABORT">MISC:READ_ABORT</th>
+<th>0.1.4</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BL-MISC:READ_CAPTURE">MISC:READ_CAPTURE</th>
+<th>0.2.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG</th>
+<th>0.5.27</th>
+<th>0.5.26</th>
+<th>0.6.26</th>
+<th>0.6.27</th>
+<th>0.2.18</th>
+<th>0.2.17</th>
+<th>0.2.16</th>
+<th>0.2.15</th>
+<th>0.2.14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.L.N0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.L.N1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.L.N2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.L.N3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V4</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V5</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V6</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>OUT.CLKIOB</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>GND</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.RCLK">INT:MUX.IMUX.RDBK.RCLK</th>
+<th>0.2.24</th>
+<th>0.2.25</th>
+<th>0.2.23</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LONG.H1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.L.N1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.L.N0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.L.N2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.L.N3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BL-INT:MUX.IMUX.RDBK.TRIG">INT:MUX.IMUX.RDBK.TRIG</th>
+<th>0.2.27</th>
+<th>0.1.27</th>
+<th>0.2.26</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LONG.H4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.L.N4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H5</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.L.N5</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H6</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.L.N6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H7</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>GND</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BL-MISC:SCAN_TEST">MISC:SCAN_TEST</th>
+<th>0.0.4</th>
+<th>0.2.2</th>
+<th>0.2.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>ENABLE</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>ENLL</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>NE7</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>DISABLE</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BL-RDBK:READ_CLK">RDBK:READ_CLK</th>
+<th>0.1.6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>RDBK</td>
+<td>0</td>
+</tr>
+<tr><td>CCLK</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-cnrbr"><a class="header" href="#tile-cnrbr">Tile CNR.BR</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-int-1"><a class="header" href="#switchbox-int-1">Switchbox INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BR switchbox INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">IO.SINGLE.B.W0</td><td>OUT.STARTUP.DONEIN</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.B.W1</td><td>OUT.STARTUP.DONEIN</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.B.W2</td><td>OUT.STARTUP.Q3</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.B.W3</td><td>OUT.STARTUP.Q3</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.B.W4</td><td>OUT.STARTUP.Q2</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.B.W5</td><td>OUT.STARTUP.Q2</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.B.W6</td><td>OUT.STARTUP.Q1Q4</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.B.W7</td><td>OUT.STARTUP.Q1Q4</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H0</td><td>LONG.V0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H1</td><td>LONG.V1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H2</td><td>LONG.V2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H3</td><td>LONG.V3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H4</td><td>LONG.V4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H5</td><td>LONG.V5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H6</td><td>LONG.V6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H7</td><td>LONG.V7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V0</td><td>OUT.STARTUP.DONEIN</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V1</td><td>OUT.STARTUP.DONEIN</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V2</td><td>OUT.STARTUP.Q3</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V3</td><td>OUT.STARTUP.Q3</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V4</td><td>OUT.STARTUP.Q2</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V5</td><td>OUT.STARTUP.Q2</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V6</td><td>OUT.STARTUP.Q1Q4</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V7</td><td>OUT.STARTUP.Q1Q4</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="8">IMUX.STARTUP.SCLK</td><td>LONG.V0</td><td>mux</td>
+</tr>
+<tr><td>LONG.V1</td><td>mux</td>
+</tr>
+<tr><td>LONG.V2</td><td>mux</td>
+</tr>
+<tr><td>LONG.V3</td><td>mux</td>
+</tr>
+<tr><td>LONG.V4</td><td>mux</td>
+</tr>
+<tr><td>LONG.V5</td><td>mux</td>
+</tr>
+<tr><td>LONG.V6</td><td>mux</td>
+</tr>
+<tr><td>LONG.V7</td><td>mux</td>
+</tr>
+<tr><td rowspan="8">IMUX.STARTUP.GRST</td><td>IO.SINGLE.B.W4</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W5</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W6</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W7</td><td>mux</td>
+</tr>
+<tr><td>LONG.V4</td><td>mux</td>
+</tr>
+<tr><td>LONG.V5</td><td>mux</td>
+</tr>
+<tr><td>LONG.V6</td><td>mux</td>
+</tr>
+<tr><td>LONG.V7</td><td>mux</td>
+</tr>
+<tr><td rowspan="8">IMUX.STARTUP.GTS</td><td>IO.SINGLE.B.W0</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W1</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W2</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W3</td><td>mux</td>
+</tr>
+<tr><td>LONG.V0</td><td>mux</td>
+</tr>
+<tr><td>LONG.V1</td><td>mux</td>
+</tr>
+<tr><td>LONG.V2</td><td>mux</td>
+</tr>
+<tr><td>LONG.V3</td><td>mux</td>
+</tr>
+<tr><td rowspan="10">IMUX.BUFG</td><td>GND</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W0</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W1</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W2</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.B.W3</td><td>mux</td>
+</tr>
+<tr><td>LONG.H4</td><td>mux</td>
+</tr>
+<tr><td>LONG.H5</td><td>mux</td>
+</tr>
+<tr><td>LONG.H6</td><td>mux</td>
+</tr>
+<tr><td>LONG.H7</td><td>mux</td>
+</tr>
+<tr><td>OUT.CLKIOB</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufg-1"><a class="header" href="#bel-bufg-1">Bel BUFG</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BR bel BUFG</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>I</td><td>input</td><td>IMUX.BUFG</td></tr>
+<tr><td>O</td><td>output</td><td>GLOBAL.BR</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkiob-1"><a class="header" href="#bel-clkiob-1">Bel CLKIOB</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BR bel CLKIOB</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>output</td><td>OUT.CLKIOB</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-startup"><a class="header" href="#bel-startup">Bel STARTUP</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BR bel STARTUP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK</td><td>input</td><td>IMUX.STARTUP.SCLK</td></tr>
+<tr><td>DONEIN</td><td>output</td><td>OUT.STARTUP.DONEIN</td></tr>
+<tr><td>GR</td><td>input</td><td>IMUX.STARTUP.GRST</td></tr>
+<tr><td>GTS</td><td>input</td><td>IMUX.STARTUP.GTS</td></tr>
+<tr><td>Q1Q4</td><td>output</td><td>OUT.STARTUP.Q1Q4</td></tr>
+<tr><td>Q2</td><td>output</td><td>OUT.STARTUP.Q2</td></tr>
+<tr><td>Q3</td><td>output</td><td>OUT.STARTUP.Q3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>GLOBAL.BR</td><td>BUFG.O</td></tr>
+<tr><td>OUT.CLKIOB</td><td>CLKIOB.OUT</td></tr>
+<tr><td>OUT.STARTUP.DONEIN</td><td>STARTUP.DONEIN</td></tr>
+<tr><td>OUT.STARTUP.Q1Q4</td><td>STARTUP.Q1Q4</td></tr>
+<tr><td>OUT.STARTUP.Q2</td><td>STARTUP.Q2</td></tr>
+<tr><td>OUT.STARTUP.Q3</td><td>STARTUP.Q3</td></tr>
+<tr><td>IMUX.STARTUP.SCLK</td><td>STARTUP.CLK</td></tr>
+<tr><td>IMUX.STARTUP.GRST</td><td>STARTUP.GR</td></tr>
+<tr><td>IMUX.STARTUP.GTS</td><td>STARTUP.GTS</td></tr>
+<tr><td>IMUX.BUFG</td><td>BUFG.I</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.BR bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="7">Frame</th></tr>
+<tr>
+<th>6</th>
+<th>5</th>
+<th>4</th>
+<th>3</th>
+<th>2</th>
+<th>1</th>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>27</td>
+<td title="0.6.27">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W7.OUT.STARTUP.Q1Q4">~INT:PASS.IO.SINGLE.B.W7.OUT.STARTUP.Q1Q4</a>
+</td>
+<td title="0.5.27">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W6.OUT.STARTUP.Q1Q4">~INT:PASS.IO.SINGLE.B.W6.OUT.STARTUP.Q1Q4</a>
+</td>
+<td title="0.4.27">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[0]</a>
+</td>
+<td title="0.3.27">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H7.LONG.V7">~INT:BIPASS.LONG.H7.LONG.V7</a>
+</td>
+<td>-</td>
+<td title="0.1.27">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.SCLK">INT:MUX.IMUX.STARTUP.SCLK[2]</a>
+</td>
+<td title="0.0.27">
+<a href="#tile-xc5200-CNR.BR-MISC:TCTEST">~MISC:TCTEST</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="0.6.26">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V7.OUT.STARTUP.Q1Q4">~INT:PASS.LONG.V7.OUT.STARTUP.Q1Q4</a>
+</td>
+<td title="0.5.26">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V6.OUT.STARTUP.Q1Q4">~INT:PASS.LONG.V6.OUT.STARTUP.Q1Q4</a>
+</td>
+<td title="0.4.26">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[1]</a>
+</td>
+<td title="0.3.26">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H6.LONG.V6">~INT:BIPASS.LONG.H6.LONG.V6</a>
+</td>
+<td>-</td>
+<td title="0.1.26">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.SCLK">INT:MUX.IMUX.STARTUP.SCLK[1]</a>
+</td>
+<td title="0.0.26">
+<a href="#tile-xc5200-CNR.BR-STARTUP:STARTUP_CLK">STARTUP:STARTUP_CLK[0]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td title="0.6.25">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W5.OUT.STARTUP.Q2">~INT:PASS.IO.SINGLE.B.W5.OUT.STARTUP.Q2</a>
+</td>
+<td title="0.5.25">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W4.OUT.STARTUP.Q2">~INT:PASS.IO.SINGLE.B.W4.OUT.STARTUP.Q2</a>
+</td>
+<td title="0.4.25">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.25">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.SCLK">INT:MUX.IMUX.STARTUP.SCLK[0]</a>
+</td>
+<td title="0.0.25">
+<a href="#tile-xc5200-CNR.BR-STARTUP:ENABLE.GR">~STARTUP:ENABLE.GR</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td title="0.6.24">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V5.OUT.STARTUP.Q2">~INT:PASS.LONG.V5.OUT.STARTUP.Q2</a>
+</td>
+<td title="0.5.24">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V4.OUT.STARTUP.Q2">~INT:PASS.LONG.V4.OUT.STARTUP.Q2</a>
+</td>
+<td title="0.4.24">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GRST">INT:MUX.IMUX.STARTUP.GRST[0]</a>
+</td>
+<td title="0.3.24">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H5.LONG.V5">~INT:BIPASS.LONG.H5.LONG.V5</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.0.24">
+<a href="#tile-xc5200-CNR.BR-STARTUP:DONE_ACTIVE">STARTUP:DONE_ACTIVE[0]</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="0.6.23">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W3.OUT.STARTUP.Q3">~INT:PASS.IO.SINGLE.B.W3.OUT.STARTUP.Q3</a>
+</td>
+<td title="0.5.23">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W2.OUT.STARTUP.Q3">~INT:PASS.IO.SINGLE.B.W2.OUT.STARTUP.Q3</a>
+</td>
+<td title="0.4.23">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GRST">INT:MUX.IMUX.STARTUP.GRST[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.23">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[0]</a>
+</td>
+<td title="0.0.23">
+<a href="#tile-xc5200-CNR.BR-STARTUP:DONE_ACTIVE">STARTUP:DONE_ACTIVE[1]</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td title="0.6.22">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V3.OUT.STARTUP.Q3">~INT:PASS.LONG.V3.OUT.STARTUP.Q3</a>
+</td>
+<td title="0.5.22">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V2.OUT.STARTUP.Q3">~INT:PASS.LONG.V2.OUT.STARTUP.Q3</a>
+</td>
+<td title="0.4.22">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GRST">INT:MUX.IMUX.STARTUP.GRST[2]</a>
+</td>
+<td title="0.3.22">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H4.LONG.V4">~INT:BIPASS.LONG.H4.LONG.V4</a>
+</td>
+<td>-</td>
+<td title="0.1.22">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[1]</a>
+</td>
+<td title="0.0.22">
+<a href="#tile-xc5200-CNR.BR-STARTUP:INV.GTS">~STARTUP:INV.GTS</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td title="0.6.21">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W1.OUT.STARTUP.DONEIN">~INT:PASS.IO.SINGLE.B.W1.OUT.STARTUP.DONEIN</a>
+</td>
+<td title="0.5.21">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W0.OUT.STARTUP.DONEIN">~INT:PASS.IO.SINGLE.B.W0.OUT.STARTUP.DONEIN</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.21">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[2]</a>
+</td>
+<td title="0.0.21">
+<a href="#tile-xc5200-CNR.BR-STARTUP:ENABLE.GTS">~STARTUP:ENABLE.GTS</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td title="0.6.20">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V1.OUT.STARTUP.DONEIN">~INT:PASS.LONG.V1.OUT.STARTUP.DONEIN</a>
+</td>
+<td title="0.5.20">
+<a href="#tile-xc5200-CNR.BR-INT:PASS.LONG.V0.OUT.STARTUP.DONEIN">~INT:PASS.LONG.V0.OUT.STARTUP.DONEIN</a>
+</td>
+<td>-</td>
+<td title="0.3.20">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H3.LONG.V3">~INT:BIPASS.LONG.H3.LONG.V3</a>
+</td>
+<td>-</td>
+<td title="0.1.20">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[3]</a>
+</td>
+<td title="0.0.20">
+<a href="#tile-xc5200-CNR.BR-STARTUP:INV.GR">~STARTUP:INV.GR</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td title="0.6.19">
+<a href="#tile-xc5200-CNR.BR-OSC:OSC1">OSC:OSC1[1]</a>
+</td>
+<td title="0.5.19">
+<a href="#tile-xc5200-CNR.BR-OSC:OSC2">OSC:OSC2[1]</a>
+</td>
+<td title="0.4.19">
+<a href="#tile-xc5200-CNR.BR-OSC:CMUX">OSC:CMUX[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.19">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[4]</a>
+</td>
+<td title="0.0.19">
+<a href="#tile-xc5200-CNR.BR-STARTUP:GSR_INACTIVE">STARTUP:GSR_INACTIVE[1]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="0.6.18">
+<a href="#tile-xc5200-CNR.BR-OSC:OSC1">OSC:OSC1[0]</a>
+</td>
+<td title="0.5.18">
+<a href="#tile-xc5200-CNR.BR-OSC:OSC2">OSC:OSC2[0]</a>
+</td>
+<td title="0.4.18">
+<a href="#tile-xc5200-CNR.BR-OSC:OSC2">OSC:OSC2[2]</a>
+</td>
+<td title="0.3.18">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H2.LONG.V2">~INT:BIPASS.LONG.H2.LONG.V2</a>
+</td>
+<td>-</td>
+<td title="0.1.18">
+<a href="#tile-xc5200-CNR.BR-STARTUP:OUTPUTS_ACTIVE">STARTUP:OUTPUTS_ACTIVE[0]</a>
+</td>
+<td title="0.0.18">
+<a href="#tile-xc5200-CNR.BR-STARTUP:GSR_INACTIVE">STARTUP:GSR_INACTIVE[0]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.17">
+<a href="#tile-xc5200-CNR.BR-STARTUP:SYNC_TO_DONE">~STARTUP:SYNC_TO_DONE</a>
+</td>
+<td title="0.0.17">
+<a href="#tile-xc5200-CNR.BR-STARTUP:OUTPUTS_ACTIVE">STARTUP:OUTPUTS_ACTIVE[1]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.16">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H1.LONG.V1">~INT:BIPASS.LONG.H1.LONG.V1</a>
+</td>
+<td>-</td>
+<td title="0.1.16">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[6]</a>
+</td>
+<td title="0.0.16">
+<a href="#tile-xc5200-CNR.BR-PROG:PULL">PROG:PULL[0]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.15">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[7]</a>
+</td>
+<td title="0.0.15">
+<a href="#tile-xc5200-CNR.BR-DONE:PULL">DONE:PULL[0]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.14">
+<a href="#tile-xc5200-CNR.BR-INT:BIPASS.LONG.H0.LONG.V0">~INT:BIPASS.LONG.H0.LONG.V0</a>
+</td>
+<td>-</td>
+<td title="0.1.14">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[8]</a>
+</td>
+<td title="0.0.14">
+<a href="#tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[5]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.0.2">
+<a href="#tile-xc5200-CNR.BR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[0]</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.0.1">
+<a href="#tile-xc5200-CNR.BR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[1]</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.0.0">
+<a href="#tile-xc5200-CNR.BR-STARTUP:CRC">STARTUP:CRC</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-DONE:PULL">DONE:PULL</th>
+<th>0.0.15</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-PROG:PULL">PROG:PULL</th>
+<th>0.0.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PULLNONE</td>
+<td>0</td>
+</tr>
+<tr><td>PULLUP</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H0.LONG.V0">INT:BIPASS.LONG.H0.LONG.V0</th>
+<th>0.3.14</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H1.LONG.V1">INT:BIPASS.LONG.H1.LONG.V1</th>
+<th>0.3.16</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H2.LONG.V2">INT:BIPASS.LONG.H2.LONG.V2</th>
+<th>0.3.18</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H3.LONG.V3">INT:BIPASS.LONG.H3.LONG.V3</th>
+<th>0.3.20</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H4.LONG.V4">INT:BIPASS.LONG.H4.LONG.V4</th>
+<th>0.3.22</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H5.LONG.V5">INT:BIPASS.LONG.H5.LONG.V5</th>
+<th>0.3.24</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H6.LONG.V6">INT:BIPASS.LONG.H6.LONG.V6</th>
+<th>0.3.26</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:BIPASS.LONG.H7.LONG.V7">INT:BIPASS.LONG.H7.LONG.V7</th>
+<th>0.3.27</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W0.OUT.STARTUP.DONEIN">INT:PASS.IO.SINGLE.B.W0.OUT.STARTUP.DONEIN</th>
+<th>0.5.21</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W1.OUT.STARTUP.DONEIN">INT:PASS.IO.SINGLE.B.W1.OUT.STARTUP.DONEIN</th>
+<th>0.6.21</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W2.OUT.STARTUP.Q3">INT:PASS.IO.SINGLE.B.W2.OUT.STARTUP.Q3</th>
+<th>0.5.23</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W3.OUT.STARTUP.Q3">INT:PASS.IO.SINGLE.B.W3.OUT.STARTUP.Q3</th>
+<th>0.6.23</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W4.OUT.STARTUP.Q2">INT:PASS.IO.SINGLE.B.W4.OUT.STARTUP.Q2</th>
+<th>0.5.25</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W5.OUT.STARTUP.Q2">INT:PASS.IO.SINGLE.B.W5.OUT.STARTUP.Q2</th>
+<th>0.6.25</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W6.OUT.STARTUP.Q1Q4">INT:PASS.IO.SINGLE.B.W6.OUT.STARTUP.Q1Q4</th>
+<th>0.5.27</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.IO.SINGLE.B.W7.OUT.STARTUP.Q1Q4">INT:PASS.IO.SINGLE.B.W7.OUT.STARTUP.Q1Q4</th>
+<th>0.6.27</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V0.OUT.STARTUP.DONEIN">INT:PASS.LONG.V0.OUT.STARTUP.DONEIN</th>
+<th>0.5.20</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V1.OUT.STARTUP.DONEIN">INT:PASS.LONG.V1.OUT.STARTUP.DONEIN</th>
+<th>0.6.20</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V2.OUT.STARTUP.Q3">INT:PASS.LONG.V2.OUT.STARTUP.Q3</th>
+<th>0.5.22</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V3.OUT.STARTUP.Q3">INT:PASS.LONG.V3.OUT.STARTUP.Q3</th>
+<th>0.6.22</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V4.OUT.STARTUP.Q2">INT:PASS.LONG.V4.OUT.STARTUP.Q2</th>
+<th>0.5.24</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V5.OUT.STARTUP.Q2">INT:PASS.LONG.V5.OUT.STARTUP.Q2</th>
+<th>0.6.24</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V6.OUT.STARTUP.Q1Q4">INT:PASS.LONG.V6.OUT.STARTUP.Q1Q4</th>
+<th>0.5.26</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-INT:PASS.LONG.V7.OUT.STARTUP.Q1Q4">INT:PASS.LONG.V7.OUT.STARTUP.Q1Q4</th>
+<th>0.6.26</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-MISC:TCTEST">MISC:TCTEST</th>
+<th>0.0.27</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:ENABLE.GR">STARTUP:ENABLE.GR</th>
+<th>0.0.25</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:ENABLE.GTS">STARTUP:ENABLE.GTS</th>
+<th>0.0.21</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:INV.GR">STARTUP:INV.GR</th>
+<th>0.0.20</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:INV.GTS">STARTUP:INV.GTS</th>
+<th>0.0.22</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:SYNC_TO_DONE">STARTUP:SYNC_TO_DONE</th>
+<th>0.1.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG</th>
+<th>0.1.14</th>
+<th>0.1.15</th>
+<th>0.1.16</th>
+<th>0.0.14</th>
+<th>0.1.19</th>
+<th>0.1.20</th>
+<th>0.1.21</th>
+<th>0.1.22</th>
+<th>0.1.23</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.B.W0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.B.W1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.B.W2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.B.W3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H4</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H5</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H6</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>OUT.CLKIOB</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>GND</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GRST">INT:MUX.IMUX.STARTUP.GRST</th>
+<th>0.4.22</th>
+<th>0.4.23</th>
+<th>0.4.24</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.B.W4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.B.W5</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.B.W6</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.B.W7</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.GTS">INT:MUX.IMUX.STARTUP.GTS</th>
+<th>0.4.25</th>
+<th>0.4.26</th>
+<th>0.4.27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LONG.V3</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.B.W3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.B.W1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V2</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.B.W2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.B.W0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-INT:MUX.IMUX.STARTUP.SCLK">INT:MUX.IMUX.STARTUP.SCLK</th>
+<th>0.1.27</th>
+<th>0.1.26</th>
+<th>0.1.25</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LONG.V0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-OSC:CMUX">OSC:CMUX</th>
+<th>0.4.19</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CCLK</td>
+<td>0</td>
+</tr>
+<tr><td>USERCLK</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-OSC:OSC1">OSC:OSC1</th>
+<th>0.6.19</th>
+<th>0.6.18</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>D8</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>D4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>D6</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>D2</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-OSC:OSC2">OSC:OSC2</th>
+<th>0.4.18</th>
+<th>0.5.19</th>
+<th>0.5.18</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>D7</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>D3</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>D5</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>D1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>D16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>D12</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>D14</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>D10</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE</th>
+<th>0.0.1</th>
+<th>0.0.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SLOW</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MED</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>FAST</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:CRC">STARTUP:CRC</th>
+<th>0.0.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:DONE_ACTIVE">STARTUP:DONE_ACTIVE</th>
+<th>0.0.23</th>
+<th>0.0.24</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Q1Q4</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>Q2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>Q3</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>Q0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:GSR_INACTIVE">STARTUP:GSR_INACTIVE</th>
+<th>0.0.19</th>
+<th>0.0.18</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>DONE_IN</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>Q3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>Q1Q4</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>Q2</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:OUTPUTS_ACTIVE">STARTUP:OUTPUTS_ACTIVE</th>
+<th>0.0.17</th>
+<th>0.1.18</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>DONE_IN</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>Q3</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>Q2</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>Q1Q4</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.BR-STARTUP:STARTUP_CLK">STARTUP:STARTUP_CLK</th>
+<th>0.0.26</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>USERCLK</td>
+<td>0</td>
+</tr>
+<tr><td>CCLK</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-cnrtl"><a class="header" href="#tile-cnrtl">Tile CNR.TL</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-int-2"><a class="header" href="#switchbox-int-2">Switchbox INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TL switchbox INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="2">IO.SINGLE.T.E0</td><td>OUT.BSCAN.DRCK</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="2">IO.SINGLE.T.E1</td><td>OUT.BSCAN.DRCK</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="2">IO.SINGLE.T.E2</td><td>OUT.BSCAN.SEL1</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="2">IO.SINGLE.T.E3</td><td>OUT.BSCAN.SEL1</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.T.E4</td><td>OUT.BSCAN.UPDATE</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.T.E5</td><td>OUT.BSCAN.UPDATE</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="2">IO.SINGLE.T.E6</td><td>OUT.BSCAN.IDLE</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="2">IO.SINGLE.T.E7</td><td>OUT.BSCAN.IDLE</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H0</td><td>LONG.V0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H1</td><td>LONG.V1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H2</td><td>LONG.V2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H3</td><td>LONG.V3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H4</td><td>LONG.V4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H5</td><td>LONG.V5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H6</td><td>LONG.V6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H7</td><td>LONG.V7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="3">LONG.V0</td><td>OUT.BSCAN.DRCK</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="3">LONG.V1</td><td>OUT.BSCAN.DRCK</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="3">LONG.V2</td><td>OUT.BSCAN.SEL1</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="3">LONG.V3</td><td>OUT.BSCAN.SEL1</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V4</td><td>OUT.BSCAN.UPDATE</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.V5</td><td>OUT.BSCAN.UPDATE</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="3">LONG.V6</td><td>OUT.BSCAN.IDLE</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="3">LONG.V7</td><td>OUT.BSCAN.IDLE</td><td>pass transistor</td>
+</tr>
+<tr><td>OUT.BSCAN.RESET</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.H7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="4">IMUX.BSCAN.TDO1</td><td>IO.SINGLE.T.E6</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.T.E7</td><td>mux</td>
+</tr>
+<tr><td>LONG.V6</td><td>mux</td>
+</tr>
+<tr><td>LONG.V7</td><td>mux</td>
+</tr>
+<tr><td rowspan="4">IMUX.BSCAN.TDO2</td><td>IO.SINGLE.T.E4</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.T.E5</td><td>mux</td>
+</tr>
+<tr><td>LONG.V4</td><td>mux</td>
+</tr>
+<tr><td>LONG.V5</td><td>mux</td>
+</tr>
+<tr><td rowspan="10">IMUX.BUFG</td><td>GND</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.T.E0</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.T.E1</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.T.E2</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.T.E3</td><td>mux</td>
+</tr>
+<tr><td>LONG.H4</td><td>mux</td>
+</tr>
+<tr><td>LONG.H5</td><td>mux</td>
+</tr>
+<tr><td>LONG.H6</td><td>mux</td>
+</tr>
+<tr><td>LONG.H7</td><td>mux</td>
+</tr>
+<tr><td>OUT.CLKIOB</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufg-2"><a class="header" href="#bel-bufg-2">Bel BUFG</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TL bel BUFG</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>I</td><td>input</td><td>IMUX.BUFG</td></tr>
+<tr><td>O</td><td>output</td><td>GLOBAL.TL</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkiob-2"><a class="header" href="#bel-clkiob-2">Bel CLKIOB</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TL bel CLKIOB</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>output</td><td>OUT.CLKIOB</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bscan"><a class="header" href="#bel-bscan">Bel BSCAN</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TL bel BSCAN</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DRCK</td><td>output</td><td>OUT.BSCAN.DRCK</td></tr>
+<tr><td>IDLE</td><td>output</td><td>OUT.BSCAN.IDLE</td></tr>
+<tr><td>RESET</td><td>output</td><td>OUT.BSCAN.RESET</td></tr>
+<tr><td>SEL1</td><td>output</td><td>OUT.BSCAN.SEL1</td></tr>
+<tr><td>SEL2</td><td>output</td><td>OUT.BSCAN.SEL2</td></tr>
+<tr><td>SHIFT</td><td>output</td><td>OUT.BSCAN.SHIFT</td></tr>
+<tr><td>TDO1</td><td>input</td><td>IMUX.BSCAN.TDO1</td></tr>
+<tr><td>TDO2</td><td>input</td><td>IMUX.BSCAN.TDO2</td></tr>
+<tr><td>UPDATE</td><td>output</td><td>OUT.BSCAN.UPDATE</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>GLOBAL.TL</td><td>BUFG.O</td></tr>
+<tr><td>OUT.CLKIOB</td><td>CLKIOB.OUT</td></tr>
+<tr><td>OUT.BSCAN.DRCK</td><td>BSCAN.DRCK</td></tr>
+<tr><td>OUT.BSCAN.IDLE</td><td>BSCAN.IDLE</td></tr>
+<tr><td>OUT.BSCAN.RESET</td><td>BSCAN.RESET</td></tr>
+<tr><td>OUT.BSCAN.SEL1</td><td>BSCAN.SEL1</td></tr>
+<tr><td>OUT.BSCAN.SEL2</td><td>BSCAN.SEL2</td></tr>
+<tr><td>OUT.BSCAN.SHIFT</td><td>BSCAN.SHIFT</td></tr>
+<tr><td>OUT.BSCAN.UPDATE</td><td>BSCAN.UPDATE</td></tr>
+<tr><td>IMUX.BSCAN.TDO1</td><td>BSCAN.TDO1</td></tr>
+<tr><td>IMUX.BSCAN.TDO2</td><td>BSCAN.TDO2</td></tr>
+<tr><td>IMUX.BUFG</td><td>BUFG.I</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TL bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="6">Frame</th></tr>
+<tr>
+<th>5</th>
+<th>4</th>
+<th>3</th>
+<th>2</th>
+<th>1</th>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td title="0.5.15">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[5]</a>
+</td>
+<td>-</td>
+<td title="0.3.15">
+<a href="#tile-xc5200-CNR.TL-MISC:BS_READBACK">~MISC:BS_READBACK</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td title="0.5.13">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[6]</a>
+</td>
+<td>-</td>
+<td title="0.3.13">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H0.LONG.V0">~INT:BIPASS.LONG.H0.LONG.V0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td title="0.5.12">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[7]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td title="0.5.11">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[8]</a>
+</td>
+<td>-</td>
+<td title="0.3.11">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H1.LONG.V1">~INT:BIPASS.LONG.H1.LONG.V1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td title="0.5.10">
+<a href="#tile-xc5200-CNR.TL-MISC:INPUT">MISC:INPUT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td title="0.5.9">
+<a href="#tile-xc5200-CNR.TL-MISC:BS_RECONFIG">~MISC:BS_RECONFIG</a>
+</td>
+<td>-</td>
+<td title="0.3.9">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H2.LONG.V2">~INT:BIPASS.LONG.H2.LONG.V2</a>
+</td>
+<td title="0.2.9">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V2.OUT.BSCAN.SEL1">~INT:PASS.LONG.V2.OUT.BSCAN.SEL1</a>
+</td>
+<td>-</td>
+<td title="0.0.9">
+<a href="#tile-xc5200-CNR.TL-BSCAN:ENABLE">~BSCAN:ENABLE</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td title="0.5.8">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.8">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V2.OUT.BSCAN.SHIFT">~INT:PASS.LONG.V2.OUT.BSCAN.SHIFT</a>
+</td>
+<td title="0.1.8">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V0.OUT.BSCAN.SEL2">~INT:PASS.LONG.V0.OUT.BSCAN.SEL2</a>
+</td>
+<td title="0.0.8">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V0.OUT.BSCAN.DRCK">~INT:PASS.LONG.V0.OUT.BSCAN.DRCK</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td title="0.5.7">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[2]</a>
+</td>
+<td>-</td>
+<td title="0.3.7">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H3.LONG.V3">~INT:BIPASS.LONG.H3.LONG.V3</a>
+</td>
+<td title="0.2.7">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V3.OUT.BSCAN.SHIFT">~INT:PASS.LONG.V3.OUT.BSCAN.SHIFT</a>
+</td>
+<td title="0.1.7">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.DRCK">~INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.DRCK</a>
+</td>
+<td title="0.0.7">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.SEL2">~INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.SEL2</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td title="0.5.6">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.6">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V3.OUT.BSCAN.SEL1">~INT:PASS.LONG.V3.OUT.BSCAN.SEL1</a>
+</td>
+<td title="0.1.6">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.SEL2">~INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.SEL2</a>
+</td>
+<td title="0.0.6">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.DRCK">~INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.DRCK</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td title="0.5.5">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[4]</a>
+</td>
+<td>-</td>
+<td title="0.3.5">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H4.LONG.V4">~INT:BIPASS.LONG.H4.LONG.V4</a>
+</td>
+<td title="0.2.5">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V4.OUT.BSCAN.UPDATE">~INT:PASS.LONG.V4.OUT.BSCAN.UPDATE</a>
+</td>
+<td title="0.1.5">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V1.OUT.BSCAN.DRCK">~INT:PASS.LONG.V1.OUT.BSCAN.DRCK</a>
+</td>
+<td title="0.0.5">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V1.OUT.BSCAN.SEL2">~INT:PASS.LONG.V1.OUT.BSCAN.SEL2</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td title="0.5.4">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.4">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V5.OUT.BSCAN.UPDATE">~INT:PASS.LONG.V5.OUT.BSCAN.UPDATE</a>
+</td>
+<td title="0.1.4">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SHIFT">~INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SHIFT</a>
+</td>
+<td title="0.0.4">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SEL1">~INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SEL1</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td title="0.5.3">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[1]</a>
+</td>
+<td>-</td>
+<td title="0.3.3">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H5.LONG.V5">~INT:BIPASS.LONG.H5.LONG.V5</a>
+</td>
+<td title="0.2.3">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V6.OUT.BSCAN.IDLE">~INT:PASS.LONG.V6.OUT.BSCAN.IDLE</a>
+</td>
+<td title="0.1.3">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SEL1">~INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SEL1</a>
+</td>
+<td title="0.0.3">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SHIFT">~INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SHIFT</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td title="0.5.2">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.2">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V6.OUT.BSCAN.RESET">~INT:PASS.LONG.V6.OUT.BSCAN.RESET</a>
+</td>
+<td title="0.1.2">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E4.OUT.BSCAN.UPDATE">~INT:PASS.IO.SINGLE.T.E4.OUT.BSCAN.UPDATE</a>
+</td>
+<td title="0.0.2">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E5.OUT.BSCAN.UPDATE">~INT:PASS.IO.SINGLE.T.E5.OUT.BSCAN.UPDATE</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td title="0.5.1">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[1]</a>
+</td>
+<td>-</td>
+<td title="0.3.1">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H6.LONG.V6">~INT:BIPASS.LONG.H6.LONG.V6</a>
+</td>
+<td title="0.2.1">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V7.OUT.BSCAN.RESET">~INT:PASS.LONG.V7.OUT.BSCAN.RESET</a>
+</td>
+<td title="0.1.1">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.RESET">~INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.RESET</a>
+</td>
+<td title="0.0.1">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.IDLE">~INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.IDLE</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td title="0.5.0">
+<a href="#tile-xc5200-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1[0]</a>
+</td>
+<td>-</td>
+<td title="0.3.0">
+<a href="#tile-xc5200-CNR.TL-INT:BIPASS.LONG.H7.LONG.V7">~INT:BIPASS.LONG.H7.LONG.V7</a>
+</td>
+<td title="0.2.0">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.LONG.V7.OUT.BSCAN.IDLE">~INT:PASS.LONG.V7.OUT.BSCAN.IDLE</a>
+</td>
+<td title="0.1.0">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.IDLE">~INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.IDLE</a>
+</td>
+<td title="0.0.0">
+<a href="#tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.RESET">~INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.RESET</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TL-BSCAN:ENABLE">BSCAN:ENABLE</th>
+<th>0.0.9</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H0.LONG.V0">INT:BIPASS.LONG.H0.LONG.V0</th>
+<th>0.3.13</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H1.LONG.V1">INT:BIPASS.LONG.H1.LONG.V1</th>
+<th>0.3.11</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H2.LONG.V2">INT:BIPASS.LONG.H2.LONG.V2</th>
+<th>0.3.9</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H3.LONG.V3">INT:BIPASS.LONG.H3.LONG.V3</th>
+<th>0.3.7</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H4.LONG.V4">INT:BIPASS.LONG.H4.LONG.V4</th>
+<th>0.3.5</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H5.LONG.V5">INT:BIPASS.LONG.H5.LONG.V5</th>
+<th>0.3.3</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H6.LONG.V6">INT:BIPASS.LONG.H6.LONG.V6</th>
+<th>0.3.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:BIPASS.LONG.H7.LONG.V7">INT:BIPASS.LONG.H7.LONG.V7</th>
+<th>0.3.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.DRCK">INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.DRCK</th>
+<th>0.1.7</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.SEL2">INT:PASS.IO.SINGLE.T.E0.OUT.BSCAN.SEL2</th>
+<th>0.0.7</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.DRCK">INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.DRCK</th>
+<th>0.0.6</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.SEL2">INT:PASS.IO.SINGLE.T.E1.OUT.BSCAN.SEL2</th>
+<th>0.1.6</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SEL1">INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SEL1</th>
+<th>0.0.4</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SHIFT">INT:PASS.IO.SINGLE.T.E2.OUT.BSCAN.SHIFT</th>
+<th>0.1.4</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SEL1">INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SEL1</th>
+<th>0.1.3</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SHIFT">INT:PASS.IO.SINGLE.T.E3.OUT.BSCAN.SHIFT</th>
+<th>0.0.3</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E4.OUT.BSCAN.UPDATE">INT:PASS.IO.SINGLE.T.E4.OUT.BSCAN.UPDATE</th>
+<th>0.1.2</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E5.OUT.BSCAN.UPDATE">INT:PASS.IO.SINGLE.T.E5.OUT.BSCAN.UPDATE</th>
+<th>0.0.2</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.IDLE">INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.IDLE</th>
+<th>0.0.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.RESET">INT:PASS.IO.SINGLE.T.E6.OUT.BSCAN.RESET</th>
+<th>0.1.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.IDLE">INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.IDLE</th>
+<th>0.1.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.RESET">INT:PASS.IO.SINGLE.T.E7.OUT.BSCAN.RESET</th>
+<th>0.0.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V0.OUT.BSCAN.DRCK">INT:PASS.LONG.V0.OUT.BSCAN.DRCK</th>
+<th>0.0.8</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V0.OUT.BSCAN.SEL2">INT:PASS.LONG.V0.OUT.BSCAN.SEL2</th>
+<th>0.1.8</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V1.OUT.BSCAN.DRCK">INT:PASS.LONG.V1.OUT.BSCAN.DRCK</th>
+<th>0.1.5</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V1.OUT.BSCAN.SEL2">INT:PASS.LONG.V1.OUT.BSCAN.SEL2</th>
+<th>0.0.5</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V2.OUT.BSCAN.SEL1">INT:PASS.LONG.V2.OUT.BSCAN.SEL1</th>
+<th>0.2.9</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V2.OUT.BSCAN.SHIFT">INT:PASS.LONG.V2.OUT.BSCAN.SHIFT</th>
+<th>0.2.8</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V3.OUT.BSCAN.SEL1">INT:PASS.LONG.V3.OUT.BSCAN.SEL1</th>
+<th>0.2.6</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V3.OUT.BSCAN.SHIFT">INT:PASS.LONG.V3.OUT.BSCAN.SHIFT</th>
+<th>0.2.7</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V4.OUT.BSCAN.UPDATE">INT:PASS.LONG.V4.OUT.BSCAN.UPDATE</th>
+<th>0.2.5</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V5.OUT.BSCAN.UPDATE">INT:PASS.LONG.V5.OUT.BSCAN.UPDATE</th>
+<th>0.2.4</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V6.OUT.BSCAN.IDLE">INT:PASS.LONG.V6.OUT.BSCAN.IDLE</th>
+<th>0.2.3</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V6.OUT.BSCAN.RESET">INT:PASS.LONG.V6.OUT.BSCAN.RESET</th>
+<th>0.2.2</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V7.OUT.BSCAN.IDLE">INT:PASS.LONG.V7.OUT.BSCAN.IDLE</th>
+<th>0.2.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-INT:PASS.LONG.V7.OUT.BSCAN.RESET">INT:PASS.LONG.V7.OUT.BSCAN.RESET</th>
+<th>0.2.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-MISC:BS_READBACK">MISC:BS_READBACK</th>
+<th>0.3.15</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TL-MISC:BS_RECONFIG">MISC:BS_RECONFIG</th>
+<th>0.5.9</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TL-INT:MUX.IMUX.BSCAN.TDO1">INT:MUX.IMUX.BSCAN.TDO1</th>
+<th>0.5.1</th>
+<th>0.5.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.T.E7</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.T.E6</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V7</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V6</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TL-INT:MUX.IMUX.BSCAN.TDO2">INT:MUX.IMUX.BSCAN.TDO2</th>
+<th>0.5.3</th>
+<th>0.5.2</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.T.E5</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.T.E4</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V5</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LONG.V4</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TL-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG</th>
+<th>0.5.11</th>
+<th>0.5.12</th>
+<th>0.5.13</th>
+<th>0.5.15</th>
+<th>0.5.5</th>
+<th>0.5.6</th>
+<th>0.5.7</th>
+<th>0.5.8</th>
+<th>0.5.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.T.E0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.T.E1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.T.E2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.T.E3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H4</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H5</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H6</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>OUT.CLKIOB</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>GND</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TL-MISC:INPUT">MISC:INPUT</th>
+<th>0.5.10</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CMOS</td>
+<td>0</td>
+</tr>
+<tr><td>TTL</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-cnrtr"><a class="header" href="#tile-cnrtr">Tile CNR.TR</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-int-3"><a class="header" href="#switchbox-int-3">Switchbox INT</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR switchbox INT</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">IO.SINGLE.R.S2</td><td>OUT.BSUPD</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.R.S3</td><td>OUT.BSUPD</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.R.S4</td><td>OUT.OSC.OSC1</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.R.S5</td><td>OUT.OSC.OSC1</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.R.S6</td><td>OUT.OSC.OSC2</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">IO.SINGLE.R.S7</td><td>OUT.OSC.OSC2</td><td>pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H0</td><td>LONG.V0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.H1</td><td>LONG.V1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H2</td><td>OUT.BSUPD</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H3</td><td>OUT.BSUPD</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H4</td><td>OUT.OSC.OSC1</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H5</td><td>OUT.OSC.OSC1</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H6</td><td>OUT.OSC.OSC2</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="2">LONG.H7</td><td>OUT.OSC.OSC2</td><td>pass transistor</td>
+</tr>
+<tr><td>LONG.V7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V0</td><td>LONG.H0</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V1</td><td>LONG.H1</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V2</td><td>LONG.H2</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V3</td><td>LONG.H3</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V4</td><td>LONG.H4</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V5</td><td>LONG.H5</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V6</td><td>LONG.H6</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="1">LONG.V7</td><td>LONG.H7</td><td>bidirectional pass transistor</td>
+</tr>
+<tr><td rowspan="9">IMUX.OSC.OCLK</td><td>GND</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S0</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S1</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S2</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S3</td><td>mux</td>
+</tr>
+<tr><td>LONG.H0</td><td>mux</td>
+</tr>
+<tr><td>LONG.H1</td><td>mux</td>
+</tr>
+<tr><td>LONG.H2</td><td>mux</td>
+</tr>
+<tr><td>LONG.H3</td><td>mux</td>
+</tr>
+<tr><td rowspan="4">IMUX.BYPOSC.PUMP</td><td>IO.SINGLE.R.S4</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S5</td><td>mux</td>
+</tr>
+<tr><td>LONG.H4</td><td>mux</td>
+</tr>
+<tr><td>LONG.V3</td><td>mux</td>
+</tr>
+<tr><td rowspan="10">IMUX.BUFG</td><td>GND</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S0</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S1</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S2</td><td>mux</td>
+</tr>
+<tr><td>IO.SINGLE.R.S3</td><td>mux</td>
+</tr>
+<tr><td>LONG.V4</td><td>mux</td>
+</tr>
+<tr><td>LONG.V5</td><td>mux</td>
+</tr>
+<tr><td>LONG.V6</td><td>mux</td>
+</tr>
+<tr><td>LONG.V7</td><td>mux</td>
+</tr>
+<tr><td>OUT.CLKIOB</td><td>mux</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufg-3"><a class="header" href="#bel-bufg-3">Bel BUFG</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR bel BUFG</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>I</td><td>input</td><td>IMUX.BUFG</td></tr>
+<tr><td>O</td><td>output</td><td>GLOBAL.TR</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkiob-3"><a class="header" href="#bel-clkiob-3">Bel CLKIOB</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR bel CLKIOB</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>output</td><td>OUT.CLKIOB</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-osc"><a class="header" href="#bel-osc">Bel OSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR bel OSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>C</td><td>input</td><td>IMUX.OSC.OCLK</td></tr>
+<tr><td>OSC1</td><td>output</td><td>OUT.OSC.OSC1</td></tr>
+<tr><td>OSC2</td><td>output</td><td>OUT.OSC.OSC2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-byposc"><a class="header" href="#bel-byposc">Bel BYPOSC</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR bel BYPOSC</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>I</td><td>input</td><td>IMUX.BYPOSC.PUMP</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bsupd"><a class="header" href="#bel-bsupd">Bel BSUPD</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR bel BSUPD</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>O</td><td>output</td><td>OUT.BSUPD</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>GLOBAL.TR</td><td>BUFG.O</td></tr>
+<tr><td>OUT.CLKIOB</td><td>CLKIOB.OUT</td></tr>
+<tr><td>OUT.BSUPD</td><td>BSUPD.O</td></tr>
+<tr><td>OUT.OSC.OSC1</td><td>OSC.OSC1</td></tr>
+<tr><td>OUT.OSC.OSC2</td><td>OSC.OSC2</td></tr>
+<tr><td>IMUX.OSC.OCLK</td><td>OSC.C</td></tr>
+<tr><td>IMUX.BYPOSC.PUMP</td><td>BYPOSC.I</td></tr>
+<tr><td>IMUX.BUFG</td><td>BUFG.I</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>xc5200 CNR.TR bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="7">Frame</th></tr>
+<tr>
+<th>6</th>
+<th>5</th>
+<th>4</th>
+<th>3</th>
+<th>2</th>
+<th>1</th>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.11">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[7]</a>
+</td>
+<td>-</td>
+<td title="0.1.11">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[6]</a>
+</td>
+<td title="0.0.11">
+<a href="#tile-xc5200-CNR.TR-MISC:TLC">~MISC:TLC</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.10">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[8]</a>
+</td>
+<td>-</td>
+<td title="0.1.10">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[5]</a>
+</td>
+<td title="0.0.10">
+<a href="#tile-xc5200-CNR.TR-MISC:TAC">~MISC:TAC</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.7">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S2.OUT.BSUPD">~INT:PASS.IO.SINGLE.R.S2.OUT.BSUPD</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.7">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H0.LONG.V0">~INT:BIPASS.LONG.H0.LONG.V0</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td title="0.6.6">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.OSC.OCLK">INT:MUX.IMUX.OSC.OCLK[0]</a>
+</td>
+<td>-</td>
+<td title="0.4.6">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S3.OUT.BSUPD">~INT:PASS.IO.SINGLE.R.S3.OUT.BSUPD</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.6">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H1.LONG.V1">~INT:BIPASS.LONG.H1.LONG.V1</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td title="0.6.5">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.OSC.OCLK">INT:MUX.IMUX.OSC.OCLK[4]</a>
+</td>
+<td title="0.5.5">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BYPOSC.PUMP">INT:MUX.IMUX.BYPOSC.PUMP[2]</a>
+</td>
+<td title="0.4.5">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.LONG.H2.OUT.BSUPD">~INT:PASS.LONG.H2.OUT.BSUPD</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.1.5">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H2.LONG.V2">~INT:BIPASS.LONG.H2.LONG.V2</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td title="0.6.4">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.OSC.OCLK">INT:MUX.IMUX.OSC.OCLK[3]</a>
+</td>
+<td title="0.5.4">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BYPOSC.PUMP">INT:MUX.IMUX.BYPOSC.PUMP[3]</a>
+</td>
+<td title="0.4.4">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.LONG.H3.OUT.BSUPD">~INT:PASS.LONG.H3.OUT.BSUPD</a>
+</td>
+<td title="0.3.4">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[0]</a>
+</td>
+<td>-</td>
+<td title="0.1.4">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H3.LONG.V3">~INT:BIPASS.LONG.H3.LONG.V3</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td title="0.6.3">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.OSC.OCLK">INT:MUX.IMUX.OSC.OCLK[2]</a>
+</td>
+<td title="0.5.3">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BYPOSC.PUMP">INT:MUX.IMUX.BYPOSC.PUMP[0]</a>
+</td>
+<td title="0.4.3">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.LONG.H4.OUT.OSC.OSC1">~INT:PASS.LONG.H4.OUT.OSC.OSC1</a>
+</td>
+<td title="0.3.3">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[4]</a>
+</td>
+<td>-</td>
+<td title="0.1.3">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H4.LONG.V4">~INT:BIPASS.LONG.H4.LONG.V4</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td title="0.6.2">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.OSC.OCLK">INT:MUX.IMUX.OSC.OCLK[1]</a>
+</td>
+<td title="0.5.2">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BYPOSC.PUMP">INT:MUX.IMUX.BYPOSC.PUMP[1]</a>
+</td>
+<td title="0.4.2">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.LONG.H5.OUT.OSC.OSC1">~INT:PASS.LONG.H5.OUT.OSC.OSC1</a>
+</td>
+<td title="0.3.2">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[3]</a>
+</td>
+<td>-</td>
+<td title="0.1.2">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H5.LONG.V5">~INT:BIPASS.LONG.H5.LONG.V5</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td title="0.6.1">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S4.OUT.OSC.OSC1">~INT:PASS.IO.SINGLE.R.S4.OUT.OSC.OSC1</a>
+</td>
+<td title="0.5.1">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S5.OUT.OSC.OSC1">~INT:PASS.IO.SINGLE.R.S5.OUT.OSC.OSC1</a>
+</td>
+<td title="0.4.1">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.LONG.H6.OUT.OSC.OSC2">~INT:PASS.LONG.H6.OUT.OSC.OSC2</a>
+</td>
+<td title="0.3.1">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[2]</a>
+</td>
+<td>-</td>
+<td title="0.1.1">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H6.LONG.V6">~INT:BIPASS.LONG.H6.LONG.V6</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td title="0.6.0">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S7.OUT.OSC.OSC2">~INT:PASS.IO.SINGLE.R.S7.OUT.OSC.OSC2</a>
+</td>
+<td title="0.5.0">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S6.OUT.OSC.OSC2">~INT:PASS.IO.SINGLE.R.S6.OUT.OSC.OSC2</a>
+</td>
+<td title="0.4.0">
+<a href="#tile-xc5200-CNR.TR-INT:PASS.LONG.H7.OUT.OSC.OSC2">~INT:PASS.LONG.H7.OUT.OSC.OSC2</a>
+</td>
+<td title="0.3.0">
+<a href="#tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG[1]</a>
+</td>
+<td>-</td>
+<td title="0.1.0">
+<a href="#tile-xc5200-CNR.TR-INT:BIPASS.LONG.H7.LONG.V7">~INT:BIPASS.LONG.H7.LONG.V7</a>
+</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H0.LONG.V0">INT:BIPASS.LONG.H0.LONG.V0</th>
+<th>0.1.7</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H1.LONG.V1">INT:BIPASS.LONG.H1.LONG.V1</th>
+<th>0.1.6</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H2.LONG.V2">INT:BIPASS.LONG.H2.LONG.V2</th>
+<th>0.1.5</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H3.LONG.V3">INT:BIPASS.LONG.H3.LONG.V3</th>
+<th>0.1.4</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H4.LONG.V4">INT:BIPASS.LONG.H4.LONG.V4</th>
+<th>0.1.3</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H5.LONG.V5">INT:BIPASS.LONG.H5.LONG.V5</th>
+<th>0.1.2</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H6.LONG.V6">INT:BIPASS.LONG.H6.LONG.V6</th>
+<th>0.1.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:BIPASS.LONG.H7.LONG.V7">INT:BIPASS.LONG.H7.LONG.V7</th>
+<th>0.1.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S2.OUT.BSUPD">INT:PASS.IO.SINGLE.R.S2.OUT.BSUPD</th>
+<th>0.4.7</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S3.OUT.BSUPD">INT:PASS.IO.SINGLE.R.S3.OUT.BSUPD</th>
+<th>0.4.6</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S4.OUT.OSC.OSC1">INT:PASS.IO.SINGLE.R.S4.OUT.OSC.OSC1</th>
+<th>0.6.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S5.OUT.OSC.OSC1">INT:PASS.IO.SINGLE.R.S5.OUT.OSC.OSC1</th>
+<th>0.5.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S6.OUT.OSC.OSC2">INT:PASS.IO.SINGLE.R.S6.OUT.OSC.OSC2</th>
+<th>0.5.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.IO.SINGLE.R.S7.OUT.OSC.OSC2">INT:PASS.IO.SINGLE.R.S7.OUT.OSC.OSC2</th>
+<th>0.6.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.LONG.H2.OUT.BSUPD">INT:PASS.LONG.H2.OUT.BSUPD</th>
+<th>0.4.5</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.LONG.H3.OUT.BSUPD">INT:PASS.LONG.H3.OUT.BSUPD</th>
+<th>0.4.4</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.LONG.H4.OUT.OSC.OSC1">INT:PASS.LONG.H4.OUT.OSC.OSC1</th>
+<th>0.4.3</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.LONG.H5.OUT.OSC.OSC1">INT:PASS.LONG.H5.OUT.OSC.OSC1</th>
+<th>0.4.2</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.LONG.H6.OUT.OSC.OSC2">INT:PASS.LONG.H6.OUT.OSC.OSC2</th>
+<th>0.4.1</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-INT:PASS.LONG.H7.OUT.OSC.OSC2">INT:PASS.LONG.H7.OUT.OSC.OSC2</th>
+<th>0.4.0</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-MISC:TAC">MISC:TAC</th>
+<th>0.0.10</th>
+</tr>
+<tr><th id="tile-xc5200-CNR.TR-MISC:TLC">MISC:TLC</th>
+<th>0.0.11</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TR-INT:MUX.IMUX.BUFG">INT:MUX.IMUX.BUFG</th>
+<th>0.3.10</th>
+<th>0.3.11</th>
+<th>0.1.11</th>
+<th>0.1.10</th>
+<th>0.3.3</th>
+<th>0.3.2</th>
+<th>0.3.1</th>
+<th>0.3.0</th>
+<th>0.3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.R.S0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.R.S1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.R.S2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.R.S3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V4</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V5</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V6</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>OUT.CLKIOB</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>GND</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TR-INT:MUX.IMUX.BYPOSC.PUMP">INT:MUX.IMUX.BYPOSC.PUMP</th>
+<th>0.5.4</th>
+<th>0.5.5</th>
+<th>0.5.2</th>
+<th>0.5.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>IO.SINGLE.R.S4</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>IO.SINGLE.R.S5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H4</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.V3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc5200-CNR.TR-INT:MUX.IMUX.OSC.OCLK">INT:MUX.IMUX.OSC.OCLK</th>
+<th>0.6.5</th>
+<th>0.6.4</th>
+<th>0.6.3</th>
+<th>0.6.2</th>
+<th>0.6.6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>LONG.H0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.R.S0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.R.S1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.R.S2</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LONG.H3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>IO.SINGLE.R.S3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>GND</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../xc5200/io.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../xc5200/splitter.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../xc5200/io.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../xc5200/splitter.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

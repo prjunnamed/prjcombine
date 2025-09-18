@@ -1,0 +1,7431 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Clock I/O and DCM buffers - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="clock-io-and-dcm-buffers"><a class="header" href="#clock-io-and-dcm-buffers">Clock I/O and DCM buffers</a></h1>
+<h2 id="tile-hclk_iois_lvds"><a class="header" href="#tile-hclk_iois_lvds">Tile HCLK_IOIS_LVDS</a></h2>
+<p>Cells: 3</p>
+<h3 id="bel-ioclk"><a class="header" href="#bel-ioclk">Bel IOCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel IOCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-rclk"><a class="header" href="#bel-rclk">Bel RCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel RCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.BYP4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufr0"><a class="header" href="#bel-bufr0">Bel BUFR0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel BUFR0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX.BYP0</td></tr>
+<tr><td>CLR</td><td>input</td><td>TCELL2:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufr1"><a class="header" href="#bel-bufr1">Bel BUFR1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel BUFR1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+<tr><td>CLR</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufio0"><a class="header" href="#bel-bufio0">Bel BUFIO0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel BUFIO0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio1"><a class="header" href="#bel-bufio1">Bel BUFIO1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel BUFIO1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-idelayctrl"><a class="header" href="#bel-idelayctrl">Bel IDELAYCTRL</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel IDELAYCTRL</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+<tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL1:IMUX.BYP0</td><td>BUFR1.CE</td></tr>
+<tr><td>TCELL1:IMUX.BYP2</td><td>BUFR1.CLR</td></tr>
+<tr><td>TCELL1:IMUX.BYP4</td><td>RCLK.CKINT0</td></tr>
+<tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL2:IMUX.BYP0</td><td>BUFR0.CE</td></tr>
+<tr><td>TCELL2:IMUX.BYP2</td><td>BUFR0.CLR</td></tr>
+<tr><td>TCELL2:IMUX.BYP4</td><td>RCLK.CKINT1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_LVDS bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="26">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[2]</a>
+</td>
+<td>-</td>
+<td title="0.5.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[6]</a>
+</td>
+<td>-</td>
+<td title="0.7.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</a>
+</td>
+<td title="0.8.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.14.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[0]</a>
+</td>
+<td title="0.15.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[2]</a>
+</td>
+<td title="0.16.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</a>
+</td>
+<td title="0.17.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</a>
+</td>
+<td>-</td>
+<td title="0.19.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR0:MUX.I">BUFR0:MUX.I[1]</a>
+</td>
+<td>-</td>
+<td title="0.21.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</a>
+</td>
+<td title="0.22.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[0]</a>
+</td>
+<td title="0.23.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[0]</a>
+</td>
+<td title="0.24.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</a>
+</td>
+<td title="0.25.15">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[0]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[7]</a>
+</td>
+<td title="0.3.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[4]</a>
+</td>
+<td>-</td>
+<td title="0.5.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[1]</a>
+</td>
+<td>-</td>
+<td title="0.7.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</a>
+</td>
+<td title="0.8.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.14.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[3]</a>
+</td>
+<td title="0.15.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[1]</a>
+</td>
+<td title="0.16.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</a>
+</td>
+<td>-</td>
+<td title="0.19.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR0:MUX.I">BUFR0:MUX.I[0]</a>
+</td>
+<td>-</td>
+<td title="0.21.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR0:ENABLE">BUFR0:ENABLE</a>
+</td>
+<td title="0.22.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[3]</a>
+</td>
+<td title="0.23.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[2]</a>
+</td>
+<td title="0.24.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[2]</a>
+</td>
+<td title="0.25.14">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[2]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td title="0.2.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[3]</a>
+</td>
+<td title="0.3.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[5]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</a>
+</td>
+<td title="0.8.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[8]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.14.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[2]</a>
+</td>
+<td title="0.15.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[0]</a>
+</td>
+<td>-</td>
+<td title="0.17.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</a>
+</td>
+<td>-</td>
+<td title="0.19.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR1:MUX.I">BUFR1:MUX.I[0]</a>
+</td>
+<td title="0.20.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[3]</a>
+</td>
+<td title="0.21.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR1:ENABLE">BUFR1:ENABLE</a>
+</td>
+<td title="0.22.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[2]</a>
+</td>
+<td title="0.23.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[1]</a>
+</td>
+<td title="0.24.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[1]</a>
+</td>
+<td title="0.25.13">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[1]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[9]</a>
+</td>
+<td>-</td>
+<td title="0.5.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS[0]</a>
+</td>
+<td>-</td>
+<td title="0.7.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</a>
+</td>
+<td title="0.8.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.14.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.17.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</a>
+</td>
+<td>-</td>
+<td title="0.19.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR1:MUX.I">BUFR1:MUX.I[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.22.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[1]</a>
+</td>
+<td title="0.23.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[3]</a>
+</td>
+<td title="0.24.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[0]</a>
+</td>
+<td title="0.25.12">
+<a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[3]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE</th>
+<th>0.14.14</th>
+<th>0.14.13</th>
+<th>0.14.12</th>
+<th>0.14.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE</th>
+<th>0.22.14</th>
+<th>0.22.13</th>
+<th>0.22.12</th>
+<th>0.22.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>BYPASS</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>4</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>7</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>8</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR0:ENABLE">BUFR0:ENABLE</th>
+<th>0.21.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR1:ENABLE">BUFR1:ENABLE</th>
+<th>0.21.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
+<th>0.11.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
+<th>0.7.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
+<th>0.7.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
+<th>0.7.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
+<th>0.7.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
+<th>0.8.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
+<th>0.8.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
+<th>0.8.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
+<th>0.8.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
+<th>0.17.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
+<th>0.17.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
+<th>0.17.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
+<th>0.17.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
+<th>0.21.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
+<th>0.24.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
+<th>0.16.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
+<th>0.16.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR0:MUX.I">BUFR0:MUX.I</th>
+<th>0.19.15</th>
+<th>0.19.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR1:MUX.I">BUFR1:MUX.I</th>
+<th>0.19.12</th>
+<th>0.19.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>BUFIO0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>CKINT0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>CKINT1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>BUFIO1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
+<th>0.24.14</th>
+<th>0.24.13</th>
+<th>0.24.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>HCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
+<th>0.20.13</th>
+<th>0.15.15</th>
+<th>0.15.14</th>
+<th>0.15.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS</th>
+<th>0.3.12</th>
+<th>0.11.13</th>
+<th>0.2.14</th>
+<th>0.5.15</th>
+<th>0.3.13</th>
+<th>0.3.14</th>
+<th>0.2.13</th>
+<th>0.3.15</th>
+<th>0.5.14</th>
+<th>0.5.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0</th>
+<th>0.25.12</th>
+<th>0.25.14</th>
+<th>0.25.13</th>
+<th>0.25.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1</th>
+<th>0.23.12</th>
+<th>0.23.14</th>
+<th>0.23.13</th>
+<th>0.23.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>VRCLK_N0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK_S0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK_N1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK_S1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-hclk_iois_dci"><a class="header" href="#tile-hclk_iois_dci">Tile HCLK_IOIS_DCI</a></h2>
+<p>Cells: 3</p>
+<h3 id="bel-ioclk-1"><a class="header" href="#bel-ioclk-1">Bel IOCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel IOCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-rclk-1"><a class="header" href="#bel-rclk-1">Bel RCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel RCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.BYP4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufr0-1"><a class="header" href="#bel-bufr0-1">Bel BUFR0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel BUFR0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX.BYP0</td></tr>
+<tr><td>CLR</td><td>input</td><td>TCELL2:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufr1-1"><a class="header" href="#bel-bufr1-1">Bel BUFR1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel BUFR1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+<tr><td>CLR</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-bufio0-1"><a class="header" href="#bel-bufio0-1">Bel BUFIO0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel BUFIO0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio1-1"><a class="header" href="#bel-bufio1-1">Bel BUFIO1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel BUFIO1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-idelayctrl-1"><a class="header" href="#bel-idelayctrl-1">Bel IDELAYCTRL</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel IDELAYCTRL</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+<tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dci"><a class="header" href="#bel-dci">Bel DCI</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel DCI</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DCIADDRESS0</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>TSTCLK</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+<tr><td>TSTHLN</td><td>input</td><td>TCELL0:IMUX.BYP4</td></tr>
+<tr><td>TSTHLP</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+<tr><td>TSTRST</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+<tr><td>TCELL0:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+<tr><td>TCELL0:IMUX.BYP4</td><td>DCI.TSTHLN</td></tr>
+<tr><td>TCELL0:IMUX.BYP7</td><td>DCI.TSTHLP</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL1:IMUX.BYP0</td><td>BUFR1.CE</td></tr>
+<tr><td>TCELL1:IMUX.BYP2</td><td>BUFR1.CLR</td></tr>
+<tr><td>TCELL1:IMUX.BYP4</td><td>RCLK.CKINT0</td></tr>
+<tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL2:IMUX.BYP0</td><td>BUFR0.CE</td></tr>
+<tr><td>TCELL2:IMUX.BYP2</td><td>BUFR0.CLR</td></tr>
+<tr><td>TCELL2:IMUX.BYP4</td><td>RCLK.CKINT1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOIS_DCI bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:TEST_ENABLE">DCI:TEST_ENABLE[0]</a>
+</td>
+<td title="0.1.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PREF">DCI:PREF[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</a>
+</td>
+<td title="0.8.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</a>
+</td>
+<td>-</td>
+<td title="0.10.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[3]</a>
+</td>
+<td title="0.11.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.12.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[3]</a>
+</td>
+<td>-</td>
+<td title="0.14.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[0]</a>
+</td>
+<td title="0.15.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[2]</a>
+</td>
+<td title="0.16.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</a>
+</td>
+<td title="0.17.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</a>
+</td>
+<td>-</td>
+<td title="0.19.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR0:MUX.I">BUFR0:MUX.I[1]</a>
+</td>
+<td>-</td>
+<td title="0.21.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</a>
+</td>
+<td title="0.22.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[0]</a>
+</td>
+<td title="0.23.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[0]</a>
+</td>
+<td title="0.24.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</a>
+</td>
+<td title="0.25.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[0]</a>
+</td>
+<td>-</td>
+<td title="0.27.15">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NREF">DCI:NREF[0]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:ENABLE">DCI:ENABLE</a>
+</td>
+<td title="0.1.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PREF">DCI:PREF[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</a>
+</td>
+<td title="0.8.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</a>
+</td>
+<td>-</td>
+<td title="0.10.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[1]</a>
+</td>
+<td title="0.11.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[2]</a>
+</td>
+<td title="0.12.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[2]</a>
+</td>
+<td>-</td>
+<td title="0.14.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[3]</a>
+</td>
+<td title="0.15.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[1]</a>
+</td>
+<td title="0.16.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</a>
+</td>
+<td>-</td>
+<td title="0.19.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR0:MUX.I">BUFR0:MUX.I[0]</a>
+</td>
+<td>-</td>
+<td title="0.21.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR0:ENABLE">BUFR0:ENABLE</a>
+</td>
+<td title="0.22.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[3]</a>
+</td>
+<td title="0.23.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[2]</a>
+</td>
+<td title="0.24.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[2]</a>
+</td>
+<td title="0.25.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[2]</a>
+</td>
+<td>-</td>
+<td title="0.27.14">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:LVDIV2">DCI:LVDIV2[1]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td title="0.1.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PREF">DCI:PREF[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[1]</a>
+</td>
+<td title="0.5.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:TEST_ENABLE">DCI:TEST_ENABLE[1]</a>
+</td>
+<td>-</td>
+<td title="0.7.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</a>
+</td>
+<td title="0.8.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</a>
+</td>
+<td>-</td>
+<td title="0.10.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td title="0.12.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[1]</a>
+</td>
+<td>-</td>
+<td title="0.14.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[2]</a>
+</td>
+<td title="0.15.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[0]</a>
+</td>
+<td>-</td>
+<td title="0.17.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</a>
+</td>
+<td>-</td>
+<td title="0.19.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR1:MUX.I">BUFR1:MUX.I[0]</a>
+</td>
+<td title="0.20.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[3]</a>
+</td>
+<td title="0.21.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR1:ENABLE">BUFR1:ENABLE</a>
+</td>
+<td title="0.22.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[2]</a>
+</td>
+<td title="0.23.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[1]</a>
+</td>
+<td title="0.24.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[1]</a>
+</td>
+<td title="0.25.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[1]</a>
+</td>
+<td>-</td>
+<td title="0.27.13">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:LVDIV2">DCI:LVDIV2[0]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td title="0.1.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PREF">DCI:PREF[3]</a>
+</td>
+<td title="0.2.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[4]</a>
+</td>
+<td>-</td>
+<td title="0.4.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[0]</a>
+</td>
+<td title="0.5.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:QUIET">DCI:QUIET</a>
+</td>
+<td>-</td>
+<td title="0.7.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</a>
+</td>
+<td title="0.8.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</a>
+</td>
+<td>-</td>
+<td title="0.10.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.11.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</a>
+</td>
+<td title="0.12.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td title="0.14.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.17.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</a>
+</td>
+<td>-</td>
+<td title="0.19.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR1:MUX.I">BUFR1:MUX.I[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.22.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE[1]</a>
+</td>
+<td title="0.23.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1[3]</a>
+</td>
+<td title="0.24.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[0]</a>
+</td>
+<td title="0.25.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[3]</a>
+</td>
+<td>-</td>
+<td title="0.27.12">
+<a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NREF">DCI:NREF[1]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE</th>
+<th>0.14.14</th>
+<th>0.14.13</th>
+<th>0.14.12</th>
+<th>0.14.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE</th>
+<th>0.22.14</th>
+<th>0.22.13</th>
+<th>0.22.12</th>
+<th>0.22.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>BYPASS</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>3</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>4</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>5</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>6</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>7</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>8</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR0:ENABLE">BUFR0:ENABLE</th>
+<th>0.21.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR1:ENABLE">BUFR1:ENABLE</th>
+<th>0.21.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:ENABLE">DCI:ENABLE</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:QUIET">DCI:QUIET</th>
+<th>0.5.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
+<th>0.11.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
+<th>0.7.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
+<th>0.7.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
+<th>0.7.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
+<th>0.7.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
+<th>0.8.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
+<th>0.8.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
+<th>0.8.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
+<th>0.8.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
+<th>0.17.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
+<th>0.17.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
+<th>0.17.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
+<th>0.17.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
+<th>0.21.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
+<th>0.24.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
+<th>0.16.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
+<th>0.16.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR0:MUX.I">BUFR0:MUX.I</th>
+<th>0.19.15</th>
+<th>0.19.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR1:MUX.I">BUFR1:MUX.I</th>
+<th>0.19.12</th>
+<th>0.19.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>BUFIO0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>CKINT0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>CKINT1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>BUFIO1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:LVDIV2">DCI:LVDIV2</th>
+<th>0.27.14</th>
+<th>0.27.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:NREF">DCI:NREF</th>
+<th>0.27.12</th>
+<th>0.27.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
+<th>0.5.13</th>
+<th>0.0.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
+<th>0.10.12</th>
+<th>0.12.15</th>
+<th>0.12.14</th>
+<th>0.12.13</th>
+<th>0.12.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
+<th>0.11.15</th>
+<th>0.10.15</th>
+<th>0.11.14</th>
+<th>0.10.14</th>
+<th>0.10.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
+<th>0.2.12</th>
+<th>0.4.15</th>
+<th>0.4.14</th>
+<th>0.4.13</th>
+<th>0.4.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:PREF">DCI:PREF</th>
+<th>0.1.12</th>
+<th>0.1.13</th>
+<th>0.1.14</th>
+<th>0.1.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
+<th>0.20.13</th>
+<th>0.15.15</th>
+<th>0.15.14</th>
+<th>0.15.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
+<th>0.24.14</th>
+<th>0.24.13</th>
+<th>0.24.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>HCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0</th>
+<th>0.25.12</th>
+<th>0.25.14</th>
+<th>0.25.13</th>
+<th>0.25.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1</th>
+<th>0.23.12</th>
+<th>0.23.14</th>
+<th>0.23.13</th>
+<th>0.23.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>VRCLK_N0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK_S0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK_N1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>VRCLK_S1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-hclk_center"><a class="header" href="#tile-hclk_center">Tile HCLK_CENTER</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-ioclk-2"><a class="header" href="#bel-ioclk-2">Bel IOCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER bel IOCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio0-2"><a class="header" href="#bel-bufio0-2">Bel BUFIO0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER bel BUFIO0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio1-2"><a class="header" href="#bel-bufio1-2">Bel BUFIO1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER bel BUFIO1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-idelayctrl-2"><a class="header" href="#bel-idelayctrl-2">Bel IDELAYCTRL</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER bel IDELAYCTRL</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+<tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dci-1"><a class="header" href="#bel-dci-1">Bel DCI</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER bel DCI</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DCIADDRESS0</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>TSTCLK</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+<tr><td>TSTHLN</td><td>input</td><td>TCELL0:IMUX.BYP4</td></tr>
+<tr><td>TSTHLP</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+<tr><td>TSTRST</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+<tr><td>TCELL0:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+<tr><td>TCELL0:IMUX.BYP4</td><td>DCI.TSTHLN</td></tr>
+<tr><td>TCELL0:IMUX.BYP7</td><td>DCI.TSTHLP</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:TEST_ENABLE">DCI:TEST_ENABLE[0]</a>
+</td>
+<td title="0.1.15">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PREF">DCI:PREF[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.15">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.15">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</a>
+</td>
+<td title="0.8.15">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</a>
+</td>
+<td>-</td>
+<td title="0.10.15">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[3]</a>
+</td>
+<td title="0.11.15">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.12.15">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.15.15">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[2]</a>
+</td>
+<td title="0.16.15">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</a>
+</td>
+<td title="0.17.15">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.21.15">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.15">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.15">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:NREF">DCI:NREF[0]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:ENABLE">DCI:ENABLE</a>
+</td>
+<td title="0.1.14">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PREF">DCI:PREF[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.14">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.14">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</a>
+</td>
+<td title="0.8.14">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</a>
+</td>
+<td>-</td>
+<td title="0.10.14">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[1]</a>
+</td>
+<td title="0.11.14">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[2]</a>
+</td>
+<td title="0.12.14">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.15.14">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[1]</a>
+</td>
+<td title="0.16.14">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.14">
+<a href="#tile-virtex4-HCLK_CENTER-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.14">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:LVDIV2">DCI:LVDIV2[1]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="0.0.13">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</a>
+</td>
+<td title="0.1.13">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PREF">DCI:PREF[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.13">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[1]</a>
+</td>
+<td title="0.5.13">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:TEST_ENABLE">DCI:TEST_ENABLE[1]</a>
+</td>
+<td>-</td>
+<td title="0.7.13">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</a>
+</td>
+<td title="0.8.13">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</a>
+</td>
+<td>-</td>
+<td title="0.10.13">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td title="0.12.13">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.15.13">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[0]</a>
+</td>
+<td>-</td>
+<td title="0.17.13">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.20.13">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.13">
+<a href="#tile-virtex4-HCLK_CENTER-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.13">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:LVDIV2">DCI:LVDIV2[0]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td title="0.0.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_BELOW">DCI:CASCADE_FROM_BELOW</a>
+</td>
+<td title="0.1.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PREF">DCI:PREF[3]</a>
+</td>
+<td title="0.2.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[4]</a>
+</td>
+<td>-</td>
+<td title="0.4.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[0]</a>
+</td>
+<td title="0.5.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:QUIET">DCI:QUIET</a>
+</td>
+<td>-</td>
+<td title="0.7.12">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</a>
+</td>
+<td title="0.8.12">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</a>
+</td>
+<td>-</td>
+<td title="0.10.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.11.12">
+<a href="#tile-virtex4-HCLK_CENTER-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</a>
+</td>
+<td title="0.12.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.17.12">
+<a href="#tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.12">
+<a href="#tile-virtex4-HCLK_CENTER-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.12">
+<a href="#tile-virtex4-HCLK_CENTER-DCI:NREF">DCI:NREF[1]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</th>
+<th>0.0.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_BELOW">DCI:CASCADE_FROM_BELOW</th>
+<th>0.0.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:ENABLE">DCI:ENABLE</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:QUIET">DCI:QUIET</th>
+<th>0.5.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
+<th>0.11.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
+<th>0.7.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
+<th>0.7.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
+<th>0.7.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
+<th>0.7.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
+<th>0.8.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
+<th>0.8.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
+<th>0.8.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
+<th>0.8.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
+<th>0.17.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
+<th>0.17.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
+<th>0.17.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
+<th>0.17.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
+<th>0.21.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
+<th>0.24.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
+<th>0.16.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
+<th>0.16.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:LVDIV2">DCI:LVDIV2</th>
+<th>0.27.14</th>
+<th>0.27.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:NREF">DCI:NREF</th>
+<th>0.27.12</th>
+<th>0.27.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
+<th>0.5.13</th>
+<th>0.0.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
+<th>0.10.12</th>
+<th>0.12.15</th>
+<th>0.12.14</th>
+<th>0.12.13</th>
+<th>0.12.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
+<th>0.11.15</th>
+<th>0.10.15</th>
+<th>0.11.14</th>
+<th>0.10.14</th>
+<th>0.10.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
+<th>0.2.12</th>
+<th>0.4.15</th>
+<th>0.4.14</th>
+<th>0.4.13</th>
+<th>0.4.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER-DCI:PREF">DCI:PREF</th>
+<th>0.1.12</th>
+<th>0.1.13</th>
+<th>0.1.14</th>
+<th>0.1.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
+<th>0.20.13</th>
+<th>0.15.15</th>
+<th>0.15.14</th>
+<th>0.15.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
+<th>0.24.14</th>
+<th>0.24.13</th>
+<th>0.24.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>HCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-hclk_center_above_cfg"><a class="header" href="#tile-hclk_center_above_cfg">Tile HCLK_CENTER_ABOVE_CFG</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-ioclk-3"><a class="header" href="#bel-ioclk-3">Bel IOCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER_ABOVE_CFG bel IOCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio0-3"><a class="header" href="#bel-bufio0-3">Bel BUFIO0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER_ABOVE_CFG bel BUFIO0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio1-3"><a class="header" href="#bel-bufio1-3">Bel BUFIO1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER_ABOVE_CFG bel BUFIO1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-idelayctrl-3"><a class="header" href="#bel-idelayctrl-3">Bel IDELAYCTRL</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER_ABOVE_CFG bel IDELAYCTRL</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DNPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT0.TMIN, TCELL0:OUT.HALT.TOP0.TMIN</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>TCELL0:OUT.HALF.BOT2.TMIN, TCELL0:OUT.HALT.TOP2.TMIN</td></tr>
+<tr><td>RDY</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT1.TMIN, TCELL0:OUT.HALT.TOP1.TMIN</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dci-2"><a class="header" href="#bel-dci-2">Bel DCI</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER_ABOVE_CFG bel DCI</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DCIADDRESS0</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>TSTCLK</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+<tr><td>TSTHLN</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+<tr><td>TSTHLP</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+<tr><td>TSTRST</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER_ABOVE_CFG bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL1:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+<tr><td>TCELL1:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+<tr><td>TCELL1:IMUX.BYP4</td><td>DCI.TSTHLP</td></tr>
+<tr><td>TCELL1:IMUX.BYP7</td><td>DCI.TSTHLN</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_CENTER_ABOVE_CFG bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:TEST_ENABLE">DCI:TEST_ENABLE[0]</a>
+</td>
+<td title="0.1.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PREF">DCI:PREF[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</a>
+</td>
+<td title="0.8.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</a>
+</td>
+<td>-</td>
+<td title="0.10.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[3]</a>
+</td>
+<td title="0.11.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.12.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.15.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[2]</a>
+</td>
+<td title="0.16.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</a>
+</td>
+<td title="0.17.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.21.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.15">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NREF">DCI:NREF[0]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:ENABLE">DCI:ENABLE</a>
+</td>
+<td title="0.1.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PREF">DCI:PREF[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</a>
+</td>
+<td title="0.8.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</a>
+</td>
+<td>-</td>
+<td title="0.10.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[1]</a>
+</td>
+<td title="0.11.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[2]</a>
+</td>
+<td title="0.12.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.15.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[1]</a>
+</td>
+<td title="0.16.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.14">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:LVDIV2">DCI:LVDIV2[1]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="0.0.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</a>
+</td>
+<td title="0.1.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PREF">DCI:PREF[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.4.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[1]</a>
+</td>
+<td title="0.5.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:TEST_ENABLE">DCI:TEST_ENABLE[1]</a>
+</td>
+<td>-</td>
+<td title="0.7.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</a>
+</td>
+<td title="0.8.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</a>
+</td>
+<td>-</td>
+<td title="0.10.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td title="0.12.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.15.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[0]</a>
+</td>
+<td>-</td>
+<td title="0.17.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.20.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.13">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:LVDIV2">DCI:LVDIV2[0]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td title="0.1.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PREF">DCI:PREF[3]</a>
+</td>
+<td title="0.2.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[4]</a>
+</td>
+<td>-</td>
+<td title="0.4.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[0]</a>
+</td>
+<td title="0.5.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:QUIET">DCI:QUIET</a>
+</td>
+<td>-</td>
+<td title="0.7.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</a>
+</td>
+<td title="0.8.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</a>
+</td>
+<td>-</td>
+<td title="0.10.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.11.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</a>
+</td>
+<td title="0.12.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.17.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.24.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.27.12">
+<a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NREF">DCI:NREF[1]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</th>
+<th>0.0.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:ENABLE">DCI:ENABLE</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:QUIET">DCI:QUIET</th>
+<th>0.5.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
+<th>0.11.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
+<th>0.7.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
+<th>0.7.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
+<th>0.7.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
+<th>0.7.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
+<th>0.8.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
+<th>0.8.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
+<th>0.8.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
+<th>0.8.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
+<th>0.17.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
+<th>0.17.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
+<th>0.17.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
+<th>0.17.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
+<th>0.21.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
+<th>0.24.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
+<th>0.16.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
+<th>0.16.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:LVDIV2">DCI:LVDIV2</th>
+<th>0.27.14</th>
+<th>0.27.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NREF">DCI:NREF</th>
+<th>0.27.12</th>
+<th>0.27.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
+<th>0.5.13</th>
+<th>0.0.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
+<th>0.10.12</th>
+<th>0.12.15</th>
+<th>0.12.14</th>
+<th>0.12.13</th>
+<th>0.12.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
+<th>0.11.15</th>
+<th>0.10.15</th>
+<th>0.11.14</th>
+<th>0.10.14</th>
+<th>0.10.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
+<th>0.2.12</th>
+<th>0.4.15</th>
+<th>0.4.14</th>
+<th>0.4.13</th>
+<th>0.4.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PREF">DCI:PREF</th>
+<th>0.1.12</th>
+<th>0.1.13</th>
+<th>0.1.14</th>
+<th>0.1.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
+<th>0.20.13</th>
+<th>0.15.15</th>
+<th>0.15.14</th>
+<th>0.15.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
+<th>0.24.14</th>
+<th>0.24.13</th>
+<th>0.24.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>HCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-hclk_iobdcm"><a class="header" href="#tile-hclk_iobdcm">Tile HCLK_IOBDCM</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-ioclk-4"><a class="header" href="#bel-ioclk-4">Bel IOCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel IOCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-hclk_dcm_hrow"><a class="header" href="#bel-hclk_dcm_hrow">Bel HCLK_DCM_HROW</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel HCLK_DCM_HROW</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-hclk_dcm_n"><a class="header" href="#bel-hclk_dcm_n">Bel HCLK_DCM_N</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel HCLK_DCM_N</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio0-4"><a class="header" href="#bel-bufio0-4">Bel BUFIO0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel BUFIO0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio1-4"><a class="header" href="#bel-bufio1-4">Bel BUFIO1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel BUFIO1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-idelayctrl-4"><a class="header" href="#bel-idelayctrl-4">Bel IDELAYCTRL</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel IDELAYCTRL</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+<tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dci-3"><a class="header" href="#bel-dci-3">Bel DCI</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel DCI</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DCIADDRESS0</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>TSTCLK</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+<tr><td>TSTHLN</td><td>input</td><td>TCELL0:IMUX.BYP4</td></tr>
+<tr><td>TSTHLP</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+<tr><td>TSTRST</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+<tr><td>TCELL0:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+<tr><td>TCELL0:IMUX.BYP4</td><td>DCI.TSTHLN</td></tr>
+<tr><td>TCELL0:IMUX.BYP7</td><td>DCI.TSTHLP</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_IOBDCM bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="29">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:TEST_ENABLE">DCI:TEST_ENABLE[0]</a>
+</td>
+<td title="0.1.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PREF">DCI:PREF[0]</a>
+</td>
+<td>-</td>
+<td title="0.3.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U15">HCLK_DCM_N:BUF.GIOB_U15</a>
+</td>
+<td title="0.4.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</a>
+</td>
+<td title="0.8.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</a>
+</td>
+<td>-</td>
+<td title="0.10.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[3]</a>
+</td>
+<td title="0.11.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.12.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[3]</a>
+</td>
+<td>-</td>
+<td title="0.14.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U3">HCLK_DCM_N:BUF.HCLK_U3</a>
+</td>
+<td title="0.15.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[2]</a>
+</td>
+<td title="0.16.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</a>
+</td>
+<td title="0.17.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</a>
+</td>
+<td>-</td>
+<td title="0.19.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON">HCLK_DCM_N:COMMON[1]</a>
+</td>
+<td>-</td>
+<td title="0.21.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</a>
+</td>
+<td title="0.22.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U2">HCLK_DCM_N:BUF.HCLK_U2</a>
+</td>
+<td title="0.23.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U3">HCLK_DCM_N:BUF.MGT_U3</a>
+</td>
+<td title="0.24.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</a>
+</td>
+<td title="0.25.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U12">HCLK_DCM_N:BUF.GIOB_U12</a>
+</td>
+<td title="0.26.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U2">HCLK_DCM_N:BUF.MGT_U2</a>
+</td>
+<td title="0.27.15">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:NREF">DCI:NREF[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:ENABLE">DCI:ENABLE</a>
+</td>
+<td title="0.1.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PREF">DCI:PREF[1]</a>
+</td>
+<td>-</td>
+<td title="0.3.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U14">HCLK_DCM_N:BUF.GIOB_U14</a>
+</td>
+<td title="0.4.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</a>
+</td>
+<td title="0.8.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</a>
+</td>
+<td>-</td>
+<td title="0.10.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[1]</a>
+</td>
+<td title="0.11.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[2]</a>
+</td>
+<td title="0.12.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[2]</a>
+</td>
+<td>-</td>
+<td title="0.14.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON">HCLK_DCM_N:COMMON[0]</a>
+</td>
+<td title="0.15.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[1]</a>
+</td>
+<td title="0.16.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</a>
+</td>
+<td>-</td>
+<td title="0.19.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U4">HCLK_DCM_N:BUF.HCLK_U4</a>
+</td>
+<td>-</td>
+<td title="0.21.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U1">HCLK_DCM_N:BUF.GIOB_U1</a>
+</td>
+<td title="0.22.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U6">HCLK_DCM_N:BUF.HCLK_U6</a>
+</td>
+<td title="0.23.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U7">HCLK_DCM_N:BUF.GIOB_U7</a>
+</td>
+<td title="0.24.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[2]</a>
+</td>
+<td title="0.25.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U11">HCLK_DCM_N:BUF.GIOB_U11</a>
+</td>
+<td title="0.26.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U1">HCLK_DCM_N:BUF.MGT_U1</a>
+</td>
+<td title="0.27.14">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:LVDIV2">DCI:LVDIV2[1]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td title="0.1.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PREF">DCI:PREF[2]</a>
+</td>
+<td>-</td>
+<td title="0.3.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U0">HCLK_DCM_N:BUF.GIOB_U0</a>
+</td>
+<td title="0.4.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[1]</a>
+</td>
+<td title="0.5.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:TEST_ENABLE">DCI:TEST_ENABLE[1]</a>
+</td>
+<td>-</td>
+<td title="0.7.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</a>
+</td>
+<td title="0.8.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</a>
+</td>
+<td>-</td>
+<td title="0.10.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td title="0.12.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[1]</a>
+</td>
+<td>-</td>
+<td title="0.14.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U0">HCLK_DCM_N:BUF.MGT_U0</a>
+</td>
+<td title="0.15.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[0]</a>
+</td>
+<td>-</td>
+<td title="0.17.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</a>
+</td>
+<td>-</td>
+<td title="0.19.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U3">HCLK_DCM_N:BUF.GIOB_U3</a>
+</td>
+<td title="0.20.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[3]</a>
+</td>
+<td title="0.21.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON">HCLK_DCM_N:COMMON[2]</a>
+</td>
+<td title="0.22.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U2">HCLK_DCM_N:BUF.GIOB_U2</a>
+</td>
+<td title="0.23.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U5">HCLK_DCM_N:BUF.HCLK_U5</a>
+</td>
+<td title="0.24.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[1]</a>
+</td>
+<td title="0.25.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U1">HCLK_DCM_N:BUF.HCLK_U1</a>
+</td>
+<td title="0.26.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U10">HCLK_DCM_N:BUF.GIOB_U10</a>
+</td>
+<td title="0.27.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:LVDIV2">DCI:LVDIV2[0]</a>
+</td>
+<td title="0.28.13">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U4">HCLK_DCM_N:BUF.GIOB_U4</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td title="0.1.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PREF">DCI:PREF[3]</a>
+</td>
+<td title="0.2.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[4]</a>
+</td>
+<td>-</td>
+<td title="0.4.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[0]</a>
+</td>
+<td title="0.5.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:QUIET">DCI:QUIET</a>
+</td>
+<td>-</td>
+<td title="0.7.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</a>
+</td>
+<td title="0.8.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</a>
+</td>
+<td>-</td>
+<td title="0.10.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.11.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</a>
+</td>
+<td title="0.12.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.16.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON_MGT">HCLK_DCM_N:COMMON_MGT</a>
+</td>
+<td title="0.17.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</a>
+</td>
+<td>-</td>
+<td title="0.19.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U13">HCLK_DCM_N:BUF.GIOB_U13</a>
+</td>
+<td>-</td>
+<td title="0.21.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U0">HCLK_DCM_N:BUF.HCLK_U0</a>
+</td>
+<td title="0.22.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U9">HCLK_DCM_N:BUF.GIOB_U9</a>
+</td>
+<td title="0.23.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U8">HCLK_DCM_N:BUF.GIOB_U8</a>
+</td>
+<td title="0.24.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[0]</a>
+</td>
+<td title="0.25.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U6">HCLK_DCM_N:BUF.GIOB_U6</a>
+</td>
+<td title="0.26.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U7">HCLK_DCM_N:BUF.HCLK_U7</a>
+</td>
+<td title="0.27.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-DCI:NREF">DCI:NREF[1]</a>
+</td>
+<td title="0.28.12">
+<a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U5">HCLK_DCM_N:BUF.GIOB_U5</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:ENABLE">DCI:ENABLE</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:QUIET">DCI:QUIET</th>
+<th>0.5.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U0">HCLK_DCM_N:BUF.GIOB_U0</th>
+<th>0.3.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U1">HCLK_DCM_N:BUF.GIOB_U1</th>
+<th>0.21.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U10">HCLK_DCM_N:BUF.GIOB_U10</th>
+<th>0.26.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U11">HCLK_DCM_N:BUF.GIOB_U11</th>
+<th>0.25.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U12">HCLK_DCM_N:BUF.GIOB_U12</th>
+<th>0.25.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U13">HCLK_DCM_N:BUF.GIOB_U13</th>
+<th>0.19.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U14">HCLK_DCM_N:BUF.GIOB_U14</th>
+<th>0.3.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U15">HCLK_DCM_N:BUF.GIOB_U15</th>
+<th>0.3.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U2">HCLK_DCM_N:BUF.GIOB_U2</th>
+<th>0.22.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U3">HCLK_DCM_N:BUF.GIOB_U3</th>
+<th>0.19.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U4">HCLK_DCM_N:BUF.GIOB_U4</th>
+<th>0.28.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U5">HCLK_DCM_N:BUF.GIOB_U5</th>
+<th>0.28.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U6">HCLK_DCM_N:BUF.GIOB_U6</th>
+<th>0.25.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U7">HCLK_DCM_N:BUF.GIOB_U7</th>
+<th>0.23.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U8">HCLK_DCM_N:BUF.GIOB_U8</th>
+<th>0.23.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U9">HCLK_DCM_N:BUF.GIOB_U9</th>
+<th>0.22.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U0">HCLK_DCM_N:BUF.HCLK_U0</th>
+<th>0.21.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U1">HCLK_DCM_N:BUF.HCLK_U1</th>
+<th>0.25.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U2">HCLK_DCM_N:BUF.HCLK_U2</th>
+<th>0.22.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U3">HCLK_DCM_N:BUF.HCLK_U3</th>
+<th>0.14.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U4">HCLK_DCM_N:BUF.HCLK_U4</th>
+<th>0.19.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U5">HCLK_DCM_N:BUF.HCLK_U5</th>
+<th>0.23.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U6">HCLK_DCM_N:BUF.HCLK_U6</th>
+<th>0.22.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U7">HCLK_DCM_N:BUF.HCLK_U7</th>
+<th>0.26.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U0">HCLK_DCM_N:BUF.MGT_U0</th>
+<th>0.14.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U1">HCLK_DCM_N:BUF.MGT_U1</th>
+<th>0.26.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U2">HCLK_DCM_N:BUF.MGT_U2</th>
+<th>0.26.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U3">HCLK_DCM_N:BUF.MGT_U3</th>
+<th>0.23.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON_MGT">HCLK_DCM_N:COMMON_MGT</th>
+<th>0.16.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
+<th>0.11.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
+<th>0.7.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
+<th>0.7.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
+<th>0.7.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
+<th>0.7.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
+<th>0.8.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
+<th>0.8.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
+<th>0.8.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
+<th>0.8.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
+<th>0.17.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
+<th>0.17.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
+<th>0.17.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
+<th>0.17.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
+<th>0.21.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
+<th>0.24.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
+<th>0.16.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
+<th>0.16.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:LVDIV2">DCI:LVDIV2</th>
+<th>0.27.14</th>
+<th>0.27.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:NREF">DCI:NREF</th>
+<th>0.27.12</th>
+<th>0.27.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
+<th>0.5.13</th>
+<th>0.0.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
+<th>0.10.12</th>
+<th>0.12.15</th>
+<th>0.12.14</th>
+<th>0.12.13</th>
+<th>0.12.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
+<th>0.11.15</th>
+<th>0.10.15</th>
+<th>0.11.14</th>
+<th>0.10.14</th>
+<th>0.10.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
+<th>0.2.12</th>
+<th>0.4.15</th>
+<th>0.4.14</th>
+<th>0.4.13</th>
+<th>0.4.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:PREF">DCI:PREF</th>
+<th>0.1.12</th>
+<th>0.1.13</th>
+<th>0.1.14</th>
+<th>0.1.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
+<th>0.20.13</th>
+<th>0.15.15</th>
+<th>0.15.14</th>
+<th>0.15.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON">HCLK_DCM_N:COMMON</th>
+<th>0.21.13</th>
+<th>0.19.15</th>
+<th>0.14.14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
+<th>0.24.14</th>
+<th>0.24.13</th>
+<th>0.24.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>HCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-hclk_dcmiob"><a class="header" href="#tile-hclk_dcmiob">Tile HCLK_DCMIOB</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-ioclk-5"><a class="header" href="#bel-ioclk-5">Bel IOCLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel IOCLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-hclk_dcm_hrow-1"><a class="header" href="#bel-hclk_dcm_hrow-1">Bel HCLK_DCM_HROW</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel HCLK_DCM_HROW</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-hclk_dcm_s"><a class="header" href="#bel-hclk_dcm_s">Bel HCLK_DCM_S</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel HCLK_DCM_S</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio0-5"><a class="header" href="#bel-bufio0-5">Bel BUFIO0</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel BUFIO0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-bufio1-5"><a class="header" href="#bel-bufio1-5">Bel BUFIO1</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel BUFIO1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-idelayctrl-5"><a class="header" href="#bel-idelayctrl-5">Bel IDELAYCTRL</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel IDELAYCTRL</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DNPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT0.TMIN, TCELL0:OUT.HALT.TOP0.TMIN</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>TCELL0:OUT.HALF.BOT2.TMIN, TCELL0:OUT.HALT.TOP2.TMIN</td></tr>
+<tr><td>RDY</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT1.TMIN, TCELL0:OUT.HALT.TOP1.TMIN</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dci-4"><a class="header" href="#bel-dci-4">Bel DCI</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel DCI</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>DCIADDRESS0</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+<tr><td>TSTCLK</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+<tr><td>TSTHLN</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+<tr><td>TSTHLP</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+<tr><td>TSTRST</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+<tr><td>TCELL1:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+<tr><td>TCELL1:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+<tr><td>TCELL1:IMUX.BYP4</td><td>DCI.TSTHLP</td></tr>
+<tr><td>TCELL1:IMUX.BYP7</td><td>DCI.TSTHLN</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+<tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCMIOB bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="29">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:TEST_ENABLE">DCI:TEST_ENABLE[0]</a>
+</td>
+<td title="0.1.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PREF">DCI:PREF[0]</a>
+</td>
+<td>-</td>
+<td title="0.3.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D15">HCLK_DCM_S:BUF.GIOB_D15</a>
+</td>
+<td title="0.4.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</a>
+</td>
+<td title="0.8.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</a>
+</td>
+<td>-</td>
+<td title="0.10.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[3]</a>
+</td>
+<td title="0.11.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.12.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[3]</a>
+</td>
+<td>-</td>
+<td title="0.14.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D3">HCLK_DCM_S:BUF.HCLK_D3</a>
+</td>
+<td title="0.15.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[2]</a>
+</td>
+<td title="0.16.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</a>
+</td>
+<td title="0.17.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</a>
+</td>
+<td>-</td>
+<td title="0.19.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON">HCLK_DCM_S:COMMON[1]</a>
+</td>
+<td>-</td>
+<td title="0.21.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</a>
+</td>
+<td title="0.22.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D2">HCLK_DCM_S:BUF.HCLK_D2</a>
+</td>
+<td title="0.23.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D3">HCLK_DCM_S:BUF.MGT_D3</a>
+</td>
+<td title="0.24.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</a>
+</td>
+<td title="0.25.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D12">HCLK_DCM_S:BUF.GIOB_D12</a>
+</td>
+<td title="0.26.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D2">HCLK_DCM_S:BUF.MGT_D2</a>
+</td>
+<td title="0.27.15">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:NREF">DCI:NREF[0]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:ENABLE">DCI:ENABLE</a>
+</td>
+<td title="0.1.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PREF">DCI:PREF[1]</a>
+</td>
+<td>-</td>
+<td title="0.3.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D14">HCLK_DCM_S:BUF.GIOB_D14</a>
+</td>
+<td title="0.4.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.7.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</a>
+</td>
+<td title="0.8.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</a>
+</td>
+<td>-</td>
+<td title="0.10.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[1]</a>
+</td>
+<td title="0.11.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[2]</a>
+</td>
+<td title="0.12.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[2]</a>
+</td>
+<td>-</td>
+<td title="0.14.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON">HCLK_DCM_S:COMMON[0]</a>
+</td>
+<td title="0.15.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[1]</a>
+</td>
+<td title="0.16.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</a>
+</td>
+<td>-</td>
+<td title="0.19.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D4">HCLK_DCM_S:BUF.HCLK_D4</a>
+</td>
+<td>-</td>
+<td title="0.21.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D1">HCLK_DCM_S:BUF.GIOB_D1</a>
+</td>
+<td title="0.22.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D6">HCLK_DCM_S:BUF.HCLK_D6</a>
+</td>
+<td title="0.23.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D7">HCLK_DCM_S:BUF.GIOB_D7</a>
+</td>
+<td title="0.24.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[2]</a>
+</td>
+<td title="0.25.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D11">HCLK_DCM_S:BUF.GIOB_D11</a>
+</td>
+<td title="0.26.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D1">HCLK_DCM_S:BUF.MGT_D1</a>
+</td>
+<td title="0.27.14">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:LVDIV2">DCI:LVDIV2[1]</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td title="0.1.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PREF">DCI:PREF[2]</a>
+</td>
+<td>-</td>
+<td title="0.3.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D0">HCLK_DCM_S:BUF.GIOB_D0</a>
+</td>
+<td title="0.4.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[1]</a>
+</td>
+<td title="0.5.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:TEST_ENABLE">DCI:TEST_ENABLE[1]</a>
+</td>
+<td>-</td>
+<td title="0.7.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</a>
+</td>
+<td title="0.8.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</a>
+</td>
+<td>-</td>
+<td title="0.10.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td title="0.12.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[1]</a>
+</td>
+<td>-</td>
+<td title="0.14.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D0">HCLK_DCM_S:BUF.MGT_D0</a>
+</td>
+<td title="0.15.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[0]</a>
+</td>
+<td>-</td>
+<td title="0.17.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</a>
+</td>
+<td>-</td>
+<td title="0.19.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D3">HCLK_DCM_S:BUF.GIOB_D3</a>
+</td>
+<td title="0.20.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE[3]</a>
+</td>
+<td title="0.21.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON">HCLK_DCM_S:COMMON[2]</a>
+</td>
+<td title="0.22.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D2">HCLK_DCM_S:BUF.GIOB_D2</a>
+</td>
+<td title="0.23.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D5">HCLK_DCM_S:BUF.HCLK_D5</a>
+</td>
+<td title="0.24.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[1]</a>
+</td>
+<td title="0.25.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D1">HCLK_DCM_S:BUF.HCLK_D1</a>
+</td>
+<td title="0.26.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D10">HCLK_DCM_S:BUF.GIOB_D10</a>
+</td>
+<td title="0.27.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:LVDIV2">DCI:LVDIV2[0]</a>
+</td>
+<td title="0.28.13">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D4">HCLK_DCM_S:BUF.GIOB_D4</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td title="0.1.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PREF">DCI:PREF[3]</a>
+</td>
+<td title="0.2.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[4]</a>
+</td>
+<td>-</td>
+<td title="0.4.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC[0]</a>
+</td>
+<td title="0.5.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:QUIET">DCI:QUIET</a>
+</td>
+<td>-</td>
+<td title="0.7.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</a>
+</td>
+<td title="0.8.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</a>
+</td>
+<td>-</td>
+<td title="0.10.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[4]</a>
+</td>
+<td title="0.11.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</a>
+</td>
+<td title="0.12.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.16.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON_MGT">HCLK_DCM_S:COMMON_MGT</a>
+</td>
+<td title="0.17.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</a>
+</td>
+<td>-</td>
+<td title="0.19.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D13">HCLK_DCM_S:BUF.GIOB_D13</a>
+</td>
+<td>-</td>
+<td title="0.21.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D0">HCLK_DCM_S:BUF.HCLK_D0</a>
+</td>
+<td title="0.22.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D9">HCLK_DCM_S:BUF.GIOB_D9</a>
+</td>
+<td title="0.23.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D8">HCLK_DCM_S:BUF.GIOB_D8</a>
+</td>
+<td title="0.24.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK[0]</a>
+</td>
+<td title="0.25.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D6">HCLK_DCM_S:BUF.GIOB_D6</a>
+</td>
+<td title="0.26.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D7">HCLK_DCM_S:BUF.HCLK_D7</a>
+</td>
+<td title="0.27.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-DCI:NREF">DCI:NREF[1]</a>
+</td>
+<td title="0.28.12">
+<a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D5">HCLK_DCM_S:BUF.GIOB_D5</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:ENABLE">DCI:ENABLE</th>
+<th>0.0.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:QUIET">DCI:QUIET</th>
+<th>0.5.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D0">HCLK_DCM_S:BUF.GIOB_D0</th>
+<th>0.3.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D1">HCLK_DCM_S:BUF.GIOB_D1</th>
+<th>0.21.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D10">HCLK_DCM_S:BUF.GIOB_D10</th>
+<th>0.26.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D11">HCLK_DCM_S:BUF.GIOB_D11</th>
+<th>0.25.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D12">HCLK_DCM_S:BUF.GIOB_D12</th>
+<th>0.25.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D13">HCLK_DCM_S:BUF.GIOB_D13</th>
+<th>0.19.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D14">HCLK_DCM_S:BUF.GIOB_D14</th>
+<th>0.3.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D15">HCLK_DCM_S:BUF.GIOB_D15</th>
+<th>0.3.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D2">HCLK_DCM_S:BUF.GIOB_D2</th>
+<th>0.22.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D3">HCLK_DCM_S:BUF.GIOB_D3</th>
+<th>0.19.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D4">HCLK_DCM_S:BUF.GIOB_D4</th>
+<th>0.28.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D5">HCLK_DCM_S:BUF.GIOB_D5</th>
+<th>0.28.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D6">HCLK_DCM_S:BUF.GIOB_D6</th>
+<th>0.25.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D7">HCLK_DCM_S:BUF.GIOB_D7</th>
+<th>0.23.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D8">HCLK_DCM_S:BUF.GIOB_D8</th>
+<th>0.23.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D9">HCLK_DCM_S:BUF.GIOB_D9</th>
+<th>0.22.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D0">HCLK_DCM_S:BUF.HCLK_D0</th>
+<th>0.21.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D1">HCLK_DCM_S:BUF.HCLK_D1</th>
+<th>0.25.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D2">HCLK_DCM_S:BUF.HCLK_D2</th>
+<th>0.22.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D3">HCLK_DCM_S:BUF.HCLK_D3</th>
+<th>0.14.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D4">HCLK_DCM_S:BUF.HCLK_D4</th>
+<th>0.19.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D5">HCLK_DCM_S:BUF.HCLK_D5</th>
+<th>0.23.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D6">HCLK_DCM_S:BUF.HCLK_D6</th>
+<th>0.22.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D7">HCLK_DCM_S:BUF.HCLK_D7</th>
+<th>0.26.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D0">HCLK_DCM_S:BUF.MGT_D0</th>
+<th>0.14.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D1">HCLK_DCM_S:BUF.MGT_D1</th>
+<th>0.26.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D2">HCLK_DCM_S:BUF.MGT_D2</th>
+<th>0.26.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D3">HCLK_DCM_S:BUF.MGT_D3</th>
+<th>0.23.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON_MGT">HCLK_DCM_S:COMMON_MGT</th>
+<th>0.16.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
+<th>0.11.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
+<th>0.7.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
+<th>0.7.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
+<th>0.7.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
+<th>0.7.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
+<th>0.8.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
+<th>0.8.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
+<th>0.8.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
+<th>0.8.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
+<th>0.17.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
+<th>0.17.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
+<th>0.17.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
+<th>0.17.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
+<th>0.21.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
+<th>0.24.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
+<th>0.16.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
+<th>0.16.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:LVDIV2">DCI:LVDIV2</th>
+<th>0.27.14</th>
+<th>0.27.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:NREF">DCI:NREF</th>
+<th>0.27.12</th>
+<th>0.27.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
+<th>0.5.13</th>
+<th>0.0.15</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
+<th>0.10.12</th>
+<th>0.12.15</th>
+<th>0.12.14</th>
+<th>0.12.13</th>
+<th>0.12.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
+<th>0.11.15</th>
+<th>0.10.15</th>
+<th>0.11.14</th>
+<th>0.10.14</th>
+<th>0.10.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
+<th>0.2.12</th>
+<th>0.4.15</th>
+<th>0.4.14</th>
+<th>0.4.13</th>
+<th>0.4.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:PREF">DCI:PREF</th>
+<th>0.1.12</th>
+<th>0.1.13</th>
+<th>0.1.14</th>
+<th>0.1.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
+<th>0.20.13</th>
+<th>0.15.15</th>
+<th>0.15.14</th>
+<th>0.15.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON">HCLK_DCM_S:COMMON</th>
+<th>0.21.13</th>
+<th>0.19.15</th>
+<th>0.14.14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
+<th>0.24.14</th>
+<th>0.24.13</th>
+<th>0.24.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>HCLK0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HCLK6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>HCLK7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-hclk_dcm"><a class="header" href="#tile-hclk_dcm">Tile HCLK_DCM</a></h2>
+<p>Cells: 0</p>
+<h3 id="bel-hclk_dcm_hrow-2"><a class="header" href="#bel-hclk_dcm_hrow-2">Bel HCLK_DCM_HROW</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCM bel HCLK_DCM_HROW</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-hclk_dcm"><a class="header" href="#bel-hclk_dcm">Bel HCLK_DCM</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCM bel HCLK_DCM</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bitstream-6"><a class="header" href="#bitstream-6">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex4 HCLK_DCM bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D11">HCLK_DCM:BUF.GIOB_D11</a>
+</td>
+<td>-</td>
+<td title="0.5.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U1">HCLK_DCM:BUF.MGT_U1</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.10.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U0">HCLK_DCM:BUF.MGT_U0</a>
+</td>
+<td title="0.11.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U2">HCLK_DCM:BUF.MGT_U2</a>
+</td>
+<td title="0.12.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D0">HCLK_DCM:BUF.MGT_D0</a>
+</td>
+<td>-</td>
+<td title="0.14.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U2">HCLK_DCM:BUF.HCLK_U2</a>
+</td>
+<td>-</td>
+<td title="0.16.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U3">HCLK_DCM:BUF.MGT_U3</a>
+</td>
+<td title="0.17.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U0">HCLK_DCM:BUF.GIOB_U0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.20.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D4">HCLK_DCM:BUF.GIOB_D4</a>
+</td>
+<td title="0.21.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D3">HCLK_DCM:BUF.HCLK_D3</a>
+</td>
+<td title="0.22.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D7">HCLK_DCM:BUF.HCLK_D7</a>
+</td>
+<td title="0.23.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D2">HCLK_DCM:BUF.GIOB_D2</a>
+</td>
+<td title="0.24.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D1">HCLK_DCM:BUF.HCLK_D1</a>
+</td>
+<td title="0.25.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U5">HCLK_DCM:BUF.GIOB_U5</a>
+</td>
+<td title="0.26.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U7">HCLK_DCM:BUF.GIOB_U7</a>
+</td>
+<td title="0.27.15">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON">HCLK_DCM:COMMON</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D3">HCLK_DCM:BUF.MGT_D3</a>
+</td>
+<td>-</td>
+<td title="0.5.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U9">HCLK_DCM:BUF.GIOB_U9</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.10.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U12">HCLK_DCM:BUF.GIOB_U12</a>
+</td>
+<td title="0.11.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U14">HCLK_DCM:BUF.GIOB_U14</a>
+</td>
+<td title="0.12.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D8">HCLK_DCM:BUF.GIOB_D8</a>
+</td>
+<td>-</td>
+<td title="0.14.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U6">HCLK_DCM:BUF.HCLK_U6</a>
+</td>
+<td>-</td>
+<td title="0.16.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U11">HCLK_DCM:BUF.GIOB_U11</a>
+</td>
+<td title="0.17.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U0">HCLK_DCM:BUF.HCLK_U0</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.20.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D0">HCLK_DCM:BUF.GIOB_D0</a>
+</td>
+<td>-</td>
+<td title="0.22.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D7">HCLK_DCM:BUF.GIOB_D7</a>
+</td>
+<td title="0.23.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D6">HCLK_DCM:BUF.HCLK_D6</a>
+</td>
+<td title="0.24.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D5">HCLK_DCM:BUF.HCLK_D5</a>
+</td>
+<td title="0.25.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U1">HCLK_DCM:BUF.GIOB_U1</a>
+</td>
+<td title="0.26.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U3">HCLK_DCM:BUF.HCLK_U3</a>
+</td>
+<td title="0.27.14">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_MGT">HCLK_DCM:COMMON_MGT</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D10">HCLK_DCM:BUF.GIOB_D10</a>
+</td>
+<td>-</td>
+<td title="0.5.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U13">HCLK_DCM:BUF.GIOB_U13</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.10.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D12">HCLK_DCM:BUF.GIOB_D12</a>
+</td>
+<td title="0.11.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D14">HCLK_DCM:BUF.GIOB_D14</a>
+</td>
+<td title="0.12.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D1">HCLK_DCM:BUF.MGT_D1</a>
+</td>
+<td>-</td>
+<td title="0.14.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U2">HCLK_DCM:BUF.GIOB_U2</a>
+</td>
+<td>-</td>
+<td title="0.16.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U15">HCLK_DCM:BUF.GIOB_U15</a>
+</td>
+<td title="0.17.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U4">HCLK_DCM:BUF.HCLK_U4</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.20.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D4">HCLK_DCM:BUF.HCLK_D4</a>
+</td>
+<td>-</td>
+<td title="0.22.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D3">HCLK_DCM:BUF.GIOB_D3</a>
+</td>
+<td title="0.23.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D2">HCLK_DCM:BUF.HCLK_D2</a>
+</td>
+<td title="0.24.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D5">HCLK_DCM:BUF.GIOB_D5</a>
+</td>
+<td title="0.25.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U5">HCLK_DCM:BUF.HCLK_U5</a>
+</td>
+<td title="0.26.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U7">HCLK_DCM:BUF.HCLK_U7</a>
+</td>
+<td title="0.27.13">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_HCLK_GIOB">HCLK_DCM:COMMON_HCLK_GIOB[2]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D2">HCLK_DCM:BUF.MGT_D2</a>
+</td>
+<td>-</td>
+<td title="0.5.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U8">HCLK_DCM:BUF.GIOB_U8</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.10.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D13">HCLK_DCM:BUF.GIOB_D13</a>
+</td>
+<td title="0.11.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D15">HCLK_DCM:BUF.GIOB_D15</a>
+</td>
+<td title="0.12.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D9">HCLK_DCM:BUF.GIOB_D9</a>
+</td>
+<td>-</td>
+<td title="0.14.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U6">HCLK_DCM:BUF.GIOB_U6</a>
+</td>
+<td>-</td>
+<td title="0.16.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U10">HCLK_DCM:BUF.GIOB_U10</a>
+</td>
+<td title="0.17.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U4">HCLK_DCM:BUF.GIOB_U4</a>
+</td>
+<td>-</td>
+<td title="0.19.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_HCLK_GIOB">HCLK_DCM:COMMON_HCLK_GIOB[0]</a>
+</td>
+<td title="0.20.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D0">HCLK_DCM:BUF.HCLK_D0</a>
+</td>
+<td title="0.21.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_HCLK_GIOB">HCLK_DCM:COMMON_HCLK_GIOB[1]</a>
+</td>
+<td title="0.22.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D6">HCLK_DCM:BUF.GIOB_D6</a>
+</td>
+<td>-</td>
+<td title="0.24.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D1">HCLK_DCM:BUF.GIOB_D1</a>
+</td>
+<td title="0.25.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U1">HCLK_DCM:BUF.HCLK_U1</a>
+</td>
+<td title="0.26.12">
+<a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U3">HCLK_DCM:BUF.GIOB_U3</a>
+</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D0">HCLK_DCM:BUF.GIOB_D0</th>
+<th>0.20.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D1">HCLK_DCM:BUF.GIOB_D1</th>
+<th>0.24.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D10">HCLK_DCM:BUF.GIOB_D10</th>
+<th>0.3.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D11">HCLK_DCM:BUF.GIOB_D11</th>
+<th>0.3.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D12">HCLK_DCM:BUF.GIOB_D12</th>
+<th>0.10.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D13">HCLK_DCM:BUF.GIOB_D13</th>
+<th>0.10.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D14">HCLK_DCM:BUF.GIOB_D14</th>
+<th>0.11.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D15">HCLK_DCM:BUF.GIOB_D15</th>
+<th>0.11.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D2">HCLK_DCM:BUF.GIOB_D2</th>
+<th>0.23.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D3">HCLK_DCM:BUF.GIOB_D3</th>
+<th>0.22.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D4">HCLK_DCM:BUF.GIOB_D4</th>
+<th>0.20.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D5">HCLK_DCM:BUF.GIOB_D5</th>
+<th>0.24.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D6">HCLK_DCM:BUF.GIOB_D6</th>
+<th>0.22.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D7">HCLK_DCM:BUF.GIOB_D7</th>
+<th>0.22.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D8">HCLK_DCM:BUF.GIOB_D8</th>
+<th>0.12.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D9">HCLK_DCM:BUF.GIOB_D9</th>
+<th>0.12.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U0">HCLK_DCM:BUF.GIOB_U0</th>
+<th>0.17.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U1">HCLK_DCM:BUF.GIOB_U1</th>
+<th>0.25.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U10">HCLK_DCM:BUF.GIOB_U10</th>
+<th>0.16.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U11">HCLK_DCM:BUF.GIOB_U11</th>
+<th>0.16.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U12">HCLK_DCM:BUF.GIOB_U12</th>
+<th>0.10.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U13">HCLK_DCM:BUF.GIOB_U13</th>
+<th>0.5.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U14">HCLK_DCM:BUF.GIOB_U14</th>
+<th>0.11.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U15">HCLK_DCM:BUF.GIOB_U15</th>
+<th>0.16.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U2">HCLK_DCM:BUF.GIOB_U2</th>
+<th>0.14.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U3">HCLK_DCM:BUF.GIOB_U3</th>
+<th>0.26.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U4">HCLK_DCM:BUF.GIOB_U4</th>
+<th>0.17.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U5">HCLK_DCM:BUF.GIOB_U5</th>
+<th>0.25.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U6">HCLK_DCM:BUF.GIOB_U6</th>
+<th>0.14.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U7">HCLK_DCM:BUF.GIOB_U7</th>
+<th>0.26.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U8">HCLK_DCM:BUF.GIOB_U8</th>
+<th>0.5.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U9">HCLK_DCM:BUF.GIOB_U9</th>
+<th>0.5.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D0">HCLK_DCM:BUF.HCLK_D0</th>
+<th>0.20.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D1">HCLK_DCM:BUF.HCLK_D1</th>
+<th>0.24.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D2">HCLK_DCM:BUF.HCLK_D2</th>
+<th>0.23.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D3">HCLK_DCM:BUF.HCLK_D3</th>
+<th>0.21.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D4">HCLK_DCM:BUF.HCLK_D4</th>
+<th>0.20.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D5">HCLK_DCM:BUF.HCLK_D5</th>
+<th>0.24.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D6">HCLK_DCM:BUF.HCLK_D6</th>
+<th>0.23.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D7">HCLK_DCM:BUF.HCLK_D7</th>
+<th>0.22.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U0">HCLK_DCM:BUF.HCLK_U0</th>
+<th>0.17.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U1">HCLK_DCM:BUF.HCLK_U1</th>
+<th>0.25.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U2">HCLK_DCM:BUF.HCLK_U2</th>
+<th>0.14.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U3">HCLK_DCM:BUF.HCLK_U3</th>
+<th>0.26.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U4">HCLK_DCM:BUF.HCLK_U4</th>
+<th>0.17.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U5">HCLK_DCM:BUF.HCLK_U5</th>
+<th>0.25.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U6">HCLK_DCM:BUF.HCLK_U6</th>
+<th>0.14.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U7">HCLK_DCM:BUF.HCLK_U7</th>
+<th>0.26.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D0">HCLK_DCM:BUF.MGT_D0</th>
+<th>0.12.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D1">HCLK_DCM:BUF.MGT_D1</th>
+<th>0.12.13</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D2">HCLK_DCM:BUF.MGT_D2</th>
+<th>0.3.12</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D3">HCLK_DCM:BUF.MGT_D3</th>
+<th>0.3.14</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U0">HCLK_DCM:BUF.MGT_U0</th>
+<th>0.10.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U1">HCLK_DCM:BUF.MGT_U1</th>
+<th>0.5.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U2">HCLK_DCM:BUF.MGT_U2</th>
+<th>0.11.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U3">HCLK_DCM:BUF.MGT_U3</th>
+<th>0.16.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON">HCLK_DCM:COMMON</th>
+<th>0.27.15</th>
+</tr>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_MGT">HCLK_DCM:COMMON_MGT</th>
+<th>0.27.14</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_HCLK_GIOB">HCLK_DCM:COMMON_HCLK_GIOB</th>
+<th>0.27.13</th>
+<th>0.21.12</th>
+<th>0.19.12</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../virtex4/clock/hclk.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../virtex4/clock/hclk-mgt.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../virtex4/clock/hclk.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../virtex4/clock/hclk-mgt.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

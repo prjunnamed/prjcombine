@@ -1,0 +1,712 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Clock interconnect - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="clock-interconnect"><a class="header" href="#clock-interconnect">Clock interconnect</a></h1>
+<h2 id="tile-clk_s"><a class="header" href="#tile-clk_s">Tile CLK_S</a></h2>
+<p>Cells: 6</p>
+<h3 id="bel-dlldel0"><a class="header" href="#bel-dlldel0">Bel DLLDEL0</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DLLDEL0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CFLAG</td><td>output</td><td>TCELL0:OUT_Q7</td></tr>
+<tr><td>DIRECTION</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>LOADN</td><td>input</td><td>TCELL0:IMUX_B6</td></tr>
+<tr><td>MOVE</td><td>input</td><td>TCELL0:IMUX_C6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel1"><a class="header" href="#bel-dlldel1">Bel DLLDEL1</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DLLDEL1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CFLAG</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+<tr><td>DIRECTION</td><td>input</td><td>TCELL1:IMUX_D6</td></tr>
+<tr><td>LOADN</td><td>input</td><td>TCELL1:IMUX_B6</td></tr>
+<tr><td>MOVE</td><td>input</td><td>TCELL1:IMUX_C6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel2"><a class="header" href="#bel-dlldel2">Bel DLLDEL2</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DLLDEL2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CFLAG</td><td>output</td><td>TCELL2:OUT_Q7</td></tr>
+<tr><td>DIRECTION</td><td>input</td><td>TCELL2:IMUX_D6</td></tr>
+<tr><td>LOADN</td><td>input</td><td>TCELL2:IMUX_B6</td></tr>
+<tr><td>MOVE</td><td>input</td><td>TCELL2:IMUX_C6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel3"><a class="header" href="#bel-dlldel3">Bel DLLDEL3</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DLLDEL3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CFLAG</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+<tr><td>DIRECTION</td><td>input</td><td>TCELL3:IMUX_D6</td></tr>
+<tr><td>LOADN</td><td>input</td><td>TCELL3:IMUX_B6</td></tr>
+<tr><td>MOVE</td><td>input</td><td>TCELL3:IMUX_C6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv0"><a class="header" href="#bel-clkdiv0">Bel CLKDIV0</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel CLKDIV0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>TCELL1:IMUX_A3</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL1:IMUX_LSR0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv1"><a class="header" href="#bel-clkdiv1">Bel CLKDIV1</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel CLKDIV1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>TCELL1:IMUX_B3</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL1:IMUX_LSR1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv2"><a class="header" href="#bel-clkdiv2">Bel CLKDIV2</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel CLKDIV2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>TCELL1:IMUX_C2</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>TCELL2:OUT_F2</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL2:IMUX_LSR0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv3"><a class="header" href="#bel-clkdiv3">Bel CLKDIV3</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel CLKDIV3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>TCELL1:IMUX_D2</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>TCELL2:OUT_F3</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL2:IMUX_LSR1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc0"><a class="header" href="#bel-dcc0">Bel DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc1"><a class="header" href="#bel-dcc1">Bel DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc2"><a class="header" href="#bel-dcc2">Bel DCC2</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc3"><a class="header" href="#bel-dcc3">Bel DCC3</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc4"><a class="header" href="#bel-dcc4">Bel DCC4</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC4</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc5"><a class="header" href="#bel-dcc5">Bel DCC5</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC5</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc6"><a class="header" href="#bel-dcc6">Bel DCC6</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC6</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc7"><a class="header" href="#bel-dcc7">Bel DCC7</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel DCC7</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_edge"><a class="header" href="#bel-clk_edge">Bel CLK_EDGE</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel CLK_EDGE</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>INT_IN_0</td><td>input</td><td>TCELL4:IMUX_D7</td></tr>
+<tr><td>INT_IN_1</td><td>input</td><td>TCELL5:IMUX_D7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest"><a class="header" href="#bel-clktest">Bel CLKTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel CLKTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>TCELL2:IMUX_B0</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>TCELL2:IMUX_B1</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>TCELL2:IMUX_B2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync0"><a class="header" href="#bel-eclksync0">Bel ECLKSYNC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel ECLKSYNC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+<tr><td>ECLKI</td><td>input</td><td>TCELL1:IMUX_CLK0</td></tr>
+<tr><td>STOP</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync1"><a class="header" href="#bel-eclksync1">Bel ECLKSYNC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel ECLKSYNC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+<tr><td>ECLKI</td><td>input</td><td>TCELL1:IMUX_CLK0</td></tr>
+<tr><td>STOP</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync2"><a class="header" href="#bel-eclksync2">Bel ECLKSYNC2</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel ECLKSYNC2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK</td><td>output</td><td>TCELL2:OUT_F0</td></tr>
+<tr><td>ECLKI</td><td>input</td><td>TCELL1:IMUX_CLK1</td></tr>
+<tr><td>STOP</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync3"><a class="header" href="#bel-eclksync3">Bel ECLKSYNC3</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel ECLKSYNC3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK</td><td>output</td><td>TCELL2:OUT_F1</td></tr>
+<tr><td>ECLKI</td><td>input</td><td>TCELL1:IMUX_CLK1</td></tr>
+<tr><td>STOP</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest_eclk"><a class="header" href="#bel-clktest_eclk">Bel CLKTEST_ECLK</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel CLKTEST_ECLK</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>TCELL1:IMUX_B4</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+<tr><td>TESTIN3</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>TESTIN4</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+<tr><td>TESTIN5</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_S bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_B6</td><td>DLLDEL0.LOADN</td></tr>
+<tr><td>TCELL0:IMUX_C6</td><td>DLLDEL0.MOVE</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>DLLDEL0.DIRECTION</td></tr>
+<tr><td>TCELL0:OUT_Q7</td><td>DLLDEL0.CFLAG</td></tr>
+<tr><td>TCELL1:IMUX_A0</td><td>ECLKSYNC0.STOP</td></tr>
+<tr><td>TCELL1:IMUX_A3</td><td>CLKDIV0.ALIGNWD</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>CLKTEST_ECLK.TESTIN0</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>CLKTEST_ECLK.TESTIN3</td></tr>
+<tr><td>TCELL1:IMUX_B0</td><td>ECLKSYNC1.STOP</td></tr>
+<tr><td>TCELL1:IMUX_B3</td><td>CLKDIV1.ALIGNWD</td></tr>
+<tr><td>TCELL1:IMUX_B4</td><td>CLKTEST_ECLK.TESTIN1</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>CLKTEST_ECLK.TESTIN4</td></tr>
+<tr><td>TCELL1:IMUX_B6</td><td>DLLDEL1.LOADN</td></tr>
+<tr><td>TCELL1:IMUX_C0</td><td>ECLKSYNC2.STOP</td></tr>
+<tr><td>TCELL1:IMUX_C2</td><td>CLKDIV2.ALIGNWD</td></tr>
+<tr><td>TCELL1:IMUX_C4</td><td>CLKTEST_ECLK.TESTIN2</td></tr>
+<tr><td>TCELL1:IMUX_C5</td><td>CLKTEST_ECLK.TESTIN5</td></tr>
+<tr><td>TCELL1:IMUX_C6</td><td>DLLDEL1.MOVE</td></tr>
+<tr><td>TCELL1:IMUX_D0</td><td>ECLKSYNC3.STOP</td></tr>
+<tr><td>TCELL1:IMUX_D2</td><td>CLKDIV3.ALIGNWD</td></tr>
+<tr><td>TCELL1:IMUX_D6</td><td>DLLDEL1.DIRECTION</td></tr>
+<tr><td>TCELL1:IMUX_CLK0</td><td>ECLKSYNC0.ECLKI, ECLKSYNC1.ECLKI</td></tr>
+<tr><td>TCELL1:IMUX_CLK1</td><td>ECLKSYNC2.ECLKI, ECLKSYNC3.ECLKI</td></tr>
+<tr><td>TCELL1:IMUX_LSR0</td><td>CLKDIV0.RST</td></tr>
+<tr><td>TCELL1:IMUX_LSR1</td><td>CLKDIV1.RST</td></tr>
+<tr><td>TCELL1:OUT_F0</td><td>ECLKSYNC0.ECLK</td></tr>
+<tr><td>TCELL1:OUT_F1</td><td>ECLKSYNC1.ECLK</td></tr>
+<tr><td>TCELL1:OUT_F2</td><td>CLKDIV0.CDIVX</td></tr>
+<tr><td>TCELL1:OUT_F3</td><td>CLKDIV1.CDIVX</td></tr>
+<tr><td>TCELL1:OUT_Q7</td><td>DLLDEL1.CFLAG</td></tr>
+<tr><td>TCELL2:IMUX_A0</td><td>DCC0.CE</td></tr>
+<tr><td>TCELL2:IMUX_A1</td><td>DCC1.CE</td></tr>
+<tr><td>TCELL2:IMUX_A2</td><td>DCC2.CE</td></tr>
+<tr><td>TCELL2:IMUX_A3</td><td>DCC3.CE</td></tr>
+<tr><td>TCELL2:IMUX_A4</td><td>DCC4.CE</td></tr>
+<tr><td>TCELL2:IMUX_A5</td><td>DCC5.CE</td></tr>
+<tr><td>TCELL2:IMUX_A6</td><td>DCC6.CE</td></tr>
+<tr><td>TCELL2:IMUX_A7</td><td>DCC7.CE</td></tr>
+<tr><td>TCELL2:IMUX_B0</td><td>CLKTEST.TESTIN0</td></tr>
+<tr><td>TCELL2:IMUX_B1</td><td>CLKTEST.TESTIN1</td></tr>
+<tr><td>TCELL2:IMUX_B2</td><td>CLKTEST.TESTIN2</td></tr>
+<tr><td>TCELL2:IMUX_B6</td><td>DLLDEL2.LOADN</td></tr>
+<tr><td>TCELL2:IMUX_C6</td><td>DLLDEL2.MOVE</td></tr>
+<tr><td>TCELL2:IMUX_D6</td><td>DLLDEL2.DIRECTION</td></tr>
+<tr><td>TCELL2:IMUX_LSR0</td><td>CLKDIV2.RST</td></tr>
+<tr><td>TCELL2:IMUX_LSR1</td><td>CLKDIV3.RST</td></tr>
+<tr><td>TCELL2:OUT_F0</td><td>ECLKSYNC2.ECLK</td></tr>
+<tr><td>TCELL2:OUT_F1</td><td>ECLKSYNC3.ECLK</td></tr>
+<tr><td>TCELL2:OUT_F2</td><td>CLKDIV2.CDIVX</td></tr>
+<tr><td>TCELL2:OUT_F3</td><td>CLKDIV3.CDIVX</td></tr>
+<tr><td>TCELL2:OUT_Q7</td><td>DLLDEL2.CFLAG</td></tr>
+<tr><td>TCELL3:IMUX_B6</td><td>DLLDEL3.LOADN</td></tr>
+<tr><td>TCELL3:IMUX_C6</td><td>DLLDEL3.MOVE</td></tr>
+<tr><td>TCELL3:IMUX_D6</td><td>DLLDEL3.DIRECTION</td></tr>
+<tr><td>TCELL3:OUT_Q7</td><td>DLLDEL3.CFLAG</td></tr>
+<tr><td>TCELL4:IMUX_D7</td><td>CLK_EDGE.INT_IN_0</td></tr>
+<tr><td>TCELL5:IMUX_D7</td><td>CLK_EDGE.INT_IN_1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_n"><a class="header" href="#tile-clk_n">Tile CLK_N</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-dcc0-1"><a class="header" href="#bel-dcc0-1">Bel DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc1-1"><a class="header" href="#bel-dcc1-1">Bel DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc2-1"><a class="header" href="#bel-dcc2-1">Bel DCC2</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel DCC2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc3-1"><a class="header" href="#bel-dcc3-1">Bel DCC3</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel DCC3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc4-1"><a class="header" href="#bel-dcc4-1">Bel DCC4</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel DCC4</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc5-1"><a class="header" href="#bel-dcc5-1">Bel DCC5</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel DCC5</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_edge-1"><a class="header" href="#bel-clk_edge-1">Bel CLK_EDGE</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel CLK_EDGE</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>INT_IN_0</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>INT_IN_1</td><td>input</td><td>TCELL1:IMUX_D7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest-1"><a class="header" href="#bel-clktest-1">Bel CLKTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel CLKTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>TCELL1:IMUX_B4</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>TCELL1:IMUX_D5</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>TCELL1:IMUX_B6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_D7</td><td>CLK_EDGE.INT_IN_0</td></tr>
+<tr><td>TCELL1:IMUX_A0</td><td>DCC0.CE</td></tr>
+<tr><td>TCELL1:IMUX_A1</td><td>DCC1.CE</td></tr>
+<tr><td>TCELL1:IMUX_A2</td><td>DCC2.CE</td></tr>
+<tr><td>TCELL1:IMUX_A3</td><td>DCC3.CE</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>DCC4.CE</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>DCC5.CE</td></tr>
+<tr><td>TCELL1:IMUX_B4</td><td>CLKTEST.TESTIN0</td></tr>
+<tr><td>TCELL1:IMUX_B6</td><td>CLKTEST.TESTIN2</td></tr>
+<tr><td>TCELL1:IMUX_D5</td><td>CLKTEST.TESTIN1</td></tr>
+<tr><td>TCELL1:IMUX_D7</td><td>CLK_EDGE.INT_IN_1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_root"><a class="header" href="#tile-clk_root">Tile CLK_ROOT</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-dcs0"><a class="header" href="#bel-dcs0">Bel DCS0</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_ROOT bel DCS0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>MODESEL</td><td>input</td><td>IMUX_A2</td></tr>
+<tr><td>SEL0</td><td>input</td><td>IMUX_A0</td></tr>
+<tr><td>SEL1</td><td>input</td><td>IMUX_A1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root"><a class="header" href="#bel-clk_root">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_ROOT bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0</td><td>output</td><td>PCLK0</td></tr>
+<tr><td>PCLK1</td><td>output</td><td>PCLK1</td></tr>
+<tr><td>PCLK2</td><td>output</td><td>PCLK2</td></tr>
+<tr><td>PCLK3</td><td>output</td><td>PCLK3</td></tr>
+<tr><td>PCLK4</td><td>output</td><td>PCLK4</td></tr>
+<tr><td>PCLK5</td><td>output</td><td>PCLK5</td></tr>
+<tr><td>PCLK6</td><td>output</td><td>PCLK6</td></tr>
+<tr><td>PCLK7</td><td>output</td><td>PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest-2"><a class="header" href="#bel-clktest-2">Bel CLKTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_ROOT bel CLKTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>IMUX_B0</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>IMUX_B1</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>IMUX_B2</td></tr>
+<tr><td>TESTIN3</td><td>input</td><td>IMUX_B3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>crosslink CLK_ROOT bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0</td><td>CLK_ROOT.PCLK0</td></tr>
+<tr><td>PCLK1</td><td>CLK_ROOT.PCLK1</td></tr>
+<tr><td>PCLK2</td><td>CLK_ROOT.PCLK2</td></tr>
+<tr><td>PCLK3</td><td>CLK_ROOT.PCLK3</td></tr>
+<tr><td>PCLK4</td><td>CLK_ROOT.PCLK4</td></tr>
+<tr><td>PCLK5</td><td>CLK_ROOT.PCLK5</td></tr>
+<tr><td>PCLK6</td><td>CLK_ROOT.PCLK6</td></tr>
+<tr><td>PCLK7</td><td>CLK_ROOT.PCLK7</td></tr>
+<tr><td>IMUX_A0</td><td>DCS0.SEL0</td></tr>
+<tr><td>IMUX_A1</td><td>DCS0.SEL1</td></tr>
+<tr><td>IMUX_A2</td><td>DCS0.MODESEL</td></tr>
+<tr><td>IMUX_B0</td><td>CLKTEST.TESTIN0</td></tr>
+<tr><td>IMUX_B1</td><td>CLKTEST.TESTIN1</td></tr>
+<tr><td>IMUX_B2</td><td>CLKTEST.TESTIN2</td></tr>
+<tr><td>IMUX_B3</td><td>CLKTEST.TESTIN3</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../crosslink/ebr.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../crosslink/io.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../crosslink/ebr.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../crosslink/io.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

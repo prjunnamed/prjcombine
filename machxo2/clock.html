@@ -1,0 +1,3020 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Clock interconnect - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="clock-interconnect"><a class="header" href="#clock-interconnect">Clock interconnect</a></h1>
+<h2 id="tile-clk_root_0ebr"><a class="header" href="#tile-clk_root_0ebr">Tile CLK_ROOT_0EBR</a></h2>
+<p>Cells: 8</p>
+<h3 id="bel-dcc0"><a class="header" href="#bel-dcc0">Bel DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_A0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc1"><a class="header" href="#bel-dcc1">Bel DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_B0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc2"><a class="header" href="#bel-dcc2">Bel DCC2</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_C0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc3"><a class="header" href="#bel-dcc3">Bel DCC3</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_D0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc4"><a class="header" href="#bel-dcc4">Bel DCC4</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC4</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_A1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc5"><a class="header" href="#bel-dcc5">Bel DCC5</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC5</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_B1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc6"><a class="header" href="#bel-dcc6">Bel DCC6</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC6</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_C1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc7"><a class="header" href="#bel-dcc7">Bel DCC7</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCC7</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL6:IMUX_D1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm0"><a class="header" href="#bel-dcm0">Bel DCM0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCM0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL5:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm1"><a class="header" href="#bel-dcm1">Bel DCM1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel DCM1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL5:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root"><a class="header" href="#bel-clk_root">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL3:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL3:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL6:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL6:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL4:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL4:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL1:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL1:IMUX_CLK1</td></tr>
+<tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL3:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL3:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M0</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M1</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M2</td><td>input</td><td>TCELL4:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M3</td><td>input</td><td>TCELL4:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_M4</td><td>input</td><td>TCELL7:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M5</td><td>input</td><td>TCELL7:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M6</td><td>input</td><td>TCELL2:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M7</td><td>input</td><td>TCELL2:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL6:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL6:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL4:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest"><a class="header" href="#bel-clktest">Bel CLKTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel CLKTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>TCELL6:IMUX_A2</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>TCELL6:IMUX_B2</td></tr>
+<tr><td>TESTIN10</td><td>input</td><td>TCELL6:IMUX_C4</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>TCELL6:IMUX_C2</td></tr>
+<tr><td>TESTIN3</td><td>input</td><td>TCELL6:IMUX_D2</td></tr>
+<tr><td>TESTIN4</td><td>input</td><td>TCELL6:IMUX_A3</td></tr>
+<tr><td>TESTIN5</td><td>input</td><td>TCELL6:IMUX_B3</td></tr>
+<tr><td>TESTIN6</td><td>input</td><td>TCELL6:IMUX_C3</td></tr>
+<tr><td>TESTIN7</td><td>input</td><td>TCELL6:IMUX_D3</td></tr>
+<tr><td>TESTIN8</td><td>input</td><td>TCELL6:IMUX_A4</td></tr>
+<tr><td>TESTIN9</td><td>input</td><td>TCELL6:IMUX_B4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_0EBR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M0</td></tr>
+<tr><td>TCELL0:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M1</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+<tr><td>TCELL1:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+<tr><td>TCELL1:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+<tr><td>TCELL2:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M6</td></tr>
+<tr><td>TCELL2:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M7</td></tr>
+<tr><td>TCELL3:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+<tr><td>TCELL3:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+<tr><td>TCELL3:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+<tr><td>TCELL3:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+<tr><td>TCELL4:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+<tr><td>TCELL4:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+<tr><td>TCELL4:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M2</td></tr>
+<tr><td>TCELL4:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M3</td></tr>
+<tr><td>TCELL4:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+<tr><td>TCELL4:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+<tr><td>TCELL5:IMUX_A5</td><td>DCM0.SEL</td></tr>
+<tr><td>TCELL5:IMUX_B5</td><td>DCM1.SEL</td></tr>
+<tr><td>TCELL6:IMUX_A0</td><td>DCC0.CE</td></tr>
+<tr><td>TCELL6:IMUX_A1</td><td>DCC4.CE</td></tr>
+<tr><td>TCELL6:IMUX_A2</td><td>CLKTEST.TESTIN0</td></tr>
+<tr><td>TCELL6:IMUX_A3</td><td>CLKTEST.TESTIN4</td></tr>
+<tr><td>TCELL6:IMUX_A4</td><td>CLKTEST.TESTIN8</td></tr>
+<tr><td>TCELL6:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+<tr><td>TCELL6:IMUX_B0</td><td>DCC1.CE</td></tr>
+<tr><td>TCELL6:IMUX_B1</td><td>DCC5.CE</td></tr>
+<tr><td>TCELL6:IMUX_B2</td><td>CLKTEST.TESTIN1</td></tr>
+<tr><td>TCELL6:IMUX_B3</td><td>CLKTEST.TESTIN5</td></tr>
+<tr><td>TCELL6:IMUX_B4</td><td>CLKTEST.TESTIN9</td></tr>
+<tr><td>TCELL6:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+<tr><td>TCELL6:IMUX_C0</td><td>DCC2.CE</td></tr>
+<tr><td>TCELL6:IMUX_C1</td><td>DCC6.CE</td></tr>
+<tr><td>TCELL6:IMUX_C2</td><td>CLKTEST.TESTIN2</td></tr>
+<tr><td>TCELL6:IMUX_C3</td><td>CLKTEST.TESTIN6</td></tr>
+<tr><td>TCELL6:IMUX_C4</td><td>CLKTEST.TESTIN10</td></tr>
+<tr><td>TCELL6:IMUX_D0</td><td>DCC3.CE</td></tr>
+<tr><td>TCELL6:IMUX_D1</td><td>DCC7.CE</td></tr>
+<tr><td>TCELL6:IMUX_D2</td><td>CLKTEST.TESTIN3</td></tr>
+<tr><td>TCELL6:IMUX_D3</td><td>CLKTEST.TESTIN7</td></tr>
+<tr><td>TCELL6:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+<tr><td>TCELL6:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+<tr><td>TCELL7:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M4</td></tr>
+<tr><td>TCELL7:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M5</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_root_1ebr"><a class="header" href="#tile-clk_root_1ebr">Tile CLK_ROOT_1EBR</a></h2>
+<p>Cells: 8</p>
+<h3 id="bel-dcc0-1"><a class="header" href="#bel-dcc0-1">Bel DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc1-1"><a class="header" href="#bel-dcc1-1">Bel DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_B0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc2-1"><a class="header" href="#bel-dcc2-1">Bel DCC2</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_C0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc3-1"><a class="header" href="#bel-dcc3-1">Bel DCC3</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_D0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc4-1"><a class="header" href="#bel-dcc4-1">Bel DCC4</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC4</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc5-1"><a class="header" href="#bel-dcc5-1">Bel DCC5</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC5</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_B1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc6-1"><a class="header" href="#bel-dcc6-1">Bel DCC6</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC6</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_C1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc7-1"><a class="header" href="#bel-dcc7-1">Bel DCC7</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCC7</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_D1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm0-1"><a class="header" href="#bel-dcm0-1">Bel DCM0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCM0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm1-1"><a class="header" href="#bel-dcm1-1">Bel DCM1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel DCM1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclkbridgecs0"><a class="header" href="#bel-eclkbridgecs0">Bel ECLKBRIDGECS0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel ECLKBRIDGECS0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK0</td><td>input</td><td>TCELL6:IMUX_CLK2</td></tr>
+<tr><td>CLK1</td><td>input</td><td>TCELL6:IMUX_CLK3</td></tr>
+<tr><td>SEL</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclkbridgecs1"><a class="header" href="#bel-eclkbridgecs1">Bel ECLKBRIDGECS1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel ECLKBRIDGECS1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK0</td><td>input</td><td>TCELL7:IMUX_CLK2</td></tr>
+<tr><td>CLK1</td><td>input</td><td>TCELL7:IMUX_CLK3</td></tr>
+<tr><td>SEL</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root-1"><a class="header" href="#bel-clk_root-1">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL5:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL5:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_M2</td><td>input</td><td>TCELL2:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_M3</td><td>input</td><td>TCELL2:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL7:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL7:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL6:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL6:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL4:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL4:IMUX_CLK1</td></tr>
+<tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL5:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL5:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M0</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M1</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M2</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M3</td><td>input</td><td>TCELL1:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_M4</td><td>input</td><td>TCELL3:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M5</td><td>input</td><td>TCELL3:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M6</td><td>input</td><td>TCELL3:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M7</td><td>input</td><td>TCELL3:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL7:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL7:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL6:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL6:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL4:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest-1"><a class="header" href="#bel-clktest-1">Bel CLKTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel CLKTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>TCELL2:IMUX_A2</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>TCELL2:IMUX_B2</td></tr>
+<tr><td>TESTIN10</td><td>input</td><td>TCELL2:IMUX_C4</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>TCELL2:IMUX_C2</td></tr>
+<tr><td>TESTIN3</td><td>input</td><td>TCELL2:IMUX_D2</td></tr>
+<tr><td>TESTIN4</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+<tr><td>TESTIN5</td><td>input</td><td>TCELL2:IMUX_B3</td></tr>
+<tr><td>TESTIN6</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+<tr><td>TESTIN7</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+<tr><td>TESTIN8</td><td>input</td><td>TCELL2:IMUX_A4</td></tr>
+<tr><td>TESTIN9</td><td>input</td><td>TCELL2:IMUX_B4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_1EBR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A5</td><td>ECLKBRIDGECS0.SEL</td></tr>
+<tr><td>TCELL0:IMUX_B5</td><td>ECLKBRIDGECS1.SEL</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M0</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M1</td></tr>
+<tr><td>TCELL1:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M2</td></tr>
+<tr><td>TCELL1:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M3</td></tr>
+<tr><td>TCELL2:IMUX_A0</td><td>DCC0.CE</td></tr>
+<tr><td>TCELL2:IMUX_A1</td><td>DCC4.CE</td></tr>
+<tr><td>TCELL2:IMUX_A2</td><td>CLKTEST.TESTIN0</td></tr>
+<tr><td>TCELL2:IMUX_A3</td><td>CLKTEST.TESTIN4</td></tr>
+<tr><td>TCELL2:IMUX_A4</td><td>CLKTEST.TESTIN8</td></tr>
+<tr><td>TCELL2:IMUX_A5</td><td>DCM0.SEL</td></tr>
+<tr><td>TCELL2:IMUX_B0</td><td>DCC1.CE</td></tr>
+<tr><td>TCELL2:IMUX_B1</td><td>DCC5.CE</td></tr>
+<tr><td>TCELL2:IMUX_B2</td><td>CLKTEST.TESTIN1</td></tr>
+<tr><td>TCELL2:IMUX_B3</td><td>CLKTEST.TESTIN5</td></tr>
+<tr><td>TCELL2:IMUX_B4</td><td>CLKTEST.TESTIN9</td></tr>
+<tr><td>TCELL2:IMUX_B5</td><td>DCM1.SEL</td></tr>
+<tr><td>TCELL2:IMUX_C0</td><td>DCC2.CE</td></tr>
+<tr><td>TCELL2:IMUX_C1</td><td>DCC6.CE</td></tr>
+<tr><td>TCELL2:IMUX_C2</td><td>CLKTEST.TESTIN2</td></tr>
+<tr><td>TCELL2:IMUX_C3</td><td>CLKTEST.TESTIN6</td></tr>
+<tr><td>TCELL2:IMUX_C4</td><td>CLKTEST.TESTIN10</td></tr>
+<tr><td>TCELL2:IMUX_D0</td><td>DCC3.CE</td></tr>
+<tr><td>TCELL2:IMUX_D1</td><td>DCC7.CE</td></tr>
+<tr><td>TCELL2:IMUX_D2</td><td>CLKTEST.TESTIN3</td></tr>
+<tr><td>TCELL2:IMUX_D3</td><td>CLKTEST.TESTIN7</td></tr>
+<tr><td>TCELL2:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_M2</td></tr>
+<tr><td>TCELL2:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_M3</td></tr>
+<tr><td>TCELL3:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M4</td></tr>
+<tr><td>TCELL3:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M5</td></tr>
+<tr><td>TCELL3:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M6</td></tr>
+<tr><td>TCELL3:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M7</td></tr>
+<tr><td>TCELL4:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+<tr><td>TCELL4:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+<tr><td>TCELL4:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+<tr><td>TCELL4:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+<tr><td>TCELL5:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+<tr><td>TCELL5:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+<tr><td>TCELL5:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+<tr><td>TCELL5:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+<tr><td>TCELL6:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+<tr><td>TCELL6:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+<tr><td>TCELL6:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+<tr><td>TCELL6:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+<tr><td>TCELL6:IMUX_CLK2</td><td>ECLKBRIDGECS0.CLK0</td></tr>
+<tr><td>TCELL6:IMUX_CLK3</td><td>ECLKBRIDGECS0.CLK1</td></tr>
+<tr><td>TCELL7:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+<tr><td>TCELL7:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+<tr><td>TCELL7:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+<tr><td>TCELL7:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+<tr><td>TCELL7:IMUX_CLK2</td><td>ECLKBRIDGECS1.CLK0</td></tr>
+<tr><td>TCELL7:IMUX_CLK3</td><td>ECLKBRIDGECS1.CLK1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_root_2ebr"><a class="header" href="#tile-clk_root_2ebr">Tile CLK_ROOT_2EBR</a></h2>
+<p>Cells: 13</p>
+<h3 id="bel-dcc0-2"><a class="header" href="#bel-dcc0-2">Bel DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc1-2"><a class="header" href="#bel-dcc1-2">Bel DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_B0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc2-2"><a class="header" href="#bel-dcc2-2">Bel DCC2</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_C0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc3-2"><a class="header" href="#bel-dcc3-2">Bel DCC3</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_D0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc4-2"><a class="header" href="#bel-dcc4-2">Bel DCC4</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC4</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_A1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc5-2"><a class="header" href="#bel-dcc5-2">Bel DCC5</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC5</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_B1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc6-2"><a class="header" href="#bel-dcc6-2">Bel DCC6</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC6</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_C1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc7-2"><a class="header" href="#bel-dcc7-2">Bel DCC7</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCC7</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL2:IMUX_D1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm0-2"><a class="header" href="#bel-dcm0-2">Bel DCM0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCM0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm1-2"><a class="header" href="#bel-dcm1-2">Bel DCM1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel DCM1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclkbridgecs0-1"><a class="header" href="#bel-eclkbridgecs0-1">Bel ECLKBRIDGECS0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel ECLKBRIDGECS0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK0</td><td>input</td><td>TCELL6:IMUX_CLK2</td></tr>
+<tr><td>CLK1</td><td>input</td><td>TCELL6:IMUX_CLK3</td></tr>
+<tr><td>SEL</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclkbridgecs1-1"><a class="header" href="#bel-eclkbridgecs1-1">Bel ECLKBRIDGECS1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel ECLKBRIDGECS1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK0</td><td>input</td><td>TCELL7:IMUX_CLK2</td></tr>
+<tr><td>CLK1</td><td>input</td><td>TCELL7:IMUX_CLK3</td></tr>
+<tr><td>SEL</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root-2"><a class="header" href="#bel-clk_root-2">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL12:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL12:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_E2</td><td>input</td><td>TCELL5:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_E3</td><td>input</td><td>TCELL5:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_M0</td><td>input</td><td>TCELL2:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_M1</td><td>input</td><td>TCELL2:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_M2</td><td>input</td><td>TCELL9:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_M3</td><td>input</td><td>TCELL9:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL7:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL7:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL6:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL6:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL11:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL11:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_W2</td><td>input</td><td>TCELL4:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_W3</td><td>input</td><td>TCELL4:IMUX_CLK1</td></tr>
+<tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL5:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL5:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M0</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M1</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M2</td><td>input</td><td>TCELL8:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M3</td><td>input</td><td>TCELL8:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_M4</td><td>input</td><td>TCELL3:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M5</td><td>input</td><td>TCELL3:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M6</td><td>input</td><td>TCELL10:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M7</td><td>input</td><td>TCELL10:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL7:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL7:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL6:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL6:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL4:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest-2"><a class="header" href="#bel-clktest-2">Bel CLKTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel CLKTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>TCELL2:IMUX_A2</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>TCELL2:IMUX_B2</td></tr>
+<tr><td>TESTIN10</td><td>input</td><td>TCELL2:IMUX_C4</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>TCELL2:IMUX_C2</td></tr>
+<tr><td>TESTIN3</td><td>input</td><td>TCELL2:IMUX_D2</td></tr>
+<tr><td>TESTIN4</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+<tr><td>TESTIN5</td><td>input</td><td>TCELL2:IMUX_B3</td></tr>
+<tr><td>TESTIN6</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+<tr><td>TESTIN7</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+<tr><td>TESTIN8</td><td>input</td><td>TCELL2:IMUX_A4</td></tr>
+<tr><td>TESTIN9</td><td>input</td><td>TCELL2:IMUX_B4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_2EBR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A5</td><td>ECLKBRIDGECS0.SEL</td></tr>
+<tr><td>TCELL0:IMUX_B5</td><td>ECLKBRIDGECS1.SEL</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M0</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M1</td></tr>
+<tr><td>TCELL2:IMUX_A0</td><td>DCC0.CE</td></tr>
+<tr><td>TCELL2:IMUX_A1</td><td>DCC4.CE</td></tr>
+<tr><td>TCELL2:IMUX_A2</td><td>CLKTEST.TESTIN0</td></tr>
+<tr><td>TCELL2:IMUX_A3</td><td>CLKTEST.TESTIN4</td></tr>
+<tr><td>TCELL2:IMUX_A4</td><td>CLKTEST.TESTIN8</td></tr>
+<tr><td>TCELL2:IMUX_A5</td><td>DCM0.SEL</td></tr>
+<tr><td>TCELL2:IMUX_B0</td><td>DCC1.CE</td></tr>
+<tr><td>TCELL2:IMUX_B1</td><td>DCC5.CE</td></tr>
+<tr><td>TCELL2:IMUX_B2</td><td>CLKTEST.TESTIN1</td></tr>
+<tr><td>TCELL2:IMUX_B3</td><td>CLKTEST.TESTIN5</td></tr>
+<tr><td>TCELL2:IMUX_B4</td><td>CLKTEST.TESTIN9</td></tr>
+<tr><td>TCELL2:IMUX_B5</td><td>DCM1.SEL</td></tr>
+<tr><td>TCELL2:IMUX_C0</td><td>DCC2.CE</td></tr>
+<tr><td>TCELL2:IMUX_C1</td><td>DCC6.CE</td></tr>
+<tr><td>TCELL2:IMUX_C2</td><td>CLKTEST.TESTIN2</td></tr>
+<tr><td>TCELL2:IMUX_C3</td><td>CLKTEST.TESTIN6</td></tr>
+<tr><td>TCELL2:IMUX_C4</td><td>CLKTEST.TESTIN10</td></tr>
+<tr><td>TCELL2:IMUX_D0</td><td>DCC3.CE</td></tr>
+<tr><td>TCELL2:IMUX_D1</td><td>DCC7.CE</td></tr>
+<tr><td>TCELL2:IMUX_D2</td><td>CLKTEST.TESTIN3</td></tr>
+<tr><td>TCELL2:IMUX_D3</td><td>CLKTEST.TESTIN7</td></tr>
+<tr><td>TCELL2:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_M0</td></tr>
+<tr><td>TCELL2:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_M1</td></tr>
+<tr><td>TCELL3:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M4</td></tr>
+<tr><td>TCELL3:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M5</td></tr>
+<tr><td>TCELL4:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+<tr><td>TCELL4:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+<tr><td>TCELL4:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_W2</td></tr>
+<tr><td>TCELL4:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_W3</td></tr>
+<tr><td>TCELL5:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+<tr><td>TCELL5:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+<tr><td>TCELL5:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_E2</td></tr>
+<tr><td>TCELL5:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_E3</td></tr>
+<tr><td>TCELL6:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+<tr><td>TCELL6:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+<tr><td>TCELL6:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+<tr><td>TCELL6:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+<tr><td>TCELL6:IMUX_CLK2</td><td>ECLKBRIDGECS0.CLK0</td></tr>
+<tr><td>TCELL6:IMUX_CLK3</td><td>ECLKBRIDGECS0.CLK1</td></tr>
+<tr><td>TCELL7:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+<tr><td>TCELL7:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+<tr><td>TCELL7:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+<tr><td>TCELL7:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+<tr><td>TCELL7:IMUX_CLK2</td><td>ECLKBRIDGECS1.CLK0</td></tr>
+<tr><td>TCELL7:IMUX_CLK3</td><td>ECLKBRIDGECS1.CLK1</td></tr>
+<tr><td>TCELL8:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M2</td></tr>
+<tr><td>TCELL8:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M3</td></tr>
+<tr><td>TCELL9:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_M2</td></tr>
+<tr><td>TCELL9:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_M3</td></tr>
+<tr><td>TCELL10:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M6</td></tr>
+<tr><td>TCELL10:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M7</td></tr>
+<tr><td>TCELL11:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+<tr><td>TCELL11:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+<tr><td>TCELL12:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+<tr><td>TCELL12:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_root_3ebr"><a class="header" href="#tile-clk_root_3ebr">Tile CLK_ROOT_3EBR</a></h2>
+<p>Cells: 14</p>
+<h3 id="bel-dcc0-3"><a class="header" href="#bel-dcc0-3">Bel DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc1-3"><a class="header" href="#bel-dcc1-3">Bel DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc2-3"><a class="header" href="#bel-dcc2-3">Bel DCC2</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc3-3"><a class="header" href="#bel-dcc3-3">Bel DCC3</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC3</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc4-3"><a class="header" href="#bel-dcc4-3">Bel DCC4</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC4</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_A1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc5-3"><a class="header" href="#bel-dcc5-3">Bel DCC5</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC5</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_B1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc6-3"><a class="header" href="#bel-dcc6-3">Bel DCC6</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC6</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_C1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcc7-3"><a class="header" href="#bel-dcc7-3">Bel DCC7</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCC7</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL1:IMUX_D1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm0-3"><a class="header" href="#bel-dcm0-3">Bel DCM0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCM0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcm1-3"><a class="header" href="#bel-dcm1-3">Bel DCM1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel DCM1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>SEL</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclkbridgecs0-2"><a class="header" href="#bel-eclkbridgecs0-2">Bel ECLKBRIDGECS0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel ECLKBRIDGECS0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK0</td><td>input</td><td>TCELL4:IMUX_CLK2</td></tr>
+<tr><td>CLK1</td><td>input</td><td>TCELL4:IMUX_CLK3</td></tr>
+<tr><td>SEL</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclkbridgecs1-2"><a class="header" href="#bel-eclkbridgecs1-2">Bel ECLKBRIDGECS1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel ECLKBRIDGECS1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CLK0</td><td>input</td><td>TCELL5:IMUX_CLK2</td></tr>
+<tr><td>CLK1</td><td>input</td><td>TCELL5:IMUX_CLK3</td></tr>
+<tr><td>SEL</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root-3"><a class="header" href="#bel-clk_root-3">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL13:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL13:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_E2</td><td>input</td><td>TCELL3:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_E3</td><td>input</td><td>TCELL3:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_M0</td><td>input</td><td>TCELL10:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_M1</td><td>input</td><td>TCELL10:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_M2</td><td>input</td><td>TCELL7:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_M3</td><td>input</td><td>TCELL7:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL5:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL5:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL4:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL4:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL12:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL12:IMUX_CLK1</td></tr>
+<tr><td>PCLK_IN_W2</td><td>input</td><td>TCELL2:IMUX_CLK0</td></tr>
+<tr><td>PCLK_IN_W3</td><td>input</td><td>TCELL2:IMUX_CLK1</td></tr>
+<tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL3:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL3:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M0</td><td>input</td><td>TCELL9:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M1</td><td>input</td><td>TCELL9:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M2</td><td>input</td><td>TCELL6:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M3</td><td>input</td><td>TCELL6:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_M4</td><td>input</td><td>TCELL11:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_M5</td><td>input</td><td>TCELL11:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_M6</td><td>input</td><td>TCELL8:IMUX_C5</td></tr>
+<tr><td>SCLK_IN_M7</td><td>input</td><td>TCELL8:IMUX_D5</td></tr>
+<tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL5:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL5:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL4:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+<tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+<tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clktest-3"><a class="header" href="#bel-clktest-3">Bel CLKTEST</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel CLKTEST</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>TESTIN0</td><td>input</td><td>TCELL1:IMUX_A2</td></tr>
+<tr><td>TESTIN1</td><td>input</td><td>TCELL1:IMUX_B2</td></tr>
+<tr><td>TESTIN10</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+<tr><td>TESTIN2</td><td>input</td><td>TCELL1:IMUX_C2</td></tr>
+<tr><td>TESTIN3</td><td>input</td><td>TCELL1:IMUX_D2</td></tr>
+<tr><td>TESTIN4</td><td>input</td><td>TCELL1:IMUX_A3</td></tr>
+<tr><td>TESTIN5</td><td>input</td><td>TCELL1:IMUX_B3</td></tr>
+<tr><td>TESTIN6</td><td>input</td><td>TCELL1:IMUX_C3</td></tr>
+<tr><td>TESTIN7</td><td>input</td><td>TCELL1:IMUX_D3</td></tr>
+<tr><td>TESTIN8</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+<tr><td>TESTIN9</td><td>input</td><td>TCELL1:IMUX_B4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_ROOT_3EBR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A5</td><td>ECLKBRIDGECS0.SEL</td></tr>
+<tr><td>TCELL0:IMUX_B5</td><td>ECLKBRIDGECS1.SEL</td></tr>
+<tr><td>TCELL1:IMUX_A0</td><td>DCC0.CE</td></tr>
+<tr><td>TCELL1:IMUX_A1</td><td>DCC4.CE</td></tr>
+<tr><td>TCELL1:IMUX_A2</td><td>CLKTEST.TESTIN0</td></tr>
+<tr><td>TCELL1:IMUX_A3</td><td>CLKTEST.TESTIN4</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>CLKTEST.TESTIN8</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>DCM0.SEL</td></tr>
+<tr><td>TCELL1:IMUX_B0</td><td>DCC1.CE</td></tr>
+<tr><td>TCELL1:IMUX_B1</td><td>DCC5.CE</td></tr>
+<tr><td>TCELL1:IMUX_B2</td><td>CLKTEST.TESTIN1</td></tr>
+<tr><td>TCELL1:IMUX_B3</td><td>CLKTEST.TESTIN5</td></tr>
+<tr><td>TCELL1:IMUX_B4</td><td>CLKTEST.TESTIN9</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>DCM1.SEL</td></tr>
+<tr><td>TCELL1:IMUX_C0</td><td>DCC2.CE</td></tr>
+<tr><td>TCELL1:IMUX_C1</td><td>DCC6.CE</td></tr>
+<tr><td>TCELL1:IMUX_C2</td><td>CLKTEST.TESTIN2</td></tr>
+<tr><td>TCELL1:IMUX_C3</td><td>CLKTEST.TESTIN6</td></tr>
+<tr><td>TCELL1:IMUX_C4</td><td>CLKTEST.TESTIN10</td></tr>
+<tr><td>TCELL1:IMUX_D0</td><td>DCC3.CE</td></tr>
+<tr><td>TCELL1:IMUX_D1</td><td>DCC7.CE</td></tr>
+<tr><td>TCELL1:IMUX_D2</td><td>CLKTEST.TESTIN3</td></tr>
+<tr><td>TCELL1:IMUX_D3</td><td>CLKTEST.TESTIN7</td></tr>
+<tr><td>TCELL2:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+<tr><td>TCELL2:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+<tr><td>TCELL2:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_W2</td></tr>
+<tr><td>TCELL2:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_W3</td></tr>
+<tr><td>TCELL3:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+<tr><td>TCELL3:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+<tr><td>TCELL3:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_E2</td></tr>
+<tr><td>TCELL3:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_E3</td></tr>
+<tr><td>TCELL4:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+<tr><td>TCELL4:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+<tr><td>TCELL4:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+<tr><td>TCELL4:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+<tr><td>TCELL4:IMUX_CLK2</td><td>ECLKBRIDGECS0.CLK0</td></tr>
+<tr><td>TCELL4:IMUX_CLK3</td><td>ECLKBRIDGECS0.CLK1</td></tr>
+<tr><td>TCELL5:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+<tr><td>TCELL5:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+<tr><td>TCELL5:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+<tr><td>TCELL5:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+<tr><td>TCELL5:IMUX_CLK2</td><td>ECLKBRIDGECS1.CLK0</td></tr>
+<tr><td>TCELL5:IMUX_CLK3</td><td>ECLKBRIDGECS1.CLK1</td></tr>
+<tr><td>TCELL6:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M2</td></tr>
+<tr><td>TCELL6:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M3</td></tr>
+<tr><td>TCELL7:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_M2</td></tr>
+<tr><td>TCELL7:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_M3</td></tr>
+<tr><td>TCELL8:IMUX_C5</td><td>CLK_ROOT.SCLK_IN_M6</td></tr>
+<tr><td>TCELL8:IMUX_D5</td><td>CLK_ROOT.SCLK_IN_M7</td></tr>
+<tr><td>TCELL9:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M0</td></tr>
+<tr><td>TCELL9:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M1</td></tr>
+<tr><td>TCELL10:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_M0</td></tr>
+<tr><td>TCELL10:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_M1</td></tr>
+<tr><td>TCELL11:IMUX_A5</td><td>CLK_ROOT.SCLK_IN_M4</td></tr>
+<tr><td>TCELL11:IMUX_B5</td><td>CLK_ROOT.SCLK_IN_M5</td></tr>
+<tr><td>TCELL12:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+<tr><td>TCELL12:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+<tr><td>TCELL13:IMUX_CLK0</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+<tr><td>TCELL13:IMUX_CLK1</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_w"><a class="header" href="#tile-clk_w">Tile CLK_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-dlldel0"><a class="header" href="#bel-dlldel0">Bel DLLDEL0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_W bel DLLDEL0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel1"><a class="header" href="#bel-dlldel1">Bel DLLDEL1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_W bel DLLDEL1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel2"><a class="header" href="#bel-dlldel2">Bel DLLDEL2</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_W bel DLLDEL2</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h2 id="tile-clk_e"><a class="header" href="#tile-clk_e">Tile CLK_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-dlldel0-1"><a class="header" href="#bel-dlldel0-1">Bel DLLDEL0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_E bel DLLDEL0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h2 id="tile-clk_e_dqs"><a class="header" href="#tile-clk_e_dqs">Tile CLK_E_DQS</a></h2>
+<p>Cells: 5</p>
+<h3 id="bel-dqs0"><a class="header" href="#bel-dqs0">Bel DQS0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_E_DQS bel DQS0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>BURSTDET</td><td>output</td><td>TCELL4:OUT_Q4</td></tr>
+<tr><td>DATAVALID</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+<tr><td>DDRCLKPOL</td><td>output</td><td>TCELL3:OUT_Q4</td></tr>
+<tr><td>DQSR90</td><td>output</td><td>TCELL3:OUT_Q5</td></tr>
+<tr><td>DQSW90</td><td>output</td><td>TCELL3:OUT_Q6</td></tr>
+<tr><td>READ</td><td>input</td><td>TCELL3:IMUX_A5</td></tr>
+<tr><td>READCLKSEL0</td><td>input</td><td>TCELL3:IMUX_B5</td></tr>
+<tr><td>READCLKSEL1</td><td>input</td><td>TCELL3:IMUX_C5</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL4:IMUX_D5</td></tr>
+<tr><td>SCLK</td><td>input</td><td>TCELL2:IMUX_CLK2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dqs1"><a class="header" href="#bel-dqs1">Bel DQS1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_E_DQS bel DQS1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>BURSTDET</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+<tr><td>DATAVALID</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+<tr><td>DDRCLKPOL</td><td>output</td><td>TCELL1:OUT_Q4</td></tr>
+<tr><td>DQSR90</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+<tr><td>DQSW90</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+<tr><td>READ</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>READCLKSEL0</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+<tr><td>READCLKSEL1</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+<tr><td>RST</td><td>input</td><td>TCELL0:IMUX_D5</td></tr>
+<tr><td>SCLK</td><td>input</td><td>TCELL2:IMUX_CLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel0-2"><a class="header" href="#bel-dlldel0-2">Bel DLLDEL0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_E_DQS bel DLLDEL0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_E_DQS bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_D5</td><td>DQS1.RST</td></tr>
+<tr><td>TCELL0:OUT_Q4</td><td>DQS1.BURSTDET</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>DQS1.READ</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>DQS1.READCLKSEL0</td></tr>
+<tr><td>TCELL1:IMUX_C5</td><td>DQS1.READCLKSEL1</td></tr>
+<tr><td>TCELL1:OUT_Q4</td><td>DQS1.DDRCLKPOL</td></tr>
+<tr><td>TCELL1:OUT_Q5</td><td>DQS1.DQSR90</td></tr>
+<tr><td>TCELL1:OUT_Q6</td><td>DQS1.DQSW90</td></tr>
+<tr><td>TCELL1:OUT_Q7</td><td>DQS1.DATAVALID</td></tr>
+<tr><td>TCELL2:IMUX_CLK2</td><td>DQS0.SCLK</td></tr>
+<tr><td>TCELL2:IMUX_CLK3</td><td>DQS1.SCLK</td></tr>
+<tr><td>TCELL3:IMUX_A5</td><td>DQS0.READ</td></tr>
+<tr><td>TCELL3:IMUX_B5</td><td>DQS0.READCLKSEL0</td></tr>
+<tr><td>TCELL3:IMUX_C5</td><td>DQS0.READCLKSEL1</td></tr>
+<tr><td>TCELL3:OUT_Q4</td><td>DQS0.DDRCLKPOL</td></tr>
+<tr><td>TCELL3:OUT_Q5</td><td>DQS0.DQSR90</td></tr>
+<tr><td>TCELL3:OUT_Q6</td><td>DQS0.DQSW90</td></tr>
+<tr><td>TCELL3:OUT_Q7</td><td>DQS0.DATAVALID</td></tr>
+<tr><td>TCELL4:IMUX_D5</td><td>DQS0.RST</td></tr>
+<tr><td>TCELL4:OUT_Q4</td><td>DQS0.BURSTDET</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_s"><a class="header" href="#tile-clk_s">Tile CLK_S</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-dlldel0-3"><a class="header" href="#bel-dlldel0-3">Bel DLLDEL0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel DLLDEL0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel1-1"><a class="header" href="#bel-dlldel1-1">Bel DLLDEL1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel DLLDEL1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv0"><a class="header" href="#bel-clkdiv0">Bel CLKDIV0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel CLKDIV0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>IMUX_A0</td></tr>
+<tr><td>CDIV1</td><td>output</td><td>OUT_F1</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>OUT_F0</td></tr>
+<tr><td>RST</td><td>input</td><td>IMUX_A2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv1"><a class="header" href="#bel-clkdiv1">Bel CLKDIV1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel CLKDIV1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>IMUX_A1</td></tr>
+<tr><td>CDIV1</td><td>output</td><td>OUT_F3</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>OUT_F2</td></tr>
+<tr><td>RST</td><td>input</td><td>IMUX_A3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkfbbuf0"><a class="header" href="#bel-clkfbbuf0">Bel CLKFBBUF0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel CLKFBBUF0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-clkfbbuf1"><a class="header" href="#bel-clkfbbuf1">Bel CLKFBBUF1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel CLKFBBUF1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync0"><a class="header" href="#bel-eclksync0">Bel ECLKSYNC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel ECLKSYNC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLKI</td><td>input</td><td>IMUX_CLK2</td></tr>
+<tr><td>ECLKO</td><td>output</td><td>OUT_Q4</td></tr>
+<tr><td>STOP</td><td>input</td><td>IMUX_C5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync1"><a class="header" href="#bel-eclksync1">Bel ECLKSYNC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel ECLKSYNC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLKI</td><td>input</td><td>IMUX_CLK3</td></tr>
+<tr><td>ECLKO</td><td>output</td><td>OUT_Q5</td></tr>
+<tr><td>STOP</td><td>input</td><td>IMUX_D5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_S bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX_A0</td><td>CLKDIV0.ALIGNWD</td></tr>
+<tr><td>IMUX_A1</td><td>CLKDIV1.ALIGNWD</td></tr>
+<tr><td>IMUX_A2</td><td>CLKDIV0.RST</td></tr>
+<tr><td>IMUX_A3</td><td>CLKDIV1.RST</td></tr>
+<tr><td>IMUX_C5</td><td>ECLKSYNC0.STOP</td></tr>
+<tr><td>IMUX_D5</td><td>ECLKSYNC1.STOP</td></tr>
+<tr><td>IMUX_CLK2</td><td>ECLKSYNC0.ECLKI</td></tr>
+<tr><td>IMUX_CLK3</td><td>ECLKSYNC1.ECLKI</td></tr>
+<tr><td>OUT_F0</td><td>CLKDIV0.CDIVX</td></tr>
+<tr><td>OUT_F1</td><td>CLKDIV0.CDIV1</td></tr>
+<tr><td>OUT_F2</td><td>CLKDIV1.CDIVX</td></tr>
+<tr><td>OUT_F3</td><td>CLKDIV1.CDIV1</td></tr>
+<tr><td>OUT_Q4</td><td>ECLKSYNC0.ECLKO</td></tr>
+<tr><td>OUT_Q5</td><td>ECLKSYNC1.ECLKO</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_n"><a class="header" href="#tile-clk_n">Tile CLK_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-dlldel0-4"><a class="header" href="#bel-dlldel0-4">Bel DLLDEL0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_N bel DLLDEL0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-dlldel1-2"><a class="header" href="#bel-dlldel1-2">Bel DLLDEL1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_N bel DLLDEL1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv0-1"><a class="header" href="#bel-clkdiv0-1">Bel CLKDIV0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_N bel CLKDIV0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>IMUX_A0</td></tr>
+<tr><td>CDIV1</td><td>output</td><td>OUT_F1</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>OUT_F0</td></tr>
+<tr><td>RST</td><td>input</td><td>IMUX_A2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clkdiv1-1"><a class="header" href="#bel-clkdiv1-1">Bel CLKDIV1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_N bel CLKDIV1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ALIGNWD</td><td>input</td><td>IMUX_A1</td></tr>
+<tr><td>CDIV1</td><td>output</td><td>OUT_F3</td></tr>
+<tr><td>CDIVX</td><td>output</td><td>OUT_F2</td></tr>
+<tr><td>RST</td><td>input</td><td>IMUX_A3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync0-1"><a class="header" href="#bel-eclksync0-1">Bel ECLKSYNC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_N bel ECLKSYNC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLKI</td><td>input</td><td>IMUX_CLK2</td></tr>
+<tr><td>ECLKO</td><td>output</td><td>OUT_Q4</td></tr>
+<tr><td>STOP</td><td>input</td><td>IMUX_C5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-eclksync1-1"><a class="header" href="#bel-eclksync1-1">Bel ECLKSYNC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_N bel ECLKSYNC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLKI</td><td>input</td><td>IMUX_CLK3</td></tr>
+<tr><td>ECLKO</td><td>output</td><td>OUT_Q5</td></tr>
+<tr><td>STOP</td><td>input</td><td>IMUX_D5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-6"><a class="header" href="#bel-wires-6">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 CLK_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX_A0</td><td>CLKDIV0.ALIGNWD</td></tr>
+<tr><td>IMUX_A1</td><td>CLKDIV1.ALIGNWD</td></tr>
+<tr><td>IMUX_A2</td><td>CLKDIV0.RST</td></tr>
+<tr><td>IMUX_A3</td><td>CLKDIV1.RST</td></tr>
+<tr><td>IMUX_C5</td><td>ECLKSYNC0.STOP</td></tr>
+<tr><td>IMUX_D5</td><td>ECLKSYNC1.STOP</td></tr>
+<tr><td>IMUX_CLK2</td><td>ECLKSYNC0.ECLKI</td></tr>
+<tr><td>IMUX_CLK3</td><td>ECLKSYNC1.ECLKI</td></tr>
+<tr><td>OUT_F0</td><td>CLKDIV0.CDIVX</td></tr>
+<tr><td>OUT_F1</td><td>CLKDIV0.CDIV1</td></tr>
+<tr><td>OUT_F2</td><td>CLKDIV1.CDIVX</td></tr>
+<tr><td>OUT_F3</td><td>CLKDIV1.CDIV1</td></tr>
+<tr><td>OUT_Q4</td><td>ECLKSYNC0.ECLKO</td></tr>
+<tr><td>OUT_Q5</td><td>ECLKSYNC1.ECLKO</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk0_source"><a class="header" href="#tile-pclk0_source">Tile PCLK0_SOURCE</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_dcc0"><a class="header" href="#bel-pclk_dcc0">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1"><a class="header" href="#bel-pclk_dcc1">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-7"><a class="header" href="#bel-wires-7">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>PCLK_DCC1.OUT_S</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk0_source_e"><a class="header" href="#tile-pclk0_source_e">Tile PCLK0_SOURCE_E</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_source_e"><a class="header" href="#bel-pclk_source_e">Bel PCLK_SOURCE_E</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_E bel PCLK_SOURCE_E</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N1</td><td>output</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>OUT_N5</td><td>output</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>OUT_S1</td><td>output</td><td>TCELL1:PCLK1</td></tr>
+<tr><td>OUT_S5</td><td>output</td><td>TCELL1:PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-1"><a class="header" href="#bel-pclk_dcc0-1">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_E bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-1"><a class="header" href="#bel-pclk_dcc1-1">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_E bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-8"><a class="header" href="#bel-wires-8">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK1</td><td>PCLK_SOURCE_E.OUT_N1</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>PCLK_SOURCE_E.OUT_N5</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>PCLK_SOURCE_E.OUT_S1</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>PCLK_DCC1.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>PCLK_SOURCE_E.OUT_S5</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk0_source_io_n"><a class="header" href="#tile-pclk0_source_io_n">Tile PCLK0_SOURCE_IO_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-2"><a class="header" href="#bel-pclk_dcc0-2">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-2"><a class="header" href="#bel-pclk_dcc1-2">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-9"><a class="header" href="#bel-wires-9">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK4</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk0_source_io_n_e"><a class="header" href="#tile-pclk0_source_io_n_e">Tile PCLK0_SOURCE_IO_N_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_source_e-1"><a class="header" href="#bel-pclk_source_e-1">Bel PCLK_SOURCE_E</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_E bel PCLK_SOURCE_E</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N1</td><td>output</td><td>PCLK1</td></tr>
+<tr><td>OUT_N5</td><td>output</td><td>PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-3"><a class="header" href="#bel-pclk_dcc0-3">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_E bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-3"><a class="header" href="#bel-pclk_dcc1-3">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_E bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-10"><a class="header" href="#bel-wires-10">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK1</td><td>PCLK_SOURCE_E.OUT_N1</td></tr>
+<tr><td>PCLK4</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>PCLK5</td><td>PCLK_SOURCE_E.OUT_N5</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk0_source_io_n_w"><a class="header" href="#tile-pclk0_source_io_n_w">Tile PCLK0_SOURCE_IO_N_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_source_w"><a class="header" href="#bel-pclk_source_w">Bel PCLK_SOURCE_W</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_W bel PCLK_SOURCE_W</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N2</td><td>output</td><td>PCLK2</td></tr>
+<tr><td>OUT_N3</td><td>output</td><td>PCLK3</td></tr>
+<tr><td>OUT_N6</td><td>output</td><td>PCLK6</td></tr>
+<tr><td>OUT_N7</td><td>output</td><td>PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-4"><a class="header" href="#bel-pclk_dcc0-4">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_W bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-4"><a class="header" href="#bel-pclk_dcc1-4">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_W bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-11"><a class="header" href="#bel-wires-11">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_IO_N_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK2</td><td>PCLK_SOURCE_W.OUT_N2</td></tr>
+<tr><td>PCLK3</td><td>PCLK_SOURCE_W.OUT_N3</td></tr>
+<tr><td>PCLK4</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>PCLK6</td><td>PCLK_SOURCE_W.OUT_N6</td></tr>
+<tr><td>PCLK7</td><td>PCLK_SOURCE_W.OUT_N7</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk0_source_n"><a class="header" href="#tile-pclk0_source_n">Tile PCLK0_SOURCE_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-5"><a class="header" href="#bel-pclk_dcc0-5">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-5"><a class="header" href="#bel-pclk_dcc1-5">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-12"><a class="header" href="#bel-wires-12">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK4</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk0_source_w"><a class="header" href="#tile-pclk0_source_w">Tile PCLK0_SOURCE_W</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_source_w-1"><a class="header" href="#bel-pclk_source_w-1">Bel PCLK_SOURCE_W</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_W bel PCLK_SOURCE_W</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N2</td><td>output</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>OUT_N3</td><td>output</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>OUT_N6</td><td>output</td><td>TCELL0:PCLK6</td></tr>
+<tr><td>OUT_N7</td><td>output</td><td>TCELL0:PCLK7</td></tr>
+<tr><td>OUT_S2</td><td>output</td><td>TCELL1:PCLK2</td></tr>
+<tr><td>OUT_S3</td><td>output</td><td>TCELL1:PCLK3</td></tr>
+<tr><td>OUT_S6</td><td>output</td><td>TCELL1:PCLK6</td></tr>
+<tr><td>OUT_S7</td><td>output</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-6"><a class="header" href="#bel-pclk_dcc0-6">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_W bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-6"><a class="header" href="#bel-pclk_dcc1-6">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_W bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-13"><a class="header" href="#bel-wires-13">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK0_SOURCE_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK2</td><td>PCLK_SOURCE_W.OUT_N2</td></tr>
+<tr><td>TCELL0:PCLK3</td><td>PCLK_SOURCE_W.OUT_N3</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>PCLK_SOURCE_W.OUT_N6</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>PCLK_SOURCE_W.OUT_N7</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>PCLK_SOURCE_W.OUT_S2</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>PCLK_SOURCE_W.OUT_S3</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>PCLK_DCC1.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>PCLK_SOURCE_W.OUT_S6</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>PCLK_SOURCE_W.OUT_S7</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source"><a class="header" href="#tile-pclk1_source">Tile PCLK1_SOURCE</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_dcc0-7"><a class="header" href="#bel-pclk_dcc0-7">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-7"><a class="header" href="#bel-pclk_dcc1-7">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-14"><a class="header" href="#bel-wires-14">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>PCLK_DCC1.OUT_S</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source_e"><a class="header" href="#tile-pclk1_source_e">Tile PCLK1_SOURCE_E</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_source_e-2"><a class="header" href="#bel-pclk_source_e-2">Bel PCLK_SOURCE_E</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_E bel PCLK_SOURCE_E</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N2</td><td>output</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>OUT_N6</td><td>output</td><td>TCELL0:PCLK6</td></tr>
+<tr><td>OUT_S2</td><td>output</td><td>TCELL1:PCLK2</td></tr>
+<tr><td>OUT_S6</td><td>output</td><td>TCELL1:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-8"><a class="header" href="#bel-pclk_dcc0-8">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_E bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-8"><a class="header" href="#bel-pclk_dcc1-8">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_E bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-15"><a class="header" href="#bel-wires-15">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK2</td><td>PCLK_SOURCE_E.OUT_N2</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>PCLK_SOURCE_E.OUT_N6</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>PCLK_SOURCE_E.OUT_S2</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>PCLK_DCC1.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>PCLK_SOURCE_E.OUT_S6</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source_io_n"><a class="header" href="#tile-pclk1_source_io_n">Tile PCLK1_SOURCE_IO_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-9"><a class="header" href="#bel-pclk_dcc0-9">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_IO_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-9"><a class="header" href="#bel-pclk_dcc1-9">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_IO_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-16"><a class="header" href="#bel-wires-16">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_IO_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source_io_n_e"><a class="header" href="#tile-pclk1_source_io_n_e">Tile PCLK1_SOURCE_IO_N_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_source_e-3"><a class="header" href="#bel-pclk_source_e-3">Bel PCLK_SOURCE_E</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_IO_N_E bel PCLK_SOURCE_E</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N2</td><td>output</td><td>PCLK2</td></tr>
+<tr><td>OUT_N6</td><td>output</td><td>PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-10"><a class="header" href="#bel-pclk_dcc0-10">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_IO_N_E bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-10"><a class="header" href="#bel-pclk_dcc1-10">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_IO_N_E bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-17"><a class="header" href="#bel-wires-17">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_IO_N_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK2</td><td>PCLK_SOURCE_E.OUT_N2</td></tr>
+<tr><td>PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>PCLK6</td><td>PCLK_SOURCE_E.OUT_N6</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source_n"><a class="header" href="#tile-pclk1_source_n">Tile PCLK1_SOURCE_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-11"><a class="header" href="#bel-pclk_dcc0-11">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-11"><a class="header" href="#bel-pclk_dcc1-11">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-18"><a class="header" href="#bel-wires-18">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source_n_e"><a class="header" href="#tile-pclk1_source_n_e">Tile PCLK1_SOURCE_N_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_source_e-4"><a class="header" href="#bel-pclk_source_e-4">Bel PCLK_SOURCE_E</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_E bel PCLK_SOURCE_E</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N2</td><td>output</td><td>PCLK2</td></tr>
+<tr><td>OUT_N6</td><td>output</td><td>PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-12"><a class="header" href="#bel-pclk_dcc0-12">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_E bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-12"><a class="header" href="#bel-pclk_dcc1-12">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_E bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-19"><a class="header" href="#bel-wires-19">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK2</td><td>PCLK_SOURCE_E.OUT_N2</td></tr>
+<tr><td>PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>PCLK6</td><td>PCLK_SOURCE_E.OUT_N6</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source_n_w"><a class="header" href="#tile-pclk1_source_n_w">Tile PCLK1_SOURCE_N_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_source_w-2"><a class="header" href="#bel-pclk_source_w-2">Bel PCLK_SOURCE_W</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_W bel PCLK_SOURCE_W</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N0</td><td>output</td><td>PCLK0</td></tr>
+<tr><td>OUT_N3</td><td>output</td><td>PCLK3</td></tr>
+<tr><td>OUT_N4</td><td>output</td><td>PCLK4</td></tr>
+<tr><td>OUT_N7</td><td>output</td><td>PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-13"><a class="header" href="#bel-pclk_dcc0-13">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_W bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-13"><a class="header" href="#bel-pclk_dcc1-13">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_W bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-20"><a class="header" href="#bel-wires-20">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_N_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0</td><td>PCLK_SOURCE_W.OUT_N0</td></tr>
+<tr><td>PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK3</td><td>PCLK_SOURCE_W.OUT_N3</td></tr>
+<tr><td>PCLK4</td><td>PCLK_SOURCE_W.OUT_N4</td></tr>
+<tr><td>PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>PCLK7</td><td>PCLK_SOURCE_W.OUT_N7</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk1_source_w"><a class="header" href="#tile-pclk1_source_w">Tile PCLK1_SOURCE_W</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_source_w-3"><a class="header" href="#bel-pclk_source_w-3">Bel PCLK_SOURCE_W</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_W bel PCLK_SOURCE_W</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N0</td><td>output</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>OUT_N3</td><td>output</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>OUT_N4</td><td>output</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>OUT_N7</td><td>output</td><td>TCELL0:PCLK7</td></tr>
+<tr><td>OUT_S0</td><td>output</td><td>TCELL1:PCLK0</td></tr>
+<tr><td>OUT_S3</td><td>output</td><td>TCELL1:PCLK3</td></tr>
+<tr><td>OUT_S4</td><td>output</td><td>TCELL1:PCLK4</td></tr>
+<tr><td>OUT_S7</td><td>output</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-14"><a class="header" href="#bel-pclk_dcc0-14">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_W bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-14"><a class="header" href="#bel-pclk_dcc1-14">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_W bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-21"><a class="header" href="#bel-wires-21">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK1_SOURCE_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>PCLK_SOURCE_W.OUT_N0</td></tr>
+<tr><td>TCELL0:PCLK1</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK3</td><td>PCLK_SOURCE_W.OUT_N3</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>PCLK_SOURCE_W.OUT_N4</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>PCLK_SOURCE_W.OUT_N7</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>PCLK_SOURCE_W.OUT_S0</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>PCLK_SOURCE_W.OUT_S3</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>PCLK_SOURCE_W.OUT_S4</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>PCLK_DCC1.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>PCLK_SOURCE_W.OUT_S7</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk2_source"><a class="header" href="#tile-pclk2_source">Tile PCLK2_SOURCE</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_dcc0-15"><a class="header" href="#bel-pclk_dcc0-15">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-15"><a class="header" href="#bel-pclk_dcc1-15">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK6</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-22"><a class="header" href="#bel-wires-22">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK2</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>PCLK_DCC1.OUT_S</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk2_source_io_n"><a class="header" href="#tile-pclk2_source_io_n">Tile PCLK2_SOURCE_IO_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-16"><a class="header" href="#bel-pclk_dcc0-16">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_IO_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-16"><a class="header" href="#bel-pclk_dcc1-16">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_IO_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-23"><a class="header" href="#bel-wires-23">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_IO_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK2</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK6</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk2_source_n"><a class="header" href="#tile-pclk2_source_n">Tile PCLK2_SOURCE_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-17"><a class="header" href="#bel-pclk_dcc0-17">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-17"><a class="header" href="#bel-pclk_dcc1-17">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-24"><a class="header" href="#bel-wires-24">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK2</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK6</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk2_source_w"><a class="header" href="#tile-pclk2_source_w">Tile PCLK2_SOURCE_W</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_source_w-4"><a class="header" href="#bel-pclk_source_w-4">Bel PCLK_SOURCE_W</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_W bel PCLK_SOURCE_W</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N0</td><td>output</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>OUT_N1</td><td>output</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>OUT_N4</td><td>output</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>OUT_N5</td><td>output</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>OUT_S0</td><td>output</td><td>TCELL1:PCLK0</td></tr>
+<tr><td>OUT_S1</td><td>output</td><td>TCELL1:PCLK1</td></tr>
+<tr><td>OUT_S4</td><td>output</td><td>TCELL1:PCLK4</td></tr>
+<tr><td>OUT_S5</td><td>output</td><td>TCELL1:PCLK5</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-18"><a class="header" href="#bel-pclk_dcc0-18">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_W bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK2</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-18"><a class="header" href="#bel-pclk_dcc1-18">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_W bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK6</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-25"><a class="header" href="#bel-wires-25">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK2_SOURCE_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>PCLK_SOURCE_W.OUT_N0</td></tr>
+<tr><td>TCELL0:PCLK1</td><td>PCLK_SOURCE_W.OUT_N1</td></tr>
+<tr><td>TCELL0:PCLK2</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>PCLK_SOURCE_W.OUT_N4</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>PCLK_SOURCE_W.OUT_N5</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>PCLK_SOURCE_W.OUT_S0</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>PCLK_SOURCE_W.OUT_S1</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>PCLK_SOURCE_W.OUT_S4</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>PCLK_SOURCE_W.OUT_S5</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>PCLK_DCC1.OUT_S</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk3_source"><a class="header" href="#tile-pclk3_source">Tile PCLK3_SOURCE</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_dcc0-19"><a class="header" href="#bel-pclk_dcc0-19">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-19"><a class="header" href="#bel-pclk_dcc1-19">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK7</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-26"><a class="header" href="#bel-wires-26">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK3</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>PCLK_DCC1.OUT_S</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk3_source_e"><a class="header" href="#tile-pclk3_source_e">Tile PCLK3_SOURCE_E</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_source_e-5"><a class="header" href="#bel-pclk_source_e-5">Bel PCLK_SOURCE_E</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_E bel PCLK_SOURCE_E</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N0</td><td>output</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>OUT_N4</td><td>output</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>OUT_S0</td><td>output</td><td>TCELL1:PCLK0</td></tr>
+<tr><td>OUT_S4</td><td>output</td><td>TCELL1:PCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-20"><a class="header" href="#bel-pclk_dcc0-20">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_E bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-20"><a class="header" href="#bel-pclk_dcc1-20">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_E bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK7</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-27"><a class="header" href="#bel-wires-27">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>PCLK_SOURCE_E.OUT_N0</td></tr>
+<tr><td>TCELL0:PCLK3</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>PCLK_SOURCE_E.OUT_N4</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>PCLK_SOURCE_E.OUT_S0</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>PCLK_SOURCE_E.OUT_S4</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>PCLK_DCC1.OUT_S</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk3_source_io_n"><a class="header" href="#tile-pclk3_source_io_n">Tile PCLK3_SOURCE_IO_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-21"><a class="header" href="#bel-pclk_dcc0-21">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_IO_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-21"><a class="header" href="#bel-pclk_dcc1-21">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_IO_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-28"><a class="header" href="#bel-wires-28">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_IO_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK3</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK7</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk3_source_io_n_w"><a class="header" href="#tile-pclk3_source_io_n_w">Tile PCLK3_SOURCE_IO_N_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_source_w-5"><a class="header" href="#bel-pclk_source_w-5">Bel PCLK_SOURCE_W</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_IO_N_W bel PCLK_SOURCE_W</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N1</td><td>output</td><td>PCLK1</td></tr>
+<tr><td>OUT_N2</td><td>output</td><td>PCLK2</td></tr>
+<tr><td>OUT_N5</td><td>output</td><td>PCLK5</td></tr>
+<tr><td>OUT_N6</td><td>output</td><td>PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-22"><a class="header" href="#bel-pclk_dcc0-22">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_IO_N_W bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-22"><a class="header" href="#bel-pclk_dcc1-22">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_IO_N_W bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-29"><a class="header" href="#bel-wires-29">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_IO_N_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK1</td><td>PCLK_SOURCE_W.OUT_N1</td></tr>
+<tr><td>PCLK2</td><td>PCLK_SOURCE_W.OUT_N2</td></tr>
+<tr><td>PCLK3</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK5</td><td>PCLK_SOURCE_W.OUT_N5</td></tr>
+<tr><td>PCLK6</td><td>PCLK_SOURCE_W.OUT_N6</td></tr>
+<tr><td>PCLK7</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk3_source_n"><a class="header" href="#tile-pclk3_source_n">Tile PCLK3_SOURCE_N</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-pclk_dcc0-23"><a class="header" href="#bel-pclk_dcc0-23">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_N bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-23"><a class="header" href="#bel-pclk_dcc1-23">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_N bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-30"><a class="header" href="#bel-wires-30">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK3</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>PCLK7</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-pclk3_source_w"><a class="header" href="#tile-pclk3_source_w">Tile PCLK3_SOURCE_W</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-pclk_source_w-6"><a class="header" href="#bel-pclk_source_w-6">Bel PCLK_SOURCE_W</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_W bel PCLK_SOURCE_W</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_N1</td><td>output</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>OUT_N2</td><td>output</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>OUT_N5</td><td>output</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>OUT_N6</td><td>output</td><td>TCELL0:PCLK6</td></tr>
+<tr><td>OUT_S1</td><td>output</td><td>TCELL1:PCLK1</td></tr>
+<tr><td>OUT_S2</td><td>output</td><td>TCELL1:PCLK2</td></tr>
+<tr><td>OUT_S5</td><td>output</td><td>TCELL1:PCLK5</td></tr>
+<tr><td>OUT_S6</td><td>output</td><td>TCELL1:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc0-24"><a class="header" href="#bel-pclk_dcc0-24">Bel PCLK_DCC0</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_W bel PCLK_DCC0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-pclk_dcc1-24"><a class="header" href="#bel-pclk_dcc1-24">Bel PCLK_DCC1</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_W bel PCLK_DCC1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CE</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>OUT_N</td><td>output</td><td>TCELL0:PCLK7</td></tr>
+<tr><td>OUT_S</td><td>output</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-31"><a class="header" href="#bel-wires-31">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 PCLK3_SOURCE_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK1</td><td>PCLK_SOURCE_W.OUT_N1</td></tr>
+<tr><td>TCELL0:PCLK2</td><td>PCLK_SOURCE_W.OUT_N2</td></tr>
+<tr><td>TCELL0:PCLK3</td><td>PCLK_DCC0.OUT_N</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>PCLK_SOURCE_W.OUT_N5</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>PCLK_SOURCE_W.OUT_N6</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>PCLK_DCC1.OUT_N</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>PCLK_DCC0.CE</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>PCLK_DCC1.CE</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>PCLK_SOURCE_W.OUT_S1</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>PCLK_SOURCE_W.OUT_S2</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>PCLK_DCC0.OUT_S</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>PCLK_SOURCE_W.OUT_S5</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>PCLK_SOURCE_W.OUT_S6</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>PCLK_DCC1.OUT_S</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-hsdclk_root"><a class="header" href="#tile-hsdclk_root">Tile HSDCLK_ROOT</a></h2>
+<p>Cells: 8</p>
+<h3 id="bel-hsdclk_root"><a class="header" href="#bel-hsdclk_root">Bel HSDCLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 HSDCLK_ROOT bel HSDCLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_E0</td><td>output</td><td>TCELL4:HSDCLK0</td></tr>
+<tr><td>OUT_E1</td><td>output</td><td>TCELL5:HSDCLK0</td></tr>
+<tr><td>OUT_E2</td><td>output</td><td>TCELL6:HSDCLK0</td></tr>
+<tr><td>OUT_E3</td><td>output</td><td>TCELL7:HSDCLK0</td></tr>
+<tr><td>OUT_E4</td><td>output</td><td>TCELL4:HSDCLK4</td></tr>
+<tr><td>OUT_E5</td><td>output</td><td>TCELL5:HSDCLK4</td></tr>
+<tr><td>OUT_E6</td><td>output</td><td>TCELL6:HSDCLK4</td></tr>
+<tr><td>OUT_E7</td><td>output</td><td>TCELL7:HSDCLK4</td></tr>
+<tr><td>OUT_W0</td><td>output</td><td>TCELL0:HSDCLK0</td></tr>
+<tr><td>OUT_W1</td><td>output</td><td>TCELL1:HSDCLK0</td></tr>
+<tr><td>OUT_W2</td><td>output</td><td>TCELL2:HSDCLK0</td></tr>
+<tr><td>OUT_W3</td><td>output</td><td>TCELL3:HSDCLK0</td></tr>
+<tr><td>OUT_W4</td><td>output</td><td>TCELL0:HSDCLK4</td></tr>
+<tr><td>OUT_W5</td><td>output</td><td>TCELL1:HSDCLK4</td></tr>
+<tr><td>OUT_W6</td><td>output</td><td>TCELL2:HSDCLK4</td></tr>
+<tr><td>OUT_W7</td><td>output</td><td>TCELL3:HSDCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="switchbox-hsdclk_splitter"><a class="header" href="#switchbox-hsdclk_splitter">Switchbox HSDCLK_SPLITTER</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 HSDCLK_ROOT switchbox HSDCLK_SPLITTER</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">TCELL0_HSDCLK0</td><td>TCELL4_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL0_HSDCLK4</td><td>TCELL4_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL1_HSDCLK0</td><td>TCELL5_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL1_HSDCLK4</td><td>TCELL5_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL2_HSDCLK0</td><td>TCELL6_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL2_HSDCLK4</td><td>TCELL6_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL3_HSDCLK0</td><td>TCELL7_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL3_HSDCLK4</td><td>TCELL7_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL4_HSDCLK0</td><td>TCELL0_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL4_HSDCLK4</td><td>TCELL0_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL5_HSDCLK0</td><td>TCELL1_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL5_HSDCLK4</td><td>TCELL1_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL6_HSDCLK0</td><td>TCELL2_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL6_HSDCLK4</td><td>TCELL2_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL7_HSDCLK0</td><td>TCELL3_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL7_HSDCLK4</td><td>TCELL3_HSDCLK4</td><td>buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-32"><a class="header" href="#bel-wires-32">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 HSDCLK_ROOT bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W0</td></tr>
+<tr><td>TCELL0:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W4</td></tr>
+<tr><td>TCELL1:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W1</td></tr>
+<tr><td>TCELL1:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W5</td></tr>
+<tr><td>TCELL2:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W2</td></tr>
+<tr><td>TCELL2:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W6</td></tr>
+<tr><td>TCELL3:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W3</td></tr>
+<tr><td>TCELL3:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W7</td></tr>
+<tr><td>TCELL4:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E0</td></tr>
+<tr><td>TCELL4:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E4</td></tr>
+<tr><td>TCELL5:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E1</td></tr>
+<tr><td>TCELL5:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E5</td></tr>
+<tr><td>TCELL6:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E2</td></tr>
+<tr><td>TCELL6:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E6</td></tr>
+<tr><td>TCELL7:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E3</td></tr>
+<tr><td>TCELL7:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E7</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk0_source"><a class="header" href="#tile-sclk0_source">Tile SCLK0_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source"><a class="header" href="#switchbox-sclk_source">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK0_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK0</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK4</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk0_source_e"><a class="header" href="#tile-sclk0_source_e">Tile SCLK0_SOURCE_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-1"><a class="header" href="#switchbox-sclk_source-1">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK0_SOURCE_E switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK0</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK1</td><td>VSDCLK2</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK4</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK5</td><td>VSDCLK3</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk0_source_w"><a class="header" href="#tile-sclk0_source_w">Tile SCLK0_SOURCE_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-2"><a class="header" href="#switchbox-sclk_source-2">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK0_SOURCE_W switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK0</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK2</td><td>VSDCLK4</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK3</td><td>VSDCLK6</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK4</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK6</td><td>VSDCLK5</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK7</td><td>VSDCLK7</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk1_source"><a class="header" href="#tile-sclk1_source">Tile SCLK1_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-3"><a class="header" href="#switchbox-sclk_source-3">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK1_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK1</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK5</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk1_source_e"><a class="header" href="#tile-sclk1_source_e">Tile SCLK1_SOURCE_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-4"><a class="header" href="#switchbox-sclk_source-4">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK1_SOURCE_E switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK1</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK2</td><td>VSDCLK2</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK5</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK6</td><td>VSDCLK3</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk1_source_w"><a class="header" href="#tile-sclk1_source_w">Tile SCLK1_SOURCE_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-5"><a class="header" href="#switchbox-sclk_source-5">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK1_SOURCE_W switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK0</td><td>VSDCLK6</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK1</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK3</td><td>VSDCLK4</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK4</td><td>VSDCLK7</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK5</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK7</td><td>VSDCLK5</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk2_source"><a class="header" href="#tile-sclk2_source">Tile SCLK2_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-6"><a class="header" href="#switchbox-sclk_source-6">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK2_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK2</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK6</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk2_source_e"><a class="header" href="#tile-sclk2_source_e">Tile SCLK2_SOURCE_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-7"><a class="header" href="#switchbox-sclk_source-7">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK2_SOURCE_E switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK2</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK3</td><td>VSDCLK2</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK6</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK7</td><td>VSDCLK3</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk2_source_w"><a class="header" href="#tile-sclk2_source_w">Tile SCLK2_SOURCE_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-8"><a class="header" href="#switchbox-sclk_source-8">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK2_SOURCE_W switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK0</td><td>VSDCLK4</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK1</td><td>VSDCLK6</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK2</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK4</td><td>VSDCLK5</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK5</td><td>VSDCLK7</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK6</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk3_source"><a class="header" href="#tile-sclk3_source">Tile SCLK3_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-9"><a class="header" href="#switchbox-sclk_source-9">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK3_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK3</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK7</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk3_source_e"><a class="header" href="#tile-sclk3_source_e">Tile SCLK3_SOURCE_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-10"><a class="header" href="#switchbox-sclk_source-10">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK3_SOURCE_E switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK0</td><td>VSDCLK2</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK3</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK4</td><td>VSDCLK3</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK7</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk3_source_w"><a class="header" href="#tile-sclk3_source_w">Tile SCLK3_SOURCE_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-11"><a class="header" href="#switchbox-sclk_source-11">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>machxo2 SCLK3_SOURCE_W switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK1</td><td>VSDCLK4</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK2</td><td>VSDCLK6</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK3</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK5</td><td>VSDCLK5</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK6</td><td>VSDCLK7</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK7</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../machxo2/ebr.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../machxo2/io.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../machxo2/ebr.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../machxo2/io.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

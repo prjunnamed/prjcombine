@@ -1,0 +1,3702 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Bitstream (XC9500XL) - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="bitstream-structure--xc9500xlxv"><a class="header" href="#bitstream-structure--xc9500xlxv">Bitstream structure — XC9500XL/XV</a></h1>
+<p>The main differences from XC9500 are:</p>
+<ol>
+<li>The UIM wire-AND area is completely gone, only the main areas exist.</li>
+<li>The main area has 108 rows per FB instead of 72.</li>
+<li>Unprogrammed fuse state is <code>0</code>, programmed fuse state is <code>1</code>.
+Thus, the sense of every bitstream bit is inverted from the XC9500 version.</li>
+<li>While in XC9500 all areas are loaded sequentially, in XC9500XL/XV the areas
+are loaded in parallel.  Thus, the JTAG unit is not a byte, but a word of
+size <code>8 * num_fbs</code>.  Likewise, the bytes for each FB are interleaved
+in the JED format.</li>
+</ol>
+<p>On a high level, the whole bitstream is split into "areas".  Each FB
+of the device corresponds to one area.</p>
+<p>Each area is made of 108 "rows".  Each row is made of 15 "columns".
+Each column is made of 6 or 8 bits: columns 0-8 are made of 8 bits, while
+columns 9-14 are made of 6 bits.</p>
+<p>The low 6 bits of every column are used to store product term masks, and
+the high 2 bits of columns 0-8 are used to store everything else.</p>
+<p>When programmed or read via JTAG, the bitstream is transmitted as words.
+Each word is 8 bits per FB.  Each word of the bitstream has its address.
+Not all addresses are valid, and valid addresses are not contiguous.
+Address is 16 bits long, and is split to several fields:</p>
+<ul>
+<li>bits 12-15: FB index (only used for JTAG <code>FERASE</code> operation, doesn't matter for reading and programming)</li>
+<li>bits 5-11: row</li>
+<li>bits 3-4: column / 5</li>
+<li>bits 0-2: column % 5</li>
+</ul>
+<p>The unprogrammed state of a bit on XC9500XL/XV is <code>0</code>.
+The programmed state is <code>1</code>.  Thus, whenever a boolean fuse is mentioned
+in the documentation, the "true" value is actually represented as <code>1</code>
+in the bitstream.</p>
+<h2 id="jed-format-mapping"><a class="header" href="#jed-format-mapping">JED format mapping</a></h2>
+<p>In the JED format, all fuses of the device are simply concatenated in order,
+skipping over invalid addresses.  The bytes are <em>not</em> padded to 8 bits, but
+have their native size.  Thus, converting from JED fuse index to device
+address involves some complex calculations::</p>
+<pre><code class="language-python">row_bits = (8 * 9 + 6 * 6) * device.num_fbs
+total_bits = row_bits * 108
+
+def jed_to_jtag(fuse):
+    row = fuse // row_bits
+    fuse %= row_bits
+    if fuse &lt; 8 * 9 * device.num_fbs:
+        column = fuse // (8 * device.num_fbs)
+        fuse %= (8 * device.num_fbs)
+        fb = fuse // 8
+        bit = fuse % 8
+    else:
+        fuse -= 8 * 9 * device.num_fbs
+        column = 9 + fuse // (6 * device.num_fbs)
+        fuse %= (6 * device.num_fbs)
+        fb = fuse // 6
+        bit = fuse % 6
+    return (
+        row &lt;&lt; 5 | 
+        (column // 5) &lt;&lt; 3 |
+        (column % 5)
+    ), (fb * 8 + bit)
+
+def jtag_to_jed(addr, bit):
+    fb = bit // 8
+    bit %= 8
+    row = addr &gt;&gt; 5 &amp; 0x7f
+    assert row &lt; 108
+    col_hi = addr &gt;&gt; 3 &amp; 3
+    assert col_hi &lt; 3
+    col_lo = addr &amp; 7
+    assert col_lo &lt; 5
+    column = col_hi * 5 + col_lo
+    if column &lt; 9:
+        cfuse = column * 8 * device.num_fbs + fb * 8 + bit
+    else:
+        cfuse = 8 * 8 + (column - 9) * 6 * device.num_fbs + fb * 6 + bit
+    return row * row_bits + cfuse
+</code></pre>
+<h2 id="fuses--product-terms"><a class="header" href="#fuses--product-terms">Fuses — product terms</a></h2>
+<p>The product term masks are stored in bits 0-5 of every column and every row of the main area.
+The formulas are as follows (unchanged from XC9500, but now with more rows):</p>
+<ol>
+<li><code>FB[i].MC[j].PT[k].IM[l].P</code> is stored at:
+<ul>
+<li>row: <code>l * 2 + 1</code></li>
+<li>column: <code>k + (j % 3) * 5</code></li>
+<li>bit: <code>j // 3</code></li>
+</ul>
+</li>
+<li><code>FB[i].MC[j].PT[k].IM[l].N</code> is stored at:
+<ul>
+<li>row: <code>l * 2</code></li>
+<li>column: <code>k + (j % 3) * 5</code></li>
+<li>bit: <code>j // 3</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="fuses--macrocells"><a class="header" href="#fuses--macrocells">Fuses — macrocells</a></h2>
+<p>Per-MC config fuses (that are not product term masks) are stored in bits 6-7 of
+columns 0-8 of rows 12-49 of the main area.  The formulas are as follows:</p>
+<ul>
+<li>row: corresponds to fuse function</li>
+<li>column: <code>mc_idx % 9</code></li>
+<li>bit: <code>6 + mc_idx // 9</code></li>
+</ul>
+<div class="table-wrapper"><table>
+<caption>xc9500xl mc bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="1">Bit</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td title="0.12.0">
+<a href="#tile-xc9500xl-mc-PT[0].ALLOC">PT[0].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="0.13.0">
+<a href="#tile-xc9500xl-mc-PT[0].ALLOC">PT[0].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.14.0">
+<a href="#tile-xc9500xl-mc-PT[1].ALLOC">PT[1].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td title="0.15.0">
+<a href="#tile-xc9500xl-mc-PT[1].ALLOC">PT[1].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td title="0.16.0">
+<a href="#tile-xc9500xl-mc-PT[2].ALLOC">PT[2].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td title="0.17.0">
+<a href="#tile-xc9500xl-mc-PT[2].ALLOC">PT[2].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="0.18.0">
+<a href="#tile-xc9500xl-mc-PT[3].ALLOC">PT[3].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td title="0.19.0">
+<a href="#tile-xc9500xl-mc-PT[3].ALLOC">PT[3].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td title="0.20.0">
+<a href="#tile-xc9500xl-mc-PT[4].ALLOC">PT[4].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td title="0.21.0">
+<a href="#tile-xc9500xl-mc-PT[4].ALLOC">PT[4].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td title="0.22.0">
+<a href="#tile-xc9500xl-mc-INV">INV</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="0.23.0">
+<a href="#tile-xc9500xl-mc-IMPORT_UP_ALLOC">IMPORT_UP_ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td title="0.24.0">
+<a href="#tile-xc9500xl-mc-IMPORT_DOWN_ALLOC">IMPORT_DOWN_ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td title="0.25.0">
+<a href="#tile-xc9500xl-mc-EXPORT_CHAIN_DIR">EXPORT_CHAIN_DIR[0]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="0.26.0">
+<a href="#tile-xc9500xl-mc-SUM_HP">SUM_HP</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td title="0.27.0">
+<a href="#tile-xc9500xl-mc-OE_MUX">OE_MUX[0]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td title="0.28.0">
+<a href="#tile-xc9500xl-mc-OE_MUX">OE_MUX[1]</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td title="0.29.0">
+<a href="#tile-xc9500xl-mc-OE_MUX">OE_MUX[2]</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td title="0.30.0">
+<a href="#tile-xc9500xl-mc-OE_INV">OE_INV</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td title="0.32.0">
+<a href="#tile-xc9500xl-mc-OUT_MUX">OUT_MUX[0]</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td title="0.33.0">
+<a href="#tile-xc9500xl-mc-CLK_MUX">CLK_MUX[0]</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td title="0.34.0">
+<a href="#tile-xc9500xl-mc-CLK_MUX">CLK_MUX[1]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td title="0.35.0">
+<a href="#tile-xc9500xl-mc-CLK_INV">CLK_INV</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="0.36.0">
+<a href="#tile-xc9500xl-mc-CE_MUX">CE_MUX[0]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="0.37.0">
+<a href="#tile-xc9500xl-mc-CE_MUX">CE_MUX[1]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td title="0.39.0">
+<a href="#tile-xc9500xl-mc-REG_MODE">REG_MODE[0]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="0.40.0">
+<a href="#tile-xc9500xl-mc-RST_MUX">RST_MUX[0]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td title="0.41.0">
+<a href="#tile-xc9500xl-mc-SET_MUX">SET_MUX[0]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td title="0.42.0">
+<a href="#tile-xc9500xl-mc-REG_INIT">REG_INIT</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="0.43.0">
+<a href="#tile-xc9500xl-mc-IOB_GND">IOB_GND</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="0.44.0">
+<a href="#tile-xc9500xl-mc-IOB_SLEW">IOB_SLEW[0]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td title="0.45.0">
+<a href="#tile-xc9500xl-mc-PT[0].HP">PT[0].HP</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td title="0.46.0">
+<a href="#tile-xc9500xl-mc-PT[1].HP">PT[1].HP</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td title="0.47.0">
+<a href="#tile-xc9500xl-mc-PT[2].HP">PT[2].HP</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="0.48.0">
+<a href="#tile-xc9500xl-mc-PT[3].HP">PT[3].HP</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td title="0.49.0">
+<a href="#tile-xc9500xl-mc-PT[4].HP">PT[4].HP</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-CE_MUX">CE_MUX</th>
+<th>0.37.0</th>
+<th>0.36.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>PT2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>PT3</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-CLK_INV">CLK_INV</th>
+<th>0.35.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-INV">INV</th>
+<th>0.22.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-IOB_GND">IOB_GND</th>
+<th>0.43.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-OE_INV">OE_INV</th>
+<th>0.30.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[0].HP">PT[0].HP</th>
+<th>0.45.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[1].HP">PT[1].HP</th>
+<th>0.46.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[2].HP">PT[2].HP</th>
+<th>0.47.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[3].HP">PT[3].HP</th>
+<th>0.48.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[4].HP">PT[4].HP</th>
+<th>0.49.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-REG_INIT">REG_INIT</th>
+<th>0.42.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-SUM_HP">SUM_HP</th>
+<th>0.26.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-CLK_MUX">CLK_MUX</th>
+<th>0.34.0</th>
+<th>0.33.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>FCLK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>FCLK2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>FCLK0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>PT</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-EXPORT_CHAIN_DIR">EXPORT_CHAIN_DIR</th>
+<th>0.25.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>UP</td>
+<td>0</td>
+</tr>
+<tr><td>DOWN</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-IMPORT_DOWN_ALLOC">IMPORT_DOWN_ALLOC</th>
+<th>0.24.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-IMPORT_UP_ALLOC">IMPORT_UP_ALLOC</th>
+<th>0.23.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>EXPORT</td>
+<td>0</td>
+</tr>
+<tr><td>SUM</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-IOB_SLEW">IOB_SLEW</th>
+<th>0.44.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SLOW</td>
+<td>0</td>
+</tr>
+<tr><td>FAST</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-OE_MUX">OE_MUX</th>
+<th>0.29.0</th>
+<th>0.28.0</th>
+<th>0.27.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PT</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>FOE0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>FOE1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>FOE2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>FOE3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-OUT_MUX">OUT_MUX</th>
+<th>0.32.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>FF</td>
+<td>0</td>
+</tr>
+<tr><td>COMB</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-PT[0].ALLOC">PT[0].ALLOC</th>
+<th>0.13.0</th>
+<th>0.12.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[1].ALLOC">PT[1].ALLOC</th>
+<th>0.15.0</th>
+<th>0.14.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[2].ALLOC">PT[2].ALLOC</th>
+<th>0.17.0</th>
+<th>0.16.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[3].ALLOC">PT[3].ALLOC</th>
+<th>0.19.0</th>
+<th>0.18.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-PT[4].ALLOC">PT[4].ALLOC</th>
+<th>0.21.0</th>
+<th>0.20.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SUM</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>EXPORT</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>SPECIAL</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-REG_MODE">REG_MODE</th>
+<th>0.39.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>DFF</td>
+<td>0</td>
+</tr>
+<tr><td>TFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-mc-RST_MUX">RST_MUX</th>
+<th>0.40.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-mc-SET_MUX">SET_MUX</th>
+<th>0.41.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PT</td>
+<td>0</td>
+</tr>
+<tr><td>FSR</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>xc9500xv mc bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="1">Bit</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td title="0.12.0">
+<a href="#tile-xc9500xv-mc-PT[0].ALLOC">PT[0].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="0.13.0">
+<a href="#tile-xc9500xv-mc-PT[0].ALLOC">PT[0].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.14.0">
+<a href="#tile-xc9500xv-mc-PT[1].ALLOC">PT[1].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td title="0.15.0">
+<a href="#tile-xc9500xv-mc-PT[1].ALLOC">PT[1].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td title="0.16.0">
+<a href="#tile-xc9500xv-mc-PT[2].ALLOC">PT[2].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td title="0.17.0">
+<a href="#tile-xc9500xv-mc-PT[2].ALLOC">PT[2].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="0.18.0">
+<a href="#tile-xc9500xv-mc-PT[3].ALLOC">PT[3].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td title="0.19.0">
+<a href="#tile-xc9500xv-mc-PT[3].ALLOC">PT[3].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td title="0.20.0">
+<a href="#tile-xc9500xv-mc-PT[4].ALLOC">PT[4].ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td title="0.21.0">
+<a href="#tile-xc9500xv-mc-PT[4].ALLOC">PT[4].ALLOC[1]</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td title="0.22.0">
+<a href="#tile-xc9500xv-mc-INV">INV</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="0.23.0">
+<a href="#tile-xc9500xv-mc-IMPORT_UP_ALLOC">IMPORT_UP_ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td title="0.24.0">
+<a href="#tile-xc9500xv-mc-IMPORT_DOWN_ALLOC">IMPORT_DOWN_ALLOC[0]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td title="0.25.0">
+<a href="#tile-xc9500xv-mc-EXPORT_CHAIN_DIR">EXPORT_CHAIN_DIR[0]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="0.26.0">
+<a href="#tile-xc9500xv-mc-SUM_HP">SUM_HP</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td title="0.27.0">
+<a href="#tile-xc9500xv-mc-OE_MUX">OE_MUX[0]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td title="0.28.0">
+<a href="#tile-xc9500xv-mc-OE_MUX">OE_MUX[1]</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td title="0.29.0">
+<a href="#tile-xc9500xv-mc-OE_MUX">OE_MUX[2]</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td title="0.30.0">
+<a href="#tile-xc9500xv-mc-OE_INV">OE_INV</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td title="0.32.0">
+<a href="#tile-xc9500xv-mc-OUT_MUX">OUT_MUX[0]</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td title="0.33.0">
+<a href="#tile-xc9500xv-mc-CLK_MUX">CLK_MUX[0]</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td title="0.34.0">
+<a href="#tile-xc9500xv-mc-CLK_MUX">CLK_MUX[1]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td title="0.35.0">
+<a href="#tile-xc9500xv-mc-CLK_INV">CLK_INV</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="0.36.0">
+<a href="#tile-xc9500xv-mc-CE_MUX">CE_MUX[0]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="0.37.0">
+<a href="#tile-xc9500xv-mc-CE_MUX">CE_MUX[1]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td title="0.39.0">
+<a href="#tile-xc9500xv-mc-REG_MODE">REG_MODE[0]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="0.40.0">
+<a href="#tile-xc9500xv-mc-RST_MUX">RST_MUX[0]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td title="0.41.0">
+<a href="#tile-xc9500xv-mc-SET_MUX">SET_MUX[0]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td title="0.42.0">
+<a href="#tile-xc9500xv-mc-REG_INIT">REG_INIT</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="0.43.0">
+<a href="#tile-xc9500xv-mc-IOB_GND">IOB_GND</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="0.44.0">
+<a href="#tile-xc9500xv-mc-IOB_SLEW">IOB_SLEW[0]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td title="0.45.0">
+<a href="#tile-xc9500xv-mc-PT[0].HP">PT[0].HP</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td title="0.46.0">
+<a href="#tile-xc9500xv-mc-PT[1].HP">PT[1].HP</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td title="0.47.0">
+<a href="#tile-xc9500xv-mc-PT[2].HP">PT[2].HP</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="0.48.0">
+<a href="#tile-xc9500xv-mc-PT[3].HP">PT[3].HP</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td title="0.49.0">
+<a href="#tile-xc9500xv-mc-PT[4].HP">PT[4].HP</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-CE_MUX">CE_MUX</th>
+<th>0.37.0</th>
+<th>0.36.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>PT2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>PT3</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-CLK_INV">CLK_INV</th>
+<th>0.35.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-INV">INV</th>
+<th>0.22.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-IOB_GND">IOB_GND</th>
+<th>0.43.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-OE_INV">OE_INV</th>
+<th>0.30.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[0].HP">PT[0].HP</th>
+<th>0.45.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[1].HP">PT[1].HP</th>
+<th>0.46.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[2].HP">PT[2].HP</th>
+<th>0.47.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[3].HP">PT[3].HP</th>
+<th>0.48.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[4].HP">PT[4].HP</th>
+<th>0.49.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-REG_INIT">REG_INIT</th>
+<th>0.42.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-SUM_HP">SUM_HP</th>
+<th>0.26.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-CLK_MUX">CLK_MUX</th>
+<th>0.34.0</th>
+<th>0.33.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>FCLK1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>FCLK2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>FCLK0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>PT</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-EXPORT_CHAIN_DIR">EXPORT_CHAIN_DIR</th>
+<th>0.25.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>UP</td>
+<td>0</td>
+</tr>
+<tr><td>DOWN</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-IMPORT_DOWN_ALLOC">IMPORT_DOWN_ALLOC</th>
+<th>0.24.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-IMPORT_UP_ALLOC">IMPORT_UP_ALLOC</th>
+<th>0.23.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>EXPORT</td>
+<td>0</td>
+</tr>
+<tr><td>SUM</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-IOB_SLEW">IOB_SLEW</th>
+<th>0.44.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>SLOW</td>
+<td>0</td>
+</tr>
+<tr><td>FAST</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-OE_MUX">OE_MUX</th>
+<th>0.29.0</th>
+<th>0.28.0</th>
+<th>0.27.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PT</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>FOE0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>FOE1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>FOE2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>FOE3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-OUT_MUX">OUT_MUX</th>
+<th>0.32.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>FF</td>
+<td>0</td>
+</tr>
+<tr><td>COMB</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-PT[0].ALLOC">PT[0].ALLOC</th>
+<th>0.13.0</th>
+<th>0.12.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[1].ALLOC">PT[1].ALLOC</th>
+<th>0.15.0</th>
+<th>0.14.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[2].ALLOC">PT[2].ALLOC</th>
+<th>0.17.0</th>
+<th>0.16.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[3].ALLOC">PT[3].ALLOC</th>
+<th>0.19.0</th>
+<th>0.18.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-PT[4].ALLOC">PT[4].ALLOC</th>
+<th>0.21.0</th>
+<th>0.20.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SUM</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>EXPORT</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>SPECIAL</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-REG_MODE">REG_MODE</th>
+<th>0.39.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>DFF</td>
+<td>0</td>
+</tr>
+<tr><td>TFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-mc-RST_MUX">RST_MUX</th>
+<th>0.40.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-mc-SET_MUX">SET_MUX</th>
+<th>0.41.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>PT</td>
+<td>0</td>
+</tr>
+<tr><td>FSR</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="fuses--fb-inputs"><a class="header" href="#fuses--fb-inputs">Fuses — FB inputs</a></h2>
+<p>The FB input mux configuraton is stored in rows 50-76, columns 0-8, bits 6-7.
+<code>FB[i].IM[j].MUX</code> has 9 bits and is stored at the following coordinates:</p>
+<ul>
+<li>row: <code>50 + j % 27</code></li>
+<li>column: mux fuse index (0-8)</li>
+<li>bit: 6 if <code>j &lt; 27</code>, 7 otherwise</li>
+</ul>
+<p>The exact bit assignments are irregular and should be obtained from the database.</p>
+<h2 id="fuses--per-fb-bits-and-globals"><a class="header" href="#fuses--per-fb-bits-and-globals">Fuses — per-FB bits and globals</a></h2>
+<p>Per-FB bits are stored in row 78, columns 0-8, bits 6-7.  The bits are (row, bit, column):</p>
+<div class="table-wrapper"><table>
+<caption>xc9500xl block bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="7">Bit</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td title="0.11.0">
+<a href="#tile-xc9500xl-block-WRITE_PROT">WRITE_PROT</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.3">
+<a href="#tile-xc9500xl-block-READ_PROT">READ_PROT</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>73</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>74</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>75</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>76</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>77</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>78</td>
+<td title="0.78.0">
+<a href="#tile-xc9500xl-block-ENABLE">ENABLE</a>
+</td>
+<td title="0.78.1">
+<a href="#tile-xc9500xl-block-EXPORT_ENABLE">EXPORT_ENABLE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.78.6">
+<a href="#tile-xc9500xl-block-PULLUP_DISABLE">PULLUP_DISABLE</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-block-ENABLE">ENABLE</th>
+<th>0.78.0</th>
+</tr>
+<tr><th id="tile-xc9500xl-block-EXPORT_ENABLE">EXPORT_ENABLE</th>
+<th>0.78.1</th>
+</tr>
+<tr><th id="tile-xc9500xl-block-PULLUP_DISABLE">PULLUP_DISABLE</th>
+<th>0.78.6</th>
+</tr>
+<tr><th id="tile-xc9500xl-block-READ_PROT">READ_PROT</th>
+<th>0.11.3</th>
+</tr>
+<tr><th id="tile-xc9500xl-block-WRITE_PROT">WRITE_PROT</th>
+<th>0.11.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>xc9500xv block bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="7">Bit</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td title="0.11.0">
+<a href="#tile-xc9500xv-block-WRITE_PROT">WRITE_PROT</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.3">
+<a href="#tile-xc9500xv-block-READ_PROT">READ_PROT</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>73</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>74</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>75</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>76</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>77</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>78</td>
+<td title="0.78.0">
+<a href="#tile-xc9500xv-block-ENABLE">ENABLE</a>
+</td>
+<td title="0.78.1">
+<a href="#tile-xc9500xv-block-EXPORT_ENABLE">EXPORT_ENABLE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.78.6">
+<a href="#tile-xc9500xv-block-PULLUP_DISABLE">PULLUP_DISABLE</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-block-ENABLE">ENABLE</th>
+<th>0.78.0</th>
+</tr>
+<tr><th id="tile-xc9500xv-block-EXPORT_ENABLE">EXPORT_ENABLE</th>
+<th>0.78.1</th>
+</tr>
+<tr><th id="tile-xc9500xv-block-PULLUP_DISABLE">PULLUP_DISABLE</th>
+<th>0.78.6</th>
+</tr>
+<tr><th id="tile-xc9500xv-block-READ_PROT">READ_PROT</th>
+<th>0.11.3</th>
+</tr>
+<tr><th id="tile-xc9500xv-block-WRITE_PROT">WRITE_PROT</th>
+<th>0.11.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Global bits are stored in rows (2, 6, 7), columns 0-8, bits 6-7 of FB 0.  The bits are (fb, row, bit, column):</p>
+<div class="table-wrapper"><table>
+<caption>xc9500xl global bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="17">Bit</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td title="0.2.0">
+<a href="#tile-xc9500xl-global-FSR_INV">FSR_INV</a>
+</td>
+<td title="0.2.1">
+<a href="#tile-xc9500xl-global-FCLK0_ENABLE">FCLK0_ENABLE</a>
+</td>
+<td title="0.2.2">
+<a href="#tile-xc9500xl-global-FCLK1_ENABLE">FCLK1_ENABLE</a>
+</td>
+<td title="0.2.3">
+<a href="#tile-xc9500xl-global-FCLK2_ENABLE">FCLK2_ENABLE</a>
+</td>
+<td title="0.2.4">
+<a href="#tile-xc9500xl-global-FOE0_ENABLE">FOE0_ENABLE</a>
+</td>
+<td title="0.2.5">
+<a href="#tile-xc9500xl-global-FOE1_ENABLE">FOE1_ENABLE</a>
+</td>
+<td title="0.2.6">
+<a href="#tile-xc9500xl-global-FOE2_ENABLE">FOE2_ENABLE</a>
+</td>
+<td title="0.2.7">
+<a href="#tile-xc9500xl-global-FOE3_ENABLE">FOE3_ENABLE</a>
+</td>
+<td title="0.2.8">
+<a href="#tile-xc9500xl-global-TERM_MODE">TERM_MODE[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td title="0.6.0">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[30]</a>
+</td>
+<td title="0.6.1">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[28]</a>
+</td>
+<td title="0.6.2">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[26]</a>
+</td>
+<td title="0.6.3">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[24]</a>
+</td>
+<td title="0.6.4">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[22]</a>
+</td>
+<td title="0.6.5">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[20]</a>
+</td>
+<td title="0.6.6">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[18]</a>
+</td>
+<td title="0.6.7">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[16]</a>
+</td>
+<td>-</td>
+<td title="0.6.9">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[31]</a>
+</td>
+<td title="0.6.10">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[29]</a>
+</td>
+<td title="0.6.11">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[27]</a>
+</td>
+<td title="0.6.12">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[25]</a>
+</td>
+<td title="0.6.13">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[23]</a>
+</td>
+<td title="0.6.14">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[21]</a>
+</td>
+<td title="0.6.15">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[19]</a>
+</td>
+<td title="0.6.16">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[17]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td title="0.7.0">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[14]</a>
+</td>
+<td title="0.7.1">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[12]</a>
+</td>
+<td title="0.7.2">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[10]</a>
+</td>
+<td title="0.7.3">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[8]</a>
+</td>
+<td title="0.7.4">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[6]</a>
+</td>
+<td title="0.7.5">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[4]</a>
+</td>
+<td title="0.7.6">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[2]</a>
+</td>
+<td title="0.7.7">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[0]</a>
+</td>
+<td>-</td>
+<td title="0.7.9">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[15]</a>
+</td>
+<td title="0.7.10">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[13]</a>
+</td>
+<td title="0.7.11">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[11]</a>
+</td>
+<td title="0.7.12">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[9]</a>
+</td>
+<td title="0.7.13">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[7]</a>
+</td>
+<td title="0.7.14">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[5]</a>
+</td>
+<td title="0.7.15">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[3]</a>
+</td>
+<td title="0.7.16">
+<a href="#tile-xc9500xl-global-USERCODE">USERCODE[1]</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-global-FCLK0_ENABLE">FCLK0_ENABLE</th>
+<th>0.2.1</th>
+</tr>
+<tr><th id="tile-xc9500xl-global-FCLK1_ENABLE">FCLK1_ENABLE</th>
+<th>0.2.2</th>
+</tr>
+<tr><th id="tile-xc9500xl-global-FCLK2_ENABLE">FCLK2_ENABLE</th>
+<th>0.2.3</th>
+</tr>
+<tr><th id="tile-xc9500xl-global-FOE0_ENABLE">FOE0_ENABLE</th>
+<th>0.2.4</th>
+</tr>
+<tr><th id="tile-xc9500xl-global-FOE1_ENABLE">FOE1_ENABLE</th>
+<th>0.2.5</th>
+</tr>
+<tr><th id="tile-xc9500xl-global-FOE2_ENABLE">FOE2_ENABLE</th>
+<th>0.2.6</th>
+</tr>
+<tr><th id="tile-xc9500xl-global-FOE3_ENABLE">FOE3_ENABLE</th>
+<th>0.2.7</th>
+</tr>
+<tr><th id="tile-xc9500xl-global-FSR_INV">FSR_INV</th>
+<th>0.2.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-global-TERM_MODE">TERM_MODE</th>
+<th>0.2.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>KEEPER</td>
+<td>0</td>
+</tr>
+<tr><td>FLOAT</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xl-global-USERCODE">USERCODE</th>
+<th>0.6.9</th>
+<th>0.6.0</th>
+<th>0.6.10</th>
+<th>0.6.1</th>
+<th>0.6.11</th>
+<th>0.6.2</th>
+<th>0.6.12</th>
+<th>0.6.3</th>
+<th>0.6.13</th>
+<th>0.6.4</th>
+<th>0.6.14</th>
+<th>0.6.5</th>
+<th>0.6.15</th>
+<th>0.6.6</th>
+<th>0.6.16</th>
+<th>0.6.7</th>
+<th>0.7.9</th>
+<th>0.7.0</th>
+<th>0.7.10</th>
+<th>0.7.1</th>
+<th>0.7.11</th>
+<th>0.7.2</th>
+<th>0.7.12</th>
+<th>0.7.3</th>
+<th>0.7.13</th>
+<th>0.7.4</th>
+<th>0.7.14</th>
+<th>0.7.5</th>
+<th>0.7.15</th>
+<th>0.7.6</th>
+<th>0.7.16</th>
+<th>0.7.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[31]</td>
+<td>[30]</td>
+<td>[29]</td>
+<td>[28]</td>
+<td>[27]</td>
+<td>[26]</td>
+<td>[25]</td>
+<td>[24]</td>
+<td>[23]</td>
+<td>[22]</td>
+<td>[21]</td>
+<td>[20]</td>
+<td>[19]</td>
+<td>[18]</td>
+<td>[17]</td>
+<td>[16]</td>
+<td>[15]</td>
+<td>[14]</td>
+<td>[13]</td>
+<td>[12]</td>
+<td>[11]</td>
+<td>[10]</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>xc9500xv global bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="17">Bit</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td title="0.2.0">
+<a href="#tile-xc9500xv-global-FSR_INV">FSR_INV</a>
+</td>
+<td title="0.2.1">
+<a href="#tile-xc9500xv-global-FCLK0_ENABLE">FCLK0_ENABLE</a>
+</td>
+<td title="0.2.2">
+<a href="#tile-xc9500xv-global-FCLK1_ENABLE">FCLK1_ENABLE</a>
+</td>
+<td title="0.2.3">
+<a href="#tile-xc9500xv-global-FCLK2_ENABLE">FCLK2_ENABLE</a>
+</td>
+<td title="0.2.4">
+<a href="#tile-xc9500xv-global-FOE0_ENABLE">FOE0_ENABLE</a>
+</td>
+<td title="0.2.5">
+<a href="#tile-xc9500xv-global-FOE1_ENABLE">FOE1_ENABLE</a>
+</td>
+<td title="0.2.6">
+<a href="#tile-xc9500xv-global-FOE2_ENABLE">FOE2_ENABLE</a>
+</td>
+<td title="0.2.7">
+<a href="#tile-xc9500xv-global-FOE3_ENABLE">FOE3_ENABLE</a>
+</td>
+<td title="0.2.8">
+<a href="#tile-xc9500xv-global-TERM_MODE">TERM_MODE[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td title="0.6.0">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[30]</a>
+</td>
+<td title="0.6.1">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[28]</a>
+</td>
+<td title="0.6.2">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[26]</a>
+</td>
+<td title="0.6.3">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[24]</a>
+</td>
+<td title="0.6.4">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[22]</a>
+</td>
+<td title="0.6.5">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[20]</a>
+</td>
+<td title="0.6.6">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[18]</a>
+</td>
+<td title="0.6.7">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[16]</a>
+</td>
+<td>-</td>
+<td title="0.6.9">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[31]</a>
+</td>
+<td title="0.6.10">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[29]</a>
+</td>
+<td title="0.6.11">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[27]</a>
+</td>
+<td title="0.6.12">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[25]</a>
+</td>
+<td title="0.6.13">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[23]</a>
+</td>
+<td title="0.6.14">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[21]</a>
+</td>
+<td title="0.6.15">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[19]</a>
+</td>
+<td title="0.6.16">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[17]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td title="0.7.0">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[14]</a>
+</td>
+<td title="0.7.1">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[12]</a>
+</td>
+<td title="0.7.2">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[10]</a>
+</td>
+<td title="0.7.3">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[8]</a>
+</td>
+<td title="0.7.4">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[6]</a>
+</td>
+<td title="0.7.5">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[4]</a>
+</td>
+<td title="0.7.6">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[2]</a>
+</td>
+<td title="0.7.7">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[0]</a>
+</td>
+<td>-</td>
+<td title="0.7.9">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[15]</a>
+</td>
+<td title="0.7.10">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[13]</a>
+</td>
+<td title="0.7.11">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[11]</a>
+</td>
+<td title="0.7.12">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[9]</a>
+</td>
+<td title="0.7.13">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[7]</a>
+</td>
+<td title="0.7.14">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[5]</a>
+</td>
+<td title="0.7.15">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[3]</a>
+</td>
+<td title="0.7.16">
+<a href="#tile-xc9500xv-global-USERCODE">USERCODE[1]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.11.6">
+<a href="#tile-xc9500xv-global-DONE">DONE</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-global-DONE">DONE</th>
+<th>0.11.6</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FCLK0_ENABLE">FCLK0_ENABLE</th>
+<th>0.2.1</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FCLK1_ENABLE">FCLK1_ENABLE</th>
+<th>0.2.2</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FCLK2_ENABLE">FCLK2_ENABLE</th>
+<th>0.2.3</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FOE0_ENABLE">FOE0_ENABLE</th>
+<th>0.2.4</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FOE1_ENABLE">FOE1_ENABLE</th>
+<th>0.2.5</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FOE2_ENABLE">FOE2_ENABLE</th>
+<th>0.2.6</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FOE3_ENABLE">FOE3_ENABLE</th>
+<th>0.2.7</th>
+</tr>
+<tr><th id="tile-xc9500xv-global-FSR_INV">FSR_INV</th>
+<th>0.2.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-global-TERM_MODE">TERM_MODE</th>
+<th>0.2.8</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>KEEPER</td>
+<td>0</td>
+</tr>
+<tr><td>FLOAT</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-xc9500xv-global-USERCODE">USERCODE</th>
+<th>0.6.9</th>
+<th>0.6.0</th>
+<th>0.6.10</th>
+<th>0.6.1</th>
+<th>0.6.11</th>
+<th>0.6.2</th>
+<th>0.6.12</th>
+<th>0.6.3</th>
+<th>0.6.13</th>
+<th>0.6.4</th>
+<th>0.6.14</th>
+<th>0.6.5</th>
+<th>0.6.15</th>
+<th>0.6.6</th>
+<th>0.6.16</th>
+<th>0.6.7</th>
+<th>0.7.9</th>
+<th>0.7.0</th>
+<th>0.7.10</th>
+<th>0.7.1</th>
+<th>0.7.11</th>
+<th>0.7.2</th>
+<th>0.7.12</th>
+<th>0.7.3</th>
+<th>0.7.13</th>
+<th>0.7.4</th>
+<th>0.7.14</th>
+<th>0.7.5</th>
+<th>0.7.15</th>
+<th>0.7.6</th>
+<th>0.7.16</th>
+<th>0.7.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[31]</td>
+<td>[30]</td>
+<td>[29]</td>
+<td>[28]</td>
+<td>[27]</td>
+<td>[26]</td>
+<td>[25]</td>
+<td>[24]</td>
+<td>[23]</td>
+<td>[22]</td>
+<td>[21]</td>
+<td>[20]</td>
+<td>[19]</td>
+<td>[18]</td>
+<td>[17]</td>
+<td>[16]</td>
+<td>[15]</td>
+<td>[14]</td>
+<td>[13]</td>
+<td>[12]</td>
+<td>[11]</td>
+<td>[10]</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <code>DONE</code> bit is only applicable to XC9500XV.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../xc9500/bitstream-xc9500.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../xc9500/database.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../xc9500/bitstream-xc9500.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../xc9500/database.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,1169 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Clock interconnect - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="clock-interconnect"><a class="header" href="#clock-interconnect">Clock interconnect</a></h1>
+<h2 id="tile-clk_root_2pll"><a class="header" href="#tile-clk_root_2pll">Tile CLK_ROOT_2PLL</a></h2>
+<p>Cells: 30</p>
+<h3 id="bel-dcs_sw0"><a class="header" href="#bel-dcs_sw0">Bel DCS_SW0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_SW0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL0:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_sw1"><a class="header" href="#bel-dcs_sw1">Bel DCS_SW1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_SW1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL0:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_se0"><a class="header" href="#bel-dcs_se0">Bel DCS_SE0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_SE0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL1:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_se1"><a class="header" href="#bel-dcs_se1">Bel DCS_SE1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_SE1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_nw0"><a class="header" href="#bel-dcs_nw0">Bel DCS_NW0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_NW0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL2:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_nw1"><a class="header" href="#bel-dcs_nw1">Bel DCS_NW1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_NW1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL2:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_ne0"><a class="header" href="#bel-dcs_ne0">Bel DCS_NE0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_NE0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL3:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_ne1"><a class="header" href="#bel-dcs_ne1">Bel DCS_NE1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel DCS_NE1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL3:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root"><a class="header" href="#bel-clk_root">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0_NE</td><td>input</td><td>TCELL3:PCLK0</td></tr>
+<tr><td>PCLK0_NW</td><td>input</td><td>TCELL2:PCLK0</td></tr>
+<tr><td>PCLK0_SE</td><td>input</td><td>TCELL1:PCLK0</td></tr>
+<tr><td>PCLK0_SW</td><td>input</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>PCLK1_NE</td><td>input</td><td>TCELL3:PCLK1</td></tr>
+<tr><td>PCLK1_NW</td><td>input</td><td>TCELL2:PCLK1</td></tr>
+<tr><td>PCLK1_SE</td><td>input</td><td>TCELL1:PCLK1</td></tr>
+<tr><td>PCLK1_SW</td><td>input</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>PCLK2_NE</td><td>input</td><td>TCELL3:PCLK2</td></tr>
+<tr><td>PCLK2_NW</td><td>input</td><td>TCELL2:PCLK2</td></tr>
+<tr><td>PCLK2_SE</td><td>input</td><td>TCELL1:PCLK2</td></tr>
+<tr><td>PCLK2_SW</td><td>input</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>PCLK3_NE</td><td>input</td><td>TCELL3:PCLK3</td></tr>
+<tr><td>PCLK3_NW</td><td>input</td><td>TCELL2:PCLK3</td></tr>
+<tr><td>PCLK3_SE</td><td>input</td><td>TCELL1:PCLK3</td></tr>
+<tr><td>PCLK3_SW</td><td>input</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>PCLK4_NE</td><td>input</td><td>TCELL3:PCLK4</td></tr>
+<tr><td>PCLK4_NW</td><td>input</td><td>TCELL2:PCLK4</td></tr>
+<tr><td>PCLK4_SE</td><td>input</td><td>TCELL1:PCLK4</td></tr>
+<tr><td>PCLK4_SW</td><td>input</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>PCLK5_NE</td><td>input</td><td>TCELL3:PCLK5</td></tr>
+<tr><td>PCLK5_NW</td><td>input</td><td>TCELL2:PCLK5</td></tr>
+<tr><td>PCLK5_SE</td><td>input</td><td>TCELL1:PCLK5</td></tr>
+<tr><td>PCLK5_SW</td><td>input</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL6:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL7:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E2</td><td>input</td><td>TCELL8:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E3</td><td>input</td><td>TCELL9:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL12:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL13:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL10:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL11:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL4:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL5:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL18:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL19:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E2</td><td>input</td><td>TCELL20:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E3</td><td>input</td><td>TCELL21:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL26:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL27:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N2</td><td>input</td><td>TCELL28:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N3</td><td>input</td><td>TCELL29:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL22:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL23:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S2</td><td>input</td><td>TCELL24:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S3</td><td>input</td><td>TCELL25:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL14:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL15:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W2</td><td>input</td><td>TCELL16:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W3</td><td>input</td><td>TCELL17:IMUX_C3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_2PLL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>CLK_ROOT.PCLK0_SW</td></tr>
+<tr><td>TCELL0:PCLK1</td><td>CLK_ROOT.PCLK1_SW</td></tr>
+<tr><td>TCELL0:PCLK2</td><td>CLK_ROOT.PCLK2_SW</td></tr>
+<tr><td>TCELL0:PCLK3</td><td>CLK_ROOT.PCLK3_SW</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>CLK_ROOT.PCLK4_SW</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>CLK_ROOT.PCLK5_SW</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>DCS_SW0.OUT</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>DCS_SW1.OUT</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>CLK_ROOT.PCLK0_SE</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>CLK_ROOT.PCLK1_SE</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>CLK_ROOT.PCLK2_SE</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>CLK_ROOT.PCLK3_SE</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>CLK_ROOT.PCLK4_SE</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>CLK_ROOT.PCLK5_SE</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>DCS_SE0.OUT</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>DCS_SE1.OUT</td></tr>
+<tr><td>TCELL2:PCLK0</td><td>CLK_ROOT.PCLK0_NW</td></tr>
+<tr><td>TCELL2:PCLK1</td><td>CLK_ROOT.PCLK1_NW</td></tr>
+<tr><td>TCELL2:PCLK2</td><td>CLK_ROOT.PCLK2_NW</td></tr>
+<tr><td>TCELL2:PCLK3</td><td>CLK_ROOT.PCLK3_NW</td></tr>
+<tr><td>TCELL2:PCLK4</td><td>CLK_ROOT.PCLK4_NW</td></tr>
+<tr><td>TCELL2:PCLK5</td><td>CLK_ROOT.PCLK5_NW</td></tr>
+<tr><td>TCELL2:PCLK6</td><td>DCS_NW0.OUT</td></tr>
+<tr><td>TCELL2:PCLK7</td><td>DCS_NW1.OUT</td></tr>
+<tr><td>TCELL3:PCLK0</td><td>CLK_ROOT.PCLK0_NE</td></tr>
+<tr><td>TCELL3:PCLK1</td><td>CLK_ROOT.PCLK1_NE</td></tr>
+<tr><td>TCELL3:PCLK2</td><td>CLK_ROOT.PCLK2_NE</td></tr>
+<tr><td>TCELL3:PCLK3</td><td>CLK_ROOT.PCLK3_NE</td></tr>
+<tr><td>TCELL3:PCLK4</td><td>CLK_ROOT.PCLK4_NE</td></tr>
+<tr><td>TCELL3:PCLK5</td><td>CLK_ROOT.PCLK5_NE</td></tr>
+<tr><td>TCELL3:PCLK6</td><td>DCS_NE0.OUT</td></tr>
+<tr><td>TCELL3:PCLK7</td><td>DCS_NE1.OUT</td></tr>
+<tr><td>TCELL4:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+<tr><td>TCELL5:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+<tr><td>TCELL6:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+<tr><td>TCELL7:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+<tr><td>TCELL8:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E2</td></tr>
+<tr><td>TCELL9:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E3</td></tr>
+<tr><td>TCELL10:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+<tr><td>TCELL11:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+<tr><td>TCELL12:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+<tr><td>TCELL13:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+<tr><td>TCELL14:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+<tr><td>TCELL15:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+<tr><td>TCELL16:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W2</td></tr>
+<tr><td>TCELL17:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W3</td></tr>
+<tr><td>TCELL18:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+<tr><td>TCELL19:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+<tr><td>TCELL20:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E2</td></tr>
+<tr><td>TCELL21:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E3</td></tr>
+<tr><td>TCELL22:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+<tr><td>TCELL23:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+<tr><td>TCELL24:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S2</td></tr>
+<tr><td>TCELL25:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S3</td></tr>
+<tr><td>TCELL26:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+<tr><td>TCELL27:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+<tr><td>TCELL28:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N2</td></tr>
+<tr><td>TCELL29:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N3</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_root_4pll"><a class="header" href="#tile-clk_root_4pll">Tile CLK_ROOT_4PLL</a></h2>
+<p>Cells: 30</p>
+<h3 id="bel-dcs_sw0-1"><a class="header" href="#bel-dcs_sw0-1">Bel DCS_SW0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_SW0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL0:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_sw1-1"><a class="header" href="#bel-dcs_sw1-1">Bel DCS_SW1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_SW1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL0:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_se0-1"><a class="header" href="#bel-dcs_se0-1">Bel DCS_SE0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_SE0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL1:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_se1-1"><a class="header" href="#bel-dcs_se1-1">Bel DCS_SE1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_SE1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_nw0-1"><a class="header" href="#bel-dcs_nw0-1">Bel DCS_NW0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_NW0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL2:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_nw1-1"><a class="header" href="#bel-dcs_nw1-1">Bel DCS_NW1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_NW1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL2:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_ne0-1"><a class="header" href="#bel-dcs_ne0-1">Bel DCS_NE0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_NE0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL3:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_ne1-1"><a class="header" href="#bel-dcs_ne1-1">Bel DCS_NE1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel DCS_NE1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL3:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root-1"><a class="header" href="#bel-clk_root-1">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0_NE</td><td>input</td><td>TCELL3:PCLK0</td></tr>
+<tr><td>PCLK0_NW</td><td>input</td><td>TCELL2:PCLK0</td></tr>
+<tr><td>PCLK0_SE</td><td>input</td><td>TCELL1:PCLK0</td></tr>
+<tr><td>PCLK0_SW</td><td>input</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>PCLK1_NE</td><td>input</td><td>TCELL3:PCLK1</td></tr>
+<tr><td>PCLK1_NW</td><td>input</td><td>TCELL2:PCLK1</td></tr>
+<tr><td>PCLK1_SE</td><td>input</td><td>TCELL1:PCLK1</td></tr>
+<tr><td>PCLK1_SW</td><td>input</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>PCLK2_NE</td><td>input</td><td>TCELL3:PCLK2</td></tr>
+<tr><td>PCLK2_NW</td><td>input</td><td>TCELL2:PCLK2</td></tr>
+<tr><td>PCLK2_SE</td><td>input</td><td>TCELL1:PCLK2</td></tr>
+<tr><td>PCLK2_SW</td><td>input</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>PCLK3_NE</td><td>input</td><td>TCELL3:PCLK3</td></tr>
+<tr><td>PCLK3_NW</td><td>input</td><td>TCELL2:PCLK3</td></tr>
+<tr><td>PCLK3_SE</td><td>input</td><td>TCELL1:PCLK3</td></tr>
+<tr><td>PCLK3_SW</td><td>input</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>PCLK4_NE</td><td>input</td><td>TCELL3:PCLK4</td></tr>
+<tr><td>PCLK4_NW</td><td>input</td><td>TCELL2:PCLK4</td></tr>
+<tr><td>PCLK4_SE</td><td>input</td><td>TCELL1:PCLK4</td></tr>
+<tr><td>PCLK4_SW</td><td>input</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>PCLK5_NE</td><td>input</td><td>TCELL3:PCLK5</td></tr>
+<tr><td>PCLK5_NW</td><td>input</td><td>TCELL2:PCLK5</td></tr>
+<tr><td>PCLK5_SE</td><td>input</td><td>TCELL1:PCLK5</td></tr>
+<tr><td>PCLK5_SW</td><td>input</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL6:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL7:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E2</td><td>input</td><td>TCELL8:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E3</td><td>input</td><td>TCELL9:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL12:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL13:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL10:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL11:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL4:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL5:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL18:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL19:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E2</td><td>input</td><td>TCELL20:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E3</td><td>input</td><td>TCELL21:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL26:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL27:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N2</td><td>input</td><td>TCELL28:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N3</td><td>input</td><td>TCELL29:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL22:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL23:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S2</td><td>input</td><td>TCELL24:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S3</td><td>input</td><td>TCELL25:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL14:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL15:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W2</td><td>input</td><td>TCELL16:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W3</td><td>input</td><td>TCELL17:IMUX_C3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_4PLL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>CLK_ROOT.PCLK0_SW</td></tr>
+<tr><td>TCELL0:PCLK1</td><td>CLK_ROOT.PCLK1_SW</td></tr>
+<tr><td>TCELL0:PCLK2</td><td>CLK_ROOT.PCLK2_SW</td></tr>
+<tr><td>TCELL0:PCLK3</td><td>CLK_ROOT.PCLK3_SW</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>CLK_ROOT.PCLK4_SW</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>CLK_ROOT.PCLK5_SW</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>DCS_SW0.OUT</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>DCS_SW1.OUT</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>CLK_ROOT.PCLK0_SE</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>CLK_ROOT.PCLK1_SE</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>CLK_ROOT.PCLK2_SE</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>CLK_ROOT.PCLK3_SE</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>CLK_ROOT.PCLK4_SE</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>CLK_ROOT.PCLK5_SE</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>DCS_SE0.OUT</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>DCS_SE1.OUT</td></tr>
+<tr><td>TCELL2:PCLK0</td><td>CLK_ROOT.PCLK0_NW</td></tr>
+<tr><td>TCELL2:PCLK1</td><td>CLK_ROOT.PCLK1_NW</td></tr>
+<tr><td>TCELL2:PCLK2</td><td>CLK_ROOT.PCLK2_NW</td></tr>
+<tr><td>TCELL2:PCLK3</td><td>CLK_ROOT.PCLK3_NW</td></tr>
+<tr><td>TCELL2:PCLK4</td><td>CLK_ROOT.PCLK4_NW</td></tr>
+<tr><td>TCELL2:PCLK5</td><td>CLK_ROOT.PCLK5_NW</td></tr>
+<tr><td>TCELL2:PCLK6</td><td>DCS_NW0.OUT</td></tr>
+<tr><td>TCELL2:PCLK7</td><td>DCS_NW1.OUT</td></tr>
+<tr><td>TCELL3:PCLK0</td><td>CLK_ROOT.PCLK0_NE</td></tr>
+<tr><td>TCELL3:PCLK1</td><td>CLK_ROOT.PCLK1_NE</td></tr>
+<tr><td>TCELL3:PCLK2</td><td>CLK_ROOT.PCLK2_NE</td></tr>
+<tr><td>TCELL3:PCLK3</td><td>CLK_ROOT.PCLK3_NE</td></tr>
+<tr><td>TCELL3:PCLK4</td><td>CLK_ROOT.PCLK4_NE</td></tr>
+<tr><td>TCELL3:PCLK5</td><td>CLK_ROOT.PCLK5_NE</td></tr>
+<tr><td>TCELL3:PCLK6</td><td>DCS_NE0.OUT</td></tr>
+<tr><td>TCELL3:PCLK7</td><td>DCS_NE1.OUT</td></tr>
+<tr><td>TCELL4:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+<tr><td>TCELL5:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+<tr><td>TCELL6:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+<tr><td>TCELL7:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+<tr><td>TCELL8:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E2</td></tr>
+<tr><td>TCELL9:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E3</td></tr>
+<tr><td>TCELL10:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+<tr><td>TCELL11:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+<tr><td>TCELL12:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+<tr><td>TCELL13:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+<tr><td>TCELL14:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+<tr><td>TCELL15:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+<tr><td>TCELL16:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W2</td></tr>
+<tr><td>TCELL17:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W3</td></tr>
+<tr><td>TCELL18:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+<tr><td>TCELL19:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+<tr><td>TCELL20:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E2</td></tr>
+<tr><td>TCELL21:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E3</td></tr>
+<tr><td>TCELL22:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+<tr><td>TCELL23:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+<tr><td>TCELL24:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S2</td></tr>
+<tr><td>TCELL25:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S3</td></tr>
+<tr><td>TCELL26:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+<tr><td>TCELL27:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+<tr><td>TCELL28:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N2</td></tr>
+<tr><td>TCELL29:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N3</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-clk_root_6pll"><a class="header" href="#tile-clk_root_6pll">Tile CLK_ROOT_6PLL</a></h2>
+<p>Cells: 30</p>
+<h3 id="bel-dcs_sw0-2"><a class="header" href="#bel-dcs_sw0-2">Bel DCS_SW0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_SW0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL0:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_sw1-2"><a class="header" href="#bel-dcs_sw1-2">Bel DCS_SW1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_SW1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL0:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_se0-2"><a class="header" href="#bel-dcs_se0-2">Bel DCS_SE0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_SE0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL1:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_se1-2"><a class="header" href="#bel-dcs_se1-2">Bel DCS_SE1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_SE1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL1:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_nw0-2"><a class="header" href="#bel-dcs_nw0-2">Bel DCS_NW0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_NW0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL2:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_nw1-2"><a class="header" href="#bel-dcs_nw1-2">Bel DCS_NW1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_NW1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL2:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_ne0-2"><a class="header" href="#bel-dcs_ne0-2">Bel DCS_NE0</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_NE0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL3:PCLK6</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-dcs_ne1-2"><a class="header" href="#bel-dcs_ne1-2">Bel DCS_NE1</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel DCS_NE1</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT</td><td>input</td><td>TCELL3:PCLK7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-clk_root-2"><a class="header" href="#bel-clk_root-2">Bel CLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel CLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>PCLK0_NE</td><td>input</td><td>TCELL3:PCLK0</td></tr>
+<tr><td>PCLK0_NW</td><td>input</td><td>TCELL2:PCLK0</td></tr>
+<tr><td>PCLK0_SE</td><td>input</td><td>TCELL1:PCLK0</td></tr>
+<tr><td>PCLK0_SW</td><td>input</td><td>TCELL0:PCLK0</td></tr>
+<tr><td>PCLK1_NE</td><td>input</td><td>TCELL3:PCLK1</td></tr>
+<tr><td>PCLK1_NW</td><td>input</td><td>TCELL2:PCLK1</td></tr>
+<tr><td>PCLK1_SE</td><td>input</td><td>TCELL1:PCLK1</td></tr>
+<tr><td>PCLK1_SW</td><td>input</td><td>TCELL0:PCLK1</td></tr>
+<tr><td>PCLK2_NE</td><td>input</td><td>TCELL3:PCLK2</td></tr>
+<tr><td>PCLK2_NW</td><td>input</td><td>TCELL2:PCLK2</td></tr>
+<tr><td>PCLK2_SE</td><td>input</td><td>TCELL1:PCLK2</td></tr>
+<tr><td>PCLK2_SW</td><td>input</td><td>TCELL0:PCLK2</td></tr>
+<tr><td>PCLK3_NE</td><td>input</td><td>TCELL3:PCLK3</td></tr>
+<tr><td>PCLK3_NW</td><td>input</td><td>TCELL2:PCLK3</td></tr>
+<tr><td>PCLK3_SE</td><td>input</td><td>TCELL1:PCLK3</td></tr>
+<tr><td>PCLK3_SW</td><td>input</td><td>TCELL0:PCLK3</td></tr>
+<tr><td>PCLK4_NE</td><td>input</td><td>TCELL3:PCLK4</td></tr>
+<tr><td>PCLK4_NW</td><td>input</td><td>TCELL2:PCLK4</td></tr>
+<tr><td>PCLK4_SE</td><td>input</td><td>TCELL1:PCLK4</td></tr>
+<tr><td>PCLK4_SW</td><td>input</td><td>TCELL0:PCLK4</td></tr>
+<tr><td>PCLK5_NE</td><td>input</td><td>TCELL3:PCLK5</td></tr>
+<tr><td>PCLK5_NW</td><td>input</td><td>TCELL2:PCLK5</td></tr>
+<tr><td>PCLK5_SE</td><td>input</td><td>TCELL1:PCLK5</td></tr>
+<tr><td>PCLK5_SW</td><td>input</td><td>TCELL0:PCLK5</td></tr>
+<tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL6:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL7:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E2</td><td>input</td><td>TCELL8:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_E3</td><td>input</td><td>TCELL9:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL12:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL13:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL10:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL11:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL4:IMUX_C3</td></tr>
+<tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL5:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL18:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL19:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E2</td><td>input</td><td>TCELL20:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_E3</td><td>input</td><td>TCELL21:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL26:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL27:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N2</td><td>input</td><td>TCELL28:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_N3</td><td>input</td><td>TCELL29:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL22:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL23:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S2</td><td>input</td><td>TCELL24:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_S3</td><td>input</td><td>TCELL25:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL14:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL15:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W2</td><td>input</td><td>TCELL16:IMUX_C3</td></tr>
+<tr><td>SCLK_IN_W3</td><td>input</td><td>TCELL17:IMUX_C3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 CLK_ROOT_6PLL bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:PCLK0</td><td>CLK_ROOT.PCLK0_SW</td></tr>
+<tr><td>TCELL0:PCLK1</td><td>CLK_ROOT.PCLK1_SW</td></tr>
+<tr><td>TCELL0:PCLK2</td><td>CLK_ROOT.PCLK2_SW</td></tr>
+<tr><td>TCELL0:PCLK3</td><td>CLK_ROOT.PCLK3_SW</td></tr>
+<tr><td>TCELL0:PCLK4</td><td>CLK_ROOT.PCLK4_SW</td></tr>
+<tr><td>TCELL0:PCLK5</td><td>CLK_ROOT.PCLK5_SW</td></tr>
+<tr><td>TCELL0:PCLK6</td><td>DCS_SW0.OUT</td></tr>
+<tr><td>TCELL0:PCLK7</td><td>DCS_SW1.OUT</td></tr>
+<tr><td>TCELL1:PCLK0</td><td>CLK_ROOT.PCLK0_SE</td></tr>
+<tr><td>TCELL1:PCLK1</td><td>CLK_ROOT.PCLK1_SE</td></tr>
+<tr><td>TCELL1:PCLK2</td><td>CLK_ROOT.PCLK2_SE</td></tr>
+<tr><td>TCELL1:PCLK3</td><td>CLK_ROOT.PCLK3_SE</td></tr>
+<tr><td>TCELL1:PCLK4</td><td>CLK_ROOT.PCLK4_SE</td></tr>
+<tr><td>TCELL1:PCLK5</td><td>CLK_ROOT.PCLK5_SE</td></tr>
+<tr><td>TCELL1:PCLK6</td><td>DCS_SE0.OUT</td></tr>
+<tr><td>TCELL1:PCLK7</td><td>DCS_SE1.OUT</td></tr>
+<tr><td>TCELL2:PCLK0</td><td>CLK_ROOT.PCLK0_NW</td></tr>
+<tr><td>TCELL2:PCLK1</td><td>CLK_ROOT.PCLK1_NW</td></tr>
+<tr><td>TCELL2:PCLK2</td><td>CLK_ROOT.PCLK2_NW</td></tr>
+<tr><td>TCELL2:PCLK3</td><td>CLK_ROOT.PCLK3_NW</td></tr>
+<tr><td>TCELL2:PCLK4</td><td>CLK_ROOT.PCLK4_NW</td></tr>
+<tr><td>TCELL2:PCLK5</td><td>CLK_ROOT.PCLK5_NW</td></tr>
+<tr><td>TCELL2:PCLK6</td><td>DCS_NW0.OUT</td></tr>
+<tr><td>TCELL2:PCLK7</td><td>DCS_NW1.OUT</td></tr>
+<tr><td>TCELL3:PCLK0</td><td>CLK_ROOT.PCLK0_NE</td></tr>
+<tr><td>TCELL3:PCLK1</td><td>CLK_ROOT.PCLK1_NE</td></tr>
+<tr><td>TCELL3:PCLK2</td><td>CLK_ROOT.PCLK2_NE</td></tr>
+<tr><td>TCELL3:PCLK3</td><td>CLK_ROOT.PCLK3_NE</td></tr>
+<tr><td>TCELL3:PCLK4</td><td>CLK_ROOT.PCLK4_NE</td></tr>
+<tr><td>TCELL3:PCLK5</td><td>CLK_ROOT.PCLK5_NE</td></tr>
+<tr><td>TCELL3:PCLK6</td><td>DCS_NE0.OUT</td></tr>
+<tr><td>TCELL3:PCLK7</td><td>DCS_NE1.OUT</td></tr>
+<tr><td>TCELL4:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+<tr><td>TCELL5:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+<tr><td>TCELL6:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+<tr><td>TCELL7:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+<tr><td>TCELL8:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E2</td></tr>
+<tr><td>TCELL9:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E3</td></tr>
+<tr><td>TCELL10:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+<tr><td>TCELL11:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+<tr><td>TCELL12:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+<tr><td>TCELL13:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+<tr><td>TCELL14:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+<tr><td>TCELL15:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+<tr><td>TCELL16:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W2</td></tr>
+<tr><td>TCELL17:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W3</td></tr>
+<tr><td>TCELL18:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+<tr><td>TCELL19:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+<tr><td>TCELL20:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E2</td></tr>
+<tr><td>TCELL21:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E3</td></tr>
+<tr><td>TCELL22:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+<tr><td>TCELL23:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+<tr><td>TCELL24:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S2</td></tr>
+<tr><td>TCELL25:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S3</td></tr>
+<tr><td>TCELL26:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+<tr><td>TCELL27:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+<tr><td>TCELL28:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N2</td></tr>
+<tr><td>TCELL29:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N3</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-eclk_root_e"><a class="header" href="#tile-eclk_root_e">Tile ECLK_ROOT_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-eclk_root"><a class="header" href="#bel-eclk_root">Bel ECLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_E bel ECLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK0_IN</td><td>input</td><td>IMUX_A0</td></tr>
+<tr><td>ECLK1_IN</td><td>input</td><td>IMUX_B0</td></tr>
+<tr><td>PAD0_OUT</td><td>output</td><td>OUT_F6</td></tr>
+<tr><td>PAD1_OUT</td><td>output</td><td>OUT_F7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_E bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX_A0</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+<tr><td>IMUX_B0</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+<tr><td>OUT_F6</td><td>ECLK_ROOT.PAD0_OUT</td></tr>
+<tr><td>OUT_F7</td><td>ECLK_ROOT.PAD1_OUT</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-eclk_root_n"><a class="header" href="#tile-eclk_root_n">Tile ECLK_ROOT_N</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-eclk_root-1"><a class="header" href="#bel-eclk_root-1">Bel ECLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_N bel ECLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK0_IN</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+<tr><td>ECLK1_IN</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+<tr><td>PAD0_OUT0</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+<tr><td>PAD0_OUT1</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+<tr><td>PAD1_OUT0</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+<tr><td>PAD1_OUT1</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_N bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A0</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+<tr><td>TCELL0:IMUX_B0</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+<tr><td>TCELL0:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT0</td></tr>
+<tr><td>TCELL0:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT0</td></tr>
+<tr><td>TCELL1:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT1</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-eclk_root_s"><a class="header" href="#tile-eclk_root_s">Tile ECLK_ROOT_S</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-eclk_root-2"><a class="header" href="#bel-eclk_root-2">Bel ECLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_S bel ECLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK0_IN</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+<tr><td>ECLK1_IN</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+<tr><td>PAD0_OUT0</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+<tr><td>PAD0_OUT1</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+<tr><td>PAD1_OUT0</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+<tr><td>PAD1_OUT1</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_S bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A0</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+<tr><td>TCELL0:IMUX_B0</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+<tr><td>TCELL0:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT0</td></tr>
+<tr><td>TCELL0:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT0</td></tr>
+<tr><td>TCELL1:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT1</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-eclk_root_w"><a class="header" href="#tile-eclk_root_w">Tile ECLK_ROOT_W</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-eclk_root-3"><a class="header" href="#bel-eclk_root-3">Bel ECLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_W bel ECLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK0_IN</td><td>input</td><td>IMUX_A0</td></tr>
+<tr><td>ECLK1_IN</td><td>input</td><td>IMUX_B0</td></tr>
+<tr><td>PAD0_OUT</td><td>output</td><td>OUT_F6</td></tr>
+<tr><td>PAD1_OUT</td><td>output</td><td>OUT_F7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-6"><a class="header" href="#bel-wires-6">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_ROOT_W bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>IMUX_A0</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+<tr><td>IMUX_B0</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+<tr><td>OUT_F6</td><td>ECLK_ROOT.PAD0_OUT</td></tr>
+<tr><td>OUT_F7</td><td>ECLK_ROOT.PAD1_OUT</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-eclk_tap"><a class="header" href="#tile-eclk_tap">Tile ECLK_TAP</a></h2>
+<p>Cells: 1</p>
+<h3 id="bel-eclk_tap"><a class="header" href="#bel-eclk_tap">Bel ECLK_TAP</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_TAP bel ECLK_TAP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ECLK0</td><td>output</td><td>OUT_F6</td></tr>
+<tr><td>ECLK1</td><td>output</td><td>OUT_F7</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-7"><a class="header" href="#bel-wires-7">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 ECLK_TAP bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_F6</td><td>ECLK_TAP.ECLK0</td></tr>
+<tr><td>OUT_F7</td><td>ECLK_TAP.ECLK1</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-hsdclk_root"><a class="header" href="#tile-hsdclk_root">Tile HSDCLK_ROOT</a></h2>
+<p>Cells: 8</p>
+<h3 id="bel-hsdclk_root"><a class="header" href="#bel-hsdclk_root">Bel HSDCLK_ROOT</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 HSDCLK_ROOT bel HSDCLK_ROOT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>OUT_E0</td><td>output</td><td>TCELL4:HSDCLK0</td></tr>
+<tr><td>OUT_E1</td><td>output</td><td>TCELL5:HSDCLK0</td></tr>
+<tr><td>OUT_E2</td><td>output</td><td>TCELL6:HSDCLK0</td></tr>
+<tr><td>OUT_E3</td><td>output</td><td>TCELL7:HSDCLK0</td></tr>
+<tr><td>OUT_E4</td><td>output</td><td>TCELL4:HSDCLK4</td></tr>
+<tr><td>OUT_E5</td><td>output</td><td>TCELL5:HSDCLK4</td></tr>
+<tr><td>OUT_E6</td><td>output</td><td>TCELL6:HSDCLK4</td></tr>
+<tr><td>OUT_E7</td><td>output</td><td>TCELL7:HSDCLK4</td></tr>
+<tr><td>OUT_W0</td><td>output</td><td>TCELL0:HSDCLK0</td></tr>
+<tr><td>OUT_W1</td><td>output</td><td>TCELL1:HSDCLK0</td></tr>
+<tr><td>OUT_W2</td><td>output</td><td>TCELL2:HSDCLK0</td></tr>
+<tr><td>OUT_W3</td><td>output</td><td>TCELL3:HSDCLK0</td></tr>
+<tr><td>OUT_W4</td><td>output</td><td>TCELL0:HSDCLK4</td></tr>
+<tr><td>OUT_W5</td><td>output</td><td>TCELL1:HSDCLK4</td></tr>
+<tr><td>OUT_W6</td><td>output</td><td>TCELL2:HSDCLK4</td></tr>
+<tr><td>OUT_W7</td><td>output</td><td>TCELL3:HSDCLK4</td></tr>
+</tbody>
+</table></div>
+<h3 id="switchbox-hsdclk_splitter"><a class="header" href="#switchbox-hsdclk_splitter">Switchbox HSDCLK_SPLITTER</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 HSDCLK_ROOT switchbox HSDCLK_SPLITTER</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">TCELL0_HSDCLK0</td><td>TCELL4_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL0_HSDCLK4</td><td>TCELL4_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL1_HSDCLK0</td><td>TCELL5_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL1_HSDCLK4</td><td>TCELL5_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL2_HSDCLK0</td><td>TCELL6_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL2_HSDCLK4</td><td>TCELL6_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL3_HSDCLK0</td><td>TCELL7_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL3_HSDCLK4</td><td>TCELL7_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL4_HSDCLK0</td><td>TCELL0_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL4_HSDCLK4</td><td>TCELL0_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL5_HSDCLK0</td><td>TCELL1_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL5_HSDCLK4</td><td>TCELL1_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL6_HSDCLK0</td><td>TCELL2_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL6_HSDCLK4</td><td>TCELL2_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL7_HSDCLK0</td><td>TCELL3_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL7_HSDCLK4</td><td>TCELL3_HSDCLK4</td><td>buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires-8"><a class="header" href="#bel-wires-8">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 HSDCLK_ROOT bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W0</td></tr>
+<tr><td>TCELL0:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W4</td></tr>
+<tr><td>TCELL1:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W1</td></tr>
+<tr><td>TCELL1:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W5</td></tr>
+<tr><td>TCELL2:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W2</td></tr>
+<tr><td>TCELL2:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W6</td></tr>
+<tr><td>TCELL3:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W3</td></tr>
+<tr><td>TCELL3:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W7</td></tr>
+<tr><td>TCELL4:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E0</td></tr>
+<tr><td>TCELL4:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E4</td></tr>
+<tr><td>TCELL5:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E1</td></tr>
+<tr><td>TCELL5:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E5</td></tr>
+<tr><td>TCELL6:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E2</td></tr>
+<tr><td>TCELL6:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E6</td></tr>
+<tr><td>TCELL7:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E3</td></tr>
+<tr><td>TCELL7:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E7</td></tr>
+</tbody>
+</table></div>
+<h2 id="tile-hsdclk_splitter"><a class="header" href="#tile-hsdclk_splitter">Tile HSDCLK_SPLITTER</a></h2>
+<p>Cells: 8</p>
+<h3 id="switchbox-hsdclk_splitter-1"><a class="header" href="#switchbox-hsdclk_splitter-1">Switchbox HSDCLK_SPLITTER</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 HSDCLK_SPLITTER switchbox HSDCLK_SPLITTER</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">TCELL0_HSDCLK0</td><td>TCELL4_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL0_HSDCLK4</td><td>TCELL4_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL1_HSDCLK0</td><td>TCELL5_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL1_HSDCLK4</td><td>TCELL5_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL2_HSDCLK0</td><td>TCELL6_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL2_HSDCLK4</td><td>TCELL6_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL3_HSDCLK0</td><td>TCELL7_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL3_HSDCLK4</td><td>TCELL7_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL4_HSDCLK0</td><td>TCELL0_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL4_HSDCLK4</td><td>TCELL0_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL5_HSDCLK0</td><td>TCELL1_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL5_HSDCLK4</td><td>TCELL1_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL6_HSDCLK0</td><td>TCELL2_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL6_HSDCLK4</td><td>TCELL2_HSDCLK4</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL7_HSDCLK0</td><td>TCELL3_HSDCLK0</td><td>buffer</td>
+</tr>
+<tr><td rowspan="1">TCELL7_HSDCLK4</td><td>TCELL3_HSDCLK4</td><td>buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk0_source"><a class="header" href="#tile-sclk0_source">Tile SCLK0_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source"><a class="header" href="#switchbox-sclk_source">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 SCLK0_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK0</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK4</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk1_source"><a class="header" href="#tile-sclk1_source">Tile SCLK1_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-1"><a class="header" href="#switchbox-sclk_source-1">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 SCLK1_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK1</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK5</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk2_source"><a class="header" href="#tile-sclk2_source">Tile SCLK2_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-2"><a class="header" href="#switchbox-sclk_source-2">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 SCLK2_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK2</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK6</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-sclk3_source"><a class="header" href="#tile-sclk3_source">Tile SCLK3_SOURCE</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-sclk_source-3"><a class="header" href="#switchbox-sclk_source-3">Switchbox SCLK_SOURCE</a></h3>
+<div class="table-wrapper"><table>
+<caption>ecp2 SCLK3_SOURCE switchbox SCLK_SOURCE</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="1">SCLK3</td><td>VSDCLK0</td><td>fixed buffer</td>
+</tr>
+<tr><td rowspan="1">SCLK7</td><td>VSDCLK1</td><td>fixed buffer</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../ecp2/dsp.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../ecp2/io.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../ecp2/dsp.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../ecp2/io.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

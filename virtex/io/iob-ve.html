@@ -1,0 +1,6661 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>I/O Buffers (Virtex E) - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="io-buffers-virtex-e"><a class="header" href="#io-buffers-virtex-e">I/O Buffers (Virtex E)</a></h1>
+<div class="table-wrapper"><table>
+<caption>virtex IOB.L.VE bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+<th>39</th>
+<th>40</th>
+<th>41</th>
+<th>42</th>
+<th>43</th>
+<th>44</th>
+<th>45</th>
+<th>46</th>
+<th>47</th>
+<th>48</th>
+<th>49</th>
+<th>50</th>
+<th>51</th>
+<th>52</th>
+<th>53</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.17">
+<a href="#tile-virtex-IOB.L.VE-IO1:PULL">IO1:PULL[0]</a>
+</td>
+<td title="0.49.17">
+<a href="#tile-virtex-IOB.L.VE-IO1:SLEW">IO1:SLEW[0]</a>
+</td>
+<td title="0.50.17">
+<a href="#tile-virtex-IOB.L.VE-IO1:PULL">IO1:PULL[2]</a>
+</td>
+<td title="0.51.17">
+<a href="#tile-virtex-IOB.L.VE-IO1:SLEW">IO1:SLEW[1]</a>
+</td>
+<td title="0.52.17">
+<a href="#tile-virtex-IOB.L.VE-IO1:SLEW">IO1:SLEW[2]</a>
+</td>
+<td title="0.53.17">
+<a href="#tile-virtex-IOB.L.VE-IO1:SLEW">IO1:SLEW[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.16">
+<a href="#tile-virtex-IOB.L.VE-IO1:PULL">IO1:PULL[1]</a>
+</td>
+<td title="0.49.16">
+<a href="#tile-virtex-IOB.L.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[1]</a>
+</td>
+<td>-</td>
+<td title="0.51.16">
+<a href="#tile-virtex-IOB.L.VE-IO1:PDRIVE">IO1:PDRIVE[1]</a>
+</td>
+<td title="0.52.16">
+<a href="#tile-virtex-IOB.L.VE-IO1:PDRIVE">~IO1:PDRIVE[0]</a>
+</td>
+<td title="0.53.16">
+<a href="#tile-virtex-IOB.L.VE-IO1:IBUF">IO1:IBUF[0]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.15">
+<a href="#tile-virtex-IOB.L.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.50.15">
+<a href="#tile-virtex-IOB.L.VE-IO1:TMUX">IO1:TMUX[0]</a>
+</td>
+<td title="0.51.15">
+<a href="#tile-virtex-IOB.L.VE-IO1:NDRIVE">IO1:NDRIVE[1]</a>
+</td>
+<td title="0.52.15">
+<a href="#tile-virtex-IOB.L.VE-IO1:NDRIVE">~IO1:NDRIVE[0]</a>
+</td>
+<td title="0.53.15">
+<a href="#tile-virtex-IOB.L.VE-IO1:IBUF">IO1:IBUF[1]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.14">
+<a href="#tile-virtex-IOB.L.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</a>
+</td>
+<td title="0.50.14">
+<a href="#tile-virtex-IOB.L.VE-IO1:VREF">IO1:VREF</a>
+</td>
+<td title="0.51.14">
+<a href="#tile-virtex-IOB.L.VE-IO1:NDRIVE">~IO1:NDRIVE[2]</a>
+</td>
+<td title="0.52.14">
+<a href="#tile-virtex-IOB.L.VE-IO1:PDRIVE">IO1:PDRIVE[2]</a>
+</td>
+<td title="0.53.14">
+<a href="#tile-virtex-IOB.L.VE-IO1:OMUX">IO1:OMUX[0]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.13">
+<a href="#tile-virtex-IOB.L.VE-IO1:SLEW">IO1:SLEW[3]</a>
+</td>
+<td title="0.49.13">
+<a href="#tile-virtex-IOB.L.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.50.13">
+<a href="#tile-virtex-IOB.L.VE-IO1:READBACK_I">IO1:READBACK_I</a>
+</td>
+<td title="0.51.13">
+<a href="#tile-virtex-IOB.L.VE-IO1:NDRIVE">IO1:NDRIVE[3]</a>
+</td>
+<td title="0.52.13">
+<a href="#tile-virtex-IOB.L.VE-IO1:NDRIVE">~IO1:NDRIVE[4]</a>
+</td>
+<td title="0.53.13">
+<a href="#tile-virtex-IOB.L.VE-IO1:PDRIVE">~IO1:PDRIVE[3]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.12">
+<a href="#tile-virtex-IOB.L.VE-IO2:SLEW">IO2:SLEW[3]</a>
+</td>
+<td title="0.49.12">
+<a href="#tile-virtex-IOB.L.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.50.12">
+<a href="#tile-virtex-IOB.L.VE-IO2:READBACK_I">IO2:READBACK_I</a>
+</td>
+<td title="0.51.12">
+<a href="#tile-virtex-IOB.L.VE-IO2:NDRIVE">IO2:NDRIVE[3]</a>
+</td>
+<td title="0.52.12">
+<a href="#tile-virtex-IOB.L.VE-IO2:NDRIVE">~IO2:NDRIVE[4]</a>
+</td>
+<td title="0.53.12">
+<a href="#tile-virtex-IOB.L.VE-IO2:PDRIVE">~IO2:PDRIVE[3]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.11">
+<a href="#tile-virtex-IOB.L.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</a>
+</td>
+<td title="0.50.11">
+<a href="#tile-virtex-IOB.L.VE-IO2:VREF">IO2:VREF</a>
+</td>
+<td title="0.51.11">
+<a href="#tile-virtex-IOB.L.VE-IO2:NDRIVE">~IO2:NDRIVE[2]</a>
+</td>
+<td title="0.52.11">
+<a href="#tile-virtex-IOB.L.VE-IO2:PDRIVE">IO2:PDRIVE[2]</a>
+</td>
+<td title="0.53.11">
+<a href="#tile-virtex-IOB.L.VE-IO2:OMUX">IO2:OMUX[0]</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.10">
+<a href="#tile-virtex-IOB.L.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.50.10">
+<a href="#tile-virtex-IOB.L.VE-IO2:TMUX">IO2:TMUX[0]</a>
+</td>
+<td title="0.51.10">
+<a href="#tile-virtex-IOB.L.VE-IO2:NDRIVE">IO2:NDRIVE[1]</a>
+</td>
+<td title="0.52.10">
+<a href="#tile-virtex-IOB.L.VE-IO2:NDRIVE">~IO2:NDRIVE[0]</a>
+</td>
+<td title="0.53.10">
+<a href="#tile-virtex-IOB.L.VE-IO2:IBUF">IO2:IBUF[1]</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.9">
+<a href="#tile-virtex-IOB.L.VE-IO2:PULL">IO2:PULL[1]</a>
+</td>
+<td title="0.49.9">
+<a href="#tile-virtex-IOB.L.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[1]</a>
+</td>
+<td>-</td>
+<td title="0.51.9">
+<a href="#tile-virtex-IOB.L.VE-IO2:PDRIVE">IO2:PDRIVE[1]</a>
+</td>
+<td title="0.52.9">
+<a href="#tile-virtex-IOB.L.VE-IO2:PDRIVE">~IO2:PDRIVE[0]</a>
+</td>
+<td title="0.53.9">
+<a href="#tile-virtex-IOB.L.VE-IO2:IBUF">IO2:IBUF[0]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.8">
+<a href="#tile-virtex-IOB.L.VE-IO2:PULL">IO2:PULL[0]</a>
+</td>
+<td title="0.49.8">
+<a href="#tile-virtex-IOB.L.VE-IO2:SLEW">IO2:SLEW[0]</a>
+</td>
+<td title="0.50.8">
+<a href="#tile-virtex-IOB.L.VE-IO2:PULL">IO2:PULL[2]</a>
+</td>
+<td title="0.51.8">
+<a href="#tile-virtex-IOB.L.VE-IO2:SLEW">IO2:SLEW[1]</a>
+</td>
+<td title="0.52.8">
+<a href="#tile-virtex-IOB.L.VE-IO2:SLEW">IO2:SLEW[2]</a>
+</td>
+<td title="0.53.8">
+<a href="#tile-virtex-IOB.L.VE-IO2:SLEW">IO2:SLEW[4]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.7">
+<a href="#tile-virtex-IOB.L.VE-IO3:PULL">IO3:PULL[0]</a>
+</td>
+<td title="0.49.7">
+<a href="#tile-virtex-IOB.L.VE-IO3:SLEW">IO3:SLEW[0]</a>
+</td>
+<td title="0.50.7">
+<a href="#tile-virtex-IOB.L.VE-IO3:PULL">IO3:PULL[2]</a>
+</td>
+<td title="0.51.7">
+<a href="#tile-virtex-IOB.L.VE-IO3:SLEW">IO3:SLEW[1]</a>
+</td>
+<td title="0.52.7">
+<a href="#tile-virtex-IOB.L.VE-IO3:SLEW">IO3:SLEW[2]</a>
+</td>
+<td title="0.53.7">
+<a href="#tile-virtex-IOB.L.VE-IO3:SLEW">IO3:SLEW[4]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.6">
+<a href="#tile-virtex-IOB.L.VE-IO3:PULL">IO3:PULL[1]</a>
+</td>
+<td title="0.49.6">
+<a href="#tile-virtex-IOB.L.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC[1]</a>
+</td>
+<td>-</td>
+<td title="0.51.6">
+<a href="#tile-virtex-IOB.L.VE-IO3:PDRIVE">IO3:PDRIVE[1]</a>
+</td>
+<td title="0.52.6">
+<a href="#tile-virtex-IOB.L.VE-IO3:PDRIVE">~IO3:PDRIVE[0]</a>
+</td>
+<td title="0.53.6">
+<a href="#tile-virtex-IOB.L.VE-IO3:IBUF">IO3:IBUF[0]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.5">
+<a href="#tile-virtex-IOB.L.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.50.5">
+<a href="#tile-virtex-IOB.L.VE-IO3:TMUX">IO3:TMUX[0]</a>
+</td>
+<td title="0.51.5">
+<a href="#tile-virtex-IOB.L.VE-IO3:NDRIVE">IO3:NDRIVE[1]</a>
+</td>
+<td title="0.52.5">
+<a href="#tile-virtex-IOB.L.VE-IO3:NDRIVE">~IO3:NDRIVE[0]</a>
+</td>
+<td title="0.53.5">
+<a href="#tile-virtex-IOB.L.VE-IO3:IBUF">IO3:IBUF[1]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.4">
+<a href="#tile-virtex-IOB.L.VE-IO3:IOSTD_MISC">IO3:IOSTD_MISC</a>
+</td>
+<td title="0.50.4">
+<a href="#tile-virtex-IOB.L.VE-IO3:VREF">IO3:VREF</a>
+</td>
+<td title="0.51.4">
+<a href="#tile-virtex-IOB.L.VE-IO3:NDRIVE">~IO3:NDRIVE[2]</a>
+</td>
+<td title="0.52.4">
+<a href="#tile-virtex-IOB.L.VE-IO3:PDRIVE">IO3:PDRIVE[2]</a>
+</td>
+<td title="0.53.4">
+<a href="#tile-virtex-IOB.L.VE-IO3:OMUX">IO3:OMUX[0]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.2">
+<a href="#tile-virtex-IOB.L.VE-IO3:SLEW">IO3:SLEW[3]</a>
+</td>
+<td title="0.49.2">
+<a href="#tile-virtex-IOB.L.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.50.2">
+<a href="#tile-virtex-IOB.L.VE-IO3:READBACK_I">IO3:READBACK_I</a>
+</td>
+<td title="0.51.2">
+<a href="#tile-virtex-IOB.L.VE-IO3:NDRIVE">IO3:NDRIVE[3]</a>
+</td>
+<td title="0.52.2">
+<a href="#tile-virtex-IOB.L.VE-IO3:NDRIVE">~IO3:NDRIVE[4]</a>
+</td>
+<td title="0.53.2">
+<a href="#tile-virtex-IOB.L.VE-IO3:PDRIVE">~IO3:PDRIVE[3]</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:IBUF">IO1:IBUF</th>
+<th>0.53.15</th>
+<th>0.53.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:IBUF">IO2:IBUF</th>
+<th>0.53.10</th>
+<th>0.53.9</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:IBUF">IO3:IBUF</th>
+<th>0.53.5</th>
+<th>0.53.6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CMOS</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>VREF</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>DIFF</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</th>
+<th>0.49.14</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:READBACK_I">IO1:READBACK_I</th>
+<th>0.50.13</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:VREF">IO1:VREF</th>
+<th>0.50.14</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</th>
+<th>0.49.11</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:READBACK_I">IO2:READBACK_I</th>
+<th>0.50.12</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:VREF">IO2:VREF</th>
+<th>0.50.11</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:IOSTD_MISC">IO3:IOSTD_MISC</th>
+<th>0.49.4</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:READBACK_I">IO3:READBACK_I</th>
+<th>0.50.2</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:VREF">IO3:VREF</th>
+<th>0.50.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:NDRIVE">IO1:NDRIVE</th>
+<th>0.52.13</th>
+<th>0.51.13</th>
+<th>0.51.14</th>
+<th>0.51.15</th>
+<th>0.52.15</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:NDRIVE">IO2:NDRIVE</th>
+<th>0.52.12</th>
+<th>0.51.12</th>
+<th>0.51.11</th>
+<th>0.51.10</th>
+<th>0.52.10</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:NDRIVE">IO3:NDRIVE</th>
+<th>0.52.2</th>
+<th>0.51.2</th>
+<th>0.51.4</th>
+<th>0.51.5</th>
+<th>0.52.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[4]</td>
+<td>[3]</td>
+<td>~[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:OMUX">IO1:OMUX</th>
+<th>0.53.14</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:OMUX">IO2:OMUX</th>
+<th>0.53.11</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:OMUX">IO3:OMUX</th>
+<th>0.53.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>O</td>
+<td>0</td>
+</tr>
+<tr><td>OFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC</th>
+<th>0.49.13</th>
+<th>0.49.16</th>
+<th>0.49.15</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC</th>
+<th>0.49.12</th>
+<th>0.49.9</th>
+<th>0.49.10</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC</th>
+<th>0.49.2</th>
+<th>0.49.6</th>
+<th>0.49.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:PDRIVE">IO1:PDRIVE</th>
+<th>0.53.13</th>
+<th>0.52.14</th>
+<th>0.51.16</th>
+<th>0.52.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:PDRIVE">IO2:PDRIVE</th>
+<th>0.53.12</th>
+<th>0.52.11</th>
+<th>0.51.9</th>
+<th>0.52.9</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:PDRIVE">IO3:PDRIVE</th>
+<th>0.53.2</th>
+<th>0.52.4</th>
+<th>0.51.6</th>
+<th>0.52.6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:PULL">IO1:PULL</th>
+<th>0.50.17</th>
+<th>0.48.16</th>
+<th>0.48.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:PULL">IO2:PULL</th>
+<th>0.50.8</th>
+<th>0.48.9</th>
+<th>0.48.8</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:PULL">IO3:PULL</th>
+<th>0.50.7</th>
+<th>0.48.6</th>
+<th>0.48.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>PULLDOWN</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>PULLUP</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>KEEPER</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:SLEW">IO1:SLEW</th>
+<th>0.53.17</th>
+<th>0.48.13</th>
+<th>0.52.17</th>
+<th>0.51.17</th>
+<th>0.49.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:SLEW">IO2:SLEW</th>
+<th>0.53.8</th>
+<th>0.48.12</th>
+<th>0.52.8</th>
+<th>0.51.8</th>
+<th>0.49.8</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:SLEW">IO3:SLEW</th>
+<th>0.53.7</th>
+<th>0.48.2</th>
+<th>0.52.7</th>
+<th>0.51.7</th>
+<th>0.49.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.L.VE-IO1:TMUX">IO1:TMUX</th>
+<th>0.50.15</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO2:TMUX">IO2:TMUX</th>
+<th>0.50.10</th>
+</tr>
+<tr><th id="tile-virtex-IOB.L.VE-IO3:TMUX">IO3:TMUX</th>
+<th>0.50.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>T</td>
+<td>0</td>
+</tr>
+<tr><td>TFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex IOB.R.VE bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+<th>39</th>
+<th>40</th>
+<th>41</th>
+<th>42</th>
+<th>43</th>
+<th>44</th>
+<th>45</th>
+<th>46</th>
+<th>47</th>
+<th>48</th>
+<th>49</th>
+<th>50</th>
+<th>51</th>
+<th>52</th>
+<th>53</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.17">
+<a href="#tile-virtex-IOB.R.VE-IO1:PULL">IO1:PULL[0]</a>
+</td>
+<td title="0.49.17">
+<a href="#tile-virtex-IOB.R.VE-IO1:SLEW">IO1:SLEW[0]</a>
+</td>
+<td title="0.50.17">
+<a href="#tile-virtex-IOB.R.VE-IO1:PULL">IO1:PULL[2]</a>
+</td>
+<td title="0.51.17">
+<a href="#tile-virtex-IOB.R.VE-IO1:SLEW">IO1:SLEW[1]</a>
+</td>
+<td title="0.52.17">
+<a href="#tile-virtex-IOB.R.VE-IO1:SLEW">IO1:SLEW[2]</a>
+</td>
+<td title="0.53.17">
+<a href="#tile-virtex-IOB.R.VE-IO1:SLEW">IO1:SLEW[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.16">
+<a href="#tile-virtex-IOB.R.VE-IO1:PULL">IO1:PULL[1]</a>
+</td>
+<td title="0.49.16">
+<a href="#tile-virtex-IOB.R.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[1]</a>
+</td>
+<td>-</td>
+<td title="0.51.16">
+<a href="#tile-virtex-IOB.R.VE-IO1:PDRIVE">IO1:PDRIVE[1]</a>
+</td>
+<td title="0.52.16">
+<a href="#tile-virtex-IOB.R.VE-IO1:PDRIVE">~IO1:PDRIVE[0]</a>
+</td>
+<td title="0.53.16">
+<a href="#tile-virtex-IOB.R.VE-IO1:IBUF">IO1:IBUF[0]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.15">
+<a href="#tile-virtex-IOB.R.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.50.15">
+<a href="#tile-virtex-IOB.R.VE-IO1:TMUX">IO1:TMUX[0]</a>
+</td>
+<td title="0.51.15">
+<a href="#tile-virtex-IOB.R.VE-IO1:NDRIVE">IO1:NDRIVE[1]</a>
+</td>
+<td title="0.52.15">
+<a href="#tile-virtex-IOB.R.VE-IO1:NDRIVE">~IO1:NDRIVE[0]</a>
+</td>
+<td title="0.53.15">
+<a href="#tile-virtex-IOB.R.VE-IO1:IBUF">IO1:IBUF[1]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.14">
+<a href="#tile-virtex-IOB.R.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</a>
+</td>
+<td title="0.50.14">
+<a href="#tile-virtex-IOB.R.VE-IO1:VREF">IO1:VREF</a>
+</td>
+<td title="0.51.14">
+<a href="#tile-virtex-IOB.R.VE-IO1:NDRIVE">~IO1:NDRIVE[2]</a>
+</td>
+<td title="0.52.14">
+<a href="#tile-virtex-IOB.R.VE-IO1:PDRIVE">IO1:PDRIVE[2]</a>
+</td>
+<td title="0.53.14">
+<a href="#tile-virtex-IOB.R.VE-IO1:OMUX">IO1:OMUX[0]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.13">
+<a href="#tile-virtex-IOB.R.VE-IO1:SLEW">IO1:SLEW[3]</a>
+</td>
+<td title="0.49.13">
+<a href="#tile-virtex-IOB.R.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.50.13">
+<a href="#tile-virtex-IOB.R.VE-IO1:READBACK_I">IO1:READBACK_I</a>
+</td>
+<td title="0.51.13">
+<a href="#tile-virtex-IOB.R.VE-IO1:NDRIVE">IO1:NDRIVE[3]</a>
+</td>
+<td title="0.52.13">
+<a href="#tile-virtex-IOB.R.VE-IO1:NDRIVE">~IO1:NDRIVE[4]</a>
+</td>
+<td title="0.53.13">
+<a href="#tile-virtex-IOB.R.VE-IO1:PDRIVE">~IO1:PDRIVE[3]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.12">
+<a href="#tile-virtex-IOB.R.VE-IO2:SLEW">IO2:SLEW[3]</a>
+</td>
+<td title="0.49.12">
+<a href="#tile-virtex-IOB.R.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.50.12">
+<a href="#tile-virtex-IOB.R.VE-IO2:READBACK_I">IO2:READBACK_I</a>
+</td>
+<td title="0.51.12">
+<a href="#tile-virtex-IOB.R.VE-IO2:NDRIVE">IO2:NDRIVE[3]</a>
+</td>
+<td title="0.52.12">
+<a href="#tile-virtex-IOB.R.VE-IO2:NDRIVE">~IO2:NDRIVE[4]</a>
+</td>
+<td title="0.53.12">
+<a href="#tile-virtex-IOB.R.VE-IO2:PDRIVE">~IO2:PDRIVE[3]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.11">
+<a href="#tile-virtex-IOB.R.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</a>
+</td>
+<td title="0.50.11">
+<a href="#tile-virtex-IOB.R.VE-IO2:VREF">IO2:VREF</a>
+</td>
+<td title="0.51.11">
+<a href="#tile-virtex-IOB.R.VE-IO2:NDRIVE">~IO2:NDRIVE[2]</a>
+</td>
+<td title="0.52.11">
+<a href="#tile-virtex-IOB.R.VE-IO2:PDRIVE">IO2:PDRIVE[2]</a>
+</td>
+<td title="0.53.11">
+<a href="#tile-virtex-IOB.R.VE-IO2:OMUX">IO2:OMUX[0]</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.10">
+<a href="#tile-virtex-IOB.R.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.50.10">
+<a href="#tile-virtex-IOB.R.VE-IO2:TMUX">IO2:TMUX[0]</a>
+</td>
+<td title="0.51.10">
+<a href="#tile-virtex-IOB.R.VE-IO2:NDRIVE">IO2:NDRIVE[1]</a>
+</td>
+<td title="0.52.10">
+<a href="#tile-virtex-IOB.R.VE-IO2:NDRIVE">~IO2:NDRIVE[0]</a>
+</td>
+<td title="0.53.10">
+<a href="#tile-virtex-IOB.R.VE-IO2:IBUF">IO2:IBUF[1]</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.9">
+<a href="#tile-virtex-IOB.R.VE-IO2:PULL">IO2:PULL[1]</a>
+</td>
+<td title="0.49.9">
+<a href="#tile-virtex-IOB.R.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[1]</a>
+</td>
+<td>-</td>
+<td title="0.51.9">
+<a href="#tile-virtex-IOB.R.VE-IO2:PDRIVE">IO2:PDRIVE[1]</a>
+</td>
+<td title="0.52.9">
+<a href="#tile-virtex-IOB.R.VE-IO2:PDRIVE">~IO2:PDRIVE[0]</a>
+</td>
+<td title="0.53.9">
+<a href="#tile-virtex-IOB.R.VE-IO2:IBUF">IO2:IBUF[0]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.8">
+<a href="#tile-virtex-IOB.R.VE-IO2:PULL">IO2:PULL[0]</a>
+</td>
+<td title="0.49.8">
+<a href="#tile-virtex-IOB.R.VE-IO2:SLEW">IO2:SLEW[0]</a>
+</td>
+<td title="0.50.8">
+<a href="#tile-virtex-IOB.R.VE-IO2:PULL">IO2:PULL[2]</a>
+</td>
+<td title="0.51.8">
+<a href="#tile-virtex-IOB.R.VE-IO2:SLEW">IO2:SLEW[1]</a>
+</td>
+<td title="0.52.8">
+<a href="#tile-virtex-IOB.R.VE-IO2:SLEW">IO2:SLEW[2]</a>
+</td>
+<td title="0.53.8">
+<a href="#tile-virtex-IOB.R.VE-IO2:SLEW">IO2:SLEW[4]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.7">
+<a href="#tile-virtex-IOB.R.VE-IO3:PULL">IO3:PULL[0]</a>
+</td>
+<td title="0.49.7">
+<a href="#tile-virtex-IOB.R.VE-IO3:SLEW">IO3:SLEW[0]</a>
+</td>
+<td title="0.50.7">
+<a href="#tile-virtex-IOB.R.VE-IO3:PULL">IO3:PULL[2]</a>
+</td>
+<td title="0.51.7">
+<a href="#tile-virtex-IOB.R.VE-IO3:SLEW">IO3:SLEW[1]</a>
+</td>
+<td title="0.52.7">
+<a href="#tile-virtex-IOB.R.VE-IO3:SLEW">IO3:SLEW[2]</a>
+</td>
+<td title="0.53.7">
+<a href="#tile-virtex-IOB.R.VE-IO3:SLEW">IO3:SLEW[4]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.6">
+<a href="#tile-virtex-IOB.R.VE-IO3:PULL">IO3:PULL[1]</a>
+</td>
+<td title="0.49.6">
+<a href="#tile-virtex-IOB.R.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC[1]</a>
+</td>
+<td>-</td>
+<td title="0.51.6">
+<a href="#tile-virtex-IOB.R.VE-IO3:PDRIVE">IO3:PDRIVE[1]</a>
+</td>
+<td title="0.52.6">
+<a href="#tile-virtex-IOB.R.VE-IO3:PDRIVE">~IO3:PDRIVE[0]</a>
+</td>
+<td title="0.53.6">
+<a href="#tile-virtex-IOB.R.VE-IO3:IBUF">IO3:IBUF[0]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.5">
+<a href="#tile-virtex-IOB.R.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.50.5">
+<a href="#tile-virtex-IOB.R.VE-IO3:TMUX">IO3:TMUX[0]</a>
+</td>
+<td title="0.51.5">
+<a href="#tile-virtex-IOB.R.VE-IO3:NDRIVE">IO3:NDRIVE[1]</a>
+</td>
+<td title="0.52.5">
+<a href="#tile-virtex-IOB.R.VE-IO3:NDRIVE">~IO3:NDRIVE[0]</a>
+</td>
+<td title="0.53.5">
+<a href="#tile-virtex-IOB.R.VE-IO3:IBUF">IO3:IBUF[1]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.49.4">
+<a href="#tile-virtex-IOB.R.VE-IO3:IOSTD_MISC">IO3:IOSTD_MISC</a>
+</td>
+<td title="0.50.4">
+<a href="#tile-virtex-IOB.R.VE-IO3:VREF">IO3:VREF</a>
+</td>
+<td title="0.51.4">
+<a href="#tile-virtex-IOB.R.VE-IO3:NDRIVE">~IO3:NDRIVE[2]</a>
+</td>
+<td title="0.52.4">
+<a href="#tile-virtex-IOB.R.VE-IO3:PDRIVE">IO3:PDRIVE[2]</a>
+</td>
+<td title="0.53.4">
+<a href="#tile-virtex-IOB.R.VE-IO3:OMUX">IO3:OMUX[0]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.48.2">
+<a href="#tile-virtex-IOB.R.VE-IO3:SLEW">IO3:SLEW[3]</a>
+</td>
+<td title="0.49.2">
+<a href="#tile-virtex-IOB.R.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.50.2">
+<a href="#tile-virtex-IOB.R.VE-IO3:READBACK_I">IO3:READBACK_I</a>
+</td>
+<td title="0.51.2">
+<a href="#tile-virtex-IOB.R.VE-IO3:NDRIVE">IO3:NDRIVE[3]</a>
+</td>
+<td title="0.52.2">
+<a href="#tile-virtex-IOB.R.VE-IO3:NDRIVE">~IO3:NDRIVE[4]</a>
+</td>
+<td title="0.53.2">
+<a href="#tile-virtex-IOB.R.VE-IO3:PDRIVE">~IO3:PDRIVE[3]</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:IBUF">IO1:IBUF</th>
+<th>0.53.15</th>
+<th>0.53.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:IBUF">IO2:IBUF</th>
+<th>0.53.10</th>
+<th>0.53.9</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:IBUF">IO3:IBUF</th>
+<th>0.53.5</th>
+<th>0.53.6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CMOS</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>VREF</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>DIFF</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</th>
+<th>0.49.14</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:READBACK_I">IO1:READBACK_I</th>
+<th>0.50.13</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:VREF">IO1:VREF</th>
+<th>0.50.14</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</th>
+<th>0.49.11</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:READBACK_I">IO2:READBACK_I</th>
+<th>0.50.12</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:VREF">IO2:VREF</th>
+<th>0.50.11</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:IOSTD_MISC">IO3:IOSTD_MISC</th>
+<th>0.49.4</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:READBACK_I">IO3:READBACK_I</th>
+<th>0.50.2</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:VREF">IO3:VREF</th>
+<th>0.50.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:NDRIVE">IO1:NDRIVE</th>
+<th>0.52.13</th>
+<th>0.51.13</th>
+<th>0.51.14</th>
+<th>0.51.15</th>
+<th>0.52.15</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:NDRIVE">IO2:NDRIVE</th>
+<th>0.52.12</th>
+<th>0.51.12</th>
+<th>0.51.11</th>
+<th>0.51.10</th>
+<th>0.52.10</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:NDRIVE">IO3:NDRIVE</th>
+<th>0.52.2</th>
+<th>0.51.2</th>
+<th>0.51.4</th>
+<th>0.51.5</th>
+<th>0.52.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[4]</td>
+<td>[3]</td>
+<td>~[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:OMUX">IO1:OMUX</th>
+<th>0.53.14</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:OMUX">IO2:OMUX</th>
+<th>0.53.11</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:OMUX">IO3:OMUX</th>
+<th>0.53.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>O</td>
+<td>0</td>
+</tr>
+<tr><td>OFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC</th>
+<th>0.49.13</th>
+<th>0.49.16</th>
+<th>0.49.15</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC</th>
+<th>0.49.12</th>
+<th>0.49.9</th>
+<th>0.49.10</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:OUTPUT_MISC">IO3:OUTPUT_MISC</th>
+<th>0.49.2</th>
+<th>0.49.6</th>
+<th>0.49.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:PDRIVE">IO1:PDRIVE</th>
+<th>0.53.13</th>
+<th>0.52.14</th>
+<th>0.51.16</th>
+<th>0.52.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:PDRIVE">IO2:PDRIVE</th>
+<th>0.53.12</th>
+<th>0.52.11</th>
+<th>0.51.9</th>
+<th>0.52.9</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:PDRIVE">IO3:PDRIVE</th>
+<th>0.53.2</th>
+<th>0.52.4</th>
+<th>0.51.6</th>
+<th>0.52.6</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:PULL">IO1:PULL</th>
+<th>0.50.17</th>
+<th>0.48.16</th>
+<th>0.48.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:PULL">IO2:PULL</th>
+<th>0.50.8</th>
+<th>0.48.9</th>
+<th>0.48.8</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:PULL">IO3:PULL</th>
+<th>0.50.7</th>
+<th>0.48.6</th>
+<th>0.48.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>PULLDOWN</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>PULLUP</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>KEEPER</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:SLEW">IO1:SLEW</th>
+<th>0.53.17</th>
+<th>0.48.13</th>
+<th>0.52.17</th>
+<th>0.51.17</th>
+<th>0.49.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:SLEW">IO2:SLEW</th>
+<th>0.53.8</th>
+<th>0.48.12</th>
+<th>0.52.8</th>
+<th>0.51.8</th>
+<th>0.49.8</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:SLEW">IO3:SLEW</th>
+<th>0.53.7</th>
+<th>0.48.2</th>
+<th>0.52.7</th>
+<th>0.51.7</th>
+<th>0.49.7</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.R.VE-IO1:TMUX">IO1:TMUX</th>
+<th>0.50.15</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO2:TMUX">IO2:TMUX</th>
+<th>0.50.10</th>
+</tr>
+<tr><th id="tile-virtex-IOB.R.VE-IO3:TMUX">IO3:TMUX</th>
+<th>0.50.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>T</td>
+<td>0</td>
+</tr>
+<tr><td>TFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex IOB.B.VE bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="48">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+<th>39</th>
+<th>40</th>
+<th>41</th>
+<th>42</th>
+<th>43</th>
+<th>44</th>
+<th>45</th>
+<th>46</th>
+<th>47</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>17</td>
+<td title="0.0.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:NDRIVE">~IO2:NDRIVE[4]</a>
+</td>
+<td title="0.1.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:NDRIVE">~IO2:NDRIVE[2]</a>
+</td>
+<td title="0.2.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:NDRIVE">IO2:NDRIVE[1]</a>
+</td>
+<td title="0.3.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:PDRIVE">~IO2:PDRIVE[3]</a>
+</td>
+<td title="0.4.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:OMUX">IO2:OMUX[0]</a>
+</td>
+<td title="0.5.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:SLEW">IO2:SLEW[2]</a>
+</td>
+<td>-</td>
+<td title="0.7.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:SLEW">IO2:SLEW[3]</a>
+</td>
+<td title="0.8.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[1]</a>
+</td>
+<td title="0.9.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:PDRIVE">IO2:PDRIVE[1]</a>
+</td>
+<td title="0.10.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:PULL">IO1:PULL[2]</a>
+</td>
+<td title="0.11.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:TMUX">IO2:TMUX[0]</a>
+</td>
+<td title="0.12.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:IBUF">IO2:IBUF[1]</a>
+</td>
+<td title="0.13.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:NDRIVE">~IO2:NDRIVE[0]</a>
+</td>
+<td title="0.14.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:IBUF">IO2:IBUF[0]</a>
+</td>
+<td title="0.15.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:PULL">IO2:PULL[1]</a>
+</td>
+<td title="0.16.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:SLEW">IO1:SLEW[2]</a>
+</td>
+<td title="0.17.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:VREF">IO2:VREF</a>
+</td>
+<td title="0.18.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:PULL">IO1:PULL[1]</a>
+</td>
+<td title="0.19.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:SLEW">IO1:SLEW[1]</a>
+</td>
+<td>-</td>
+<td title="0.21.17">
+<a href="#tile-virtex-IOB.B.VE-IO2:READBACK_I">IO2:READBACK_I</a>
+</td>
+<td title="0.22.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:NDRIVE">IO1:NDRIVE[1]</a>
+</td>
+<td title="0.23.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:SLEW">IO1:SLEW[3]</a>
+</td>
+<td title="0.24.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:PDRIVE">IO1:PDRIVE[1]</a>
+</td>
+<td title="0.25.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:READBACK_I">IO1:READBACK_I</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.31.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:TMUX">IO1:TMUX[0]</a>
+</td>
+<td title="0.32.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:VREF">IO1:VREF</a>
+</td>
+<td title="0.33.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:IBUF">IO1:IBUF[0]</a>
+</td>
+<td title="0.34.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:IBUF">IO1:IBUF[1]</a>
+</td>
+<td>-</td>
+<td title="0.36.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:OMUX">IO1:OMUX[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.40.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</a>
+</td>
+<td title="0.41.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:NDRIVE">~IO1:NDRIVE[2]</a>
+</td>
+<td title="0.42.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:PDRIVE">IO1:PDRIVE[2]</a>
+</td>
+<td title="0.43.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.44.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:PDRIVE">~IO1:PDRIVE[3]</a>
+</td>
+<td>-</td>
+<td title="0.46.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:NDRIVE">IO1:NDRIVE[3]</a>
+</td>
+<td title="0.47.17">
+<a href="#tile-virtex-IOB.B.VE-IO1:NDRIVE">~IO1:NDRIVE[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td title="0.0.16">
+<a href="#tile-virtex-IOB.B.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[1]</a>
+</td>
+<td title="0.1.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:NDRIVE">IO2:NDRIVE[3]</a>
+</td>
+<td title="0.2.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:PDRIVE">IO2:PDRIVE[2]</a>
+</td>
+<td title="0.3.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:SLEW">IO2:SLEW[1]</a>
+</td>
+<td title="0.4.16">
+<a href="#tile-virtex-IOB.B.VE-IO1:PULL">IO1:PULL[0]</a>
+</td>
+<td title="0.5.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</a>
+</td>
+<td title="0.6.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.7.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:PDRIVE">~IO2:PDRIVE[0]</a>
+</td>
+<td title="0.8.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.9.16">
+<a href="#tile-virtex-IOB.B.VE-IO1:NDRIVE">~IO1:NDRIVE[0]</a>
+</td>
+<td title="0.10.16">
+<a href="#tile-virtex-IOB.B.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.11.16">
+<a href="#tile-virtex-IOB.B.VE-IO1:SLEW">IO1:SLEW[4]</a>
+</td>
+<td title="0.12.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:PULL">IO2:PULL[2]</a>
+</td>
+<td title="0.13.16">
+<a href="#tile-virtex-IOB.B.VE-IO1:SLEW">IO1:SLEW[0]</a>
+</td>
+<td title="0.14.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:PULL">IO2:PULL[0]</a>
+</td>
+<td title="0.15.16">
+<a href="#tile-virtex-IOB.B.VE-IO1:PDRIVE">~IO1:PDRIVE[0]</a>
+</td>
+<td title="0.16.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:SLEW">IO2:SLEW[0]</a>
+</td>
+<td title="0.17.16">
+<a href="#tile-virtex-IOB.B.VE-IO2:SLEW">IO2:SLEW[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:IBUF">IO1:IBUF</th>
+<th>0.34.17</th>
+<th>0.33.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:IBUF">IO2:IBUF</th>
+<th>0.12.17</th>
+<th>0.14.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CMOS</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>VREF</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>DIFF</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</th>
+<th>0.40.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:READBACK_I">IO1:READBACK_I</th>
+<th>0.25.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:VREF">IO1:VREF</th>
+<th>0.32.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</th>
+<th>0.5.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:READBACK_I">IO2:READBACK_I</th>
+<th>0.21.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:VREF">IO2:VREF</th>
+<th>0.17.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:NDRIVE">IO1:NDRIVE</th>
+<th>0.47.17</th>
+<th>0.46.17</th>
+<th>0.41.17</th>
+<th>0.22.17</th>
+<th>0.9.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:NDRIVE">IO2:NDRIVE</th>
+<th>0.0.17</th>
+<th>0.1.16</th>
+<th>0.1.17</th>
+<th>0.2.17</th>
+<th>0.13.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[4]</td>
+<td>[3]</td>
+<td>~[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:OMUX">IO1:OMUX</th>
+<th>0.36.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:OMUX">IO2:OMUX</th>
+<th>0.4.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>O</td>
+<td>0</td>
+</tr>
+<tr><td>OFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC</th>
+<th>0.43.17</th>
+<th>0.0.16</th>
+<th>0.10.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC</th>
+<th>0.6.16</th>
+<th>0.8.17</th>
+<th>0.8.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:PDRIVE">IO1:PDRIVE</th>
+<th>0.44.17</th>
+<th>0.42.17</th>
+<th>0.24.17</th>
+<th>0.15.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:PDRIVE">IO2:PDRIVE</th>
+<th>0.3.17</th>
+<th>0.2.16</th>
+<th>0.9.17</th>
+<th>0.7.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:PULL">IO1:PULL</th>
+<th>0.10.17</th>
+<th>0.18.17</th>
+<th>0.4.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:PULL">IO2:PULL</th>
+<th>0.12.16</th>
+<th>0.15.17</th>
+<th>0.14.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>PULLDOWN</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>PULLUP</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>KEEPER</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:SLEW">IO1:SLEW</th>
+<th>0.11.16</th>
+<th>0.23.17</th>
+<th>0.16.17</th>
+<th>0.19.17</th>
+<th>0.13.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:SLEW">IO2:SLEW</th>
+<th>0.17.16</th>
+<th>0.7.17</th>
+<th>0.5.17</th>
+<th>0.3.16</th>
+<th>0.16.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.B.VE-IO1:TMUX">IO1:TMUX</th>
+<th>0.31.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.B.VE-IO2:TMUX">IO2:TMUX</th>
+<th>0.11.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>T</td>
+<td>0</td>
+</tr>
+<tr><td>TFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex IOB.T.VE bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="48">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+<th>8</th>
+<th>9</th>
+<th>10</th>
+<th>11</th>
+<th>12</th>
+<th>13</th>
+<th>14</th>
+<th>15</th>
+<th>16</th>
+<th>17</th>
+<th>18</th>
+<th>19</th>
+<th>20</th>
+<th>21</th>
+<th>22</th>
+<th>23</th>
+<th>24</th>
+<th>25</th>
+<th>26</th>
+<th>27</th>
+<th>28</th>
+<th>29</th>
+<th>30</th>
+<th>31</th>
+<th>32</th>
+<th>33</th>
+<th>34</th>
+<th>35</th>
+<th>36</th>
+<th>37</th>
+<th>38</th>
+<th>39</th>
+<th>40</th>
+<th>41</th>
+<th>42</th>
+<th>43</th>
+<th>44</th>
+<th>45</th>
+<th>46</th>
+<th>47</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>17</td>
+<td title="0.0.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:NDRIVE">~IO2:NDRIVE[4]</a>
+</td>
+<td title="0.1.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:NDRIVE">~IO2:NDRIVE[2]</a>
+</td>
+<td title="0.2.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:NDRIVE">IO2:NDRIVE[1]</a>
+</td>
+<td title="0.3.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:PDRIVE">~IO2:PDRIVE[3]</a>
+</td>
+<td title="0.4.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:OMUX">IO2:OMUX[0]</a>
+</td>
+<td title="0.5.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:SLEW">IO2:SLEW[2]</a>
+</td>
+<td>-</td>
+<td title="0.7.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:SLEW">IO2:SLEW[3]</a>
+</td>
+<td title="0.8.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[1]</a>
+</td>
+<td title="0.9.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:PDRIVE">IO2:PDRIVE[1]</a>
+</td>
+<td title="0.10.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:PULL">IO1:PULL[2]</a>
+</td>
+<td title="0.11.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:TMUX">IO2:TMUX[0]</a>
+</td>
+<td title="0.12.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:IBUF">IO2:IBUF[1]</a>
+</td>
+<td title="0.13.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:NDRIVE">~IO2:NDRIVE[0]</a>
+</td>
+<td title="0.14.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:IBUF">IO2:IBUF[0]</a>
+</td>
+<td title="0.15.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:PULL">IO2:PULL[1]</a>
+</td>
+<td title="0.16.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:SLEW">IO1:SLEW[2]</a>
+</td>
+<td title="0.17.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:VREF">IO2:VREF</a>
+</td>
+<td title="0.18.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:PULL">IO1:PULL[1]</a>
+</td>
+<td title="0.19.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:SLEW">IO1:SLEW[1]</a>
+</td>
+<td>-</td>
+<td title="0.21.17">
+<a href="#tile-virtex-IOB.T.VE-IO2:READBACK_I">IO2:READBACK_I</a>
+</td>
+<td title="0.22.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:NDRIVE">IO1:NDRIVE[1]</a>
+</td>
+<td title="0.23.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:SLEW">IO1:SLEW[3]</a>
+</td>
+<td title="0.24.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:PDRIVE">IO1:PDRIVE[1]</a>
+</td>
+<td title="0.25.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:READBACK_I">IO1:READBACK_I</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.31.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:TMUX">IO1:TMUX[0]</a>
+</td>
+<td title="0.32.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:VREF">IO1:VREF</a>
+</td>
+<td title="0.33.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:IBUF">IO1:IBUF[0]</a>
+</td>
+<td title="0.34.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:IBUF">IO1:IBUF[1]</a>
+</td>
+<td>-</td>
+<td title="0.36.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:OMUX">IO1:OMUX[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.40.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</a>
+</td>
+<td title="0.41.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:NDRIVE">~IO1:NDRIVE[2]</a>
+</td>
+<td title="0.42.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:PDRIVE">IO1:PDRIVE[2]</a>
+</td>
+<td title="0.43.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.44.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:PDRIVE">~IO1:PDRIVE[3]</a>
+</td>
+<td>-</td>
+<td title="0.46.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:NDRIVE">IO1:NDRIVE[3]</a>
+</td>
+<td title="0.47.17">
+<a href="#tile-virtex-IOB.T.VE-IO1:NDRIVE">~IO1:NDRIVE[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td title="0.0.16">
+<a href="#tile-virtex-IOB.T.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[1]</a>
+</td>
+<td title="0.1.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:NDRIVE">IO2:NDRIVE[3]</a>
+</td>
+<td title="0.2.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:PDRIVE">IO2:PDRIVE[2]</a>
+</td>
+<td title="0.3.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:SLEW">IO2:SLEW[1]</a>
+</td>
+<td title="0.4.16">
+<a href="#tile-virtex-IOB.T.VE-IO1:PULL">IO1:PULL[0]</a>
+</td>
+<td title="0.5.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</a>
+</td>
+<td title="0.6.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[2]</a>
+</td>
+<td title="0.7.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:PDRIVE">~IO2:PDRIVE[0]</a>
+</td>
+<td title="0.8.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.9.16">
+<a href="#tile-virtex-IOB.T.VE-IO1:NDRIVE">~IO1:NDRIVE[0]</a>
+</td>
+<td title="0.10.16">
+<a href="#tile-virtex-IOB.T.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC[0]</a>
+</td>
+<td title="0.11.16">
+<a href="#tile-virtex-IOB.T.VE-IO1:SLEW">IO1:SLEW[4]</a>
+</td>
+<td title="0.12.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:PULL">IO2:PULL[2]</a>
+</td>
+<td title="0.13.16">
+<a href="#tile-virtex-IOB.T.VE-IO1:SLEW">IO1:SLEW[0]</a>
+</td>
+<td title="0.14.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:PULL">IO2:PULL[0]</a>
+</td>
+<td title="0.15.16">
+<a href="#tile-virtex-IOB.T.VE-IO1:PDRIVE">~IO1:PDRIVE[0]</a>
+</td>
+<td title="0.16.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:SLEW">IO2:SLEW[0]</a>
+</td>
+<td title="0.17.16">
+<a href="#tile-virtex-IOB.T.VE-IO2:SLEW">IO2:SLEW[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:IBUF">IO1:IBUF</th>
+<th>0.34.17</th>
+<th>0.33.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:IBUF">IO2:IBUF</th>
+<th>0.12.17</th>
+<th>0.14.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>CMOS</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>VREF</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>DIFF</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:IOSTD_MISC">IO1:IOSTD_MISC</th>
+<th>0.40.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:READBACK_I">IO1:READBACK_I</th>
+<th>0.25.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:VREF">IO1:VREF</th>
+<th>0.32.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:IOSTD_MISC">IO2:IOSTD_MISC</th>
+<th>0.5.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:READBACK_I">IO2:READBACK_I</th>
+<th>0.21.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:VREF">IO2:VREF</th>
+<th>0.17.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:NDRIVE">IO1:NDRIVE</th>
+<th>0.47.17</th>
+<th>0.46.17</th>
+<th>0.41.17</th>
+<th>0.22.17</th>
+<th>0.9.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:NDRIVE">IO2:NDRIVE</th>
+<th>0.0.17</th>
+<th>0.1.16</th>
+<th>0.1.17</th>
+<th>0.2.17</th>
+<th>0.13.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[4]</td>
+<td>[3]</td>
+<td>~[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:OMUX">IO1:OMUX</th>
+<th>0.36.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:OMUX">IO2:OMUX</th>
+<th>0.4.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>O</td>
+<td>0</td>
+</tr>
+<tr><td>OFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:OUTPUT_MISC">IO1:OUTPUT_MISC</th>
+<th>0.43.17</th>
+<th>0.0.16</th>
+<th>0.10.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:OUTPUT_MISC">IO2:OUTPUT_MISC</th>
+<th>0.6.16</th>
+<th>0.8.17</th>
+<th>0.8.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:PDRIVE">IO1:PDRIVE</th>
+<th>0.44.17</th>
+<th>0.42.17</th>
+<th>0.24.17</th>
+<th>0.15.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:PDRIVE">IO2:PDRIVE</th>
+<th>0.3.17</th>
+<th>0.2.16</th>
+<th>0.9.17</th>
+<th>0.7.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+mixed inversion
+</td>
+<td>~[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>~[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:PULL">IO1:PULL</th>
+<th>0.10.17</th>
+<th>0.18.17</th>
+<th>0.4.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:PULL">IO2:PULL</th>
+<th>0.12.16</th>
+<th>0.15.17</th>
+<th>0.14.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>PULLDOWN</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>PULLUP</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>KEEPER</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:SLEW">IO1:SLEW</th>
+<th>0.11.16</th>
+<th>0.23.17</th>
+<th>0.16.17</th>
+<th>0.19.17</th>
+<th>0.13.16</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:SLEW">IO2:SLEW</th>
+<th>0.17.16</th>
+<th>0.7.17</th>
+<th>0.5.17</th>
+<th>0.3.16</th>
+<th>0.16.16</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex-IOB.T.VE-IO1:TMUX">IO1:TMUX</th>
+<th>0.31.17</th>
+</tr>
+<tr><th id="tile-virtex-IOB.T.VE-IO2:TMUX">IO2:TMUX</th>
+<th>0.11.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>T</td>
+<td>0</td>
+</tr>
+<tr><td>TFF</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tables"><a class="header" href="#tables">Tables</a></h2>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th rowspan="2">Name</th>
+<th colspan="4">IOSTD:VE:PDRIVE</th>
+<th colspan="5">IOSTD:VE:NDRIVE</th>
+</tr>
+<tr>
+<th>[3]</th>
+<th>[2]</th>
+<th>[1]</th>
+<th>[0]</th>
+<th>[4]</th>
+<th>[3]</th>
+<th>[2]</th>
+<th>[1]</th>
+<th>[0]</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>AGP</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>CTT</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>GTL</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>GTLP</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_I</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HSTL_III</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HSTL_IV</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVCMOS18</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LVCMOS2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVDS</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVPECL</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.12</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.16</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.2</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.24</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.4</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.6</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.8</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>PCI33_3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>PCI66_3</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>PCIX66_3</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL2_I</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>SSTL2_II</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL3_I</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>SSTL3_II</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th rowspan="2">Name</th>
+<th colspan="5">IOSTD:VE:SLEW</th>
+</tr>
+<tr>
+<th>[4]</th>
+<th>[3]</th>
+<th>[2]</th>
+<th>[1]</th>
+<th>[0]</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>AGP.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>AGP.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>CTT.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>CTT.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>GTL.FAST</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>GTL.SLOW</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>GTLP.FAST</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>GTLP.SLOW</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>HSTL_I.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_I.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_III.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_III.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_IV.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_IV.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVCMOS18.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVCMOS18.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVCMOS2.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVCMOS2.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVDS.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LVDS.SLOW</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LVPECL.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LVPECL.SLOW</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.12.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.12.SLOW</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.16.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.16.SLOW</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.2.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.2.SLOW</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.24.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.24.SLOW</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.4.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.4.SLOW</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.6.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.6.SLOW</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVTTL.8.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL.8.SLOW</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCI33_3.FAST</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCI33_3.SLOW</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCI66_3.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCI66_3.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCIX66_3.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCIX66_3.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>SSTL2_I.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL2_I.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL2_II.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL2_II.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL3_I.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL3_I.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL3_II.FAST</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>SSTL3_II.SLOW</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th rowspan="2">Name</th>
+<th colspan="1">IOSTD:VE:IOSTD_MISC</th>
+<th colspan="3">IOSTD:VE:OUTPUT_MISC</th>
+</tr>
+<tr>
+<th>[0]</th>
+<th>[2]</th>
+<th>[1]</th>
+<th>[0]</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>AGP</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>CTT</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>GTL</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>GTLP</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>HSTL_I</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_III</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>HSTL_IV</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>LVCMOS18</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVCMOS2</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVDS</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>LVPECL</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>LVTTL</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>NONE</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCI33_3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCI66_3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>PCIX66_3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>SSTL2_I</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>SSTL2_II</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>SSTL3_I</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>SSTL3_II</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../virtex/io/iob-v.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../virtex/dll.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../virtex/io/iob-v.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../virtex/dll.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

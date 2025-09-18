@@ -1,0 +1,453 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Block RAM - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="block-ram"><a class="header" href="#block-ram">Block RAM</a></h1>
+<h2 id="tile-ebr"><a class="header" href="#tile-ebr">Tile EBR</a></h2>
+<p>Cells: 2</p>
+<h3 id="bel-ebr0"><a class="header" href="#bel-ebr0">Bel EBR0</a></h3>
+<div class="table-wrapper"><table>
+<caption>xp EBR bel EBR0</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>ADA0</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+<tr><td>ADA1</td><td>input</td><td>TCELL0:IMUX_A6</td></tr>
+<tr><td>ADA10</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+<tr><td>ADA11</td><td>input</td><td>TCELL1:IMUX_B1</td></tr>
+<tr><td>ADA12</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+<tr><td>ADA2</td><td>input</td><td>TCELL1:IMUX_A6</td></tr>
+<tr><td>ADA3</td><td>input</td><td>TCELL1:IMUX_D7</td></tr>
+<tr><td>ADA4</td><td>input</td><td>TCELL1:IMUX_C7</td></tr>
+<tr><td>ADA5</td><td>input</td><td>TCELL1:IMUX_B7</td></tr>
+<tr><td>ADA6</td><td>input</td><td>TCELL1:IMUX_A7</td></tr>
+<tr><td>ADA7</td><td>input</td><td>TCELL1:IMUX_D6</td></tr>
+<tr><td>ADA8</td><td>input</td><td>TCELL1:IMUX_C6</td></tr>
+<tr><td>ADA9</td><td>input</td><td>TCELL1:IMUX_A1</td></tr>
+<tr><td>ADB0</td><td>input</td><td>TCELL0:IMUX_D3</td></tr>
+<tr><td>ADB1</td><td>input</td><td>TCELL0:IMUX_C2</td></tr>
+<tr><td>ADB10</td><td>input</td><td>TCELL0:IMUX_B6</td></tr>
+<tr><td>ADB11</td><td>input</td><td>TCELL0:IMUX_B4</td></tr>
+<tr><td>ADB12</td><td>input</td><td>TCELL0:IMUX_A4</td></tr>
+<tr><td>ADB2</td><td>input</td><td>TCELL1:IMUX_C3</td></tr>
+<tr><td>ADB3</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+<tr><td>ADB4</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+<tr><td>ADB5</td><td>input</td><td>TCELL1:IMUX_D3</td></tr>
+<tr><td>ADB6</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+<tr><td>ADB7</td><td>input</td><td>TCELL1:IMUX_B3</td></tr>
+<tr><td>ADB8</td><td>input</td><td>TCELL1:IMUX_A3</td></tr>
+<tr><td>ADB9</td><td>input</td><td>TCELL0:IMUX_C7</td></tr>
+<tr><td>CEA</td><td>input</td><td>TCELL1:IMUX_CE1</td></tr>
+<tr><td>CEB</td><td>input</td><td>TCELL0:IMUX_CE1</td></tr>
+<tr><td>CLKA</td><td>input</td><td>TCELL1:IMUX_CLK1</td></tr>
+<tr><td>CLKB</td><td>input</td><td>TCELL1:IMUX_CLK0</td></tr>
+<tr><td>CSA0</td><td>input</td><td>TCELL1:IMUX_M2</td></tr>
+<tr><td>CSA1</td><td>input</td><td>TCELL0:IMUX_M4</td></tr>
+<tr><td>CSA2</td><td>input</td><td>TCELL0:IMUX_M6</td></tr>
+<tr><td>CSB0</td><td>input</td><td>TCELL1:IMUX_M6</td></tr>
+<tr><td>CSB1</td><td>input</td><td>TCELL1:IMUX_M4</td></tr>
+<tr><td>CSB2</td><td>input</td><td>TCELL0:IMUX_M2</td></tr>
+<tr><td>DIA0</td><td>input</td><td>TCELL1:IMUX_B6</td></tr>
+<tr><td>DIA1</td><td>input</td><td>TCELL1:IMUX_D5</td></tr>
+<tr><td>DIA10</td><td>input</td><td>TCELL1:IMUX_D4</td></tr>
+<tr><td>DIA11</td><td>input</td><td>TCELL1:IMUX_B4</td></tr>
+<tr><td>DIA12</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+<tr><td>DIA13</td><td>input</td><td>TCELL0:IMUX_C5</td></tr>
+<tr><td>DIA14</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+<tr><td>DIA15</td><td>input</td><td>TCELL0:IMUX_D4</td></tr>
+<tr><td>DIA16</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+<tr><td>DIA17</td><td>input</td><td>TCELL0:IMUX_C4</td></tr>
+<tr><td>DIA2</td><td>input</td><td>TCELL1:IMUX_D2</td></tr>
+<tr><td>DIA3</td><td>input</td><td>TCELL1:IMUX_C2</td></tr>
+<tr><td>DIA4</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+<tr><td>DIA5</td><td>input</td><td>TCELL0:IMUX_B7</td></tr>
+<tr><td>DIA6</td><td>input</td><td>TCELL0:IMUX_A7</td></tr>
+<tr><td>DIA7</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+<tr><td>DIA8</td><td>input</td><td>TCELL0:IMUX_C6</td></tr>
+<tr><td>DIA9</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+<tr><td>DIB0</td><td>input</td><td>TCELL0:IMUX_C3</td></tr>
+<tr><td>DIB1</td><td>input</td><td>TCELL0:IMUX_B3</td></tr>
+<tr><td>DIB10</td><td>input</td><td>TCELL1:IMUX_B2</td></tr>
+<tr><td>DIB11</td><td>input</td><td>TCELL1:IMUX_D1</td></tr>
+<tr><td>DIB12</td><td>input</td><td>TCELL1:IMUX_C1</td></tr>
+<tr><td>DIB13</td><td>input</td><td>TCELL0:IMUX_D1</td></tr>
+<tr><td>DIB14</td><td>input</td><td>TCELL0:IMUX_C1</td></tr>
+<tr><td>DIB15</td><td>input</td><td>TCELL0:IMUX_B1</td></tr>
+<tr><td>DIB16</td><td>input</td><td>TCELL0:IMUX_A1</td></tr>
+<tr><td>DIB17</td><td>input</td><td>TCELL0:IMUX_D0</td></tr>
+<tr><td>DIB2</td><td>input</td><td>TCELL0:IMUX_A3</td></tr>
+<tr><td>DIB3</td><td>input</td><td>TCELL0:IMUX_D2</td></tr>
+<tr><td>DIB4</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+<tr><td>DIB5</td><td>input</td><td>TCELL0:IMUX_A2</td></tr>
+<tr><td>DIB6</td><td>input</td><td>TCELL0:IMUX_C0</td></tr>
+<tr><td>DIB7</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+<tr><td>DIB8</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+<tr><td>DIB9</td><td>input</td><td>TCELL1:IMUX_A2</td></tr>
+<tr><td>DOA0</td><td>output</td><td>TCELL1:OUT_Q4</td></tr>
+<tr><td>DOA1</td><td>output</td><td>TCELL1:OUT_F4</td></tr>
+<tr><td>DOA10</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+<tr><td>DOA11</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+<tr><td>DOA12</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+<tr><td>DOA13</td><td>output</td><td>TCELL0:OUT_Q7</td></tr>
+<tr><td>DOA14</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+<tr><td>DOA15</td><td>output</td><td>TCELL0:OUT_Q6</td></tr>
+<tr><td>DOA16</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+<tr><td>DOA17</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+<tr><td>DOA2</td><td>output</td><td>TCELL1:OUT_F5</td></tr>
+<tr><td>DOA3</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+<tr><td>DOA4</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+<tr><td>DOA5</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+<tr><td>DOA6</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+<tr><td>DOA7</td><td>output</td><td>TCELL0:OUT_OFX3</td></tr>
+<tr><td>DOA8</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+<tr><td>DOA9</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+<tr><td>DOB0</td><td>output</td><td>TCELL1:OUT_Q1</td></tr>
+<tr><td>DOB1</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+<tr><td>DOB10</td><td>output</td><td>TCELL1:OUT_Q3</td></tr>
+<tr><td>DOB11</td><td>output</td><td>TCELL1:OUT_Q2</td></tr>
+<tr><td>DOB12</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+<tr><td>DOB13</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+<tr><td>DOB14</td><td>output</td><td>TCELL0:OUT_OFX2</td></tr>
+<tr><td>DOB15</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+<tr><td>DOB16</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+<tr><td>DOB17</td><td>output</td><td>TCELL0:OUT_OFX1</td></tr>
+<tr><td>DOB2</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+<tr><td>DOB3</td><td>output</td><td>TCELL1:OUT_Q0</td></tr>
+<tr><td>DOB4</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+<tr><td>DOB5</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+<tr><td>DOB6</td><td>output</td><td>TCELL0:OUT_OFX0</td></tr>
+<tr><td>DOB7</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+<tr><td>DOB8</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+<tr><td>DOB9</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+<tr><td>MORCLKA</td><td>input</td><td>TCELL0:IMUX_CLK1</td></tr>
+<tr><td>MORCLKB</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+<tr><td>RSTA</td><td>input</td><td>TCELL1:IMUX_LSR3</td></tr>
+<tr><td>RSTB</td><td>input</td><td>TCELL0:IMUX_LSR3</td></tr>
+<tr><td>WEA</td><td>input</td><td>TCELL1:IMUX_M0</td></tr>
+<tr><td>WEB</td><td>input</td><td>TCELL0:IMUX_M0</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>xp EBR bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX_A0</td><td>EBR0.DIB8</td></tr>
+<tr><td>TCELL0:IMUX_A1</td><td>EBR0.DIB16</td></tr>
+<tr><td>TCELL0:IMUX_A2</td><td>EBR0.DIB5</td></tr>
+<tr><td>TCELL0:IMUX_A3</td><td>EBR0.DIB2</td></tr>
+<tr><td>TCELL0:IMUX_A4</td><td>EBR0.ADB12</td></tr>
+<tr><td>TCELL0:IMUX_A5</td><td>EBR0.DIA14</td></tr>
+<tr><td>TCELL0:IMUX_A6</td><td>EBR0.ADA1</td></tr>
+<tr><td>TCELL0:IMUX_A7</td><td>EBR0.DIA6</td></tr>
+<tr><td>TCELL0:IMUX_B0</td><td>EBR0.DIB7</td></tr>
+<tr><td>TCELL0:IMUX_B1</td><td>EBR0.DIB15</td></tr>
+<tr><td>TCELL0:IMUX_B2</td><td>EBR0.DIB4</td></tr>
+<tr><td>TCELL0:IMUX_B3</td><td>EBR0.DIB1</td></tr>
+<tr><td>TCELL0:IMUX_B4</td><td>EBR0.ADB11</td></tr>
+<tr><td>TCELL0:IMUX_B5</td><td>EBR0.DIA16</td></tr>
+<tr><td>TCELL0:IMUX_B6</td><td>EBR0.ADB10</td></tr>
+<tr><td>TCELL0:IMUX_B7</td><td>EBR0.DIA5</td></tr>
+<tr><td>TCELL0:IMUX_C0</td><td>EBR0.DIB6</td></tr>
+<tr><td>TCELL0:IMUX_C1</td><td>EBR0.DIB14</td></tr>
+<tr><td>TCELL0:IMUX_C2</td><td>EBR0.ADB1</td></tr>
+<tr><td>TCELL0:IMUX_C3</td><td>EBR0.DIB0</td></tr>
+<tr><td>TCELL0:IMUX_C4</td><td>EBR0.DIA17</td></tr>
+<tr><td>TCELL0:IMUX_C5</td><td>EBR0.DIA13</td></tr>
+<tr><td>TCELL0:IMUX_C6</td><td>EBR0.DIA8</td></tr>
+<tr><td>TCELL0:IMUX_C7</td><td>EBR0.ADB9</td></tr>
+<tr><td>TCELL0:IMUX_D0</td><td>EBR0.DIB17</td></tr>
+<tr><td>TCELL0:IMUX_D1</td><td>EBR0.DIB13</td></tr>
+<tr><td>TCELL0:IMUX_D2</td><td>EBR0.DIB3</td></tr>
+<tr><td>TCELL0:IMUX_D3</td><td>EBR0.ADB0</td></tr>
+<tr><td>TCELL0:IMUX_D4</td><td>EBR0.DIA15</td></tr>
+<tr><td>TCELL0:IMUX_D6</td><td>EBR0.DIA7</td></tr>
+<tr><td>TCELL0:IMUX_D7</td><td>EBR0.ADA0</td></tr>
+<tr><td>TCELL0:IMUX_M0</td><td>EBR0.WEB</td></tr>
+<tr><td>TCELL0:IMUX_M2</td><td>EBR0.CSB2</td></tr>
+<tr><td>TCELL0:IMUX_M4</td><td>EBR0.CSA1</td></tr>
+<tr><td>TCELL0:IMUX_M6</td><td>EBR0.CSA2</td></tr>
+<tr><td>TCELL0:IMUX_CLK0</td><td>EBR0.MORCLKB</td></tr>
+<tr><td>TCELL0:IMUX_CLK1</td><td>EBR0.MORCLKA</td></tr>
+<tr><td>TCELL0:IMUX_LSR3</td><td>EBR0.RSTB</td></tr>
+<tr><td>TCELL0:IMUX_CE1</td><td>EBR0.CEB</td></tr>
+<tr><td>TCELL0:OUT_F0</td><td>EBR0.DOB8</td></tr>
+<tr><td>TCELL0:OUT_F1</td><td>EBR0.DOB5</td></tr>
+<tr><td>TCELL0:OUT_F2</td><td>EBR0.DOB16</td></tr>
+<tr><td>TCELL0:OUT_F3</td><td>EBR0.DOB13</td></tr>
+<tr><td>TCELL0:OUT_F4</td><td>EBR0.DOA6</td></tr>
+<tr><td>TCELL0:OUT_F5</td><td>EBR0.DOA4</td></tr>
+<tr><td>TCELL0:OUT_F6</td><td>EBR0.DOA16</td></tr>
+<tr><td>TCELL0:OUT_F7</td><td>EBR0.DOA14</td></tr>
+<tr><td>TCELL0:OUT_Q0</td><td>EBR0.DOB7</td></tr>
+<tr><td>TCELL0:OUT_Q1</td><td>EBR0.DOB4</td></tr>
+<tr><td>TCELL0:OUT_Q2</td><td>EBR0.DOB15</td></tr>
+<tr><td>TCELL0:OUT_Q3</td><td>EBR0.DOA8</td></tr>
+<tr><td>TCELL0:OUT_Q4</td><td>EBR0.DOA5</td></tr>
+<tr><td>TCELL0:OUT_Q5</td><td>EBR0.DOA17</td></tr>
+<tr><td>TCELL0:OUT_Q6</td><td>EBR0.DOA15</td></tr>
+<tr><td>TCELL0:OUT_Q7</td><td>EBR0.DOA13</td></tr>
+<tr><td>TCELL0:OUT_OFX0</td><td>EBR0.DOB6</td></tr>
+<tr><td>TCELL0:OUT_OFX1</td><td>EBR0.DOB17</td></tr>
+<tr><td>TCELL0:OUT_OFX2</td><td>EBR0.DOB14</td></tr>
+<tr><td>TCELL0:OUT_OFX3</td><td>EBR0.DOA7</td></tr>
+<tr><td>TCELL1:IMUX_A0</td><td>EBR0.DIA4</td></tr>
+<tr><td>TCELL1:IMUX_A1</td><td>EBR0.ADA9</td></tr>
+<tr><td>TCELL1:IMUX_A2</td><td>EBR0.DIB9</td></tr>
+<tr><td>TCELL1:IMUX_A3</td><td>EBR0.ADB8</td></tr>
+<tr><td>TCELL1:IMUX_A4</td><td>EBR0.DIA12</td></tr>
+<tr><td>TCELL1:IMUX_A5</td><td>EBR0.ADB4</td></tr>
+<tr><td>TCELL1:IMUX_A6</td><td>EBR0.ADA2</td></tr>
+<tr><td>TCELL1:IMUX_A7</td><td>EBR0.ADA6</td></tr>
+<tr><td>TCELL1:IMUX_B1</td><td>EBR0.ADA11</td></tr>
+<tr><td>TCELL1:IMUX_B2</td><td>EBR0.DIB10</td></tr>
+<tr><td>TCELL1:IMUX_B3</td><td>EBR0.ADB7</td></tr>
+<tr><td>TCELL1:IMUX_B4</td><td>EBR0.DIA11</td></tr>
+<tr><td>TCELL1:IMUX_B5</td><td>EBR0.ADB3</td></tr>
+<tr><td>TCELL1:IMUX_B6</td><td>EBR0.DIA0</td></tr>
+<tr><td>TCELL1:IMUX_B7</td><td>EBR0.ADA5</td></tr>
+<tr><td>TCELL1:IMUX_C0</td><td>EBR0.ADA12</td></tr>
+<tr><td>TCELL1:IMUX_C1</td><td>EBR0.DIB12</td></tr>
+<tr><td>TCELL1:IMUX_C2</td><td>EBR0.DIA3</td></tr>
+<tr><td>TCELL1:IMUX_C3</td><td>EBR0.ADB2</td></tr>
+<tr><td>TCELL1:IMUX_C4</td><td>EBR0.ADB6</td></tr>
+<tr><td>TCELL1:IMUX_C5</td><td>EBR0.DIA9</td></tr>
+<tr><td>TCELL1:IMUX_C6</td><td>EBR0.ADA8</td></tr>
+<tr><td>TCELL1:IMUX_C7</td><td>EBR0.ADA4</td></tr>
+<tr><td>TCELL1:IMUX_D0</td><td>EBR0.ADA10</td></tr>
+<tr><td>TCELL1:IMUX_D1</td><td>EBR0.DIB11</td></tr>
+<tr><td>TCELL1:IMUX_D2</td><td>EBR0.DIA2</td></tr>
+<tr><td>TCELL1:IMUX_D3</td><td>EBR0.ADB5</td></tr>
+<tr><td>TCELL1:IMUX_D4</td><td>EBR0.DIA10</td></tr>
+<tr><td>TCELL1:IMUX_D5</td><td>EBR0.DIA1</td></tr>
+<tr><td>TCELL1:IMUX_D6</td><td>EBR0.ADA7</td></tr>
+<tr><td>TCELL1:IMUX_D7</td><td>EBR0.ADA3</td></tr>
+<tr><td>TCELL1:IMUX_M0</td><td>EBR0.WEA</td></tr>
+<tr><td>TCELL1:IMUX_M2</td><td>EBR0.CSA0</td></tr>
+<tr><td>TCELL1:IMUX_M4</td><td>EBR0.CSB1</td></tr>
+<tr><td>TCELL1:IMUX_M6</td><td>EBR0.CSB0</td></tr>
+<tr><td>TCELL1:IMUX_CLK0</td><td>EBR0.CLKB</td></tr>
+<tr><td>TCELL1:IMUX_CLK1</td><td>EBR0.CLKA</td></tr>
+<tr><td>TCELL1:IMUX_LSR3</td><td>EBR0.RSTA</td></tr>
+<tr><td>TCELL1:IMUX_CE1</td><td>EBR0.CEA</td></tr>
+<tr><td>TCELL1:OUT_F0</td><td>EBR0.DOB2</td></tr>
+<tr><td>TCELL1:OUT_F1</td><td>EBR0.DOB1</td></tr>
+<tr><td>TCELL1:OUT_F2</td><td>EBR0.DOB12</td></tr>
+<tr><td>TCELL1:OUT_F3</td><td>EBR0.DOB9</td></tr>
+<tr><td>TCELL1:OUT_F4</td><td>EBR0.DOA1</td></tr>
+<tr><td>TCELL1:OUT_F5</td><td>EBR0.DOA2</td></tr>
+<tr><td>TCELL1:OUT_F6</td><td>EBR0.DOA12</td></tr>
+<tr><td>TCELL1:OUT_F7</td><td>EBR0.DOA10</td></tr>
+<tr><td>TCELL1:OUT_Q0</td><td>EBR0.DOB3</td></tr>
+<tr><td>TCELL1:OUT_Q1</td><td>EBR0.DOB0</td></tr>
+<tr><td>TCELL1:OUT_Q2</td><td>EBR0.DOB11</td></tr>
+<tr><td>TCELL1:OUT_Q3</td><td>EBR0.DOB10</td></tr>
+<tr><td>TCELL1:OUT_Q4</td><td>EBR0.DOA0</td></tr>
+<tr><td>TCELL1:OUT_Q5</td><td>EBR0.DOA3</td></tr>
+<tr><td>TCELL1:OUT_Q6</td><td>EBR0.DOA11</td></tr>
+<tr><td>TCELL1:OUT_Q7</td><td>EBR0.DOA9</td></tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../xp/plc.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../xp/clock.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../xp/plc.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../xp/clock.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

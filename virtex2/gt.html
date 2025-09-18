@@ -1,0 +1,7643 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Multi-gigabit transceivers (Virtex 2 Pro) - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="multi-gigabit-transceivers--virtex-2-pro"><a class="header" href="#multi-gigabit-transceivers--virtex-2-pro">Multi-gigabit transceivers — Virtex 2 Pro</a></h1>
+<p>TODO: document</p>
+<h2 id="tile-gigabitb"><a class="header" href="#tile-gigabitb">Tile GIGABIT.B</a></h2>
+<p>Cells: 5</p>
+<h3 id="bel-gt"><a class="header" href="#bel-gt">Bel GT</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bel GT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CHBONDDONE</td><td>output</td><td>TCELL0:OUT.FAN4.TMIN</td></tr>
+<tr><td>CHBONDI0</td><td>input</td><td>TCELL0:IMUX.G0.DATA0</td></tr>
+<tr><td>CHBONDI1</td><td>input</td><td>TCELL0:IMUX.G1.DATA0</td></tr>
+<tr><td>CHBONDI2</td><td>input</td><td>TCELL0:IMUX.G2.DATA0</td></tr>
+<tr><td>CHBONDI3</td><td>input</td><td>TCELL0:IMUX.G3.DATA0</td></tr>
+<tr><td>CHBONDO0</td><td>output</td><td>TCELL0:OUT.FAN0.TMIN</td></tr>
+<tr><td>CHBONDO1</td><td>output</td><td>TCELL0:OUT.FAN1.TMIN</td></tr>
+<tr><td>CHBONDO2</td><td>output</td><td>TCELL0:OUT.FAN2.TMIN</td></tr>
+<tr><td>CHBONDO3</td><td>output</td><td>TCELL0:OUT.FAN3.TMIN</td></tr>
+<tr><td>CONFIGENABLE</td><td>input</td><td>TCELL0:IMUX.G3.DATA2</td></tr>
+<tr><td>CONFIGIN</td><td>input</td><td>TCELL0:IMUX.G2.DATA2</td></tr>
+<tr><td>CONFIGOUT</td><td>output</td><td>TCELL0:OUT.SEC12.TMIN</td></tr>
+<tr><td>ENCHANSYNC</td><td>input</td><td>TCELL0:IMUX.G0.DATA1</td></tr>
+<tr><td>ENMCOMMAALIGN</td><td>input</td><td>TCELL1:IMUX.G1.DATA7</td></tr>
+<tr><td>ENPCOMMAALIGN</td><td>input</td><td>TCELL1:IMUX.G1.DATA4</td></tr>
+<tr><td>LOOPBACK0</td><td>input</td><td>TCELL0:IMUX.G0.DATA3</td></tr>
+<tr><td>LOOPBACK1</td><td>input</td><td>TCELL0:IMUX.G1.DATA3</td></tr>
+<tr><td>POWERDOWN</td><td>input</td><td>TCELL0:IMUX.G0.DATA2</td></tr>
+<tr><td>REFCLK</td><td>input</td><td>TCELL0:IMUX.DCMCLK2</td></tr>
+<tr><td>REFCLK2</td><td>input</td><td>TCELL0:IMUX.DCMCLK3</td></tr>
+<tr><td>REFCLKSEL</td><td>input</td><td>TCELL0:IMUX.G1.DATA1</td></tr>
+<tr><td>RXBUFSTATUS0</td><td>output</td><td>TCELL0:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXBUFSTATUS1</td><td>output</td><td>TCELL0:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA0</td><td>output</td><td>TCELL1:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA1</td><td>output</td><td>TCELL2:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA2</td><td>output</td><td>TCELL3:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA3</td><td>output</td><td>TCELL4:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISK0</td><td>output</td><td>TCELL1:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHARISK1</td><td>output</td><td>TCELL2:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHARISK2</td><td>output</td><td>TCELL3:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHARISK3</td><td>output</td><td>TCELL4:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHECKINGCRC</td><td>output</td><td>TCELL4:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXCLKCORCNT0</td><td>output</td><td>TCELL0:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCLKCORCNT1</td><td>output</td><td>TCELL0:OUT.SEC10.TMIN</td></tr>
+<tr><td>RXCLKCORCNT2</td><td>output</td><td>TCELL0:OUT.SEC9.TMIN</td></tr>
+<tr><td>RXCOMMADET</td><td>output</td><td>TCELL0:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXCRCERR</td><td>output</td><td>TCELL3:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXDATA0</td><td>output</td><td>TCELL1:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA1</td><td>output</td><td>TCELL1:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDATA10</td><td>output</td><td>TCELL2:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA11</td><td>output</td><td>TCELL2:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA12</td><td>output</td><td>TCELL2:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA13</td><td>output</td><td>TCELL2:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA14</td><td>output</td><td>TCELL2:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA15</td><td>output</td><td>TCELL2:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA16</td><td>output</td><td>TCELL3:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA17</td><td>output</td><td>TCELL3:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDATA18</td><td>output</td><td>TCELL3:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA19</td><td>output</td><td>TCELL3:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA2</td><td>output</td><td>TCELL1:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA20</td><td>output</td><td>TCELL3:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA21</td><td>output</td><td>TCELL3:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA22</td><td>output</td><td>TCELL3:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA23</td><td>output</td><td>TCELL3:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA24</td><td>output</td><td>TCELL4:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA25</td><td>output</td><td>TCELL4:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDATA26</td><td>output</td><td>TCELL4:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA27</td><td>output</td><td>TCELL4:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA28</td><td>output</td><td>TCELL4:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA29</td><td>output</td><td>TCELL4:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA3</td><td>output</td><td>TCELL1:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA30</td><td>output</td><td>TCELL4:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA31</td><td>output</td><td>TCELL4:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA4</td><td>output</td><td>TCELL1:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA5</td><td>output</td><td>TCELL1:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA6</td><td>output</td><td>TCELL1:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA7</td><td>output</td><td>TCELL1:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA8</td><td>output</td><td>TCELL2:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA9</td><td>output</td><td>TCELL2:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDISPERR0</td><td>output</td><td>TCELL1:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXDISPERR1</td><td>output</td><td>TCELL2:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXDISPERR2</td><td>output</td><td>TCELL3:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXDISPERR3</td><td>output</td><td>TCELL4:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXLOSSOFSYNC0</td><td>output</td><td>TCELL1:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXLOSSOFSYNC1</td><td>output</td><td>TCELL2:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXNOTINTABLE0</td><td>output</td><td>TCELL1:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXNOTINTABLE1</td><td>output</td><td>TCELL2:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXNOTINTABLE2</td><td>output</td><td>TCELL3:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXNOTINTABLE3</td><td>output</td><td>TCELL4:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXPOLARITY</td><td>input</td><td>TCELL0:IMUX.G1.DATA2</td></tr>
+<tr><td>RXREALIGN</td><td>output</td><td>TCELL0:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXRECCLK</td><td>output</td><td>TCELL0:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXRESET</td><td>input</td><td>TCELL0:IMUX.SR0</td></tr>
+<tr><td>RXRUNDISP0</td><td>output</td><td>TCELL1:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXRUNDISP1</td><td>output</td><td>TCELL2:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXRUNDISP2</td><td>output</td><td>TCELL3:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXRUNDISP3</td><td>output</td><td>TCELL4:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXUSRCLK</td><td>input</td><td>TCELL0:IMUX.DCMCLK0</td></tr>
+<tr><td>RXUSRCLK2</td><td>input</td><td>TCELL0:IMUX.DCMCLK1</td></tr>
+<tr><td>TXBUFERR</td><td>output</td><td>TCELL0:OUT.FAN7.TMIN</td></tr>
+<tr><td>TXBYPASS8B10B0</td><td>input</td><td>TCELL1:IMUX.G0.DATA2</td></tr>
+<tr><td>TXBYPASS8B10B1</td><td>input</td><td>TCELL2:IMUX.G0.DATA2</td></tr>
+<tr><td>TXBYPASS8B10B2</td><td>input</td><td>TCELL3:IMUX.G0.DATA2</td></tr>
+<tr><td>TXBYPASS8B10B3</td><td>input</td><td>TCELL4:IMUX.G0.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE0</td><td>input</td><td>TCELL1:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE1</td><td>input</td><td>TCELL2:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE2</td><td>input</td><td>TCELL3:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE3</td><td>input</td><td>TCELL4:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL0</td><td>input</td><td>TCELL1:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL1</td><td>input</td><td>TCELL2:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL2</td><td>input</td><td>TCELL3:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL3</td><td>input</td><td>TCELL4:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARISK0</td><td>input</td><td>TCELL1:IMUX.G1.DATA2</td></tr>
+<tr><td>TXCHARISK1</td><td>input</td><td>TCELL2:IMUX.G1.DATA2</td></tr>
+<tr><td>TXCHARISK2</td><td>input</td><td>TCELL3:IMUX.G1.DATA2</td></tr>
+<tr><td>TXCHARISK3</td><td>input</td><td>TCELL4:IMUX.G1.DATA2</td></tr>
+<tr><td>TXDATA0</td><td>input</td><td>TCELL1:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA1</td><td>input</td><td>TCELL1:IMUX.G1.DATA0</td></tr>
+<tr><td>TXDATA10</td><td>input</td><td>TCELL2:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA11</td><td>input</td><td>TCELL2:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA12</td><td>input</td><td>TCELL2:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA13</td><td>input</td><td>TCELL2:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA14</td><td>input</td><td>TCELL2:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA15</td><td>input</td><td>TCELL2:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA16</td><td>input</td><td>TCELL3:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA17</td><td>input</td><td>TCELL3:IMUX.G1.DATA0</td></tr>
+<tr><td>TXDATA18</td><td>input</td><td>TCELL3:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA19</td><td>input</td><td>TCELL3:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA2</td><td>input</td><td>TCELL1:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA20</td><td>input</td><td>TCELL3:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA21</td><td>input</td><td>TCELL3:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA22</td><td>input</td><td>TCELL3:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA23</td><td>input</td><td>TCELL3:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA24</td><td>input</td><td>TCELL4:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA25</td><td>input</td><td>TCELL4:IMUX.G1.DATA0</td></tr>
+<tr><td>TXDATA26</td><td>input</td><td>TCELL4:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA27</td><td>input</td><td>TCELL4:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA28</td><td>input</td><td>TCELL4:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA29</td><td>input</td><td>TCELL4:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA3</td><td>input</td><td>TCELL1:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA30</td><td>input</td><td>TCELL4:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA31</td><td>input</td><td>TCELL4:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA4</td><td>input</td><td>TCELL1:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA5</td><td>input</td><td>TCELL1:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA6</td><td>input</td><td>TCELL1:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA7</td><td>input</td><td>TCELL1:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA8</td><td>input</td><td>TCELL2:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA9</td><td>input</td><td>TCELL2:IMUX.G1.DATA0</td></tr>
+<tr><td>TXFORCECRCERR</td><td>input</td><td>TCELL4:IMUX.G3.DATA3</td></tr>
+<tr><td>TXINHIBIT</td><td>input</td><td>TCELL0:IMUX.G3.DATA3</td></tr>
+<tr><td>TXKERR0</td><td>output</td><td>TCELL1:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXKERR1</td><td>output</td><td>TCELL2:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXKERR2</td><td>output</td><td>TCELL3:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXKERR3</td><td>output</td><td>TCELL4:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXPOLARITY</td><td>input</td><td>TCELL0:IMUX.G2.DATA3</td></tr>
+<tr><td>TXRESET</td><td>input</td><td>TCELL1:IMUX.SR0</td></tr>
+<tr><td>TXRUNDISP0</td><td>output</td><td>TCELL1:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXRUNDISP1</td><td>output</td><td>TCELL2:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXRUNDISP2</td><td>output</td><td>TCELL3:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXRUNDISP3</td><td>output</td><td>TCELL4:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXUSRCLK</td><td>input</td><td>TCELL1:IMUX.CLK0</td></tr>
+<tr><td>TXUSRCLK2</td><td>input</td><td>TCELL1:IMUX.CLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-ipad_rxp"><a class="header" href="#bel-ipad_rxp">Bel IPAD_RXP</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bel IPAD_RXP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-ipad_rxn"><a class="header" href="#bel-ipad_rxn">Bel IPAD_RXN</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bel IPAD_RXN</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-opad_txp"><a class="header" href="#bel-opad_txp">Bel OPAD_TXP</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bel OPAD_TXP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-opad_txn"><a class="header" href="#bel-opad_txn">Bel OPAD_TXN</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bel OPAD_TXN</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.DCMCLK0</td><td>GT.RXUSRCLK</td></tr>
+<tr><td>TCELL0:IMUX.DCMCLK1</td><td>GT.RXUSRCLK2</td></tr>
+<tr><td>TCELL0:IMUX.DCMCLK2</td><td>GT.REFCLK</td></tr>
+<tr><td>TCELL0:IMUX.DCMCLK3</td><td>GT.REFCLK2</td></tr>
+<tr><td>TCELL0:IMUX.SR0</td><td>GT.RXRESET</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA0</td><td>GT.CHBONDI0</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA1</td><td>GT.ENCHANSYNC</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA2</td><td>GT.POWERDOWN</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA3</td><td>GT.LOOPBACK0</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA0</td><td>GT.CHBONDI1</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA1</td><td>GT.REFCLKSEL</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA2</td><td>GT.RXPOLARITY</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA3</td><td>GT.LOOPBACK1</td></tr>
+<tr><td>TCELL0:IMUX.G2.DATA0</td><td>GT.CHBONDI2</td></tr>
+<tr><td>TCELL0:IMUX.G2.DATA2</td><td>GT.CONFIGIN</td></tr>
+<tr><td>TCELL0:IMUX.G2.DATA3</td><td>GT.TXPOLARITY</td></tr>
+<tr><td>TCELL0:IMUX.G3.DATA0</td><td>GT.CHBONDI3</td></tr>
+<tr><td>TCELL0:IMUX.G3.DATA2</td><td>GT.CONFIGENABLE</td></tr>
+<tr><td>TCELL0:IMUX.G3.DATA3</td><td>GT.TXINHIBIT</td></tr>
+<tr><td>TCELL0:OUT.FAN0.TMIN</td><td>GT.CHBONDO0</td></tr>
+<tr><td>TCELL0:OUT.FAN1.TMIN</td><td>GT.CHBONDO1</td></tr>
+<tr><td>TCELL0:OUT.FAN2.TMIN</td><td>GT.CHBONDO2</td></tr>
+<tr><td>TCELL0:OUT.FAN3.TMIN</td><td>GT.CHBONDO3</td></tr>
+<tr><td>TCELL0:OUT.FAN4.TMIN</td><td>GT.CHBONDDONE</td></tr>
+<tr><td>TCELL0:OUT.FAN5.TMIN</td><td>GT.RXCOMMADET</td></tr>
+<tr><td>TCELL0:OUT.FAN6.TMIN</td><td>GT.RXRECCLK</td></tr>
+<tr><td>TCELL0:OUT.FAN7.TMIN</td><td>GT.TXBUFERR</td></tr>
+<tr><td>TCELL0:OUT.SEC9.TMIN</td><td>GT.RXCLKCORCNT2</td></tr>
+<tr><td>TCELL0:OUT.SEC10.TMIN</td><td>GT.RXCLKCORCNT1</td></tr>
+<tr><td>TCELL0:OUT.SEC11.TMIN</td><td>GT.RXCLKCORCNT0</td></tr>
+<tr><td>TCELL0:OUT.SEC12.TMIN</td><td>GT.CONFIGOUT</td></tr>
+<tr><td>TCELL0:OUT.SEC13.TMIN</td><td>GT.RXREALIGN</td></tr>
+<tr><td>TCELL0:OUT.SEC14.TMIN</td><td>GT.RXBUFSTATUS1</td></tr>
+<tr><td>TCELL0:OUT.SEC15.TMIN</td><td>GT.RXBUFSTATUS0</td></tr>
+<tr><td>TCELL1:IMUX.CLK0</td><td>GT.TXUSRCLK</td></tr>
+<tr><td>TCELL1:IMUX.CLK1</td><td>GT.TXUSRCLK2</td></tr>
+<tr><td>TCELL1:IMUX.SR0</td><td>GT.TXRESET</td></tr>
+<tr><td>TCELL1:IMUX.G0.DATA0</td><td>GT.TXDATA0</td></tr>
+<tr><td>TCELL1:IMUX.G0.DATA1</td><td>GT.TXDATA4</td></tr>
+<tr><td>TCELL1:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B0</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA0</td><td>GT.TXDATA1</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA1</td><td>GT.TXDATA5</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA2</td><td>GT.TXCHARISK0</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA4</td><td>GT.ENPCOMMAALIGN</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA7</td><td>GT.ENMCOMMAALIGN</td></tr>
+<tr><td>TCELL1:IMUX.G2.DATA0</td><td>GT.TXDATA2</td></tr>
+<tr><td>TCELL1:IMUX.G2.DATA1</td><td>GT.TXDATA6</td></tr>
+<tr><td>TCELL1:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE0</td></tr>
+<tr><td>TCELL1:IMUX.G3.DATA0</td><td>GT.TXDATA3</td></tr>
+<tr><td>TCELL1:IMUX.G3.DATA1</td><td>GT.TXDATA7</td></tr>
+<tr><td>TCELL1:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL0</td></tr>
+<tr><td>TCELL1:OUT.FAN0.TMIN</td><td>GT.RXDATA0</td></tr>
+<tr><td>TCELL1:OUT.FAN1.TMIN</td><td>GT.RXDATA1</td></tr>
+<tr><td>TCELL1:OUT.FAN2.TMIN</td><td>GT.RXDATA2</td></tr>
+<tr><td>TCELL1:OUT.FAN3.TMIN</td><td>GT.RXDATA3</td></tr>
+<tr><td>TCELL1:OUT.FAN4.TMIN</td><td>GT.RXDATA4</td></tr>
+<tr><td>TCELL1:OUT.FAN5.TMIN</td><td>GT.RXDATA5</td></tr>
+<tr><td>TCELL1:OUT.FAN6.TMIN</td><td>GT.RXDATA6</td></tr>
+<tr><td>TCELL1:OUT.FAN7.TMIN</td><td>GT.RXDATA7</td></tr>
+<tr><td>TCELL1:OUT.SEC8.TMIN</td><td>GT.RXLOSSOFSYNC0</td></tr>
+<tr><td>TCELL1:OUT.SEC9.TMIN</td><td>GT.TXKERR0</td></tr>
+<tr><td>TCELL1:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP0</td></tr>
+<tr><td>TCELL1:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA0</td></tr>
+<tr><td>TCELL1:OUT.SEC12.TMIN</td><td>GT.RXCHARISK0</td></tr>
+<tr><td>TCELL1:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE0</td></tr>
+<tr><td>TCELL1:OUT.SEC14.TMIN</td><td>GT.RXDISPERR0</td></tr>
+<tr><td>TCELL1:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP0</td></tr>
+<tr><td>TCELL2:IMUX.G0.DATA0</td><td>GT.TXDATA8</td></tr>
+<tr><td>TCELL2:IMUX.G0.DATA1</td><td>GT.TXDATA12</td></tr>
+<tr><td>TCELL2:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B1</td></tr>
+<tr><td>TCELL2:IMUX.G1.DATA0</td><td>GT.TXDATA9</td></tr>
+<tr><td>TCELL2:IMUX.G1.DATA1</td><td>GT.TXDATA13</td></tr>
+<tr><td>TCELL2:IMUX.G1.DATA2</td><td>GT.TXCHARISK1</td></tr>
+<tr><td>TCELL2:IMUX.G2.DATA0</td><td>GT.TXDATA10</td></tr>
+<tr><td>TCELL2:IMUX.G2.DATA1</td><td>GT.TXDATA14</td></tr>
+<tr><td>TCELL2:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE1</td></tr>
+<tr><td>TCELL2:IMUX.G3.DATA0</td><td>GT.TXDATA11</td></tr>
+<tr><td>TCELL2:IMUX.G3.DATA1</td><td>GT.TXDATA15</td></tr>
+<tr><td>TCELL2:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL1</td></tr>
+<tr><td>TCELL2:OUT.FAN0.TMIN</td><td>GT.RXDATA8</td></tr>
+<tr><td>TCELL2:OUT.FAN1.TMIN</td><td>GT.RXDATA9</td></tr>
+<tr><td>TCELL2:OUT.FAN2.TMIN</td><td>GT.RXDATA10</td></tr>
+<tr><td>TCELL2:OUT.FAN3.TMIN</td><td>GT.RXDATA11</td></tr>
+<tr><td>TCELL2:OUT.FAN4.TMIN</td><td>GT.RXDATA12</td></tr>
+<tr><td>TCELL2:OUT.FAN5.TMIN</td><td>GT.RXDATA13</td></tr>
+<tr><td>TCELL2:OUT.FAN6.TMIN</td><td>GT.RXDATA14</td></tr>
+<tr><td>TCELL2:OUT.FAN7.TMIN</td><td>GT.RXDATA15</td></tr>
+<tr><td>TCELL2:OUT.SEC8.TMIN</td><td>GT.RXLOSSOFSYNC1</td></tr>
+<tr><td>TCELL2:OUT.SEC9.TMIN</td><td>GT.TXKERR1</td></tr>
+<tr><td>TCELL2:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP1</td></tr>
+<tr><td>TCELL2:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA1</td></tr>
+<tr><td>TCELL2:OUT.SEC12.TMIN</td><td>GT.RXCHARISK1</td></tr>
+<tr><td>TCELL2:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE1</td></tr>
+<tr><td>TCELL2:OUT.SEC14.TMIN</td><td>GT.RXDISPERR1</td></tr>
+<tr><td>TCELL2:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP1</td></tr>
+<tr><td>TCELL3:IMUX.G0.DATA0</td><td>GT.TXDATA16</td></tr>
+<tr><td>TCELL3:IMUX.G0.DATA1</td><td>GT.TXDATA20</td></tr>
+<tr><td>TCELL3:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B2</td></tr>
+<tr><td>TCELL3:IMUX.G1.DATA0</td><td>GT.TXDATA17</td></tr>
+<tr><td>TCELL3:IMUX.G1.DATA1</td><td>GT.TXDATA21</td></tr>
+<tr><td>TCELL3:IMUX.G1.DATA2</td><td>GT.TXCHARISK2</td></tr>
+<tr><td>TCELL3:IMUX.G2.DATA0</td><td>GT.TXDATA18</td></tr>
+<tr><td>TCELL3:IMUX.G2.DATA1</td><td>GT.TXDATA22</td></tr>
+<tr><td>TCELL3:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE2</td></tr>
+<tr><td>TCELL3:IMUX.G3.DATA0</td><td>GT.TXDATA19</td></tr>
+<tr><td>TCELL3:IMUX.G3.DATA1</td><td>GT.TXDATA23</td></tr>
+<tr><td>TCELL3:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL2</td></tr>
+<tr><td>TCELL3:OUT.FAN0.TMIN</td><td>GT.RXDATA16</td></tr>
+<tr><td>TCELL3:OUT.FAN1.TMIN</td><td>GT.RXDATA17</td></tr>
+<tr><td>TCELL3:OUT.FAN2.TMIN</td><td>GT.RXDATA18</td></tr>
+<tr><td>TCELL3:OUT.FAN3.TMIN</td><td>GT.RXDATA19</td></tr>
+<tr><td>TCELL3:OUT.FAN4.TMIN</td><td>GT.RXDATA20</td></tr>
+<tr><td>TCELL3:OUT.FAN5.TMIN</td><td>GT.RXDATA21</td></tr>
+<tr><td>TCELL3:OUT.FAN6.TMIN</td><td>GT.RXDATA22</td></tr>
+<tr><td>TCELL3:OUT.FAN7.TMIN</td><td>GT.RXDATA23</td></tr>
+<tr><td>TCELL3:OUT.SEC8.TMIN</td><td>GT.RXCRCERR</td></tr>
+<tr><td>TCELL3:OUT.SEC9.TMIN</td><td>GT.TXKERR2</td></tr>
+<tr><td>TCELL3:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP2</td></tr>
+<tr><td>TCELL3:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA2</td></tr>
+<tr><td>TCELL3:OUT.SEC12.TMIN</td><td>GT.RXCHARISK2</td></tr>
+<tr><td>TCELL3:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE2</td></tr>
+<tr><td>TCELL3:OUT.SEC14.TMIN</td><td>GT.RXDISPERR2</td></tr>
+<tr><td>TCELL3:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP2</td></tr>
+<tr><td>TCELL4:IMUX.G0.DATA0</td><td>GT.TXDATA24</td></tr>
+<tr><td>TCELL4:IMUX.G0.DATA1</td><td>GT.TXDATA28</td></tr>
+<tr><td>TCELL4:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B3</td></tr>
+<tr><td>TCELL4:IMUX.G1.DATA0</td><td>GT.TXDATA25</td></tr>
+<tr><td>TCELL4:IMUX.G1.DATA1</td><td>GT.TXDATA29</td></tr>
+<tr><td>TCELL4:IMUX.G1.DATA2</td><td>GT.TXCHARISK3</td></tr>
+<tr><td>TCELL4:IMUX.G2.DATA0</td><td>GT.TXDATA26</td></tr>
+<tr><td>TCELL4:IMUX.G2.DATA1</td><td>GT.TXDATA30</td></tr>
+<tr><td>TCELL4:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE3</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA0</td><td>GT.TXDATA27</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA1</td><td>GT.TXDATA31</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL3</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA3</td><td>GT.TXFORCECRCERR</td></tr>
+<tr><td>TCELL4:OUT.FAN0.TMIN</td><td>GT.RXDATA24</td></tr>
+<tr><td>TCELL4:OUT.FAN1.TMIN</td><td>GT.RXDATA25</td></tr>
+<tr><td>TCELL4:OUT.FAN2.TMIN</td><td>GT.RXDATA26</td></tr>
+<tr><td>TCELL4:OUT.FAN3.TMIN</td><td>GT.RXDATA27</td></tr>
+<tr><td>TCELL4:OUT.FAN4.TMIN</td><td>GT.RXDATA28</td></tr>
+<tr><td>TCELL4:OUT.FAN5.TMIN</td><td>GT.RXDATA29</td></tr>
+<tr><td>TCELL4:OUT.FAN6.TMIN</td><td>GT.RXDATA30</td></tr>
+<tr><td>TCELL4:OUT.FAN7.TMIN</td><td>GT.RXDATA31</td></tr>
+<tr><td>TCELL4:OUT.SEC8.TMIN</td><td>GT.RXCHECKINGCRC</td></tr>
+<tr><td>TCELL4:OUT.SEC9.TMIN</td><td>GT.TXKERR3</td></tr>
+<tr><td>TCELL4:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP3</td></tr>
+<tr><td>TCELL4:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA3</td></tr>
+<tr><td>TCELL4:OUT.SEC12.TMIN</td><td>GT.RXCHARISK3</td></tr>
+<tr><td>TCELL4:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE3</td></tr>
+<tr><td>TCELL4:OUT.SEC14.TMIN</td><td>GT.RXDISPERR3</td></tr>
+<tr><td>TCELL4:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.79">
+<a href="#tile-virtex2-GIGABIT.B-GT:TERMINATION_IMP">GT:TERMINATION_IMP[0]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.78">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL[1]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.77">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL[0]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.76">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_PREEMPHASIS">GT:TX_PREEMPHASIS[0]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.75">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_PREEMPHASIS">GT:TX_PREEMPHASIS[1]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.74">
+<a href="#tile-virtex2-GIGABIT.B-GT:ENABLE">GT:ENABLE</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.73">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL[2]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.45">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[7]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.44">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[6]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.43">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[5]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.42">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[4]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.41">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[3]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.40">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[2]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.39">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[1]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.38">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[0]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.37">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_CRC_USE">GT:TX_CRC_USE</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.36">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_BUFFER_USE">GT:TX_BUFFER_USE</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.35">
+<a href="#tile-virtex2-GIGABIT.B-GT:SERDES_10B">GT:SERDES_10B</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.20">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[7]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.19">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[6]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.18">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[5]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.17">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.16">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[3]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.15">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[2]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.14">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[1]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.13">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[0]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.12">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[7]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.11">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[6]</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.10">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[5]</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.9">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[4]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.8">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[3]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.7">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[2]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.6">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[1]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.5">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[0]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.4">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_FORMAT">GT:CRC_FORMAT[1]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.3">
+<a href="#tile-virtex2-GIGABIT.B-GT:CRC_FORMAT">GT:CRC_FORMAT[0]</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.2">
+<a href="#tile-virtex2-GIGABIT.B-GT:REF_CLK_V_SEL">GT:REF_CLK_V_SEL</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.1">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_DATA_WIDTH">GT:TX_DATA_WIDTH[1]</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="0.3.0">
+<a href="#tile-virtex2-GIGABIT.B-GT:TX_DATA_WIDTH">GT:TX_DATA_WIDTH[0]</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bittile 1</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.79">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.78">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.77">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.76">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.75">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.74">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.73">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.72">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.71">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.70">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.69">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.68">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.67">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.66">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.65">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.64">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.63">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.62">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.61">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.60">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.59">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.58">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.57">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.56">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.55">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.54">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.53">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.52">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.51">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.50">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.49">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.48">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.47">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.46">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.45">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.44">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.43">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.42">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.41">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.40">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.39">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.38">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.37">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.36">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.34">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_DETECT">GT:PCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.32">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[0]</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.31">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[1]</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.30">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[2]</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.29">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[3]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.28">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[4]</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.27">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[5]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.26">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[6]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.25">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[7]</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.24">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[8]</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.23">
+<a href="#tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[9]</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.22">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_DETECT">GT:MCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.20">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[0]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.19">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[1]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.18">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[2]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.17">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[3]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.16">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[4]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.15">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[5]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.14">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[6]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.13">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[7]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.12">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[8]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.11">
+<a href="#tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[9]</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.10">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[0]</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.9">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[1]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.8">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[2]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.7">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[3]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.6">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[4]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.5">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[5]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.4">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[6]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.3">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[7]</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.2">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[8]</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.1">
+<a href="#tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[9]</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="1.3.0">
+<a href="#tile-virtex2-GIGABIT.B-GT:ALIGN_COMMA_MSB">GT:ALIGN_COMMA_MSB</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bittile 2</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.79">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.78">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.77">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.76">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.75">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.74">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.73">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.72">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.71">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.70">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.69">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.68">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.67">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.66">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.65">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.64">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.63">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.62">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.61">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.60">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.59">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.58">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.57">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.56">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.55">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.54">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.53">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.52">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.51">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.50">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.49">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.48">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.47">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.46">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.45">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.44">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.43">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.42">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.41">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.40">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.39">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.38">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.37">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.36">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.35">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_USE">GT:CLK_COR_SEQ_2_USE</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.34">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_LEN">GT:CLK_COR_SEQ_LEN[1]</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.33">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_LEN">GT:CLK_COR_SEQ_LEN[0]</a>
+</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.32">
+<a href="#tile-virtex2-GIGABIT.B-GT:DEC_MCOMMA_DETECT">GT:DEC_MCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.31">
+<a href="#tile-virtex2-GIGABIT.B-GT:DEC_PCOMMA_DETECT">GT:DEC_PCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.30">
+<a href="#tile-virtex2-GIGABIT.B-GT:DEC_VALID_COMMA_ONLY">GT:DEC_VALID_COMMA_ONLY</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.29">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[3]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.28">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[2]</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.27">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[1]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.26">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[0]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.25">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_BUFFER_USE">GT:RX_BUFFER_USE</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.24">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_DECODE_USE">GT:RX_DECODE_USE</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.23">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_ONE_SHOT">GT:CHAN_BOND_ONE_SHOT</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.17">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.16">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[3]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.15">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[2]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.14">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[1]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.13">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[0]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.12">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_KEEP_IDLE">GT:CLK_COR_KEEP_IDLE</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.11">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_COR_INSERT_IDLE_FLAG">GT:CLK_COR_INSERT_IDLE_FLAG</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.10">
+<a href="#tile-virtex2-GIGABIT.B-GT:CLK_CORRECT_USE">GT:CLK_CORRECT_USE</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.9">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[3]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.8">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[2]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.7">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[1]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.6">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[0]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.5">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_MODE">GT:CHAN_BOND_MODE[1]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.4">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_MODE">GT:CHAN_BOND_MODE[0]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.1">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_DATA_WIDTH">GT:RX_DATA_WIDTH[1]</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="2.3.0">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_DATA_WIDTH">GT:RX_DATA_WIDTH[0]</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bittile 3</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.79">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.78">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.77">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.76">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.75">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.74">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.73">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.72">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.71">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.70">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.69">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.68">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.67">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.66">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.65">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.64">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.63">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.62">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.61">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.60">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.59">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.58">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.57">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.56">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.55">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.54">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.53">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.52">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.51">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.50">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.49">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.48">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.47">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.46">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.45">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.44">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.43">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.42">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.41">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.40">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.39">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.38">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.37">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.36">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.35">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_CRC_USE">GT:RX_CRC_USE</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.34">
+<a href="#tile-virtex2-GIGABIT.B-GT:TEST_MODE_6">GT:TEST_MODE_6</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.33">
+<a href="#tile-virtex2-GIGABIT.B-GT:TEST_MODE_5">GT:TEST_MODE_5</a>
+</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.32">
+<a href="#tile-virtex2-GIGABIT.B-GT:TEST_MODE_4">GT:TEST_MODE_4</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.31">
+<a href="#tile-virtex2-GIGABIT.B-GT:TEST_MODE_3">GT:TEST_MODE_3</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.30">
+<a href="#tile-virtex2-GIGABIT.B-GT:TEST_MODE_2">GT:TEST_MODE_2</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="3.3.29">
+<a href="#tile-virtex2-GIGABIT.B-GT:TEST_MODE_1">GT:TEST_MODE_1</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.B bittile 4</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.79">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.78">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.77">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.76">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.75">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.74">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.73">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.72">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.71">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.70">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.69">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.68">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.67">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.66">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.65">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.64">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.63">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.62">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.61">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.60">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.59">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.58">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.57">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.56">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.55">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.54">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.53">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.52">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.51">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.50">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.49">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.48">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.47">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.46">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.45">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.44">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.43">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.42">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.41">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.40">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.39">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.38">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.37">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.36">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.35">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_USE">GT:CHAN_BOND_SEQ_2_USE</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.34">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_LEN">GT:CHAN_BOND_SEQ_LEN[1]</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.33">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_LEN">GT:CHAN_BOND_SEQ_LEN[0]</a>
+</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.32">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[3]</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.31">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[2]</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.30">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[1]</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.29">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[0]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.28">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[4]</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.27">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[3]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.26">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[2]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.25">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[1]</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.24">
+<a href="#tile-virtex2-GIGABIT.B-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[0]</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.23">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_LOSS_OF_SYNC_FSM">GT:RX_LOSS_OF_SYNC_FSM</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.22">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR[2]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.21">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR[1]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.20">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR[0]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.19">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD[2]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.18">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD[1]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td title="4.3.17">
+<a href="#tile-virtex2-GIGABIT.B-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD[0]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:ALIGN_COMMA_MSB">GT:ALIGN_COMMA_MSB</th>
+<th>1.3.0</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_ONE_SHOT">GT:CHAN_BOND_ONE_SHOT</th>
+<th>2.3.23</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_USE">GT:CHAN_BOND_SEQ_2_USE</th>
+<th>4.3.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_CORRECT_USE">GT:CLK_CORRECT_USE</th>
+<th>2.3.10</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_INSERT_IDLE_FLAG">GT:CLK_COR_INSERT_IDLE_FLAG</th>
+<th>2.3.11</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_KEEP_IDLE">GT:CLK_COR_KEEP_IDLE</th>
+<th>2.3.12</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_USE">GT:CLK_COR_SEQ_2_USE</th>
+<th>2.3.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:DEC_MCOMMA_DETECT">GT:DEC_MCOMMA_DETECT</th>
+<th>2.3.32</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:DEC_PCOMMA_DETECT">GT:DEC_PCOMMA_DETECT</th>
+<th>2.3.31</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:DEC_VALID_COMMA_ONLY">GT:DEC_VALID_COMMA_ONLY</th>
+<th>2.3.30</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:ENABLE">GT:ENABLE</th>
+<th>0.3.74</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:MCOMMA_DETECT">GT:MCOMMA_DETECT</th>
+<th>1.3.22</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:PCOMMA_DETECT">GT:PCOMMA_DETECT</th>
+<th>1.3.34</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:REF_CLK_V_SEL">GT:REF_CLK_V_SEL</th>
+<th>0.3.2</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_BUFFER_USE">GT:RX_BUFFER_USE</th>
+<th>2.3.25</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_CRC_USE">GT:RX_CRC_USE</th>
+<th>3.3.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_DECODE_USE">GT:RX_DECODE_USE</th>
+<th>2.3.24</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_LOSS_OF_SYNC_FSM">GT:RX_LOSS_OF_SYNC_FSM</th>
+<th>4.3.23</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:SERDES_10B">GT:SERDES_10B</th>
+<th>0.3.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TEST_MODE_1">GT:TEST_MODE_1</th>
+<th>3.3.29</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TEST_MODE_2">GT:TEST_MODE_2</th>
+<th>3.3.30</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TEST_MODE_3">GT:TEST_MODE_3</th>
+<th>3.3.31</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TEST_MODE_4">GT:TEST_MODE_4</th>
+<th>3.3.32</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TEST_MODE_5">GT:TEST_MODE_5</th>
+<th>3.3.33</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TEST_MODE_6">GT:TEST_MODE_6</th>
+<th>3.3.34</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TX_BUFFER_USE">GT:TX_BUFFER_USE</th>
+<th>0.3.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TX_CRC_USE">GT:TX_CRC_USE</th>
+<th>0.3.37</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT</th>
+<th>4.3.28</th>
+<th>4.3.27</th>
+<th>4.3.26</th>
+<th>4.3.25</th>
+<th>4.3.24</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT</th>
+<th>2.3.17</th>
+<th>2.3.16</th>
+<th>2.3.15</th>
+<th>2.3.14</th>
+<th>2.3.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_MODE">GT:CHAN_BOND_MODE</th>
+<th>2.3.5</th>
+<th>2.3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MASTER</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>SLAVE_1_HOP</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>SLAVE_2_HOPS</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET</th>
+<th>2.3.9</th>
+<th>2.3.8</th>
+<th>2.3.7</th>
+<th>2.3.6</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT</th>
+<th>4.3.32</th>
+<th>4.3.31</th>
+<th>4.3.30</th>
+<th>4.3.29</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT</th>
+<th>2.3.29</th>
+<th>2.3.28</th>
+<th>2.3.27</th>
+<th>2.3.26</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1</th>
+<th>3.3.79</th>
+<th>3.3.78</th>
+<th>3.3.77</th>
+<th>3.3.76</th>
+<th>3.3.75</th>
+<th>3.3.74</th>
+<th>3.3.73</th>
+<th>3.3.72</th>
+<th>3.3.71</th>
+<th>3.3.70</th>
+<th>3.3.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2</th>
+<th>3.3.68</th>
+<th>3.3.67</th>
+<th>3.3.66</th>
+<th>3.3.65</th>
+<th>3.3.64</th>
+<th>3.3.63</th>
+<th>3.3.62</th>
+<th>3.3.61</th>
+<th>3.3.60</th>
+<th>3.3.59</th>
+<th>3.3.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3</th>
+<th>3.3.57</th>
+<th>3.3.56</th>
+<th>3.3.55</th>
+<th>3.3.54</th>
+<th>3.3.53</th>
+<th>3.3.52</th>
+<th>3.3.51</th>
+<th>3.3.50</th>
+<th>3.3.49</th>
+<th>3.3.48</th>
+<th>3.3.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4</th>
+<th>3.3.46</th>
+<th>3.3.45</th>
+<th>3.3.44</th>
+<th>3.3.43</th>
+<th>3.3.42</th>
+<th>3.3.41</th>
+<th>3.3.40</th>
+<th>3.3.39</th>
+<th>3.3.38</th>
+<th>3.3.37</th>
+<th>3.3.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1</th>
+<th>4.3.79</th>
+<th>4.3.78</th>
+<th>4.3.77</th>
+<th>4.3.76</th>
+<th>4.3.75</th>
+<th>4.3.74</th>
+<th>4.3.73</th>
+<th>4.3.72</th>
+<th>4.3.71</th>
+<th>4.3.70</th>
+<th>4.3.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2</th>
+<th>4.3.68</th>
+<th>4.3.67</th>
+<th>4.3.66</th>
+<th>4.3.65</th>
+<th>4.3.64</th>
+<th>4.3.63</th>
+<th>4.3.62</th>
+<th>4.3.61</th>
+<th>4.3.60</th>
+<th>4.3.59</th>
+<th>4.3.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3</th>
+<th>4.3.57</th>
+<th>4.3.56</th>
+<th>4.3.55</th>
+<th>4.3.54</th>
+<th>4.3.53</th>
+<th>4.3.52</th>
+<th>4.3.51</th>
+<th>4.3.50</th>
+<th>4.3.49</th>
+<th>4.3.48</th>
+<th>4.3.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4</th>
+<th>4.3.46</th>
+<th>4.3.45</th>
+<th>4.3.44</th>
+<th>4.3.43</th>
+<th>4.3.42</th>
+<th>4.3.41</th>
+<th>4.3.40</th>
+<th>4.3.39</th>
+<th>4.3.38</th>
+<th>4.3.37</th>
+<th>4.3.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1</th>
+<th>1.3.79</th>
+<th>1.3.78</th>
+<th>1.3.77</th>
+<th>1.3.76</th>
+<th>1.3.75</th>
+<th>1.3.74</th>
+<th>1.3.73</th>
+<th>1.3.72</th>
+<th>1.3.71</th>
+<th>1.3.70</th>
+<th>1.3.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2</th>
+<th>1.3.68</th>
+<th>1.3.67</th>
+<th>1.3.66</th>
+<th>1.3.65</th>
+<th>1.3.64</th>
+<th>1.3.63</th>
+<th>1.3.62</th>
+<th>1.3.61</th>
+<th>1.3.60</th>
+<th>1.3.59</th>
+<th>1.3.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3</th>
+<th>1.3.57</th>
+<th>1.3.56</th>
+<th>1.3.55</th>
+<th>1.3.54</th>
+<th>1.3.53</th>
+<th>1.3.52</th>
+<th>1.3.51</th>
+<th>1.3.50</th>
+<th>1.3.49</th>
+<th>1.3.48</th>
+<th>1.3.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4</th>
+<th>1.3.46</th>
+<th>1.3.45</th>
+<th>1.3.44</th>
+<th>1.3.43</th>
+<th>1.3.42</th>
+<th>1.3.41</th>
+<th>1.3.40</th>
+<th>1.3.39</th>
+<th>1.3.38</th>
+<th>1.3.37</th>
+<th>1.3.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1</th>
+<th>2.3.79</th>
+<th>2.3.78</th>
+<th>2.3.77</th>
+<th>2.3.76</th>
+<th>2.3.75</th>
+<th>2.3.74</th>
+<th>2.3.73</th>
+<th>2.3.72</th>
+<th>2.3.71</th>
+<th>2.3.70</th>
+<th>2.3.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2</th>
+<th>2.3.68</th>
+<th>2.3.67</th>
+<th>2.3.66</th>
+<th>2.3.65</th>
+<th>2.3.64</th>
+<th>2.3.63</th>
+<th>2.3.62</th>
+<th>2.3.61</th>
+<th>2.3.60</th>
+<th>2.3.59</th>
+<th>2.3.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3</th>
+<th>2.3.57</th>
+<th>2.3.56</th>
+<th>2.3.55</th>
+<th>2.3.54</th>
+<th>2.3.53</th>
+<th>2.3.52</th>
+<th>2.3.51</th>
+<th>2.3.50</th>
+<th>2.3.49</th>
+<th>2.3.48</th>
+<th>2.3.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4</th>
+<th>2.3.46</th>
+<th>2.3.45</th>
+<th>2.3.44</th>
+<th>2.3.43</th>
+<th>2.3.42</th>
+<th>2.3.41</th>
+<th>2.3.40</th>
+<th>2.3.39</th>
+<th>2.3.38</th>
+<th>2.3.37</th>
+<th>2.3.36</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[10]</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CHAN_BOND_SEQ_LEN">GT:CHAN_BOND_SEQ_LEN</th>
+<th>4.3.34</th>
+<th>4.3.33</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CLK_COR_SEQ_LEN">GT:CLK_COR_SEQ_LEN</th>
+<th>2.3.34</th>
+<th>2.3.33</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>2</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK</th>
+<th>1.3.1</th>
+<th>1.3.2</th>
+<th>1.3.3</th>
+<th>1.3.4</th>
+<th>1.3.5</th>
+<th>1.3.6</th>
+<th>1.3.7</th>
+<th>1.3.8</th>
+<th>1.3.9</th>
+<th>1.3.10</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE</th>
+<th>1.3.11</th>
+<th>1.3.12</th>
+<th>1.3.13</th>
+<th>1.3.14</th>
+<th>1.3.15</th>
+<th>1.3.16</th>
+<th>1.3.17</th>
+<th>1.3.18</th>
+<th>1.3.19</th>
+<th>1.3.20</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE</th>
+<th>1.3.23</th>
+<th>1.3.24</th>
+<th>1.3.25</th>
+<th>1.3.26</th>
+<th>1.3.27</th>
+<th>1.3.28</th>
+<th>1.3.29</th>
+<th>1.3.30</th>
+<th>1.3.31</th>
+<th>1.3.32</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT</th>
+<th>0.3.20</th>
+<th>0.3.19</th>
+<th>0.3.18</th>
+<th>0.3.17</th>
+<th>0.3.16</th>
+<th>0.3.15</th>
+<th>0.3.14</th>
+<th>0.3.13</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT</th>
+<th>0.3.12</th>
+<th>0.3.11</th>
+<th>0.3.10</th>
+<th>0.3.9</th>
+<th>0.3.8</th>
+<th>0.3.7</th>
+<th>0.3.6</th>
+<th>0.3.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>K28_0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K23_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>K27_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>K28_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K29_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>K30_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:CRC_FORMAT">GT:CRC_FORMAT</th>
+<th>0.3.4</th>
+<th>0.3.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>USER_MODE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>ETHERNET</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>INFINIBAND</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>FIBRE_CHAN</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_DATA_WIDTH">GT:RX_DATA_WIDTH</th>
+<th>2.3.1</th>
+<th>2.3.0</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TX_DATA_WIDTH">GT:TX_DATA_WIDTH</th>
+<th>0.3.1</th>
+<th>0.3.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>2</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR</th>
+<th>4.3.22</th>
+<th>4.3.21</th>
+<th>4.3.20</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>8</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>32</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>64</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>128</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD</th>
+<th>4.3.19</th>
+<th>4.3.18</th>
+<th>4.3.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>16</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>32</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>64</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>128</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>256</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>512</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TERMINATION_IMP">GT:TERMINATION_IMP</th>
+<th>0.3.79</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>50</td>
+<td>0</td>
+</tr>
+<tr><td>75</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE</th>
+<th>0.3.45</th>
+<th>0.3.44</th>
+<th>0.3.43</th>
+<th>0.3.42</th>
+<th>0.3.41</th>
+<th>0.3.40</th>
+<th>0.3.39</th>
+<th>0.3.38</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL</th>
+<th>0.3.73</th>
+<th>0.3.78</th>
+<th>0.3.77</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>500</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>400</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>600</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>700</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>800</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.B-GT:TX_PREEMPHASIS">GT:TX_PREEMPHASIS</th>
+<th>0.3.75</th>
+<th>0.3.76</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tile-gigabitt"><a class="header" href="#tile-gigabitt">Tile GIGABIT.T</a></h2>
+<p>Cells: 5</p>
+<h3 id="bel-gt-1"><a class="header" href="#bel-gt-1">Bel GT</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bel GT</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+<tr><td>CHBONDDONE</td><td>output</td><td>TCELL0:OUT.FAN4.TMIN</td></tr>
+<tr><td>CHBONDI0</td><td>input</td><td>TCELL0:IMUX.G0.DATA0</td></tr>
+<tr><td>CHBONDI1</td><td>input</td><td>TCELL0:IMUX.G1.DATA0</td></tr>
+<tr><td>CHBONDI2</td><td>input</td><td>TCELL0:IMUX.G2.DATA0</td></tr>
+<tr><td>CHBONDI3</td><td>input</td><td>TCELL0:IMUX.G3.DATA0</td></tr>
+<tr><td>CHBONDO0</td><td>output</td><td>TCELL0:OUT.FAN0.TMIN</td></tr>
+<tr><td>CHBONDO1</td><td>output</td><td>TCELL0:OUT.FAN1.TMIN</td></tr>
+<tr><td>CHBONDO2</td><td>output</td><td>TCELL0:OUT.FAN2.TMIN</td></tr>
+<tr><td>CHBONDO3</td><td>output</td><td>TCELL0:OUT.FAN3.TMIN</td></tr>
+<tr><td>CONFIGENABLE</td><td>input</td><td>TCELL0:IMUX.G3.DATA2</td></tr>
+<tr><td>CONFIGIN</td><td>input</td><td>TCELL0:IMUX.G2.DATA2</td></tr>
+<tr><td>CONFIGOUT</td><td>output</td><td>TCELL0:OUT.SEC12.TMIN</td></tr>
+<tr><td>ENCHANSYNC</td><td>input</td><td>TCELL0:IMUX.G0.DATA1</td></tr>
+<tr><td>ENMCOMMAALIGN</td><td>input</td><td>TCELL1:IMUX.G1.DATA7</td></tr>
+<tr><td>ENPCOMMAALIGN</td><td>input</td><td>TCELL1:IMUX.G1.DATA4</td></tr>
+<tr><td>LOOPBACK0</td><td>input</td><td>TCELL0:IMUX.G0.DATA3</td></tr>
+<tr><td>LOOPBACK1</td><td>input</td><td>TCELL0:IMUX.G1.DATA3</td></tr>
+<tr><td>POWERDOWN</td><td>input</td><td>TCELL0:IMUX.G0.DATA2</td></tr>
+<tr><td>REFCLK</td><td>input</td><td>TCELL0:IMUX.DCMCLK2</td></tr>
+<tr><td>REFCLK2</td><td>input</td><td>TCELL0:IMUX.DCMCLK3</td></tr>
+<tr><td>REFCLKSEL</td><td>input</td><td>TCELL0:IMUX.G1.DATA1</td></tr>
+<tr><td>RXBUFSTATUS0</td><td>output</td><td>TCELL0:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXBUFSTATUS1</td><td>output</td><td>TCELL0:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA0</td><td>output</td><td>TCELL1:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA1</td><td>output</td><td>TCELL2:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA2</td><td>output</td><td>TCELL3:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISCOMMA3</td><td>output</td><td>TCELL4:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCHARISK0</td><td>output</td><td>TCELL1:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHARISK1</td><td>output</td><td>TCELL2:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHARISK2</td><td>output</td><td>TCELL3:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHARISK3</td><td>output</td><td>TCELL4:OUT.SEC12.TMIN</td></tr>
+<tr><td>RXCHECKINGCRC</td><td>output</td><td>TCELL4:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXCLKCORCNT0</td><td>output</td><td>TCELL0:OUT.SEC11.TMIN</td></tr>
+<tr><td>RXCLKCORCNT1</td><td>output</td><td>TCELL0:OUT.SEC10.TMIN</td></tr>
+<tr><td>RXCLKCORCNT2</td><td>output</td><td>TCELL0:OUT.SEC9.TMIN</td></tr>
+<tr><td>RXCOMMADET</td><td>output</td><td>TCELL0:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXCRCERR</td><td>output</td><td>TCELL3:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXDATA0</td><td>output</td><td>TCELL1:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA1</td><td>output</td><td>TCELL1:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDATA10</td><td>output</td><td>TCELL2:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA11</td><td>output</td><td>TCELL2:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA12</td><td>output</td><td>TCELL2:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA13</td><td>output</td><td>TCELL2:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA14</td><td>output</td><td>TCELL2:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA15</td><td>output</td><td>TCELL2:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA16</td><td>output</td><td>TCELL3:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA17</td><td>output</td><td>TCELL3:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDATA18</td><td>output</td><td>TCELL3:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA19</td><td>output</td><td>TCELL3:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA2</td><td>output</td><td>TCELL1:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA20</td><td>output</td><td>TCELL3:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA21</td><td>output</td><td>TCELL3:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA22</td><td>output</td><td>TCELL3:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA23</td><td>output</td><td>TCELL3:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA24</td><td>output</td><td>TCELL4:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA25</td><td>output</td><td>TCELL4:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDATA26</td><td>output</td><td>TCELL4:OUT.FAN2.TMIN</td></tr>
+<tr><td>RXDATA27</td><td>output</td><td>TCELL4:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA28</td><td>output</td><td>TCELL4:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA29</td><td>output</td><td>TCELL4:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA3</td><td>output</td><td>TCELL1:OUT.FAN3.TMIN</td></tr>
+<tr><td>RXDATA30</td><td>output</td><td>TCELL4:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA31</td><td>output</td><td>TCELL4:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA4</td><td>output</td><td>TCELL1:OUT.FAN4.TMIN</td></tr>
+<tr><td>RXDATA5</td><td>output</td><td>TCELL1:OUT.FAN5.TMIN</td></tr>
+<tr><td>RXDATA6</td><td>output</td><td>TCELL1:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXDATA7</td><td>output</td><td>TCELL1:OUT.FAN7.TMIN</td></tr>
+<tr><td>RXDATA8</td><td>output</td><td>TCELL2:OUT.FAN0.TMIN</td></tr>
+<tr><td>RXDATA9</td><td>output</td><td>TCELL2:OUT.FAN1.TMIN</td></tr>
+<tr><td>RXDISPERR0</td><td>output</td><td>TCELL1:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXDISPERR1</td><td>output</td><td>TCELL2:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXDISPERR2</td><td>output</td><td>TCELL3:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXDISPERR3</td><td>output</td><td>TCELL4:OUT.SEC14.TMIN</td></tr>
+<tr><td>RXLOSSOFSYNC0</td><td>output</td><td>TCELL1:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXLOSSOFSYNC1</td><td>output</td><td>TCELL2:OUT.SEC8.TMIN</td></tr>
+<tr><td>RXNOTINTABLE0</td><td>output</td><td>TCELL1:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXNOTINTABLE1</td><td>output</td><td>TCELL2:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXNOTINTABLE2</td><td>output</td><td>TCELL3:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXNOTINTABLE3</td><td>output</td><td>TCELL4:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXPOLARITY</td><td>input</td><td>TCELL0:IMUX.G1.DATA2</td></tr>
+<tr><td>RXREALIGN</td><td>output</td><td>TCELL0:OUT.SEC13.TMIN</td></tr>
+<tr><td>RXRECCLK</td><td>output</td><td>TCELL0:OUT.FAN6.TMIN</td></tr>
+<tr><td>RXRESET</td><td>input</td><td>TCELL0:IMUX.SR0</td></tr>
+<tr><td>RXRUNDISP0</td><td>output</td><td>TCELL1:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXRUNDISP1</td><td>output</td><td>TCELL2:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXRUNDISP2</td><td>output</td><td>TCELL3:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXRUNDISP3</td><td>output</td><td>TCELL4:OUT.SEC15.TMIN</td></tr>
+<tr><td>RXUSRCLK</td><td>input</td><td>TCELL0:IMUX.DCMCLK0</td></tr>
+<tr><td>RXUSRCLK2</td><td>input</td><td>TCELL0:IMUX.DCMCLK1</td></tr>
+<tr><td>TXBUFERR</td><td>output</td><td>TCELL0:OUT.FAN7.TMIN</td></tr>
+<tr><td>TXBYPASS8B10B0</td><td>input</td><td>TCELL1:IMUX.G0.DATA2</td></tr>
+<tr><td>TXBYPASS8B10B1</td><td>input</td><td>TCELL2:IMUX.G0.DATA2</td></tr>
+<tr><td>TXBYPASS8B10B2</td><td>input</td><td>TCELL3:IMUX.G0.DATA2</td></tr>
+<tr><td>TXBYPASS8B10B3</td><td>input</td><td>TCELL4:IMUX.G0.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE0</td><td>input</td><td>TCELL1:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE1</td><td>input</td><td>TCELL2:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE2</td><td>input</td><td>TCELL3:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPMODE3</td><td>input</td><td>TCELL4:IMUX.G2.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL0</td><td>input</td><td>TCELL1:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL1</td><td>input</td><td>TCELL2:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL2</td><td>input</td><td>TCELL3:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARDISPVAL3</td><td>input</td><td>TCELL4:IMUX.G3.DATA2</td></tr>
+<tr><td>TXCHARISK0</td><td>input</td><td>TCELL1:IMUX.G1.DATA2</td></tr>
+<tr><td>TXCHARISK1</td><td>input</td><td>TCELL2:IMUX.G1.DATA2</td></tr>
+<tr><td>TXCHARISK2</td><td>input</td><td>TCELL3:IMUX.G1.DATA2</td></tr>
+<tr><td>TXCHARISK3</td><td>input</td><td>TCELL4:IMUX.G1.DATA2</td></tr>
+<tr><td>TXDATA0</td><td>input</td><td>TCELL1:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA1</td><td>input</td><td>TCELL1:IMUX.G1.DATA0</td></tr>
+<tr><td>TXDATA10</td><td>input</td><td>TCELL2:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA11</td><td>input</td><td>TCELL2:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA12</td><td>input</td><td>TCELL2:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA13</td><td>input</td><td>TCELL2:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA14</td><td>input</td><td>TCELL2:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA15</td><td>input</td><td>TCELL2:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA16</td><td>input</td><td>TCELL3:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA17</td><td>input</td><td>TCELL3:IMUX.G1.DATA0</td></tr>
+<tr><td>TXDATA18</td><td>input</td><td>TCELL3:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA19</td><td>input</td><td>TCELL3:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA2</td><td>input</td><td>TCELL1:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA20</td><td>input</td><td>TCELL3:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA21</td><td>input</td><td>TCELL3:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA22</td><td>input</td><td>TCELL3:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA23</td><td>input</td><td>TCELL3:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA24</td><td>input</td><td>TCELL4:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA25</td><td>input</td><td>TCELL4:IMUX.G1.DATA0</td></tr>
+<tr><td>TXDATA26</td><td>input</td><td>TCELL4:IMUX.G2.DATA0</td></tr>
+<tr><td>TXDATA27</td><td>input</td><td>TCELL4:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA28</td><td>input</td><td>TCELL4:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA29</td><td>input</td><td>TCELL4:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA3</td><td>input</td><td>TCELL1:IMUX.G3.DATA0</td></tr>
+<tr><td>TXDATA30</td><td>input</td><td>TCELL4:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA31</td><td>input</td><td>TCELL4:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA4</td><td>input</td><td>TCELL1:IMUX.G0.DATA1</td></tr>
+<tr><td>TXDATA5</td><td>input</td><td>TCELL1:IMUX.G1.DATA1</td></tr>
+<tr><td>TXDATA6</td><td>input</td><td>TCELL1:IMUX.G2.DATA1</td></tr>
+<tr><td>TXDATA7</td><td>input</td><td>TCELL1:IMUX.G3.DATA1</td></tr>
+<tr><td>TXDATA8</td><td>input</td><td>TCELL2:IMUX.G0.DATA0</td></tr>
+<tr><td>TXDATA9</td><td>input</td><td>TCELL2:IMUX.G1.DATA0</td></tr>
+<tr><td>TXFORCECRCERR</td><td>input</td><td>TCELL4:IMUX.G3.DATA3</td></tr>
+<tr><td>TXINHIBIT</td><td>input</td><td>TCELL0:IMUX.G3.DATA3</td></tr>
+<tr><td>TXKERR0</td><td>output</td><td>TCELL1:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXKERR1</td><td>output</td><td>TCELL2:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXKERR2</td><td>output</td><td>TCELL3:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXKERR3</td><td>output</td><td>TCELL4:OUT.SEC9.TMIN</td></tr>
+<tr><td>TXPOLARITY</td><td>input</td><td>TCELL0:IMUX.G2.DATA3</td></tr>
+<tr><td>TXRESET</td><td>input</td><td>TCELL1:IMUX.SR0</td></tr>
+<tr><td>TXRUNDISP0</td><td>output</td><td>TCELL1:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXRUNDISP1</td><td>output</td><td>TCELL2:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXRUNDISP2</td><td>output</td><td>TCELL3:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXRUNDISP3</td><td>output</td><td>TCELL4:OUT.SEC10.TMIN</td></tr>
+<tr><td>TXUSRCLK</td><td>input</td><td>TCELL1:IMUX.CLK0</td></tr>
+<tr><td>TXUSRCLK2</td><td>input</td><td>TCELL1:IMUX.CLK1</td></tr>
+</tbody>
+</table></div>
+<h3 id="bel-ipad_rxp-1"><a class="header" href="#bel-ipad_rxp-1">Bel IPAD_RXP</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bel IPAD_RXP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-ipad_rxn-1"><a class="header" href="#bel-ipad_rxn-1">Bel IPAD_RXN</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bel IPAD_RXN</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-opad_txp-1"><a class="header" href="#bel-opad_txp-1">Bel OPAD_TXP</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bel OPAD_TXP</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-opad_txn-1"><a class="header" href="#bel-opad_txn-1">Bel OPAD_TXN</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bel OPAD_TXN</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+</thead>
+<tbody>
+</tbody>
+</table></div>
+<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bel wires</caption>
+<thead>
+<tr><th>Wire</th><th>Pins</th></tr>
+</thead>
+<tbody>
+<tr><td>TCELL0:IMUX.DCMCLK0</td><td>GT.RXUSRCLK</td></tr>
+<tr><td>TCELL0:IMUX.DCMCLK1</td><td>GT.RXUSRCLK2</td></tr>
+<tr><td>TCELL0:IMUX.DCMCLK2</td><td>GT.REFCLK</td></tr>
+<tr><td>TCELL0:IMUX.DCMCLK3</td><td>GT.REFCLK2</td></tr>
+<tr><td>TCELL0:IMUX.SR0</td><td>GT.RXRESET</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA0</td><td>GT.CHBONDI0</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA1</td><td>GT.ENCHANSYNC</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA2</td><td>GT.POWERDOWN</td></tr>
+<tr><td>TCELL0:IMUX.G0.DATA3</td><td>GT.LOOPBACK0</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA0</td><td>GT.CHBONDI1</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA1</td><td>GT.REFCLKSEL</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA2</td><td>GT.RXPOLARITY</td></tr>
+<tr><td>TCELL0:IMUX.G1.DATA3</td><td>GT.LOOPBACK1</td></tr>
+<tr><td>TCELL0:IMUX.G2.DATA0</td><td>GT.CHBONDI2</td></tr>
+<tr><td>TCELL0:IMUX.G2.DATA2</td><td>GT.CONFIGIN</td></tr>
+<tr><td>TCELL0:IMUX.G2.DATA3</td><td>GT.TXPOLARITY</td></tr>
+<tr><td>TCELL0:IMUX.G3.DATA0</td><td>GT.CHBONDI3</td></tr>
+<tr><td>TCELL0:IMUX.G3.DATA2</td><td>GT.CONFIGENABLE</td></tr>
+<tr><td>TCELL0:IMUX.G3.DATA3</td><td>GT.TXINHIBIT</td></tr>
+<tr><td>TCELL0:OUT.FAN0.TMIN</td><td>GT.CHBONDO0</td></tr>
+<tr><td>TCELL0:OUT.FAN1.TMIN</td><td>GT.CHBONDO1</td></tr>
+<tr><td>TCELL0:OUT.FAN2.TMIN</td><td>GT.CHBONDO2</td></tr>
+<tr><td>TCELL0:OUT.FAN3.TMIN</td><td>GT.CHBONDO3</td></tr>
+<tr><td>TCELL0:OUT.FAN4.TMIN</td><td>GT.CHBONDDONE</td></tr>
+<tr><td>TCELL0:OUT.FAN5.TMIN</td><td>GT.RXCOMMADET</td></tr>
+<tr><td>TCELL0:OUT.FAN6.TMIN</td><td>GT.RXRECCLK</td></tr>
+<tr><td>TCELL0:OUT.FAN7.TMIN</td><td>GT.TXBUFERR</td></tr>
+<tr><td>TCELL0:OUT.SEC9.TMIN</td><td>GT.RXCLKCORCNT2</td></tr>
+<tr><td>TCELL0:OUT.SEC10.TMIN</td><td>GT.RXCLKCORCNT1</td></tr>
+<tr><td>TCELL0:OUT.SEC11.TMIN</td><td>GT.RXCLKCORCNT0</td></tr>
+<tr><td>TCELL0:OUT.SEC12.TMIN</td><td>GT.CONFIGOUT</td></tr>
+<tr><td>TCELL0:OUT.SEC13.TMIN</td><td>GT.RXREALIGN</td></tr>
+<tr><td>TCELL0:OUT.SEC14.TMIN</td><td>GT.RXBUFSTATUS1</td></tr>
+<tr><td>TCELL0:OUT.SEC15.TMIN</td><td>GT.RXBUFSTATUS0</td></tr>
+<tr><td>TCELL1:IMUX.CLK0</td><td>GT.TXUSRCLK</td></tr>
+<tr><td>TCELL1:IMUX.CLK1</td><td>GT.TXUSRCLK2</td></tr>
+<tr><td>TCELL1:IMUX.SR0</td><td>GT.TXRESET</td></tr>
+<tr><td>TCELL1:IMUX.G0.DATA0</td><td>GT.TXDATA0</td></tr>
+<tr><td>TCELL1:IMUX.G0.DATA1</td><td>GT.TXDATA4</td></tr>
+<tr><td>TCELL1:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B0</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA0</td><td>GT.TXDATA1</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA1</td><td>GT.TXDATA5</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA2</td><td>GT.TXCHARISK0</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA4</td><td>GT.ENPCOMMAALIGN</td></tr>
+<tr><td>TCELL1:IMUX.G1.DATA7</td><td>GT.ENMCOMMAALIGN</td></tr>
+<tr><td>TCELL1:IMUX.G2.DATA0</td><td>GT.TXDATA2</td></tr>
+<tr><td>TCELL1:IMUX.G2.DATA1</td><td>GT.TXDATA6</td></tr>
+<tr><td>TCELL1:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE0</td></tr>
+<tr><td>TCELL1:IMUX.G3.DATA0</td><td>GT.TXDATA3</td></tr>
+<tr><td>TCELL1:IMUX.G3.DATA1</td><td>GT.TXDATA7</td></tr>
+<tr><td>TCELL1:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL0</td></tr>
+<tr><td>TCELL1:OUT.FAN0.TMIN</td><td>GT.RXDATA0</td></tr>
+<tr><td>TCELL1:OUT.FAN1.TMIN</td><td>GT.RXDATA1</td></tr>
+<tr><td>TCELL1:OUT.FAN2.TMIN</td><td>GT.RXDATA2</td></tr>
+<tr><td>TCELL1:OUT.FAN3.TMIN</td><td>GT.RXDATA3</td></tr>
+<tr><td>TCELL1:OUT.FAN4.TMIN</td><td>GT.RXDATA4</td></tr>
+<tr><td>TCELL1:OUT.FAN5.TMIN</td><td>GT.RXDATA5</td></tr>
+<tr><td>TCELL1:OUT.FAN6.TMIN</td><td>GT.RXDATA6</td></tr>
+<tr><td>TCELL1:OUT.FAN7.TMIN</td><td>GT.RXDATA7</td></tr>
+<tr><td>TCELL1:OUT.SEC8.TMIN</td><td>GT.RXLOSSOFSYNC0</td></tr>
+<tr><td>TCELL1:OUT.SEC9.TMIN</td><td>GT.TXKERR0</td></tr>
+<tr><td>TCELL1:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP0</td></tr>
+<tr><td>TCELL1:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA0</td></tr>
+<tr><td>TCELL1:OUT.SEC12.TMIN</td><td>GT.RXCHARISK0</td></tr>
+<tr><td>TCELL1:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE0</td></tr>
+<tr><td>TCELL1:OUT.SEC14.TMIN</td><td>GT.RXDISPERR0</td></tr>
+<tr><td>TCELL1:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP0</td></tr>
+<tr><td>TCELL2:IMUX.G0.DATA0</td><td>GT.TXDATA8</td></tr>
+<tr><td>TCELL2:IMUX.G0.DATA1</td><td>GT.TXDATA12</td></tr>
+<tr><td>TCELL2:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B1</td></tr>
+<tr><td>TCELL2:IMUX.G1.DATA0</td><td>GT.TXDATA9</td></tr>
+<tr><td>TCELL2:IMUX.G1.DATA1</td><td>GT.TXDATA13</td></tr>
+<tr><td>TCELL2:IMUX.G1.DATA2</td><td>GT.TXCHARISK1</td></tr>
+<tr><td>TCELL2:IMUX.G2.DATA0</td><td>GT.TXDATA10</td></tr>
+<tr><td>TCELL2:IMUX.G2.DATA1</td><td>GT.TXDATA14</td></tr>
+<tr><td>TCELL2:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE1</td></tr>
+<tr><td>TCELL2:IMUX.G3.DATA0</td><td>GT.TXDATA11</td></tr>
+<tr><td>TCELL2:IMUX.G3.DATA1</td><td>GT.TXDATA15</td></tr>
+<tr><td>TCELL2:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL1</td></tr>
+<tr><td>TCELL2:OUT.FAN0.TMIN</td><td>GT.RXDATA8</td></tr>
+<tr><td>TCELL2:OUT.FAN1.TMIN</td><td>GT.RXDATA9</td></tr>
+<tr><td>TCELL2:OUT.FAN2.TMIN</td><td>GT.RXDATA10</td></tr>
+<tr><td>TCELL2:OUT.FAN3.TMIN</td><td>GT.RXDATA11</td></tr>
+<tr><td>TCELL2:OUT.FAN4.TMIN</td><td>GT.RXDATA12</td></tr>
+<tr><td>TCELL2:OUT.FAN5.TMIN</td><td>GT.RXDATA13</td></tr>
+<tr><td>TCELL2:OUT.FAN6.TMIN</td><td>GT.RXDATA14</td></tr>
+<tr><td>TCELL2:OUT.FAN7.TMIN</td><td>GT.RXDATA15</td></tr>
+<tr><td>TCELL2:OUT.SEC8.TMIN</td><td>GT.RXLOSSOFSYNC1</td></tr>
+<tr><td>TCELL2:OUT.SEC9.TMIN</td><td>GT.TXKERR1</td></tr>
+<tr><td>TCELL2:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP1</td></tr>
+<tr><td>TCELL2:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA1</td></tr>
+<tr><td>TCELL2:OUT.SEC12.TMIN</td><td>GT.RXCHARISK1</td></tr>
+<tr><td>TCELL2:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE1</td></tr>
+<tr><td>TCELL2:OUT.SEC14.TMIN</td><td>GT.RXDISPERR1</td></tr>
+<tr><td>TCELL2:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP1</td></tr>
+<tr><td>TCELL3:IMUX.G0.DATA0</td><td>GT.TXDATA16</td></tr>
+<tr><td>TCELL3:IMUX.G0.DATA1</td><td>GT.TXDATA20</td></tr>
+<tr><td>TCELL3:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B2</td></tr>
+<tr><td>TCELL3:IMUX.G1.DATA0</td><td>GT.TXDATA17</td></tr>
+<tr><td>TCELL3:IMUX.G1.DATA1</td><td>GT.TXDATA21</td></tr>
+<tr><td>TCELL3:IMUX.G1.DATA2</td><td>GT.TXCHARISK2</td></tr>
+<tr><td>TCELL3:IMUX.G2.DATA0</td><td>GT.TXDATA18</td></tr>
+<tr><td>TCELL3:IMUX.G2.DATA1</td><td>GT.TXDATA22</td></tr>
+<tr><td>TCELL3:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE2</td></tr>
+<tr><td>TCELL3:IMUX.G3.DATA0</td><td>GT.TXDATA19</td></tr>
+<tr><td>TCELL3:IMUX.G3.DATA1</td><td>GT.TXDATA23</td></tr>
+<tr><td>TCELL3:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL2</td></tr>
+<tr><td>TCELL3:OUT.FAN0.TMIN</td><td>GT.RXDATA16</td></tr>
+<tr><td>TCELL3:OUT.FAN1.TMIN</td><td>GT.RXDATA17</td></tr>
+<tr><td>TCELL3:OUT.FAN2.TMIN</td><td>GT.RXDATA18</td></tr>
+<tr><td>TCELL3:OUT.FAN3.TMIN</td><td>GT.RXDATA19</td></tr>
+<tr><td>TCELL3:OUT.FAN4.TMIN</td><td>GT.RXDATA20</td></tr>
+<tr><td>TCELL3:OUT.FAN5.TMIN</td><td>GT.RXDATA21</td></tr>
+<tr><td>TCELL3:OUT.FAN6.TMIN</td><td>GT.RXDATA22</td></tr>
+<tr><td>TCELL3:OUT.FAN7.TMIN</td><td>GT.RXDATA23</td></tr>
+<tr><td>TCELL3:OUT.SEC8.TMIN</td><td>GT.RXCRCERR</td></tr>
+<tr><td>TCELL3:OUT.SEC9.TMIN</td><td>GT.TXKERR2</td></tr>
+<tr><td>TCELL3:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP2</td></tr>
+<tr><td>TCELL3:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA2</td></tr>
+<tr><td>TCELL3:OUT.SEC12.TMIN</td><td>GT.RXCHARISK2</td></tr>
+<tr><td>TCELL3:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE2</td></tr>
+<tr><td>TCELL3:OUT.SEC14.TMIN</td><td>GT.RXDISPERR2</td></tr>
+<tr><td>TCELL3:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP2</td></tr>
+<tr><td>TCELL4:IMUX.G0.DATA0</td><td>GT.TXDATA24</td></tr>
+<tr><td>TCELL4:IMUX.G0.DATA1</td><td>GT.TXDATA28</td></tr>
+<tr><td>TCELL4:IMUX.G0.DATA2</td><td>GT.TXBYPASS8B10B3</td></tr>
+<tr><td>TCELL4:IMUX.G1.DATA0</td><td>GT.TXDATA25</td></tr>
+<tr><td>TCELL4:IMUX.G1.DATA1</td><td>GT.TXDATA29</td></tr>
+<tr><td>TCELL4:IMUX.G1.DATA2</td><td>GT.TXCHARISK3</td></tr>
+<tr><td>TCELL4:IMUX.G2.DATA0</td><td>GT.TXDATA26</td></tr>
+<tr><td>TCELL4:IMUX.G2.DATA1</td><td>GT.TXDATA30</td></tr>
+<tr><td>TCELL4:IMUX.G2.DATA2</td><td>GT.TXCHARDISPMODE3</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA0</td><td>GT.TXDATA27</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA1</td><td>GT.TXDATA31</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA2</td><td>GT.TXCHARDISPVAL3</td></tr>
+<tr><td>TCELL4:IMUX.G3.DATA3</td><td>GT.TXFORCECRCERR</td></tr>
+<tr><td>TCELL4:OUT.FAN0.TMIN</td><td>GT.RXDATA24</td></tr>
+<tr><td>TCELL4:OUT.FAN1.TMIN</td><td>GT.RXDATA25</td></tr>
+<tr><td>TCELL4:OUT.FAN2.TMIN</td><td>GT.RXDATA26</td></tr>
+<tr><td>TCELL4:OUT.FAN3.TMIN</td><td>GT.RXDATA27</td></tr>
+<tr><td>TCELL4:OUT.FAN4.TMIN</td><td>GT.RXDATA28</td></tr>
+<tr><td>TCELL4:OUT.FAN5.TMIN</td><td>GT.RXDATA29</td></tr>
+<tr><td>TCELL4:OUT.FAN6.TMIN</td><td>GT.RXDATA30</td></tr>
+<tr><td>TCELL4:OUT.FAN7.TMIN</td><td>GT.RXDATA31</td></tr>
+<tr><td>TCELL4:OUT.SEC8.TMIN</td><td>GT.RXCHECKINGCRC</td></tr>
+<tr><td>TCELL4:OUT.SEC9.TMIN</td><td>GT.TXKERR3</td></tr>
+<tr><td>TCELL4:OUT.SEC10.TMIN</td><td>GT.TXRUNDISP3</td></tr>
+<tr><td>TCELL4:OUT.SEC11.TMIN</td><td>GT.RXCHARISCOMMA3</td></tr>
+<tr><td>TCELL4:OUT.SEC12.TMIN</td><td>GT.RXCHARISK3</td></tr>
+<tr><td>TCELL4:OUT.SEC13.TMIN</td><td>GT.RXNOTINTABLE3</td></tr>
+<tr><td>TCELL4:OUT.SEC14.TMIN</td><td>GT.RXDISPERR3</td></tr>
+<tr><td>TCELL4:OUT.SEC15.TMIN</td><td>GT.RXRUNDISP3</td></tr>
+</tbody>
+</table></div>
+<h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bittile 0</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td title="0.0.79">
+<a href="#tile-virtex2-GIGABIT.T-GT:TERMINATION_IMP">GT:TERMINATION_IMP[0]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td title="0.0.78">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL[1]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td title="0.0.77">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL[0]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td title="0.0.76">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_PREEMPHASIS">GT:TX_PREEMPHASIS[0]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td title="0.0.75">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_PREEMPHASIS">GT:TX_PREEMPHASIS[1]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td title="0.0.74">
+<a href="#tile-virtex2-GIGABIT.T-GT:ENABLE">GT:ENABLE</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td title="0.0.73">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL[2]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td>-</td>
+</tr>
+<tr><td>71</td>
+<td>-</td>
+</tr>
+<tr><td>70</td>
+<td>-</td>
+</tr>
+<tr><td>69</td>
+<td>-</td>
+</tr>
+<tr><td>68</td>
+<td>-</td>
+</tr>
+<tr><td>67</td>
+<td>-</td>
+</tr>
+<tr><td>66</td>
+<td>-</td>
+</tr>
+<tr><td>65</td>
+<td>-</td>
+</tr>
+<tr><td>64</td>
+<td>-</td>
+</tr>
+<tr><td>63</td>
+<td>-</td>
+</tr>
+<tr><td>62</td>
+<td>-</td>
+</tr>
+<tr><td>61</td>
+<td>-</td>
+</tr>
+<tr><td>60</td>
+<td>-</td>
+</tr>
+<tr><td>59</td>
+<td>-</td>
+</tr>
+<tr><td>58</td>
+<td>-</td>
+</tr>
+<tr><td>57</td>
+<td>-</td>
+</tr>
+<tr><td>56</td>
+<td>-</td>
+</tr>
+<tr><td>55</td>
+<td>-</td>
+</tr>
+<tr><td>54</td>
+<td>-</td>
+</tr>
+<tr><td>53</td>
+<td>-</td>
+</tr>
+<tr><td>52</td>
+<td>-</td>
+</tr>
+<tr><td>51</td>
+<td>-</td>
+</tr>
+<tr><td>50</td>
+<td>-</td>
+</tr>
+<tr><td>49</td>
+<td>-</td>
+</tr>
+<tr><td>48</td>
+<td>-</td>
+</tr>
+<tr><td>47</td>
+<td>-</td>
+</tr>
+<tr><td>46</td>
+<td>-</td>
+</tr>
+<tr><td>45</td>
+<td title="0.0.45">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[7]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="0.0.44">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[6]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="0.0.43">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[5]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td title="0.0.42">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[4]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td title="0.0.41">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[3]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="0.0.40">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[2]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td title="0.0.39">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[1]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td title="0.0.38">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE[0]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="0.0.37">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_CRC_USE">GT:TX_CRC_USE</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="0.0.36">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_BUFFER_USE">GT:TX_BUFFER_USE</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td title="0.0.35">
+<a href="#tile-virtex2-GIGABIT.T-GT:SERDES_10B">GT:SERDES_10B</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td>-</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td>-</td>
+</tr>
+<tr><td>31</td>
+<td>-</td>
+</tr>
+<tr><td>30</td>
+<td>-</td>
+</tr>
+<tr><td>29</td>
+<td>-</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td title="0.0.20">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[7]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td title="0.0.19">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[6]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="0.0.18">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[5]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td title="0.0.17">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td title="0.0.16">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[3]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td title="0.0.15">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[2]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="0.0.14">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[1]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="0.0.13">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT[0]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td title="0.0.12">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[7]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td title="0.0.11">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[6]</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td title="0.0.10">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[5]</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td title="0.0.9">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[4]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td title="0.0.8">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[3]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td title="0.0.7">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[2]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td title="0.0.6">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[1]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td title="0.0.5">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT[0]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td title="0.0.4">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_FORMAT">GT:CRC_FORMAT[1]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td title="0.0.3">
+<a href="#tile-virtex2-GIGABIT.T-GT:CRC_FORMAT">GT:CRC_FORMAT[0]</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td title="0.0.2">
+<a href="#tile-virtex2-GIGABIT.T-GT:REF_CLK_V_SEL">GT:REF_CLK_V_SEL</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td title="0.0.1">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_DATA_WIDTH">GT:TX_DATA_WIDTH[1]</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td title="0.0.0">
+<a href="#tile-virtex2-GIGABIT.T-GT:TX_DATA_WIDTH">GT:TX_DATA_WIDTH[0]</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bittile 1</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td title="1.0.79">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td title="1.0.78">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td title="1.0.77">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td title="1.0.76">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td title="1.0.75">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td title="1.0.74">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td title="1.0.73">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td title="1.0.72">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td title="1.0.71">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td title="1.0.70">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td title="1.0.69">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td title="1.0.68">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td title="1.0.67">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td title="1.0.66">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td title="1.0.65">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td title="1.0.64">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td title="1.0.63">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td title="1.0.62">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td title="1.0.61">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td title="1.0.60">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td title="1.0.59">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td title="1.0.58">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td title="1.0.57">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td title="1.0.56">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td title="1.0.55">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td title="1.0.54">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td title="1.0.53">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td title="1.0.52">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td title="1.0.51">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td title="1.0.50">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td title="1.0.49">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="1.0.48">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td title="1.0.47">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td title="1.0.46">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td title="1.0.45">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="1.0.44">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="1.0.43">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td title="1.0.42">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td title="1.0.41">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="1.0.40">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td title="1.0.39">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td title="1.0.38">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="1.0.37">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="1.0.36">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td>-</td>
+</tr>
+<tr><td>34</td>
+<td title="1.0.34">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_DETECT">GT:PCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td>-</td>
+</tr>
+<tr><td>32</td>
+<td title="1.0.32">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[0]</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td title="1.0.31">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[1]</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td title="1.0.30">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[2]</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td title="1.0.29">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[3]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td title="1.0.28">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[4]</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td title="1.0.27">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[5]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="1.0.26">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[6]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td title="1.0.25">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[7]</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td title="1.0.24">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[8]</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="1.0.23">
+<a href="#tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE[9]</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td title="1.0.22">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_DETECT">GT:MCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td title="1.0.20">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[0]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td title="1.0.19">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[1]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="1.0.18">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[2]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td title="1.0.17">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[3]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td title="1.0.16">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[4]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td title="1.0.15">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[5]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="1.0.14">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[6]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="1.0.13">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[7]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td title="1.0.12">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[8]</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td title="1.0.11">
+<a href="#tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE[9]</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td title="1.0.10">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[0]</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td title="1.0.9">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[1]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td title="1.0.8">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[2]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td title="1.0.7">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[3]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td title="1.0.6">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[4]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td title="1.0.5">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[5]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td title="1.0.4">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[6]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td title="1.0.3">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[7]</a>
+</td>
+</tr>
+<tr><td>2</td>
+<td title="1.0.2">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[8]</a>
+</td>
+</tr>
+<tr><td>1</td>
+<td title="1.0.1">
+<a href="#tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK[9]</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td title="1.0.0">
+<a href="#tile-virtex2-GIGABIT.T-GT:ALIGN_COMMA_MSB">GT:ALIGN_COMMA_MSB</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bittile 2</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td title="2.0.79">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td title="2.0.78">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td title="2.0.77">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td title="2.0.76">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td title="2.0.75">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td title="2.0.74">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td title="2.0.73">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td title="2.0.72">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td title="2.0.71">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td title="2.0.70">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td title="2.0.69">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td title="2.0.68">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td title="2.0.67">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td title="2.0.66">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td title="2.0.65">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td title="2.0.64">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td title="2.0.63">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td title="2.0.62">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td title="2.0.61">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td title="2.0.60">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td title="2.0.59">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td title="2.0.58">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td title="2.0.57">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td title="2.0.56">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td title="2.0.55">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td title="2.0.54">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td title="2.0.53">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td title="2.0.52">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td title="2.0.51">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td title="2.0.50">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td title="2.0.49">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="2.0.48">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td title="2.0.47">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td title="2.0.46">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td title="2.0.45">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="2.0.44">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="2.0.43">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td title="2.0.42">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td title="2.0.41">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="2.0.40">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td title="2.0.39">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td title="2.0.38">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="2.0.37">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="2.0.36">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td title="2.0.35">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_USE">GT:CLK_COR_SEQ_2_USE</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td title="2.0.34">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_LEN">GT:CLK_COR_SEQ_LEN[1]</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td title="2.0.33">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_LEN">GT:CLK_COR_SEQ_LEN[0]</a>
+</td>
+</tr>
+<tr><td>32</td>
+<td title="2.0.32">
+<a href="#tile-virtex2-GIGABIT.T-GT:DEC_MCOMMA_DETECT">GT:DEC_MCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td title="2.0.31">
+<a href="#tile-virtex2-GIGABIT.T-GT:DEC_PCOMMA_DETECT">GT:DEC_PCOMMA_DETECT</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td title="2.0.30">
+<a href="#tile-virtex2-GIGABIT.T-GT:DEC_VALID_COMMA_ONLY">GT:DEC_VALID_COMMA_ONLY</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td title="2.0.29">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[3]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td title="2.0.28">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[2]</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td title="2.0.27">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[1]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="2.0.26">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT[0]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td title="2.0.25">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_BUFFER_USE">GT:RX_BUFFER_USE</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td title="2.0.24">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_DECODE_USE">GT:RX_DECODE_USE</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="2.0.23">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_ONE_SHOT">GT:CHAN_BOND_ONE_SHOT</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td title="2.0.17">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[4]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td title="2.0.16">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[3]</a>
+</td>
+</tr>
+<tr><td>15</td>
+<td title="2.0.15">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[2]</a>
+</td>
+</tr>
+<tr><td>14</td>
+<td title="2.0.14">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[1]</a>
+</td>
+</tr>
+<tr><td>13</td>
+<td title="2.0.13">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT[0]</a>
+</td>
+</tr>
+<tr><td>12</td>
+<td title="2.0.12">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_KEEP_IDLE">GT:CLK_COR_KEEP_IDLE</a>
+</td>
+</tr>
+<tr><td>11</td>
+<td title="2.0.11">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_COR_INSERT_IDLE_FLAG">GT:CLK_COR_INSERT_IDLE_FLAG</a>
+</td>
+</tr>
+<tr><td>10</td>
+<td title="2.0.10">
+<a href="#tile-virtex2-GIGABIT.T-GT:CLK_CORRECT_USE">GT:CLK_CORRECT_USE</a>
+</td>
+</tr>
+<tr><td>9</td>
+<td title="2.0.9">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[3]</a>
+</td>
+</tr>
+<tr><td>8</td>
+<td title="2.0.8">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[2]</a>
+</td>
+</tr>
+<tr><td>7</td>
+<td title="2.0.7">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[1]</a>
+</td>
+</tr>
+<tr><td>6</td>
+<td title="2.0.6">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET[0]</a>
+</td>
+</tr>
+<tr><td>5</td>
+<td title="2.0.5">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_MODE">GT:CHAN_BOND_MODE[1]</a>
+</td>
+</tr>
+<tr><td>4</td>
+<td title="2.0.4">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_MODE">GT:CHAN_BOND_MODE[0]</a>
+</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td title="2.0.1">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_DATA_WIDTH">GT:RX_DATA_WIDTH[1]</a>
+</td>
+</tr>
+<tr><td>0</td>
+<td title="2.0.0">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_DATA_WIDTH">GT:RX_DATA_WIDTH[0]</a>
+</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bittile 3</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td title="3.0.79">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td title="3.0.78">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td title="3.0.77">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td title="3.0.76">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td title="3.0.75">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td title="3.0.74">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td title="3.0.73">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td title="3.0.72">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td title="3.0.71">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td title="3.0.70">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td title="3.0.69">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td title="3.0.68">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td title="3.0.67">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td title="3.0.66">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td title="3.0.65">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td title="3.0.64">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td title="3.0.63">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td title="3.0.62">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td title="3.0.61">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td title="3.0.60">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td title="3.0.59">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td title="3.0.58">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td title="3.0.57">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td title="3.0.56">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td title="3.0.55">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td title="3.0.54">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td title="3.0.53">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td title="3.0.52">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td title="3.0.51">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td title="3.0.50">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td title="3.0.49">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="3.0.48">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td title="3.0.47">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td title="3.0.46">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td title="3.0.45">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="3.0.44">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="3.0.43">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td title="3.0.42">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td title="3.0.41">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="3.0.40">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td title="3.0.39">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td title="3.0.38">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="3.0.37">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="3.0.36">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td title="3.0.35">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_CRC_USE">GT:RX_CRC_USE</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td title="3.0.34">
+<a href="#tile-virtex2-GIGABIT.T-GT:TEST_MODE_6">GT:TEST_MODE_6</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td title="3.0.33">
+<a href="#tile-virtex2-GIGABIT.T-GT:TEST_MODE_5">GT:TEST_MODE_5</a>
+</td>
+</tr>
+<tr><td>32</td>
+<td title="3.0.32">
+<a href="#tile-virtex2-GIGABIT.T-GT:TEST_MODE_4">GT:TEST_MODE_4</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td title="3.0.31">
+<a href="#tile-virtex2-GIGABIT.T-GT:TEST_MODE_3">GT:TEST_MODE_3</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td title="3.0.30">
+<a href="#tile-virtex2-GIGABIT.T-GT:TEST_MODE_2">GT:TEST_MODE_2</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td title="3.0.29">
+<a href="#tile-virtex2-GIGABIT.T-GT:TEST_MODE_1">GT:TEST_MODE_1</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td>-</td>
+</tr>
+<tr><td>27</td>
+<td>-</td>
+</tr>
+<tr><td>26</td>
+<td>-</td>
+</tr>
+<tr><td>25</td>
+<td>-</td>
+</tr>
+<tr><td>24</td>
+<td>-</td>
+</tr>
+<tr><td>23</td>
+<td>-</td>
+</tr>
+<tr><td>22</td>
+<td>-</td>
+</tr>
+<tr><td>21</td>
+<td>-</td>
+</tr>
+<tr><td>20</td>
+<td>-</td>
+</tr>
+<tr><td>19</td>
+<td>-</td>
+</tr>
+<tr><td>18</td>
+<td>-</td>
+</tr>
+<tr><td>17</td>
+<td>-</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<caption>virtex2 GIGABIT.T bittile 4</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>79</td>
+<td title="4.0.79">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[10]</a>
+</td>
+</tr>
+<tr><td>78</td>
+<td title="4.0.78">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[9]</a>
+</td>
+</tr>
+<tr><td>77</td>
+<td title="4.0.77">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[8]</a>
+</td>
+</tr>
+<tr><td>76</td>
+<td title="4.0.76">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[7]</a>
+</td>
+</tr>
+<tr><td>75</td>
+<td title="4.0.75">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[6]</a>
+</td>
+</tr>
+<tr><td>74</td>
+<td title="4.0.74">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[5]</a>
+</td>
+</tr>
+<tr><td>73</td>
+<td title="4.0.73">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[4]</a>
+</td>
+</tr>
+<tr><td>72</td>
+<td title="4.0.72">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[3]</a>
+</td>
+</tr>
+<tr><td>71</td>
+<td title="4.0.71">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[2]</a>
+</td>
+</tr>
+<tr><td>70</td>
+<td title="4.0.70">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[1]</a>
+</td>
+</tr>
+<tr><td>69</td>
+<td title="4.0.69">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1[0]</a>
+</td>
+</tr>
+<tr><td>68</td>
+<td title="4.0.68">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[10]</a>
+</td>
+</tr>
+<tr><td>67</td>
+<td title="4.0.67">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[9]</a>
+</td>
+</tr>
+<tr><td>66</td>
+<td title="4.0.66">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[8]</a>
+</td>
+</tr>
+<tr><td>65</td>
+<td title="4.0.65">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[7]</a>
+</td>
+</tr>
+<tr><td>64</td>
+<td title="4.0.64">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[6]</a>
+</td>
+</tr>
+<tr><td>63</td>
+<td title="4.0.63">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[5]</a>
+</td>
+</tr>
+<tr><td>62</td>
+<td title="4.0.62">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[4]</a>
+</td>
+</tr>
+<tr><td>61</td>
+<td title="4.0.61">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[3]</a>
+</td>
+</tr>
+<tr><td>60</td>
+<td title="4.0.60">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[2]</a>
+</td>
+</tr>
+<tr><td>59</td>
+<td title="4.0.59">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[1]</a>
+</td>
+</tr>
+<tr><td>58</td>
+<td title="4.0.58">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2[0]</a>
+</td>
+</tr>
+<tr><td>57</td>
+<td title="4.0.57">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[10]</a>
+</td>
+</tr>
+<tr><td>56</td>
+<td title="4.0.56">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[9]</a>
+</td>
+</tr>
+<tr><td>55</td>
+<td title="4.0.55">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[8]</a>
+</td>
+</tr>
+<tr><td>54</td>
+<td title="4.0.54">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[7]</a>
+</td>
+</tr>
+<tr><td>53</td>
+<td title="4.0.53">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[6]</a>
+</td>
+</tr>
+<tr><td>52</td>
+<td title="4.0.52">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[5]</a>
+</td>
+</tr>
+<tr><td>51</td>
+<td title="4.0.51">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[4]</a>
+</td>
+</tr>
+<tr><td>50</td>
+<td title="4.0.50">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[3]</a>
+</td>
+</tr>
+<tr><td>49</td>
+<td title="4.0.49">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[2]</a>
+</td>
+</tr>
+<tr><td>48</td>
+<td title="4.0.48">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[1]</a>
+</td>
+</tr>
+<tr><td>47</td>
+<td title="4.0.47">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3[0]</a>
+</td>
+</tr>
+<tr><td>46</td>
+<td title="4.0.46">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[10]</a>
+</td>
+</tr>
+<tr><td>45</td>
+<td title="4.0.45">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[9]</a>
+</td>
+</tr>
+<tr><td>44</td>
+<td title="4.0.44">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[8]</a>
+</td>
+</tr>
+<tr><td>43</td>
+<td title="4.0.43">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[7]</a>
+</td>
+</tr>
+<tr><td>42</td>
+<td title="4.0.42">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[6]</a>
+</td>
+</tr>
+<tr><td>41</td>
+<td title="4.0.41">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[5]</a>
+</td>
+</tr>
+<tr><td>40</td>
+<td title="4.0.40">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[4]</a>
+</td>
+</tr>
+<tr><td>39</td>
+<td title="4.0.39">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[3]</a>
+</td>
+</tr>
+<tr><td>38</td>
+<td title="4.0.38">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[2]</a>
+</td>
+</tr>
+<tr><td>37</td>
+<td title="4.0.37">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[1]</a>
+</td>
+</tr>
+<tr><td>36</td>
+<td title="4.0.36">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4[0]</a>
+</td>
+</tr>
+<tr><td>35</td>
+<td title="4.0.35">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_USE">GT:CHAN_BOND_SEQ_2_USE</a>
+</td>
+</tr>
+<tr><td>34</td>
+<td title="4.0.34">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_LEN">GT:CHAN_BOND_SEQ_LEN[1]</a>
+</td>
+</tr>
+<tr><td>33</td>
+<td title="4.0.33">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_LEN">GT:CHAN_BOND_SEQ_LEN[0]</a>
+</td>
+</tr>
+<tr><td>32</td>
+<td title="4.0.32">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[3]</a>
+</td>
+</tr>
+<tr><td>31</td>
+<td title="4.0.31">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[2]</a>
+</td>
+</tr>
+<tr><td>30</td>
+<td title="4.0.30">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[1]</a>
+</td>
+</tr>
+<tr><td>29</td>
+<td title="4.0.29">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT[0]</a>
+</td>
+</tr>
+<tr><td>28</td>
+<td title="4.0.28">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[4]</a>
+</td>
+</tr>
+<tr><td>27</td>
+<td title="4.0.27">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[3]</a>
+</td>
+</tr>
+<tr><td>26</td>
+<td title="4.0.26">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[2]</a>
+</td>
+</tr>
+<tr><td>25</td>
+<td title="4.0.25">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[1]</a>
+</td>
+</tr>
+<tr><td>24</td>
+<td title="4.0.24">
+<a href="#tile-virtex2-GIGABIT.T-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT[0]</a>
+</td>
+</tr>
+<tr><td>23</td>
+<td title="4.0.23">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_LOSS_OF_SYNC_FSM">GT:RX_LOSS_OF_SYNC_FSM</a>
+</td>
+</tr>
+<tr><td>22</td>
+<td title="4.0.22">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR[2]</a>
+</td>
+</tr>
+<tr><td>21</td>
+<td title="4.0.21">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR[1]</a>
+</td>
+</tr>
+<tr><td>20</td>
+<td title="4.0.20">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR[0]</a>
+</td>
+</tr>
+<tr><td>19</td>
+<td title="4.0.19">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD[2]</a>
+</td>
+</tr>
+<tr><td>18</td>
+<td title="4.0.18">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD[1]</a>
+</td>
+</tr>
+<tr><td>17</td>
+<td title="4.0.17">
+<a href="#tile-virtex2-GIGABIT.T-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD[0]</a>
+</td>
+</tr>
+<tr><td>16</td>
+<td>-</td>
+</tr>
+<tr><td>15</td>
+<td>-</td>
+</tr>
+<tr><td>14</td>
+<td>-</td>
+</tr>
+<tr><td>13</td>
+<td>-</td>
+</tr>
+<tr><td>12</td>
+<td>-</td>
+</tr>
+<tr><td>11</td>
+<td>-</td>
+</tr>
+<tr><td>10</td>
+<td>-</td>
+</tr>
+<tr><td>9</td>
+<td>-</td>
+</tr>
+<tr><td>8</td>
+<td>-</td>
+</tr>
+<tr><td>7</td>
+<td>-</td>
+</tr>
+<tr><td>6</td>
+<td>-</td>
+</tr>
+<tr><td>5</td>
+<td>-</td>
+</tr>
+<tr><td>4</td>
+<td>-</td>
+</tr>
+<tr><td>3</td>
+<td>-</td>
+</tr>
+<tr><td>2</td>
+<td>-</td>
+</tr>
+<tr><td>1</td>
+<td>-</td>
+</tr>
+<tr><td>0</td>
+<td>-</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:ALIGN_COMMA_MSB">GT:ALIGN_COMMA_MSB</th>
+<th>1.0.0</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_ONE_SHOT">GT:CHAN_BOND_ONE_SHOT</th>
+<th>2.0.23</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_USE">GT:CHAN_BOND_SEQ_2_USE</th>
+<th>4.0.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_CORRECT_USE">GT:CLK_CORRECT_USE</th>
+<th>2.0.10</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_INSERT_IDLE_FLAG">GT:CLK_COR_INSERT_IDLE_FLAG</th>
+<th>2.0.11</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_KEEP_IDLE">GT:CLK_COR_KEEP_IDLE</th>
+<th>2.0.12</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_USE">GT:CLK_COR_SEQ_2_USE</th>
+<th>2.0.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:DEC_MCOMMA_DETECT">GT:DEC_MCOMMA_DETECT</th>
+<th>2.0.32</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:DEC_PCOMMA_DETECT">GT:DEC_PCOMMA_DETECT</th>
+<th>2.0.31</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:DEC_VALID_COMMA_ONLY">GT:DEC_VALID_COMMA_ONLY</th>
+<th>2.0.30</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:ENABLE">GT:ENABLE</th>
+<th>0.0.74</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:MCOMMA_DETECT">GT:MCOMMA_DETECT</th>
+<th>1.0.22</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:PCOMMA_DETECT">GT:PCOMMA_DETECT</th>
+<th>1.0.34</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:REF_CLK_V_SEL">GT:REF_CLK_V_SEL</th>
+<th>0.0.2</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_BUFFER_USE">GT:RX_BUFFER_USE</th>
+<th>2.0.25</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_CRC_USE">GT:RX_CRC_USE</th>
+<th>3.0.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_DECODE_USE">GT:RX_DECODE_USE</th>
+<th>2.0.24</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_LOSS_OF_SYNC_FSM">GT:RX_LOSS_OF_SYNC_FSM</th>
+<th>4.0.23</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:SERDES_10B">GT:SERDES_10B</th>
+<th>0.0.35</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TEST_MODE_1">GT:TEST_MODE_1</th>
+<th>3.0.29</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TEST_MODE_2">GT:TEST_MODE_2</th>
+<th>3.0.30</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TEST_MODE_3">GT:TEST_MODE_3</th>
+<th>3.0.31</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TEST_MODE_4">GT:TEST_MODE_4</th>
+<th>3.0.32</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TEST_MODE_5">GT:TEST_MODE_5</th>
+<th>3.0.33</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TEST_MODE_6">GT:TEST_MODE_6</th>
+<th>3.0.34</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TX_BUFFER_USE">GT:TX_BUFFER_USE</th>
+<th>0.0.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TX_CRC_USE">GT:TX_CRC_USE</th>
+<th>0.0.37</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_LIMIT">GT:CHAN_BOND_LIMIT</th>
+<th>4.0.28</th>
+<th>4.0.27</th>
+<th>4.0.26</th>
+<th>4.0.25</th>
+<th>4.0.24</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_REPEAT_WAIT">GT:CLK_COR_REPEAT_WAIT</th>
+<th>2.0.17</th>
+<th>2.0.16</th>
+<th>2.0.15</th>
+<th>2.0.14</th>
+<th>2.0.13</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_MODE">GT:CHAN_BOND_MODE</th>
+<th>2.0.5</th>
+<th>2.0.4</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>NONE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>MASTER</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>SLAVE_1_HOP</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>SLAVE_2_HOPS</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_OFFSET">GT:CHAN_BOND_OFFSET</th>
+<th>2.0.9</th>
+<th>2.0.8</th>
+<th>2.0.7</th>
+<th>2.0.6</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_WAIT">GT:CHAN_BOND_WAIT</th>
+<th>4.0.32</th>
+<th>4.0.31</th>
+<th>4.0.30</th>
+<th>4.0.29</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_BUFFER_LIMIT">GT:RX_BUFFER_LIMIT</th>
+<th>2.0.29</th>
+<th>2.0.28</th>
+<th>2.0.27</th>
+<th>2.0.26</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_1">GT:CHAN_BOND_SEQ_1_1</th>
+<th>3.0.79</th>
+<th>3.0.78</th>
+<th>3.0.77</th>
+<th>3.0.76</th>
+<th>3.0.75</th>
+<th>3.0.74</th>
+<th>3.0.73</th>
+<th>3.0.72</th>
+<th>3.0.71</th>
+<th>3.0.70</th>
+<th>3.0.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_2">GT:CHAN_BOND_SEQ_1_2</th>
+<th>3.0.68</th>
+<th>3.0.67</th>
+<th>3.0.66</th>
+<th>3.0.65</th>
+<th>3.0.64</th>
+<th>3.0.63</th>
+<th>3.0.62</th>
+<th>3.0.61</th>
+<th>3.0.60</th>
+<th>3.0.59</th>
+<th>3.0.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_3">GT:CHAN_BOND_SEQ_1_3</th>
+<th>3.0.57</th>
+<th>3.0.56</th>
+<th>3.0.55</th>
+<th>3.0.54</th>
+<th>3.0.53</th>
+<th>3.0.52</th>
+<th>3.0.51</th>
+<th>3.0.50</th>
+<th>3.0.49</th>
+<th>3.0.48</th>
+<th>3.0.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_1_4">GT:CHAN_BOND_SEQ_1_4</th>
+<th>3.0.46</th>
+<th>3.0.45</th>
+<th>3.0.44</th>
+<th>3.0.43</th>
+<th>3.0.42</th>
+<th>3.0.41</th>
+<th>3.0.40</th>
+<th>3.0.39</th>
+<th>3.0.38</th>
+<th>3.0.37</th>
+<th>3.0.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_1">GT:CHAN_BOND_SEQ_2_1</th>
+<th>4.0.79</th>
+<th>4.0.78</th>
+<th>4.0.77</th>
+<th>4.0.76</th>
+<th>4.0.75</th>
+<th>4.0.74</th>
+<th>4.0.73</th>
+<th>4.0.72</th>
+<th>4.0.71</th>
+<th>4.0.70</th>
+<th>4.0.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_2">GT:CHAN_BOND_SEQ_2_2</th>
+<th>4.0.68</th>
+<th>4.0.67</th>
+<th>4.0.66</th>
+<th>4.0.65</th>
+<th>4.0.64</th>
+<th>4.0.63</th>
+<th>4.0.62</th>
+<th>4.0.61</th>
+<th>4.0.60</th>
+<th>4.0.59</th>
+<th>4.0.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_3">GT:CHAN_BOND_SEQ_2_3</th>
+<th>4.0.57</th>
+<th>4.0.56</th>
+<th>4.0.55</th>
+<th>4.0.54</th>
+<th>4.0.53</th>
+<th>4.0.52</th>
+<th>4.0.51</th>
+<th>4.0.50</th>
+<th>4.0.49</th>
+<th>4.0.48</th>
+<th>4.0.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_2_4">GT:CHAN_BOND_SEQ_2_4</th>
+<th>4.0.46</th>
+<th>4.0.45</th>
+<th>4.0.44</th>
+<th>4.0.43</th>
+<th>4.0.42</th>
+<th>4.0.41</th>
+<th>4.0.40</th>
+<th>4.0.39</th>
+<th>4.0.38</th>
+<th>4.0.37</th>
+<th>4.0.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_1">GT:CLK_COR_SEQ_1_1</th>
+<th>1.0.79</th>
+<th>1.0.78</th>
+<th>1.0.77</th>
+<th>1.0.76</th>
+<th>1.0.75</th>
+<th>1.0.74</th>
+<th>1.0.73</th>
+<th>1.0.72</th>
+<th>1.0.71</th>
+<th>1.0.70</th>
+<th>1.0.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_2">GT:CLK_COR_SEQ_1_2</th>
+<th>1.0.68</th>
+<th>1.0.67</th>
+<th>1.0.66</th>
+<th>1.0.65</th>
+<th>1.0.64</th>
+<th>1.0.63</th>
+<th>1.0.62</th>
+<th>1.0.61</th>
+<th>1.0.60</th>
+<th>1.0.59</th>
+<th>1.0.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_3">GT:CLK_COR_SEQ_1_3</th>
+<th>1.0.57</th>
+<th>1.0.56</th>
+<th>1.0.55</th>
+<th>1.0.54</th>
+<th>1.0.53</th>
+<th>1.0.52</th>
+<th>1.0.51</th>
+<th>1.0.50</th>
+<th>1.0.49</th>
+<th>1.0.48</th>
+<th>1.0.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_1_4">GT:CLK_COR_SEQ_1_4</th>
+<th>1.0.46</th>
+<th>1.0.45</th>
+<th>1.0.44</th>
+<th>1.0.43</th>
+<th>1.0.42</th>
+<th>1.0.41</th>
+<th>1.0.40</th>
+<th>1.0.39</th>
+<th>1.0.38</th>
+<th>1.0.37</th>
+<th>1.0.36</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_1">GT:CLK_COR_SEQ_2_1</th>
+<th>2.0.79</th>
+<th>2.0.78</th>
+<th>2.0.77</th>
+<th>2.0.76</th>
+<th>2.0.75</th>
+<th>2.0.74</th>
+<th>2.0.73</th>
+<th>2.0.72</th>
+<th>2.0.71</th>
+<th>2.0.70</th>
+<th>2.0.69</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_2">GT:CLK_COR_SEQ_2_2</th>
+<th>2.0.68</th>
+<th>2.0.67</th>
+<th>2.0.66</th>
+<th>2.0.65</th>
+<th>2.0.64</th>
+<th>2.0.63</th>
+<th>2.0.62</th>
+<th>2.0.61</th>
+<th>2.0.60</th>
+<th>2.0.59</th>
+<th>2.0.58</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_3">GT:CLK_COR_SEQ_2_3</th>
+<th>2.0.57</th>
+<th>2.0.56</th>
+<th>2.0.55</th>
+<th>2.0.54</th>
+<th>2.0.53</th>
+<th>2.0.52</th>
+<th>2.0.51</th>
+<th>2.0.50</th>
+<th>2.0.49</th>
+<th>2.0.48</th>
+<th>2.0.47</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_2_4">GT:CLK_COR_SEQ_2_4</th>
+<th>2.0.46</th>
+<th>2.0.45</th>
+<th>2.0.44</th>
+<th>2.0.43</th>
+<th>2.0.42</th>
+<th>2.0.41</th>
+<th>2.0.40</th>
+<th>2.0.39</th>
+<th>2.0.38</th>
+<th>2.0.37</th>
+<th>2.0.36</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[10]</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CHAN_BOND_SEQ_LEN">GT:CHAN_BOND_SEQ_LEN</th>
+<th>4.0.34</th>
+<th>4.0.33</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CLK_COR_SEQ_LEN">GT:CLK_COR_SEQ_LEN</th>
+<th>2.0.34</th>
+<th>2.0.33</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>2</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>3</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:COMMA_10B_MASK">GT:COMMA_10B_MASK</th>
+<th>1.0.1</th>
+<th>1.0.2</th>
+<th>1.0.3</th>
+<th>1.0.4</th>
+<th>1.0.5</th>
+<th>1.0.6</th>
+<th>1.0.7</th>
+<th>1.0.8</th>
+<th>1.0.9</th>
+<th>1.0.10</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:MCOMMA_10B_VALUE">GT:MCOMMA_10B_VALUE</th>
+<th>1.0.11</th>
+<th>1.0.12</th>
+<th>1.0.13</th>
+<th>1.0.14</th>
+<th>1.0.15</th>
+<th>1.0.16</th>
+<th>1.0.17</th>
+<th>1.0.18</th>
+<th>1.0.19</th>
+<th>1.0.20</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:PCOMMA_10B_VALUE">GT:PCOMMA_10B_VALUE</th>
+<th>1.0.23</th>
+<th>1.0.24</th>
+<th>1.0.25</th>
+<th>1.0.26</th>
+<th>1.0.27</th>
+<th>1.0.28</th>
+<th>1.0.29</th>
+<th>1.0.30</th>
+<th>1.0.31</th>
+<th>1.0.32</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[9]</td>
+<td>[8]</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CRC_END_OF_PKT">GT:CRC_END_OF_PKT</th>
+<th>0.0.20</th>
+<th>0.0.19</th>
+<th>0.0.18</th>
+<th>0.0.17</th>
+<th>0.0.16</th>
+<th>0.0.15</th>
+<th>0.0.14</th>
+<th>0.0.13</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CRC_START_OF_PKT">GT:CRC_START_OF_PKT</th>
+<th>0.0.12</th>
+<th>0.0.11</th>
+<th>0.0.10</th>
+<th>0.0.9</th>
+<th>0.0.8</th>
+<th>0.0.7</th>
+<th>0.0.6</th>
+<th>0.0.5</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>K28_0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_2</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_3</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_4</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_5</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K28_6</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K23_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>K27_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>K28_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>K29_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>K30_7</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:CRC_FORMAT">GT:CRC_FORMAT</th>
+<th>0.0.4</th>
+<th>0.0.3</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>USER_MODE</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>ETHERNET</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>INFINIBAND</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>FIBRE_CHAN</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_DATA_WIDTH">GT:RX_DATA_WIDTH</th>
+<th>2.0.1</th>
+<th>2.0.0</th>
+</tr>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TX_DATA_WIDTH">GT:TX_DATA_WIDTH</th>
+<th>0.0.1</th>
+<th>0.0.0</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>2</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_LOS_INVALID_INCR">GT:RX_LOS_INVALID_INCR</th>
+<th>4.0.22</th>
+<th>4.0.21</th>
+<th>4.0.20</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>1</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>4</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>8</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>16</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>32</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>64</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>128</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:RX_LOS_THRESHOLD">GT:RX_LOS_THRESHOLD</th>
+<th>4.0.19</th>
+<th>4.0.18</th>
+<th>4.0.17</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>4</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>8</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>16</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>32</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>64</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>128</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>256</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>512</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TERMINATION_IMP">GT:TERMINATION_IMP</th>
+<th>0.0.79</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>50</td>
+<td>0</td>
+</tr>
+<tr><td>75</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TX_CRC_FORCE_VALUE">GT:TX_CRC_FORCE_VALUE</th>
+<th>0.0.45</th>
+<th>0.0.44</th>
+<th>0.0.43</th>
+<th>0.0.42</th>
+<th>0.0.41</th>
+<th>0.0.40</th>
+<th>0.0.39</th>
+<th>0.0.38</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[7]</td>
+<td>[6]</td>
+<td>[5]</td>
+<td>[4]</td>
+<td>[3]</td>
+<td>[2]</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TX_DIFF_CTRL">GT:TX_DIFF_CTRL</th>
+<th>0.0.73</th>
+<th>0.0.78</th>
+<th>0.0.77</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>500</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr><td>400</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr><td>600</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr><td>700</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr><td>800</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table></div>
+<div class="table-wrapper"><table>
+<thead>
+<tr><th id="tile-virtex2-GIGABIT.T-GT:TX_PREEMPHASIS">GT:TX_PREEMPHASIS</th>
+<th>0.0.75</th>
+<th>0.0.76</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>
+non-inverted
+</td>
+<td>[1]</td>
+<td>[0]</td>
+</tr>
+</tbody>
+</table></div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../virtex2/ppc.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../virtex2/gt10.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../virtex2/ppc.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../virtex2/gt10.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

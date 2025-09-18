@@ -1,0 +1,446 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>DACI (UART) - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="daci-uart"><a class="header" href="#daci-uart">DACI (UART)</a></h1>
+<p>This subsystem implements an UART interface.  DACI stands for "asynchronous communication
+interface".</p>
+<p>The port properties for DACI are as follows:</p>
+<ul>
+<li>bit 0: port implements a DTE device</li>
+<li>bit 1: port implements a DCE device</li>
+<li>bit 2: port implements RTS/CTS hardware handshaking</li>
+<li>bit 3: port implements XON/XOFF hardware handshaking</li>
+<li>bit 4: port supports the <code>SET_BAUD</code> command</li>
+<li>bit 5: port supports setting of number of stop bits</li>
+<li>bit 6: port supports setting of number of data bits</li>
+<li>bit 7: port supports "none" parity</li>
+<li>bit 8: port supports "odd" parity</li>
+<li>bit 9: port supports "even" parity</li>
+<li>bit 10: port supports "mark" parity</li>
+<li>bit 11: port supports "space" parity</li>
+</ul>
+<h1 id="put"><a class="header" href="#put"><code>PUT</code></a></h1>
+<p>Transmits bytes.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x03</code> (long)</li>
+<li>command payload: 4 bytes:
+<ul>
+<li>bytes 0-3: byte count to send</li>
+</ul>
+</li>
+<li>response payload: none</li>
+<li>long data OUT: data to send</li>
+<li>long data IN: none</li>
+</ul>
+<h1 id="get"><a class="header" href="#get"><code>GET</code></a></h1>
+<p>Receives bytes.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x04</code> (long)</li>
+<li>command payload: 4 bytes:
+<ul>
+<li>bytes 0-3: max byte count to receive</li>
+</ul>
+</li>
+<li>response payload: none</li>
+<li>long data OUT: none</li>
+<li>long data IN: received data (up to the byte count specified in the command)</li>
+</ul>
+<p>This command may receive fewer bytes than asked for: the long response should
+be checked for the actual received byte count.</p>
+<h1 id="get_mode"><a class="header" href="#get_mode"><code>GET_MODE</code></a></h1>
+<p>Gets current UART mode.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x05</code> (short)</li>
+<li>command payload: none</li>
+<li>response payload: 3 bytes:
+<ul>
+<li>byte 0: number of data bits (5 to 8)</li>
+<li>byte 1: encoded number of stop bits:
+<ul>
+<li>1: 1 stop bit</li>
+<li>2: 1.5 stop bits</li>
+<li>3: 2 stop bits</li>
+</ul>
+</li>
+<li>byte 2: parity mode:
+<ul>
+<li>0: none</li>
+<li>1: odd</li>
+<li>2: even</li>
+<li>3: mark</li>
+<li>4: space</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="set_mode"><a class="header" href="#set_mode"><code>SET_MODE</code></a></h1>
+<p>Sets current UART mode.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x06</code> (short)</li>
+<li>command payload: 3 bytes:
+<ul>
+<li>byte 0: number of data bits (5 to 8)</li>
+<li>byte 1: encoded number of stop bits:
+<ul>
+<li>1: 1 stop bit</li>
+<li>2: 1.5 stop bits</li>
+<li>3: 2 stop bits</li>
+</ul>
+</li>
+<li>byte 2: parity mode:
+<ul>
+<li>0: none</li>
+<li>1: odd</li>
+<li>2: even</li>
+<li>3: mark</li>
+<li>4: space</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>response payload: none</li>
+</ul>
+<p>Note that not all ports support the full range of possible values.  Check with
+<code>GET_MODE</code> to see what mode has been actually set.</p>
+<h1 id="set_baud"><a class="header" href="#set_baud"><code>SET_BAUD</code></a></h1>
+<p>Sets the baud rate.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x07</code> (short)</li>
+<li>command payload: 32-bit word (requested baud rate)</li>
+<li>response payload: 32-bit word (actual baud rate)</li>
+</ul>
+<p>This command returns the actual baud rate used, as adjusted by the device
+to match hardware capabilities.</p>
+<p>TODO: driver seems to expect 8 bytes returned, but this looks like a bug</p>
+<h1 id="get_baud"><a class="header" href="#get_baud"><code>GET_BAUD</code></a></h1>
+<p>Gets the baud rate.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x08</code> (short)</li>
+<li>command payload: none</li>
+<li>response payload: 32-bit word (baud rate)</li>
+</ul>
+<h1 id="query_status"><a class="header" href="#query_status"><code>QUERY_STATUS</code></a></h1>
+<p>Gets the current status of the port.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x09</code> (short)</li>
+<li>command payload: none</li>
+<li>response payload: 8 bytes:
+<ul>
+<li>bytes 0-1: number of bytes currently in the transmit buffer</li>
+<li>bytes 2-3: number of bytes currently in the receive buffer</li>
+<li>bytes 4-7: flags:
+<ul>
+<li>bit 0: transmit buffer is halted</li>
+<li>bit 1: receive buffer is in blocking mode</li>
+<li>bit 2: transmit stalled due to flow control</li>
+<li>bit 3: receive stalled due to flow control</li>
+<li>bit 4: transmit flow control enabled</li>
+<li>bit 5: receive flow control enabled</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="get_buffer_size"><a class="header" href="#get_buffer_size"><code>GET_BUFFER_SIZE</code></a></h1>
+<p>Gets the buffer sizes on the device.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x0a</code> (short)</li>
+<li>command payload: none</li>
+<li>response payload: 4 bytes:
+<ul>
+<li>bytes 0-1: transmit buffer size in bytes</li>
+<li>bytes 2-3: receive buffer size in bytes</li>
+</ul>
+</li>
+</ul>
+<h1 id="purge_buffer"><a class="header" href="#purge_buffer"><code>PURGE_BUFFER</code></a></h1>
+<p>Purges (forcefully empties, discarding contents) transmit and/or receive buffers
+on the device.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x0b</code> (short)</li>
+<li>command payload: 2 bytes:
+<ul>
+<li>byte 0:
+<ul>
+<li>0: don't purge transmit buffer</li>
+<li>1: purge transmit buffer</li>
+</ul>
+</li>
+<li>byte 1:
+<ul>
+<li>0: don't purge receive buffer</li>
+<li>1: purge receive buffer</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>response payload: none</li>
+</ul>
+<h1 id="halt_tx"><a class="header" href="#halt_tx"><code>HALT_TX</code></a></h1>
+<p>Halts or unhalts the transmit buffer.  While the transmit buffer is halted,
+no bytes will be sent over the line, and <code>PUT</code> commands that would normally
+block waiting for buffer space will return an error instead.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x0c</code> (short)</li>
+<li>command payload: 1 byte:
+<ul>
+<li>0: unhalt transmit buffer</li>
+<li>1: halt transmit buffer</li>
+</ul>
+</li>
+<li>response payload: none</li>
+</ul>
+<h1 id="set_rx_block"><a class="header" href="#set_rx_block"><code>SET_RX_BLOCK</code></a></h1>
+<p>Sets the receive buffer to blocking or non-blocking mode.  When in non-blocking
+mode, <code>GET</code> command will always return immediately, returning whatever is available
+in the buffer.  When in blocking mode, it will wait for the full number of requested
+bytes to be available.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x0d</code> (short)</li>
+<li>command payload: 1 byte:
+<ul>
+<li>0: set non-blocking mode</li>
+<li>1: set blocking mode</li>
+</ul>
+</li>
+<li>response payload: none</li>
+</ul>
+<h1 id="set_rts_cts_enable"><a class="header" href="#set_rts_cts_enable"><code>SET_RTS_CTS_ENABLE</code></a></h1>
+<p>Enables or disables hardware RTS/CTS control flow.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x0e</code> (short)</li>
+<li>command payload: 1 byte:
+<ul>
+<li>0: disable RTS/CTS control flow</li>
+<li>1: enable RTS/CTS control flow</li>
+</ul>
+</li>
+<li>response payload: none</li>
+</ul>
+<h1 id="set_xon_xoff_enable"><a class="header" href="#set_xon_xoff_enable"><code>SET_XON_XOFF_ENABLE</code></a></h1>
+<p>Enables or disables hardware XON/XOFF control flow.</p>
+<ul>
+<li>subsystem: <code>0x08</code> (DACI)</li>
+<li>command type: <code>0x0f</code> (short)</li>
+<li>command payload: 1 byte:
+<ul>
+<li>0: disable XON/XOFF control flow</li>
+<li>1: enable XON/XOFF control flow</li>
+</ul>
+</li>
+<li>response payload: none</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../digilent/dtwi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../digilent/devices.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../digilent/dtwi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../digilent/devices.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

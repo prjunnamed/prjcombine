@@ -1,0 +1,248 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>JTAG - Project Combine</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../custom.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                    </div>
+
+                    <h1 class="menu-title">Project Combine</h1>
+
+                    <div class="right-buttons">
+
+                    </div>
+                </div>
+
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="jtag-interface"><a class="header" href="#jtag-interface">JTAG interface</a></h1>
+<h2 id="ir"><a class="header" href="#ir">IR</a></h2>
+<p>The IR is 8 bits long.  The following instructions exist:</p>
+<div class="table-wrapper"><table><thead><tr><th>IR</th><th>Instruction</th><th>Register</th></tr></thead><tbody>
+<tr><td><code>00000000</code></td><td><code>EXTEST</code></td><td><code>BOUNDARY</code></td></tr>
+<tr><td><code>00000001</code></td><td><code>IDCODE</code></td><td><code>IDCODE</code></td></tr>
+<tr><td><code>00000010</code></td><td><code>INTEST</code></td><td><code>BOUNDARY</code></td></tr>
+<tr><td><code>00000011</code></td><td><code>SAMPLE</code></td><td><code>BOUNDARY</code></td></tr>
+<tr><td><code>00010001</code></td><td><code>TEST_ENABLE</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>00010010</code></td><td><code>BULKPROG</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>00010011</code></td><td><code>MVERIFY</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>00010100</code></td><td><code>ERASE_ALL</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>00010101</code></td><td><code>TEST_DISABLE</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>00010110</code></td><td><code>STCTEST</code></td><td><code>STC</code></td></tr>
+<tr><td><code>11000000</code></td><td><code>ISC_DISABLE</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11100000</code></td><td><code>ISC_NOOP</code></td><td><code>BYPASS</code></td></tr>
+<tr><td><code>11100100</code></td><td><code>ISC_ENABLE_OTF</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11100110</code></td><td><code>ISC_SRAM_WRITE</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11100111</code></td><td><code>ISC_SRAM_READ</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11101000</code></td><td><code>ISC_ENABLE</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11101001</code></td><td><code>ISC_ENABLE_CLAMP</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11101010</code></td><td><code>ISC_PROGRAM</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11101101</code></td><td><code>ISC_ERASE</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11101110</code></td><td><code>ISC_READ</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11110000</code></td><td><code>ISC_INIT</code></td><td><code>DATAREG</code></td></tr>
+<tr><td><code>11111010</code></td><td><code>CLAMP</code></td><td><code>BYPASS</code></td></tr>
+<tr><td><code>11111100</code></td><td><code>HIGHZ</code></td><td><code>BYPASS</code></td></tr>
+<tr><td><code>11111101</code></td><td><code>USERCODE</code></td><td><code>USERCODE</code></td></tr>
+<tr><td><code>11111111</code></td><td><code>BYPASS</code></td><td><code>BYPASS</code></td></tr>
+</tbody></table>
+</div>
+<p>The IR status is:</p>
+<ul>
+<li>bit 0: const 1</li>
+<li>bit 1: const 0</li>
+<li>bits 2-7: ???</li>
+</ul>
+<p>TODO: completely unverified from BSDL; DR assignments are suspect</p>
+<h2 id="boundary-scan-register"><a class="header" href="#boundary-scan-register">Boundary scan register</a></h2>
+<p>TODO: write me</p>
+<h2 id="isp-instructions"><a class="header" href="#isp-instructions">ISP instructions</a></h2>
+<p>TODO: write me</p>
+<h2 id="programming-sequence"><a class="header" href="#programming-sequence">Programming sequence</a></h2>
+<p>TODO: write me</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../coolrunner2/database.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../coolrunner2/devices/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../coolrunner2/database.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../coolrunner2/devices/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
