@@ -153,15 +153,15 @@ impl ExpandedDevice<'_> {
     pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
         let tile = &self[tcrd];
         let kind = self.db.tile_classes.key(tile.class).as_str();
-        if kind == "BRAM" {
+        if kind.starts_with("BRAM_") {
             vec![
                 self.btile_main(tcrd.col, tcrd.row),
                 self.btile_main(tcrd.col, tcrd.row + 1),
                 self.btile_bram(tcrd.col, tcrd.row),
             ]
-        } else if kind == "GB_ROOT" {
+        } else if kind.starts_with("GB_ROOT_") {
             self.btile_clock().to_vec()
-        } else if kind == "PLL_S" && self.chip.kind.is_ice65() {
+        } else if kind == "PLL_S_P04" {
             self.btile_pll().to_vec()
         } else {
             Vec::from_iter(
