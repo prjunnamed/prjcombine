@@ -103,7 +103,7 @@ unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "serde", "bin
 bitvec = { version = "1.0", features = ["serde"] }
 itertools = "0.14"
 arrayvec = "0.7.6"
-ndarray = { version = "0.16", features = ["serde"] }
+ndarray = { version = "0.17", features = ["serde"] }
 bimap = "0.6"
 arrayref = "0.3.6"
 assert_matches = "1.5"
