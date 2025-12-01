@@ -5,11 +5,10 @@ use std::{
 
 use clap::{Arg, ArgMatches, Command};
 use coolrunner2::gen_coolrunner2;
-use mdbook::{
-    BookItem,
-    book::{Book, Chapter},
+use mdbook_preprocessor::{
+    Preprocessor, PreprocessorContext,
+    book::{Book, BookItem, Chapter},
     errors::{Error, Result},
-    preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext},
 };
 use semver::{Version, VersionReq};
 use siliconblue::gen_siliconblue;
@@ -62,17 +61,17 @@ fn main() {
 }
 
 fn handle_preprocessing(pre: &dyn Preprocessor) -> Result<(), Error> {
-    let (ctx, book) = CmdPreprocessor::parse_input(io::stdin())?;
+    let (ctx, book) = mdbook_preprocessor::parse_input(io::stdin())?;
 
     let book_version = Version::parse(&ctx.mdbook_version)?;
-    let version_req = VersionReq::parse(mdbook::MDBOOK_VERSION)?;
+    let version_req = VersionReq::parse(mdbook_preprocessor::MDBOOK_VERSION)?;
 
     if !version_req.matches(&book_version) {
         eprintln!(
             "Warning: The {} plugin was built against version {} of mdbook, \
              but we're being called from version {}",
             pre.name(),
-            mdbook::MDBOOK_VERSION,
+            mdbook_preprocessor::MDBOOK_VERSION,
             ctx.mdbook_version
         );
     }
@@ -87,7 +86,7 @@ fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
     let renderer = sub_args
         .get_one::<String>("renderer")
         .expect("Required argument");
-    let supported = pre.supports_renderer(renderer);
+    let supported = pre.supports_renderer(renderer).unwrap();
 
     // Signal whether the renderer is supported by exiting with 1 or 0.
     if supported {

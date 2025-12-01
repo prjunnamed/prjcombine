@@ -1,9 +1,11 @@
 [book]
 authors = ["Wanda"]
 language = "en"
-multilingual = false
 src = "src"
 title = "Project Combine"
+
+[build]
+extra-watch-dirs = ["../databases"]
 
 [preprocessor.prjcombine-docgen]
 command = "cargo run -q --bin prjcombine-docgen --"
@@ -20,4 +22,4 @@ enable = false
 
 [output.html.fold]
 enable = true
-depth = 1
+level = 1
