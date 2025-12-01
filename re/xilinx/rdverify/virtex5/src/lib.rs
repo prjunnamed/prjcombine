@@ -1129,12 +1129,8 @@ fn verify_mgt_conn(
                 obel.fwire(&format!("MGT{i}")),
             ]);
         }
-    } else if !is_l && endev.edev.col_rio.is_some() {
-        let obel = vrf.get_bel(
-            bel.cell
-                .with_col(endev.edev.col_rio.unwrap())
-                .bel(bels::RCLK),
-        );
+    } else if !is_l && let Some(col_rio) = endev.edev.col_rio {
+        let obel = vrf.get_bel(bel.cell.with_col(col_rio).bel(bels::RCLK));
         for i in 0..5 {
             vrf.verify_net(&[
                 bel.fwire(&format!("{pref}{i}")),

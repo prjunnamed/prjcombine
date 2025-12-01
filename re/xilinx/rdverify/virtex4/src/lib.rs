@@ -332,7 +332,7 @@ fn verify_bufg_mgtclk_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel:
 }
 
 fn verify_bufg_mgtclk_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    if endev.edev.col_lgt.is_some() {
+    if let Some(col_lgt) = endev.edev.col_lgt {
         for (pin_i, pin_o) in [
             ("MGT_L0_I", "MGT_L0_O"),
             ("MGT_L1_I", "MGT_L1_O"),
@@ -352,11 +352,7 @@ fn verify_bufg_mgtclk_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel:
             16 => (srow - 16, bels::GT11_1),
             _ => unreachable!(),
         };
-        let obel = vrf.get_bel(
-            bel.cell
-                .with_cr(endev.edev.col_lgt.unwrap(), srow)
-                .bel(oslot),
-        );
+        let obel = vrf.get_bel(bel.cell.with_cr(col_lgt, srow).bel(oslot));
         vrf.verify_net(&[bel.fwire("MGT_L0_I"), obel.fwire("MGT0")]);
         vrf.verify_net(&[bel.fwire("MGT_L1_I"), obel.fwire("MGT1")]);
         let obel = vrf.get_bel(
@@ -823,17 +819,13 @@ fn verify_hclk_dcm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCon
         vrf.claim_net(&wires_s[i]);
         vrf.claim_net(&wires_n[i]);
     }
-    if endev.edev.col_lgt.is_some() {
+    if let Some(col_lgt) = endev.edev.col_lgt {
         let (srow, oslot) = match bel.row.to_idx() % 32 {
             8 => (bel.row - 8, bels::GT11_0),
             24 => (bel.row - 24, bels::GT11_1),
             _ => unreachable!(),
         };
-        let obel = vrf.get_bel(
-            bel.cell
-                .with_cr(endev.edev.col_lgt.unwrap(), srow)
-                .bel(oslot),
-        );
+        let obel = vrf.get_bel(bel.cell.with_cr(col_lgt, srow).bel(oslot));
         vrf.verify_net(&[bel.fwire("MGT_I0"), obel.fwire("MGT0")]);
         vrf.verify_net(&[bel.fwire("MGT_I1"), obel.fwire("MGT1")]);
         let obel = vrf.get_bel(
