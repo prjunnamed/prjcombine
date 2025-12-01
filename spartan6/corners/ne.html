@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../../favicon.svg">
-        <link rel="shortcut icon" href="../../favicon.png">
-        <link rel="stylesheet" href="../../css/variables.css">
-        <link rel="stylesheet" href="../../css/general.css">
-        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../../fonts/fonts.css">
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../../custom.css">
+        <link rel="stylesheet" href="../../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc.js"></script>
+        <script src="../../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,179 +142,316 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="north-east"><a class="header" href="#north-east">North-east</a></h1>
 <h2 id="tile-ur"><a class="header" href="#tile-ur">Tile UR</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-oct_cal5"><a class="header" href="#bel-oct_cal5">Bel OCT_CAL5</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bel OCT_CAL5</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>S0</td><td>input</td><td>TCELL0:IMUX.LOGICIN29</td></tr>
+
 <tr><td>S1</td><td>input</td><td>TCELL0:IMUX.LOGICIN32</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bscan0"><a class="header" href="#bel-bscan0">Bel BSCAN0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bel BSCAN0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CAPTURE</td><td>output</td><td>TCELL1:OUT0.TMIN</td></tr>
+
 <tr><td>DRCK</td><td>output</td><td>TCELL1:OUT1.TMIN</td></tr>
+
 <tr><td>RESET</td><td>output</td><td>TCELL1:OUT2.TMIN</td></tr>
+
 <tr><td>RUNTEST</td><td>output</td><td>TCELL1:OUT3.TMIN</td></tr>
+
 <tr><td>SEL</td><td>output</td><td>TCELL1:OUT9.TMIN</td></tr>
+
 <tr><td>SHIFT</td><td>output</td><td>TCELL1:OUT4.TMIN</td></tr>
+
 <tr><td>TCK</td><td>output</td><td>TCELL1:OUT5.TMIN</td></tr>
+
 <tr><td>TDI</td><td>output</td><td>TCELL1:OUT6.TMIN</td></tr>
+
 <tr><td>TDO</td><td>input</td><td>TCELL1:IMUX.LOGICIN1</td></tr>
+
 <tr><td>TMS</td><td>output</td><td>TCELL1:OUT7.TMIN</td></tr>
+
 <tr><td>UPDATE</td><td>output</td><td>TCELL1:OUT8.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bscan1"><a class="header" href="#bel-bscan1">Bel BSCAN1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bel BSCAN1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CAPTURE</td><td>output</td><td>TCELL1:OUT10.TMIN</td></tr>
+
 <tr><td>DRCK</td><td>output</td><td>TCELL1:OUT11.TMIN</td></tr>
+
 <tr><td>RESET</td><td>output</td><td>TCELL1:OUT12.TMIN</td></tr>
+
 <tr><td>RUNTEST</td><td>output</td><td>TCELL1:OUT13.TMIN</td></tr>
+
 <tr><td>SEL</td><td>output</td><td>TCELL1:OUT19.TMIN</td></tr>
+
 <tr><td>SHIFT</td><td>output</td><td>TCELL1:OUT14.TMIN</td></tr>
+
 <tr><td>TCK</td><td>output</td><td>TCELL1:OUT15.TMIN</td></tr>
+
 <tr><td>TDI</td><td>output</td><td>TCELL1:OUT16.TMIN</td></tr>
+
 <tr><td>TDO</td><td>input</td><td>TCELL1:IMUX.LOGICIN2</td></tr>
+
 <tr><td>TMS</td><td>output</td><td>TCELL1:OUT17.TMIN</td></tr>
+
 <tr><td>UPDATE</td><td>output</td><td>TCELL1:OUT18.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bscan2"><a class="header" href="#bel-bscan2">Bel BSCAN2</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bel BSCAN2</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CAPTURE</td><td>output</td><td>TCELL0:OUT0.TMIN</td></tr>
+
 <tr><td>DRCK</td><td>output</td><td>TCELL0:OUT1.TMIN</td></tr>
+
 <tr><td>RESET</td><td>output</td><td>TCELL0:OUT2.TMIN</td></tr>
+
 <tr><td>RUNTEST</td><td>output</td><td>TCELL0:OUT3.TMIN</td></tr>
+
 <tr><td>SEL</td><td>output</td><td>TCELL0:OUT9.TMIN</td></tr>
+
 <tr><td>SHIFT</td><td>output</td><td>TCELL0:OUT4.TMIN</td></tr>
+
 <tr><td>TCK</td><td>output</td><td>TCELL0:OUT5.TMIN</td></tr>
+
 <tr><td>TDI</td><td>output</td><td>TCELL0:OUT6.TMIN</td></tr>
+
 <tr><td>TDO</td><td>input</td><td>TCELL0:IMUX.LOGICIN1</td></tr>
+
 <tr><td>TMS</td><td>output</td><td>TCELL0:OUT7.TMIN</td></tr>
+
 <tr><td>UPDATE</td><td>output</td><td>TCELL0:OUT8.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bscan3"><a class="header" href="#bel-bscan3">Bel BSCAN3</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bel BSCAN3</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CAPTURE</td><td>output</td><td>TCELL0:OUT10.TMIN</td></tr>
+
 <tr><td>DRCK</td><td>output</td><td>TCELL0:OUT11.TMIN</td></tr>
+
 <tr><td>RESET</td><td>output</td><td>TCELL0:OUT12.TMIN</td></tr>
+
 <tr><td>RUNTEST</td><td>output</td><td>TCELL0:OUT13.TMIN</td></tr>
+
 <tr><td>SEL</td><td>output</td><td>TCELL0:OUT19.TMIN</td></tr>
+
 <tr><td>SHIFT</td><td>output</td><td>TCELL0:OUT14.TMIN</td></tr>
+
 <tr><td>TCK</td><td>output</td><td>TCELL0:OUT15.TMIN</td></tr>
+
 <tr><td>TDI</td><td>output</td><td>TCELL0:OUT16.TMIN</td></tr>
+
 <tr><td>TDO</td><td>input</td><td>TCELL0:IMUX.LOGICIN2</td></tr>
+
 <tr><td>TMS</td><td>output</td><td>TCELL0:OUT17.TMIN</td></tr>
+
 <tr><td>UPDATE</td><td>output</td><td>TCELL0:OUT18.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LOGICIN1</td><td>BSCAN2.TDO</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN2</td><td>BSCAN3.TDO</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN29</td><td>OCT_CAL5.S0</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN32</td><td>OCT_CAL5.S1</td></tr>
+
 <tr><td>TCELL0:OUT0.TMIN</td><td>BSCAN2.CAPTURE</td></tr>
+
 <tr><td>TCELL0:OUT1.TMIN</td><td>BSCAN2.DRCK</td></tr>
+
 <tr><td>TCELL0:OUT2.TMIN</td><td>BSCAN2.RESET</td></tr>
+
 <tr><td>TCELL0:OUT3.TMIN</td><td>BSCAN2.RUNTEST</td></tr>
+
 <tr><td>TCELL0:OUT4.TMIN</td><td>BSCAN2.SHIFT</td></tr>
+
 <tr><td>TCELL0:OUT5.TMIN</td><td>BSCAN2.TCK</td></tr>
+
 <tr><td>TCELL0:OUT6.TMIN</td><td>BSCAN2.TDI</td></tr>
+
 <tr><td>TCELL0:OUT7.TMIN</td><td>BSCAN2.TMS</td></tr>
+
 <tr><td>TCELL0:OUT8.TMIN</td><td>BSCAN2.UPDATE</td></tr>
+
 <tr><td>TCELL0:OUT9.TMIN</td><td>BSCAN2.SEL</td></tr>
+
 <tr><td>TCELL0:OUT10.TMIN</td><td>BSCAN3.CAPTURE</td></tr>
+
 <tr><td>TCELL0:OUT11.TMIN</td><td>BSCAN3.DRCK</td></tr>
+
 <tr><td>TCELL0:OUT12.TMIN</td><td>BSCAN3.RESET</td></tr>
+
 <tr><td>TCELL0:OUT13.TMIN</td><td>BSCAN3.RUNTEST</td></tr>
+
 <tr><td>TCELL0:OUT14.TMIN</td><td>BSCAN3.SHIFT</td></tr>
+
 <tr><td>TCELL0:OUT15.TMIN</td><td>BSCAN3.TCK</td></tr>
+
 <tr><td>TCELL0:OUT16.TMIN</td><td>BSCAN3.TDI</td></tr>
+
 <tr><td>TCELL0:OUT17.TMIN</td><td>BSCAN3.TMS</td></tr>
+
 <tr><td>TCELL0:OUT18.TMIN</td><td>BSCAN3.UPDATE</td></tr>
+
 <tr><td>TCELL0:OUT19.TMIN</td><td>BSCAN3.SEL</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN1</td><td>BSCAN0.TDO</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN2</td><td>BSCAN1.TDO</td></tr>
+
 <tr><td>TCELL1:OUT0.TMIN</td><td>BSCAN0.CAPTURE</td></tr>
+
 <tr><td>TCELL1:OUT1.TMIN</td><td>BSCAN0.DRCK</td></tr>
+
 <tr><td>TCELL1:OUT2.TMIN</td><td>BSCAN0.RESET</td></tr>
+
 <tr><td>TCELL1:OUT3.TMIN</td><td>BSCAN0.RUNTEST</td></tr>
+
 <tr><td>TCELL1:OUT4.TMIN</td><td>BSCAN0.SHIFT</td></tr>
+
 <tr><td>TCELL1:OUT5.TMIN</td><td>BSCAN0.TCK</td></tr>
+
 <tr><td>TCELL1:OUT6.TMIN</td><td>BSCAN0.TDI</td></tr>
+
 <tr><td>TCELL1:OUT7.TMIN</td><td>BSCAN0.TMS</td></tr>
+
 <tr><td>TCELL1:OUT8.TMIN</td><td>BSCAN0.UPDATE</td></tr>
+
 <tr><td>TCELL1:OUT9.TMIN</td><td>BSCAN0.SEL</td></tr>
+
 <tr><td>TCELL1:OUT10.TMIN</td><td>BSCAN1.CAPTURE</td></tr>
+
 <tr><td>TCELL1:OUT11.TMIN</td><td>BSCAN1.DRCK</td></tr>
+
 <tr><td>TCELL1:OUT12.TMIN</td><td>BSCAN1.RESET</td></tr>
+
 <tr><td>TCELL1:OUT13.TMIN</td><td>BSCAN1.RUNTEST</td></tr>
+
 <tr><td>TCELL1:OUT14.TMIN</td><td>BSCAN1.SHIFT</td></tr>
+
 <tr><td>TCELL1:OUT15.TMIN</td><td>BSCAN1.TCK</td></tr>
+
 <tr><td>TCELL1:OUT16.TMIN</td><td>BSCAN1.TDI</td></tr>
+
 <tr><td>TCELL1:OUT17.TMIN</td><td>BSCAN1.TMS</td></tr>
+
 <tr><td>TCELL1:OUT18.TMIN</td><td>BSCAN1.UPDATE</td></tr>
+
 <tr><td>TCELL1:OUT19.TMIN</td><td>BSCAN1.SEL</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 UR bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="23">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -341,7 +477,9 @@
 <th>21</th>
 <th>22</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>56</td>
 <td>-</td>
@@ -370,6 +508,7 @@
 <a href="#tile-spartan6-UR-MISC:MISR_H_RESET">MISC:MISR_H_RESET</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -397,6 +536,7 @@
 <a href="#tile-spartan6-UR-MISC:MISR_H_ENABLE">MISC:MISR_H_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -424,6 +564,7 @@
 <a href="#tile-spartan6-UR-MISC:MISR_V_RESET">MISC:MISR_V_RESET</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -451,6 +592,7 @@
 <a href="#tile-spartan6-UR-MISC:MISR_V_ENABLE">MISC:MISR_V_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -478,6 +620,7 @@
 <a href="#tile-spartan6-UR-OCT_CAL5:VREF_VALUE">OCT_CAL5:VREF_VALUE[1]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -505,6 +648,7 @@
 <a href="#tile-spartan6-UR-OCT_CAL5:VREF_VALUE">OCT_CAL5:VREF_VALUE[0]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -530,6 +674,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -557,6 +702,7 @@
 <a href="#tile-spartan6-UR-OCT_CAL5:ACCESS_MODE">OCT_CAL5:ACCESS_MODE[0]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -582,6 +728,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -609,6 +756,7 @@
 <a href="#tile-spartan6-UR-MISC:TDOPIN">MISC:TDOPIN[0]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -636,6 +784,7 @@
 <a href="#tile-spartan6-UR-MISC:TDOPIN">MISC:TDOPIN[1]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -663,6 +812,7 @@
 <a href="#tile-spartan6-UR-MISC:TMSPIN">MISC:TMSPIN[0]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -690,6 +840,7 @@
 <a href="#tile-spartan6-UR-MISC:TMSPIN">MISC:TMSPIN[1]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -717,6 +868,7 @@
 <a href="#tile-spartan6-UR-MISC:CSO2PIN">MISC:CSO2PIN[0]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -744,6 +896,7 @@
 <a href="#tile-spartan6-UR-MISC:CSO2PIN">MISC:CSO2PIN[1]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -771,6 +924,7 @@
 <a href="#tile-spartan6-UR-MISC:TDIPIN">MISC:TDIPIN[0]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -798,6 +952,7 @@
 <a href="#tile-spartan6-UR-MISC:TDIPIN">MISC:TDIPIN[1]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -825,6 +980,7 @@
 <a href="#tile-spartan6-UR-MISC:TCKPIN">MISC:TCKPIN[0]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -852,6 +1008,7 @@
 <a href="#tile-spartan6-UR-MISC:TCKPIN">MISC:TCKPIN[1]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -877,6 +1034,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -904,6 +1062,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:JTAG_TEST">BSCAN_COMMON:JTAG_TEST</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -931,6 +1090,7 @@
 <a href="#tile-spartan6-UR-BSCAN3:ENABLE">BSCAN3:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -958,6 +1118,7 @@
 <a href="#tile-spartan6-UR-BSCAN2:ENABLE">BSCAN2:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -985,6 +1146,7 @@
 <a href="#tile-spartan6-UR-BSCAN1:ENABLE">BSCAN1:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -1012,6 +1174,7 @@
 <a href="#tile-spartan6-UR-BSCAN0:ENABLE">BSCAN0:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -1039,6 +1202,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[31]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -1066,6 +1230,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[30]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -1093,6 +1258,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[29]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -1120,6 +1286,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[28]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -1147,6 +1314,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[27]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -1174,6 +1342,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[26]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -1201,6 +1370,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[25]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -1228,6 +1398,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[24]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -1255,6 +1426,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[23]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -1282,6 +1454,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[22]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -1309,6 +1482,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[21]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -1336,6 +1510,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[20]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -1363,6 +1538,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[19]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -1390,6 +1566,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[18]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -1417,6 +1594,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[17]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -1444,6 +1622,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[16]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -1471,6 +1650,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[15]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -1498,6 +1678,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[14]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -1525,6 +1706,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[13]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -1552,6 +1734,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[12]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -1579,6 +1762,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[11]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -1606,6 +1790,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[10]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -1633,6 +1818,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[9]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -1660,6 +1846,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[8]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1687,6 +1874,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[7]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1714,6 +1902,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[6]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1741,6 +1930,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[5]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1768,6 +1958,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[4]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1795,6 +1986,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[3]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1822,6 +2014,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[2]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1849,6 +2042,7 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[1]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1876,47 +2070,67 @@
 <a href="#tile-spartan6-UR-BSCAN_COMMON:USERID">~BSCAN_COMMON:USERID[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-UR-BSCAN0:ENABLE">BSCAN0:ENABLE</th>
 <th>1.22.32</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-BSCAN1:ENABLE">BSCAN1:ENABLE</th>
 <th>1.22.33</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-BSCAN2:ENABLE">BSCAN2:ENABLE</th>
 <th>1.22.34</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-BSCAN3:ENABLE">BSCAN3:ENABLE</th>
 <th>1.22.35</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-BSCAN_COMMON:JTAG_TEST">BSCAN_COMMON:JTAG_TEST</th>
 <th>1.22.36</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:MISR_H_ENABLE">MISC:MISR_H_ENABLE</th>
 <th>1.22.55</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:MISR_H_RESET">MISC:MISR_H_RESET</th>
 <th>1.22.56</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:MISR_V_ENABLE">MISC:MISR_V_ENABLE</th>
 <th>1.22.53</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:MISR_V_RESET">MISC:MISR_V_RESET</th>
 <th>1.22.54</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-UR-BSCAN_COMMON:USERID">BSCAN_COMMON:USERID</th>
 <th>1.22.31</th>
@@ -1952,7 +2166,9 @@ non-inverted
 <th>1.22.1</th>
 <th>1.22.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
@@ -1990,98 +2206,133 @@ inverted
 <td>~[1]</td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-UR-MISC:CSO2PIN">MISC:CSO2PIN</th>
 <th>1.22.42</th>
 <th>1.22.43</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:TCKPIN">MISC:TCKPIN</th>
 <th>1.22.38</th>
 <th>1.22.39</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:TDIPIN">MISC:TDIPIN</th>
 <th>1.22.40</th>
 <th>1.22.41</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:TDOPIN">MISC:TDOPIN</th>
 <th>1.22.46</th>
 <th>1.22.47</th>
 </tr>
+
 <tr><th id="tile-spartan6-UR-MISC:TMSPIN">MISC:TMSPIN</th>
 <th>1.22.44</th>
 <th>1.22.45</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PULLUP</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>PULLNONE</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PULLDOWN</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-UR-OCT_CAL5:ACCESS_MODE">OCT_CAL5:ACCESS_MODE</th>
 <th>1.22.49</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>STATIC</td>
 <td>0</td>
 </tr>
+
 <tr><td>USER</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-UR-OCT_CAL5:VREF_VALUE">OCT_CAL5:VREF_VALUE</th>
 <th>1.22.52</th>
 <th>1.22.51</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>0.25</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>0.75</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>0.5</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../../spartan6/corners/se.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../../spartan6/config.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -2091,16 +2342,21 @@ inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../../spartan6/corners/se.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../../spartan6/config.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -2110,9 +2366,9 @@ inverted
 
 
 
-        <script src="../../clipboard.min.js"></script>
-        <script src="../../highlight.js"></script>
-        <script src="../../book.js"></script>
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

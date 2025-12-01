@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,20 +142,20 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="general-interconnect"><a class="header" href="#general-interconnect">General interconnect</a></h1>
 <p>The SiliconBlue general interconnect structure involves the following tile types:</p>
 <ul>
-<li><code>PLB</code> and <code>INT_BRAM</code>: the "center" tiles of the interconnect, connecting to four neighbouring tiles</li>
-<li><code>IOI_W</code>, <code>IOI_E</code>, <code>IOI_S</code>, <code>IOI_N</code>: the "edge" tiles of the interconnect, connecting to three neighbouring tiles</li>
+<li><code>PLB</code> and <code>INT_BRAM</code>: the “center” tiles of the interconnect, connecting to four neighbouring tiles</li>
+<li><code>IOI_W</code>, <code>IOI_E</code>, <code>IOI_S</code>, <code>IOI_N</code>: the “edge” tiles of the interconnect, connecting to three neighbouring tiles</li>
 </ul>
 <h2 id="global-wires"><a class="header" href="#global-wires"><code>GLOBAL</code> wires</a></h2>
 <p>There are 8 global wires:</p>
@@ -184,7 +183,7 @@ are driven by the various bels within the FPGA:</p>
 <li><code>OUT.LC[37]</code> is <code>IO1.DIN1</code></li>
 </ul>
 </li>
-<li>corner tiles: there's only one distinct wire (all 8 wires are aliased to each other)</li>
+<li>corner tiles: there’s only one distinct wire (all 8 wires are aliased to each other)</li>
 </ul>
 </li>
 </ul>
@@ -247,12 +246,12 @@ are driven by the various bels within the FPGA:</p>
 <p>The <code>LONG</code> wires can be driven:</p>
 <ul>
 <li>at many points along the wire: from <code>OUT</code> wires</li>
-<li>at endpoints within "center" tiles: from endpoints of other <code>LONG</code> wires</li>
+<li>at endpoints within “center” tiles: from endpoints of other <code>LONG</code> wires</li>
 </ul>
 <p>The <code>QUAD</code> wires can be driven:</p>
 <ul>
 <li>at many points along the wire: from <code>OUT</code> wires</li>
-<li>at endpoints within "center" tiles: from endpoints of other <code>QUAD</code> wires</li>
+<li>at endpoints within “center” tiles: from endpoints of other <code>QUAD</code> wires</li>
 <li>at <code>.1</code> (for horizontal wires) or <code>.3</code> (for vertical wires): from various segments of <code>LONG</code> wires of the same direction</li>
 <li>at <code>IO</code> tiles: from other <code>QUAD</code> wires</li>
 </ul>
@@ -276,1333 +275,2086 @@ are driven by the various bels within the FPGA:</p>
 <h2 id="imux-wires"><a class="header" href="#imux-wires"><code>IMUX</code> wires</a></h2>
 <p><code>IMUX</code> wires directly drive bel inputs.  <code>PLB</code> and <code>INT_BRAM</code> tiles contain the following wires:</p>
 <ul>
-<li><code>IMUX.LC[0-7].I[0-3]</code>: "normal" inputs; in <code>PLB</code> tiles, they correspond to LCs in the obvious way</li>
+<li><code>IMUX.LC[0-7].I[0-3]</code>: “normal” inputs; in <code>PLB</code> tiles, they correspond to LCs in the obvious way</li>
 <li><code>IMUX.CLK</code>: a clock input; freely invertible, can be driven directly by all <code>GLOBAL</code> wires</li>
 <li><code>IMUX.CE</code>: a clock enable input; gates the <code>IMUX.CLK</code> input, can be driven directly by some <code>GLOBAL</code> wires</li>
 <li><code>IMUX.RST</code>: a reset input; can be driven directly by some <code>GLOBAL</code> wires</li>
 </ul>
 <p><code>IOI_*</code> tiles contain the following wires:</p>
 <ul>
-<li><code>IMUX.IO[0-1].DOUT[0-1]</code>: "normal" inputs, I/O data</li>
-<li><code>IMUX.IO[0-1].OE</code>: "normal" inputs, I/O output enable</li>
-<li><code>IMUX.IO.EXTRA</code>: "normal" input, used for various irregularly placed bels (such as PLLs)</li>
+<li><code>IMUX.IO[0-1].DOUT[0-1]</code>: “normal” inputs, I/O data</li>
+<li><code>IMUX.IO[0-1].OE</code>: “normal” inputs, I/O output enable</li>
+<li><code>IMUX.IO.EXTRA</code>: “normal” input, used for various irregularly placed bels (such as PLLs)</li>
 <li><code>IMUX.IO.ICLK</code> and <code>IMUX.IO.OCLK</code>: clock inputs; freely invertible, can be driven directly by all <code>GLOBAL</code> wires</li>
 <li><code>IMUX.CE</code>: a clock enable input; gates the <code>IMUX.IO.ICLK</code> and <code>IMUX.IO.OCLK</code> inputs, can be driven directly by some <code>GLOBAL</code> wires</li>
 </ul>
 <p>The <code>IMUX</code> wires can be driven by <code>LOCAL</code> wires.  Some of them can also be driven by <code>GLOBAL</code> wires.</p>
 <p>If an <code>IMUX</code> wire is not driven at all (the <code>MUX</code> field in the bitstream is set to <code>NONE</code>), it takes on a default value.  The default value is <code>1</code> for <code>IMUX.CE</code>, <code>0</code> for all other <code>IMUX</code> wires.</p>
 <h2 id="tile-slots"><a class="header" href="#tile-slots">Tile slots</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue tile slots</caption>
 <thead>
 <tr><th>Slot</th><th>Tiles</th><th>Bel slots</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>MAIN</td><td>PLB_L04, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, PLB_L08, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, PLB_P01, IOI_S_T04, IOI_N_T04</td><td>INT, LC0, LC1, LC2, LC3, LC4, LC5, LC6, LC7, IO0, IO1</td></tr>
+
 <tr><td>COLBUF</td><td>COLBUF_L01, COLBUF_IO_W, COLBUF_IO_E, COLBUF_P08</td><td></td></tr>
+
 <tr><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08</td><td>GB_ROOT</td></tr>
+
 <tr><td>BEL</td><td>BRAM_L04, IO_LATCH, GB_FABRIC, PLL_S_P04, BRAM_P01, PLL_S_P01, BRAM_P08, PLL_S_P08, PLL_N_P08, SPI_R04, I2C_R04, PLL_S_R04, PLL_N_R04, MAC16, SPI_T04, I2C_T04, MAC16_TRIM, SPI_T05, I3C, SPRAM, I2C_FIFO, PLL_S_T01</td><td>BRAM, IO_LATCH, GB_FABRIC, PLL, MAC16, SPI, I2C, I2C_FIFO, IO0_I3C, IO1_I3C, SPRAM0, SPRAM1, FILTER0, FILTER1</td></tr>
+
 <tr><td>IOB</td><td>IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04, IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04, IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08, IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01, IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01, IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08, IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03, IOB_S_R04, IOB_N_R04, IOB_S_T04, IOB_N_T04, IOB_S_T05, IOB_N_T05, IOB_S_T01, IOB_N_T01</td><td></td></tr>
+
 <tr><td>OSC</td><td>HSOSC, LSOSC, HFOSC_T04, LFOSC_T04, HFOSC_T01, LFOSC_T01</td><td>HSOSC, LSOSC, HFOSC, LFOSC</td></tr>
+
 <tr><td>TRIM</td><td>TRIM_T04, TRIM_T01</td><td></td></tr>
+
 <tr><td>LED_DRV</td><td>RGB_DRV, IR_DRV, RGBA_DRV_T05, RGBA_DRV_T01, IR500_DRV</td><td>RGB_DRV, IR_DRV, RGBA_DRV, IR400_DRV, BARCODE_DRV</td></tr>
+
 <tr><td>LED_IP</td><td>LEDD_IP, LEDDA_IP_T05, LEDDA_IP_T01, IR_IP</td><td>LEDD_IP, LEDDA_IP, IR_IP</td></tr>
+
 <tr><td>LED_DRV_CUR</td><td>LED_DRV_CUR_T04, LED_DRV_CUR_T05, LED_DRV_CUR_T01</td><td>LED_DRV_CUR</td></tr>
+
 <tr><td>PLL_STUB</td><td>PLL_STUB_S</td><td></td></tr>
+
 <tr><td>SMCCLK</td><td>SMCCLK_T04, SMCCLK_T05, SMCCLK_T01</td><td>SMCCLK</td></tr>
+
 <tr><td>WARMBOOT</td><td>WARMBOOT, WARMBOOT_T01</td><td>WARMBOOT</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="bel-slots"><a class="header" href="#bel-slots">Bel slots</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue bel slots</caption>
 <thead>
 <tr><th>Slot</th><th>Tile slot</th><th>Tiles</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>INT</td><td>MAIN</td><td>PLB_L04, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, PLB_L08, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, PLB_P01, IOI_S_T04, IOI_N_T04</td></tr>
+
 <tr><td>LC0</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>LC1</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>LC2</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>LC3</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>LC4</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>LC5</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>LC6</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>LC7</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+
 <tr><td>IO0</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
+
 <tr><td>IO1</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
+
 <tr><td>BRAM</td><td>BEL</td><td>BRAM_L04, BRAM_P01, BRAM_P08</td></tr>
+
 <tr><td>IO_LATCH</td><td>BEL</td><td>IO_LATCH</td></tr>
+
 <tr><td>GB_FABRIC</td><td>BEL</td><td>GB_FABRIC</td></tr>
+
 <tr><td>GB_ROOT</td><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08</td></tr>
+
 <tr><td>WARMBOOT</td><td>WARMBOOT</td><td>WARMBOOT, WARMBOOT_T01</td></tr>
+
 <tr><td>PLL</td><td>BEL</td><td>PLL_S_P04, PLL_S_P01, PLL_S_P08, PLL_N_P08, PLL_S_R04, PLL_N_R04, PLL_S_T01</td></tr>
+
 <tr><td>MAC16</td><td>BEL</td><td>MAC16, MAC16_TRIM</td></tr>
+
 <tr><td>SPI</td><td>BEL</td><td>SPI_R04, SPI_T04, SPI_T05</td></tr>
+
 <tr><td>I2C</td><td>BEL</td><td>I2C_R04, I2C_T04</td></tr>
+
 <tr><td>I2C_FIFO</td><td>BEL</td><td>I2C_FIFO</td></tr>
+
 <tr><td>HSOSC</td><td>OSC</td><td>HSOSC</td></tr>
+
 <tr><td>LSOSC</td><td>OSC</td><td>LSOSC</td></tr>
+
 <tr><td>HFOSC</td><td>OSC</td><td>HFOSC_T04, HFOSC_T01</td></tr>
+
 <tr><td>LFOSC</td><td>OSC</td><td>LFOSC_T04, LFOSC_T01</td></tr>
+
 <tr><td>LEDD_IP</td><td>LED_IP</td><td>LEDD_IP</td></tr>
+
 <tr><td>LEDDA_IP</td><td>LED_IP</td><td>LEDDA_IP_T05, LEDDA_IP_T01</td></tr>
+
 <tr><td>IR_IP</td><td>LED_IP</td><td>IR_IP</td></tr>
+
 <tr><td>IO0_I3C</td><td>BEL</td><td>I3C</td></tr>
+
 <tr><td>IO1_I3C</td><td>BEL</td><td>I3C</td></tr>
+
 <tr><td>RGB_DRV</td><td>LED_DRV</td><td>RGB_DRV</td></tr>
+
 <tr><td>IR_DRV</td><td>LED_DRV</td><td>IR_DRV</td></tr>
+
 <tr><td>RGBA_DRV</td><td>LED_DRV</td><td>RGBA_DRV_T05, RGBA_DRV_T01</td></tr>
+
 <tr><td>IR400_DRV</td><td>LED_DRV</td><td>IR500_DRV</td></tr>
+
 <tr><td>BARCODE_DRV</td><td>LED_DRV</td><td>IR500_DRV</td></tr>
+
 <tr><td>LED_DRV_CUR</td><td>LED_DRV_CUR</td><td>LED_DRV_CUR_T04, LED_DRV_CUR_T05, LED_DRV_CUR_T01</td></tr>
+
 <tr><td>SPRAM0</td><td>BEL</td><td>SPRAM</td></tr>
+
 <tr><td>SPRAM1</td><td>BEL</td><td>SPRAM</td></tr>
+
 <tr><td>FILTER0</td><td>BEL</td><td>I3C</td></tr>
+
 <tr><td>FILTER1</td><td>BEL</td><td>I3C</td></tr>
+
 <tr><td>SMCCLK</td><td>SMCCLK</td><td>SMCCLK_T04, SMCCLK_T05, SMCCLK_T01</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="connector-slots"><a class="header" href="#connector-slots">Connector slots</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue connector slots</caption>
 <thead>
 <tr><th>Slot</th><th>Opposite</th><th>Connectors</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>W</td><td>E</td><td>PASS_W</td></tr>
+
 <tr><td>E</td><td>W</td><td>PASS_E</td></tr>
+
 <tr><td>S</td><td>N</td><td>PASS_S</td></tr>
+
 <tr><td>N</td><td>S</td><td>PASS_N</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="region-slots"><a class="header" href="#region-slots">Region slots</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue region slots</caption>
 <thead>
 <tr><th>Slot</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>GLOBAL</td><td>GLOBAL.0, GLOBAL.1, GLOBAL.2, GLOBAL.3, GLOBAL.4, GLOBAL.5, GLOBAL.6, GLOBAL.7</td></tr>
+
 <tr><td>COLBUF</td><td></td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="wires"><a class="header" href="#wires">Wires</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue wires</caption>
 <thead>
 <tr><th>Wire</th><th>Kind</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GLOBAL.0</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GLOBAL.1</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GLOBAL.2</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GLOBAL.3</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GLOBAL.4</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GLOBAL.5</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GLOBAL.6</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GLOBAL.7</td><td>REGIONAL:GLOBAL</td></tr>
+
 <tr><td>GOUT.0</td><td>MUX_OUT</td></tr>
+
 <tr><td>GOUT.1</td><td>MUX_OUT</td></tr>
+
 <tr><td>GOUT.2</td><td>MUX_OUT</td></tr>
+
 <tr><td>GOUT.3</td><td>MUX_OUT</td></tr>
+
 <tr><td>QUAD.H0.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H0.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H0.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H0.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H0.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H1.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H1.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H1.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H1.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H1.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H2.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H2.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H2.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H2.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H2.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H3.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H3.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H3.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H3.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H3.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H4.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H4.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H4.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H4.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H4.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H5.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H5.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H5.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H5.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H5.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H6.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H6.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H6.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H6.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H6.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H7.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H7.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H7.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H7.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H7.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H8.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H8.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H8.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H8.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H8.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H9.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H9.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H9.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H9.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H9.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H10.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H10.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H10.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H10.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H10.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H11.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.H11.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H11.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H11.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.H11.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>QUAD.V0.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V0.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V0.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V0.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V0.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V0.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V0.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V0.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V0.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V1.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V1.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V1.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V1.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V1.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V1.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V1.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V1.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V1.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V2.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V2.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V2.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V2.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V2.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V2.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V2.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V2.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V2.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V3.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V3.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V3.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V3.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V3.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V3.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V3.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V3.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V3.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V4.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V4.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V4.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V4.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V4.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V4.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V4.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V4.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V4.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V5.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V5.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V5.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V5.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V5.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V5.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V5.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V5.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V5.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V6.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V6.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V6.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V6.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V6.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V6.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V6.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V6.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V6.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V7.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V7.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V7.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V7.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V7.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V7.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V7.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V7.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V7.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V8.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V8.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V8.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V8.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V8.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V8.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V8.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V8.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V8.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V9.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V9.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V9.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V9.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V9.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V9.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V9.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V9.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V9.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V10.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V10.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V10.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V10.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V10.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V10.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V10.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V10.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V10.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V11.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>QUAD.V11.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V11.1.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V11.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V11.2.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V11.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V11.3.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>QUAD.V11.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>QUAD.V11.4.W</td><td>MULTI_BRANCH:E</td></tr>
+
 <tr><td>LONG.H0.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>LONG.H0.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.5</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.6</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.7</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.8</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.9</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.10</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.11</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H0.12</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>LONG.H1.1</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.2</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.3</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.4</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.5</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.6</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.7</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.8</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.9</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.10</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.11</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.H1.12</td><td>MULTI_BRANCH:W</td></tr>
+
 <tr><td>LONG.V0.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>LONG.V0.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.5</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.6</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.7</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.8</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.9</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.10</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.11</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V0.12</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.0</td><td>MULTI_OUT</td></tr>
+
 <tr><td>LONG.V1.1</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.2</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.3</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.4</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.5</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.6</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.7</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.8</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.9</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.10</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.11</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LONG.V1.12</td><td>MULTI_BRANCH:S</td></tr>
+
 <tr><td>LOCAL.0.0</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.0.1</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.0.2</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.0.3</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.0.4</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.0.5</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.0.6</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.0.7</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.0</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.1</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.2</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.3</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.4</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.5</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.6</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.1.7</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.0</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.1</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.2</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.3</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.4</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.5</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.6</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.2.7</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.0</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.1</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.2</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.3</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.4</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.5</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.6</td><td>MUX_OUT</td></tr>
+
 <tr><td>LOCAL.3.7</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC0.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC0.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC0.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC0.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC1.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC1.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC1.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC1.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC2.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC2.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC2.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC2.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC3.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC3.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC3.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC3.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC4.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC4.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC4.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC4.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC5.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC5.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC5.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC5.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC6.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC6.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC6.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC6.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC7.I0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC7.I1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC7.I2</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.LC7.I3</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.CLK</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.CLK.OPTINV</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.RST</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.CE</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO0.DOUT0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO0.DOUT1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO0.OE</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO1.DOUT0</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO1.DOUT1</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO1.OE</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO.ICLK</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO.ICLK.OPTINV</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO.OCLK</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO.OCLK.OPTINV</td><td>MUX_OUT</td></tr>
+
 <tr><td>IMUX.IO.EXTRA</td><td>MUX_OUT</td></tr>
+
 <tr><td>OUT.LC0</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC0.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC0.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC0.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC0.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC0.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC0.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC0.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC0.WS</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC1</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC1.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC1.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC1.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC1.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC1.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC1.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC1.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC1.WS</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC2</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC2.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC2.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC2.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC2.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC2.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC2.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC2.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC2.WS</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC3</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC3.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC3.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC3.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC3.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC3.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC3.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC3.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC3.WS</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC4</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC4.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC4.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC4.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC4.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC4.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC4.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC4.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC4.WS</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC5</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC5.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC5.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC5.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC5.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC5.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC5.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC5.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC5.WS</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC6</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC6.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC6.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC6.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC6.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC6.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC6.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC6.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC6.WS</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC7</td><td>LOGIC_OUT</td></tr>
+
 <tr><td>OUT.LC7.N</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC7.S</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC7.E</td><td>BRANCH:W</td></tr>
+
 <tr><td>OUT.LC7.EN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC7.ES</td><td>BRANCH:N</td></tr>
+
 <tr><td>OUT.LC7.W</td><td>BRANCH:E</td></tr>
+
 <tr><td>OUT.LC7.WN</td><td>BRANCH:S</td></tr>
+
 <tr><td>OUT.LC7.WS</td><td>BRANCH:N</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="connectors--w"><a class="header" href="#connectors--w">Connectors — W</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue wires</caption>
 <thead>
 <tr><th>Wire</th>
 <th>PASS_W</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>QUAD.H0.1</td>
 <td>→ QUAD.H0.0</td>
 </tr>
+
 <tr><td>QUAD.H0.2</td>
 <td>→ QUAD.H0.1</td>
 </tr>
+
 <tr><td>QUAD.H0.3</td>
 <td>→ QUAD.H0.2</td>
 </tr>
+
 <tr><td>QUAD.H0.4</td>
 <td>→ QUAD.H0.3</td>
 </tr>
+
 <tr><td>QUAD.H1.1</td>
 <td>→ QUAD.H1.0</td>
 </tr>
+
 <tr><td>QUAD.H1.2</td>
 <td>→ QUAD.H1.1</td>
 </tr>
+
 <tr><td>QUAD.H1.3</td>
 <td>→ QUAD.H1.2</td>
 </tr>
+
 <tr><td>QUAD.H1.4</td>
 <td>→ QUAD.H1.3</td>
 </tr>
+
 <tr><td>QUAD.H2.1</td>
 <td>→ QUAD.H2.0</td>
 </tr>
+
 <tr><td>QUAD.H2.2</td>
 <td>→ QUAD.H2.1</td>
 </tr>
+
 <tr><td>QUAD.H2.3</td>
 <td>→ QUAD.H2.2</td>
 </tr>
+
 <tr><td>QUAD.H2.4</td>
 <td>→ QUAD.H2.3</td>
 </tr>
+
 <tr><td>QUAD.H3.1</td>
 <td>→ QUAD.H3.0</td>
 </tr>
+
 <tr><td>QUAD.H3.2</td>
 <td>→ QUAD.H3.1</td>
 </tr>
+
 <tr><td>QUAD.H3.3</td>
 <td>→ QUAD.H3.2</td>
 </tr>
+
 <tr><td>QUAD.H3.4</td>
 <td>→ QUAD.H3.3</td>
 </tr>
+
 <tr><td>QUAD.H4.1</td>
 <td>→ QUAD.H4.0</td>
 </tr>
+
 <tr><td>QUAD.H4.2</td>
 <td>→ QUAD.H4.1</td>
 </tr>
+
 <tr><td>QUAD.H4.3</td>
 <td>→ QUAD.H4.2</td>
 </tr>
+
 <tr><td>QUAD.H4.4</td>
 <td>→ QUAD.H4.3</td>
 </tr>
+
 <tr><td>QUAD.H5.1</td>
 <td>→ QUAD.H5.0</td>
 </tr>
+
 <tr><td>QUAD.H5.2</td>
 <td>→ QUAD.H5.1</td>
 </tr>
+
 <tr><td>QUAD.H5.3</td>
 <td>→ QUAD.H5.2</td>
 </tr>
+
 <tr><td>QUAD.H5.4</td>
 <td>→ QUAD.H5.3</td>
 </tr>
+
 <tr><td>QUAD.H6.1</td>
 <td>→ QUAD.H6.0</td>
 </tr>
+
 <tr><td>QUAD.H6.2</td>
 <td>→ QUAD.H6.1</td>
 </tr>
+
 <tr><td>QUAD.H6.3</td>
 <td>→ QUAD.H6.2</td>
 </tr>
+
 <tr><td>QUAD.H6.4</td>
 <td>→ QUAD.H6.3</td>
 </tr>
+
 <tr><td>QUAD.H7.1</td>
 <td>→ QUAD.H7.0</td>
 </tr>
+
 <tr><td>QUAD.H7.2</td>
 <td>→ QUAD.H7.1</td>
 </tr>
+
 <tr><td>QUAD.H7.3</td>
 <td>→ QUAD.H7.2</td>
 </tr>
+
 <tr><td>QUAD.H7.4</td>
 <td>→ QUAD.H7.3</td>
 </tr>
+
 <tr><td>QUAD.H8.1</td>
 <td>→ QUAD.H8.0</td>
 </tr>
+
 <tr><td>QUAD.H8.2</td>
 <td>→ QUAD.H8.1</td>
 </tr>
+
 <tr><td>QUAD.H8.3</td>
 <td>→ QUAD.H8.2</td>
 </tr>
+
 <tr><td>QUAD.H8.4</td>
 <td>→ QUAD.H8.3</td>
 </tr>
+
 <tr><td>QUAD.H9.1</td>
 <td>→ QUAD.H9.0</td>
 </tr>
+
 <tr><td>QUAD.H9.2</td>
 <td>→ QUAD.H9.1</td>
 </tr>
+
 <tr><td>QUAD.H9.3</td>
 <td>→ QUAD.H9.2</td>
 </tr>
+
 <tr><td>QUAD.H9.4</td>
 <td>→ QUAD.H9.3</td>
 </tr>
+
 <tr><td>QUAD.H10.1</td>
 <td>→ QUAD.H10.0</td>
 </tr>
+
 <tr><td>QUAD.H10.2</td>
 <td>→ QUAD.H10.1</td>
 </tr>
+
 <tr><td>QUAD.H10.3</td>
 <td>→ QUAD.H10.2</td>
 </tr>
+
 <tr><td>QUAD.H10.4</td>
 <td>→ QUAD.H10.3</td>
 </tr>
+
 <tr><td>QUAD.H11.1</td>
 <td>→ QUAD.H11.0</td>
 </tr>
+
 <tr><td>QUAD.H11.2</td>
 <td>→ QUAD.H11.1</td>
 </tr>
+
 <tr><td>QUAD.H11.3</td>
 <td>→ QUAD.H11.2</td>
 </tr>
+
 <tr><td>QUAD.H11.4</td>
 <td>→ QUAD.H11.3</td>
 </tr>
+
 <tr><td>LONG.H0.1</td>
 <td>→ LONG.H0.0</td>
 </tr>
+
 <tr><td>LONG.H0.2</td>
 <td>→ LONG.H0.1</td>
 </tr>
+
 <tr><td>LONG.H0.3</td>
 <td>→ LONG.H0.2</td>
 </tr>
+
 <tr><td>LONG.H0.4</td>
 <td>→ LONG.H0.3</td>
 </tr>
+
 <tr><td>LONG.H0.5</td>
 <td>→ LONG.H0.4</td>
 </tr>
+
 <tr><td>LONG.H0.6</td>
 <td>→ LONG.H0.5</td>
 </tr>
+
 <tr><td>LONG.H0.7</td>
 <td>→ LONG.H0.6</td>
 </tr>
+
 <tr><td>LONG.H0.8</td>
 <td>→ LONG.H0.7</td>
 </tr>
+
 <tr><td>LONG.H0.9</td>
 <td>→ LONG.H0.8</td>
 </tr>
+
 <tr><td>LONG.H0.10</td>
 <td>→ LONG.H0.9</td>
 </tr>
+
 <tr><td>LONG.H0.11</td>
 <td>→ LONG.H0.10</td>
 </tr>
+
 <tr><td>LONG.H0.12</td>
 <td>→ LONG.H0.11</td>
 </tr>
+
 <tr><td>LONG.H1.1</td>
 <td>→ LONG.H1.0</td>
 </tr>
+
 <tr><td>LONG.H1.2</td>
 <td>→ LONG.H1.1</td>
 </tr>
+
 <tr><td>LONG.H1.3</td>
 <td>→ LONG.H1.2</td>
 </tr>
+
 <tr><td>LONG.H1.4</td>
 <td>→ LONG.H1.3</td>
 </tr>
+
 <tr><td>LONG.H1.5</td>
 <td>→ LONG.H1.4</td>
 </tr>
+
 <tr><td>LONG.H1.6</td>
 <td>→ LONG.H1.5</td>
 </tr>
+
 <tr><td>LONG.H1.7</td>
 <td>→ LONG.H1.6</td>
 </tr>
+
 <tr><td>LONG.H1.8</td>
 <td>→ LONG.H1.7</td>
 </tr>
+
 <tr><td>LONG.H1.9</td>
 <td>→ LONG.H1.8</td>
 </tr>
+
 <tr><td>LONG.H1.10</td>
 <td>→ LONG.H1.9</td>
 </tr>
+
 <tr><td>LONG.H1.11</td>
 <td>→ LONG.H1.10</td>
 </tr>
+
 <tr><td>LONG.H1.12</td>
 <td>→ LONG.H1.11</td>
 </tr>
+
 <tr><td>OUT.LC0.E</td>
 <td>→ OUT.LC0</td>
 </tr>
+
 <tr><td>OUT.LC1.E</td>
 <td>→ OUT.LC1</td>
 </tr>
+
 <tr><td>OUT.LC2.E</td>
 <td>→ OUT.LC2</td>
 </tr>
+
 <tr><td>OUT.LC3.E</td>
 <td>→ OUT.LC3</td>
 </tr>
+
 <tr><td>OUT.LC4.E</td>
 <td>→ OUT.LC4</td>
 </tr>
+
 <tr><td>OUT.LC5.E</td>
 <td>→ OUT.LC5</td>
 </tr>
+
 <tr><td>OUT.LC6.E</td>
 <td>→ OUT.LC6</td>
 </tr>
+
 <tr><td>OUT.LC7.E</td>
 <td>→ OUT.LC7</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="connectors--e"><a class="header" href="#connectors--e">Connectors — E</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue wires</caption>
 <thead>
 <tr><th>Wire</th>
 <th>PASS_E</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>QUAD.V0.1.W</td>
 <td>→ QUAD.V0.1</td>
 </tr>
+
 <tr><td>QUAD.V0.2.W</td>
 <td>→ QUAD.V0.2</td>
 </tr>
+
 <tr><td>QUAD.V0.3.W</td>
 <td>→ QUAD.V0.3</td>
 </tr>
+
 <tr><td>QUAD.V0.4.W</td>
 <td>→ QUAD.V0.4</td>
 </tr>
+
 <tr><td>QUAD.V1.1.W</td>
 <td>→ QUAD.V1.1</td>
 </tr>
+
 <tr><td>QUAD.V1.2.W</td>
 <td>→ QUAD.V1.2</td>
 </tr>
+
 <tr><td>QUAD.V1.3.W</td>
 <td>→ QUAD.V1.3</td>
 </tr>
+
 <tr><td>QUAD.V1.4.W</td>
 <td>→ QUAD.V1.4</td>
 </tr>
+
 <tr><td>QUAD.V2.1.W</td>
 <td>→ QUAD.V2.1</td>
 </tr>
+
 <tr><td>QUAD.V2.2.W</td>
 <td>→ QUAD.V2.2</td>
 </tr>
+
 <tr><td>QUAD.V2.3.W</td>
 <td>→ QUAD.V2.3</td>
 </tr>
+
 <tr><td>QUAD.V2.4.W</td>
 <td>→ QUAD.V2.4</td>
 </tr>
+
 <tr><td>QUAD.V3.1.W</td>
 <td>→ QUAD.V3.1</td>
 </tr>
+
 <tr><td>QUAD.V3.2.W</td>
 <td>→ QUAD.V3.2</td>
 </tr>
+
 <tr><td>QUAD.V3.3.W</td>
 <td>→ QUAD.V3.3</td>
 </tr>
+
 <tr><td>QUAD.V3.4.W</td>
 <td>→ QUAD.V3.4</td>
 </tr>
+
 <tr><td>QUAD.V4.1.W</td>
 <td>→ QUAD.V4.1</td>
 </tr>
+
 <tr><td>QUAD.V4.2.W</td>
 <td>→ QUAD.V4.2</td>
 </tr>
+
 <tr><td>QUAD.V4.3.W</td>
 <td>→ QUAD.V4.3</td>
 </tr>
+
 <tr><td>QUAD.V4.4.W</td>
 <td>→ QUAD.V4.4</td>
 </tr>
+
 <tr><td>QUAD.V5.1.W</td>
 <td>→ QUAD.V5.1</td>
 </tr>
+
 <tr><td>QUAD.V5.2.W</td>
 <td>→ QUAD.V5.2</td>
 </tr>
+
 <tr><td>QUAD.V5.3.W</td>
 <td>→ QUAD.V5.3</td>
 </tr>
+
 <tr><td>QUAD.V5.4.W</td>
 <td>→ QUAD.V5.4</td>
 </tr>
+
 <tr><td>QUAD.V6.1.W</td>
 <td>→ QUAD.V6.1</td>
 </tr>
+
 <tr><td>QUAD.V6.2.W</td>
 <td>→ QUAD.V6.2</td>
 </tr>
+
 <tr><td>QUAD.V6.3.W</td>
 <td>→ QUAD.V6.3</td>
 </tr>
+
 <tr><td>QUAD.V6.4.W</td>
 <td>→ QUAD.V6.4</td>
 </tr>
+
 <tr><td>QUAD.V7.1.W</td>
 <td>→ QUAD.V7.1</td>
 </tr>
+
 <tr><td>QUAD.V7.2.W</td>
 <td>→ QUAD.V7.2</td>
 </tr>
+
 <tr><td>QUAD.V7.3.W</td>
 <td>→ QUAD.V7.3</td>
 </tr>
+
 <tr><td>QUAD.V7.4.W</td>
 <td>→ QUAD.V7.4</td>
 </tr>
+
 <tr><td>QUAD.V8.1.W</td>
 <td>→ QUAD.V8.1</td>
 </tr>
+
 <tr><td>QUAD.V8.2.W</td>
 <td>→ QUAD.V8.2</td>
 </tr>
+
 <tr><td>QUAD.V8.3.W</td>
 <td>→ QUAD.V8.3</td>
 </tr>
+
 <tr><td>QUAD.V8.4.W</td>
 <td>→ QUAD.V8.4</td>
 </tr>
+
 <tr><td>QUAD.V9.1.W</td>
 <td>→ QUAD.V9.1</td>
 </tr>
+
 <tr><td>QUAD.V9.2.W</td>
 <td>→ QUAD.V9.2</td>
 </tr>
+
 <tr><td>QUAD.V9.3.W</td>
 <td>→ QUAD.V9.3</td>
 </tr>
+
 <tr><td>QUAD.V9.4.W</td>
 <td>→ QUAD.V9.4</td>
 </tr>
+
 <tr><td>QUAD.V10.1.W</td>
 <td>→ QUAD.V10.1</td>
 </tr>
+
 <tr><td>QUAD.V10.2.W</td>
 <td>→ QUAD.V10.2</td>
 </tr>
+
 <tr><td>QUAD.V10.3.W</td>
 <td>→ QUAD.V10.3</td>
 </tr>
+
 <tr><td>QUAD.V10.4.W</td>
 <td>→ QUAD.V10.4</td>
 </tr>
+
 <tr><td>QUAD.V11.1.W</td>
 <td>→ QUAD.V11.1</td>
 </tr>
+
 <tr><td>QUAD.V11.2.W</td>
 <td>→ QUAD.V11.2</td>
 </tr>
+
 <tr><td>QUAD.V11.3.W</td>
 <td>→ QUAD.V11.3</td>
 </tr>
+
 <tr><td>QUAD.V11.4.W</td>
 <td>→ QUAD.V11.4</td>
 </tr>
+
 <tr><td>OUT.LC0.W</td>
 <td>→ OUT.LC0</td>
 </tr>
+
 <tr><td>OUT.LC1.W</td>
 <td>→ OUT.LC1</td>
 </tr>
+
 <tr><td>OUT.LC2.W</td>
 <td>→ OUT.LC2</td>
 </tr>
+
 <tr><td>OUT.LC3.W</td>
 <td>→ OUT.LC3</td>
 </tr>
+
 <tr><td>OUT.LC4.W</td>
 <td>→ OUT.LC4</td>
 </tr>
+
 <tr><td>OUT.LC5.W</td>
 <td>→ OUT.LC5</td>
 </tr>
+
 <tr><td>OUT.LC6.W</td>
 <td>→ OUT.LC6</td>
 </tr>
+
 <tr><td>OUT.LC7.W</td>
 <td>→ OUT.LC7</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="connectors--s"><a class="header" href="#connectors--s">Connectors — S</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue wires</caption>
 <thead>
 <tr><th>Wire</th>
 <th>PASS_S</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>QUAD.V0.1</td>
 <td>→ QUAD.V0.0</td>
 </tr>
+
 <tr><td>QUAD.V0.2</td>
 <td>→ QUAD.V0.1</td>
 </tr>
+
 <tr><td>QUAD.V0.3</td>
 <td>→ QUAD.V0.2</td>
 </tr>
+
 <tr><td>QUAD.V0.4</td>
 <td>→ QUAD.V0.3</td>
 </tr>
+
 <tr><td>QUAD.V1.1</td>
 <td>→ QUAD.V1.0</td>
 </tr>
+
 <tr><td>QUAD.V1.2</td>
 <td>→ QUAD.V1.1</td>
 </tr>
+
 <tr><td>QUAD.V1.3</td>
 <td>→ QUAD.V1.2</td>
 </tr>
+
 <tr><td>QUAD.V1.4</td>
 <td>→ QUAD.V1.3</td>
 </tr>
+
 <tr><td>QUAD.V2.1</td>
 <td>→ QUAD.V2.0</td>
 </tr>
+
 <tr><td>QUAD.V2.2</td>
 <td>→ QUAD.V2.1</td>
 </tr>
+
 <tr><td>QUAD.V2.3</td>
 <td>→ QUAD.V2.2</td>
 </tr>
+
 <tr><td>QUAD.V2.4</td>
 <td>→ QUAD.V2.3</td>
 </tr>
+
 <tr><td>QUAD.V3.1</td>
 <td>→ QUAD.V3.0</td>
 </tr>
+
 <tr><td>QUAD.V3.2</td>
 <td>→ QUAD.V3.1</td>
 </tr>
+
 <tr><td>QUAD.V3.3</td>
 <td>→ QUAD.V3.2</td>
 </tr>
+
 <tr><td>QUAD.V3.4</td>
 <td>→ QUAD.V3.3</td>
 </tr>
+
 <tr><td>QUAD.V4.1</td>
 <td>→ QUAD.V4.0</td>
 </tr>
+
 <tr><td>QUAD.V4.2</td>
 <td>→ QUAD.V4.1</td>
 </tr>
+
 <tr><td>QUAD.V4.3</td>
 <td>→ QUAD.V4.2</td>
 </tr>
+
 <tr><td>QUAD.V4.4</td>
 <td>→ QUAD.V4.3</td>
 </tr>
+
 <tr><td>QUAD.V5.1</td>
 <td>→ QUAD.V5.0</td>
 </tr>
+
 <tr><td>QUAD.V5.2</td>
 <td>→ QUAD.V5.1</td>
 </tr>
+
 <tr><td>QUAD.V5.3</td>
 <td>→ QUAD.V5.2</td>
 </tr>
+
 <tr><td>QUAD.V5.4</td>
 <td>→ QUAD.V5.3</td>
 </tr>
+
 <tr><td>QUAD.V6.1</td>
 <td>→ QUAD.V6.0</td>
 </tr>
+
 <tr><td>QUAD.V6.2</td>
 <td>→ QUAD.V6.1</td>
 </tr>
+
 <tr><td>QUAD.V6.3</td>
 <td>→ QUAD.V6.2</td>
 </tr>
+
 <tr><td>QUAD.V6.4</td>
 <td>→ QUAD.V6.3</td>
 </tr>
+
 <tr><td>QUAD.V7.1</td>
 <td>→ QUAD.V7.0</td>
 </tr>
+
 <tr><td>QUAD.V7.2</td>
 <td>→ QUAD.V7.1</td>
 </tr>
+
 <tr><td>QUAD.V7.3</td>
 <td>→ QUAD.V7.2</td>
 </tr>
+
 <tr><td>QUAD.V7.4</td>
 <td>→ QUAD.V7.3</td>
 </tr>
+
 <tr><td>QUAD.V8.1</td>
 <td>→ QUAD.V8.0</td>
 </tr>
+
 <tr><td>QUAD.V8.2</td>
 <td>→ QUAD.V8.1</td>
 </tr>
+
 <tr><td>QUAD.V8.3</td>
 <td>→ QUAD.V8.2</td>
 </tr>
+
 <tr><td>QUAD.V8.4</td>
 <td>→ QUAD.V8.3</td>
 </tr>
+
 <tr><td>QUAD.V9.1</td>
 <td>→ QUAD.V9.0</td>
 </tr>
+
 <tr><td>QUAD.V9.2</td>
 <td>→ QUAD.V9.1</td>
 </tr>
+
 <tr><td>QUAD.V9.3</td>
 <td>→ QUAD.V9.2</td>
 </tr>
+
 <tr><td>QUAD.V9.4</td>
 <td>→ QUAD.V9.3</td>
 </tr>
+
 <tr><td>QUAD.V10.1</td>
 <td>→ QUAD.V10.0</td>
 </tr>
+
 <tr><td>QUAD.V10.2</td>
 <td>→ QUAD.V10.1</td>
 </tr>
+
 <tr><td>QUAD.V10.3</td>
 <td>→ QUAD.V10.2</td>
 </tr>
+
 <tr><td>QUAD.V10.4</td>
 <td>→ QUAD.V10.3</td>
 </tr>
+
 <tr><td>QUAD.V11.1</td>
 <td>→ QUAD.V11.0</td>
 </tr>
+
 <tr><td>QUAD.V11.2</td>
 <td>→ QUAD.V11.1</td>
 </tr>
+
 <tr><td>QUAD.V11.3</td>
 <td>→ QUAD.V11.2</td>
 </tr>
+
 <tr><td>QUAD.V11.4</td>
 <td>→ QUAD.V11.3</td>
 </tr>
+
 <tr><td>LONG.V0.1</td>
 <td>→ LONG.V0.0</td>
 </tr>
+
 <tr><td>LONG.V0.2</td>
 <td>→ LONG.V0.1</td>
 </tr>
+
 <tr><td>LONG.V0.3</td>
 <td>→ LONG.V0.2</td>
 </tr>
+
 <tr><td>LONG.V0.4</td>
 <td>→ LONG.V0.3</td>
 </tr>
+
 <tr><td>LONG.V0.5</td>
 <td>→ LONG.V0.4</td>
 </tr>
+
 <tr><td>LONG.V0.6</td>
 <td>→ LONG.V0.5</td>
 </tr>
+
 <tr><td>LONG.V0.7</td>
 <td>→ LONG.V0.6</td>
 </tr>
+
 <tr><td>LONG.V0.8</td>
 <td>→ LONG.V0.7</td>
 </tr>
+
 <tr><td>LONG.V0.9</td>
 <td>→ LONG.V0.8</td>
 </tr>
+
 <tr><td>LONG.V0.10</td>
 <td>→ LONG.V0.9</td>
 </tr>
+
 <tr><td>LONG.V0.11</td>
 <td>→ LONG.V0.10</td>
 </tr>
+
 <tr><td>LONG.V0.12</td>
 <td>→ LONG.V0.11</td>
 </tr>
+
 <tr><td>LONG.V1.1</td>
 <td>→ LONG.V1.0</td>
 </tr>
+
 <tr><td>LONG.V1.2</td>
 <td>→ LONG.V1.1</td>
 </tr>
+
 <tr><td>LONG.V1.3</td>
 <td>→ LONG.V1.2</td>
 </tr>
+
 <tr><td>LONG.V1.4</td>
 <td>→ LONG.V1.3</td>
 </tr>
+
 <tr><td>LONG.V1.5</td>
 <td>→ LONG.V1.4</td>
 </tr>
+
 <tr><td>LONG.V1.6</td>
 <td>→ LONG.V1.5</td>
 </tr>
+
 <tr><td>LONG.V1.7</td>
 <td>→ LONG.V1.6</td>
 </tr>
+
 <tr><td>LONG.V1.8</td>
 <td>→ LONG.V1.7</td>
 </tr>
+
 <tr><td>LONG.V1.9</td>
 <td>→ LONG.V1.8</td>
 </tr>
+
 <tr><td>LONG.V1.10</td>
 <td>→ LONG.V1.9</td>
 </tr>
+
 <tr><td>LONG.V1.11</td>
 <td>→ LONG.V1.10</td>
 </tr>
+
 <tr><td>LONG.V1.12</td>
 <td>→ LONG.V1.11</td>
 </tr>
+
 <tr><td>OUT.LC0.N</td>
 <td>→ OUT.LC0</td>
 </tr>
+
 <tr><td>OUT.LC0.EN</td>
 <td>→ OUT.LC0.E</td>
 </tr>
+
 <tr><td>OUT.LC0.WN</td>
 <td>→ OUT.LC0.W</td>
 </tr>
+
 <tr><td>OUT.LC1.N</td>
 <td>→ OUT.LC1</td>
 </tr>
+
 <tr><td>OUT.LC1.EN</td>
 <td>→ OUT.LC1.E</td>
 </tr>
+
 <tr><td>OUT.LC1.WN</td>
 <td>→ OUT.LC1.W</td>
 </tr>
+
 <tr><td>OUT.LC2.N</td>
 <td>→ OUT.LC2</td>
 </tr>
+
 <tr><td>OUT.LC2.EN</td>
 <td>→ OUT.LC2.E</td>
 </tr>
+
 <tr><td>OUT.LC2.WN</td>
 <td>→ OUT.LC2.W</td>
 </tr>
+
 <tr><td>OUT.LC3.N</td>
 <td>→ OUT.LC3</td>
 </tr>
+
 <tr><td>OUT.LC3.EN</td>
 <td>→ OUT.LC3.E</td>
 </tr>
+
 <tr><td>OUT.LC3.WN</td>
 <td>→ OUT.LC3.W</td>
 </tr>
+
 <tr><td>OUT.LC4.N</td>
 <td>→ OUT.LC4</td>
 </tr>
+
 <tr><td>OUT.LC4.EN</td>
 <td>→ OUT.LC4.E</td>
 </tr>
+
 <tr><td>OUT.LC4.WN</td>
 <td>→ OUT.LC4.W</td>
 </tr>
+
 <tr><td>OUT.LC5.N</td>
 <td>→ OUT.LC5</td>
 </tr>
+
 <tr><td>OUT.LC5.EN</td>
 <td>→ OUT.LC5.E</td>
 </tr>
+
 <tr><td>OUT.LC5.WN</td>
 <td>→ OUT.LC5.W</td>
 </tr>
+
 <tr><td>OUT.LC6.N</td>
 <td>→ OUT.LC6</td>
 </tr>
+
 <tr><td>OUT.LC6.EN</td>
 <td>→ OUT.LC6.E</td>
 </tr>
+
 <tr><td>OUT.LC6.WN</td>
 <td>→ OUT.LC6.W</td>
 </tr>
+
 <tr><td>OUT.LC7.N</td>
 <td>→ OUT.LC7</td>
 </tr>
+
 <tr><td>OUT.LC7.EN</td>
 <td>→ OUT.LC7.E</td>
 </tr>
+
 <tr><td>OUT.LC7.WN</td>
 <td>→ OUT.LC7.W</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="connectors--n"><a class="header" href="#connectors--n">Connectors — N</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue wires</caption>
 <thead>
 <tr><th>Wire</th>
 <th>PASS_N</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT.LC0.S</td>
 <td>→ OUT.LC0</td>
 </tr>
+
 <tr><td>OUT.LC0.ES</td>
 <td>→ OUT.LC0.E</td>
 </tr>
+
 <tr><td>OUT.LC0.WS</td>
 <td>→ OUT.LC0.W</td>
 </tr>
+
 <tr><td>OUT.LC1.S</td>
 <td>→ OUT.LC1</td>
 </tr>
+
 <tr><td>OUT.LC1.ES</td>
 <td>→ OUT.LC1.E</td>
 </tr>
+
 <tr><td>OUT.LC1.WS</td>
 <td>→ OUT.LC1.W</td>
 </tr>
+
 <tr><td>OUT.LC2.S</td>
 <td>→ OUT.LC2</td>
 </tr>
+
 <tr><td>OUT.LC2.ES</td>
 <td>→ OUT.LC2.E</td>
 </tr>
+
 <tr><td>OUT.LC2.WS</td>
 <td>→ OUT.LC2.W</td>
 </tr>
+
 <tr><td>OUT.LC3.S</td>
 <td>→ OUT.LC3</td>
 </tr>
+
 <tr><td>OUT.LC3.ES</td>
 <td>→ OUT.LC3.E</td>
 </tr>
+
 <tr><td>OUT.LC3.WS</td>
 <td>→ OUT.LC3.W</td>
 </tr>
+
 <tr><td>OUT.LC4.S</td>
 <td>→ OUT.LC4</td>
 </tr>
+
 <tr><td>OUT.LC4.ES</td>
 <td>→ OUT.LC4.E</td>
 </tr>
+
 <tr><td>OUT.LC4.WS</td>
 <td>→ OUT.LC4.W</td>
 </tr>
+
 <tr><td>OUT.LC5.S</td>
 <td>→ OUT.LC5</td>
 </tr>
+
 <tr><td>OUT.LC5.ES</td>
 <td>→ OUT.LC5.E</td>
 </tr>
+
 <tr><td>OUT.LC5.WS</td>
 <td>→ OUT.LC5.W</td>
 </tr>
+
 <tr><td>OUT.LC6.S</td>
 <td>→ OUT.LC6</td>
 </tr>
+
 <tr><td>OUT.LC6.ES</td>
 <td>→ OUT.LC6.E</td>
 </tr>
+
 <tr><td>OUT.LC6.WS</td>
 <td>→ OUT.LC6.W</td>
 </tr>
+
 <tr><td>OUT.LC7.S</td>
 <td>→ OUT.LC7</td>
 </tr>
+
 <tr><td>OUT.LC7.ES</td>
 <td>→ OUT.LC7.E</td>
 </tr>
+
 <tr><td>OUT.LC7.WS</td>
 <td>→ OUT.LC7.W</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../siliconblue/geometry.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../siliconblue/global.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -1612,16 +2364,21 @@ are driven by the various bels within the FPGA:</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../siliconblue/geometry.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../siliconblue/global.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -1631,9 +2388,9 @@ are driven by the various bels within the FPGA:</p>
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

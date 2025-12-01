@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,109 +142,133 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="configuration-registers-spartan-3a"><a class="header" href="#configuration-registers-spartan-3a">Configuration registers (Spartan 3A)</a></h1>
 <p>TODO: document</p>
 <h2 id="cor1s3a"><a class="header" href="#cor1s3a"><code>COR1.S3A</code></a></h2>
 <p>This is the Spartan 3A version of <code>COR1</code>.</p>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.COR1.S3A bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:CRC">~STARTUP:CRC</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL[2]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[2]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-spartan3-REG.COR1.S3A-MISC:VGG_SENDMAX">~MISC:VGG_SENDMAX</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-spartan3-REG.COR1.S3A-MISC:VGG_ENABLE_OFFCHIP">~MISC:VGG_ENABLE_OFFCHIP</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.0.15">
 <a href="#tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_AWAKE">STARTUP:DRIVE_AWAKE</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR1.S3A-MISC:SEND_VGG">MISC:SEND_VGG</th>
 <th>0.0.11</th>
@@ -253,7 +276,9 @@
 <th>0.0.9</th>
 <th>0.0.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -263,78 +288,112 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR1.S3A-MISC:VGG_ENABLE_OFFCHIP">MISC:VGG_ENABLE_OFFCHIP</th>
 <th>0.0.13</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR1.S3A-MISC:VGG_SENDMAX">MISC:VGG_SENDMAX</th>
 <th>0.0.12</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:CRC">STARTUP:CRC</th>
 <th>0.0.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:DONE_PIPE">STARTUP:DONE_PIPE</th>
 <th>0.0.3</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_AWAKE">STARTUP:DRIVE_AWAKE</th>
 <th>0.0.15</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:DRIVE_DONE">STARTUP:DRIVE_DONE</th>
 <th>0.0.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:STARTUPCLK">STARTUP:STARTUPCLK</th>
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CCLK</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>USERCLK</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>JTAGCLK</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR1.S3A-STARTUP:VRDSEL">STARTUP:VRDSEL</th>
 <th>0.0.7</th>
 <th>0.0.6</th>
 <th>0.0.5</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -343,477 +402,618 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="cor2s3a"><a class="header" href="#cor2s3a"><code>COR2.S3A</code></a></h2>
 <p>This is the Spartan 3A version of <code>COR2</code>.</p>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.COR2.S3A bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE[2]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[1]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE[2]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE[2]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-spartan3-REG.COR2.S3A-CAPTURE:ONESHOT">CAPTURE:ONESHOT</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:BPI_DIV8">STARTUP:BPI_DIV8</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-spartan3-REG.COR2.S3A-ICAP:BYPASS">ICAP:BYPASS</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.0.15">
 <a href="#tile-spartan3-REG.COR2.S3A-STARTUP:RESET_ON_ERR">STARTUP:RESET_ON_ERR</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR2.S3A-CAPTURE:ONESHOT">CAPTURE:ONESHOT</th>
 <th>0.0.12</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR2.S3A-ICAP:BYPASS">ICAP:BYPASS</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:BPI_DIV8">STARTUP:BPI_DIV8</th>
 <th>0.0.13</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:RESET_ON_ERR">STARTUP:RESET_ON_ERR</th>
 <th>0.0.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:DONE_CYCLE">STARTUP:DONE_CYCLE</th>
 <th>0.0.11</th>
 <th>0.0.10</th>
 <th>0.0.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:GTS_CYCLE">STARTUP:GTS_CYCLE</th>
 <th>0.0.5</th>
 <th>0.0.4</th>
 <th>0.0.3</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:GWE_CYCLE">STARTUP:GWE_CYCLE</th>
 <th>0.0.2</th>
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>KEEP</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DONE</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.COR2.S3A-STARTUP:LCK_CYCLE">STARTUP:LCK_CYCLE</th>
 <th>0.0.8</th>
 <th>0.0.7</th>
 <th>0.0.6</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NOWAIT</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="ctls3a"><a class="header" href="#ctls3a"><code>CTL.S3A</code></a></h2>
 <p>This is the Spartan 3A version of <code>CTL</code>.</p>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.CTL.S3A bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.CTL.S3A-MISC:GTS_USR_B">MISC:GTS_USR_B</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.CTL.S3A-MISC:VGG_TEST">MISC:VGG_TEST</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.CTL.S3A-ICAP:ENABLE">ICAP:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.CTL.S3A-MISC:PERSIST">MISC:PERSIST</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.CTL.S3A-MISC:SECURITY">MISC:SECURITY[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.CTL.S3A-MISC:SECURITY">MISC:SECURITY[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.CTL.S3A-MISC:MULTIBOOT_ENABLE">MISC:MULTIBOOT_ENABLE</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.CTL.S3A-ICAP:ENABLE">ICAP:ENABLE</th>
 <th>0.0.2</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.CTL.S3A-MISC:GTS_USR_B">MISC:GTS_USR_B</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.CTL.S3A-MISC:MULTIBOOT_ENABLE">MISC:MULTIBOOT_ENABLE</th>
 <th>0.0.7</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.CTL.S3A-MISC:PERSIST">MISC:PERSIST</th>
 <th>0.0.3</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.CTL.S3A-MISC:VGG_TEST">MISC:VGG_TEST</th>
 <th>0.0.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.CTL.S3A-MISC:SECURITY">MISC:SECURITY</th>
 <th>0.0.5</th>
 <th>0.0.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>LEVEL1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>LEVEL2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>LEVEL3</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="cclk_freq"><a class="header" href="#cclk_freq"><code>CCLK_FREQ</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.CCLK_FREQ bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[3]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[4]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[5]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[6]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[7]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[8]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE[9]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY[1]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP[1]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CLK_SWITCH_OPT">STARTUP:CLK_SWITCH_OPT[0]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.0.15">
 <a href="#tile-spartan3-REG.CCLK_FREQ-STARTUP:CLK_SWITCH_OPT">STARTUP:CLK_SWITCH_OPT[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_DLY">STARTUP:CCLK_DLY</th>
 <th>0.0.11</th>
 <th>0.0.10</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CCLK_SEP">STARTUP:CCLK_SEP</th>
 <th>0.0.13</th>
 <th>0.0.12</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CLK_SWITCH_OPT">STARTUP:CLK_SWITCH_OPT</th>
 <th>0.0.15</th>
 <th>0.0.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -821,9 +1021,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.CCLK_FREQ-STARTUP:CONFIG_RATE">STARTUP:CONFIG_RATE</th>
 <th>0.0.9</th>
@@ -837,7 +1042,9 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>100</td>
 <td>0</td>
@@ -851,6 +1058,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>50</td>
 <td>0</td>
 <td>0</td>
@@ -863,6 +1071,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>44</td>
 <td>0</td>
 <td>0</td>
@@ -875,6 +1084,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>33</td>
 <td>0</td>
 <td>0</td>
@@ -887,6 +1097,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>27</td>
 <td>0</td>
 <td>0</td>
@@ -899,6 +1110,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>25</td>
 <td>0</td>
 <td>0</td>
@@ -911,6 +1123,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>22</td>
 <td>0</td>
 <td>0</td>
@@ -923,6 +1136,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>17</td>
 <td>0</td>
 <td>0</td>
@@ -935,6 +1149,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>13</td>
 <td>0</td>
 <td>0</td>
@@ -947,6 +1162,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>12</td>
 <td>0</td>
 <td>0</td>
@@ -959,6 +1175,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>10</td>
 <td>0</td>
 <td>0</td>
@@ -971,6 +1188,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>8</td>
 <td>0</td>
 <td>0</td>
@@ -983,6 +1201,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>7</td>
 <td>0</td>
 <td>0</td>
@@ -995,6 +1214,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>6</td>
 <td>0</td>
 <td>0</td>
@@ -1007,6 +1227,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>0</td>
 <td>0</td>
@@ -1019,6 +1240,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>1</td>
@@ -1031,68 +1253,94 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="hc_opt"><a class="header" href="#hc_opt"><code>HC_OPT</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.HC_OPT bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE[3]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.HC_OPT-MISC:TWO_ROUND">MISC:TWO_ROUND</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.HC_OPT-MISC:BRAM_SKIP">MISC:BRAM_SKIP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.HC_OPT-MISC:BRAM_SKIP">MISC:BRAM_SKIP</th>
 <th>0.0.5</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.HC_OPT-MISC:TWO_ROUND">MISC:TWO_ROUND</th>
 <th>0.0.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.HC_OPT-MISC:HC_CYCLE">MISC:HC_CYCLE</th>
 <th>0.0.3</th>
@@ -1100,7 +1348,9 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1110,145 +1360,197 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="powerdown"><a class="header" href="#powerdown"><code>POWERDOWN</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.POWERDOWN bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:SW_CLK">MISC:SW_CLK[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:EN_PORB">~MISC:EN_PORB</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:EN_SUSPEND">MISC:EN_SUSPEND</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:EN_SW_GSR">MISC:EN_SW_GSR</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:SUSPEND_FILTER">~MISC:SUSPEND_FILTER</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[1]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1[2]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[2]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[3]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2[4]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.POWERDOWN-MISC:EN_PORB">MISC:EN_PORB</th>
 <th>0.0.1</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.POWERDOWN-MISC:SUSPEND_FILTER">MISC:SUSPEND_FILTER</th>
 <th>0.0.5</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.POWERDOWN-MISC:EN_SUSPEND">MISC:EN_SUSPEND</th>
 <th>0.0.2</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.POWERDOWN-MISC:EN_SW_GSR">MISC:EN_SW_GSR</th>
 <th>0.0.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.POWERDOWN-MISC:SW_CLK">MISC:SW_CLK</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>INTERNALCLK</td>
 <td>0</td>
 </tr>
+
 <tr><td>STARTUPCLK</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY1">MISC:WAKE_DELAY1</th>
 <th>0.0.8</th>
 <th>0.0.7</th>
 <th>0.0.6</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1257,9 +1559,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.POWERDOWN-MISC:WAKE_DELAY2">MISC:WAKE_DELAY2</th>
 <th>0.0.13</th>
@@ -1268,7 +1575,9 @@ non-inverted
 <th>0.0.10</th>
 <th>0.0.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1279,71 +1588,93 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="pu_gwe"><a class="header" href="#pu_gwe"><code>PU_GWE</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.PU_GWE bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[3]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[4]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[5]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[6]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[7]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[8]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE[9]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.PU_GWE-MISC:SW_GWE_CYCLE">MISC:SW_GWE_CYCLE</th>
 <th>0.0.9</th>
@@ -1357,7 +1688,9 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1373,71 +1706,93 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="pu_gts"><a class="header" href="#pu_gts"><code>PU_GTS</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.PU_GTS bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[3]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[4]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[5]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[6]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[7]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[8]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE[9]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.PU_GTS-MISC:SW_GTS_CYCLE">MISC:SW_GTS_CYCLE</th>
 <th>0.0.9</th>
@@ -1451,7 +1806,9 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1467,73 +1824,96 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="mode"><a class="header" href="#mode"><code>MODE</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.MODE bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE[2]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_NEW_MODE">MISC:NEXT_CONFIG_NEW_MODE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.MODE-MISC:TESTMODE_EN">MISC:TESTMODE_EN</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.MODE-MISC:BOOTVSEL">MISC:BOOTVSEL</th>
 <th>0.0.2</th>
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_BOOT_MODE">MISC:NEXT_CONFIG_BOOT_MODE</th>
 <th>0.0.5</th>
 <th>0.0.4</th>
 <th>0.0.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1542,209 +1922,268 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.MODE-MISC:NEXT_CONFIG_NEW_MODE">MISC:NEXT_CONFIG_NEW_MODE</th>
 <th>0.0.6</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.MODE-MISC:TESTMODE_EN">MISC:TESTMODE_EN</th>
 <th>0.0.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="general12"><a class="header" href="#general12"><code>GENERAL[12]</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.GENERAL bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[3]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[4]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[5]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[6]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[7]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[8]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[9]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[10]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[11]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[12]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[13]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[14]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.0.15">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[15]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.GENERAL bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="1.0.0">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[16]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="1.0.1">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[17]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="1.0.2">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[18]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="1.0.3">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[19]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="1.0.4">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[20]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="1.0.5">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[21]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="1.0.6">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[22]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="1.0.7">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[23]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="1.0.8">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[24]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="1.0.9">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[25]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="1.0.10">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[26]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="1.0.11">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[27]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="1.0.12">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[28]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="1.0.13">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[29]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="1.0.14">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[30]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="1.0.15">
 <a href="#tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR[31]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.GENERAL-MISC:NEXT_CONFIG_ADDR">MISC:NEXT_CONFIG_ADDR</th>
 <th>1.0.15</th>
@@ -1780,7 +2219,9 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1818,109 +2259,144 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="seu_opt"><a class="header" href="#seu_opt"><code>SEU_OPT</code></a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 REG.SEU_OPT bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_EN">MISC:POST_CRC_EN</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:GLUTMASK">MISC:GLUTMASK</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_KEEP">MISC:POST_CRC_KEEP</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[2]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[3]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[4]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[5]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[6]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[7]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[8]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ[9]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.SEU_OPT-MISC:GLUTMASK">MISC:GLUTMASK</th>
 <th>0.0.1</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_EN">MISC:POST_CRC_EN</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_KEEP">MISC:POST_CRC_KEEP</th>
 <th>0.0.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-REG.SEU_OPT-MISC:POST_CRC_FREQ">MISC:POST_CRC_FREQ</th>
 <th>0.0.13</th>
@@ -1934,7 +2410,9 @@ non-inverted
 <th>0.0.5</th>
 <th>0.0.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>100</td>
 <td>0</td>
@@ -1948,6 +2426,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>50</td>
 <td>0</td>
 <td>0</td>
@@ -1960,6 +2439,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>44</td>
 <td>0</td>
 <td>0</td>
@@ -1972,6 +2452,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>33</td>
 <td>0</td>
 <td>0</td>
@@ -1984,6 +2465,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>27</td>
 <td>0</td>
 <td>0</td>
@@ -1996,6 +2478,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>25</td>
 <td>0</td>
 <td>0</td>
@@ -2008,6 +2491,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>22</td>
 <td>0</td>
 <td>0</td>
@@ -2020,6 +2504,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>17</td>
 <td>0</td>
 <td>0</td>
@@ -2032,6 +2517,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>13</td>
 <td>0</td>
 <td>0</td>
@@ -2044,6 +2530,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>12</td>
 <td>0</td>
 <td>0</td>
@@ -2056,6 +2543,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>10</td>
 <td>0</td>
 <td>0</td>
@@ -2068,6 +2556,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>8</td>
 <td>0</td>
 <td>0</td>
@@ -2080,6 +2569,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>7</td>
 <td>0</td>
 <td>0</td>
@@ -2092,6 +2582,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>6</td>
 <td>0</td>
 <td>0</td>
@@ -2104,6 +2595,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>0</td>
 <td>0</td>
@@ -2116,6 +2608,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>1</td>
@@ -2128,15 +2621,21 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="device-data"><a class="header" href="#device-data">Device data</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th rowspan="2">Device</th>
 <th colspan="4">MISC:SEND_VGG_DEFAULT</th>
 <th colspan="1">MISC:VGG_SENDMAX_DEFAULT</th>
 </tr>
+
 <tr>
 <th>[3]</th>
 <th>[2]</th>
@@ -2144,7 +2643,9 @@ non-inverted
 <th>[0]</th>
 <th>[0]</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>xc3s50</td>
 <td>1</td>
@@ -2153,6 +2654,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s50</td>
 <td>1</td>
 <td>0</td>
@@ -2160,6 +2662,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s200</td>
 <td>1</td>
 <td>0</td>
@@ -2167,6 +2670,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s200</td>
 <td>1</td>
 <td>0</td>
@@ -2174,6 +2678,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s400</td>
 <td>1</td>
 <td>0</td>
@@ -2181,6 +2686,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s400</td>
 <td>1</td>
 <td>0</td>
@@ -2188,6 +2694,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1000</td>
 <td>1</td>
 <td>0</td>
@@ -2195,6 +2702,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s1000</td>
 <td>1</td>
 <td>0</td>
@@ -2202,6 +2710,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1000l</td>
 <td>1</td>
 <td>0</td>
@@ -2209,6 +2718,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1500</td>
 <td>1</td>
 <td>0</td>
@@ -2216,6 +2726,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s1500</td>
 <td>1</td>
 <td>0</td>
@@ -2223,6 +2734,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1500l</td>
 <td>1</td>
 <td>0</td>
@@ -2230,6 +2742,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s2000</td>
 <td>1</td>
 <td>0</td>
@@ -2237,6 +2750,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s4000</td>
 <td>1</td>
 <td>0</td>
@@ -2244,6 +2758,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s4000l</td>
 <td>1</td>
 <td>0</td>
@@ -2251,6 +2766,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s5000</td>
 <td>1</td>
 <td>0</td>
@@ -2258,6 +2774,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s100e</td>
 <td>1</td>
 <td>0</td>
@@ -2265,6 +2782,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s100e</td>
 <td>1</td>
 <td>0</td>
@@ -2272,6 +2790,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s250e</td>
 <td>1</td>
 <td>0</td>
@@ -2279,6 +2798,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s250e</td>
 <td>1</td>
 <td>0</td>
@@ -2286,6 +2806,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s500e</td>
 <td>1</td>
 <td>0</td>
@@ -2293,6 +2814,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s500e</td>
 <td>1</td>
 <td>0</td>
@@ -2300,6 +2822,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1200e</td>
 <td>1</td>
 <td>0</td>
@@ -2307,6 +2830,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s1200e</td>
 <td>1</td>
 <td>0</td>
@@ -2314,6 +2838,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1600e</td>
 <td>1</td>
 <td>0</td>
@@ -2321,6 +2846,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s1600e</td>
 <td>1</td>
 <td>0</td>
@@ -2328,6 +2854,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s50a</td>
 <td>1</td>
 <td>1</td>
@@ -2335,6 +2862,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s50an</td>
 <td>1</td>
 <td>1</td>
@@ -2342,6 +2870,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s200a</td>
 <td>1</td>
 <td>1</td>
@@ -2349,6 +2878,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s200a</td>
 <td>1</td>
 <td>1</td>
@@ -2356,6 +2886,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s200an</td>
 <td>1</td>
 <td>1</td>
@@ -2363,6 +2894,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s400a</td>
 <td>1</td>
 <td>1</td>
@@ -2370,6 +2902,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s400a</td>
 <td>1</td>
 <td>1</td>
@@ -2377,6 +2910,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s400an</td>
 <td>1</td>
 <td>1</td>
@@ -2384,6 +2918,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s700a</td>
 <td>1</td>
 <td>1</td>
@@ -2391,6 +2926,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s700a</td>
 <td>1</td>
 <td>1</td>
@@ -2398,6 +2934,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s700an</td>
 <td>1</td>
 <td>1</td>
@@ -2405,6 +2942,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1400a</td>
 <td>1</td>
 <td>1</td>
@@ -2412,6 +2950,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3s1400a</td>
 <td>1</td>
 <td>1</td>
@@ -2419,6 +2958,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3s1400an</td>
 <td>1</td>
 <td>1</td>
@@ -2426,6 +2966,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3sd1800a</td>
 <td>1</td>
 <td>1</td>
@@ -2433,6 +2974,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3sd1800a</td>
 <td>1</td>
 <td>1</td>
@@ -2440,6 +2982,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc3sd3400a</td>
 <td>1</td>
 <td>1</td>
@@ -2447,6 +2990,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>xa3sd3400a</td>
 <td>1</td>
 <td>1</td>
@@ -2454,19 +2998,23 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../spartan3/config-s3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../fpgacore/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -2476,16 +3024,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../spartan3/config-s3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../fpgacore/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -2495,9 +3048,9 @@ non-inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,1136 +142,2234 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="dsp"><a class="header" href="#dsp">DSP</a></h1>
 <h2 id="tile-dsp"><a class="header" href="#tile-dsp">Tile DSP</a></h2>
 <p>Cells: 9</p>
 <h3 id="bel-dsp0"><a class="header" href="#bel-dsp0">Bel DSP0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp4 DSP bel DSP0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>A0_0</td><td>input</td><td>TCELL0:IMUX_D0</td></tr>
+
 <tr><td>A0_1</td><td>input</td><td>TCELL2:IMUX_D2</td></tr>
+
 <tr><td>A10_0</td><td>input</td><td>TCELL1:IMUX_D2</td></tr>
+
 <tr><td>A10_1</td><td>input</td><td>TCELL3:IMUX_D4</td></tr>
+
 <tr><td>A11_0</td><td>input</td><td>TCELL1:IMUX_D3</td></tr>
+
 <tr><td>A11_1</td><td>input</td><td>TCELL3:IMUX_D5</td></tr>
+
 <tr><td>A12_0</td><td>input</td><td>TCELL1:IMUX_D4</td></tr>
+
 <tr><td>A12_1</td><td>input</td><td>TCELL3:IMUX_D6</td></tr>
+
 <tr><td>A13_0</td><td>input</td><td>TCELL1:IMUX_D5</td></tr>
+
 <tr><td>A13_1</td><td>input</td><td>TCELL3:IMUX_D7</td></tr>
+
 <tr><td>A14_0</td><td>input</td><td>TCELL1:IMUX_D6</td></tr>
+
 <tr><td>A14_1</td><td>input</td><td>TCELL4:IMUX_D0</td></tr>
+
 <tr><td>A15_0</td><td>input</td><td>TCELL1:IMUX_D7</td></tr>
+
 <tr><td>A15_1</td><td>input</td><td>TCELL4:IMUX_D1</td></tr>
+
 <tr><td>A16_0</td><td>input</td><td>TCELL2:IMUX_D0</td></tr>
+
 <tr><td>A16_1</td><td>input</td><td>TCELL4:IMUX_D2</td></tr>
+
 <tr><td>A17_0</td><td>input</td><td>TCELL2:IMUX_D1</td></tr>
+
 <tr><td>A17_1</td><td>input</td><td>TCELL4:IMUX_D3</td></tr>
+
 <tr><td>A1_0</td><td>input</td><td>TCELL0:IMUX_D1</td></tr>
+
 <tr><td>A1_1</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+
 <tr><td>A2_0</td><td>input</td><td>TCELL0:IMUX_D2</td></tr>
+
 <tr><td>A2_1</td><td>input</td><td>TCELL2:IMUX_D4</td></tr>
+
 <tr><td>A3_0</td><td>input</td><td>TCELL0:IMUX_D3</td></tr>
+
 <tr><td>A3_1</td><td>input</td><td>TCELL2:IMUX_D5</td></tr>
+
 <tr><td>A4_0</td><td>input</td><td>TCELL0:IMUX_D4</td></tr>
+
 <tr><td>A4_1</td><td>input</td><td>TCELL2:IMUX_D6</td></tr>
+
 <tr><td>A5_0</td><td>input</td><td>TCELL0:IMUX_D5</td></tr>
+
 <tr><td>A5_1</td><td>input</td><td>TCELL2:IMUX_D7</td></tr>
+
 <tr><td>A6_0</td><td>input</td><td>TCELL0:IMUX_D6</td></tr>
+
 <tr><td>A6_1</td><td>input</td><td>TCELL3:IMUX_D0</td></tr>
+
 <tr><td>A7_0</td><td>input</td><td>TCELL0:IMUX_D7</td></tr>
+
 <tr><td>A7_1</td><td>input</td><td>TCELL3:IMUX_D1</td></tr>
+
 <tr><td>A8_0</td><td>input</td><td>TCELL1:IMUX_D0</td></tr>
+
 <tr><td>A8_1</td><td>input</td><td>TCELL3:IMUX_D2</td></tr>
+
 <tr><td>A9_0</td><td>input</td><td>TCELL1:IMUX_D1</td></tr>
+
 <tr><td>A9_1</td><td>input</td><td>TCELL3:IMUX_D3</td></tr>
+
 <tr><td>B0_0</td><td>input</td><td>TCELL0:IMUX_B4</td></tr>
+
 <tr><td>B0_1</td><td>input</td><td>TCELL2:IMUX_B6</td></tr>
+
 <tr><td>B10_0</td><td>input</td><td>TCELL1:IMUX_B6</td></tr>
+
 <tr><td>B10_1</td><td>input</td><td>TCELL3:IMUX_B0</td></tr>
+
 <tr><td>B11_0</td><td>input</td><td>TCELL1:IMUX_B7</td></tr>
+
 <tr><td>B11_1</td><td>input</td><td>TCELL3:IMUX_B1</td></tr>
+
 <tr><td>B12_0</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+
 <tr><td>B12_1</td><td>input</td><td>TCELL3:IMUX_B2</td></tr>
+
 <tr><td>B13_0</td><td>input</td><td>TCELL1:IMUX_B1</td></tr>
+
 <tr><td>B13_1</td><td>input</td><td>TCELL3:IMUX_B3</td></tr>
+
 <tr><td>B14_0</td><td>input</td><td>TCELL1:IMUX_B2</td></tr>
+
 <tr><td>B14_1</td><td>input</td><td>TCELL4:IMUX_B4</td></tr>
+
 <tr><td>B15_0</td><td>input</td><td>TCELL1:IMUX_B3</td></tr>
+
 <tr><td>B15_1</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+
 <tr><td>B16_0</td><td>input</td><td>TCELL2:IMUX_B4</td></tr>
+
 <tr><td>B16_1</td><td>input</td><td>TCELL4:IMUX_B6</td></tr>
+
 <tr><td>B17_0</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+
 <tr><td>B17_1</td><td>input</td><td>TCELL4:IMUX_B7</td></tr>
+
 <tr><td>B1_0</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+
 <tr><td>B1_1</td><td>input</td><td>TCELL2:IMUX_B7</td></tr>
+
 <tr><td>B2_0</td><td>input</td><td>TCELL0:IMUX_B6</td></tr>
+
 <tr><td>B2_1</td><td>input</td><td>TCELL2:IMUX_B0</td></tr>
+
 <tr><td>B3_0</td><td>input</td><td>TCELL0:IMUX_B7</td></tr>
+
 <tr><td>B3_1</td><td>input</td><td>TCELL2:IMUX_B1</td></tr>
+
 <tr><td>B4_0</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+
 <tr><td>B4_1</td><td>input</td><td>TCELL2:IMUX_B2</td></tr>
+
 <tr><td>B5_0</td><td>input</td><td>TCELL0:IMUX_B1</td></tr>
+
 <tr><td>B5_1</td><td>input</td><td>TCELL2:IMUX_B3</td></tr>
+
 <tr><td>B6_0</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+
 <tr><td>B6_1</td><td>input</td><td>TCELL3:IMUX_B4</td></tr>
+
 <tr><td>B7_0</td><td>input</td><td>TCELL0:IMUX_B3</td></tr>
+
 <tr><td>B7_1</td><td>input</td><td>TCELL3:IMUX_B5</td></tr>
+
 <tr><td>B8_0</td><td>input</td><td>TCELL1:IMUX_B4</td></tr>
+
 <tr><td>B8_1</td><td>input</td><td>TCELL3:IMUX_B6</td></tr>
+
 <tr><td>B9_0</td><td>input</td><td>TCELL1:IMUX_B5</td></tr>
+
 <tr><td>B9_1</td><td>input</td><td>TCELL3:IMUX_B7</td></tr>
+
 <tr><td>C0</td><td>input</td><td>TCELL0:IMUX_C2</td></tr>
+
 <tr><td>C1</td><td>input</td><td>TCELL0:IMUX_C3</td></tr>
+
 <tr><td>C10</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+
 <tr><td>C11</td><td>input</td><td>TCELL1:IMUX_C1</td></tr>
+
 <tr><td>C12</td><td>input</td><td>TCELL1:IMUX_C6</td></tr>
+
 <tr><td>C13</td><td>input</td><td>TCELL1:IMUX_C7</td></tr>
+
 <tr><td>C14</td><td>input</td><td>TCELL1:IMUX_C4</td></tr>
+
 <tr><td>C15</td><td>input</td><td>TCELL1:IMUX_C5</td></tr>
+
 <tr><td>C16</td><td>input</td><td>TCELL2:IMUX_C2</td></tr>
+
 <tr><td>C17</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+
 <tr><td>C18</td><td>input</td><td>TCELL2:IMUX_C0</td></tr>
+
 <tr><td>C19</td><td>input</td><td>TCELL2:IMUX_C1</td></tr>
+
 <tr><td>C2</td><td>input</td><td>TCELL0:IMUX_C0</td></tr>
+
 <tr><td>C20</td><td>input</td><td>TCELL2:IMUX_C6</td></tr>
+
 <tr><td>C21</td><td>input</td><td>TCELL2:IMUX_C7</td></tr>
+
 <tr><td>C22</td><td>input</td><td>TCELL2:IMUX_C4</td></tr>
+
 <tr><td>C23</td><td>input</td><td>TCELL2:IMUX_C5</td></tr>
+
 <tr><td>C24</td><td>input</td><td>TCELL3:IMUX_C2</td></tr>
+
 <tr><td>C25</td><td>input</td><td>TCELL3:IMUX_C3</td></tr>
+
 <tr><td>C26</td><td>input</td><td>TCELL3:IMUX_C0</td></tr>
+
 <tr><td>C27</td><td>input</td><td>TCELL3:IMUX_C1</td></tr>
+
 <tr><td>C28</td><td>input</td><td>TCELL3:IMUX_C6</td></tr>
+
 <tr><td>C29</td><td>input</td><td>TCELL3:IMUX_C7</td></tr>
+
 <tr><td>C3</td><td>input</td><td>TCELL0:IMUX_C1</td></tr>
+
 <tr><td>C30</td><td>input</td><td>TCELL3:IMUX_C4</td></tr>
+
 <tr><td>C31</td><td>input</td><td>TCELL3:IMUX_C5</td></tr>
+
 <tr><td>C32</td><td>input</td><td>TCELL0:IMUX_A6</td></tr>
+
 <tr><td>C33</td><td>input</td><td>TCELL0:IMUX_A7</td></tr>
+
 <tr><td>C34</td><td>input</td><td>TCELL0:IMUX_A4</td></tr>
+
 <tr><td>C35</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+
 <tr><td>C36</td><td>input</td><td>TCELL0:IMUX_A2</td></tr>
+
 <tr><td>C37</td><td>input</td><td>TCELL0:IMUX_A3</td></tr>
+
 <tr><td>C38</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+
 <tr><td>C39</td><td>input</td><td>TCELL0:IMUX_A1</td></tr>
+
 <tr><td>C4</td><td>input</td><td>TCELL0:IMUX_C6</td></tr>
+
 <tr><td>C40</td><td>input</td><td>TCELL1:IMUX_A6</td></tr>
+
 <tr><td>C41</td><td>input</td><td>TCELL1:IMUX_A7</td></tr>
+
 <tr><td>C42</td><td>input</td><td>TCELL1:IMUX_A4</td></tr>
+
 <tr><td>C43</td><td>input</td><td>TCELL1:IMUX_A5</td></tr>
+
 <tr><td>C44</td><td>input</td><td>TCELL1:IMUX_A2</td></tr>
+
 <tr><td>C45</td><td>input</td><td>TCELL1:IMUX_A3</td></tr>
+
 <tr><td>C46</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+
 <tr><td>C47</td><td>input</td><td>TCELL1:IMUX_A1</td></tr>
+
 <tr><td>C48</td><td>input</td><td>TCELL2:IMUX_A6</td></tr>
+
 <tr><td>C49</td><td>input</td><td>TCELL2:IMUX_A7</td></tr>
+
 <tr><td>C5</td><td>input</td><td>TCELL0:IMUX_C7</td></tr>
+
 <tr><td>C50</td><td>input</td><td>TCELL2:IMUX_A4</td></tr>
+
 <tr><td>C51</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+
 <tr><td>C52</td><td>input</td><td>TCELL2:IMUX_A2</td></tr>
+
 <tr><td>C53</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+
 <tr><td>C6</td><td>input</td><td>TCELL0:IMUX_C4</td></tr>
+
 <tr><td>C7</td><td>input</td><td>TCELL0:IMUX_C5</td></tr>
+
 <tr><td>C8</td><td>input</td><td>TCELL1:IMUX_C2</td></tr>
+
 <tr><td>C9</td><td>input</td><td>TCELL1:IMUX_C3</td></tr>
+
 <tr><td>CE0</td><td>input</td><td>TCELL1:IMUX_CE0</td></tr>
+
 <tr><td>CE1</td><td>input</td><td>TCELL1:IMUX_CE1</td></tr>
+
 <tr><td>CE2</td><td>input</td><td>TCELL2:IMUX_CE0</td></tr>
+
 <tr><td>CE3</td><td>input</td><td>TCELL2:IMUX_CE1</td></tr>
+
 <tr><td>CLK0</td><td>input</td><td>TCELL1:IMUX_CLK0_DELAY</td></tr>
+
 <tr><td>CLK1</td><td>input</td><td>TCELL1:IMUX_CLK1_DELAY</td></tr>
+
 <tr><td>CLK2</td><td>input</td><td>TCELL2:IMUX_CLK0_DELAY</td></tr>
+
 <tr><td>CLK3</td><td>input</td><td>TCELL2:IMUX_CLK1_DELAY</td></tr>
+
 <tr><td>EQOM</td><td>output</td><td>TCELL2:OUT_Q7</td></tr>
+
 <tr><td>EQPAT</td><td>output</td><td>TCELL2:OUT_Q6</td></tr>
+
 <tr><td>EQPATB</td><td>output</td><td>TCELL2:OUT_Q5</td></tr>
+
 <tr><td>EQZ</td><td>output</td><td>TCELL3:OUT_Q1</td></tr>
+
 <tr><td>EQZM</td><td>output</td><td>TCELL3:OUT_Q0</td></tr>
+
 <tr><td>OP0</td><td>input</td><td>TCELL0:IMUX_CE2</td></tr>
+
 <tr><td>OP1</td><td>input</td><td>TCELL0:IMUX_CE3</td></tr>
+
 <tr><td>OP10</td><td>input</td><td>TCELL4:IMUX_CE0</td></tr>
+
 <tr><td>OP2</td><td>input</td><td>TCELL1:IMUX_CE2</td></tr>
+
 <tr><td>OP3</td><td>input</td><td>TCELL1:IMUX_CE3</td></tr>
+
 <tr><td>OP4</td><td>input</td><td>TCELL2:IMUX_CE2</td></tr>
+
 <tr><td>OP5</td><td>input</td><td>TCELL2:IMUX_CE3</td></tr>
+
 <tr><td>OP6</td><td>input</td><td>TCELL3:IMUX_CE0</td></tr>
+
 <tr><td>OP7</td><td>input</td><td>TCELL3:IMUX_CE1</td></tr>
+
 <tr><td>OP8</td><td>input</td><td>TCELL3:IMUX_CE2</td></tr>
+
 <tr><td>OP9</td><td>input</td><td>TCELL3:IMUX_CE3</td></tr>
+
 <tr><td>OPPRE_0</td><td>input</td><td>TCELL2:IMUX_A0</td></tr>
+
 <tr><td>OPPRE_1</td><td>input</td><td>TCELL2:IMUX_A1</td></tr>
+
 <tr><td>OVER</td><td>output</td><td>TCELL2:OUT_Q4</td></tr>
+
 <tr><td>OVERUNDER</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+
 <tr><td>P0_0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+
 <tr><td>P0_1</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+
 <tr><td>P10_0</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+
 <tr><td>P10_1</td><td>output</td><td>TCELL1:OUT_Q2</td></tr>
+
 <tr><td>P11_0</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+
 <tr><td>P11_1</td><td>output</td><td>TCELL1:OUT_Q3</td></tr>
+
 <tr><td>P12_0</td><td>output</td><td>TCELL1:OUT_F4</td></tr>
+
 <tr><td>P12_1</td><td>output</td><td>TCELL1:OUT_Q4</td></tr>
+
 <tr><td>P13_0</td><td>output</td><td>TCELL1:OUT_F5</td></tr>
+
 <tr><td>P13_1</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+
 <tr><td>P14_0</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+
 <tr><td>P14_1</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+
 <tr><td>P15_0</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+
 <tr><td>P15_1</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+
 <tr><td>P16_0</td><td>output</td><td>TCELL2:OUT_F0</td></tr>
+
 <tr><td>P16_1</td><td>output</td><td>TCELL2:OUT_Q0</td></tr>
+
 <tr><td>P17_0</td><td>output</td><td>TCELL2:OUT_F1</td></tr>
+
 <tr><td>P17_1</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+
 <tr><td>P18_0</td><td>output</td><td>TCELL2:OUT_F2</td></tr>
+
 <tr><td>P18_1</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+
 <tr><td>P19_0</td><td>output</td><td>TCELL2:OUT_F3</td></tr>
+
 <tr><td>P19_1</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+
 <tr><td>P1_0</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+
 <tr><td>P1_1</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+
 <tr><td>P20_0</td><td>output</td><td>TCELL2:OUT_F4</td></tr>
+
 <tr><td>P20_1</td><td>output</td><td>TCELL2:OUT_Q4</td></tr>
+
 <tr><td>P21_0</td><td>output</td><td>TCELL2:OUT_F5</td></tr>
+
 <tr><td>P21_1</td><td>output</td><td>TCELL2:OUT_Q5</td></tr>
+
 <tr><td>P22_0</td><td>output</td><td>TCELL2:OUT_F6</td></tr>
+
 <tr><td>P22_1</td><td>output</td><td>TCELL2:OUT_Q6</td></tr>
+
 <tr><td>P23_0</td><td>output</td><td>TCELL2:OUT_F7</td></tr>
+
 <tr><td>P23_1</td><td>output</td><td>TCELL2:OUT_Q7</td></tr>
+
 <tr><td>P24_0</td><td>output</td><td>TCELL3:OUT_F0</td></tr>
+
 <tr><td>P24_1</td><td>output</td><td>TCELL3:OUT_Q0</td></tr>
+
 <tr><td>P25_0</td><td>output</td><td>TCELL3:OUT_F1</td></tr>
+
 <tr><td>P25_1</td><td>output</td><td>TCELL3:OUT_Q1</td></tr>
+
 <tr><td>P26_0</td><td>output</td><td>TCELL3:OUT_F2</td></tr>
+
 <tr><td>P26_1</td><td>output</td><td>TCELL3:OUT_Q2</td></tr>
+
 <tr><td>P27_0</td><td>output</td><td>TCELL3:OUT_F3</td></tr>
+
 <tr><td>P27_1</td><td>output</td><td>TCELL3:OUT_Q3</td></tr>
+
 <tr><td>P28_0</td><td>output</td><td>TCELL3:OUT_F4</td></tr>
+
 <tr><td>P28_1</td><td>output</td><td>TCELL3:OUT_Q4</td></tr>
+
 <tr><td>P29_0</td><td>output</td><td>TCELL3:OUT_F5</td></tr>
+
 <tr><td>P29_1</td><td>output</td><td>TCELL3:OUT_Q5</td></tr>
+
 <tr><td>P2_0</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+
 <tr><td>P2_1</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+
 <tr><td>P30_0</td><td>output</td><td>TCELL3:OUT_F6</td></tr>
+
 <tr><td>P30_1</td><td>output</td><td>TCELL3:OUT_Q6</td></tr>
+
 <tr><td>P31_0</td><td>output</td><td>TCELL3:OUT_F7</td></tr>
+
 <tr><td>P31_1</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+
 <tr><td>P32_0</td><td>output</td><td>TCELL4:OUT_F0</td></tr>
+
 <tr><td>P32_1</td><td>output</td><td>TCELL4:OUT_Q0</td></tr>
+
 <tr><td>P33_0</td><td>output</td><td>TCELL4:OUT_F1</td></tr>
+
 <tr><td>P33_1</td><td>output</td><td>TCELL4:OUT_Q1</td></tr>
+
 <tr><td>P34_0</td><td>output</td><td>TCELL4:OUT_F2</td></tr>
+
 <tr><td>P34_1</td><td>output</td><td>TCELL4:OUT_Q2</td></tr>
+
 <tr><td>P35_0</td><td>output</td><td>TCELL4:OUT_F3</td></tr>
+
 <tr><td>P35_1</td><td>output</td><td>TCELL4:OUT_Q3</td></tr>
+
 <tr><td>P3_0</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+
 <tr><td>P3_1</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+
 <tr><td>P4_0</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+
 <tr><td>P4_1</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+
 <tr><td>P5_0</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+
 <tr><td>P5_1</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+
 <tr><td>P6_0</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+
 <tr><td>P6_1</td><td>output</td><td>TCELL0:OUT_Q6</td></tr>
+
 <tr><td>P7_0</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+
 <tr><td>P7_1</td><td>output</td><td>TCELL0:OUT_Q7</td></tr>
+
 <tr><td>P8_0</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+
 <tr><td>P8_1</td><td>output</td><td>TCELL1:OUT_Q0</td></tr>
+
 <tr><td>P9_0</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+
 <tr><td>P9_1</td><td>output</td><td>TCELL1:OUT_Q1</td></tr>
+
 <tr><td>R0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+
 <tr><td>R1</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+
 <tr><td>R10</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+
 <tr><td>R11</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+
 <tr><td>R12</td><td>output</td><td>TCELL1:OUT_F4</td></tr>
+
 <tr><td>R13</td><td>output</td><td>TCELL1:OUT_F5</td></tr>
+
 <tr><td>R14</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+
 <tr><td>R15</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+
 <tr><td>R16</td><td>output</td><td>TCELL2:OUT_F0</td></tr>
+
 <tr><td>R17</td><td>output</td><td>TCELL2:OUT_F1</td></tr>
+
 <tr><td>R18</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+
 <tr><td>R19</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+
 <tr><td>R2</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+
 <tr><td>R20</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+
 <tr><td>R21</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+
 <tr><td>R22</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+
 <tr><td>R23</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+
 <tr><td>R24</td><td>output</td><td>TCELL0:OUT_Q6</td></tr>
+
 <tr><td>R25</td><td>output</td><td>TCELL0:OUT_Q7</td></tr>
+
 <tr><td>R26</td><td>output</td><td>TCELL1:OUT_Q0</td></tr>
+
 <tr><td>R27</td><td>output</td><td>TCELL2:OUT_F2</td></tr>
+
 <tr><td>R28</td><td>output</td><td>TCELL2:OUT_F3</td></tr>
+
 <tr><td>R29</td><td>output</td><td>TCELL2:OUT_F4</td></tr>
+
 <tr><td>R3</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+
 <tr><td>R30</td><td>output</td><td>TCELL2:OUT_F5</td></tr>
+
 <tr><td>R31</td><td>output</td><td>TCELL2:OUT_F6</td></tr>
+
 <tr><td>R32</td><td>output</td><td>TCELL2:OUT_F7</td></tr>
+
 <tr><td>R33</td><td>output</td><td>TCELL3:OUT_F0</td></tr>
+
 <tr><td>R34</td><td>output</td><td>TCELL3:OUT_F1</td></tr>
+
 <tr><td>R35</td><td>output</td><td>TCELL3:OUT_F2</td></tr>
+
 <tr><td>R36</td><td>output</td><td>TCELL3:OUT_F3</td></tr>
+
 <tr><td>R37</td><td>output</td><td>TCELL3:OUT_F4</td></tr>
+
 <tr><td>R38</td><td>output</td><td>TCELL3:OUT_F5</td></tr>
+
 <tr><td>R39</td><td>output</td><td>TCELL3:OUT_F6</td></tr>
+
 <tr><td>R4</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+
 <tr><td>R40</td><td>output</td><td>TCELL3:OUT_F7</td></tr>
+
 <tr><td>R41</td><td>output</td><td>TCELL4:OUT_F0</td></tr>
+
 <tr><td>R42</td><td>output</td><td>TCELL4:OUT_F1</td></tr>
+
 <tr><td>R43</td><td>output</td><td>TCELL4:OUT_F2</td></tr>
+
 <tr><td>R44</td><td>output</td><td>TCELL4:OUT_F3</td></tr>
+
 <tr><td>R45</td><td>output</td><td>TCELL1:OUT_Q1</td></tr>
+
 <tr><td>R46</td><td>output</td><td>TCELL1:OUT_Q2</td></tr>
+
 <tr><td>R47</td><td>output</td><td>TCELL1:OUT_Q3</td></tr>
+
 <tr><td>R48</td><td>output</td><td>TCELL1:OUT_Q4</td></tr>
+
 <tr><td>R49</td><td>output</td><td>TCELL1:OUT_Q5</td></tr>
+
 <tr><td>R5</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+
 <tr><td>R50</td><td>output</td><td>TCELL1:OUT_Q6</td></tr>
+
 <tr><td>R51</td><td>output</td><td>TCELL1:OUT_Q7</td></tr>
+
 <tr><td>R52</td><td>output</td><td>TCELL2:OUT_Q0</td></tr>
+
 <tr><td>R53</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+
 <tr><td>R6</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+
 <tr><td>R7</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+
 <tr><td>R8</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+
 <tr><td>R9</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+
 <tr><td>RST0</td><td>input</td><td>TCELL3:IMUX_LSR0</td></tr>
+
 <tr><td>RST1</td><td>input</td><td>TCELL3:IMUX_LSR1</td></tr>
+
 <tr><td>RST2</td><td>input</td><td>TCELL5:IMUX_LSR0</td></tr>
+
 <tr><td>RST3</td><td>input</td><td>TCELL5:IMUX_LSR1</td></tr>
+
 <tr><td>SIGNEDA_0</td><td>input</td><td>TCELL0:IMUX_CE0</td></tr>
+
 <tr><td>SIGNEDA_1</td><td>input</td><td>TCELL2:IMUX_LSR1</td></tr>
+
 <tr><td>SIGNEDB_0</td><td>input</td><td>TCELL0:IMUX_CE1</td></tr>
+
 <tr><td>SIGNEDB_1</td><td>input</td><td>TCELL4:IMUX_CE1</td></tr>
+
 <tr><td>SOURCEA_0</td><td>input</td><td>TCELL0:IMUX_LSR0</td></tr>
+
 <tr><td>SOURCEA_1</td><td>input</td><td>TCELL1:IMUX_LSR1</td></tr>
+
 <tr><td>SOURCEB_0</td><td>input</td><td>TCELL0:IMUX_LSR1</td></tr>
+
 <tr><td>SOURCEB_1</td><td>input</td><td>TCELL2:IMUX_LSR0</td></tr>
+
 <tr><td>SROA0</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+
 <tr><td>SROA1</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+
 <tr><td>SROA10</td><td>output</td><td>TCELL3:OUT_Q4</td></tr>
+
 <tr><td>SROA11</td><td>output</td><td>TCELL3:OUT_Q5</td></tr>
+
 <tr><td>SROA12</td><td>output</td><td>TCELL3:OUT_Q6</td></tr>
+
 <tr><td>SROA13</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+
 <tr><td>SROA14</td><td>output</td><td>TCELL4:OUT_Q0</td></tr>
+
 <tr><td>SROA15</td><td>output</td><td>TCELL4:OUT_Q1</td></tr>
+
 <tr><td>SROA16</td><td>output</td><td>TCELL4:OUT_Q2</td></tr>
+
 <tr><td>SROA17</td><td>output</td><td>TCELL4:OUT_Q3</td></tr>
+
 <tr><td>SROA2</td><td>output</td><td>TCELL2:OUT_Q4</td></tr>
+
 <tr><td>SROA3</td><td>output</td><td>TCELL2:OUT_Q5</td></tr>
+
 <tr><td>SROA4</td><td>output</td><td>TCELL2:OUT_Q6</td></tr>
+
 <tr><td>SROA5</td><td>output</td><td>TCELL2:OUT_Q7</td></tr>
+
 <tr><td>SROA6</td><td>output</td><td>TCELL3:OUT_Q0</td></tr>
+
 <tr><td>SROA7</td><td>output</td><td>TCELL3:OUT_Q1</td></tr>
+
 <tr><td>SROA8</td><td>output</td><td>TCELL3:OUT_Q2</td></tr>
+
 <tr><td>SROA9</td><td>output</td><td>TCELL3:OUT_Q3</td></tr>
+
 <tr><td>UNDER</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dsp1"><a class="header" href="#bel-dsp1">Bel DSP1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp4 DSP bel DSP1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>A0_0</td><td>input</td><td>TCELL4:IMUX_D4</td></tr>
+
 <tr><td>A0_1</td><td>input</td><td>TCELL6:IMUX_D6</td></tr>
+
 <tr><td>A10_0</td><td>input</td><td>TCELL5:IMUX_D6</td></tr>
+
 <tr><td>A10_1</td><td>input</td><td>TCELL8:IMUX_D0</td></tr>
+
 <tr><td>A11_0</td><td>input</td><td>TCELL5:IMUX_D7</td></tr>
+
 <tr><td>A11_1</td><td>input</td><td>TCELL8:IMUX_D1</td></tr>
+
 <tr><td>A12_0</td><td>input</td><td>TCELL6:IMUX_D0</td></tr>
+
 <tr><td>A12_1</td><td>input</td><td>TCELL8:IMUX_D2</td></tr>
+
 <tr><td>A13_0</td><td>input</td><td>TCELL6:IMUX_D1</td></tr>
+
 <tr><td>A13_1</td><td>input</td><td>TCELL8:IMUX_D3</td></tr>
+
 <tr><td>A14_0</td><td>input</td><td>TCELL6:IMUX_D2</td></tr>
+
 <tr><td>A14_1</td><td>input</td><td>TCELL8:IMUX_D4</td></tr>
+
 <tr><td>A15_0</td><td>input</td><td>TCELL6:IMUX_D3</td></tr>
+
 <tr><td>A15_1</td><td>input</td><td>TCELL8:IMUX_D5</td></tr>
+
 <tr><td>A16_0</td><td>input</td><td>TCELL6:IMUX_D4</td></tr>
+
 <tr><td>A16_1</td><td>input</td><td>TCELL8:IMUX_D6</td></tr>
+
 <tr><td>A17_0</td><td>input</td><td>TCELL6:IMUX_D5</td></tr>
+
 <tr><td>A17_1</td><td>input</td><td>TCELL8:IMUX_D7</td></tr>
+
 <tr><td>A1_0</td><td>input</td><td>TCELL4:IMUX_D5</td></tr>
+
 <tr><td>A1_1</td><td>input</td><td>TCELL6:IMUX_D7</td></tr>
+
 <tr><td>A2_0</td><td>input</td><td>TCELL4:IMUX_D6</td></tr>
+
 <tr><td>A2_1</td><td>input</td><td>TCELL7:IMUX_D0</td></tr>
+
 <tr><td>A3_0</td><td>input</td><td>TCELL4:IMUX_D7</td></tr>
+
 <tr><td>A3_1</td><td>input</td><td>TCELL7:IMUX_D1</td></tr>
+
 <tr><td>A4_0</td><td>input</td><td>TCELL5:IMUX_D0</td></tr>
+
 <tr><td>A4_1</td><td>input</td><td>TCELL7:IMUX_D2</td></tr>
+
 <tr><td>A5_0</td><td>input</td><td>TCELL5:IMUX_D1</td></tr>
+
 <tr><td>A5_1</td><td>input</td><td>TCELL7:IMUX_D3</td></tr>
+
 <tr><td>A6_0</td><td>input</td><td>TCELL5:IMUX_D2</td></tr>
+
 <tr><td>A6_1</td><td>input</td><td>TCELL7:IMUX_D4</td></tr>
+
 <tr><td>A7_0</td><td>input</td><td>TCELL5:IMUX_D3</td></tr>
+
 <tr><td>A7_1</td><td>input</td><td>TCELL7:IMUX_D5</td></tr>
+
 <tr><td>A8_0</td><td>input</td><td>TCELL5:IMUX_D4</td></tr>
+
 <tr><td>A8_1</td><td>input</td><td>TCELL7:IMUX_D6</td></tr>
+
 <tr><td>A9_0</td><td>input</td><td>TCELL5:IMUX_D5</td></tr>
+
 <tr><td>A9_1</td><td>input</td><td>TCELL7:IMUX_D7</td></tr>
+
 <tr><td>B0_0</td><td>input</td><td>TCELL4:IMUX_B0</td></tr>
+
 <tr><td>B0_1</td><td>input</td><td>TCELL6:IMUX_B2</td></tr>
+
 <tr><td>B10_0</td><td>input</td><td>TCELL5:IMUX_B2</td></tr>
+
 <tr><td>B10_1</td><td>input</td><td>TCELL8:IMUX_B4</td></tr>
+
 <tr><td>B11_0</td><td>input</td><td>TCELL5:IMUX_B3</td></tr>
+
 <tr><td>B11_1</td><td>input</td><td>TCELL8:IMUX_B5</td></tr>
+
 <tr><td>B12_0</td><td>input</td><td>TCELL6:IMUX_B4</td></tr>
+
 <tr><td>B12_1</td><td>input</td><td>TCELL8:IMUX_B6</td></tr>
+
 <tr><td>B13_0</td><td>input</td><td>TCELL6:IMUX_B5</td></tr>
+
 <tr><td>B13_1</td><td>input</td><td>TCELL8:IMUX_B7</td></tr>
+
 <tr><td>B14_0</td><td>input</td><td>TCELL6:IMUX_B6</td></tr>
+
 <tr><td>B14_1</td><td>input</td><td>TCELL8:IMUX_B0</td></tr>
+
 <tr><td>B15_0</td><td>input</td><td>TCELL6:IMUX_B7</td></tr>
+
 <tr><td>B15_1</td><td>input</td><td>TCELL8:IMUX_B1</td></tr>
+
 <tr><td>B16_0</td><td>input</td><td>TCELL6:IMUX_B0</td></tr>
+
 <tr><td>B16_1</td><td>input</td><td>TCELL8:IMUX_B2</td></tr>
+
 <tr><td>B17_0</td><td>input</td><td>TCELL6:IMUX_B1</td></tr>
+
 <tr><td>B17_1</td><td>input</td><td>TCELL8:IMUX_B3</td></tr>
+
 <tr><td>B1_0</td><td>input</td><td>TCELL4:IMUX_B1</td></tr>
+
 <tr><td>B1_1</td><td>input</td><td>TCELL6:IMUX_B3</td></tr>
+
 <tr><td>B2_0</td><td>input</td><td>TCELL4:IMUX_B2</td></tr>
+
 <tr><td>B2_1</td><td>input</td><td>TCELL7:IMUX_B4</td></tr>
+
 <tr><td>B3_0</td><td>input</td><td>TCELL4:IMUX_B3</td></tr>
+
 <tr><td>B3_1</td><td>input</td><td>TCELL7:IMUX_B5</td></tr>
+
 <tr><td>B4_0</td><td>input</td><td>TCELL5:IMUX_B4</td></tr>
+
 <tr><td>B4_1</td><td>input</td><td>TCELL7:IMUX_B6</td></tr>
+
 <tr><td>B5_0</td><td>input</td><td>TCELL5:IMUX_B5</td></tr>
+
 <tr><td>B5_1</td><td>input</td><td>TCELL7:IMUX_B7</td></tr>
+
 <tr><td>B6_0</td><td>input</td><td>TCELL5:IMUX_B6</td></tr>
+
 <tr><td>B6_1</td><td>input</td><td>TCELL7:IMUX_B0</td></tr>
+
 <tr><td>B7_0</td><td>input</td><td>TCELL5:IMUX_B7</td></tr>
+
 <tr><td>B7_1</td><td>input</td><td>TCELL7:IMUX_B1</td></tr>
+
 <tr><td>B8_0</td><td>input</td><td>TCELL5:IMUX_B0</td></tr>
+
 <tr><td>B8_1</td><td>input</td><td>TCELL7:IMUX_B2</td></tr>
+
 <tr><td>B9_0</td><td>input</td><td>TCELL5:IMUX_B1</td></tr>
+
 <tr><td>B9_1</td><td>input</td><td>TCELL7:IMUX_B3</td></tr>
+
 <tr><td>C0</td><td>input</td><td>TCELL5:IMUX_C2</td></tr>
+
 <tr><td>C1</td><td>input</td><td>TCELL5:IMUX_C3</td></tr>
+
 <tr><td>C10</td><td>input</td><td>TCELL6:IMUX_C0</td></tr>
+
 <tr><td>C11</td><td>input</td><td>TCELL6:IMUX_C1</td></tr>
+
 <tr><td>C12</td><td>input</td><td>TCELL6:IMUX_C6</td></tr>
+
 <tr><td>C13</td><td>input</td><td>TCELL6:IMUX_C7</td></tr>
+
 <tr><td>C14</td><td>input</td><td>TCELL6:IMUX_C4</td></tr>
+
 <tr><td>C15</td><td>input</td><td>TCELL6:IMUX_C5</td></tr>
+
 <tr><td>C16</td><td>input</td><td>TCELL7:IMUX_C2</td></tr>
+
 <tr><td>C17</td><td>input</td><td>TCELL7:IMUX_C3</td></tr>
+
 <tr><td>C18</td><td>input</td><td>TCELL7:IMUX_C0</td></tr>
+
 <tr><td>C19</td><td>input</td><td>TCELL7:IMUX_C1</td></tr>
+
 <tr><td>C2</td><td>input</td><td>TCELL5:IMUX_C0</td></tr>
+
 <tr><td>C20</td><td>input</td><td>TCELL7:IMUX_C6</td></tr>
+
 <tr><td>C21</td><td>input</td><td>TCELL7:IMUX_C7</td></tr>
+
 <tr><td>C22</td><td>input</td><td>TCELL7:IMUX_C4</td></tr>
+
 <tr><td>C23</td><td>input</td><td>TCELL7:IMUX_C5</td></tr>
+
 <tr><td>C24</td><td>input</td><td>TCELL8:IMUX_C2</td></tr>
+
 <tr><td>C25</td><td>input</td><td>TCELL8:IMUX_C3</td></tr>
+
 <tr><td>C26</td><td>input</td><td>TCELL8:IMUX_C0</td></tr>
+
 <tr><td>C27</td><td>input</td><td>TCELL8:IMUX_C1</td></tr>
+
 <tr><td>C28</td><td>input</td><td>TCELL8:IMUX_C6</td></tr>
+
 <tr><td>C29</td><td>input</td><td>TCELL8:IMUX_C7</td></tr>
+
 <tr><td>C3</td><td>input</td><td>TCELL5:IMUX_C1</td></tr>
+
 <tr><td>C30</td><td>input</td><td>TCELL8:IMUX_C4</td></tr>
+
 <tr><td>C31</td><td>input</td><td>TCELL8:IMUX_C5</td></tr>
+
 <tr><td>C32</td><td>input</td><td>TCELL5:IMUX_A6</td></tr>
+
 <tr><td>C33</td><td>input</td><td>TCELL5:IMUX_A7</td></tr>
+
 <tr><td>C34</td><td>input</td><td>TCELL5:IMUX_A4</td></tr>
+
 <tr><td>C35</td><td>input</td><td>TCELL5:IMUX_A5</td></tr>
+
 <tr><td>C36</td><td>input</td><td>TCELL5:IMUX_A2</td></tr>
+
 <tr><td>C37</td><td>input</td><td>TCELL5:IMUX_A3</td></tr>
+
 <tr><td>C38</td><td>input</td><td>TCELL5:IMUX_A0</td></tr>
+
 <tr><td>C39</td><td>input</td><td>TCELL5:IMUX_A1</td></tr>
+
 <tr><td>C4</td><td>input</td><td>TCELL5:IMUX_C6</td></tr>
+
 <tr><td>C40</td><td>input</td><td>TCELL6:IMUX_A6</td></tr>
+
 <tr><td>C41</td><td>input</td><td>TCELL6:IMUX_A7</td></tr>
+
 <tr><td>C42</td><td>input</td><td>TCELL6:IMUX_A4</td></tr>
+
 <tr><td>C43</td><td>input</td><td>TCELL6:IMUX_A5</td></tr>
+
 <tr><td>C44</td><td>input</td><td>TCELL6:IMUX_A2</td></tr>
+
 <tr><td>C45</td><td>input</td><td>TCELL6:IMUX_A3</td></tr>
+
 <tr><td>C46</td><td>input</td><td>TCELL6:IMUX_A0</td></tr>
+
 <tr><td>C47</td><td>input</td><td>TCELL6:IMUX_A1</td></tr>
+
 <tr><td>C48</td><td>input</td><td>TCELL7:IMUX_A6</td></tr>
+
 <tr><td>C49</td><td>input</td><td>TCELL7:IMUX_A7</td></tr>
+
 <tr><td>C5</td><td>input</td><td>TCELL5:IMUX_C7</td></tr>
+
 <tr><td>C50</td><td>input</td><td>TCELL7:IMUX_A4</td></tr>
+
 <tr><td>C51</td><td>input</td><td>TCELL7:IMUX_A5</td></tr>
+
 <tr><td>C52</td><td>input</td><td>TCELL7:IMUX_A2</td></tr>
+
 <tr><td>C53</td><td>input</td><td>TCELL7:IMUX_A3</td></tr>
+
 <tr><td>C6</td><td>input</td><td>TCELL5:IMUX_C4</td></tr>
+
 <tr><td>C7</td><td>input</td><td>TCELL5:IMUX_C5</td></tr>
+
 <tr><td>C8</td><td>input</td><td>TCELL6:IMUX_C2</td></tr>
+
 <tr><td>C9</td><td>input</td><td>TCELL6:IMUX_C3</td></tr>
+
 <tr><td>CE0</td><td>input</td><td>TCELL6:IMUX_CE0</td></tr>
+
 <tr><td>CE1</td><td>input</td><td>TCELL6:IMUX_CE1</td></tr>
+
 <tr><td>CE2</td><td>input</td><td>TCELL7:IMUX_CE0</td></tr>
+
 <tr><td>CE3</td><td>input</td><td>TCELL7:IMUX_CE1</td></tr>
+
 <tr><td>CLK0</td><td>input</td><td>TCELL6:IMUX_CLK0_DELAY</td></tr>
+
 <tr><td>CLK1</td><td>input</td><td>TCELL6:IMUX_CLK1_DELAY</td></tr>
+
 <tr><td>CLK2</td><td>input</td><td>TCELL7:IMUX_CLK0_DELAY</td></tr>
+
 <tr><td>CLK3</td><td>input</td><td>TCELL7:IMUX_CLK1_DELAY</td></tr>
+
 <tr><td>EQOM</td><td>output</td><td>TCELL7:OUT_Q3</td></tr>
+
 <tr><td>EQPAT</td><td>output</td><td>TCELL7:OUT_Q2</td></tr>
+
 <tr><td>EQPATB</td><td>output</td><td>TCELL7:OUT_Q1</td></tr>
+
 <tr><td>EQZ</td><td>output</td><td>TCELL7:OUT_Q5</td></tr>
+
 <tr><td>EQZM</td><td>output</td><td>TCELL7:OUT_Q4</td></tr>
+
 <tr><td>OP0</td><td>input</td><td>TCELL5:IMUX_CE0</td></tr>
+
 <tr><td>OP1</td><td>input</td><td>TCELL5:IMUX_CE1</td></tr>
+
 <tr><td>OP10</td><td>input</td><td>TCELL8:IMUX_CE2</td></tr>
+
 <tr><td>OP2</td><td>input</td><td>TCELL5:IMUX_CE2</td></tr>
+
 <tr><td>OP3</td><td>input</td><td>TCELL5:IMUX_CE3</td></tr>
+
 <tr><td>OP4</td><td>input</td><td>TCELL6:IMUX_CE2</td></tr>
+
 <tr><td>OP5</td><td>input</td><td>TCELL6:IMUX_CE3</td></tr>
+
 <tr><td>OP6</td><td>input</td><td>TCELL7:IMUX_CE2</td></tr>
+
 <tr><td>OP7</td><td>input</td><td>TCELL7:IMUX_CE3</td></tr>
+
 <tr><td>OP8</td><td>input</td><td>TCELL8:IMUX_CE0</td></tr>
+
 <tr><td>OP9</td><td>input</td><td>TCELL8:IMUX_CE1</td></tr>
+
 <tr><td>OPPRE_0</td><td>input</td><td>TCELL7:IMUX_A0</td></tr>
+
 <tr><td>OPPRE_1</td><td>input</td><td>TCELL7:IMUX_A1</td></tr>
+
 <tr><td>OVER</td><td>output</td><td>TCELL7:OUT_Q0</td></tr>
+
 <tr><td>OVERUNDER</td><td>output</td><td>TCELL6:OUT_Q6</td></tr>
+
 <tr><td>P0_0</td><td>output</td><td>TCELL4:OUT_F4</td></tr>
+
 <tr><td>P0_1</td><td>output</td><td>TCELL4:OUT_Q4</td></tr>
+
 <tr><td>P10_0</td><td>output</td><td>TCELL5:OUT_F6</td></tr>
+
 <tr><td>P10_1</td><td>output</td><td>TCELL5:OUT_Q6</td></tr>
+
 <tr><td>P11_0</td><td>output</td><td>TCELL5:OUT_F7</td></tr>
+
 <tr><td>P11_1</td><td>output</td><td>TCELL5:OUT_Q7</td></tr>
+
 <tr><td>P12_0</td><td>output</td><td>TCELL6:OUT_F0</td></tr>
+
 <tr><td>P12_1</td><td>output</td><td>TCELL6:OUT_Q0</td></tr>
+
 <tr><td>P13_0</td><td>output</td><td>TCELL6:OUT_F1</td></tr>
+
 <tr><td>P13_1</td><td>output</td><td>TCELL6:OUT_Q1</td></tr>
+
 <tr><td>P14_0</td><td>output</td><td>TCELL6:OUT_F2</td></tr>
+
 <tr><td>P14_1</td><td>output</td><td>TCELL6:OUT_Q2</td></tr>
+
 <tr><td>P15_0</td><td>output</td><td>TCELL6:OUT_F3</td></tr>
+
 <tr><td>P15_1</td><td>output</td><td>TCELL6:OUT_Q3</td></tr>
+
 <tr><td>P16_0</td><td>output</td><td>TCELL6:OUT_F4</td></tr>
+
 <tr><td>P16_1</td><td>output</td><td>TCELL6:OUT_Q4</td></tr>
+
 <tr><td>P17_0</td><td>output</td><td>TCELL6:OUT_F5</td></tr>
+
 <tr><td>P17_1</td><td>output</td><td>TCELL6:OUT_Q5</td></tr>
+
 <tr><td>P18_0</td><td>output</td><td>TCELL6:OUT_F6</td></tr>
+
 <tr><td>P18_1</td><td>output</td><td>TCELL6:OUT_Q6</td></tr>
+
 <tr><td>P19_0</td><td>output</td><td>TCELL6:OUT_F7</td></tr>
+
 <tr><td>P19_1</td><td>output</td><td>TCELL6:OUT_Q7</td></tr>
+
 <tr><td>P1_0</td><td>output</td><td>TCELL4:OUT_F5</td></tr>
+
 <tr><td>P1_1</td><td>output</td><td>TCELL4:OUT_Q5</td></tr>
+
 <tr><td>P20_0</td><td>output</td><td>TCELL7:OUT_F0</td></tr>
+
 <tr><td>P20_1</td><td>output</td><td>TCELL7:OUT_Q0</td></tr>
+
 <tr><td>P21_0</td><td>output</td><td>TCELL7:OUT_F1</td></tr>
+
 <tr><td>P21_1</td><td>output</td><td>TCELL7:OUT_Q1</td></tr>
+
 <tr><td>P22_0</td><td>output</td><td>TCELL7:OUT_F2</td></tr>
+
 <tr><td>P22_1</td><td>output</td><td>TCELL7:OUT_Q2</td></tr>
+
 <tr><td>P23_0</td><td>output</td><td>TCELL7:OUT_F3</td></tr>
+
 <tr><td>P23_1</td><td>output</td><td>TCELL7:OUT_Q3</td></tr>
+
 <tr><td>P24_0</td><td>output</td><td>TCELL7:OUT_F4</td></tr>
+
 <tr><td>P24_1</td><td>output</td><td>TCELL7:OUT_Q4</td></tr>
+
 <tr><td>P25_0</td><td>output</td><td>TCELL7:OUT_F5</td></tr>
+
 <tr><td>P25_1</td><td>output</td><td>TCELL7:OUT_Q5</td></tr>
+
 <tr><td>P26_0</td><td>output</td><td>TCELL7:OUT_F6</td></tr>
+
 <tr><td>P26_1</td><td>output</td><td>TCELL7:OUT_Q6</td></tr>
+
 <tr><td>P27_0</td><td>output</td><td>TCELL7:OUT_F7</td></tr>
+
 <tr><td>P27_1</td><td>output</td><td>TCELL7:OUT_Q7</td></tr>
+
 <tr><td>P28_0</td><td>output</td><td>TCELL8:OUT_F0</td></tr>
+
 <tr><td>P28_1</td><td>output</td><td>TCELL8:OUT_Q0</td></tr>
+
 <tr><td>P29_0</td><td>output</td><td>TCELL8:OUT_F1</td></tr>
+
 <tr><td>P29_1</td><td>output</td><td>TCELL8:OUT_Q1</td></tr>
+
 <tr><td>P2_0</td><td>output</td><td>TCELL4:OUT_F6</td></tr>
+
 <tr><td>P2_1</td><td>output</td><td>TCELL4:OUT_Q6</td></tr>
+
 <tr><td>P30_0</td><td>output</td><td>TCELL8:OUT_F2</td></tr>
+
 <tr><td>P30_1</td><td>output</td><td>TCELL8:OUT_Q2</td></tr>
+
 <tr><td>P31_0</td><td>output</td><td>TCELL8:OUT_F3</td></tr>
+
 <tr><td>P31_1</td><td>output</td><td>TCELL8:OUT_Q3</td></tr>
+
 <tr><td>P32_0</td><td>output</td><td>TCELL8:OUT_F4</td></tr>
+
 <tr><td>P32_1</td><td>output</td><td>TCELL8:OUT_Q4</td></tr>
+
 <tr><td>P33_0</td><td>output</td><td>TCELL8:OUT_F5</td></tr>
+
 <tr><td>P33_1</td><td>output</td><td>TCELL8:OUT_Q5</td></tr>
+
 <tr><td>P34_0</td><td>output</td><td>TCELL8:OUT_F6</td></tr>
+
 <tr><td>P34_1</td><td>output</td><td>TCELL8:OUT_Q6</td></tr>
+
 <tr><td>P35_0</td><td>output</td><td>TCELL8:OUT_F7</td></tr>
+
 <tr><td>P35_1</td><td>output</td><td>TCELL8:OUT_Q7</td></tr>
+
 <tr><td>P3_0</td><td>output</td><td>TCELL4:OUT_F7</td></tr>
+
 <tr><td>P3_1</td><td>output</td><td>TCELL4:OUT_Q7</td></tr>
+
 <tr><td>P4_0</td><td>output</td><td>TCELL5:OUT_F0</td></tr>
+
 <tr><td>P4_1</td><td>output</td><td>TCELL5:OUT_Q0</td></tr>
+
 <tr><td>P5_0</td><td>output</td><td>TCELL5:OUT_F1</td></tr>
+
 <tr><td>P5_1</td><td>output</td><td>TCELL5:OUT_Q1</td></tr>
+
 <tr><td>P6_0</td><td>output</td><td>TCELL5:OUT_F2</td></tr>
+
 <tr><td>P6_1</td><td>output</td><td>TCELL5:OUT_Q2</td></tr>
+
 <tr><td>P7_0</td><td>output</td><td>TCELL5:OUT_F3</td></tr>
+
 <tr><td>P7_1</td><td>output</td><td>TCELL5:OUT_Q3</td></tr>
+
 <tr><td>P8_0</td><td>output</td><td>TCELL5:OUT_F4</td></tr>
+
 <tr><td>P8_1</td><td>output</td><td>TCELL5:OUT_Q4</td></tr>
+
 <tr><td>P9_0</td><td>output</td><td>TCELL5:OUT_F5</td></tr>
+
 <tr><td>P9_1</td><td>output</td><td>TCELL5:OUT_Q5</td></tr>
+
 <tr><td>R0</td><td>output</td><td>TCELL4:OUT_F4</td></tr>
+
 <tr><td>R1</td><td>output</td><td>TCELL4:OUT_F5</td></tr>
+
 <tr><td>R10</td><td>output</td><td>TCELL5:OUT_F6</td></tr>
+
 <tr><td>R11</td><td>output</td><td>TCELL5:OUT_F7</td></tr>
+
 <tr><td>R12</td><td>output</td><td>TCELL6:OUT_F0</td></tr>
+
 <tr><td>R13</td><td>output</td><td>TCELL6:OUT_F1</td></tr>
+
 <tr><td>R14</td><td>output</td><td>TCELL6:OUT_F2</td></tr>
+
 <tr><td>R15</td><td>output</td><td>TCELL6:OUT_F3</td></tr>
+
 <tr><td>R16</td><td>output</td><td>TCELL6:OUT_F4</td></tr>
+
 <tr><td>R17</td><td>output</td><td>TCELL6:OUT_F5</td></tr>
+
 <tr><td>R18</td><td>output</td><td>TCELL4:OUT_Q4</td></tr>
+
 <tr><td>R19</td><td>output</td><td>TCELL4:OUT_Q5</td></tr>
+
 <tr><td>R2</td><td>output</td><td>TCELL4:OUT_F6</td></tr>
+
 <tr><td>R20</td><td>output</td><td>TCELL4:OUT_Q6</td></tr>
+
 <tr><td>R21</td><td>output</td><td>TCELL4:OUT_Q7</td></tr>
+
 <tr><td>R22</td><td>output</td><td>TCELL5:OUT_Q0</td></tr>
+
 <tr><td>R23</td><td>output</td><td>TCELL5:OUT_Q1</td></tr>
+
 <tr><td>R24</td><td>output</td><td>TCELL5:OUT_Q2</td></tr>
+
 <tr><td>R25</td><td>output</td><td>TCELL5:OUT_Q3</td></tr>
+
 <tr><td>R26</td><td>output</td><td>TCELL5:OUT_Q4</td></tr>
+
 <tr><td>R27</td><td>output</td><td>TCELL6:OUT_F6</td></tr>
+
 <tr><td>R28</td><td>output</td><td>TCELL6:OUT_F7</td></tr>
+
 <tr><td>R29</td><td>output</td><td>TCELL7:OUT_F0</td></tr>
+
 <tr><td>R3</td><td>output</td><td>TCELL4:OUT_F7</td></tr>
+
 <tr><td>R30</td><td>output</td><td>TCELL7:OUT_F1</td></tr>
+
 <tr><td>R31</td><td>output</td><td>TCELL7:OUT_F2</td></tr>
+
 <tr><td>R32</td><td>output</td><td>TCELL7:OUT_F3</td></tr>
+
 <tr><td>R33</td><td>output</td><td>TCELL7:OUT_F4</td></tr>
+
 <tr><td>R34</td><td>output</td><td>TCELL7:OUT_F5</td></tr>
+
 <tr><td>R35</td><td>output</td><td>TCELL7:OUT_F6</td></tr>
+
 <tr><td>R36</td><td>output</td><td>TCELL7:OUT_F7</td></tr>
+
 <tr><td>R37</td><td>output</td><td>TCELL8:OUT_F0</td></tr>
+
 <tr><td>R38</td><td>output</td><td>TCELL8:OUT_F1</td></tr>
+
 <tr><td>R39</td><td>output</td><td>TCELL8:OUT_F2</td></tr>
+
 <tr><td>R4</td><td>output</td><td>TCELL5:OUT_F0</td></tr>
+
 <tr><td>R40</td><td>output</td><td>TCELL8:OUT_F3</td></tr>
+
 <tr><td>R41</td><td>output</td><td>TCELL8:OUT_F4</td></tr>
+
 <tr><td>R42</td><td>output</td><td>TCELL8:OUT_F5</td></tr>
+
 <tr><td>R43</td><td>output</td><td>TCELL8:OUT_F6</td></tr>
+
 <tr><td>R44</td><td>output</td><td>TCELL8:OUT_F7</td></tr>
+
 <tr><td>R45</td><td>output</td><td>TCELL5:OUT_Q5</td></tr>
+
 <tr><td>R46</td><td>output</td><td>TCELL5:OUT_Q6</td></tr>
+
 <tr><td>R47</td><td>output</td><td>TCELL5:OUT_Q7</td></tr>
+
 <tr><td>R48</td><td>output</td><td>TCELL6:OUT_Q0</td></tr>
+
 <tr><td>R49</td><td>output</td><td>TCELL6:OUT_Q1</td></tr>
+
 <tr><td>R5</td><td>output</td><td>TCELL5:OUT_F1</td></tr>
+
 <tr><td>R50</td><td>output</td><td>TCELL6:OUT_Q2</td></tr>
+
 <tr><td>R51</td><td>output</td><td>TCELL6:OUT_Q3</td></tr>
+
 <tr><td>R52</td><td>output</td><td>TCELL6:OUT_Q4</td></tr>
+
 <tr><td>R53</td><td>output</td><td>TCELL6:OUT_Q5</td></tr>
+
 <tr><td>R6</td><td>output</td><td>TCELL5:OUT_F2</td></tr>
+
 <tr><td>R7</td><td>output</td><td>TCELL5:OUT_F3</td></tr>
+
 <tr><td>R8</td><td>output</td><td>TCELL5:OUT_F4</td></tr>
+
 <tr><td>R9</td><td>output</td><td>TCELL5:OUT_F5</td></tr>
+
 <tr><td>RST0</td><td>input</td><td>TCELL3:IMUX_LSR0</td></tr>
+
 <tr><td>RST1</td><td>input</td><td>TCELL3:IMUX_LSR1</td></tr>
+
 <tr><td>RST2</td><td>input</td><td>TCELL5:IMUX_LSR0</td></tr>
+
 <tr><td>RST3</td><td>input</td><td>TCELL5:IMUX_LSR1</td></tr>
+
 <tr><td>SIGNEDA_0</td><td>input</td><td>TCELL4:IMUX_CE2</td></tr>
+
 <tr><td>SIGNEDA_1</td><td>input</td><td>TCELL7:IMUX_LSR1</td></tr>
+
 <tr><td>SIGNEDB_0</td><td>input</td><td>TCELL4:IMUX_CE3</td></tr>
+
 <tr><td>SIGNEDB_1</td><td>input</td><td>TCELL8:IMUX_CE3</td></tr>
+
 <tr><td>SOURCEA_0</td><td>input</td><td>TCELL6:IMUX_LSR0</td></tr>
+
 <tr><td>SOURCEA_1</td><td>input</td><td>TCELL8:IMUX_LSR1</td></tr>
+
 <tr><td>SOURCEB_0</td><td>input</td><td>TCELL6:IMUX_LSR1</td></tr>
+
 <tr><td>SOURCEB_1</td><td>input</td><td>TCELL8:IMUX_LSR0</td></tr>
+
 <tr><td>SROA0</td><td>output</td><td>TCELL6:OUT_Q6</td></tr>
+
 <tr><td>SROA1</td><td>output</td><td>TCELL6:OUT_Q7</td></tr>
+
 <tr><td>SROA10</td><td>output</td><td>TCELL8:OUT_Q0</td></tr>
+
 <tr><td>SROA11</td><td>output</td><td>TCELL8:OUT_Q1</td></tr>
+
 <tr><td>SROA12</td><td>output</td><td>TCELL8:OUT_Q2</td></tr>
+
 <tr><td>SROA13</td><td>output</td><td>TCELL8:OUT_Q3</td></tr>
+
 <tr><td>SROA14</td><td>output</td><td>TCELL8:OUT_Q4</td></tr>
+
 <tr><td>SROA15</td><td>output</td><td>TCELL8:OUT_Q5</td></tr>
+
 <tr><td>SROA16</td><td>output</td><td>TCELL8:OUT_Q6</td></tr>
+
 <tr><td>SROA17</td><td>output</td><td>TCELL8:OUT_Q7</td></tr>
+
 <tr><td>SROA2</td><td>output</td><td>TCELL7:OUT_Q0</td></tr>
+
 <tr><td>SROA3</td><td>output</td><td>TCELL7:OUT_Q1</td></tr>
+
 <tr><td>SROA4</td><td>output</td><td>TCELL7:OUT_Q2</td></tr>
+
 <tr><td>SROA5</td><td>output</td><td>TCELL7:OUT_Q3</td></tr>
+
 <tr><td>SROA6</td><td>output</td><td>TCELL7:OUT_Q4</td></tr>
+
 <tr><td>SROA7</td><td>output</td><td>TCELL7:OUT_Q5</td></tr>
+
 <tr><td>SROA8</td><td>output</td><td>TCELL7:OUT_Q6</td></tr>
+
 <tr><td>SROA9</td><td>output</td><td>TCELL7:OUT_Q7</td></tr>
+
 <tr><td>UNDER</td><td>output</td><td>TCELL6:OUT_Q7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp4 DSP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX_A0</td><td>DSP0.C38</td></tr>
+
 <tr><td>TCELL0:IMUX_A1</td><td>DSP0.C39</td></tr>
+
 <tr><td>TCELL0:IMUX_A2</td><td>DSP0.C36</td></tr>
+
 <tr><td>TCELL0:IMUX_A3</td><td>DSP0.C37</td></tr>
+
 <tr><td>TCELL0:IMUX_A4</td><td>DSP0.C34</td></tr>
+
 <tr><td>TCELL0:IMUX_A5</td><td>DSP0.C35</td></tr>
+
 <tr><td>TCELL0:IMUX_A6</td><td>DSP0.C32</td></tr>
+
 <tr><td>TCELL0:IMUX_A7</td><td>DSP0.C33</td></tr>
+
 <tr><td>TCELL0:IMUX_B0</td><td>DSP0.B4_0</td></tr>
+
 <tr><td>TCELL0:IMUX_B1</td><td>DSP0.B5_0</td></tr>
+
 <tr><td>TCELL0:IMUX_B2</td><td>DSP0.B6_0</td></tr>
+
 <tr><td>TCELL0:IMUX_B3</td><td>DSP0.B7_0</td></tr>
+
 <tr><td>TCELL0:IMUX_B4</td><td>DSP0.B0_0</td></tr>
+
 <tr><td>TCELL0:IMUX_B5</td><td>DSP0.B1_0</td></tr>
+
 <tr><td>TCELL0:IMUX_B6</td><td>DSP0.B2_0</td></tr>
+
 <tr><td>TCELL0:IMUX_B7</td><td>DSP0.B3_0</td></tr>
+
 <tr><td>TCELL0:IMUX_C0</td><td>DSP0.C2</td></tr>
+
 <tr><td>TCELL0:IMUX_C1</td><td>DSP0.C3</td></tr>
+
 <tr><td>TCELL0:IMUX_C2</td><td>DSP0.C0</td></tr>
+
 <tr><td>TCELL0:IMUX_C3</td><td>DSP0.C1</td></tr>
+
 <tr><td>TCELL0:IMUX_C4</td><td>DSP0.C6</td></tr>
+
 <tr><td>TCELL0:IMUX_C5</td><td>DSP0.C7</td></tr>
+
 <tr><td>TCELL0:IMUX_C6</td><td>DSP0.C4</td></tr>
+
 <tr><td>TCELL0:IMUX_C7</td><td>DSP0.C5</td></tr>
+
 <tr><td>TCELL0:IMUX_D0</td><td>DSP0.A0_0</td></tr>
+
 <tr><td>TCELL0:IMUX_D1</td><td>DSP0.A1_0</td></tr>
+
 <tr><td>TCELL0:IMUX_D2</td><td>DSP0.A2_0</td></tr>
+
 <tr><td>TCELL0:IMUX_D3</td><td>DSP0.A3_0</td></tr>
+
 <tr><td>TCELL0:IMUX_D4</td><td>DSP0.A4_0</td></tr>
+
 <tr><td>TCELL0:IMUX_D5</td><td>DSP0.A5_0</td></tr>
+
 <tr><td>TCELL0:IMUX_D6</td><td>DSP0.A6_0</td></tr>
+
 <tr><td>TCELL0:IMUX_D7</td><td>DSP0.A7_0</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR0</td><td>DSP0.SOURCEA_0</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR1</td><td>DSP0.SOURCEB_0</td></tr>
+
 <tr><td>TCELL0:IMUX_CE0</td><td>DSP0.SIGNEDA_0</td></tr>
+
 <tr><td>TCELL0:IMUX_CE1</td><td>DSP0.SIGNEDB_0</td></tr>
+
 <tr><td>TCELL0:IMUX_CE2</td><td>DSP0.OP0</td></tr>
+
 <tr><td>TCELL0:IMUX_CE3</td><td>DSP0.OP1</td></tr>
+
 <tr><td>TCELL0:OUT_F0</td><td>DSP0.P0_0, DSP0.R0</td></tr>
+
 <tr><td>TCELL0:OUT_F1</td><td>DSP0.P1_0, DSP0.R1</td></tr>
+
 <tr><td>TCELL0:OUT_F2</td><td>DSP0.P2_0, DSP0.R2</td></tr>
+
 <tr><td>TCELL0:OUT_F3</td><td>DSP0.P3_0, DSP0.R3</td></tr>
+
 <tr><td>TCELL0:OUT_F4</td><td>DSP0.P4_0, DSP0.R4</td></tr>
+
 <tr><td>TCELL0:OUT_F5</td><td>DSP0.P5_0, DSP0.R5</td></tr>
+
 <tr><td>TCELL0:OUT_F6</td><td>DSP0.P6_0, DSP0.R6</td></tr>
+
 <tr><td>TCELL0:OUT_F7</td><td>DSP0.P7_0, DSP0.R7</td></tr>
+
 <tr><td>TCELL0:OUT_Q0</td><td>DSP0.P0_1, DSP0.R18</td></tr>
+
 <tr><td>TCELL0:OUT_Q1</td><td>DSP0.P1_1, DSP0.R19</td></tr>
+
 <tr><td>TCELL0:OUT_Q2</td><td>DSP0.P2_1, DSP0.R20</td></tr>
+
 <tr><td>TCELL0:OUT_Q3</td><td>DSP0.P3_1, DSP0.R21</td></tr>
+
 <tr><td>TCELL0:OUT_Q4</td><td>DSP0.P4_1, DSP0.R22</td></tr>
+
 <tr><td>TCELL0:OUT_Q5</td><td>DSP0.P5_1, DSP0.R23</td></tr>
+
 <tr><td>TCELL0:OUT_Q6</td><td>DSP0.P6_1, DSP0.R24</td></tr>
+
 <tr><td>TCELL0:OUT_Q7</td><td>DSP0.P7_1, DSP0.R25</td></tr>
+
 <tr><td>TCELL1:IMUX_A0</td><td>DSP0.C46</td></tr>
+
 <tr><td>TCELL1:IMUX_A1</td><td>DSP0.C47</td></tr>
+
 <tr><td>TCELL1:IMUX_A2</td><td>DSP0.C44</td></tr>
+
 <tr><td>TCELL1:IMUX_A3</td><td>DSP0.C45</td></tr>
+
 <tr><td>TCELL1:IMUX_A4</td><td>DSP0.C42</td></tr>
+
 <tr><td>TCELL1:IMUX_A5</td><td>DSP0.C43</td></tr>
+
 <tr><td>TCELL1:IMUX_A6</td><td>DSP0.C40</td></tr>
+
 <tr><td>TCELL1:IMUX_A7</td><td>DSP0.C41</td></tr>
+
 <tr><td>TCELL1:IMUX_B0</td><td>DSP0.B12_0</td></tr>
+
 <tr><td>TCELL1:IMUX_B1</td><td>DSP0.B13_0</td></tr>
+
 <tr><td>TCELL1:IMUX_B2</td><td>DSP0.B14_0</td></tr>
+
 <tr><td>TCELL1:IMUX_B3</td><td>DSP0.B15_0</td></tr>
+
 <tr><td>TCELL1:IMUX_B4</td><td>DSP0.B8_0</td></tr>
+
 <tr><td>TCELL1:IMUX_B5</td><td>DSP0.B9_0</td></tr>
+
 <tr><td>TCELL1:IMUX_B6</td><td>DSP0.B10_0</td></tr>
+
 <tr><td>TCELL1:IMUX_B7</td><td>DSP0.B11_0</td></tr>
+
 <tr><td>TCELL1:IMUX_C0</td><td>DSP0.C10</td></tr>
+
 <tr><td>TCELL1:IMUX_C1</td><td>DSP0.C11</td></tr>
+
 <tr><td>TCELL1:IMUX_C2</td><td>DSP0.C8</td></tr>
+
 <tr><td>TCELL1:IMUX_C3</td><td>DSP0.C9</td></tr>
+
 <tr><td>TCELL1:IMUX_C4</td><td>DSP0.C14</td></tr>
+
 <tr><td>TCELL1:IMUX_C5</td><td>DSP0.C15</td></tr>
+
 <tr><td>TCELL1:IMUX_C6</td><td>DSP0.C12</td></tr>
+
 <tr><td>TCELL1:IMUX_C7</td><td>DSP0.C13</td></tr>
+
 <tr><td>TCELL1:IMUX_D0</td><td>DSP0.A8_0</td></tr>
+
 <tr><td>TCELL1:IMUX_D1</td><td>DSP0.A9_0</td></tr>
+
 <tr><td>TCELL1:IMUX_D2</td><td>DSP0.A10_0</td></tr>
+
 <tr><td>TCELL1:IMUX_D3</td><td>DSP0.A11_0</td></tr>
+
 <tr><td>TCELL1:IMUX_D4</td><td>DSP0.A12_0</td></tr>
+
 <tr><td>TCELL1:IMUX_D5</td><td>DSP0.A13_0</td></tr>
+
 <tr><td>TCELL1:IMUX_D6</td><td>DSP0.A14_0</td></tr>
+
 <tr><td>TCELL1:IMUX_D7</td><td>DSP0.A15_0</td></tr>
+
 <tr><td>TCELL1:IMUX_LSR1</td><td>DSP0.SOURCEA_1</td></tr>
+
 <tr><td>TCELL1:IMUX_CLK0_DELAY</td><td>DSP0.CLK0</td></tr>
+
 <tr><td>TCELL1:IMUX_CLK1_DELAY</td><td>DSP0.CLK1</td></tr>
+
 <tr><td>TCELL1:IMUX_CE0</td><td>DSP0.CE0</td></tr>
+
 <tr><td>TCELL1:IMUX_CE1</td><td>DSP0.CE1</td></tr>
+
 <tr><td>TCELL1:IMUX_CE2</td><td>DSP0.OP2</td></tr>
+
 <tr><td>TCELL1:IMUX_CE3</td><td>DSP0.OP3</td></tr>
+
 <tr><td>TCELL1:OUT_F0</td><td>DSP0.P8_0, DSP0.R8</td></tr>
+
 <tr><td>TCELL1:OUT_F1</td><td>DSP0.P9_0, DSP0.R9</td></tr>
+
 <tr><td>TCELL1:OUT_F2</td><td>DSP0.P10_0, DSP0.R10</td></tr>
+
 <tr><td>TCELL1:OUT_F3</td><td>DSP0.P11_0, DSP0.R11</td></tr>
+
 <tr><td>TCELL1:OUT_F4</td><td>DSP0.P12_0, DSP0.R12</td></tr>
+
 <tr><td>TCELL1:OUT_F5</td><td>DSP0.P13_0, DSP0.R13</td></tr>
+
 <tr><td>TCELL1:OUT_F6</td><td>DSP0.P14_0, DSP0.R14</td></tr>
+
 <tr><td>TCELL1:OUT_F7</td><td>DSP0.P15_0, DSP0.R15</td></tr>
+
 <tr><td>TCELL1:OUT_Q0</td><td>DSP0.P8_1, DSP0.R26</td></tr>
+
 <tr><td>TCELL1:OUT_Q1</td><td>DSP0.P9_1, DSP0.R45</td></tr>
+
 <tr><td>TCELL1:OUT_Q2</td><td>DSP0.P10_1, DSP0.R46</td></tr>
+
 <tr><td>TCELL1:OUT_Q3</td><td>DSP0.P11_1, DSP0.R47</td></tr>
+
 <tr><td>TCELL1:OUT_Q4</td><td>DSP0.P12_1, DSP0.R48</td></tr>
+
 <tr><td>TCELL1:OUT_Q5</td><td>DSP0.P13_1, DSP0.R49</td></tr>
+
 <tr><td>TCELL1:OUT_Q6</td><td>DSP0.P14_1, DSP0.R50</td></tr>
+
 <tr><td>TCELL1:OUT_Q7</td><td>DSP0.P15_1, DSP0.R51</td></tr>
+
 <tr><td>TCELL2:IMUX_A0</td><td>DSP0.OPPRE_0</td></tr>
+
 <tr><td>TCELL2:IMUX_A1</td><td>DSP0.OPPRE_1</td></tr>
+
 <tr><td>TCELL2:IMUX_A2</td><td>DSP0.C52</td></tr>
+
 <tr><td>TCELL2:IMUX_A3</td><td>DSP0.C53</td></tr>
+
 <tr><td>TCELL2:IMUX_A4</td><td>DSP0.C50</td></tr>
+
 <tr><td>TCELL2:IMUX_A5</td><td>DSP0.C51</td></tr>
+
 <tr><td>TCELL2:IMUX_A6</td><td>DSP0.C48</td></tr>
+
 <tr><td>TCELL2:IMUX_A7</td><td>DSP0.C49</td></tr>
+
 <tr><td>TCELL2:IMUX_B0</td><td>DSP0.B2_1</td></tr>
+
 <tr><td>TCELL2:IMUX_B1</td><td>DSP0.B3_1</td></tr>
+
 <tr><td>TCELL2:IMUX_B2</td><td>DSP0.B4_1</td></tr>
+
 <tr><td>TCELL2:IMUX_B3</td><td>DSP0.B5_1</td></tr>
+
 <tr><td>TCELL2:IMUX_B4</td><td>DSP0.B16_0</td></tr>
+
 <tr><td>TCELL2:IMUX_B5</td><td>DSP0.B17_0</td></tr>
+
 <tr><td>TCELL2:IMUX_B6</td><td>DSP0.B0_1</td></tr>
+
 <tr><td>TCELL2:IMUX_B7</td><td>DSP0.B1_1</td></tr>
+
 <tr><td>TCELL2:IMUX_C0</td><td>DSP0.C18</td></tr>
+
 <tr><td>TCELL2:IMUX_C1</td><td>DSP0.C19</td></tr>
+
 <tr><td>TCELL2:IMUX_C2</td><td>DSP0.C16</td></tr>
+
 <tr><td>TCELL2:IMUX_C3</td><td>DSP0.C17</td></tr>
+
 <tr><td>TCELL2:IMUX_C4</td><td>DSP0.C22</td></tr>
+
 <tr><td>TCELL2:IMUX_C5</td><td>DSP0.C23</td></tr>
+
 <tr><td>TCELL2:IMUX_C6</td><td>DSP0.C20</td></tr>
+
 <tr><td>TCELL2:IMUX_C7</td><td>DSP0.C21</td></tr>
+
 <tr><td>TCELL2:IMUX_D0</td><td>DSP0.A16_0</td></tr>
+
 <tr><td>TCELL2:IMUX_D1</td><td>DSP0.A17_0</td></tr>
+
 <tr><td>TCELL2:IMUX_D2</td><td>DSP0.A0_1</td></tr>
+
 <tr><td>TCELL2:IMUX_D3</td><td>DSP0.A1_1</td></tr>
+
 <tr><td>TCELL2:IMUX_D4</td><td>DSP0.A2_1</td></tr>
+
 <tr><td>TCELL2:IMUX_D5</td><td>DSP0.A3_1</td></tr>
+
 <tr><td>TCELL2:IMUX_D6</td><td>DSP0.A4_1</td></tr>
+
 <tr><td>TCELL2:IMUX_D7</td><td>DSP0.A5_1</td></tr>
+
 <tr><td>TCELL2:IMUX_LSR0</td><td>DSP0.SOURCEB_1</td></tr>
+
 <tr><td>TCELL2:IMUX_LSR1</td><td>DSP0.SIGNEDA_1</td></tr>
+
 <tr><td>TCELL2:IMUX_CLK0_DELAY</td><td>DSP0.CLK2</td></tr>
+
 <tr><td>TCELL2:IMUX_CLK1_DELAY</td><td>DSP0.CLK3</td></tr>
+
 <tr><td>TCELL2:IMUX_CE0</td><td>DSP0.CE2</td></tr>
+
 <tr><td>TCELL2:IMUX_CE1</td><td>DSP0.CE3</td></tr>
+
 <tr><td>TCELL2:IMUX_CE2</td><td>DSP0.OP4</td></tr>
+
 <tr><td>TCELL2:IMUX_CE3</td><td>DSP0.OP5</td></tr>
+
 <tr><td>TCELL2:OUT_F0</td><td>DSP0.P16_0, DSP0.R16</td></tr>
+
 <tr><td>TCELL2:OUT_F1</td><td>DSP0.P17_0, DSP0.R17</td></tr>
+
 <tr><td>TCELL2:OUT_F2</td><td>DSP0.P18_0, DSP0.R27</td></tr>
+
 <tr><td>TCELL2:OUT_F3</td><td>DSP0.P19_0, DSP0.R28</td></tr>
+
 <tr><td>TCELL2:OUT_F4</td><td>DSP0.P20_0, DSP0.R29</td></tr>
+
 <tr><td>TCELL2:OUT_F5</td><td>DSP0.P21_0, DSP0.R30</td></tr>
+
 <tr><td>TCELL2:OUT_F6</td><td>DSP0.P22_0, DSP0.R31</td></tr>
+
 <tr><td>TCELL2:OUT_F7</td><td>DSP0.P23_0, DSP0.R32</td></tr>
+
 <tr><td>TCELL2:OUT_Q0</td><td>DSP0.P16_1, DSP0.R52</td></tr>
+
 <tr><td>TCELL2:OUT_Q1</td><td>DSP0.P17_1, DSP0.R53</td></tr>
+
 <tr><td>TCELL2:OUT_Q2</td><td>DSP0.OVERUNDER, DSP0.P18_1, DSP0.SROA0</td></tr>
+
 <tr><td>TCELL2:OUT_Q3</td><td>DSP0.P19_1, DSP0.SROA1, DSP0.UNDER</td></tr>
+
 <tr><td>TCELL2:OUT_Q4</td><td>DSP0.OVER, DSP0.P20_1, DSP0.SROA2</td></tr>
+
 <tr><td>TCELL2:OUT_Q5</td><td>DSP0.EQPATB, DSP0.P21_1, DSP0.SROA3</td></tr>
+
 <tr><td>TCELL2:OUT_Q6</td><td>DSP0.EQPAT, DSP0.P22_1, DSP0.SROA4</td></tr>
+
 <tr><td>TCELL2:OUT_Q7</td><td>DSP0.EQOM, DSP0.P23_1, DSP0.SROA5</td></tr>
+
 <tr><td>TCELL3:IMUX_B0</td><td>DSP0.B10_1</td></tr>
+
 <tr><td>TCELL3:IMUX_B1</td><td>DSP0.B11_1</td></tr>
+
 <tr><td>TCELL3:IMUX_B2</td><td>DSP0.B12_1</td></tr>
+
 <tr><td>TCELL3:IMUX_B3</td><td>DSP0.B13_1</td></tr>
+
 <tr><td>TCELL3:IMUX_B4</td><td>DSP0.B6_1</td></tr>
+
 <tr><td>TCELL3:IMUX_B5</td><td>DSP0.B7_1</td></tr>
+
 <tr><td>TCELL3:IMUX_B6</td><td>DSP0.B8_1</td></tr>
+
 <tr><td>TCELL3:IMUX_B7</td><td>DSP0.B9_1</td></tr>
+
 <tr><td>TCELL3:IMUX_C0</td><td>DSP0.C26</td></tr>
+
 <tr><td>TCELL3:IMUX_C1</td><td>DSP0.C27</td></tr>
+
 <tr><td>TCELL3:IMUX_C2</td><td>DSP0.C24</td></tr>
+
 <tr><td>TCELL3:IMUX_C3</td><td>DSP0.C25</td></tr>
+
 <tr><td>TCELL3:IMUX_C4</td><td>DSP0.C30</td></tr>
+
 <tr><td>TCELL3:IMUX_C5</td><td>DSP0.C31</td></tr>
+
 <tr><td>TCELL3:IMUX_C6</td><td>DSP0.C28</td></tr>
+
 <tr><td>TCELL3:IMUX_C7</td><td>DSP0.C29</td></tr>
+
 <tr><td>TCELL3:IMUX_D0</td><td>DSP0.A6_1</td></tr>
+
 <tr><td>TCELL3:IMUX_D1</td><td>DSP0.A7_1</td></tr>
+
 <tr><td>TCELL3:IMUX_D2</td><td>DSP0.A8_1</td></tr>
+
 <tr><td>TCELL3:IMUX_D3</td><td>DSP0.A9_1</td></tr>
+
 <tr><td>TCELL3:IMUX_D4</td><td>DSP0.A10_1</td></tr>
+
 <tr><td>TCELL3:IMUX_D5</td><td>DSP0.A11_1</td></tr>
+
 <tr><td>TCELL3:IMUX_D6</td><td>DSP0.A12_1</td></tr>
+
 <tr><td>TCELL3:IMUX_D7</td><td>DSP0.A13_1</td></tr>
+
 <tr><td>TCELL3:IMUX_LSR0</td><td>DSP0.RST0, DSP1.RST0</td></tr>
+
 <tr><td>TCELL3:IMUX_LSR1</td><td>DSP0.RST1, DSP1.RST1</td></tr>
+
 <tr><td>TCELL3:IMUX_CE0</td><td>DSP0.OP6</td></tr>
+
 <tr><td>TCELL3:IMUX_CE1</td><td>DSP0.OP7</td></tr>
+
 <tr><td>TCELL3:IMUX_CE2</td><td>DSP0.OP8</td></tr>
+
 <tr><td>TCELL3:IMUX_CE3</td><td>DSP0.OP9</td></tr>
+
 <tr><td>TCELL3:OUT_F0</td><td>DSP0.P24_0, DSP0.R33</td></tr>
+
 <tr><td>TCELL3:OUT_F1</td><td>DSP0.P25_0, DSP0.R34</td></tr>
+
 <tr><td>TCELL3:OUT_F2</td><td>DSP0.P26_0, DSP0.R35</td></tr>
+
 <tr><td>TCELL3:OUT_F3</td><td>DSP0.P27_0, DSP0.R36</td></tr>
+
 <tr><td>TCELL3:OUT_F4</td><td>DSP0.P28_0, DSP0.R37</td></tr>
+
 <tr><td>TCELL3:OUT_F5</td><td>DSP0.P29_0, DSP0.R38</td></tr>
+
 <tr><td>TCELL3:OUT_F6</td><td>DSP0.P30_0, DSP0.R39</td></tr>
+
 <tr><td>TCELL3:OUT_F7</td><td>DSP0.P31_0, DSP0.R40</td></tr>
+
 <tr><td>TCELL3:OUT_Q0</td><td>DSP0.EQZM, DSP0.P24_1, DSP0.SROA6</td></tr>
+
 <tr><td>TCELL3:OUT_Q1</td><td>DSP0.EQZ, DSP0.P25_1, DSP0.SROA7</td></tr>
+
 <tr><td>TCELL3:OUT_Q2</td><td>DSP0.P26_1, DSP0.SROA8</td></tr>
+
 <tr><td>TCELL3:OUT_Q3</td><td>DSP0.P27_1, DSP0.SROA9</td></tr>
+
 <tr><td>TCELL3:OUT_Q4</td><td>DSP0.P28_1, DSP0.SROA10</td></tr>
+
 <tr><td>TCELL3:OUT_Q5</td><td>DSP0.P29_1, DSP0.SROA11</td></tr>
+
 <tr><td>TCELL3:OUT_Q6</td><td>DSP0.P30_1, DSP0.SROA12</td></tr>
+
 <tr><td>TCELL3:OUT_Q7</td><td>DSP0.P31_1, DSP0.SROA13</td></tr>
+
 <tr><td>TCELL4:IMUX_B0</td><td>DSP1.B0_0</td></tr>
+
 <tr><td>TCELL4:IMUX_B1</td><td>DSP1.B1_0</td></tr>
+
 <tr><td>TCELL4:IMUX_B2</td><td>DSP1.B2_0</td></tr>
+
 <tr><td>TCELL4:IMUX_B3</td><td>DSP1.B3_0</td></tr>
+
 <tr><td>TCELL4:IMUX_B4</td><td>DSP0.B14_1</td></tr>
+
 <tr><td>TCELL4:IMUX_B5</td><td>DSP0.B15_1</td></tr>
+
 <tr><td>TCELL4:IMUX_B6</td><td>DSP0.B16_1</td></tr>
+
 <tr><td>TCELL4:IMUX_B7</td><td>DSP0.B17_1</td></tr>
+
 <tr><td>TCELL4:IMUX_D0</td><td>DSP0.A14_1</td></tr>
+
 <tr><td>TCELL4:IMUX_D1</td><td>DSP0.A15_1</td></tr>
+
 <tr><td>TCELL4:IMUX_D2</td><td>DSP0.A16_1</td></tr>
+
 <tr><td>TCELL4:IMUX_D3</td><td>DSP0.A17_1</td></tr>
+
 <tr><td>TCELL4:IMUX_D4</td><td>DSP1.A0_0</td></tr>
+
 <tr><td>TCELL4:IMUX_D5</td><td>DSP1.A1_0</td></tr>
+
 <tr><td>TCELL4:IMUX_D6</td><td>DSP1.A2_0</td></tr>
+
 <tr><td>TCELL4:IMUX_D7</td><td>DSP1.A3_0</td></tr>
+
 <tr><td>TCELL4:IMUX_CE0</td><td>DSP0.OP10</td></tr>
+
 <tr><td>TCELL4:IMUX_CE1</td><td>DSP0.SIGNEDB_1</td></tr>
+
 <tr><td>TCELL4:IMUX_CE2</td><td>DSP1.SIGNEDA_0</td></tr>
+
 <tr><td>TCELL4:IMUX_CE3</td><td>DSP1.SIGNEDB_0</td></tr>
+
 <tr><td>TCELL4:OUT_F0</td><td>DSP0.P32_0, DSP0.R41</td></tr>
+
 <tr><td>TCELL4:OUT_F1</td><td>DSP0.P33_0, DSP0.R42</td></tr>
+
 <tr><td>TCELL4:OUT_F2</td><td>DSP0.P34_0, DSP0.R43</td></tr>
+
 <tr><td>TCELL4:OUT_F3</td><td>DSP0.P35_0, DSP0.R44</td></tr>
+
 <tr><td>TCELL4:OUT_F4</td><td>DSP1.P0_0, DSP1.R0</td></tr>
+
 <tr><td>TCELL4:OUT_F5</td><td>DSP1.P1_0, DSP1.R1</td></tr>
+
 <tr><td>TCELL4:OUT_F6</td><td>DSP1.P2_0, DSP1.R2</td></tr>
+
 <tr><td>TCELL4:OUT_F7</td><td>DSP1.P3_0, DSP1.R3</td></tr>
+
 <tr><td>TCELL4:OUT_Q0</td><td>DSP0.P32_1, DSP0.SROA14</td></tr>
+
 <tr><td>TCELL4:OUT_Q1</td><td>DSP0.P33_1, DSP0.SROA15</td></tr>
+
 <tr><td>TCELL4:OUT_Q2</td><td>DSP0.P34_1, DSP0.SROA16</td></tr>
+
 <tr><td>TCELL4:OUT_Q3</td><td>DSP0.P35_1, DSP0.SROA17</td></tr>
+
 <tr><td>TCELL4:OUT_Q4</td><td>DSP1.P0_1, DSP1.R18</td></tr>
+
 <tr><td>TCELL4:OUT_Q5</td><td>DSP1.P1_1, DSP1.R19</td></tr>
+
 <tr><td>TCELL4:OUT_Q6</td><td>DSP1.P2_1, DSP1.R20</td></tr>
+
 <tr><td>TCELL4:OUT_Q7</td><td>DSP1.P3_1, DSP1.R21</td></tr>
+
 <tr><td>TCELL5:IMUX_A0</td><td>DSP1.C38</td></tr>
+
 <tr><td>TCELL5:IMUX_A1</td><td>DSP1.C39</td></tr>
+
 <tr><td>TCELL5:IMUX_A2</td><td>DSP1.C36</td></tr>
+
 <tr><td>TCELL5:IMUX_A3</td><td>DSP1.C37</td></tr>
+
 <tr><td>TCELL5:IMUX_A4</td><td>DSP1.C34</td></tr>
+
 <tr><td>TCELL5:IMUX_A5</td><td>DSP1.C35</td></tr>
+
 <tr><td>TCELL5:IMUX_A6</td><td>DSP1.C32</td></tr>
+
 <tr><td>TCELL5:IMUX_A7</td><td>DSP1.C33</td></tr>
+
 <tr><td>TCELL5:IMUX_B0</td><td>DSP1.B8_0</td></tr>
+
 <tr><td>TCELL5:IMUX_B1</td><td>DSP1.B9_0</td></tr>
+
 <tr><td>TCELL5:IMUX_B2</td><td>DSP1.B10_0</td></tr>
+
 <tr><td>TCELL5:IMUX_B3</td><td>DSP1.B11_0</td></tr>
+
 <tr><td>TCELL5:IMUX_B4</td><td>DSP1.B4_0</td></tr>
+
 <tr><td>TCELL5:IMUX_B5</td><td>DSP1.B5_0</td></tr>
+
 <tr><td>TCELL5:IMUX_B6</td><td>DSP1.B6_0</td></tr>
+
 <tr><td>TCELL5:IMUX_B7</td><td>DSP1.B7_0</td></tr>
+
 <tr><td>TCELL5:IMUX_C0</td><td>DSP1.C2</td></tr>
+
 <tr><td>TCELL5:IMUX_C1</td><td>DSP1.C3</td></tr>
+
 <tr><td>TCELL5:IMUX_C2</td><td>DSP1.C0</td></tr>
+
 <tr><td>TCELL5:IMUX_C3</td><td>DSP1.C1</td></tr>
+
 <tr><td>TCELL5:IMUX_C4</td><td>DSP1.C6</td></tr>
+
 <tr><td>TCELL5:IMUX_C5</td><td>DSP1.C7</td></tr>
+
 <tr><td>TCELL5:IMUX_C6</td><td>DSP1.C4</td></tr>
+
 <tr><td>TCELL5:IMUX_C7</td><td>DSP1.C5</td></tr>
+
 <tr><td>TCELL5:IMUX_D0</td><td>DSP1.A4_0</td></tr>
+
 <tr><td>TCELL5:IMUX_D1</td><td>DSP1.A5_0</td></tr>
+
 <tr><td>TCELL5:IMUX_D2</td><td>DSP1.A6_0</td></tr>
+
 <tr><td>TCELL5:IMUX_D3</td><td>DSP1.A7_0</td></tr>
+
 <tr><td>TCELL5:IMUX_D4</td><td>DSP1.A8_0</td></tr>
+
 <tr><td>TCELL5:IMUX_D5</td><td>DSP1.A9_0</td></tr>
+
 <tr><td>TCELL5:IMUX_D6</td><td>DSP1.A10_0</td></tr>
+
 <tr><td>TCELL5:IMUX_D7</td><td>DSP1.A11_0</td></tr>
+
 <tr><td>TCELL5:IMUX_LSR0</td><td>DSP0.RST2, DSP1.RST2</td></tr>
+
 <tr><td>TCELL5:IMUX_LSR1</td><td>DSP0.RST3, DSP1.RST3</td></tr>
+
 <tr><td>TCELL5:IMUX_CE0</td><td>DSP1.OP0</td></tr>
+
 <tr><td>TCELL5:IMUX_CE1</td><td>DSP1.OP1</td></tr>
+
 <tr><td>TCELL5:IMUX_CE2</td><td>DSP1.OP2</td></tr>
+
 <tr><td>TCELL5:IMUX_CE3</td><td>DSP1.OP3</td></tr>
+
 <tr><td>TCELL5:OUT_F0</td><td>DSP1.P4_0, DSP1.R4</td></tr>
+
 <tr><td>TCELL5:OUT_F1</td><td>DSP1.P5_0, DSP1.R5</td></tr>
+
 <tr><td>TCELL5:OUT_F2</td><td>DSP1.P6_0, DSP1.R6</td></tr>
+
 <tr><td>TCELL5:OUT_F3</td><td>DSP1.P7_0, DSP1.R7</td></tr>
+
 <tr><td>TCELL5:OUT_F4</td><td>DSP1.P8_0, DSP1.R8</td></tr>
+
 <tr><td>TCELL5:OUT_F5</td><td>DSP1.P9_0, DSP1.R9</td></tr>
+
 <tr><td>TCELL5:OUT_F6</td><td>DSP1.P10_0, DSP1.R10</td></tr>
+
 <tr><td>TCELL5:OUT_F7</td><td>DSP1.P11_0, DSP1.R11</td></tr>
+
 <tr><td>TCELL5:OUT_Q0</td><td>DSP1.P4_1, DSP1.R22</td></tr>
+
 <tr><td>TCELL5:OUT_Q1</td><td>DSP1.P5_1, DSP1.R23</td></tr>
+
 <tr><td>TCELL5:OUT_Q2</td><td>DSP1.P6_1, DSP1.R24</td></tr>
+
 <tr><td>TCELL5:OUT_Q3</td><td>DSP1.P7_1, DSP1.R25</td></tr>
+
 <tr><td>TCELL5:OUT_Q4</td><td>DSP1.P8_1, DSP1.R26</td></tr>
+
 <tr><td>TCELL5:OUT_Q5</td><td>DSP1.P9_1, DSP1.R45</td></tr>
+
 <tr><td>TCELL5:OUT_Q6</td><td>DSP1.P10_1, DSP1.R46</td></tr>
+
 <tr><td>TCELL5:OUT_Q7</td><td>DSP1.P11_1, DSP1.R47</td></tr>
+
 <tr><td>TCELL6:IMUX_A0</td><td>DSP1.C46</td></tr>
+
 <tr><td>TCELL6:IMUX_A1</td><td>DSP1.C47</td></tr>
+
 <tr><td>TCELL6:IMUX_A2</td><td>DSP1.C44</td></tr>
+
 <tr><td>TCELL6:IMUX_A3</td><td>DSP1.C45</td></tr>
+
 <tr><td>TCELL6:IMUX_A4</td><td>DSP1.C42</td></tr>
+
 <tr><td>TCELL6:IMUX_A5</td><td>DSP1.C43</td></tr>
+
 <tr><td>TCELL6:IMUX_A6</td><td>DSP1.C40</td></tr>
+
 <tr><td>TCELL6:IMUX_A7</td><td>DSP1.C41</td></tr>
+
 <tr><td>TCELL6:IMUX_B0</td><td>DSP1.B16_0</td></tr>
+
 <tr><td>TCELL6:IMUX_B1</td><td>DSP1.B17_0</td></tr>
+
 <tr><td>TCELL6:IMUX_B2</td><td>DSP1.B0_1</td></tr>
+
 <tr><td>TCELL6:IMUX_B3</td><td>DSP1.B1_1</td></tr>
+
 <tr><td>TCELL6:IMUX_B4</td><td>DSP1.B12_0</td></tr>
+
 <tr><td>TCELL6:IMUX_B5</td><td>DSP1.B13_0</td></tr>
+
 <tr><td>TCELL6:IMUX_B6</td><td>DSP1.B14_0</td></tr>
+
 <tr><td>TCELL6:IMUX_B7</td><td>DSP1.B15_0</td></tr>
+
 <tr><td>TCELL6:IMUX_C0</td><td>DSP1.C10</td></tr>
+
 <tr><td>TCELL6:IMUX_C1</td><td>DSP1.C11</td></tr>
+
 <tr><td>TCELL6:IMUX_C2</td><td>DSP1.C8</td></tr>
+
 <tr><td>TCELL6:IMUX_C3</td><td>DSP1.C9</td></tr>
+
 <tr><td>TCELL6:IMUX_C4</td><td>DSP1.C14</td></tr>
+
 <tr><td>TCELL6:IMUX_C5</td><td>DSP1.C15</td></tr>
+
 <tr><td>TCELL6:IMUX_C6</td><td>DSP1.C12</td></tr>
+
 <tr><td>TCELL6:IMUX_C7</td><td>DSP1.C13</td></tr>
+
 <tr><td>TCELL6:IMUX_D0</td><td>DSP1.A12_0</td></tr>
+
 <tr><td>TCELL6:IMUX_D1</td><td>DSP1.A13_0</td></tr>
+
 <tr><td>TCELL6:IMUX_D2</td><td>DSP1.A14_0</td></tr>
+
 <tr><td>TCELL6:IMUX_D3</td><td>DSP1.A15_0</td></tr>
+
 <tr><td>TCELL6:IMUX_D4</td><td>DSP1.A16_0</td></tr>
+
 <tr><td>TCELL6:IMUX_D5</td><td>DSP1.A17_0</td></tr>
+
 <tr><td>TCELL6:IMUX_D6</td><td>DSP1.A0_1</td></tr>
+
 <tr><td>TCELL6:IMUX_D7</td><td>DSP1.A1_1</td></tr>
+
 <tr><td>TCELL6:IMUX_LSR0</td><td>DSP1.SOURCEA_0</td></tr>
+
 <tr><td>TCELL6:IMUX_LSR1</td><td>DSP1.SOURCEB_0</td></tr>
+
 <tr><td>TCELL6:IMUX_CLK0_DELAY</td><td>DSP1.CLK0</td></tr>
+
 <tr><td>TCELL6:IMUX_CLK1_DELAY</td><td>DSP1.CLK1</td></tr>
+
 <tr><td>TCELL6:IMUX_CE0</td><td>DSP1.CE0</td></tr>
+
 <tr><td>TCELL6:IMUX_CE1</td><td>DSP1.CE1</td></tr>
+
 <tr><td>TCELL6:IMUX_CE2</td><td>DSP1.OP4</td></tr>
+
 <tr><td>TCELL6:IMUX_CE3</td><td>DSP1.OP5</td></tr>
+
 <tr><td>TCELL6:OUT_F0</td><td>DSP1.P12_0, DSP1.R12</td></tr>
+
 <tr><td>TCELL6:OUT_F1</td><td>DSP1.P13_0, DSP1.R13</td></tr>
+
 <tr><td>TCELL6:OUT_F2</td><td>DSP1.P14_0, DSP1.R14</td></tr>
+
 <tr><td>TCELL6:OUT_F3</td><td>DSP1.P15_0, DSP1.R15</td></tr>
+
 <tr><td>TCELL6:OUT_F4</td><td>DSP1.P16_0, DSP1.R16</td></tr>
+
 <tr><td>TCELL6:OUT_F5</td><td>DSP1.P17_0, DSP1.R17</td></tr>
+
 <tr><td>TCELL6:OUT_F6</td><td>DSP1.P18_0, DSP1.R27</td></tr>
+
 <tr><td>TCELL6:OUT_F7</td><td>DSP1.P19_0, DSP1.R28</td></tr>
+
 <tr><td>TCELL6:OUT_Q0</td><td>DSP1.P12_1, DSP1.R48</td></tr>
+
 <tr><td>TCELL6:OUT_Q1</td><td>DSP1.P13_1, DSP1.R49</td></tr>
+
 <tr><td>TCELL6:OUT_Q2</td><td>DSP1.P14_1, DSP1.R50</td></tr>
+
 <tr><td>TCELL6:OUT_Q3</td><td>DSP1.P15_1, DSP1.R51</td></tr>
+
 <tr><td>TCELL6:OUT_Q4</td><td>DSP1.P16_1, DSP1.R52</td></tr>
+
 <tr><td>TCELL6:OUT_Q5</td><td>DSP1.P17_1, DSP1.R53</td></tr>
+
 <tr><td>TCELL6:OUT_Q6</td><td>DSP1.OVERUNDER, DSP1.P18_1, DSP1.SROA0</td></tr>
+
 <tr><td>TCELL6:OUT_Q7</td><td>DSP1.P19_1, DSP1.SROA1, DSP1.UNDER</td></tr>
+
 <tr><td>TCELL7:IMUX_A0</td><td>DSP1.OPPRE_0</td></tr>
+
 <tr><td>TCELL7:IMUX_A1</td><td>DSP1.OPPRE_1</td></tr>
+
 <tr><td>TCELL7:IMUX_A2</td><td>DSP1.C52</td></tr>
+
 <tr><td>TCELL7:IMUX_A3</td><td>DSP1.C53</td></tr>
+
 <tr><td>TCELL7:IMUX_A4</td><td>DSP1.C50</td></tr>
+
 <tr><td>TCELL7:IMUX_A5</td><td>DSP1.C51</td></tr>
+
 <tr><td>TCELL7:IMUX_A6</td><td>DSP1.C48</td></tr>
+
 <tr><td>TCELL7:IMUX_A7</td><td>DSP1.C49</td></tr>
+
 <tr><td>TCELL7:IMUX_B0</td><td>DSP1.B6_1</td></tr>
+
 <tr><td>TCELL7:IMUX_B1</td><td>DSP1.B7_1</td></tr>
+
 <tr><td>TCELL7:IMUX_B2</td><td>DSP1.B8_1</td></tr>
+
 <tr><td>TCELL7:IMUX_B3</td><td>DSP1.B9_1</td></tr>
+
 <tr><td>TCELL7:IMUX_B4</td><td>DSP1.B2_1</td></tr>
+
 <tr><td>TCELL7:IMUX_B5</td><td>DSP1.B3_1</td></tr>
+
 <tr><td>TCELL7:IMUX_B6</td><td>DSP1.B4_1</td></tr>
+
 <tr><td>TCELL7:IMUX_B7</td><td>DSP1.B5_1</td></tr>
+
 <tr><td>TCELL7:IMUX_C0</td><td>DSP1.C18</td></tr>
+
 <tr><td>TCELL7:IMUX_C1</td><td>DSP1.C19</td></tr>
+
 <tr><td>TCELL7:IMUX_C2</td><td>DSP1.C16</td></tr>
+
 <tr><td>TCELL7:IMUX_C3</td><td>DSP1.C17</td></tr>
+
 <tr><td>TCELL7:IMUX_C4</td><td>DSP1.C22</td></tr>
+
 <tr><td>TCELL7:IMUX_C5</td><td>DSP1.C23</td></tr>
+
 <tr><td>TCELL7:IMUX_C6</td><td>DSP1.C20</td></tr>
+
 <tr><td>TCELL7:IMUX_C7</td><td>DSP1.C21</td></tr>
+
 <tr><td>TCELL7:IMUX_D0</td><td>DSP1.A2_1</td></tr>
+
 <tr><td>TCELL7:IMUX_D1</td><td>DSP1.A3_1</td></tr>
+
 <tr><td>TCELL7:IMUX_D2</td><td>DSP1.A4_1</td></tr>
+
 <tr><td>TCELL7:IMUX_D3</td><td>DSP1.A5_1</td></tr>
+
 <tr><td>TCELL7:IMUX_D4</td><td>DSP1.A6_1</td></tr>
+
 <tr><td>TCELL7:IMUX_D5</td><td>DSP1.A7_1</td></tr>
+
 <tr><td>TCELL7:IMUX_D6</td><td>DSP1.A8_1</td></tr>
+
 <tr><td>TCELL7:IMUX_D7</td><td>DSP1.A9_1</td></tr>
+
 <tr><td>TCELL7:IMUX_LSR1</td><td>DSP1.SIGNEDA_1</td></tr>
+
 <tr><td>TCELL7:IMUX_CLK0_DELAY</td><td>DSP1.CLK2</td></tr>
+
 <tr><td>TCELL7:IMUX_CLK1_DELAY</td><td>DSP1.CLK3</td></tr>
+
 <tr><td>TCELL7:IMUX_CE0</td><td>DSP1.CE2</td></tr>
+
 <tr><td>TCELL7:IMUX_CE1</td><td>DSP1.CE3</td></tr>
+
 <tr><td>TCELL7:IMUX_CE2</td><td>DSP1.OP6</td></tr>
+
 <tr><td>TCELL7:IMUX_CE3</td><td>DSP1.OP7</td></tr>
+
 <tr><td>TCELL7:OUT_F0</td><td>DSP1.P20_0, DSP1.R29</td></tr>
+
 <tr><td>TCELL7:OUT_F1</td><td>DSP1.P21_0, DSP1.R30</td></tr>
+
 <tr><td>TCELL7:OUT_F2</td><td>DSP1.P22_0, DSP1.R31</td></tr>
+
 <tr><td>TCELL7:OUT_F3</td><td>DSP1.P23_0, DSP1.R32</td></tr>
+
 <tr><td>TCELL7:OUT_F4</td><td>DSP1.P24_0, DSP1.R33</td></tr>
+
 <tr><td>TCELL7:OUT_F5</td><td>DSP1.P25_0, DSP1.R34</td></tr>
+
 <tr><td>TCELL7:OUT_F6</td><td>DSP1.P26_0, DSP1.R35</td></tr>
+
 <tr><td>TCELL7:OUT_F7</td><td>DSP1.P27_0, DSP1.R36</td></tr>
+
 <tr><td>TCELL7:OUT_Q0</td><td>DSP1.OVER, DSP1.P20_1, DSP1.SROA2</td></tr>
+
 <tr><td>TCELL7:OUT_Q1</td><td>DSP1.EQPATB, DSP1.P21_1, DSP1.SROA3</td></tr>
+
 <tr><td>TCELL7:OUT_Q2</td><td>DSP1.EQPAT, DSP1.P22_1, DSP1.SROA4</td></tr>
+
 <tr><td>TCELL7:OUT_Q3</td><td>DSP1.EQOM, DSP1.P23_1, DSP1.SROA5</td></tr>
+
 <tr><td>TCELL7:OUT_Q4</td><td>DSP1.EQZM, DSP1.P24_1, DSP1.SROA6</td></tr>
+
 <tr><td>TCELL7:OUT_Q5</td><td>DSP1.EQZ, DSP1.P25_1, DSP1.SROA7</td></tr>
+
 <tr><td>TCELL7:OUT_Q6</td><td>DSP1.P26_1, DSP1.SROA8</td></tr>
+
 <tr><td>TCELL7:OUT_Q7</td><td>DSP1.P27_1, DSP1.SROA9</td></tr>
+
 <tr><td>TCELL8:IMUX_B0</td><td>DSP1.B14_1</td></tr>
+
 <tr><td>TCELL8:IMUX_B1</td><td>DSP1.B15_1</td></tr>
+
 <tr><td>TCELL8:IMUX_B2</td><td>DSP1.B16_1</td></tr>
+
 <tr><td>TCELL8:IMUX_B3</td><td>DSP1.B17_1</td></tr>
+
 <tr><td>TCELL8:IMUX_B4</td><td>DSP1.B10_1</td></tr>
+
 <tr><td>TCELL8:IMUX_B5</td><td>DSP1.B11_1</td></tr>
+
 <tr><td>TCELL8:IMUX_B6</td><td>DSP1.B12_1</td></tr>
+
 <tr><td>TCELL8:IMUX_B7</td><td>DSP1.B13_1</td></tr>
+
 <tr><td>TCELL8:IMUX_C0</td><td>DSP1.C26</td></tr>
+
 <tr><td>TCELL8:IMUX_C1</td><td>DSP1.C27</td></tr>
+
 <tr><td>TCELL8:IMUX_C2</td><td>DSP1.C24</td></tr>
+
 <tr><td>TCELL8:IMUX_C3</td><td>DSP1.C25</td></tr>
+
 <tr><td>TCELL8:IMUX_C4</td><td>DSP1.C30</td></tr>
+
 <tr><td>TCELL8:IMUX_C5</td><td>DSP1.C31</td></tr>
+
 <tr><td>TCELL8:IMUX_C6</td><td>DSP1.C28</td></tr>
+
 <tr><td>TCELL8:IMUX_C7</td><td>DSP1.C29</td></tr>
+
 <tr><td>TCELL8:IMUX_D0</td><td>DSP1.A10_1</td></tr>
+
 <tr><td>TCELL8:IMUX_D1</td><td>DSP1.A11_1</td></tr>
+
 <tr><td>TCELL8:IMUX_D2</td><td>DSP1.A12_1</td></tr>
+
 <tr><td>TCELL8:IMUX_D3</td><td>DSP1.A13_1</td></tr>
+
 <tr><td>TCELL8:IMUX_D4</td><td>DSP1.A14_1</td></tr>
+
 <tr><td>TCELL8:IMUX_D5</td><td>DSP1.A15_1</td></tr>
+
 <tr><td>TCELL8:IMUX_D6</td><td>DSP1.A16_1</td></tr>
+
 <tr><td>TCELL8:IMUX_D7</td><td>DSP1.A17_1</td></tr>
+
 <tr><td>TCELL8:IMUX_LSR0</td><td>DSP1.SOURCEB_1</td></tr>
+
 <tr><td>TCELL8:IMUX_LSR1</td><td>DSP1.SOURCEA_1</td></tr>
+
 <tr><td>TCELL8:IMUX_CE0</td><td>DSP1.OP8</td></tr>
+
 <tr><td>TCELL8:IMUX_CE1</td><td>DSP1.OP9</td></tr>
+
 <tr><td>TCELL8:IMUX_CE2</td><td>DSP1.OP10</td></tr>
+
 <tr><td>TCELL8:IMUX_CE3</td><td>DSP1.SIGNEDB_1</td></tr>
+
 <tr><td>TCELL8:OUT_F0</td><td>DSP1.P28_0, DSP1.R37</td></tr>
+
 <tr><td>TCELL8:OUT_F1</td><td>DSP1.P29_0, DSP1.R38</td></tr>
+
 <tr><td>TCELL8:OUT_F2</td><td>DSP1.P30_0, DSP1.R39</td></tr>
+
 <tr><td>TCELL8:OUT_F3</td><td>DSP1.P31_0, DSP1.R40</td></tr>
+
 <tr><td>TCELL8:OUT_F4</td><td>DSP1.P32_0, DSP1.R41</td></tr>
+
 <tr><td>TCELL8:OUT_F5</td><td>DSP1.P33_0, DSP1.R42</td></tr>
+
 <tr><td>TCELL8:OUT_F6</td><td>DSP1.P34_0, DSP1.R43</td></tr>
+
 <tr><td>TCELL8:OUT_F7</td><td>DSP1.P35_0, DSP1.R44</td></tr>
+
 <tr><td>TCELL8:OUT_Q0</td><td>DSP1.P28_1, DSP1.SROA10</td></tr>
+
 <tr><td>TCELL8:OUT_Q1</td><td>DSP1.P29_1, DSP1.SROA11</td></tr>
+
 <tr><td>TCELL8:OUT_Q2</td><td>DSP1.P30_1, DSP1.SROA12</td></tr>
+
 <tr><td>TCELL8:OUT_Q3</td><td>DSP1.P31_1, DSP1.SROA13</td></tr>
+
 <tr><td>TCELL8:OUT_Q4</td><td>DSP1.P32_1, DSP1.SROA14</td></tr>
+
 <tr><td>TCELL8:OUT_Q5</td><td>DSP1.P33_1, DSP1.SROA15</td></tr>
+
 <tr><td>TCELL8:OUT_Q6</td><td>DSP1.P34_1, DSP1.SROA16</td></tr>
+
 <tr><td>TCELL8:OUT_Q7</td><td>DSP1.P35_1, DSP1.SROA17</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../ecp4/ebr.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../ecp4/clock.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -1282,16 +2379,21 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../ecp4/ebr.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../ecp4/clock.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -1301,9 +2403,9 @@
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

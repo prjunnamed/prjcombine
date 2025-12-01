@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,668 +142,1306 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="dsp"><a class="header" href="#dsp">DSP</a></h1>
 <h2 id="tile-dsp"><a class="header" href="#tile-dsp">Tile DSP</a></h2>
 <p>Cells: 4</p>
 <h3 id="bel-dsp0"><a class="header" href="#bel-dsp0">Bel DSP0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 DSP bel DSP0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>A0</td><td>input</td><td>TCELL0:IMUX.IMUX4</td></tr>
+
 <tr><td>A1</td><td>input</td><td>TCELL0:IMUX.IMUX5</td></tr>
+
 <tr><td>A10</td><td>input</td><td>TCELL2:IMUX.IMUX6</td></tr>
+
 <tr><td>A11</td><td>input</td><td>TCELL2:IMUX.IMUX7</td></tr>
+
 <tr><td>A12</td><td>input</td><td>TCELL3:IMUX.IMUX4</td></tr>
+
 <tr><td>A13</td><td>input</td><td>TCELL3:IMUX.IMUX5</td></tr>
+
 <tr><td>A14</td><td>input</td><td>TCELL3:IMUX.IMUX6</td></tr>
+
 <tr><td>A15</td><td>input</td><td>TCELL3:IMUX.IMUX7</td></tr>
+
 <tr><td>A16</td><td>input</td><td>TCELL0:IMUX.IMUX27</td></tr>
+
 <tr><td>A17</td><td>input</td><td>TCELL2:IMUX.IMUX27</td></tr>
+
 <tr><td>A2</td><td>input</td><td>TCELL0:IMUX.IMUX6</td></tr>
+
 <tr><td>A3</td><td>input</td><td>TCELL0:IMUX.IMUX7</td></tr>
+
 <tr><td>A4</td><td>input</td><td>TCELL1:IMUX.IMUX4</td></tr>
+
 <tr><td>A5</td><td>input</td><td>TCELL1:IMUX.IMUX5</td></tr>
+
 <tr><td>A6</td><td>input</td><td>TCELL1:IMUX.IMUX6</td></tr>
+
 <tr><td>A7</td><td>input</td><td>TCELL1:IMUX.IMUX7</td></tr>
+
 <tr><td>A8</td><td>input</td><td>TCELL2:IMUX.IMUX4</td></tr>
+
 <tr><td>A9</td><td>input</td><td>TCELL2:IMUX.IMUX5</td></tr>
+
 <tr><td>B0</td><td>input</td><td>TCELL0:IMUX.IMUX12</td></tr>
+
 <tr><td>B1</td><td>input</td><td>TCELL0:IMUX.IMUX13</td></tr>
+
 <tr><td>B10</td><td>input</td><td>TCELL2:IMUX.IMUX14</td></tr>
+
 <tr><td>B11</td><td>input</td><td>TCELL2:IMUX.IMUX15</td></tr>
+
 <tr><td>B12</td><td>input</td><td>TCELL3:IMUX.IMUX12</td></tr>
+
 <tr><td>B13</td><td>input</td><td>TCELL3:IMUX.IMUX13</td></tr>
+
 <tr><td>B14</td><td>input</td><td>TCELL3:IMUX.IMUX14</td></tr>
+
 <tr><td>B15</td><td>input</td><td>TCELL3:IMUX.IMUX15</td></tr>
+
 <tr><td>B16</td><td>input</td><td>TCELL0:IMUX.IMUX26</td></tr>
+
 <tr><td>B17</td><td>input</td><td>TCELL2:IMUX.IMUX26</td></tr>
+
 <tr><td>B2</td><td>input</td><td>TCELL0:IMUX.IMUX14</td></tr>
+
 <tr><td>B3</td><td>input</td><td>TCELL0:IMUX.IMUX15</td></tr>
+
 <tr><td>B4</td><td>input</td><td>TCELL1:IMUX.IMUX12</td></tr>
+
 <tr><td>B5</td><td>input</td><td>TCELL1:IMUX.IMUX13</td></tr>
+
 <tr><td>B6</td><td>input</td><td>TCELL1:IMUX.IMUX14</td></tr>
+
 <tr><td>B7</td><td>input</td><td>TCELL1:IMUX.IMUX15</td></tr>
+
 <tr><td>B8</td><td>input</td><td>TCELL2:IMUX.IMUX12</td></tr>
+
 <tr><td>B9</td><td>input</td><td>TCELL2:IMUX.IMUX13</td></tr>
+
 <tr><td>C0</td><td>input</td><td>TCELL0:IMUX.IMUX16</td></tr>
+
 <tr><td>C1</td><td>input</td><td>TCELL0:IMUX.IMUX17</td></tr>
+
 <tr><td>C10</td><td>input</td><td>TCELL2:IMUX.IMUX18</td></tr>
+
 <tr><td>C11</td><td>input</td><td>TCELL2:IMUX.IMUX19</td></tr>
+
 <tr><td>C12</td><td>input</td><td>TCELL3:IMUX.IMUX16</td></tr>
+
 <tr><td>C13</td><td>input</td><td>TCELL3:IMUX.IMUX17</td></tr>
+
 <tr><td>C14</td><td>input</td><td>TCELL3:IMUX.IMUX18</td></tr>
+
 <tr><td>C15</td><td>input</td><td>TCELL3:IMUX.IMUX19</td></tr>
+
 <tr><td>C16</td><td>input</td><td>TCELL0:IMUX.IMUX20</td></tr>
+
 <tr><td>C17</td><td>input</td><td>TCELL0:IMUX.IMUX21</td></tr>
+
 <tr><td>C18</td><td>input</td><td>TCELL0:IMUX.IMUX22</td></tr>
+
 <tr><td>C19</td><td>input</td><td>TCELL0:IMUX.IMUX23</td></tr>
+
 <tr><td>C2</td><td>input</td><td>TCELL0:IMUX.IMUX18</td></tr>
+
 <tr><td>C20</td><td>input</td><td>TCELL1:IMUX.IMUX20</td></tr>
+
 <tr><td>C21</td><td>input</td><td>TCELL1:IMUX.IMUX21</td></tr>
+
 <tr><td>C22</td><td>input</td><td>TCELL1:IMUX.IMUX22</td></tr>
+
 <tr><td>C23</td><td>input</td><td>TCELL1:IMUX.IMUX23</td></tr>
+
 <tr><td>C24</td><td>input</td><td>TCELL2:IMUX.IMUX20</td></tr>
+
 <tr><td>C25</td><td>input</td><td>TCELL2:IMUX.IMUX21</td></tr>
+
 <tr><td>C26</td><td>input</td><td>TCELL2:IMUX.IMUX22</td></tr>
+
 <tr><td>C27</td><td>input</td><td>TCELL2:IMUX.IMUX23</td></tr>
+
 <tr><td>C28</td><td>input</td><td>TCELL3:IMUX.IMUX20</td></tr>
+
 <tr><td>C29</td><td>input</td><td>TCELL3:IMUX.IMUX21</td></tr>
+
 <tr><td>C3</td><td>input</td><td>TCELL0:IMUX.IMUX19</td></tr>
+
 <tr><td>C30</td><td>input</td><td>TCELL3:IMUX.IMUX22</td></tr>
+
 <tr><td>C31</td><td>input</td><td>TCELL3:IMUX.IMUX23</td></tr>
+
 <tr><td>C32</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+
 <tr><td>C33</td><td>input</td><td>TCELL0:IMUX.BYP1</td></tr>
+
 <tr><td>C34</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+
 <tr><td>C35</td><td>input</td><td>TCELL0:IMUX.BYP3</td></tr>
+
 <tr><td>C36</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+
 <tr><td>C37</td><td>input</td><td>TCELL1:IMUX.BYP1</td></tr>
+
 <tr><td>C38</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+
 <tr><td>C39</td><td>input</td><td>TCELL1:IMUX.BYP3</td></tr>
+
 <tr><td>C4</td><td>input</td><td>TCELL1:IMUX.IMUX16</td></tr>
+
 <tr><td>C40</td><td>input</td><td>TCELL2:IMUX.BYP0</td></tr>
+
 <tr><td>C41</td><td>input</td><td>TCELL2:IMUX.BYP1</td></tr>
+
 <tr><td>C42</td><td>input</td><td>TCELL2:IMUX.BYP2</td></tr>
+
 <tr><td>C43</td><td>input</td><td>TCELL2:IMUX.BYP3</td></tr>
+
 <tr><td>C44</td><td>input</td><td>TCELL3:IMUX.BYP0</td></tr>
+
 <tr><td>C45</td><td>input</td><td>TCELL3:IMUX.BYP1</td></tr>
+
 <tr><td>C46</td><td>input</td><td>TCELL3:IMUX.BYP2</td></tr>
+
 <tr><td>C47</td><td>input</td><td>TCELL3:IMUX.BYP3</td></tr>
+
 <tr><td>C5</td><td>input</td><td>TCELL1:IMUX.IMUX17</td></tr>
+
 <tr><td>C6</td><td>input</td><td>TCELL1:IMUX.IMUX18</td></tr>
+
 <tr><td>C7</td><td>input</td><td>TCELL1:IMUX.IMUX19</td></tr>
+
 <tr><td>C8</td><td>input</td><td>TCELL2:IMUX.IMUX16</td></tr>
+
 <tr><td>C9</td><td>input</td><td>TCELL2:IMUX.IMUX17</td></tr>
+
 <tr><td>CARRYIN</td><td>input</td><td>TCELL0:IMUX.IMUX29</td></tr>
+
 <tr><td>CARRYINSEL0</td><td>input</td><td>TCELL0:IMUX.IMUX30</td></tr>
+
 <tr><td>CARRYINSEL1</td><td>input</td><td>TCELL0:IMUX.IMUX31</td></tr>
+
 <tr><td>CEA</td><td>input</td><td>TCELL0:IMUX.CE0</td></tr>
+
 <tr><td>CEB</td><td>input</td><td>TCELL0:IMUX.CE1</td></tr>
+
 <tr><td>CEC</td><td>input</td><td>TCELL2:IMUX.CE0</td></tr>
+
 <tr><td>CECARRYIN</td><td>input</td><td>TCELL2:IMUX.CE1</td></tr>
+
 <tr><td>CECINSUB</td><td>input</td><td>TCELL2:IMUX.CE3</td></tr>
+
 <tr><td>CECTRL</td><td>input</td><td>TCELL2:IMUX.CE2</td></tr>
+
 <tr><td>CEM</td><td>input</td><td>TCELL0:IMUX.CE2</td></tr>
+
 <tr><td>CEP</td><td>input</td><td>TCELL0:IMUX.CE3</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL2:IMUX.CLK0</td></tr>
+
 <tr><td>OPMODE0</td><td>input</td><td>TCELL0:IMUX.IMUX24</td></tr>
+
 <tr><td>OPMODE1</td><td>input</td><td>TCELL0:IMUX.IMUX25</td></tr>
+
 <tr><td>OPMODE2</td><td>input</td><td>TCELL1:IMUX.IMUX28</td></tr>
+
 <tr><td>OPMODE3</td><td>input</td><td>TCELL2:IMUX.IMUX24</td></tr>
+
 <tr><td>OPMODE4</td><td>input</td><td>TCELL2:IMUX.IMUX25</td></tr>
+
 <tr><td>OPMODE5</td><td>input</td><td>TCELL3:IMUX.IMUX30</td></tr>
+
 <tr><td>OPMODE6</td><td>input</td><td>TCELL3:IMUX.IMUX31</td></tr>
+
 <tr><td>P0</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>P1</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>P10</td><td>output</td><td>TCELL2:OUT.HALF.BOT6.TMIN, TCELL2:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>P11</td><td>output</td><td>TCELL2:OUT.HALF.BOT7.TMIN, TCELL2:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>P12</td><td>output</td><td>TCELL3:OUT.HALF.BOT4.TMIN, TCELL3:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>P13</td><td>output</td><td>TCELL3:OUT.HALF.BOT5.TMIN, TCELL3:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>P14</td><td>output</td><td>TCELL3:OUT.HALF.BOT6.TMIN, TCELL3:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>P15</td><td>output</td><td>TCELL3:OUT.HALF.BOT7.TMIN, TCELL3:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>P16</td><td>output</td><td>TCELL0:OUT.BEST4.TMIN</td></tr>
+
 <tr><td>P17</td><td>output</td><td>TCELL0:OUT.BEST5.TMIN</td></tr>
+
 <tr><td>P18</td><td>output</td><td>TCELL0:OUT.BEST6.TMIN</td></tr>
+
 <tr><td>P19</td><td>output</td><td>TCELL0:OUT.BEST7.TMIN</td></tr>
+
 <tr><td>P2</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>P20</td><td>output</td><td>TCELL1:OUT.BEST4.TMIN</td></tr>
+
 <tr><td>P21</td><td>output</td><td>TCELL1:OUT.BEST5.TMIN</td></tr>
+
 <tr><td>P22</td><td>output</td><td>TCELL1:OUT.BEST6.TMIN</td></tr>
+
 <tr><td>P23</td><td>output</td><td>TCELL1:OUT.BEST7.TMIN</td></tr>
+
 <tr><td>P24</td><td>output</td><td>TCELL2:OUT.BEST4.TMIN</td></tr>
+
 <tr><td>P25</td><td>output</td><td>TCELL2:OUT.BEST5.TMIN</td></tr>
+
 <tr><td>P26</td><td>output</td><td>TCELL2:OUT.BEST6.TMIN</td></tr>
+
 <tr><td>P27</td><td>output</td><td>TCELL2:OUT.BEST7.TMIN</td></tr>
+
 <tr><td>P28</td><td>output</td><td>TCELL3:OUT.BEST4.TMIN</td></tr>
+
 <tr><td>P29</td><td>output</td><td>TCELL3:OUT.BEST5.TMIN</td></tr>
+
 <tr><td>P3</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>P30</td><td>output</td><td>TCELL3:OUT.BEST6.TMIN</td></tr>
+
 <tr><td>P31</td><td>output</td><td>TCELL3:OUT.BEST7.TMIN</td></tr>
+
 <tr><td>P32</td><td>output</td><td>TCELL0:OUT.SEC4.TMIN</td></tr>
+
 <tr><td>P33</td><td>output</td><td>TCELL0:OUT.SEC5.TMIN</td></tr>
+
 <tr><td>P34</td><td>output</td><td>TCELL0:OUT.SEC6.TMIN</td></tr>
+
 <tr><td>P35</td><td>output</td><td>TCELL0:OUT.SEC7.TMIN</td></tr>
+
 <tr><td>P36</td><td>output</td><td>TCELL1:OUT.SEC4.TMIN</td></tr>
+
 <tr><td>P37</td><td>output</td><td>TCELL1:OUT.SEC5.TMIN</td></tr>
+
 <tr><td>P38</td><td>output</td><td>TCELL1:OUT.SEC6.TMIN</td></tr>
+
 <tr><td>P39</td><td>output</td><td>TCELL1:OUT.SEC7.TMIN</td></tr>
+
 <tr><td>P4</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>P40</td><td>output</td><td>TCELL2:OUT.SEC4.TMIN</td></tr>
+
 <tr><td>P41</td><td>output</td><td>TCELL2:OUT.SEC5.TMIN</td></tr>
+
 <tr><td>P42</td><td>output</td><td>TCELL2:OUT.SEC6.TMIN</td></tr>
+
 <tr><td>P43</td><td>output</td><td>TCELL2:OUT.SEC7.TMIN</td></tr>
+
 <tr><td>P44</td><td>output</td><td>TCELL3:OUT.SEC4.TMIN</td></tr>
+
 <tr><td>P45</td><td>output</td><td>TCELL3:OUT.SEC5.TMIN</td></tr>
+
 <tr><td>P46</td><td>output</td><td>TCELL3:OUT.SEC6.TMIN</td></tr>
+
 <tr><td>P47</td><td>output</td><td>TCELL3:OUT.SEC7.TMIN</td></tr>
+
 <tr><td>P5</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>P6</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>P7</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>P8</td><td>output</td><td>TCELL2:OUT.HALF.BOT4.TMIN, TCELL2:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>P9</td><td>output</td><td>TCELL2:OUT.HALF.BOT5.TMIN, TCELL2:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>RSTA</td><td>input</td><td>TCELL0:IMUX.SR0</td></tr>
+
 <tr><td>RSTB</td><td>input</td><td>TCELL0:IMUX.SR1</td></tr>
+
 <tr><td>RSTC</td><td>input</td><td>TCELL2:IMUX.SR0</td></tr>
+
 <tr><td>RSTCARRYIN</td><td>input</td><td>TCELL2:IMUX.SR1</td></tr>
+
 <tr><td>RSTCTRL</td><td>input</td><td>TCELL2:IMUX.SR2</td></tr>
+
 <tr><td>RSTM</td><td>input</td><td>TCELL0:IMUX.SR2</td></tr>
+
 <tr><td>RSTP</td><td>input</td><td>TCELL0:IMUX.SR3</td></tr>
+
 <tr><td>SUBTRACT</td><td>input</td><td>TCELL3:IMUX.IMUX29</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dsp1"><a class="header" href="#bel-dsp1">Bel DSP1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 DSP bel DSP1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>A0</td><td>input</td><td>TCELL0:IMUX.IMUX0</td></tr>
+
 <tr><td>A1</td><td>input</td><td>TCELL0:IMUX.IMUX1</td></tr>
+
 <tr><td>A10</td><td>input</td><td>TCELL2:IMUX.IMUX2</td></tr>
+
 <tr><td>A11</td><td>input</td><td>TCELL2:IMUX.IMUX3</td></tr>
+
 <tr><td>A12</td><td>input</td><td>TCELL3:IMUX.IMUX0</td></tr>
+
 <tr><td>A13</td><td>input</td><td>TCELL3:IMUX.IMUX1</td></tr>
+
 <tr><td>A14</td><td>input</td><td>TCELL3:IMUX.IMUX2</td></tr>
+
 <tr><td>A15</td><td>input</td><td>TCELL3:IMUX.IMUX3</td></tr>
+
 <tr><td>A16</td><td>input</td><td>TCELL1:IMUX.IMUX27</td></tr>
+
 <tr><td>A17</td><td>input</td><td>TCELL3:IMUX.IMUX27</td></tr>
+
 <tr><td>A2</td><td>input</td><td>TCELL0:IMUX.IMUX2</td></tr>
+
 <tr><td>A3</td><td>input</td><td>TCELL0:IMUX.IMUX3</td></tr>
+
 <tr><td>A4</td><td>input</td><td>TCELL1:IMUX.IMUX0</td></tr>
+
 <tr><td>A5</td><td>input</td><td>TCELL1:IMUX.IMUX1</td></tr>
+
 <tr><td>A6</td><td>input</td><td>TCELL1:IMUX.IMUX2</td></tr>
+
 <tr><td>A7</td><td>input</td><td>TCELL1:IMUX.IMUX3</td></tr>
+
 <tr><td>A8</td><td>input</td><td>TCELL2:IMUX.IMUX0</td></tr>
+
 <tr><td>A9</td><td>input</td><td>TCELL2:IMUX.IMUX1</td></tr>
+
 <tr><td>B0</td><td>input</td><td>TCELL0:IMUX.IMUX8</td></tr>
+
 <tr><td>B1</td><td>input</td><td>TCELL0:IMUX.IMUX9</td></tr>
+
 <tr><td>B10</td><td>input</td><td>TCELL2:IMUX.IMUX10</td></tr>
+
 <tr><td>B11</td><td>input</td><td>TCELL2:IMUX.IMUX11</td></tr>
+
 <tr><td>B12</td><td>input</td><td>TCELL3:IMUX.IMUX8</td></tr>
+
 <tr><td>B13</td><td>input</td><td>TCELL3:IMUX.IMUX9</td></tr>
+
 <tr><td>B14</td><td>input</td><td>TCELL3:IMUX.IMUX10</td></tr>
+
 <tr><td>B15</td><td>input</td><td>TCELL3:IMUX.IMUX11</td></tr>
+
 <tr><td>B16</td><td>input</td><td>TCELL1:IMUX.IMUX26</td></tr>
+
 <tr><td>B17</td><td>input</td><td>TCELL3:IMUX.IMUX26</td></tr>
+
 <tr><td>B2</td><td>input</td><td>TCELL0:IMUX.IMUX10</td></tr>
+
 <tr><td>B3</td><td>input</td><td>TCELL0:IMUX.IMUX11</td></tr>
+
 <tr><td>B4</td><td>input</td><td>TCELL1:IMUX.IMUX8</td></tr>
+
 <tr><td>B5</td><td>input</td><td>TCELL1:IMUX.IMUX9</td></tr>
+
 <tr><td>B6</td><td>input</td><td>TCELL1:IMUX.IMUX10</td></tr>
+
 <tr><td>B7</td><td>input</td><td>TCELL1:IMUX.IMUX11</td></tr>
+
 <tr><td>B8</td><td>input</td><td>TCELL2:IMUX.IMUX8</td></tr>
+
 <tr><td>B9</td><td>input</td><td>TCELL2:IMUX.IMUX9</td></tr>
+
 <tr><td>C0</td><td>input</td><td>TCELL0:IMUX.IMUX16</td></tr>
+
 <tr><td>C1</td><td>input</td><td>TCELL0:IMUX.IMUX17</td></tr>
+
 <tr><td>C10</td><td>input</td><td>TCELL2:IMUX.IMUX18</td></tr>
+
 <tr><td>C11</td><td>input</td><td>TCELL2:IMUX.IMUX19</td></tr>
+
 <tr><td>C12</td><td>input</td><td>TCELL3:IMUX.IMUX16</td></tr>
+
 <tr><td>C13</td><td>input</td><td>TCELL3:IMUX.IMUX17</td></tr>
+
 <tr><td>C14</td><td>input</td><td>TCELL3:IMUX.IMUX18</td></tr>
+
 <tr><td>C15</td><td>input</td><td>TCELL3:IMUX.IMUX19</td></tr>
+
 <tr><td>C16</td><td>input</td><td>TCELL0:IMUX.IMUX20</td></tr>
+
 <tr><td>C17</td><td>input</td><td>TCELL0:IMUX.IMUX21</td></tr>
+
 <tr><td>C18</td><td>input</td><td>TCELL0:IMUX.IMUX22</td></tr>
+
 <tr><td>C19</td><td>input</td><td>TCELL0:IMUX.IMUX23</td></tr>
+
 <tr><td>C2</td><td>input</td><td>TCELL0:IMUX.IMUX18</td></tr>
+
 <tr><td>C20</td><td>input</td><td>TCELL1:IMUX.IMUX20</td></tr>
+
 <tr><td>C21</td><td>input</td><td>TCELL1:IMUX.IMUX21</td></tr>
+
 <tr><td>C22</td><td>input</td><td>TCELL1:IMUX.IMUX22</td></tr>
+
 <tr><td>C23</td><td>input</td><td>TCELL1:IMUX.IMUX23</td></tr>
+
 <tr><td>C24</td><td>input</td><td>TCELL2:IMUX.IMUX20</td></tr>
+
 <tr><td>C25</td><td>input</td><td>TCELL2:IMUX.IMUX21</td></tr>
+
 <tr><td>C26</td><td>input</td><td>TCELL2:IMUX.IMUX22</td></tr>
+
 <tr><td>C27</td><td>input</td><td>TCELL2:IMUX.IMUX23</td></tr>
+
 <tr><td>C28</td><td>input</td><td>TCELL3:IMUX.IMUX20</td></tr>
+
 <tr><td>C29</td><td>input</td><td>TCELL3:IMUX.IMUX21</td></tr>
+
 <tr><td>C3</td><td>input</td><td>TCELL0:IMUX.IMUX19</td></tr>
+
 <tr><td>C30</td><td>input</td><td>TCELL3:IMUX.IMUX22</td></tr>
+
 <tr><td>C31</td><td>input</td><td>TCELL3:IMUX.IMUX23</td></tr>
+
 <tr><td>C32</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+
 <tr><td>C33</td><td>input</td><td>TCELL0:IMUX.BYP1</td></tr>
+
 <tr><td>C34</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+
 <tr><td>C35</td><td>input</td><td>TCELL0:IMUX.BYP3</td></tr>
+
 <tr><td>C36</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+
 <tr><td>C37</td><td>input</td><td>TCELL1:IMUX.BYP1</td></tr>
+
 <tr><td>C38</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+
 <tr><td>C39</td><td>input</td><td>TCELL1:IMUX.BYP3</td></tr>
+
 <tr><td>C4</td><td>input</td><td>TCELL1:IMUX.IMUX16</td></tr>
+
 <tr><td>C40</td><td>input</td><td>TCELL2:IMUX.BYP0</td></tr>
+
 <tr><td>C41</td><td>input</td><td>TCELL2:IMUX.BYP1</td></tr>
+
 <tr><td>C42</td><td>input</td><td>TCELL2:IMUX.BYP2</td></tr>
+
 <tr><td>C43</td><td>input</td><td>TCELL2:IMUX.BYP3</td></tr>
+
 <tr><td>C44</td><td>input</td><td>TCELL3:IMUX.BYP0</td></tr>
+
 <tr><td>C45</td><td>input</td><td>TCELL3:IMUX.BYP1</td></tr>
+
 <tr><td>C46</td><td>input</td><td>TCELL3:IMUX.BYP2</td></tr>
+
 <tr><td>C47</td><td>input</td><td>TCELL3:IMUX.BYP3</td></tr>
+
 <tr><td>C5</td><td>input</td><td>TCELL1:IMUX.IMUX17</td></tr>
+
 <tr><td>C6</td><td>input</td><td>TCELL1:IMUX.IMUX18</td></tr>
+
 <tr><td>C7</td><td>input</td><td>TCELL1:IMUX.IMUX19</td></tr>
+
 <tr><td>C8</td><td>input</td><td>TCELL2:IMUX.IMUX16</td></tr>
+
 <tr><td>C9</td><td>input</td><td>TCELL2:IMUX.IMUX17</td></tr>
+
 <tr><td>CARRYIN</td><td>input</td><td>TCELL1:IMUX.IMUX29</td></tr>
+
 <tr><td>CARRYINSEL0</td><td>input</td><td>TCELL1:IMUX.IMUX30</td></tr>
+
 <tr><td>CARRYINSEL1</td><td>input</td><td>TCELL1:IMUX.IMUX31</td></tr>
+
 <tr><td>CEA</td><td>input</td><td>TCELL1:IMUX.CE0</td></tr>
+
 <tr><td>CEB</td><td>input</td><td>TCELL1:IMUX.CE1</td></tr>
+
 <tr><td>CEC</td><td>input</td><td>TCELL2:IMUX.CE0</td></tr>
+
 <tr><td>CECARRYIN</td><td>input</td><td>TCELL3:IMUX.CE0</td></tr>
+
 <tr><td>CECINSUB</td><td>input</td><td>TCELL3:IMUX.CE2</td></tr>
+
 <tr><td>CECTRL</td><td>input</td><td>TCELL3:IMUX.CE1</td></tr>
+
 <tr><td>CEM</td><td>input</td><td>TCELL1:IMUX.CE2</td></tr>
+
 <tr><td>CEP</td><td>input</td><td>TCELL1:IMUX.CE3</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL1:IMUX.CLK0</td></tr>
+
 <tr><td>OPMODE0</td><td>input</td><td>TCELL0:IMUX.IMUX28</td></tr>
+
 <tr><td>OPMODE1</td><td>input</td><td>TCELL1:IMUX.IMUX24</td></tr>
+
 <tr><td>OPMODE2</td><td>input</td><td>TCELL1:IMUX.IMUX25</td></tr>
+
 <tr><td>OPMODE3</td><td>input</td><td>TCELL2:IMUX.IMUX30</td></tr>
+
 <tr><td>OPMODE4</td><td>input</td><td>TCELL2:IMUX.IMUX31</td></tr>
+
 <tr><td>OPMODE5</td><td>input</td><td>TCELL3:IMUX.IMUX24</td></tr>
+
 <tr><td>OPMODE6</td><td>input</td><td>TCELL3:IMUX.IMUX25</td></tr>
+
 <tr><td>P0</td><td>output</td><td>TCELL0:OUT.HALF.BOT0.TMIN, TCELL0:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>P1</td><td>output</td><td>TCELL0:OUT.HALF.BOT1.TMIN, TCELL0:OUT.HALT.TOP1.TMIN</td></tr>
+
 <tr><td>P10</td><td>output</td><td>TCELL2:OUT.HALF.BOT2.TMIN, TCELL2:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>P11</td><td>output</td><td>TCELL2:OUT.HALF.BOT3.TMIN, TCELL2:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>P12</td><td>output</td><td>TCELL3:OUT.HALF.BOT0.TMIN, TCELL3:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>P13</td><td>output</td><td>TCELL3:OUT.HALF.BOT1.TMIN, TCELL3:OUT.HALT.TOP1.TMIN</td></tr>
+
 <tr><td>P14</td><td>output</td><td>TCELL3:OUT.HALF.BOT2.TMIN, TCELL3:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>P15</td><td>output</td><td>TCELL3:OUT.HALF.BOT3.TMIN, TCELL3:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>P16</td><td>output</td><td>TCELL0:OUT.BEST3.TMIN</td></tr>
+
 <tr><td>P17</td><td>output</td><td>TCELL0:OUT.BEST2.TMIN</td></tr>
+
 <tr><td>P18</td><td>output</td><td>TCELL0:OUT.BEST1.TMIN</td></tr>
+
 <tr><td>P19</td><td>output</td><td>TCELL0:OUT.BEST0.TMIN</td></tr>
+
 <tr><td>P2</td><td>output</td><td>TCELL0:OUT.HALF.BOT2.TMIN, TCELL0:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>P20</td><td>output</td><td>TCELL1:OUT.BEST3.TMIN</td></tr>
+
 <tr><td>P21</td><td>output</td><td>TCELL1:OUT.BEST2.TMIN</td></tr>
+
 <tr><td>P22</td><td>output</td><td>TCELL1:OUT.BEST1.TMIN</td></tr>
+
 <tr><td>P23</td><td>output</td><td>TCELL1:OUT.BEST0.TMIN</td></tr>
+
 <tr><td>P24</td><td>output</td><td>TCELL2:OUT.BEST3.TMIN</td></tr>
+
 <tr><td>P25</td><td>output</td><td>TCELL2:OUT.BEST2.TMIN</td></tr>
+
 <tr><td>P26</td><td>output</td><td>TCELL2:OUT.BEST1.TMIN</td></tr>
+
 <tr><td>P27</td><td>output</td><td>TCELL2:OUT.BEST0.TMIN</td></tr>
+
 <tr><td>P28</td><td>output</td><td>TCELL3:OUT.BEST3.TMIN</td></tr>
+
 <tr><td>P29</td><td>output</td><td>TCELL3:OUT.BEST2.TMIN</td></tr>
+
 <tr><td>P3</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>P30</td><td>output</td><td>TCELL3:OUT.BEST1.TMIN</td></tr>
+
 <tr><td>P31</td><td>output</td><td>TCELL3:OUT.BEST0.TMIN</td></tr>
+
 <tr><td>P32</td><td>output</td><td>TCELL0:OUT.SEC0.TMIN</td></tr>
+
 <tr><td>P33</td><td>output</td><td>TCELL0:OUT.SEC1.TMIN</td></tr>
+
 <tr><td>P34</td><td>output</td><td>TCELL0:OUT.SEC2.TMIN</td></tr>
+
 <tr><td>P35</td><td>output</td><td>TCELL0:OUT.SEC3.TMIN</td></tr>
+
 <tr><td>P36</td><td>output</td><td>TCELL1:OUT.SEC0.TMIN</td></tr>
+
 <tr><td>P37</td><td>output</td><td>TCELL1:OUT.SEC1.TMIN</td></tr>
+
 <tr><td>P38</td><td>output</td><td>TCELL1:OUT.SEC2.TMIN</td></tr>
+
 <tr><td>P39</td><td>output</td><td>TCELL1:OUT.SEC3.TMIN</td></tr>
+
 <tr><td>P4</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>P40</td><td>output</td><td>TCELL2:OUT.SEC0.TMIN</td></tr>
+
 <tr><td>P41</td><td>output</td><td>TCELL2:OUT.SEC1.TMIN</td></tr>
+
 <tr><td>P42</td><td>output</td><td>TCELL2:OUT.SEC2.TMIN</td></tr>
+
 <tr><td>P43</td><td>output</td><td>TCELL2:OUT.SEC3.TMIN</td></tr>
+
 <tr><td>P44</td><td>output</td><td>TCELL3:OUT.SEC0.TMIN</td></tr>
+
 <tr><td>P45</td><td>output</td><td>TCELL3:OUT.SEC1.TMIN</td></tr>
+
 <tr><td>P46</td><td>output</td><td>TCELL3:OUT.SEC2.TMIN</td></tr>
+
 <tr><td>P47</td><td>output</td><td>TCELL3:OUT.SEC3.TMIN</td></tr>
+
 <tr><td>P5</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+
 <tr><td>P6</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>P7</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>P8</td><td>output</td><td>TCELL2:OUT.HALF.BOT0.TMIN, TCELL2:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>P9</td><td>output</td><td>TCELL2:OUT.HALF.BOT1.TMIN, TCELL2:OUT.HALT.TOP1.TMIN</td></tr>
+
 <tr><td>RSTA</td><td>input</td><td>TCELL1:IMUX.SR0</td></tr>
+
 <tr><td>RSTB</td><td>input</td><td>TCELL1:IMUX.SR1</td></tr>
+
 <tr><td>RSTC</td><td>input</td><td>TCELL2:IMUX.SR0</td></tr>
+
 <tr><td>RSTCARRYIN</td><td>input</td><td>TCELL3:IMUX.SR0</td></tr>
+
 <tr><td>RSTCTRL</td><td>input</td><td>TCELL3:IMUX.SR1</td></tr>
+
 <tr><td>RSTM</td><td>input</td><td>TCELL1:IMUX.SR2</td></tr>
+
 <tr><td>RSTP</td><td>input</td><td>TCELL1:IMUX.SR3</td></tr>
+
 <tr><td>SUBTRACT</td><td>input</td><td>TCELL2:IMUX.IMUX29</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 DSP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.SR0</td><td>DSP0.RSTA</td></tr>
+
 <tr><td>TCELL0:IMUX.SR1</td><td>DSP0.RSTB</td></tr>
+
 <tr><td>TCELL0:IMUX.SR2</td><td>DSP0.RSTM</td></tr>
+
 <tr><td>TCELL0:IMUX.SR3</td><td>DSP0.RSTP</td></tr>
+
 <tr><td>TCELL0:IMUX.CE0</td><td>DSP0.CEA</td></tr>
+
 <tr><td>TCELL0:IMUX.CE1</td><td>DSP0.CEB</td></tr>
+
 <tr><td>TCELL0:IMUX.CE2</td><td>DSP0.CEM</td></tr>
+
 <tr><td>TCELL0:IMUX.CE3</td><td>DSP0.CEP</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP0</td><td>DSP0.C32, DSP1.C32</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP1</td><td>DSP0.C33, DSP1.C33</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP2</td><td>DSP0.C34, DSP1.C34</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP3</td><td>DSP0.C35, DSP1.C35</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX0</td><td>DSP1.A0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX1</td><td>DSP1.A1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX2</td><td>DSP1.A2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX3</td><td>DSP1.A3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX4</td><td>DSP0.A0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX5</td><td>DSP0.A1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX6</td><td>DSP0.A2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX7</td><td>DSP0.A3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX8</td><td>DSP1.B0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX9</td><td>DSP1.B1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX10</td><td>DSP1.B2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX11</td><td>DSP1.B3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX12</td><td>DSP0.B0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX13</td><td>DSP0.B1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX14</td><td>DSP0.B2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX15</td><td>DSP0.B3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX16</td><td>DSP0.C0, DSP1.C0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX17</td><td>DSP0.C1, DSP1.C1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX18</td><td>DSP0.C2, DSP1.C2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX19</td><td>DSP0.C3, DSP1.C3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX20</td><td>DSP0.C16, DSP1.C16</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX21</td><td>DSP0.C17, DSP1.C17</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX22</td><td>DSP0.C18, DSP1.C18</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX23</td><td>DSP0.C19, DSP1.C19</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX24</td><td>DSP0.OPMODE0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX25</td><td>DSP0.OPMODE1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX26</td><td>DSP0.B16</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX27</td><td>DSP0.A16</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX28</td><td>DSP1.OPMODE0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX29</td><td>DSP0.CARRYIN</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX30</td><td>DSP0.CARRYINSEL0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX31</td><td>DSP0.CARRYINSEL1</td></tr>
+
 <tr><td>TCELL0:OUT.BEST0.TMIN</td><td>DSP1.P19</td></tr>
+
 <tr><td>TCELL0:OUT.BEST1.TMIN</td><td>DSP1.P18</td></tr>
+
 <tr><td>TCELL0:OUT.BEST2.TMIN</td><td>DSP1.P17</td></tr>
+
 <tr><td>TCELL0:OUT.BEST3.TMIN</td><td>DSP1.P16</td></tr>
+
 <tr><td>TCELL0:OUT.BEST4.TMIN</td><td>DSP0.P16</td></tr>
+
 <tr><td>TCELL0:OUT.BEST5.TMIN</td><td>DSP0.P17</td></tr>
+
 <tr><td>TCELL0:OUT.BEST6.TMIN</td><td>DSP0.P18</td></tr>
+
 <tr><td>TCELL0:OUT.BEST7.TMIN</td><td>DSP0.P19</td></tr>
+
 <tr><td>TCELL0:OUT.SEC0.TMIN</td><td>DSP1.P32</td></tr>
+
 <tr><td>TCELL0:OUT.SEC1.TMIN</td><td>DSP1.P33</td></tr>
+
 <tr><td>TCELL0:OUT.SEC2.TMIN</td><td>DSP1.P34</td></tr>
+
 <tr><td>TCELL0:OUT.SEC3.TMIN</td><td>DSP1.P35</td></tr>
+
 <tr><td>TCELL0:OUT.SEC4.TMIN</td><td>DSP0.P32</td></tr>
+
 <tr><td>TCELL0:OUT.SEC5.TMIN</td><td>DSP0.P33</td></tr>
+
 <tr><td>TCELL0:OUT.SEC6.TMIN</td><td>DSP0.P34</td></tr>
+
 <tr><td>TCELL0:OUT.SEC7.TMIN</td><td>DSP0.P35</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT0.TMIN</td><td>DSP1.P0</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT1.TMIN</td><td>DSP1.P1</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT2.TMIN</td><td>DSP1.P2</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>DSP1.P3</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>DSP0.P0</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DSP0.P1</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DSP0.P2</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DSP0.P3</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP0.TMIN</td><td>DSP1.P0</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP1.TMIN</td><td>DSP1.P1</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP2.TMIN</td><td>DSP1.P2</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>DSP1.P3</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>DSP0.P0</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DSP0.P1</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DSP0.P2</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DSP0.P3</td></tr>
+
 <tr><td>TCELL1:IMUX.SR0</td><td>DSP1.RSTA</td></tr>
+
 <tr><td>TCELL1:IMUX.SR1</td><td>DSP1.RSTB</td></tr>
+
 <tr><td>TCELL1:IMUX.SR2</td><td>DSP1.RSTM</td></tr>
+
 <tr><td>TCELL1:IMUX.SR3</td><td>DSP1.RSTP</td></tr>
+
 <tr><td>TCELL1:IMUX.CLK0</td><td>DSP1.CLK</td></tr>
+
 <tr><td>TCELL1:IMUX.CE0</td><td>DSP1.CEA</td></tr>
+
 <tr><td>TCELL1:IMUX.CE1</td><td>DSP1.CEB</td></tr>
+
 <tr><td>TCELL1:IMUX.CE2</td><td>DSP1.CEM</td></tr>
+
 <tr><td>TCELL1:IMUX.CE3</td><td>DSP1.CEP</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP0</td><td>DSP0.C36, DSP1.C36</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP1</td><td>DSP0.C37, DSP1.C37</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP2</td><td>DSP0.C38, DSP1.C38</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP3</td><td>DSP0.C39, DSP1.C39</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX0</td><td>DSP1.A4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX1</td><td>DSP1.A5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX2</td><td>DSP1.A6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX3</td><td>DSP1.A7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX4</td><td>DSP0.A4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX5</td><td>DSP0.A5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX6</td><td>DSP0.A6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX7</td><td>DSP0.A7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX8</td><td>DSP1.B4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX9</td><td>DSP1.B5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX10</td><td>DSP1.B6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX11</td><td>DSP1.B7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX12</td><td>DSP0.B4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX13</td><td>DSP0.B5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX14</td><td>DSP0.B6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX15</td><td>DSP0.B7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX16</td><td>DSP0.C4, DSP1.C4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX17</td><td>DSP0.C5, DSP1.C5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX18</td><td>DSP0.C6, DSP1.C6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX19</td><td>DSP0.C7, DSP1.C7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX20</td><td>DSP0.C20, DSP1.C20</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX21</td><td>DSP0.C21, DSP1.C21</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX22</td><td>DSP0.C22, DSP1.C22</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX23</td><td>DSP0.C23, DSP1.C23</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX24</td><td>DSP1.OPMODE1</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX25</td><td>DSP1.OPMODE2</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX26</td><td>DSP1.B16</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX27</td><td>DSP1.A16</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX28</td><td>DSP0.OPMODE2</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX29</td><td>DSP1.CARRYIN</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX30</td><td>DSP1.CARRYINSEL0</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX31</td><td>DSP1.CARRYINSEL1</td></tr>
+
 <tr><td>TCELL1:OUT.BEST0.TMIN</td><td>DSP1.P23</td></tr>
+
 <tr><td>TCELL1:OUT.BEST1.TMIN</td><td>DSP1.P22</td></tr>
+
 <tr><td>TCELL1:OUT.BEST2.TMIN</td><td>DSP1.P21</td></tr>
+
 <tr><td>TCELL1:OUT.BEST3.TMIN</td><td>DSP1.P20</td></tr>
+
 <tr><td>TCELL1:OUT.BEST4.TMIN</td><td>DSP0.P20</td></tr>
+
 <tr><td>TCELL1:OUT.BEST5.TMIN</td><td>DSP0.P21</td></tr>
+
 <tr><td>TCELL1:OUT.BEST6.TMIN</td><td>DSP0.P22</td></tr>
+
 <tr><td>TCELL1:OUT.BEST7.TMIN</td><td>DSP0.P23</td></tr>
+
 <tr><td>TCELL1:OUT.SEC0.TMIN</td><td>DSP1.P36</td></tr>
+
 <tr><td>TCELL1:OUT.SEC1.TMIN</td><td>DSP1.P37</td></tr>
+
 <tr><td>TCELL1:OUT.SEC2.TMIN</td><td>DSP1.P38</td></tr>
+
 <tr><td>TCELL1:OUT.SEC3.TMIN</td><td>DSP1.P39</td></tr>
+
 <tr><td>TCELL1:OUT.SEC4.TMIN</td><td>DSP0.P36</td></tr>
+
 <tr><td>TCELL1:OUT.SEC5.TMIN</td><td>DSP0.P37</td></tr>
+
 <tr><td>TCELL1:OUT.SEC6.TMIN</td><td>DSP0.P38</td></tr>
+
 <tr><td>TCELL1:OUT.SEC7.TMIN</td><td>DSP0.P39</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>DSP1.P4</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>DSP1.P5</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>DSP1.P6</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>DSP1.P7</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>DSP0.P4</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DSP0.P5</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DSP0.P6</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DSP0.P7</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>DSP1.P4</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>DSP1.P5</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>DSP1.P6</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>DSP1.P7</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>DSP0.P4</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DSP0.P5</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DSP0.P6</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DSP0.P7</td></tr>
+
 <tr><td>TCELL2:IMUX.SR0</td><td>DSP0.RSTC, DSP1.RSTC</td></tr>
+
 <tr><td>TCELL2:IMUX.SR1</td><td>DSP0.RSTCARRYIN</td></tr>
+
 <tr><td>TCELL2:IMUX.SR2</td><td>DSP0.RSTCTRL</td></tr>
+
 <tr><td>TCELL2:IMUX.CLK0</td><td>DSP0.CLK</td></tr>
+
 <tr><td>TCELL2:IMUX.CE0</td><td>DSP0.CEC, DSP1.CEC</td></tr>
+
 <tr><td>TCELL2:IMUX.CE1</td><td>DSP0.CECARRYIN</td></tr>
+
 <tr><td>TCELL2:IMUX.CE2</td><td>DSP0.CECTRL</td></tr>
+
 <tr><td>TCELL2:IMUX.CE3</td><td>DSP0.CECINSUB</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP0</td><td>DSP0.C40, DSP1.C40</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP1</td><td>DSP0.C41, DSP1.C41</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP2</td><td>DSP0.C42, DSP1.C42</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP3</td><td>DSP0.C43, DSP1.C43</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX0</td><td>DSP1.A8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX1</td><td>DSP1.A9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX2</td><td>DSP1.A10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX3</td><td>DSP1.A11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX4</td><td>DSP0.A8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX5</td><td>DSP0.A9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX6</td><td>DSP0.A10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX7</td><td>DSP0.A11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX8</td><td>DSP1.B8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX9</td><td>DSP1.B9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX10</td><td>DSP1.B10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX11</td><td>DSP1.B11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX12</td><td>DSP0.B8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX13</td><td>DSP0.B9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX14</td><td>DSP0.B10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX15</td><td>DSP0.B11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX16</td><td>DSP0.C8, DSP1.C8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX17</td><td>DSP0.C9, DSP1.C9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX18</td><td>DSP0.C10, DSP1.C10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX19</td><td>DSP0.C11, DSP1.C11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX20</td><td>DSP0.C24, DSP1.C24</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX21</td><td>DSP0.C25, DSP1.C25</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX22</td><td>DSP0.C26, DSP1.C26</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX23</td><td>DSP0.C27, DSP1.C27</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX24</td><td>DSP0.OPMODE3</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX25</td><td>DSP0.OPMODE4</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX26</td><td>DSP0.B17</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX27</td><td>DSP0.A17</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX29</td><td>DSP1.SUBTRACT</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX30</td><td>DSP1.OPMODE3</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX31</td><td>DSP1.OPMODE4</td></tr>
+
 <tr><td>TCELL2:OUT.BEST0.TMIN</td><td>DSP1.P27</td></tr>
+
 <tr><td>TCELL2:OUT.BEST1.TMIN</td><td>DSP1.P26</td></tr>
+
 <tr><td>TCELL2:OUT.BEST2.TMIN</td><td>DSP1.P25</td></tr>
+
 <tr><td>TCELL2:OUT.BEST3.TMIN</td><td>DSP1.P24</td></tr>
+
 <tr><td>TCELL2:OUT.BEST4.TMIN</td><td>DSP0.P24</td></tr>
+
 <tr><td>TCELL2:OUT.BEST5.TMIN</td><td>DSP0.P25</td></tr>
+
 <tr><td>TCELL2:OUT.BEST6.TMIN</td><td>DSP0.P26</td></tr>
+
 <tr><td>TCELL2:OUT.BEST7.TMIN</td><td>DSP0.P27</td></tr>
+
 <tr><td>TCELL2:OUT.SEC0.TMIN</td><td>DSP1.P40</td></tr>
+
 <tr><td>TCELL2:OUT.SEC1.TMIN</td><td>DSP1.P41</td></tr>
+
 <tr><td>TCELL2:OUT.SEC2.TMIN</td><td>DSP1.P42</td></tr>
+
 <tr><td>TCELL2:OUT.SEC3.TMIN</td><td>DSP1.P43</td></tr>
+
 <tr><td>TCELL2:OUT.SEC4.TMIN</td><td>DSP0.P40</td></tr>
+
 <tr><td>TCELL2:OUT.SEC5.TMIN</td><td>DSP0.P41</td></tr>
+
 <tr><td>TCELL2:OUT.SEC6.TMIN</td><td>DSP0.P42</td></tr>
+
 <tr><td>TCELL2:OUT.SEC7.TMIN</td><td>DSP0.P43</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT0.TMIN</td><td>DSP1.P8</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT1.TMIN</td><td>DSP1.P9</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT2.TMIN</td><td>DSP1.P10</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT3.TMIN</td><td>DSP1.P11</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT4.TMIN</td><td>DSP0.P8</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT5.TMIN</td><td>DSP0.P9</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT6.TMIN</td><td>DSP0.P10</td></tr>
+
 <tr><td>TCELL2:OUT.HALF.BOT7.TMIN</td><td>DSP0.P11</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP0.TMIN</td><td>DSP1.P8</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP1.TMIN</td><td>DSP1.P9</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP2.TMIN</td><td>DSP1.P10</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP3.TMIN</td><td>DSP1.P11</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP4.TMIN</td><td>DSP0.P8</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP5.TMIN</td><td>DSP0.P9</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP6.TMIN</td><td>DSP0.P10</td></tr>
+
 <tr><td>TCELL2:OUT.HALT.TOP7.TMIN</td><td>DSP0.P11</td></tr>
+
 <tr><td>TCELL3:IMUX.SR0</td><td>DSP1.RSTCARRYIN</td></tr>
+
 <tr><td>TCELL3:IMUX.SR1</td><td>DSP1.RSTCTRL</td></tr>
+
 <tr><td>TCELL3:IMUX.CE0</td><td>DSP1.CECARRYIN</td></tr>
+
 <tr><td>TCELL3:IMUX.CE1</td><td>DSP1.CECTRL</td></tr>
+
 <tr><td>TCELL3:IMUX.CE2</td><td>DSP1.CECINSUB</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP0</td><td>DSP0.C44, DSP1.C44</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP1</td><td>DSP0.C45, DSP1.C45</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP2</td><td>DSP0.C46, DSP1.C46</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP3</td><td>DSP0.C47, DSP1.C47</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX0</td><td>DSP1.A12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX1</td><td>DSP1.A13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX2</td><td>DSP1.A14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX3</td><td>DSP1.A15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX4</td><td>DSP0.A12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX5</td><td>DSP0.A13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX6</td><td>DSP0.A14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX7</td><td>DSP0.A15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX8</td><td>DSP1.B12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX9</td><td>DSP1.B13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX10</td><td>DSP1.B14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX11</td><td>DSP1.B15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX12</td><td>DSP0.B12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX13</td><td>DSP0.B13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX14</td><td>DSP0.B14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX15</td><td>DSP0.B15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX16</td><td>DSP0.C12, DSP1.C12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX17</td><td>DSP0.C13, DSP1.C13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX18</td><td>DSP0.C14, DSP1.C14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX19</td><td>DSP0.C15, DSP1.C15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX20</td><td>DSP0.C28, DSP1.C28</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX21</td><td>DSP0.C29, DSP1.C29</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX22</td><td>DSP0.C30, DSP1.C30</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX23</td><td>DSP0.C31, DSP1.C31</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX24</td><td>DSP1.OPMODE5</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX25</td><td>DSP1.OPMODE6</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX26</td><td>DSP1.B17</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX27</td><td>DSP1.A17</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX29</td><td>DSP0.SUBTRACT</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX30</td><td>DSP0.OPMODE5</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX31</td><td>DSP0.OPMODE6</td></tr>
+
 <tr><td>TCELL3:OUT.BEST0.TMIN</td><td>DSP1.P31</td></tr>
+
 <tr><td>TCELL3:OUT.BEST1.TMIN</td><td>DSP1.P30</td></tr>
+
 <tr><td>TCELL3:OUT.BEST2.TMIN</td><td>DSP1.P29</td></tr>
+
 <tr><td>TCELL3:OUT.BEST3.TMIN</td><td>DSP1.P28</td></tr>
+
 <tr><td>TCELL3:OUT.BEST4.TMIN</td><td>DSP0.P28</td></tr>
+
 <tr><td>TCELL3:OUT.BEST5.TMIN</td><td>DSP0.P29</td></tr>
+
 <tr><td>TCELL3:OUT.BEST6.TMIN</td><td>DSP0.P30</td></tr>
+
 <tr><td>TCELL3:OUT.BEST7.TMIN</td><td>DSP0.P31</td></tr>
+
 <tr><td>TCELL3:OUT.SEC0.TMIN</td><td>DSP1.P44</td></tr>
+
 <tr><td>TCELL3:OUT.SEC1.TMIN</td><td>DSP1.P45</td></tr>
+
 <tr><td>TCELL3:OUT.SEC2.TMIN</td><td>DSP1.P46</td></tr>
+
 <tr><td>TCELL3:OUT.SEC3.TMIN</td><td>DSP1.P47</td></tr>
+
 <tr><td>TCELL3:OUT.SEC4.TMIN</td><td>DSP0.P44</td></tr>
+
 <tr><td>TCELL3:OUT.SEC5.TMIN</td><td>DSP0.P45</td></tr>
+
 <tr><td>TCELL3:OUT.SEC6.TMIN</td><td>DSP0.P46</td></tr>
+
 <tr><td>TCELL3:OUT.SEC7.TMIN</td><td>DSP0.P47</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT0.TMIN</td><td>DSP1.P12</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT1.TMIN</td><td>DSP1.P13</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT2.TMIN</td><td>DSP1.P14</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT3.TMIN</td><td>DSP1.P15</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT4.TMIN</td><td>DSP0.P12</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT5.TMIN</td><td>DSP0.P13</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT6.TMIN</td><td>DSP0.P14</td></tr>
+
 <tr><td>TCELL3:OUT.HALF.BOT7.TMIN</td><td>DSP0.P15</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP0.TMIN</td><td>DSP1.P12</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP1.TMIN</td><td>DSP1.P13</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP2.TMIN</td><td>DSP1.P14</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP3.TMIN</td><td>DSP1.P15</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP4.TMIN</td><td>DSP0.P12</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP5.TMIN</td><td>DSP0.P13</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP6.TMIN</td><td>DSP0.P14</td></tr>
+
 <tr><td>TCELL3:OUT.HALT.TOP7.TMIN</td><td>DSP0.P15</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 DSP bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="19">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -826,7 +1463,9 @@
 <th>17</th>
 <th>18</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>61</td>
 <td>-</td>
@@ -851,6 +1490,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.OPMODE0">~DSP1:INV.OPMODE0</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -874,6 +1514,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.CARRYINSEL1">~DSP0:INV.CARRYINSEL1</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -895,6 +1536,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -916,6 +1558,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -939,6 +1582,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.OPMODE0">~DSP0:INV.OPMODE0</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -960,6 +1604,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -981,6 +1626,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -1002,6 +1648,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -1023,6 +1670,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -1044,6 +1692,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -1065,6 +1714,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -1086,6 +1736,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -1107,6 +1758,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -1128,6 +1780,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -1149,6 +1802,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -1170,6 +1824,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -1191,6 +1846,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -1212,6 +1868,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -1233,6 +1890,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -1254,6 +1912,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -1275,6 +1934,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -1296,6 +1956,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -1317,6 +1978,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -1338,6 +2000,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -1359,6 +2022,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -1380,6 +2044,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -1401,6 +2066,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -1422,6 +2088,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -1443,6 +2110,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -1464,6 +2132,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -1485,6 +2154,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -1506,6 +2176,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -1527,6 +2198,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -1548,6 +2220,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -1569,6 +2242,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -1590,6 +2264,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -1611,6 +2286,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -1632,6 +2308,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -1653,6 +2330,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -1676,6 +2354,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.OPMODE1">~DSP0:INV.OPMODE1</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -1699,6 +2378,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.CARRYINSEL0">~DSP0:INV.CARRYINSEL0</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -1720,6 +2400,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -1741,6 +2422,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -1764,6 +2446,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.CARRYIN">~DSP0:INV.CARRYIN</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -1785,6 +2468,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -1806,6 +2490,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -1827,6 +2512,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -1848,6 +2534,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -1869,6 +2556,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -1890,6 +2578,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -1911,6 +2600,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -1932,6 +2622,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -1953,6 +2644,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -1974,6 +2666,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1995,6 +2688,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2016,6 +2710,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2037,6 +2732,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2058,6 +2754,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2079,6 +2776,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2100,6 +2798,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2121,6 +2820,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -2142,12 +2842,18 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex4 DSP bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="19">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2169,7 +2875,9 @@
 <th>17</th>
 <th>18</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>61</td>
 <td>-</td>
@@ -2194,6 +2902,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.OPMODE2">~DSP0:INV.OPMODE2</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -2217,6 +2926,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.CARRYINSEL1">~DSP1:INV.CARRYINSEL1</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -2238,6 +2948,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -2259,6 +2970,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -2282,6 +2994,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.OPMODE1">~DSP1:INV.OPMODE1</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -2303,6 +3016,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -2324,6 +3038,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -2345,6 +3060,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -2366,6 +3082,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -2387,6 +3104,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -2408,6 +3126,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -2429,6 +3148,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -2450,6 +3170,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -2471,6 +3192,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -2492,6 +3214,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -2515,6 +3238,7 @@
 <a href="#tile-virtex4-DSP-DSP1:UNK_PRESENT">DSP1:UNK_PRESENT[0]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -2538,6 +3262,7 @@
 <a href="#tile-virtex4-DSP-DSP_COMMON:CLKC_MUX">DSP_COMMON:CLKC_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -2561,6 +3286,7 @@
 <a href="#tile-virtex4-DSP-DSP_COMMON:CREG">DSP_COMMON:CREG[0]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -2582,6 +3308,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -2603,6 +3330,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -2626,6 +3354,7 @@
 <a href="#tile-virtex4-DSP-DSP1:B_INPUT">DSP1:B_INPUT[0]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -2647,6 +3376,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -2668,6 +3398,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -2691,6 +3422,7 @@
 <a href="#tile-virtex4-DSP-DSP1:CARRYINSELREG">DSP1:CARRYINSELREG[0]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -2714,6 +3446,7 @@
 <a href="#tile-virtex4-DSP-DSP1:SUBTRACTREG">DSP1:SUBTRACTREG[0]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -2735,6 +3468,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -2758,6 +3492,7 @@
 <a href="#tile-virtex4-DSP-DSP1:OPMODEREG">DSP1:OPMODEREG[0]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -2781,6 +3516,7 @@
 <a href="#tile-virtex4-DSP-DSP1:PREG">DSP1:PREG[0]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -2802,6 +3538,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -2823,6 +3560,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -2844,6 +3582,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -2865,6 +3604,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -2886,6 +3626,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -2907,6 +3648,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -2928,6 +3670,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -2949,6 +3692,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -2970,6 +3714,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -2991,6 +3736,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -3012,6 +3758,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -3035,6 +3782,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.OPMODE2">~DSP1:INV.OPMODE2</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -3058,6 +3806,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.CARRYINSEL0">~DSP1:INV.CARRYINSEL0</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -3079,6 +3828,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -3100,6 +3850,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -3123,6 +3874,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.CARRYIN">~DSP1:INV.CARRYIN</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -3144,6 +3896,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -3165,6 +3918,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -3186,6 +3940,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -3209,6 +3964,7 @@
 <a href="#tile-virtex4-DSP-DSP1:MREG">DSP1:MREG[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -3230,6 +3986,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -3253,6 +4010,7 @@
 <a href="#tile-virtex4-DSP-DSP1:CARRYINREG">DSP1:CARRYINREG[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -3276,6 +4034,7 @@
 <a href="#tile-virtex4-DSP-DSP1:BREG">DSP1:BREG[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -3297,6 +4056,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -3320,6 +4080,7 @@
 <a href="#tile-virtex4-DSP-DSP1:BREG">DSP1:BREG[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -3343,6 +4104,7 @@
 <a href="#tile-virtex4-DSP-DSP1:AREG">DSP1:AREG[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -3364,6 +4126,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3385,6 +4148,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3408,6 +4172,7 @@
 <a href="#tile-virtex4-DSP-DSP1:AREG">DSP1:AREG[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3429,6 +4194,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3450,6 +4216,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3471,6 +4238,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3492,6 +4260,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -3513,12 +4282,18 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex4 DSP bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="19">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3540,7 +4315,9 @@
 <th>17</th>
 <th>18</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>60</td>
 <td>-</td>
@@ -3565,6 +4342,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.OPMODE4">~DSP1:INV.OPMODE4</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -3586,6 +4364,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -3607,6 +4386,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -3630,6 +4410,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.OPMODE3">~DSP0:INV.OPMODE3</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -3651,6 +4432,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -3672,6 +4454,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -3693,6 +4476,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -3714,6 +4498,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -3735,6 +4520,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -3756,6 +4542,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -3777,6 +4564,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -3798,6 +4586,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -3819,6 +4608,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -3840,6 +4630,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -3863,6 +4654,7 @@
 <a href="#tile-virtex4-DSP-DSP0:UNK_PRESENT">DSP0:UNK_PRESENT[0]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -3884,6 +4676,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -3905,6 +4698,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -3926,6 +4720,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -3947,6 +4742,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -3970,6 +4766,7 @@
 <a href="#tile-virtex4-DSP-DSP0:B_INPUT">DSP0:B_INPUT[0]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -3991,6 +4788,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -4012,6 +4810,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -4035,6 +4834,7 @@
 <a href="#tile-virtex4-DSP-DSP0:CARRYINSELREG">DSP0:CARRYINSELREG[0]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -4058,6 +4858,7 @@
 <a href="#tile-virtex4-DSP-DSP0:SUBTRACTREG">DSP0:SUBTRACTREG[0]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -4079,6 +4880,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -4102,6 +4904,7 @@
 <a href="#tile-virtex4-DSP-DSP0:OPMODEREG">DSP0:OPMODEREG[0]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -4125,6 +4928,7 @@
 <a href="#tile-virtex4-DSP-DSP0:PREG">DSP0:PREG[0]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -4146,6 +4950,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -4167,6 +4972,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -4188,6 +4994,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -4209,6 +5016,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -4230,6 +5038,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -4251,6 +5060,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -4272,6 +5082,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -4293,6 +5104,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -4314,6 +5126,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -4335,6 +5148,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -4356,6 +5170,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -4379,6 +5194,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.OPMODE4">~DSP0:INV.OPMODE4</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -4402,6 +5218,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.OPMODE3">~DSP1:INV.OPMODE3</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -4423,6 +5240,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -4444,6 +5262,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -4467,6 +5286,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.SUBTRACT">~DSP1:INV.SUBTRACT</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -4488,6 +5308,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -4509,6 +5330,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -4530,6 +5352,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -4553,6 +5376,7 @@
 <a href="#tile-virtex4-DSP-DSP0:MREG">DSP0:MREG[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -4574,6 +5398,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -4597,6 +5422,7 @@
 <a href="#tile-virtex4-DSP-DSP0:CARRYINREG">DSP0:CARRYINREG[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4620,6 +5446,7 @@
 <a href="#tile-virtex4-DSP-DSP0:BREG">DSP0:BREG[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -4641,6 +5468,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -4664,6 +5492,7 @@
 <a href="#tile-virtex4-DSP-DSP0:BREG">DSP0:BREG[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -4687,6 +5516,7 @@
 <a href="#tile-virtex4-DSP-DSP0:AREG">DSP0:AREG[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -4708,6 +5538,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -4729,6 +5560,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -4752,6 +5584,7 @@
 <a href="#tile-virtex4-DSP-DSP0:AREG">DSP0:AREG[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -4773,6 +5606,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -4794,6 +5628,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -4815,6 +5650,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -4836,6 +5672,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -4857,12 +5694,18 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex4 DSP bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="19">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -4884,7 +5727,9 @@
 <th>17</th>
 <th>18</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>60</td>
 <td>-</td>
@@ -4909,6 +5754,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.OPMODE6">~DSP0:INV.OPMODE6</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -4930,6 +5776,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -4951,6 +5798,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -4974,6 +5822,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.OPMODE5">~DSP1:INV.OPMODE5</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -4995,6 +5844,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -5016,6 +5866,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -5037,6 +5888,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -5058,6 +5910,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -5079,6 +5932,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -5100,6 +5954,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -5121,6 +5976,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -5142,6 +5998,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -5163,6 +6020,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -5184,6 +6042,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -5205,6 +6064,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -5226,6 +6086,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -5247,6 +6108,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -5268,6 +6130,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -5289,6 +6152,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -5310,6 +6174,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -5331,6 +6196,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -5352,6 +6218,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -5373,6 +6240,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -5394,6 +6262,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -5415,6 +6284,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -5436,6 +6306,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -5457,6 +6328,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -5478,6 +6350,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -5499,6 +6372,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -5520,6 +6394,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -5541,6 +6416,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -5562,6 +6438,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -5583,6 +6460,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -5604,6 +6482,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -5625,6 +6504,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -5646,6 +6526,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -5667,6 +6548,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -5688,6 +6570,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -5711,6 +6594,7 @@
 <a href="#tile-virtex4-DSP-DSP1:INV.OPMODE6">~DSP1:INV.OPMODE6</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -5734,6 +6618,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.OPMODE5">~DSP0:INV.OPMODE5</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -5755,6 +6640,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -5776,6 +6662,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -5799,6 +6686,7 @@
 <a href="#tile-virtex4-DSP-DSP0:INV.SUBTRACT">~DSP0:INV.SUBTRACT</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -5820,6 +6708,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -5841,6 +6730,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -5862,6 +6752,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -5883,6 +6774,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -5904,6 +6796,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -5925,6 +6818,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -5946,6 +6840,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -5967,6 +6862,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -5988,6 +6884,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -6009,6 +6906,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -6030,6 +6928,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6051,6 +6950,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6072,6 +6972,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6093,6 +6994,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -6114,6 +7016,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -6135,6 +7038,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -6156,6 +7060,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -6177,232 +7082,322 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-DSP-DSP0:AREG">DSP0:AREG</th>
 <th>2.18.8</th>
 <th>2.18.5</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:BREG">DSP0:BREG</th>
 <th>2.18.11</th>
 <th>2.18.9</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:AREG">DSP1:AREG</th>
 <th>1.18.8</th>
 <th>1.18.5</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:BREG">DSP1:BREG</th>
 <th>1.18.11</th>
 <th>1.18.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-DSP-DSP0:B_INPUT">DSP0:B_INPUT</th>
 <th>2.18.41</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:B_INPUT">DSP1:B_INPUT</th>
 <th>1.18.41</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DIRECT</td>
 <td>0</td>
 </tr>
+
 <tr><td>CASCADE</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-DSP-DSP0:CARRYINREG">DSP0:CARRYINREG</th>
 <th>2.18.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:CARRYINSELREG">DSP0:CARRYINSELREG</th>
 <th>2.18.38</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:MREG">DSP0:MREG</th>
 <th>2.18.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:OPMODEREG">DSP0:OPMODEREG</th>
 <th>2.18.35</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:PREG">DSP0:PREG</th>
 <th>2.18.34</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:SUBTRACTREG">DSP0:SUBTRACTREG</th>
 <th>2.18.37</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:CARRYINREG">DSP1:CARRYINREG</th>
 <th>1.18.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:CARRYINSELREG">DSP1:CARRYINSELREG</th>
 <th>1.18.38</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:MREG">DSP1:MREG</th>
 <th>1.18.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:OPMODEREG">DSP1:OPMODEREG</th>
 <th>1.18.35</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:PREG">DSP1:PREG</th>
 <th>1.18.34</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:SUBTRACTREG">DSP1:SUBTRACTREG</th>
 <th>1.18.37</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP_COMMON:CREG">DSP_COMMON:CREG</th>
 <th>1.18.44</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-DSP-DSP0:INV.CARRYIN">DSP0:INV.CARRYIN</th>
 <th>0.18.18</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.CARRYINSEL0">DSP0:INV.CARRYINSEL0</th>
 <th>0.18.21</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.CARRYINSEL1">DSP0:INV.CARRYINSEL1</th>
 <th>0.18.60</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.OPMODE0">DSP0:INV.OPMODE0</th>
 <th>0.18.57</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.OPMODE1">DSP0:INV.OPMODE1</th>
 <th>0.18.22</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.OPMODE2">DSP0:INV.OPMODE2</th>
 <th>1.18.61</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.OPMODE3">DSP0:INV.OPMODE3</th>
 <th>2.18.57</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.OPMODE4">DSP0:INV.OPMODE4</th>
 <th>2.18.22</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.OPMODE5">DSP0:INV.OPMODE5</th>
 <th>3.18.21</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.OPMODE6">DSP0:INV.OPMODE6</th>
 <th>3.18.60</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP0:INV.SUBTRACT">DSP0:INV.SUBTRACT</th>
 <th>3.18.18</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.CARRYIN">DSP1:INV.CARRYIN</th>
 <th>1.18.18</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.CARRYINSEL0">DSP1:INV.CARRYINSEL0</th>
 <th>1.18.21</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.CARRYINSEL1">DSP1:INV.CARRYINSEL1</th>
 <th>1.18.60</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.OPMODE0">DSP1:INV.OPMODE0</th>
 <th>0.18.61</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.OPMODE1">DSP1:INV.OPMODE1</th>
 <th>1.18.57</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.OPMODE2">DSP1:INV.OPMODE2</th>
 <th>1.18.22</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.OPMODE3">DSP1:INV.OPMODE3</th>
 <th>2.18.21</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.OPMODE4">DSP1:INV.OPMODE4</th>
 <th>2.18.60</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.OPMODE5">DSP1:INV.OPMODE5</th>
 <th>3.18.57</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.OPMODE6">DSP1:INV.OPMODE6</th>
 <th>3.18.22</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:INV.SUBTRACT">DSP1:INV.SUBTRACT</th>
 <th>2.18.18</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-DSP-DSP0:UNK_PRESENT">DSP0:UNK_PRESENT</th>
 <th>2.18.46</th>
 </tr>
+
 <tr><th id="tile-virtex4-DSP-DSP1:UNK_PRESENT">DSP1:UNK_PRESENT</th>
 <th>1.18.46</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-DSP-DSP_COMMON:CLKC_MUX">DSP_COMMON:CLKC_MUX</th>
 <th>1.18.45</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DSP0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DSP1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../virtex4/bram.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../virtex4/clock/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -6412,16 +7407,21 @@ inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../virtex4/bram.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../virtex4/clock/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -6431,9 +7431,9 @@ inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

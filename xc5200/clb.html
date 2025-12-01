@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,1368 +142,2110 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="configurable-logic-block"><a class="header" href="#configurable-logic-block">Configurable Logic Block</a></h1>
 <h2 id="tile-clb"><a class="header" href="#tile-clb">Tile CLB</a></h2>
 <p>Cells: 1</p>
 <h3 id="switchbox-int"><a class="header" href="#switchbox-int">Switchbox INT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB switchbox INT</caption>
 <thead>
 <tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td rowspan="6">CLB.M0</td><td>GLOBAL.B</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX4.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>DBL.H0.W</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.H0.E</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V0.S</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V0.N</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M0.BUF</td><td>CLB.M0</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M1</td><td>GLOBAL.L</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX5.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M1.BUF</td><td>CLB.M1</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M2</td><td>GLOBAL.T</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX6.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M2.BUF</td><td>CLB.M2</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M3</td><td>GLOBAL.R</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX7.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M3.BUF</td><td>CLB.M3</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M4</td><td>LONG.V0</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX4.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M4.BUF</td><td>CLB.M4</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M5</td><td>LONG.H0</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX5.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M5.BUF</td><td>CLB.M5</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M6</td><td>LONG.V1</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX6.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>DBL.H6.W</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.H6.E</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V6.S</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V6.N</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M6.BUF</td><td>CLB.M6</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M7</td><td>LONG.H1</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX7.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M7.BUF</td><td>CLB.M7</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M8</td><td>LONG.V2</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX4.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M8.BUF</td><td>CLB.M8</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M9</td><td>LONG.H2</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX5.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M9.BUF</td><td>CLB.M9</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M10</td><td>LONG.V3</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX6.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M10.BUF</td><td>CLB.M10</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M11</td><td>LONG.H3</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX7.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M11.BUF</td><td>CLB.M11</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M12</td><td>LONG.V4</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX1.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V0.S</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M12.BUF</td><td>CLB.M12</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M13</td><td>LONG.H4</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX0.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.H6.W</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M13.BUF</td><td>CLB.M13</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M14</td><td>LONG.V5</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX3.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M14.BUF</td><td>CLB.M14</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M15</td><td>LONG.H5</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX2.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V6.N</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M15.BUF</td><td>CLB.M15</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M16</td><td>LONG.V6</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX3.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M16.BUF</td><td>CLB.M16</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M17</td><td>LONG.H6</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX2.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.H6.E</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M17.BUF</td><td>CLB.M17</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M18</td><td>LONG.V7</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX1.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V6.S</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M18.BUF</td><td>CLB.M18</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="6">CLB.M19</td><td>LONG.H7</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX0.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.H0.W</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M19.BUF</td><td>CLB.M19</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="7">CLB.M20</td><td>LONG.H0</td><td>pass transistor</td>
 </tr>
+
 <tr><td>LONG.V0</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX3.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M20.BUF</td><td>CLB.M20</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="7">CLB.M21</td><td>LONG.H1</td><td>pass transistor</td>
 </tr>
+
 <tr><td>LONG.V1</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX2.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.V0.N</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M21.BUF</td><td>CLB.M21</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="7">CLB.M22</td><td>LONG.H2</td><td>pass transistor</td>
 </tr>
+
 <tr><td>LONG.V2</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX1.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.W11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M22.BUF</td><td>CLB.M22</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="7">CLB.M23</td><td>LONG.H3</td><td>pass transistor</td>
 </tr>
+
 <tr><td>LONG.V3</td><td>pass transistor</td>
 </tr>
+
 <tr><td>OMUX0.BUF</td><td>pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.E4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.S2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>SINGLE.N11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>DBL.H0.E</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">CLB.M23.BUF</td><td>CLB.M23</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E1</td><td>CLB.M1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M20</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W1</td><td>CLB.M1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M12</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E2</td><td>CLB.M2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M21</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W2</td><td>CLB.M2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M13</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E3</td><td>CLB.M3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M22</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W3</td><td>CLB.M3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M14</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E4</td><td>CLB.M4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M23</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W4</td><td>CLB.M4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M15</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E5</td><td>CLB.M5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M12</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W5</td><td>CLB.M5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M16</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E7</td><td>CLB.M7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M14</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W7</td><td>CLB.M7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M18</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E8</td><td>CLB.M8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M15</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W8</td><td>CLB.M8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M19</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E9</td><td>CLB.M9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M16</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W9</td><td>CLB.M9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M20</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E10</td><td>CLB.M10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M17</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W10</td><td>CLB.M10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M21</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.E11</td><td>CLB.M11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M18</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.W11</td><td>CLB.M11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M22</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S1</td><td>CLB.M1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M22</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N1</td><td>CLB.M1</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M13</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S2</td><td>CLB.M2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M23</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N2</td><td>CLB.M2</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M14</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S3</td><td>CLB.M3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M12</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N3</td><td>CLB.M3</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M15</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S4</td><td>CLB.M4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M13</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N4</td><td>CLB.M4</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M16</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S5</td><td>CLB.M5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M14</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N5</td><td>CLB.M5</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M17</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S7</td><td>CLB.M7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M16</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N7</td><td>CLB.M7</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M19</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S8</td><td>CLB.M8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M17</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N8</td><td>CLB.M8</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M20</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S9</td><td>CLB.M9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M18</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N9</td><td>CLB.M9</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M21</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S10</td><td>CLB.M10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M19</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N10</td><td>CLB.M10</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M22</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.S11</td><td>CLB.M11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M20</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">SINGLE.N11</td><td>CLB.M11</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M23</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.H0.W</td><td>CLB.M0</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M19</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.H0.E</td><td>CLB.M0</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M23</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.H6.W</td><td>CLB.M6</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M13</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.H6.E</td><td>CLB.M6</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M17</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.V0.S</td><td>CLB.M0</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M12</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.V0.N</td><td>CLB.M0</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M21</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.V6.S</td><td>CLB.M6</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M18</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="2">DBL.V6.N</td><td>CLB.M6</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td>CLB.M15</td><td>bidirectional pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H0</td><td>OUT.TBUF0</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H1</td><td>OUT.TBUF1</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H2</td><td>OUT.TBUF2</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H3</td><td>OUT.TBUF3</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H4</td><td>OUT.TBUF0</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H5</td><td>OUT.TBUF1</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H6</td><td>OUT.TBUF2</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.H7</td><td>OUT.TBUF3</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V0</td><td>OUT.TBUF0</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V1</td><td>OUT.TBUF1</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V2</td><td>OUT.TBUF2</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V3</td><td>OUT.TBUF3</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V4</td><td>OUT.TBUF0</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V5</td><td>OUT.TBUF1</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V6</td><td>OUT.TBUF2</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="1">LONG.V7</td><td>OUT.TBUF3</td><td>pass transistor</td>
 </tr>
+
 <tr><td rowspan="13">OMUX0</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX0.BUF</td><td>OMUX0</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="13">OMUX1</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX1.BUF</td><td>OMUX1</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="13">OMUX2</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX2.BUF</td><td>OMUX2</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="13">OMUX3</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX3.BUF</td><td>OMUX3</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="13">OMUX4</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX4.BUF</td><td>OMUX4</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="13">OMUX5</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX5.BUF</td><td>OMUX5</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="13">OMUX6</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX6.BUF</td><td>OMUX6</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="13">OMUX7</td><td>OUT.LC0.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td><td>mux</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="1">OMUX7.BUF</td><td>OMUX7</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC0.F1</td><td>CLB.M6.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M8.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF.S</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC0.F2</td><td>CLB.M4.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF.N</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC0.F3</td><td>CLB.M2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="4">IMUX.LC0.F4</td><td>CLB.M0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC0.DI</td><td>CLB.M4.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M6.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC1.F1</td><td>CLB.M8.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF.S</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC1.F2</td><td>CLB.M0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M6.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF.N</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC1.F3</td><td>CLB.M4.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="4">IMUX.LC1.F4</td><td>CLB.M2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC1.DI</td><td>CLB.M8.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX1.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC2.F1</td><td>CLB.M0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF.S</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC2.F2</td><td>CLB.M2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M8.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF.N</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC2.F3</td><td>CLB.M6.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="4">IMUX.LC2.F4</td><td>CLB.M4.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC2.DI</td><td>CLB.M0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX2.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC3.F1</td><td>CLB.M0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF.S</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC3.F2</td><td>CLB.M4.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF.N</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC3.F3</td><td>CLB.M8.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="4">IMUX.LC3.F4</td><td>CLB.M6.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.LC3.DI</td><td>CLB.M2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF.W</td><td>mux</td>
 </tr>
+
 <tr><td>OMUX3.BUF.E</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.CLB.CE</td><td>CLB.M0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.CLB.CLK</td><td>CLB.M20.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>GLOBAL.L</td><td>mux</td>
 </tr>
+
 <tr><td>GLOBAL.R</td><td>mux</td>
 </tr>
+
 <tr><td>GLOBAL.B</td><td>mux</td>
 </tr>
+
 <tr><td>GLOBAL.T</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.CLB.RST</td><td>CLB.M0.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M2.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td><td>mux</td>
 </tr>
+
 <tr><td rowspan="8">IMUX.TS</td><td>CLB.M16.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td><td>mux</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td><td>mux</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-lc0"><a class="header" href="#bel-lc0">Bel LC0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel LC0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>IMUX.CLB.CE</td></tr>
+
 <tr><td>CK</td><td>input</td><td>IMUX.CLB.CLK</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>IMUX.CLB.RST</td></tr>
+
 <tr><td>DI</td><td>input</td><td>IMUX.LC0.DI</td></tr>
+
 <tr><td>DO</td><td>output</td><td>OUT.LC0.DO</td></tr>
+
 <tr><td>F1</td><td>input</td><td>IMUX.LC0.F1</td></tr>
+
 <tr><td>F2</td><td>input</td><td>IMUX.LC0.F2</td></tr>
+
 <tr><td>F3</td><td>input</td><td>IMUX.LC0.F3</td></tr>
+
 <tr><td>F4</td><td>input</td><td>IMUX.LC0.F4</td></tr>
+
 <tr><td>Q</td><td>output</td><td>OUT.LC0.Q</td></tr>
+
 <tr><td>X</td><td>output</td><td>OUT.LC0.X</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-lc1"><a class="header" href="#bel-lc1">Bel LC1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel LC1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>IMUX.CLB.CE</td></tr>
+
 <tr><td>CK</td><td>input</td><td>IMUX.CLB.CLK</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>IMUX.CLB.RST</td></tr>
+
 <tr><td>DI</td><td>input</td><td>IMUX.LC1.DI</td></tr>
+
 <tr><td>DO</td><td>output</td><td>OUT.LC1.DO</td></tr>
+
 <tr><td>F1</td><td>input</td><td>IMUX.LC1.F1</td></tr>
+
 <tr><td>F2</td><td>input</td><td>IMUX.LC1.F2</td></tr>
+
 <tr><td>F3</td><td>input</td><td>IMUX.LC1.F3</td></tr>
+
 <tr><td>F4</td><td>input</td><td>IMUX.LC1.F4</td></tr>
+
 <tr><td>Q</td><td>output</td><td>OUT.LC1.Q</td></tr>
+
 <tr><td>X</td><td>output</td><td>OUT.LC1.X</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-lc2"><a class="header" href="#bel-lc2">Bel LC2</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel LC2</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>IMUX.CLB.CE</td></tr>
+
 <tr><td>CK</td><td>input</td><td>IMUX.CLB.CLK</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>IMUX.CLB.RST</td></tr>
+
 <tr><td>DI</td><td>input</td><td>IMUX.LC2.DI</td></tr>
+
 <tr><td>DO</td><td>output</td><td>OUT.LC2.DO</td></tr>
+
 <tr><td>F1</td><td>input</td><td>IMUX.LC2.F1</td></tr>
+
 <tr><td>F2</td><td>input</td><td>IMUX.LC2.F2</td></tr>
+
 <tr><td>F3</td><td>input</td><td>IMUX.LC2.F3</td></tr>
+
 <tr><td>F4</td><td>input</td><td>IMUX.LC2.F4</td></tr>
+
 <tr><td>Q</td><td>output</td><td>OUT.LC2.Q</td></tr>
+
 <tr><td>X</td><td>output</td><td>OUT.LC2.X</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-lc3"><a class="header" href="#bel-lc3">Bel LC3</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel LC3</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>IMUX.CLB.CE</td></tr>
+
 <tr><td>CK</td><td>input</td><td>IMUX.CLB.CLK</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>IMUX.CLB.RST</td></tr>
+
 <tr><td>DI</td><td>input</td><td>IMUX.LC3.DI</td></tr>
+
 <tr><td>DO</td><td>output</td><td>OUT.LC3.DO</td></tr>
+
 <tr><td>F1</td><td>input</td><td>IMUX.LC3.F1</td></tr>
+
 <tr><td>F2</td><td>input</td><td>IMUX.LC3.F2</td></tr>
+
 <tr><td>F3</td><td>input</td><td>IMUX.LC3.F3</td></tr>
+
 <tr><td>F4</td><td>input</td><td>IMUX.LC3.F4</td></tr>
+
 <tr><td>Q</td><td>output</td><td>OUT.LC3.Q</td></tr>
+
 <tr><td>X</td><td>output</td><td>OUT.LC3.X</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-tbuf0"><a class="header" href="#bel-tbuf0">Bel TBUF0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel TBUF0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>I</td><td>input</td><td>OMUX4.BUF</td></tr>
+
 <tr><td>O</td><td>output</td><td>OUT.TBUF0</td></tr>
+
 <tr><td>T</td><td>input</td><td>IMUX.TS</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-tbuf1"><a class="header" href="#bel-tbuf1">Bel TBUF1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel TBUF1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>I</td><td>input</td><td>OMUX5.BUF</td></tr>
+
 <tr><td>O</td><td>output</td><td>OUT.TBUF1</td></tr>
+
 <tr><td>T</td><td>input</td><td>IMUX.TS</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-tbuf2"><a class="header" href="#bel-tbuf2">Bel TBUF2</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel TBUF2</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>I</td><td>input</td><td>OMUX6.BUF</td></tr>
+
 <tr><td>O</td><td>output</td><td>OUT.TBUF2</td></tr>
+
 <tr><td>T</td><td>input</td><td>IMUX.TS</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-tbuf3"><a class="header" href="#bel-tbuf3">Bel TBUF3</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel TBUF3</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>I</td><td>input</td><td>OMUX7.BUF</td></tr>
+
 <tr><td>O</td><td>output</td><td>OUT.TBUF3</td></tr>
+
 <tr><td>T</td><td>input</td><td>IMUX.TS</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-vcc_gnd"><a class="header" href="#bel-vcc_gnd">Bel VCC_GND</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel VCC_GND</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>O</td><td>output</td><td>OUT.PWRGND</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX4.BUF</td><td>TBUF0.I</td></tr>
+
 <tr><td>OMUX5.BUF</td><td>TBUF1.I</td></tr>
+
 <tr><td>OMUX6.BUF</td><td>TBUF2.I</td></tr>
+
 <tr><td>OMUX7.BUF</td><td>TBUF3.I</td></tr>
+
 <tr><td>OUT.LC0.X</td><td>LC0.X</td></tr>
+
 <tr><td>OUT.LC0.Q</td><td>LC0.Q</td></tr>
+
 <tr><td>OUT.LC0.DO</td><td>LC0.DO</td></tr>
+
 <tr><td>OUT.LC1.X</td><td>LC1.X</td></tr>
+
 <tr><td>OUT.LC1.Q</td><td>LC1.Q</td></tr>
+
 <tr><td>OUT.LC1.DO</td><td>LC1.DO</td></tr>
+
 <tr><td>OUT.LC2.X</td><td>LC2.X</td></tr>
+
 <tr><td>OUT.LC2.Q</td><td>LC2.Q</td></tr>
+
 <tr><td>OUT.LC2.DO</td><td>LC2.DO</td></tr>
+
 <tr><td>OUT.LC3.X</td><td>LC3.X</td></tr>
+
 <tr><td>OUT.LC3.Q</td><td>LC3.Q</td></tr>
+
 <tr><td>OUT.LC3.DO</td><td>LC3.DO</td></tr>
+
 <tr><td>OUT.TBUF0</td><td>TBUF0.O</td></tr>
+
 <tr><td>OUT.TBUF1</td><td>TBUF1.O</td></tr>
+
 <tr><td>OUT.TBUF2</td><td>TBUF2.O</td></tr>
+
 <tr><td>OUT.TBUF3</td><td>TBUF3.O</td></tr>
+
 <tr><td>OUT.PWRGND</td><td>VCC_GND.O</td></tr>
+
 <tr><td>IMUX.LC0.F1</td><td>LC0.F1</td></tr>
+
 <tr><td>IMUX.LC0.F2</td><td>LC0.F2</td></tr>
+
 <tr><td>IMUX.LC0.F3</td><td>LC0.F3</td></tr>
+
 <tr><td>IMUX.LC0.F4</td><td>LC0.F4</td></tr>
+
 <tr><td>IMUX.LC0.DI</td><td>LC0.DI</td></tr>
+
 <tr><td>IMUX.LC1.F1</td><td>LC1.F1</td></tr>
+
 <tr><td>IMUX.LC1.F2</td><td>LC1.F2</td></tr>
+
 <tr><td>IMUX.LC1.F3</td><td>LC1.F3</td></tr>
+
 <tr><td>IMUX.LC1.F4</td><td>LC1.F4</td></tr>
+
 <tr><td>IMUX.LC1.DI</td><td>LC1.DI</td></tr>
+
 <tr><td>IMUX.LC2.F1</td><td>LC2.F1</td></tr>
+
 <tr><td>IMUX.LC2.F2</td><td>LC2.F2</td></tr>
+
 <tr><td>IMUX.LC2.F3</td><td>LC2.F3</td></tr>
+
 <tr><td>IMUX.LC2.F4</td><td>LC2.F4</td></tr>
+
 <tr><td>IMUX.LC2.DI</td><td>LC2.DI</td></tr>
+
 <tr><td>IMUX.LC3.F1</td><td>LC3.F1</td></tr>
+
 <tr><td>IMUX.LC3.F2</td><td>LC3.F2</td></tr>
+
 <tr><td>IMUX.LC3.F3</td><td>LC3.F3</td></tr>
+
 <tr><td>IMUX.LC3.F4</td><td>LC3.F4</td></tr>
+
 <tr><td>IMUX.LC3.DI</td><td>LC3.DI</td></tr>
+
 <tr><td>IMUX.CLB.CE</td><td>LC0.CE, LC1.CE, LC2.CE, LC3.CE</td></tr>
+
 <tr><td>IMUX.CLB.CLK</td><td>LC0.CK, LC1.CK, LC2.CK, LC3.CK</td></tr>
+
 <tr><td>IMUX.CLB.RST</td><td>LC0.CLR, LC1.CLR, LC2.CLR, LC3.CLR</td></tr>
+
 <tr><td>IMUX.TS</td><td>TBUF0.T, TBUF1.T, TBUF2.T, TBUF3.T</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc5200 CLB bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="11">Frame</th></tr>
+
 <tr>
 <th>10</th>
 <th>9</th>
@@ -1518,7 +2259,9 @@
 <th>1</th>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>33</td>
 <td title="0.10.33">
@@ -1555,6 +2298,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX3">INT:MUX.OMUX3[1]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td title="0.10.32">
 <a href="#tile-xc5200-CLB-INT:MUX.IMUX.CLB.CLK">INT:MUX.IMUX.CLB.CLK[0]</a>
@@ -1590,6 +2334,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX3">INT:MUX.OMUX3[4]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td title="0.10.31">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M2.SINGLE.E2">~INT:BIPASS.CLB.M2.SINGLE.E2</a>
@@ -1625,6 +2370,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX3">INT:MUX.OMUX3[3]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td title="0.10.30">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M10.SINGLE.W10">~INT:BIPASS.CLB.M10.SINGLE.W10</a>
@@ -1660,6 +2406,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX3">INT:MUX.OMUX3[2]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td title="0.10.29">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M17.DBL.H6.E">~INT:BIPASS.CLB.M17.DBL.H6.E</a>
@@ -1695,6 +2442,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX3">INT:MUX.OMUX3[0]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td title="0.10.28">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M13.DBL.H6.W">~INT:BIPASS.CLB.M13.DBL.H6.W</a>
@@ -1730,6 +2478,7 @@
 <a href="#tile-xc5200-CLB-LC3:FFLATCH">LC3:FFLATCH[0]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td title="0.10.27">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M13.SINGLE.N1">~INT:BIPASS.CLB.M13.SINGLE.N1</a>
@@ -1765,6 +2514,7 @@
 <a href="#tile-xc5200-CLB-LC3:CLRMUX">LC3:CLRMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td title="0.10.26">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M22.SINGLE.S1">~INT:BIPASS.CLB.M22.SINGLE.S1</a>
@@ -1800,6 +2550,7 @@
 <a href="#tile-xc5200-CLB-LC3:DMUX">LC3:DMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td title="0.10.25">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M10.SINGLE.S10">~INT:BIPASS.CLB.M10.SINGLE.S10</a>
@@ -1835,6 +2586,7 @@
 <a href="#tile-xc5200-CLB-LC2:DMUX">LC2:DMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td title="0.10.24">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M7.SINGLE.N7">~INT:BIPASS.CLB.M7.SINGLE.N7</a>
@@ -1870,6 +2622,7 @@
 <a href="#tile-xc5200-CLB-LC2:CLRMUX">LC2:CLRMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td title="0.10.23">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M16.SINGLE.N4">~INT:BIPASS.CLB.M16.SINGLE.N4</a>
@@ -1905,6 +2658,7 @@
 <a href="#tile-xc5200-CLB-LC2:FFLATCH">LC2:FFLATCH[0]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td title="0.10.22">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M14.SINGLE.W3">~INT:BIPASS.CLB.M14.SINGLE.W3</a>
@@ -1940,6 +2694,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX2">INT:MUX.OMUX2[0]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td title="0.10.21">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M7.SINGLE.W7">~INT:BIPASS.CLB.M7.SINGLE.W7</a>
@@ -1975,6 +2730,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX2">INT:MUX.OMUX2[2]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td title="0.10.20">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M11.SINGLE.E11">~INT:BIPASS.CLB.M11.SINGLE.E11</a>
@@ -2010,6 +2766,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX2">INT:MUX.OMUX2[3]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td title="0.10.19">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M22.SINGLE.E3">~INT:BIPASS.CLB.M22.SINGLE.E3</a>
@@ -2045,6 +2802,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX2">INT:MUX.OMUX2[4]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td title="0.10.18">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M3.SINGLE.N3">~INT:BIPASS.CLB.M3.SINGLE.N3</a>
@@ -2080,6 +2838,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX2">INT:MUX.OMUX2[1]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td title="0.10.17">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M12.DBL.V0.S">~INT:BIPASS.CLB.M12.DBL.V0.S</a>
@@ -2113,6 +2872,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td title="0.10.16">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M21.DBL.V0.N">~INT:BIPASS.CLB.M21.DBL.V0.N</a>
@@ -2148,6 +2908,7 @@
 <a href="#tile-xc5200-CLB-VCC_GND:MUX">~VCC_GND:MUX</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.10.15">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M9.SINGLE.S9">~INT:BIPASS.CLB.M9.SINGLE.S9</a>
@@ -2183,6 +2944,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX1">INT:MUX.OMUX1[1]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.10.14">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M6.DBL.V6.S">~INT:BIPASS.CLB.M6.DBL.V6.S</a>
@@ -2218,6 +2980,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX1">INT:MUX.OMUX1[4]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.10.13">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M15.SINGLE.N3">~INT:BIPASS.CLB.M15.SINGLE.N3</a>
@@ -2253,6 +3016,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX1">INT:MUX.OMUX1[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.10.12">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M5.SINGLE.E5">~INT:BIPASS.CLB.M5.SINGLE.E5</a>
@@ -2288,6 +3052,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX1">INT:MUX.OMUX1[2]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.10.11">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M16.SINGLE.E9">~INT:BIPASS.CLB.M16.SINGLE.E9</a>
@@ -2323,6 +3088,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX1">INT:MUX.OMUX1[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.10.10">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M20.SINGLE.W9">~INT:BIPASS.CLB.M20.SINGLE.W9</a>
@@ -2358,6 +3124,7 @@
 <a href="#tile-xc5200-CLB-LC1:FFLATCH">LC1:FFLATCH[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.10.9">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M1.SINGLE.W1">~INT:BIPASS.CLB.M1.SINGLE.W1</a>
@@ -2393,6 +3160,7 @@
 <a href="#tile-xc5200-CLB-LC1:CLRMUX">LC1:CLRMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.10.8">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M23.SINGLE.S2">~INT:BIPASS.CLB.M23.SINGLE.S2</a>
@@ -2428,6 +3196,7 @@
 <a href="#tile-xc5200-CLB-LC1:DMUX">LC1:DMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.10.7">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M11.SINGLE.S11">~INT:BIPASS.CLB.M11.SINGLE.S11</a>
@@ -2463,6 +3232,7 @@
 <a href="#tile-xc5200-CLB-LC0:DMUX">LC0:DMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.10.6">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M8.SINGLE.N8">~INT:BIPASS.CLB.M8.SINGLE.N8</a>
@@ -2498,6 +3268,7 @@
 <a href="#tile-xc5200-CLB-LC0:CLRMUX">LC0:CLRMUX[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.10.5">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M17.SINGLE.N5">~INT:BIPASS.CLB.M17.SINGLE.N5</a>
@@ -2533,6 +3304,7 @@
 <a href="#tile-xc5200-CLB-LC0:FFLATCH">LC0:FFLATCH[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.10.4">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M14.SINGLE.S5">~INT:BIPASS.CLB.M14.SINGLE.S5</a>
@@ -2568,6 +3340,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX0">INT:MUX.OMUX0[0]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.10.3">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M23.SINGLE.E4">~INT:BIPASS.CLB.M23.SINGLE.E4</a>
@@ -2603,6 +3376,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX0">INT:MUX.OMUX0[2]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.10.2">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M15.SINGLE.W4">~INT:BIPASS.CLB.M15.SINGLE.W4</a>
@@ -2638,6 +3412,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX0">INT:MUX.OMUX0[3]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.10.1">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M8.SINGLE.W8">~INT:BIPASS.CLB.M8.SINGLE.W8</a>
@@ -2673,6 +3448,7 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX0">INT:MUX.OMUX0[4]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td title="0.10.0">
 <a href="#tile-xc5200-CLB-INT:BIPASS.CLB.M0.DBL.H0.W">~INT:BIPASS.CLB.M0.DBL.H0.W</a>
@@ -2708,601 +3484,805 @@
 <a href="#tile-xc5200-CLB-INT:MUX.OMUX0">INT:MUX.OMUX0[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M0.DBL.H0.E">INT:BIPASS.CLB.M0.DBL.H0.E</th>
 <th>0.8.0</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M0.DBL.H0.W">INT:BIPASS.CLB.M0.DBL.H0.W</th>
 <th>0.10.0</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M1.SINGLE.E1">INT:BIPASS.CLB.M1.SINGLE.E1</th>
 <th>0.8.9</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M1.SINGLE.W1">INT:BIPASS.CLB.M1.SINGLE.W1</th>
 <th>0.10.9</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M10.SINGLE.E10">INT:BIPASS.CLB.M10.SINGLE.E10</th>
 <th>0.8.30</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M10.SINGLE.N10">INT:BIPASS.CLB.M10.SINGLE.N10</th>
 <th>0.8.25</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M10.SINGLE.S10">INT:BIPASS.CLB.M10.SINGLE.S10</th>
 <th>0.10.25</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M10.SINGLE.W10">INT:BIPASS.CLB.M10.SINGLE.W10</th>
 <th>0.10.30</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M11.SINGLE.E11">INT:BIPASS.CLB.M11.SINGLE.E11</th>
 <th>0.10.20</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M11.SINGLE.N11">INT:BIPASS.CLB.M11.SINGLE.N11</th>
 <th>0.8.7</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M11.SINGLE.S11">INT:BIPASS.CLB.M11.SINGLE.S11</th>
 <th>0.10.7</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M11.SINGLE.W11">INT:BIPASS.CLB.M11.SINGLE.W11</th>
 <th>0.8.20</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M12.DBL.V0.S">INT:BIPASS.CLB.M12.DBL.V0.S</th>
 <th>0.10.17</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M12.SINGLE.S3">INT:BIPASS.CLB.M12.SINGLE.S3</th>
 <th>0.8.17</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M13.DBL.H6.W">INT:BIPASS.CLB.M13.DBL.H6.W</th>
 <th>0.10.28</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M13.SINGLE.N1">INT:BIPASS.CLB.M13.SINGLE.N1</th>
 <th>0.10.27</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M13.SINGLE.S4">INT:BIPASS.CLB.M13.SINGLE.S4</th>
 <th>0.8.27</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M13.SINGLE.W2">INT:BIPASS.CLB.M13.SINGLE.W2</th>
 <th>0.8.28</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M14.SINGLE.E7">INT:BIPASS.CLB.M14.SINGLE.E7</th>
 <th>0.8.22</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M14.SINGLE.N2">INT:BIPASS.CLB.M14.SINGLE.N2</th>
 <th>0.8.4</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M14.SINGLE.S5">INT:BIPASS.CLB.M14.SINGLE.S5</th>
 <th>0.10.4</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M14.SINGLE.W3">INT:BIPASS.CLB.M14.SINGLE.W3</th>
 <th>0.10.22</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M15.DBL.V6.N">INT:BIPASS.CLB.M15.DBL.V6.N</th>
 <th>0.8.13</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M15.SINGLE.E8">INT:BIPASS.CLB.M15.SINGLE.E8</th>
 <th>0.8.2</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M15.SINGLE.N3">INT:BIPASS.CLB.M15.SINGLE.N3</th>
 <th>0.10.13</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M15.SINGLE.W4">INT:BIPASS.CLB.M15.SINGLE.W4</th>
 <th>0.10.2</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M16.SINGLE.E9">INT:BIPASS.CLB.M16.SINGLE.E9</th>
 <th>0.10.11</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M16.SINGLE.N4">INT:BIPASS.CLB.M16.SINGLE.N4</th>
 <th>0.10.23</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M16.SINGLE.S7">INT:BIPASS.CLB.M16.SINGLE.S7</th>
 <th>0.8.23</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M16.SINGLE.W5">INT:BIPASS.CLB.M16.SINGLE.W5</th>
 <th>0.8.11</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M17.DBL.H6.E">INT:BIPASS.CLB.M17.DBL.H6.E</th>
 <th>0.10.29</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M17.SINGLE.E10">INT:BIPASS.CLB.M17.SINGLE.E10</th>
 <th>0.8.29</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M17.SINGLE.N5">INT:BIPASS.CLB.M17.SINGLE.N5</th>
 <th>0.10.5</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M17.SINGLE.S8">INT:BIPASS.CLB.M17.SINGLE.S8</th>
 <th>0.8.5</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M2.SINGLE.E2">INT:BIPASS.CLB.M2.SINGLE.E2</th>
 <th>0.10.31</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M2.SINGLE.W2">INT:BIPASS.CLB.M2.SINGLE.W2</th>
 <th>0.8.31</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M20.SINGLE.E1">INT:BIPASS.CLB.M20.SINGLE.E1</th>
 <th>0.8.10</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M20.SINGLE.W9">INT:BIPASS.CLB.M20.SINGLE.W9</th>
 <th>0.10.10</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M21.DBL.V0.N">INT:BIPASS.CLB.M21.DBL.V0.N</th>
 <th>0.10.16</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M21.SINGLE.N9">INT:BIPASS.CLB.M21.SINGLE.N9</th>
 <th>0.8.16</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M22.SINGLE.E3">INT:BIPASS.CLB.M22.SINGLE.E3</th>
 <th>0.10.19</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M22.SINGLE.N10">INT:BIPASS.CLB.M22.SINGLE.N10</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M22.SINGLE.S1">INT:BIPASS.CLB.M22.SINGLE.S1</th>
 <th>0.10.26</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M22.SINGLE.W11">INT:BIPASS.CLB.M22.SINGLE.W11</th>
 <th>0.8.19</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M23.DBL.H0.E">INT:BIPASS.CLB.M23.DBL.H0.E</th>
 <th>0.8.3</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M23.SINGLE.E4">INT:BIPASS.CLB.M23.SINGLE.E4</th>
 <th>0.10.3</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M23.SINGLE.N11">INT:BIPASS.CLB.M23.SINGLE.N11</th>
 <th>0.8.8</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M23.SINGLE.S2">INT:BIPASS.CLB.M23.SINGLE.S2</th>
 <th>0.10.8</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M3.SINGLE.N3">INT:BIPASS.CLB.M3.SINGLE.N3</th>
 <th>0.10.18</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M3.SINGLE.S3">INT:BIPASS.CLB.M3.SINGLE.S3</th>
 <th>0.8.18</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M5.SINGLE.E5">INT:BIPASS.CLB.M5.SINGLE.E5</th>
 <th>0.10.12</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M5.SINGLE.W5">INT:BIPASS.CLB.M5.SINGLE.W5</th>
 <th>0.8.12</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M6.DBL.V6.N">INT:BIPASS.CLB.M6.DBL.V6.N</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M6.DBL.V6.S">INT:BIPASS.CLB.M6.DBL.V6.S</th>
 <th>0.10.14</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M7.SINGLE.E7">INT:BIPASS.CLB.M7.SINGLE.E7</th>
 <th>0.8.21</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M7.SINGLE.N7">INT:BIPASS.CLB.M7.SINGLE.N7</th>
 <th>0.10.24</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M7.SINGLE.S7">INT:BIPASS.CLB.M7.SINGLE.S7</th>
 <th>0.8.24</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M7.SINGLE.W7">INT:BIPASS.CLB.M7.SINGLE.W7</th>
 <th>0.10.21</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M8.SINGLE.E8">INT:BIPASS.CLB.M8.SINGLE.E8</th>
 <th>0.8.1</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M8.SINGLE.N8">INT:BIPASS.CLB.M8.SINGLE.N8</th>
 <th>0.10.6</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M8.SINGLE.S8">INT:BIPASS.CLB.M8.SINGLE.S8</th>
 <th>0.8.6</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M8.SINGLE.W8">INT:BIPASS.CLB.M8.SINGLE.W8</th>
 <th>0.10.1</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M9.SINGLE.N9">INT:BIPASS.CLB.M9.SINGLE.N9</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M9.SINGLE.S9">INT:BIPASS.CLB.M9.SINGLE.S9</th>
 <th>0.10.15</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M0.GLOBAL.B">INT:PASS.CLB.M0.GLOBAL.B</th>
 <th>0.8.32</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M1.GLOBAL.L">INT:PASS.CLB.M1.GLOBAL.L</th>
 <th>0.8.33</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M10.LONG.V3">INT:PASS.CLB.M10.LONG.V3</th>
 <th>0.7.32</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M10.OMUX6.BUF">INT:PASS.CLB.M10.OMUX6.BUF</th>
 <th>0.7.18</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M11.LONG.H3">INT:PASS.CLB.M11.LONG.H3</th>
 <th>0.7.33</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M13.OMUX0.BUF">INT:PASS.CLB.M13.OMUX0.BUF</th>
 <th>0.7.1</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M15.LONG.H5">INT:PASS.CLB.M15.LONG.H5</th>
 <th>0.7.13</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M15.OMUX2.BUF">INT:PASS.CLB.M15.OMUX2.BUF</th>
 <th>0.7.19</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M16.OMUX3.BUF">INT:PASS.CLB.M16.OMUX3.BUF</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M17.LONG.H6">INT:PASS.CLB.M17.LONG.H6</th>
 <th>0.7.21</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M18.LONG.V7">INT:PASS.CLB.M18.LONG.V7</th>
 <th>0.7.30</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M18.OMUX1.BUF">INT:PASS.CLB.M18.OMUX1.BUF</th>
 <th>0.7.10</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M2.OMUX6.BUF">INT:PASS.CLB.M2.OMUX6.BUF</th>
 <th>0.7.17</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M20.LONG.V0">INT:PASS.CLB.M20.LONG.V0</th>
 <th>0.7.7</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M20.OMUX3.BUF">INT:PASS.CLB.M20.OMUX3.BUF</th>
 <th>0.7.25</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M21.LONG.H1">INT:PASS.CLB.M21.LONG.H1</th>
 <th>0.7.16</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M21.LONG.V1">INT:PASS.CLB.M21.LONG.V1</th>
 <th>0.7.15</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M22.LONG.V2">INT:PASS.CLB.M22.LONG.V2</th>
 <th>0.7.24</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M23.OMUX0.BUF">INT:PASS.CLB.M23.OMUX0.BUF</th>
 <th>0.7.0</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M3.OMUX7.BUF">INT:PASS.CLB.M3.OMUX7.BUF</th>
 <th>0.7.28</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M4.OMUX4.BUF">INT:PASS.CLB.M4.OMUX4.BUF</th>
 <th>0.7.2</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M5.LONG.H0">INT:PASS.CLB.M5.LONG.H0</th>
 <th>0.7.8</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M7.OMUX7.BUF">INT:PASS.CLB.M7.OMUX7.BUF</th>
 <th>0.7.27</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M8.LONG.V2">INT:PASS.CLB.M8.LONG.V2</th>
 <th>0.7.23</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M9.OMUX5.BUF">INT:PASS.CLB.M9.OMUX5.BUF</th>
 <th>0.7.9</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H0.OUT.TBUF0">INT:PASS.LONG.H0.OUT.TBUF0</th>
 <th>0.7.6</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H3.OUT.TBUF3">INT:PASS.LONG.H3.OUT.TBUF3</th>
 <th>0.7.31</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H4.OUT.TBUF0">INT:PASS.LONG.H4.OUT.TBUF0</th>
 <th>0.7.3</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H5.OUT.TBUF1">INT:PASS.LONG.H5.OUT.TBUF1</th>
 <th>0.7.12</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V0.OUT.TBUF0">INT:PASS.LONG.V0.OUT.TBUF0</th>
 <th>0.7.5</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V1.OUT.TBUF1">INT:PASS.LONG.V1.OUT.TBUF1</th>
 <th>0.7.14</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V5.OUT.TBUF1">INT:PASS.LONG.V5.OUT.TBUF1</th>
 <th>0.7.11</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V6.OUT.TBUF2">INT:PASS.LONG.V6.OUT.TBUF2</th>
 <th>0.7.20</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC0:INV.CK">LC0:INV.CK</th>
 <th>0.1.7</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC0:READBACK">LC0:READBACK</th>
 <th>0.1.5</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC1:INV.CK">LC1:INV.CK</th>
 <th>0.1.8</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC1:READBACK">LC1:READBACK</th>
 <th>0.1.10</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:INV.CK">LC2:INV.CK</th>
 <th>0.1.25</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:READBACK">LC2:READBACK</th>
 <th>0.1.23</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:INV.CK">LC3:INV.CK</th>
 <th>0.1.26</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:READBACK">LC3:READBACK</th>
 <th>0.1.28</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-VCC_GND:MUX">VCC_GND:MUX</th>
 <th>0.0.16</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M0.DBL.V0.N">INT:BIPASS.CLB.M0.DBL.V0.N</th>
 <th>0.9.16</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M0.DBL.V0.S">INT:BIPASS.CLB.M0.DBL.V0.S</th>
 <th>0.9.17</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M1.SINGLE.N1">INT:BIPASS.CLB.M1.SINGLE.N1</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M1.SINGLE.S1">INT:BIPASS.CLB.M1.SINGLE.S1</th>
 <th>0.9.26</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M12.SINGLE.E5">INT:BIPASS.CLB.M12.SINGLE.E5</th>
 <th>0.9.12</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M12.SINGLE.W1">INT:BIPASS.CLB.M12.SINGLE.W1</th>
 <th>0.9.13</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M18.DBL.V6.S">INT:BIPASS.CLB.M18.DBL.V6.S</th>
 <th>0.9.14</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M18.SINGLE.E11">INT:BIPASS.CLB.M18.SINGLE.E11</th>
 <th>0.9.20</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M18.SINGLE.S9">INT:BIPASS.CLB.M18.SINGLE.S9</th>
 <th>0.9.15</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M18.SINGLE.W7">INT:BIPASS.CLB.M18.SINGLE.W7</th>
 <th>0.9.21</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M19.DBL.H0.W">INT:BIPASS.CLB.M19.DBL.H0.W</th>
 <th>0.9.0</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M19.SINGLE.N7">INT:BIPASS.CLB.M19.SINGLE.N7</th>
 <th>0.9.24</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M19.SINGLE.S10">INT:BIPASS.CLB.M19.SINGLE.S10</th>
 <th>0.9.25</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M19.SINGLE.W8">INT:BIPASS.CLB.M19.SINGLE.W8</th>
 <th>0.9.1</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M2.SINGLE.N2">INT:BIPASS.CLB.M2.SINGLE.N2</th>
 <th>0.9.9</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M2.SINGLE.S2">INT:BIPASS.CLB.M2.SINGLE.S2</th>
 <th>0.9.8</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M20.SINGLE.N8">INT:BIPASS.CLB.M20.SINGLE.N8</th>
 <th>0.9.6</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M20.SINGLE.S11">INT:BIPASS.CLB.M20.SINGLE.S11</th>
 <th>0.9.7</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M21.SINGLE.E2">INT:BIPASS.CLB.M21.SINGLE.E2</th>
 <th>0.9.31</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M21.SINGLE.W10">INT:BIPASS.CLB.M21.SINGLE.W10</th>
 <th>0.9.30</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M3.SINGLE.E3">INT:BIPASS.CLB.M3.SINGLE.E3</th>
 <th>0.9.19</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M3.SINGLE.W3">INT:BIPASS.CLB.M3.SINGLE.W3</th>
 <th>0.9.18</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M4.SINGLE.E4">INT:BIPASS.CLB.M4.SINGLE.E4</th>
 <th>0.9.3</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M4.SINGLE.N4">INT:BIPASS.CLB.M4.SINGLE.N4</th>
 <th>0.9.23</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M4.SINGLE.S4">INT:BIPASS.CLB.M4.SINGLE.S4</th>
 <th>0.9.22</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M4.SINGLE.W4">INT:BIPASS.CLB.M4.SINGLE.W4</th>
 <th>0.9.2</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M5.SINGLE.N5">INT:BIPASS.CLB.M5.SINGLE.N5</th>
 <th>0.9.5</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M5.SINGLE.S5">INT:BIPASS.CLB.M5.SINGLE.S5</th>
 <th>0.9.4</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M6.DBL.H6.E">INT:BIPASS.CLB.M6.DBL.H6.E</th>
 <th>0.9.29</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M6.DBL.H6.W">INT:BIPASS.CLB.M6.DBL.H6.W</th>
 <th>0.9.28</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M9.SINGLE.E9">INT:BIPASS.CLB.M9.SINGLE.E9</th>
 <th>0.9.11</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:BIPASS.CLB.M9.SINGLE.W9">INT:BIPASS.CLB.M9.SINGLE.W9</th>
 <th>0.9.10</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M0.OMUX4.BUF">INT:PASS.CLB.M0.OMUX4.BUF</th>
 <th>0.6.1</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M1.OMUX5.BUF">INT:PASS.CLB.M1.OMUX5.BUF</th>
 <th>0.6.9</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M11.OMUX7.BUF">INT:PASS.CLB.M11.OMUX7.BUF</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M12.LONG.V4">INT:PASS.CLB.M12.LONG.V4</th>
 <th>0.6.4</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M12.OMUX1.BUF">INT:PASS.CLB.M12.OMUX1.BUF</th>
 <th>0.6.11</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M13.LONG.H4">INT:PASS.CLB.M13.LONG.H4</th>
 <th>0.6.5</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M14.LONG.V5">INT:PASS.CLB.M14.LONG.V5</th>
 <th>0.6.13</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M14.OMUX3.BUF">INT:PASS.CLB.M14.OMUX3.BUF</th>
 <th>0.6.26</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M16.LONG.V6">INT:PASS.CLB.M16.LONG.V6</th>
 <th>0.6.21</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M17.OMUX2.BUF">INT:PASS.CLB.M17.OMUX2.BUF</th>
 <th>0.6.19</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M19.LONG.H7">INT:PASS.CLB.M19.LONG.H7</th>
 <th>0.6.30</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M19.OMUX0.BUF">INT:PASS.CLB.M19.OMUX0.BUF</th>
 <th>0.6.0</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M2.GLOBAL.T">INT:PASS.CLB.M2.GLOBAL.T</th>
 <th>0.9.32</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M20.LONG.H0">INT:PASS.CLB.M20.LONG.H0</th>
 <th>0.6.7</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M21.OMUX2.BUF">INT:PASS.CLB.M21.OMUX2.BUF</th>
 <th>0.6.18</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M22.LONG.H2">INT:PASS.CLB.M22.LONG.H2</th>
 <th>0.6.24</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M22.OMUX1.BUF">INT:PASS.CLB.M22.OMUX1.BUF</th>
 <th>0.6.10</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M23.LONG.H3">INT:PASS.CLB.M23.LONG.H3</th>
 <th>0.6.33</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M23.LONG.V3">INT:PASS.CLB.M23.LONG.V3</th>
 <th>0.6.32</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M3.GLOBAL.R">INT:PASS.CLB.M3.GLOBAL.R</th>
 <th>0.9.33</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M4.LONG.V0">INT:PASS.CLB.M4.LONG.V0</th>
 <th>0.6.6</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M5.OMUX5.BUF">INT:PASS.CLB.M5.OMUX5.BUF</th>
 <th>0.6.8</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M6.LONG.V1">INT:PASS.CLB.M6.LONG.V1</th>
 <th>0.6.15</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M6.OMUX6.BUF">INT:PASS.CLB.M6.OMUX6.BUF</th>
 <th>0.6.17</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M7.LONG.H1">INT:PASS.CLB.M7.LONG.H1</th>
 <th>0.6.16</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M8.OMUX4.BUF">INT:PASS.CLB.M8.OMUX4.BUF</th>
 <th>0.6.2</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.CLB.M9.LONG.H2">INT:PASS.CLB.M9.LONG.H2</th>
 <th>0.6.25</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H1.OUT.TBUF1">INT:PASS.LONG.H1.OUT.TBUF1</th>
 <th>0.6.14</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H2.OUT.TBUF2">INT:PASS.LONG.H2.OUT.TBUF2</th>
 <th>0.6.23</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H6.OUT.TBUF2">INT:PASS.LONG.H6.OUT.TBUF2</th>
 <th>0.6.20</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.H7.OUT.TBUF3">INT:PASS.LONG.H7.OUT.TBUF3</th>
 <th>0.6.29</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V2.OUT.TBUF2">INT:PASS.LONG.V2.OUT.TBUF2</th>
 <th>0.6.22</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V3.OUT.TBUF3">INT:PASS.LONG.V3.OUT.TBUF3</th>
 <th>0.6.31</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V4.OUT.TBUF0">INT:PASS.LONG.V4.OUT.TBUF0</th>
 <th>0.6.3</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:PASS.LONG.V7.OUT.TBUF3">INT:PASS.LONG.V7.OUT.TBUF3</th>
 <th>0.6.28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.CLB.CE">INT:MUX.IMUX.CLB.CE</th>
 <th>0.5.13</th>
 <th>0.5.12</th>
 <th>0.5.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M16.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M0.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M2.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.CLB.CLK">INT:MUX.IMUX.CLB.CLK</th>
 <th>0.10.33</th>
@@ -3311,7 +4291,9 @@ non-inverted
 <th>0.5.19</th>
 <th>0.10.32</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M23.BUF</td>
 <td>0</td>
@@ -3320,6 +4302,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td>
 <td>0</td>
 <td>0</td>
@@ -3327,6 +4310,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td>
 <td>0</td>
 <td>1</td>
@@ -3334,6 +4318,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>GLOBAL.L</td>
 <td>0</td>
 <td>1</td>
@@ -3341,6 +4326,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GLOBAL.R</td>
 <td>0</td>
 <td>1</td>
@@ -3348,6 +4334,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td>
 <td>0</td>
 <td>1</td>
@@ -3355,6 +4342,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>GLOBAL.B</td>
 <td>1</td>
 <td>1</td>
@@ -3362,6 +4350,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GLOBAL.T</td>
 <td>1</td>
 <td>1</td>
@@ -3369,6 +4358,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
@@ -3376,1031 +4366,1328 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.CLB.RST">INT:MUX.IMUX.CLB.RST</th>
 <th>0.5.26</th>
 <th>0.5.27</th>
 <th>0.5.25</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M2.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M0.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC0.DI">INT:MUX.IMUX.LC0.DI</th>
 <th>0.5.8</th>
 <th>0.5.6</th>
 <th>0.5.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX0.BUF.E</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M4.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX0.BUF.W</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M6.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC0.F1">INT:MUX.IMUX.LC0.F1</th>
 <th>0.4.30</th>
 <th>0.4.29</th>
 <th>0.4.28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M6.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M8.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX0.BUF.E</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OMUX0.BUF.S</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC0.F2">INT:MUX.IMUX.LC0.F2</th>
 <th>0.5.2</th>
 <th>0.5.0</th>
 <th>0.5.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX0.BUF.W</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M4.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX0.BUF.N</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC0.F3">INT:MUX.IMUX.LC0.F3</th>
 <th>0.4.7</th>
 <th>0.4.6</th>
 <th>0.4.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX0.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M2.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX1.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC0.F4">INT:MUX.IMUX.LC0.F4</th>
 <th>0.5.15</th>
 <th>0.5.16</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M20.BUF</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M0.BUF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC1.DI">INT:MUX.IMUX.LC1.DI</th>
 <th>0.4.2</th>
 <th>0.4.0</th>
 <th>0.4.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX1.BUF.E</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M8.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OMUX1.BUF.W</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC1.F1">INT:MUX.IMUX.LC1.F1</th>
 <th>0.4.31</th>
 <th>0.4.33</th>
 <th>0.4.32</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX1.BUF.E</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M8.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX1.BUF.S</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC1.F2">INT:MUX.IMUX.LC1.F2</th>
 <th>0.5.10</th>
 <th>0.5.11</th>
 <th>0.5.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX1.BUF.N</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M0.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX1.BUF.W</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M6.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC1.F3">INT:MUX.IMUX.LC1.F3</th>
 <th>0.4.9</th>
 <th>0.4.10</th>
 <th>0.4.11</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M4.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX2.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OMUX1.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC1.F4">INT:MUX.IMUX.LC1.F4</th>
 <th>0.5.18</th>
 <th>0.5.17</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M20.BUF</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M2.BUF</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC2.DI">INT:MUX.IMUX.LC2.DI</th>
 <th>0.4.20</th>
 <th>0.4.21</th>
 <th>0.4.19</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX2.BUF.E</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M0.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX2.BUF.W</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC2.F1">INT:MUX.IMUX.LC2.F1</th>
 <th>0.5.32</th>
 <th>0.5.33</th>
 <th>0.5.31</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX2.BUF.E</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M0.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX2.BUF.S</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC2.F2">INT:MUX.IMUX.LC2.F2</th>
 <th>0.4.4</th>
 <th>0.4.5</th>
 <th>0.4.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX2.BUF.W</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M2.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX2.BUF.N</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M8.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC2.F3">INT:MUX.IMUX.LC2.F3</th>
 <th>0.4.25</th>
 <th>0.4.26</th>
 <th>0.4.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M6.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX2.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OMUX3.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC2.F4">INT:MUX.IMUX.LC2.F4</th>
 <th>0.4.15</th>
 <th>0.4.16</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M20.BUF</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M4.BUF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC3.DI">INT:MUX.IMUX.LC3.DI</th>
 <th>0.5.24</th>
 <th>0.5.23</th>
 <th>0.5.22</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M2.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M12.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M13.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX3.BUF.W</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OMUX3.BUF.E</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC3.F1">INT:MUX.IMUX.LC3.F1</th>
 <th>0.5.29</th>
 <th>0.5.28</th>
 <th>0.5.30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M2.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M0.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M3.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M1.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX3.BUF.E</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX3.BUF.S</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC3.F2">INT:MUX.IMUX.LC3.F2</th>
 <th>0.5.3</th>
 <th>0.5.5</th>
 <th>0.5.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX3.BUF.W</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M4.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX3.BUF.N</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M5.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M11.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M10.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC3.F3">INT:MUX.IMUX.LC3.F3</th>
 <th>0.4.23</th>
 <th>0.4.22</th>
 <th>0.4.24</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OMUX3.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M8.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OMUX0.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M9.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M14.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M15.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.LC3.F4">INT:MUX.IMUX.LC3.F4</th>
 <th>0.4.18</th>
 <th>0.4.17</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M20.BUF</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M6.BUF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M21.BUF</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M7.BUF</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.IMUX.TS">INT:MUX.IMUX.TS</th>
 <th>0.4.12</th>
 <th>0.4.13</th>
 <th>0.4.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLB.M21.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M18.BUF</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M23.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M16.BUF</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M20.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M19.BUF</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLB.M22.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLB.M17.BUF</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX0">INT:MUX.OMUX0</th>
 <th>0.0.1</th>
@@ -4409,6 +5696,7 @@ non-inverted
 <th>0.0.0</th>
 <th>0.0.4</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX1">INT:MUX.OMUX1</th>
 <th>0.0.14</th>
 <th>0.0.13</th>
@@ -4416,6 +5704,7 @@ non-inverted
 <th>0.0.15</th>
 <th>0.0.11</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX2">INT:MUX.OMUX2</th>
 <th>0.0.19</th>
 <th>0.0.20</th>
@@ -4423,6 +5712,7 @@ non-inverted
 <th>0.0.18</th>
 <th>0.0.22</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX3">INT:MUX.OMUX3</th>
 <th>0.0.32</th>
 <th>0.0.31</th>
@@ -4430,6 +5720,7 @@ non-inverted
 <th>0.0.33</th>
 <th>0.0.29</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX4">INT:MUX.OMUX4</th>
 <th>0.1.2</th>
 <th>0.1.1</th>
@@ -4437,6 +5728,7 @@ non-inverted
 <th>0.1.3</th>
 <th>0.1.4</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX5">INT:MUX.OMUX5</th>
 <th>0.1.13</th>
 <th>0.1.14</th>
@@ -4444,6 +5736,7 @@ non-inverted
 <th>0.1.12</th>
 <th>0.1.11</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX6">INT:MUX.OMUX6</th>
 <th>0.1.20</th>
 <th>0.1.19</th>
@@ -4451,6 +5744,7 @@ non-inverted
 <th>0.1.21</th>
 <th>0.1.22</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-INT:MUX.OMUX7">INT:MUX.OMUX7</th>
 <th>0.1.31</th>
 <th>0.1.32</th>
@@ -4458,7 +5752,9 @@ non-inverted
 <th>0.1.30</th>
 <th>0.1.29</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT.LC2.X</td>
 <td>0</td>
@@ -4467,6 +5763,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OUT.LC1.X</td>
 <td>0</td>
 <td>1</td>
@@ -4474,6 +5771,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OUT.LC3.X</td>
 <td>0</td>
 <td>1</td>
@@ -4481,6 +5779,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>OUT.LC0.X</td>
 <td>0</td>
 <td>1</td>
@@ -4488,6 +5787,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OUT.LC2.Q</td>
 <td>1</td>
 <td>0</td>
@@ -4495,6 +5795,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OUT.LC1.Q</td>
 <td>1</td>
 <td>0</td>
@@ -4502,6 +5803,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OUT.LC3.Q</td>
 <td>1</td>
 <td>0</td>
@@ -4509,6 +5811,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>OUT.LC0.Q</td>
 <td>1</td>
 <td>0</td>
@@ -4516,6 +5819,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OUT.LC2.DO</td>
 <td>1</td>
 <td>1</td>
@@ -4523,6 +5827,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>OUT.LC1.DO</td>
 <td>1</td>
 <td>1</td>
@@ -4530,6 +5835,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OUT.LC3.DO</td>
 <td>1</td>
 <td>1</td>
@@ -4537,6 +5843,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>OUT.LC0.DO</td>
 <td>1</td>
 <td>1</td>
@@ -4544,6 +5851,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OUT.PWRGND</td>
 <td>1</td>
 <td>1</td>
@@ -4551,131 +5859,190 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-LC0:CEMUX">LC0:CEMUX</th>
 <th>0.1.6</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC1:CEMUX">LC1:CEMUX</th>
 <th>0.1.9</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:CEMUX">LC2:CEMUX</th>
 <th>0.1.24</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:CEMUX">LC3:CEMUX</th>
 <th>0.1.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 </tr>
+
 <tr><td>CE</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-LC0:CLRMUX">LC0:CLRMUX</th>
 <th>0.0.6</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC1:CLRMUX">LC1:CLRMUX</th>
 <th>0.0.9</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:CLRMUX">LC2:CLRMUX</th>
 <th>0.0.24</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:CLRMUX">LC3:CLRMUX</th>
 <th>0.0.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLR</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-LC0:DMUX">LC0:DMUX</th>
 <th>0.0.7</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC1:DMUX">LC1:DMUX</th>
 <th>0.0.8</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:DMUX">LC2:DMUX</th>
 <th>0.0.25</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:DMUX">LC3:DMUX</th>
 <th>0.0.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>F</td>
 <td>0</td>
 </tr>
+
 <tr><td>DO</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-LC0:DOMUX">LC0:DOMUX</th>
 <th>0.3.17</th>
 <th>0.3.16</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:DOMUX">LC2:DOMUX</th>
 <th>0.2.17</th>
 <th>0.2.16</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>F5O</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CO</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>DI</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-LC0:FFLATCH">LC0:FFLATCH</th>
 <th>0.0.5</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC1:FFLATCH">LC1:FFLATCH</th>
 <th>0.0.10</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:FFLATCH">LC2:FFLATCH</th>
 <th>0.0.23</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:FFLATCH">LC3:FFLATCH</th>
 <th>0.0.28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FF</td>
 <td>0</td>
 </tr>
+
 <tr><td>LATCH</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-LC0:LUT">LC0:LUT</th>
 <th>0.2.5</th>
@@ -4695,6 +6062,7 @@ non-inverted
 <th>0.3.0</th>
 <th>0.3.1</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC1:LUT">LC1:LUT</th>
 <th>0.2.10</th>
 <th>0.2.11</th>
@@ -4713,6 +6081,7 @@ non-inverted
 <th>0.3.15</th>
 <th>0.3.14</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC2:LUT">LC2:LUT</th>
 <th>0.2.23</th>
 <th>0.2.22</th>
@@ -4731,6 +6100,7 @@ non-inverted
 <th>0.3.18</th>
 <th>0.3.19</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:LUT">LC3:LUT</th>
 <th>0.2.28</th>
 <th>0.2.29</th>
@@ -4749,7 +6119,9 @@ non-inverted
 <th>0.3.33</th>
 <th>0.3.32</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
@@ -4771,73 +6143,104 @@ inverted
 <td>~[1]</td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-LC1:DOMUX">LC1:DOMUX</th>
 <th>0.1.16</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-LC3:DOMUX">LC3:DOMUX</th>
 <th>0.1.17</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DI</td>
 <td>0</td>
 </tr>
+
 <tr><td>CO</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-TBUF0:TMUX">TBUF0:TMUX</th>
 <th>0.7.4</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-TBUF2:TMUX">TBUF2:TMUX</th>
 <th>0.7.22</th>
 </tr>
+
 <tr><th id="tile-xc5200-CLB-TBUF3:TMUX">TBUF3:TMUX</th>
 <th>0.7.29</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>T</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc5200-CLB-TBUF1:TMUX">TBUF1:TMUX</th>
 <th>0.6.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 </tr>
+
 <tr><td>T</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../xc5200/interconnect.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../xc5200/io.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -4847,16 +6250,21 @@ inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../xc5200/interconnect.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../xc5200/io.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -4866,9 +6274,9 @@ inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

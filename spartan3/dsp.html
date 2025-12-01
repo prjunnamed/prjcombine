@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,14 +142,14 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="dsp"><a class="header" href="#dsp">DSP</a></h1>
 <p>TODO: document</p>
@@ -159,413 +158,800 @@
 <h2 id="tile-dsp"><a class="header" href="#tile-dsp">Tile DSP</a></h2>
 <p>Cells: 4</p>
 <h3 id="bel-dsp"><a class="header" href="#bel-dsp">Bel DSP</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DSP bel DSP</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>A0</td><td>input</td><td>TCELL1:IMUX.FAN.BX0</td></tr>
+
 <tr><td>A1</td><td>input</td><td>TCELL1:IMUX.FAN.BY0</td></tr>
+
 <tr><td>A10</td><td>input</td><td>TCELL2:IMUX.FAN.BY0</td></tr>
+
 <tr><td>A11</td><td>input</td><td>TCELL2:IMUX.FAN.BX2</td></tr>
+
 <tr><td>A12</td><td>input</td><td>TCELL2:IMUX.FAN.BY2</td></tr>
+
 <tr><td>A13</td><td>input</td><td>TCELL2:IMUX.FAN.BX1</td></tr>
+
 <tr><td>A14</td><td>input</td><td>TCELL2:IMUX.FAN.BY1</td></tr>
+
 <tr><td>A15</td><td>input</td><td>TCELL2:IMUX.FAN.BX3</td></tr>
+
 <tr><td>A16</td><td>input</td><td>TCELL2:IMUX.FAN.BY3</td></tr>
+
 <tr><td>A17</td><td>input</td><td>TCELL2:IMUX.DATA2</td></tr>
+
 <tr><td>A2</td><td>input</td><td>TCELL1:IMUX.FAN.BX2</td></tr>
+
 <tr><td>A3</td><td>input</td><td>TCELL1:IMUX.FAN.BY2</td></tr>
+
 <tr><td>A4</td><td>input</td><td>TCELL1:IMUX.FAN.BX1</td></tr>
+
 <tr><td>A5</td><td>input</td><td>TCELL1:IMUX.FAN.BY1</td></tr>
+
 <tr><td>A6</td><td>input</td><td>TCELL1:IMUX.FAN.BX3</td></tr>
+
 <tr><td>A7</td><td>input</td><td>TCELL1:IMUX.FAN.BY3</td></tr>
+
 <tr><td>A8</td><td>input</td><td>TCELL1:IMUX.DATA2</td></tr>
+
 <tr><td>A9</td><td>input</td><td>TCELL2:IMUX.FAN.BX0</td></tr>
+
 <tr><td>B0</td><td>input</td><td>TCELL0:IMUX.DATA1</td></tr>
+
 <tr><td>B1</td><td>input</td><td>TCELL0:IMUX.DATA17</td></tr>
+
 <tr><td>B10</td><td>input</td><td>TCELL3:IMUX.DATA30</td></tr>
+
 <tr><td>B11</td><td>input</td><td>TCELL3:IMUX.FAN.BY0</td></tr>
+
 <tr><td>B12</td><td>input</td><td>TCELL3:IMUX.FAN.BY2</td></tr>
+
 <tr><td>B13</td><td>input</td><td>TCELL3:IMUX.FAN.BY1</td></tr>
+
 <tr><td>B14</td><td>input</td><td>TCELL3:IMUX.FAN.BY3</td></tr>
+
 <tr><td>B15</td><td>input</td><td>TCELL3:IMUX.DATA5</td></tr>
+
 <tr><td>B16</td><td>input</td><td>TCELL3:IMUX.DATA10</td></tr>
+
 <tr><td>B17</td><td>input</td><td>TCELL3:IMUX.DATA26</td></tr>
+
 <tr><td>B2</td><td>input</td><td>TCELL0:IMUX.DATA22</td></tr>
+
 <tr><td>B3</td><td>input</td><td>TCELL0:IMUX.FAN.BY1</td></tr>
+
 <tr><td>B4</td><td>input</td><td>TCELL0:IMUX.FAN.BY2</td></tr>
+
 <tr><td>B5</td><td>input</td><td>TCELL0:IMUX.FAN.BY0</td></tr>
+
 <tr><td>B6</td><td>input</td><td>TCELL0:IMUX.FAN.BY3</td></tr>
+
 <tr><td>B7</td><td>input</td><td>TCELL0:IMUX.DATA13</td></tr>
+
 <tr><td>B8</td><td>input</td><td>TCELL0:IMUX.DATA10</td></tr>
+
 <tr><td>B9</td><td>input</td><td>TCELL0:IMUX.DATA26</td></tr>
+
 <tr><td>C0</td><td>input</td><td>TCELL0:IMUX.DATA6</td></tr>
+
 <tr><td>C1</td><td>input</td><td>TCELL0:IMUX.DATA14</td></tr>
+
 <tr><td>C10</td><td>input</td><td>TCELL0:IMUX.DATA29</td></tr>
+
 <tr><td>C11</td><td>input</td><td>TCELL0:IMUX.DATA21</td></tr>
+
 <tr><td>C12</td><td>input</td><td>TCELL1:IMUX.DATA6</td></tr>
+
 <tr><td>C13</td><td>input</td><td>TCELL1:IMUX.DATA14</td></tr>
+
 <tr><td>C14</td><td>input</td><td>TCELL1:IMUX.DATA11</td></tr>
+
 <tr><td>C15</td><td>input</td><td>TCELL1:IMUX.DATA3</td></tr>
+
 <tr><td>C16</td><td>input</td><td>TCELL1:IMUX.DATA27</td></tr>
+
 <tr><td>C17</td><td>input</td><td>TCELL1:IMUX.DATA19</td></tr>
+
 <tr><td>C18</td><td>input</td><td>TCELL1:IMUX.DATA0</td></tr>
+
 <tr><td>C19</td><td>input</td><td>TCELL1:IMUX.DATA8</td></tr>
+
 <tr><td>C2</td><td>input</td><td>TCELL0:IMUX.DATA11</td></tr>
+
 <tr><td>C20</td><td>input</td><td>TCELL1:IMUX.DATA16</td></tr>
+
 <tr><td>C21</td><td>input</td><td>TCELL1:IMUX.DATA24</td></tr>
+
 <tr><td>C22</td><td>input</td><td>TCELL1:IMUX.DATA29</td></tr>
+
 <tr><td>C23</td><td>input</td><td>TCELL1:IMUX.DATA21</td></tr>
+
 <tr><td>C24</td><td>input</td><td>TCELL2:IMUX.DATA6</td></tr>
+
 <tr><td>C25</td><td>input</td><td>TCELL2:IMUX.DATA14</td></tr>
+
 <tr><td>C26</td><td>input</td><td>TCELL2:IMUX.DATA11</td></tr>
+
 <tr><td>C27</td><td>input</td><td>TCELL2:IMUX.DATA3</td></tr>
+
 <tr><td>C28</td><td>input</td><td>TCELL2:IMUX.DATA27</td></tr>
+
 <tr><td>C29</td><td>input</td><td>TCELL2:IMUX.DATA19</td></tr>
+
 <tr><td>C3</td><td>input</td><td>TCELL0:IMUX.DATA3</td></tr>
+
 <tr><td>C30</td><td>input</td><td>TCELL2:IMUX.DATA0</td></tr>
+
 <tr><td>C31</td><td>input</td><td>TCELL2:IMUX.DATA8</td></tr>
+
 <tr><td>C32</td><td>input</td><td>TCELL2:IMUX.DATA16</td></tr>
+
 <tr><td>C33</td><td>input</td><td>TCELL2:IMUX.DATA24</td></tr>
+
 <tr><td>C34</td><td>input</td><td>TCELL2:IMUX.DATA29</td></tr>
+
 <tr><td>C35</td><td>input</td><td>TCELL2:IMUX.DATA21</td></tr>
+
 <tr><td>C36</td><td>input</td><td>TCELL3:IMUX.DATA6</td></tr>
+
 <tr><td>C37</td><td>input</td><td>TCELL3:IMUX.DATA14</td></tr>
+
 <tr><td>C38</td><td>input</td><td>TCELL3:IMUX.DATA11</td></tr>
+
 <tr><td>C39</td><td>input</td><td>TCELL3:IMUX.DATA3</td></tr>
+
 <tr><td>C4</td><td>input</td><td>TCELL0:IMUX.DATA27</td></tr>
+
 <tr><td>C40</td><td>input</td><td>TCELL3:IMUX.DATA27</td></tr>
+
 <tr><td>C41</td><td>input</td><td>TCELL3:IMUX.DATA19</td></tr>
+
 <tr><td>C42</td><td>input</td><td>TCELL3:IMUX.DATA0</td></tr>
+
 <tr><td>C43</td><td>input</td><td>TCELL3:IMUX.DATA8</td></tr>
+
 <tr><td>C44</td><td>input</td><td>TCELL3:IMUX.DATA16</td></tr>
+
 <tr><td>C45</td><td>input</td><td>TCELL3:IMUX.DATA24</td></tr>
+
 <tr><td>C46</td><td>input</td><td>TCELL3:IMUX.DATA29</td></tr>
+
 <tr><td>C47</td><td>input</td><td>TCELL3:IMUX.DATA21</td></tr>
+
 <tr><td>C5</td><td>input</td><td>TCELL0:IMUX.DATA19</td></tr>
+
 <tr><td>C6</td><td>input</td><td>TCELL0:IMUX.DATA0</td></tr>
+
 <tr><td>C7</td><td>input</td><td>TCELL0:IMUX.DATA8</td></tr>
+
 <tr><td>C8</td><td>input</td><td>TCELL0:IMUX.DATA16</td></tr>
+
 <tr><td>C9</td><td>input</td><td>TCELL0:IMUX.DATA24</td></tr>
+
 <tr><td>CEA</td><td>input</td><td>TCELL3:IMUX.CE0</td></tr>
+
 <tr><td>CEB</td><td>input</td><td>TCELL3:IMUX.CE1</td></tr>
+
 <tr><td>CEC</td><td>input</td><td>TCELL3:IMUX.CE2</td></tr>
+
 <tr><td>CECARRYIN</td><td>input</td><td>TCELL2:IMUX.CE3</td></tr>
+
 <tr><td>CED</td><td>input</td><td>TCELL3:IMUX.CE3</td></tr>
+
 <tr><td>CEM</td><td>input</td><td>TCELL2:IMUX.CE2</td></tr>
+
 <tr><td>CEOPMODE</td><td>input</td><td>TCELL2:IMUX.CE0</td></tr>
+
 <tr><td>CEP</td><td>input</td><td>TCELL2:IMUX.CE1</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL2:IMUX.CLK3</td></tr>
+
 <tr><td>D0</td><td>input</td><td>TCELL0:IMUX.DATA9</td></tr>
+
 <tr><td>D1</td><td>input</td><td>TCELL0:IMUX.DATA25</td></tr>
+
 <tr><td>D10</td><td>input</td><td>TCELL3:IMUX.DATA22</td></tr>
+
 <tr><td>D11</td><td>input</td><td>TCELL3:IMUX.FAN.BX0</td></tr>
+
 <tr><td>D12</td><td>input</td><td>TCELL3:IMUX.FAN.BX2</td></tr>
+
 <tr><td>D13</td><td>input</td><td>TCELL3:IMUX.FAN.BX1</td></tr>
+
 <tr><td>D14</td><td>input</td><td>TCELL3:IMUX.FAN.BX3</td></tr>
+
 <tr><td>D15</td><td>input</td><td>TCELL3:IMUX.DATA13</td></tr>
+
 <tr><td>D16</td><td>input</td><td>TCELL3:IMUX.DATA2</td></tr>
+
 <tr><td>D17</td><td>input</td><td>TCELL3:IMUX.DATA18</td></tr>
+
 <tr><td>D2</td><td>input</td><td>TCELL0:IMUX.DATA30</td></tr>
+
 <tr><td>D3</td><td>input</td><td>TCELL0:IMUX.FAN.BX0</td></tr>
+
 <tr><td>D4</td><td>input</td><td>TCELL0:IMUX.FAN.BX2</td></tr>
+
 <tr><td>D5</td><td>input</td><td>TCELL0:IMUX.FAN.BX1</td></tr>
+
 <tr><td>D6</td><td>input</td><td>TCELL0:IMUX.FAN.BX3</td></tr>
+
 <tr><td>D7</td><td>input</td><td>TCELL0:IMUX.DATA5</td></tr>
+
 <tr><td>D8</td><td>input</td><td>TCELL0:IMUX.DATA2</td></tr>
+
 <tr><td>D9</td><td>input</td><td>TCELL0:IMUX.DATA18</td></tr>
+
 <tr><td>OPMODE0</td><td>input</td><td>TCELL1:IMUX.DATA1</td></tr>
+
 <tr><td>OPMODE1</td><td>input</td><td>TCELL1:IMUX.DATA9</td></tr>
+
 <tr><td>OPMODE2</td><td>input</td><td>TCELL1:IMUX.DATA17</td></tr>
+
 <tr><td>OPMODE3</td><td>input</td><td>TCELL1:IMUX.DATA25</td></tr>
+
 <tr><td>OPMODE4</td><td>input</td><td>TCELL1:IMUX.DATA13</td></tr>
+
 <tr><td>OPMODE5</td><td>input</td><td>TCELL1:IMUX.DATA30</td></tr>
+
 <tr><td>OPMODE6</td><td>input</td><td>TCELL1:IMUX.DATA5</td></tr>
+
 <tr><td>OPMODE7</td><td>input</td><td>TCELL1:IMUX.DATA22</td></tr>
+
 <tr><td>P0</td><td>output</td><td>TCELL0:OUT.FAN6.TMIN</td></tr>
+
 <tr><td>P1</td><td>output</td><td>TCELL0:OUT.FAN1.TMIN</td></tr>
+
 <tr><td>P10</td><td>output</td><td>TCELL0:OUT.SEC15.TMIN</td></tr>
+
 <tr><td>P11</td><td>output</td><td>TCELL0:OUT.SEC14.TMIN</td></tr>
+
 <tr><td>P12</td><td>output</td><td>TCELL1:OUT.FAN6.TMIN</td></tr>
+
 <tr><td>P13</td><td>output</td><td>TCELL1:OUT.FAN1.TMIN</td></tr>
+
 <tr><td>P14</td><td>output</td><td>TCELL1:OUT.FAN0.TMIN</td></tr>
+
 <tr><td>P15</td><td>output</td><td>TCELL1:OUT.FAN5.TMIN</td></tr>
+
 <tr><td>P16</td><td>output</td><td>TCELL1:OUT.FAN4.TMIN</td></tr>
+
 <tr><td>P17</td><td>output</td><td>TCELL1:OUT.SEC13.TMIN</td></tr>
+
 <tr><td>P18</td><td>output</td><td>TCELL1:OUT.SEC12.TMIN</td></tr>
+
 <tr><td>P19</td><td>output</td><td>TCELL1:OUT.FAN3.TMIN</td></tr>
+
 <tr><td>P2</td><td>output</td><td>TCELL0:OUT.FAN0.TMIN</td></tr>
+
 <tr><td>P20</td><td>output</td><td>TCELL1:OUT.FAN2.TMIN</td></tr>
+
 <tr><td>P21</td><td>output</td><td>TCELL1:OUT.FAN7.TMIN</td></tr>
+
 <tr><td>P22</td><td>output</td><td>TCELL1:OUT.SEC15.TMIN</td></tr>
+
 <tr><td>P23</td><td>output</td><td>TCELL1:OUT.SEC14.TMIN</td></tr>
+
 <tr><td>P24</td><td>output</td><td>TCELL2:OUT.FAN6.TMIN</td></tr>
+
 <tr><td>P25</td><td>output</td><td>TCELL2:OUT.FAN1.TMIN</td></tr>
+
 <tr><td>P26</td><td>output</td><td>TCELL2:OUT.FAN0.TMIN</td></tr>
+
 <tr><td>P27</td><td>output</td><td>TCELL2:OUT.FAN5.TMIN</td></tr>
+
 <tr><td>P28</td><td>output</td><td>TCELL2:OUT.FAN4.TMIN</td></tr>
+
 <tr><td>P29</td><td>output</td><td>TCELL2:OUT.SEC13.TMIN</td></tr>
+
 <tr><td>P3</td><td>output</td><td>TCELL0:OUT.FAN5.TMIN</td></tr>
+
 <tr><td>P30</td><td>output</td><td>TCELL2:OUT.SEC12.TMIN</td></tr>
+
 <tr><td>P31</td><td>output</td><td>TCELL2:OUT.FAN3.TMIN</td></tr>
+
 <tr><td>P32</td><td>output</td><td>TCELL2:OUT.FAN2.TMIN</td></tr>
+
 <tr><td>P33</td><td>output</td><td>TCELL2:OUT.FAN7.TMIN</td></tr>
+
 <tr><td>P34</td><td>output</td><td>TCELL2:OUT.SEC15.TMIN</td></tr>
+
 <tr><td>P35</td><td>output</td><td>TCELL2:OUT.SEC14.TMIN</td></tr>
+
 <tr><td>P36</td><td>output</td><td>TCELL3:OUT.FAN6.TMIN</td></tr>
+
 <tr><td>P37</td><td>output</td><td>TCELL3:OUT.FAN1.TMIN</td></tr>
+
 <tr><td>P38</td><td>output</td><td>TCELL3:OUT.FAN0.TMIN</td></tr>
+
 <tr><td>P39</td><td>output</td><td>TCELL3:OUT.FAN5.TMIN</td></tr>
+
 <tr><td>P4</td><td>output</td><td>TCELL0:OUT.FAN4.TMIN</td></tr>
+
 <tr><td>P40</td><td>output</td><td>TCELL3:OUT.FAN4.TMIN</td></tr>
+
 <tr><td>P41</td><td>output</td><td>TCELL3:OUT.SEC13.TMIN</td></tr>
+
 <tr><td>P42</td><td>output</td><td>TCELL3:OUT.SEC12.TMIN</td></tr>
+
 <tr><td>P43</td><td>output</td><td>TCELL3:OUT.FAN3.TMIN</td></tr>
+
 <tr><td>P44</td><td>output</td><td>TCELL3:OUT.FAN2.TMIN</td></tr>
+
 <tr><td>P45</td><td>output</td><td>TCELL3:OUT.FAN7.TMIN</td></tr>
+
 <tr><td>P46</td><td>output</td><td>TCELL3:OUT.SEC15.TMIN</td></tr>
+
 <tr><td>P47</td><td>output</td><td>TCELL3:OUT.SEC14.TMIN</td></tr>
+
 <tr><td>P5</td><td>output</td><td>TCELL0:OUT.SEC13.TMIN</td></tr>
+
 <tr><td>P6</td><td>output</td><td>TCELL0:OUT.SEC12.TMIN</td></tr>
+
 <tr><td>P7</td><td>output</td><td>TCELL0:OUT.FAN3.TMIN</td></tr>
+
 <tr><td>P8</td><td>output</td><td>TCELL0:OUT.FAN2.TMIN</td></tr>
+
 <tr><td>P9</td><td>output</td><td>TCELL0:OUT.FAN7.TMIN</td></tr>
+
 <tr><td>RSTA</td><td>input</td><td>TCELL0:IMUX.SR0</td></tr>
+
 <tr><td>RSTB</td><td>input</td><td>TCELL0:IMUX.SR1</td></tr>
+
 <tr><td>RSTC</td><td>input</td><td>TCELL0:IMUX.SR2</td></tr>
+
 <tr><td>RSTCARRYIN</td><td>input</td><td>TCELL1:IMUX.SR3</td></tr>
+
 <tr><td>RSTD</td><td>input</td><td>TCELL0:IMUX.SR3</td></tr>
+
 <tr><td>RSTM</td><td>input</td><td>TCELL1:IMUX.SR2</td></tr>
+
 <tr><td>RSTOPMODE</td><td>input</td><td>TCELL1:IMUX.SR0</td></tr>
+
 <tr><td>RSTP</td><td>input</td><td>TCELL1:IMUX.SR1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DSP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.SR0</td><td>DSP.RSTA</td></tr>
+
 <tr><td>TCELL0:IMUX.SR1</td><td>DSP.RSTB</td></tr>
+
 <tr><td>TCELL0:IMUX.SR2</td><td>DSP.RSTC</td></tr>
+
 <tr><td>TCELL0:IMUX.SR3</td><td>DSP.RSTD</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BX0</td><td>DSP.D3</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BX1</td><td>DSP.D5</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BX2</td><td>DSP.D4</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BX3</td><td>DSP.D6</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BY0</td><td>DSP.B5</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BY1</td><td>DSP.B3</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BY2</td><td>DSP.B4</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN.BY3</td><td>DSP.B6</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA0</td><td>DSP.C6</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA1</td><td>DSP.B0</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA2</td><td>DSP.D8</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA3</td><td>DSP.C3</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA5</td><td>DSP.D7</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA6</td><td>DSP.C0</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA8</td><td>DSP.C7</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA9</td><td>DSP.D0</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA10</td><td>DSP.B8</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA11</td><td>DSP.C2</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA13</td><td>DSP.B7</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA14</td><td>DSP.C1</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA16</td><td>DSP.C8</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA17</td><td>DSP.B1</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA18</td><td>DSP.D9</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA19</td><td>DSP.C5</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA21</td><td>DSP.C11</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA22</td><td>DSP.B2</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA24</td><td>DSP.C9</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA25</td><td>DSP.D1</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA26</td><td>DSP.B9</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA27</td><td>DSP.C4</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA29</td><td>DSP.C10</td></tr>
+
 <tr><td>TCELL0:IMUX.DATA30</td><td>DSP.D2</td></tr>
+
 <tr><td>TCELL0:OUT.FAN0.TMIN</td><td>DSP.P2</td></tr>
+
 <tr><td>TCELL0:OUT.FAN1.TMIN</td><td>DSP.P1</td></tr>
+
 <tr><td>TCELL0:OUT.FAN2.TMIN</td><td>DSP.P8</td></tr>
+
 <tr><td>TCELL0:OUT.FAN3.TMIN</td><td>DSP.P7</td></tr>
+
 <tr><td>TCELL0:OUT.FAN4.TMIN</td><td>DSP.P4</td></tr>
+
 <tr><td>TCELL0:OUT.FAN5.TMIN</td><td>DSP.P3</td></tr>
+
 <tr><td>TCELL0:OUT.FAN6.TMIN</td><td>DSP.P0</td></tr>
+
 <tr><td>TCELL0:OUT.FAN7.TMIN</td><td>DSP.P9</td></tr>
+
 <tr><td>TCELL0:OUT.SEC12.TMIN</td><td>DSP.P6</td></tr>
+
 <tr><td>TCELL0:OUT.SEC13.TMIN</td><td>DSP.P5</td></tr>
+
 <tr><td>TCELL0:OUT.SEC14.TMIN</td><td>DSP.P11</td></tr>
+
 <tr><td>TCELL0:OUT.SEC15.TMIN</td><td>DSP.P10</td></tr>
+
 <tr><td>TCELL1:IMUX.SR0</td><td>DSP.RSTOPMODE</td></tr>
+
 <tr><td>TCELL1:IMUX.SR1</td><td>DSP.RSTP</td></tr>
+
 <tr><td>TCELL1:IMUX.SR2</td><td>DSP.RSTM</td></tr>
+
 <tr><td>TCELL1:IMUX.SR3</td><td>DSP.RSTCARRYIN</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BX0</td><td>DSP.A0</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BX1</td><td>DSP.A4</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BX2</td><td>DSP.A2</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BX3</td><td>DSP.A6</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BY0</td><td>DSP.A1</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BY1</td><td>DSP.A5</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BY2</td><td>DSP.A3</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN.BY3</td><td>DSP.A7</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA0</td><td>DSP.C18</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA1</td><td>DSP.OPMODE0</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA2</td><td>DSP.A8</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA3</td><td>DSP.C15</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA5</td><td>DSP.OPMODE6</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA6</td><td>DSP.C12</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA8</td><td>DSP.C19</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA9</td><td>DSP.OPMODE1</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA11</td><td>DSP.C14</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA13</td><td>DSP.OPMODE4</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA14</td><td>DSP.C13</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA16</td><td>DSP.C20</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA17</td><td>DSP.OPMODE2</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA19</td><td>DSP.C17</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA21</td><td>DSP.C23</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA22</td><td>DSP.OPMODE7</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA24</td><td>DSP.C21</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA25</td><td>DSP.OPMODE3</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA27</td><td>DSP.C16</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA29</td><td>DSP.C22</td></tr>
+
 <tr><td>TCELL1:IMUX.DATA30</td><td>DSP.OPMODE5</td></tr>
+
 <tr><td>TCELL1:OUT.FAN0.TMIN</td><td>DSP.P14</td></tr>
+
 <tr><td>TCELL1:OUT.FAN1.TMIN</td><td>DSP.P13</td></tr>
+
 <tr><td>TCELL1:OUT.FAN2.TMIN</td><td>DSP.P20</td></tr>
+
 <tr><td>TCELL1:OUT.FAN3.TMIN</td><td>DSP.P19</td></tr>
+
 <tr><td>TCELL1:OUT.FAN4.TMIN</td><td>DSP.P16</td></tr>
+
 <tr><td>TCELL1:OUT.FAN5.TMIN</td><td>DSP.P15</td></tr>
+
 <tr><td>TCELL1:OUT.FAN6.TMIN</td><td>DSP.P12</td></tr>
+
 <tr><td>TCELL1:OUT.FAN7.TMIN</td><td>DSP.P21</td></tr>
+
 <tr><td>TCELL1:OUT.SEC12.TMIN</td><td>DSP.P18</td></tr>
+
 <tr><td>TCELL1:OUT.SEC13.TMIN</td><td>DSP.P17</td></tr>
+
 <tr><td>TCELL1:OUT.SEC14.TMIN</td><td>DSP.P23</td></tr>
+
 <tr><td>TCELL1:OUT.SEC15.TMIN</td><td>DSP.P22</td></tr>
+
 <tr><td>TCELL2:IMUX.CLK3</td><td>DSP.CLK</td></tr>
+
 <tr><td>TCELL2:IMUX.CE0</td><td>DSP.CEOPMODE</td></tr>
+
 <tr><td>TCELL2:IMUX.CE1</td><td>DSP.CEP</td></tr>
+
 <tr><td>TCELL2:IMUX.CE2</td><td>DSP.CEM</td></tr>
+
 <tr><td>TCELL2:IMUX.CE3</td><td>DSP.CECARRYIN</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BX0</td><td>DSP.A9</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BX1</td><td>DSP.A13</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BX2</td><td>DSP.A11</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BX3</td><td>DSP.A15</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BY0</td><td>DSP.A10</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BY1</td><td>DSP.A14</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BY2</td><td>DSP.A12</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN.BY3</td><td>DSP.A16</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA0</td><td>DSP.C30</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA2</td><td>DSP.A17</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA3</td><td>DSP.C27</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA6</td><td>DSP.C24</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA8</td><td>DSP.C31</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA11</td><td>DSP.C26</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA14</td><td>DSP.C25</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA16</td><td>DSP.C32</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA19</td><td>DSP.C29</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA21</td><td>DSP.C35</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA24</td><td>DSP.C33</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA27</td><td>DSP.C28</td></tr>
+
 <tr><td>TCELL2:IMUX.DATA29</td><td>DSP.C34</td></tr>
+
 <tr><td>TCELL2:OUT.FAN0.TMIN</td><td>DSP.P26</td></tr>
+
 <tr><td>TCELL2:OUT.FAN1.TMIN</td><td>DSP.P25</td></tr>
+
 <tr><td>TCELL2:OUT.FAN2.TMIN</td><td>DSP.P32</td></tr>
+
 <tr><td>TCELL2:OUT.FAN3.TMIN</td><td>DSP.P31</td></tr>
+
 <tr><td>TCELL2:OUT.FAN4.TMIN</td><td>DSP.P28</td></tr>
+
 <tr><td>TCELL2:OUT.FAN5.TMIN</td><td>DSP.P27</td></tr>
+
 <tr><td>TCELL2:OUT.FAN6.TMIN</td><td>DSP.P24</td></tr>
+
 <tr><td>TCELL2:OUT.FAN7.TMIN</td><td>DSP.P33</td></tr>
+
 <tr><td>TCELL2:OUT.SEC12.TMIN</td><td>DSP.P30</td></tr>
+
 <tr><td>TCELL2:OUT.SEC13.TMIN</td><td>DSP.P29</td></tr>
+
 <tr><td>TCELL2:OUT.SEC14.TMIN</td><td>DSP.P35</td></tr>
+
 <tr><td>TCELL2:OUT.SEC15.TMIN</td><td>DSP.P34</td></tr>
+
 <tr><td>TCELL3:IMUX.CE0</td><td>DSP.CEA</td></tr>
+
 <tr><td>TCELL3:IMUX.CE1</td><td>DSP.CEB</td></tr>
+
 <tr><td>TCELL3:IMUX.CE2</td><td>DSP.CEC</td></tr>
+
 <tr><td>TCELL3:IMUX.CE3</td><td>DSP.CED</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BX0</td><td>DSP.D11</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BX1</td><td>DSP.D13</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BX2</td><td>DSP.D12</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BX3</td><td>DSP.D14</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BY0</td><td>DSP.B11</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BY1</td><td>DSP.B13</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BY2</td><td>DSP.B12</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN.BY3</td><td>DSP.B14</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA0</td><td>DSP.C42</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA2</td><td>DSP.D16</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA3</td><td>DSP.C39</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA5</td><td>DSP.B15</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA6</td><td>DSP.C36</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA8</td><td>DSP.C43</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA10</td><td>DSP.B16</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA11</td><td>DSP.C38</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA13</td><td>DSP.D15</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA14</td><td>DSP.C37</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA16</td><td>DSP.C44</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA18</td><td>DSP.D17</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA19</td><td>DSP.C41</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA21</td><td>DSP.C47</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA22</td><td>DSP.D10</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA24</td><td>DSP.C45</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA26</td><td>DSP.B17</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA27</td><td>DSP.C40</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA29</td><td>DSP.C46</td></tr>
+
 <tr><td>TCELL3:IMUX.DATA30</td><td>DSP.B10</td></tr>
+
 <tr><td>TCELL3:OUT.FAN0.TMIN</td><td>DSP.P38</td></tr>
+
 <tr><td>TCELL3:OUT.FAN1.TMIN</td><td>DSP.P37</td></tr>
+
 <tr><td>TCELL3:OUT.FAN2.TMIN</td><td>DSP.P44</td></tr>
+
 <tr><td>TCELL3:OUT.FAN3.TMIN</td><td>DSP.P43</td></tr>
+
 <tr><td>TCELL3:OUT.FAN4.TMIN</td><td>DSP.P40</td></tr>
+
 <tr><td>TCELL3:OUT.FAN5.TMIN</td><td>DSP.P39</td></tr>
+
 <tr><td>TCELL3:OUT.FAN6.TMIN</td><td>DSP.P36</td></tr>
+
 <tr><td>TCELL3:OUT.FAN7.TMIN</td><td>DSP.P45</td></tr>
+
 <tr><td>TCELL3:OUT.SEC12.TMIN</td><td>DSP.P42</td></tr>
+
 <tr><td>TCELL3:OUT.SEC13.TMIN</td><td>DSP.P41</td></tr>
+
 <tr><td>TCELL3:OUT.SEC14.TMIN</td><td>DSP.P47</td></tr>
+
 <tr><td>TCELL3:OUT.SEC15.TMIN</td><td>DSP.P46</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DSP bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DSP bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DSP bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DSP bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>62</td>
 <td title="3.0.62">
@@ -575,6 +961,7 @@
 <a href="#tile-spartan3-DSP-DSP:A1REG">DSP:A1REG[0]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td title="3.0.61">
 <a href="#tile-spartan3-DSP-DSP:DREG">DSP:DREG[0]</a>
@@ -583,6 +970,7 @@
 <a href="#tile-spartan3-DSP-DSP:A0REG">DSP:A0REG[0]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td title="3.0.60">
 <a href="#tile-spartan3-DSP-DSP:B_INPUT">DSP:B_INPUT[0]</a>
@@ -591,6 +979,7 @@
 <a href="#tile-spartan3-DSP-DSP:B0REG">DSP:B0REG[0]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td title="3.0.59">
 <a href="#tile-spartan3-DSP-DSP:CARRYINSEL">DSP:CARRYINSEL[0]</a>
@@ -599,6 +988,7 @@
 <a href="#tile-spartan3-DSP-DSP:RSTTYPE">DSP:RSTTYPE[0]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td title="3.0.58">
 <a href="#tile-spartan3-DSP-DSP:PREG">DSP:PREG[0]</a>
@@ -607,12 +997,14 @@
 <a href="#tile-spartan3-DSP-DSP:B1REG">DSP:B1REG[0]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td title="3.0.57">
 <a href="#tile-spartan3-DSP-DSP:CARRYINREG">DSP:CARRYINREG[0]</a>
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>56</td>
 <td title="3.0.56">
 <a href="#tile-spartan3-DSP-DSP:CREG">DSP:CREG[0]</a>
@@ -621,330 +1013,431 @@
 <a href="#tile-spartan3-DSP-DSP:MREG">DSP:MREG[0]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DSP-DSP:A0REG">DSP:A0REG</th>
 <th>3.1.61</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:A1REG">DSP:A1REG</th>
 <th>3.1.62</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:B0REG">DSP:B0REG</th>
 <th>3.1.60</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:B1REG">DSP:B1REG</th>
 <th>3.1.58</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:CARRYINREG">DSP:CARRYINREG</th>
 <th>3.0.57</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:CREG">DSP:CREG</th>
 <th>3.0.56</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:DREG">DSP:DREG</th>
 <th>3.0.61</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:MREG">DSP:MREG</th>
 <th>3.1.56</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:OPMODEREG">DSP:OPMODEREG</th>
 <th>3.0.62</th>
 </tr>
+
 <tr><th id="tile-spartan3-DSP-DSP:PREG">DSP:PREG</th>
 <th>3.0.58</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DSP-DSP:B_INPUT">DSP:B_INPUT</th>
 <th>3.0.60</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DIRECT</td>
 <td>0</td>
 </tr>
+
 <tr><td>CASCADE</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DSP-DSP:CARRYINSEL">DSP:CARRYINSEL</th>
 <th>3.0.59</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CARRYIN</td>
 <td>0</td>
 </tr>
+
 <tr><td>OPMODE5</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DSP-DSP:RSTTYPE">DSP:RSTTYPE</th>
 <th>3.1.59</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>SYNC</td>
 <td>0</td>
 </tr>
+
 <tr><td>ASYNC</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../spartan3/bram.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../spartan3/clock/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -954,16 +1447,21 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../spartan3/bram.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../spartan3/clock/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -973,9 +1471,9 @@
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../../favicon.svg">
-        <link rel="shortcut icon" href="../../favicon.png">
-        <link rel="stylesheet" href="../../css/variables.css">
-        <link rel="stylesheet" href="../../css/general.css">
-        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../../fonts/fonts.css">
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../../custom.css">
+        <link rel="stylesheet" href="../../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc.js"></script>
+        <script src="../../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,17 +142,22 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="xc2c32a-xa2c32a"><a class="header" href="#xc2c32a-xa2c32a">XC2C32A, XA2C32A</a></h1>
-<div class="table-wrapper"><table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Parameter</th><th>Value</th></tr>
+</thead>
+<tbody>
 <tr><td>IDCODE part</td><td>0x6e18</td></tr>
 <tr><td>Block count</td><td>2</td></tr>
 <tr><td>I/O banks</td><td>2</td></tr>
@@ -165,10 +169,16 @@
 <tr><td>Block rows</td><td>1</td></tr>
 <tr><td>Macrocell width</td><td>9</td></tr>
 <tr><td>Block columns</td><td>1</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <h2 id="bitstream-columns"><a class="header" href="#bitstream-columns">Bitstream columns</a></h2>
-<div class="table-wrapper"><table><thead><tr><th>Column range</th><th>Bits</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Column range</th><th>Bits</th></tr>
+</thead>
+<tbody>
 <tr><td>0..1</td><td>transfer</td></tr>
 <tr><td>1..10</td><td>Block column 0 even MCs</td></tr>
 <tr><td>10..122</td><td>Block column 0 even PTs</td></tr>
@@ -176,10 +186,12 @@
 <tr><td>138..250</td><td>Block column 0 odd PTs</td></tr>
 <tr><td>250..259</td><td>Block column 0 odd MCs</td></tr>
 <tr><td>259..260</td><td>transfer</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <h2 id="io-pins"><a class="header" href="#io-pins">I/O pins</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr>
 <th>Function</th>
@@ -192,7 +204,9 @@
 <th>xc2c32a-di44</th>
 <th>xc2c32a-cv64</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr>
 <td>IDCODE part</td>
@@ -205,6 +219,7 @@
 <td>0x6e18</td>
 <td>0x6e1a</td>
 </tr>
+
 <tr>
 <td>IPAD0</td>
 <td>BANK1</td>
@@ -216,6 +231,7 @@
 <td>P29</td>
 <td>D6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC0</td>
 <td>BANK1</td>
@@ -227,6 +243,7 @@
 <td>P5</td>
 <td>D2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC1</td>
 <td>BANK1</td>
@@ -238,6 +255,7 @@
 <td>P4</td>
 <td>D1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC2</td>
 <td>BANK1</td>
@@ -249,6 +267,7 @@
 <td>P3</td>
 <td>C2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC3</td>
 <td>BANK1</td>
@@ -260,6 +279,7 @@
 <td>P1 (GOE1)</td>
 <td>B2 (GOE1)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC4</td>
 <td>BANK1</td>
@@ -271,6 +291,7 @@
 <td>P44 (GOE0)</td>
 <td>A1 (GOE0)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC5</td>
 <td>BANK1</td>
@@ -282,6 +303,7 @@
 <td>P43 (GOE3)</td>
 <td>C3 (GOE3)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC6</td>
 <td>BANK1</td>
@@ -293,6 +315,7 @@
 <td>P42 (GOE2)</td>
 <td>A2 (GOE2)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC7</td>
 <td>BANK1</td>
@@ -304,6 +327,7 @@
 <td>P41 (GSR)</td>
 <td>B3 (GSR)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC8</td>
 <td>BANK1</td>
@@ -315,6 +339,7 @@
 <td>P40</td>
 <td>C4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC9</td>
 <td>BANK1</td>
@@ -326,6 +351,7 @@
 <td>P39</td>
 <td>B4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC10</td>
 <td>BANK1</td>
@@ -337,6 +363,7 @@
 <td>P38</td>
 <td>C5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC11</td>
 <td>BANK1</td>
@@ -348,6 +375,7 @@
 <td>P34</td>
 <td>B7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC12</td>
 <td>BANK1</td>
@@ -359,6 +387,7 @@
 <td>P33</td>
 <td>C6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC13</td>
 <td>BANK1</td>
@@ -370,6 +399,7 @@
 <td>P32</td>
 <td>B8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC14</td>
 <td>BANK1</td>
@@ -381,6 +411,7 @@
 <td>P31</td>
 <td>C7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC15</td>
 <td>BANK1</td>
@@ -392,6 +423,7 @@
 <td>P30</td>
 <td>C8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC0</td>
 <td>BANK0</td>
@@ -403,6 +435,7 @@
 <td>P6</td>
 <td>E1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC1</td>
 <td>BANK0</td>
@@ -414,6 +447,7 @@
 <td>P7</td>
 <td>E2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC2</td>
 <td>BANK0</td>
@@ -425,6 +459,7 @@
 <td>P8</td>
 <td>F1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC3</td>
 <td>BANK0</td>
@@ -436,6 +471,7 @@
 <td>P9</td>
 <td>G1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC4</td>
 <td>BANK0</td>
@@ -447,6 +483,7 @@
 <td>P10 (GCLK0)</td>
 <td>F3 (GCLK0)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC5</td>
 <td>BANK0</td>
@@ -458,6 +495,7 @@
 <td>P11 (GCLK1)</td>
 <td>H1 (GCLK1)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC6</td>
 <td>BANK0</td>
@@ -469,6 +507,7 @@
 <td>P12 (GCLK2)</td>
 <td>H2 (GCLK2)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC7</td>
 <td>BANK0</td>
@@ -480,6 +519,7 @@
 <td>P13</td>
 <td>G3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC8</td>
 <td>BANK0</td>
@@ -491,6 +531,7 @@
 <td>P14</td>
 <td>H3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC9</td>
 <td>BANK0</td>
@@ -502,6 +543,7 @@
 <td>P16</td>
 <td>G4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC10</td>
 <td>BANK0</td>
@@ -513,6 +555,7 @@
 <td>P17</td>
 <td>F4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC11</td>
 <td>BANK0</td>
@@ -524,6 +567,7 @@
 <td>P19</td>
 <td>H6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC12</td>
 <td>BANK0</td>
@@ -535,6 +579,7 @@
 <td>P23</td>
 <td>G7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC13</td>
 <td>BANK0</td>
@@ -546,6 +591,7 @@
 <td>P24</td>
 <td>G8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC14</td>
 <td>BANK0</td>
@@ -557,6 +603,7 @@
 <td>P25</td>
 <td>F7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC15</td>
 <td>BANK0</td>
@@ -568,6 +615,7 @@
 <td>P27</td>
 <td>E7</td>
 </tr>
+
 <tr>
 <td>TCK</td>
 <td>AUX</td>
@@ -579,6 +627,7 @@
 <td>P22</td>
 <td>F6</td>
 </tr>
+
 <tr>
 <td>TMS</td>
 <td>AUX</td>
@@ -590,6 +639,7 @@
 <td>P21</td>
 <td>H7</td>
 </tr>
+
 <tr>
 <td>TDI</td>
 <td>AUX</td>
@@ -601,6 +651,7 @@
 <td>P20</td>
 <td>G6</td>
 </tr>
+
 <tr>
 <td>TDO</td>
 <td>AUX</td>
@@ -612,6 +663,7 @@
 <td>P35</td>
 <td>D5</td>
 </tr>
+
 <tr>
 <td>GND</td>
 <td>-</td>
@@ -623,6 +675,7 @@
 <td>P15<br>P28<br>P36</td>
 <td>A5<br>D8<br>E4</td>
 </tr>
+
 <tr>
 <td>VCCINT</td>
 <td>-</td>
@@ -634,6 +687,7 @@
 <td>P26</td>
 <td>E5</td>
 </tr>
+
 <tr>
 <td>VCCIO0</td>
 <td>BANK0</td>
@@ -645,6 +699,7 @@
 <td>P18</td>
 <td>G5</td>
 </tr>
+
 <tr>
 <td>VCCIO1</td>
 <td>BANK1</td>
@@ -656,6 +711,7 @@
 <td>P37</td>
 <td>B5</td>
 </tr>
+
 <tr>
 <td>VCCAUX</td>
 <td>AUX</td>
@@ -667,6 +723,7 @@
 <td>P2</td>
 <td>B1</td>
 </tr>
+
 <tr>
 <td>NC</td>
 <td>-</td>
@@ -678,10 +735,15 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="speed-data"><a class="header" href="#speed-data">Speed data</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc2c32a speed data</caption>
 <thead>
 <tr>
@@ -698,7 +760,9 @@ xa2c32a-6
 xa2c32a-7
 </th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr>
 <td colspan="2">DEL_CLK_Q</td>
@@ -706,313 +770,369 @@ xa2c32a-7
 <td>700ps</td>
 <td>700ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_D_Q_COMB</td>
 <td>300ps</td>
 <td>700ps</td>
 <td>700ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_D_Q_LATCH</td>
 <td>1500ps</td>
 <td>2500ps</td>
 <td>2500ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_D</td>
 <td>1500ps</td>
 <td>2400ps</td>
 <td>2400ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_FCLK</td>
 <td>1300ps</td>
 <td>2000ps</td>
 <td>2000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_FOE</td>
 <td>1100ps</td>
 <td>2100ps</td>
 <td>1500ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_FSR</td>
 <td>1600ps</td>
 <td>2000ps</td>
 <td>2000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_IMUX</td>
 <td>1300ps</td>
 <td>1700ps</td>
 <td>1700ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_PLAIN.LVCMOS18</td>
 <td>0ps</td>
 <td>0ps</td>
 <td>0ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_PLAIN.LVCMOS18_ANY</td>
 <td>0ps</td>
 <td>0ps</td>
 <td>0ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_PLAIN.LVCMOS25</td>
 <td>500ps</td>
 <td>600ps</td>
 <td>700ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_PLAIN.LVCMOS33</td>
 <td>500ps</td>
 <td>600ps</td>
 <td>800ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_PLAIN.LVTTL</td>
 <td>500ps</td>
 <td>600ps</td>
 <td>800ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_SCHMITT.LVCMOS15</td>
 <td>3000ps</td>
 <td>4000ps</td>
 <td>4200ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_SCHMITT.LVCMOS18</td>
 <td>3000ps</td>
 <td>4000ps</td>
 <td>4000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_SCHMITT.LVCMOS18_ANY</td>
 <td>3000ps</td>
 <td>4000ps</td>
 <td>4000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_SCHMITT.LVCMOS25</td>
 <td>3000ps</td>
 <td>4000ps</td>
 <td>4000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_SCHMITT.LVCMOS33</td>
 <td>3000ps</td>
 <td>4000ps</td>
 <td>4000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_SCHMITT.LVTTL</td>
 <td>3000ps</td>
 <td>4000ps</td>
 <td>4000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_CT</td>
 <td>1300ps</td>
 <td>1600ps</td>
 <td>1600ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_OR</td>
 <td>600ps</td>
 <td>1600ps</td>
 <td>1600ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_PT</td>
 <td>400ps</td>
 <td>1100ps</td>
 <td>1100ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_MC_FOE</td>
 <td>700ps</td>
 <td>800ps</td>
 <td>200ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_FAST.LVCMOS15</td>
 <td>2600ps</td>
 <td>3000ps</td>
 <td>3000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_FAST.LVCMOS18</td>
 <td>1800ps</td>
 <td>2000ps</td>
 <td>2000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_FAST.LVCMOS18_ANY</td>
 <td>1800ps</td>
 <td>2000ps</td>
 <td>2000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_FAST.LVCMOS25</td>
 <td>2400ps</td>
 <td>2700ps</td>
 <td>2800ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_FAST.LVCMOS33</td>
 <td>2800ps</td>
 <td>3200ps</td>
 <td>3200ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_FAST.LVTTL</td>
 <td>2800ps</td>
 <td>3200ps</td>
 <td>3200ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_OE</td>
 <td>3600ps</td>
 <td>3400ps</td>
 <td>4700ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_SLOW.LVCMOS15</td>
 <td>6600ps</td>
 <td>8000ps</td>
 <td>8000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_SLOW.LVCMOS18</td>
 <td>5800ps</td>
 <td>7000ps</td>
 <td>7000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_SLOW.LVCMOS18_ANY</td>
 <td>5800ps</td>
 <td>7000ps</td>
 <td>7000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_SLOW.LVCMOS25</td>
 <td>6400ps</td>
 <td>7700ps</td>
 <td>8300ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_SLOW.LVCMOS33</td>
 <td>6800ps</td>
 <td>8200ps</td>
 <td>9800ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_SLOW.LVTTL</td>
 <td>6800ps</td>
 <td>8200ps</td>
 <td>9800ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_SR_Q</td>
 <td>1100ps</td>
 <td>1500ps</td>
 <td>1500ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_UIM_IMUX</td>
 <td>600ps</td>
 <td>1400ps</td>
 <td>1400ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">SETUPHOLD_CE_CLK</td><td>hold</td>
 <td>0ps</td>
 <td>0ps</td>
 <td>0ps</td>
 </tr>
+
 <tr>
 <td>setup</td>
 <td>700ps</td>
 <td>1700ps</td>
 <td>1700ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">SETUPHOLD_D_CLK_IBUF_FCLK</td><td>hold</td>
 <td>200ps</td>
 <td>200ps</td>
 <td>200ps</td>
 </tr>
+
 <tr>
 <td>setup</td>
 <td>1500ps</td>
 <td>1800ps</td>
 <td>1800ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">SETUPHOLD_D_CLK_IBUF_PT</td><td>hold</td>
 <td>400ps</td>
 <td>700ps</td>
 <td>700ps</td>
 </tr>
+
 <tr>
 <td>setup</td>
 <td>1500ps</td>
 <td>1800ps</td>
 <td>1800ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">SETUPHOLD_D_CLK_PT_FCLK</td><td>hold</td>
 <td>200ps</td>
 <td>200ps</td>
 <td>200ps</td>
 </tr>
+
 <tr>
 <td>setup</td>
 <td>1500ps</td>
 <td>1800ps</td>
 <td>1800ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">SETUPHOLD_D_CLK_PT_PT</td><td>hold</td>
 <td>400ps</td>
 <td>700ps</td>
 <td>700ps</td>
 </tr>
+
 <tr>
 <td>setup</td>
 <td>1500ps</td>
 <td>1800ps</td>
 <td>1800ps</td>
 </tr>
+
 <tr>
 <td colspan="2">WIDTH_CLK</td>
 <td>1400ps</td>
 <td>2200ps</td>
 <td>2200ps</td>
 </tr>
+
 <tr>
 <td colspan="2">WIDTH_CLK_PT</td>
 <td>4000ps</td>
 <td>6000ps</td>
 <td>6000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">WIDTH_SR</td>
 <td>4000ps</td>
 <td>6000ps</td>
 <td>6000ps</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="imux-bits"><a class="header" href="#imux-bits">IMUX bits</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc2c32a imux bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="15">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1030,7 +1150,9 @@ xa2c32a-7
 <th>13</th>
 <th>14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
@@ -1065,6 +1187,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[0].MUX">IM[0].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.1.0">
 <a href="#tile-xc2c32a-imux-IM[1].MUX">IM[1].MUX[7]</a>
@@ -1098,6 +1221,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[1].MUX">IM[1].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.2.0">
 <a href="#tile-xc2c32a-imux-IM[2].MUX">IM[2].MUX[7]</a>
@@ -1131,6 +1255,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[2].MUX">IM[2].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.3.0">
 <a href="#tile-xc2c32a-imux-IM[3].MUX">IM[3].MUX[7]</a>
@@ -1164,6 +1289,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[3].MUX">IM[3].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.4.0">
 <a href="#tile-xc2c32a-imux-IM[4].MUX">IM[4].MUX[7]</a>
@@ -1197,6 +1323,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[4].MUX">IM[4].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.5.0">
 <a href="#tile-xc2c32a-imux-IM[5].MUX">IM[5].MUX[7]</a>
@@ -1230,6 +1357,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[5].MUX">IM[5].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.6.0">
 <a href="#tile-xc2c32a-imux-IM[6].MUX">IM[6].MUX[7]</a>
@@ -1263,6 +1391,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[6].MUX">IM[6].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.7.0">
 <a href="#tile-xc2c32a-imux-IM[7].MUX">IM[7].MUX[7]</a>
@@ -1296,6 +1425,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[7].MUX">IM[7].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.8.0">
 <a href="#tile-xc2c32a-imux-IM[8].MUX">IM[8].MUX[7]</a>
@@ -1329,6 +1459,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[8].MUX">IM[8].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.9.0">
 <a href="#tile-xc2c32a-imux-IM[9].MUX">IM[9].MUX[7]</a>
@@ -1362,6 +1493,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[9].MUX">IM[9].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.10.0">
 <a href="#tile-xc2c32a-imux-IM[10].MUX">IM[10].MUX[7]</a>
@@ -1395,6 +1527,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[10].MUX">IM[10].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.11.0">
 <a href="#tile-xc2c32a-imux-IM[11].MUX">IM[11].MUX[7]</a>
@@ -1428,6 +1561,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[11].MUX">IM[11].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.12.0">
 <a href="#tile-xc2c32a-imux-IM[12].MUX">IM[12].MUX[7]</a>
@@ -1461,6 +1595,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[12].MUX">IM[12].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.13.0">
 <a href="#tile-xc2c32a-imux-IM[13].MUX">IM[13].MUX[7]</a>
@@ -1494,6 +1629,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[13].MUX">IM[13].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.14.0">
 <a href="#tile-xc2c32a-imux-IM[14].MUX">IM[14].MUX[7]</a>
@@ -1527,6 +1663,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[14].MUX">IM[14].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.15.0">
 <a href="#tile-xc2c32a-imux-IM[15].MUX">IM[15].MUX[7]</a>
@@ -1560,6 +1697,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[15].MUX">IM[15].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td title="0.16.0">
 <a href="#tile-xc2c32a-imux-IM[16].MUX">IM[16].MUX[7]</a>
@@ -1593,6 +1731,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[16].MUX">IM[16].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td title="0.17.0">
 <a href="#tile-xc2c32a-imux-IM[17].MUX">IM[17].MUX[7]</a>
@@ -1626,6 +1765,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[17].MUX">IM[17].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td title="0.18.0">
 <a href="#tile-xc2c32a-imux-IM[18].MUX">IM[18].MUX[7]</a>
@@ -1659,6 +1799,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[18].MUX">IM[18].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td title="0.19.0">
 <a href="#tile-xc2c32a-imux-IM[19].MUX">IM[19].MUX[7]</a>
@@ -1692,6 +1833,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[19].MUX">IM[19].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -1709,6 +1851,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -1726,6 +1869,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -1743,6 +1887,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -1760,6 +1905,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -1777,6 +1923,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -1794,6 +1941,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -1811,6 +1959,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -1828,6 +1977,7 @@ xa2c32a-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td title="0.28.0">
 <a href="#tile-xc2c32a-imux-IM[20].MUX">IM[20].MUX[7]</a>
@@ -1861,6 +2011,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[20].MUX">IM[20].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td title="0.29.0">
 <a href="#tile-xc2c32a-imux-IM[21].MUX">IM[21].MUX[7]</a>
@@ -1894,6 +2045,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[21].MUX">IM[21].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td title="0.30.0">
 <a href="#tile-xc2c32a-imux-IM[22].MUX">IM[22].MUX[7]</a>
@@ -1927,6 +2079,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[22].MUX">IM[22].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td title="0.31.0">
 <a href="#tile-xc2c32a-imux-IM[23].MUX">IM[23].MUX[7]</a>
@@ -1960,6 +2113,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[23].MUX">IM[23].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td title="0.32.0">
 <a href="#tile-xc2c32a-imux-IM[24].MUX">IM[24].MUX[7]</a>
@@ -1993,6 +2147,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[24].MUX">IM[24].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td title="0.33.0">
 <a href="#tile-xc2c32a-imux-IM[25].MUX">IM[25].MUX[7]</a>
@@ -2026,6 +2181,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[25].MUX">IM[25].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td title="0.34.0">
 <a href="#tile-xc2c32a-imux-IM[26].MUX">IM[26].MUX[7]</a>
@@ -2059,6 +2215,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[26].MUX">IM[26].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td title="0.35.0">
 <a href="#tile-xc2c32a-imux-IM[27].MUX">IM[27].MUX[7]</a>
@@ -2092,6 +2249,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[27].MUX">IM[27].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td title="0.36.0">
 <a href="#tile-xc2c32a-imux-IM[28].MUX">IM[28].MUX[7]</a>
@@ -2125,6 +2283,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[28].MUX">IM[28].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td title="0.37.0">
 <a href="#tile-xc2c32a-imux-IM[29].MUX">IM[29].MUX[7]</a>
@@ -2158,6 +2317,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[29].MUX">IM[29].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td title="0.38.0">
 <a href="#tile-xc2c32a-imux-IM[30].MUX">IM[30].MUX[7]</a>
@@ -2191,6 +2351,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[30].MUX">IM[30].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td title="0.39.0">
 <a href="#tile-xc2c32a-imux-IM[31].MUX">IM[31].MUX[7]</a>
@@ -2224,6 +2385,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[31].MUX">IM[31].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td title="0.40.0">
 <a href="#tile-xc2c32a-imux-IM[32].MUX">IM[32].MUX[7]</a>
@@ -2257,6 +2419,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[32].MUX">IM[32].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td title="0.41.0">
 <a href="#tile-xc2c32a-imux-IM[33].MUX">IM[33].MUX[7]</a>
@@ -2290,6 +2453,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[33].MUX">IM[33].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td title="0.42.0">
 <a href="#tile-xc2c32a-imux-IM[34].MUX">IM[34].MUX[7]</a>
@@ -2323,6 +2487,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[34].MUX">IM[34].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td title="0.43.0">
 <a href="#tile-xc2c32a-imux-IM[35].MUX">IM[35].MUX[7]</a>
@@ -2356,6 +2521,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[35].MUX">IM[35].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td title="0.44.0">
 <a href="#tile-xc2c32a-imux-IM[36].MUX">IM[36].MUX[7]</a>
@@ -2389,6 +2555,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[36].MUX">IM[36].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td title="0.45.0">
 <a href="#tile-xc2c32a-imux-IM[37].MUX">IM[37].MUX[7]</a>
@@ -2422,6 +2589,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[37].MUX">IM[37].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td title="0.46.0">
 <a href="#tile-xc2c32a-imux-IM[38].MUX">IM[38].MUX[7]</a>
@@ -2455,6 +2623,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[38].MUX">IM[38].MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td title="0.47.0">
 <a href="#tile-xc2c32a-imux-IM[39].MUX">IM[39].MUX[7]</a>
@@ -2488,9 +2657,14 @@ xa2c32a-7
 <a href="#tile-xc2c32a-imux-IM[39].MUX">IM[39].MUX[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[0].MUX">IM[0].MUX</th>
 <th>0.0.0</th>
@@ -2502,7 +2676,9 @@ xa2c32a-7
 <th>0.0.12</th>
 <th>0.0.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
@@ -2514,6 +2690,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC10</td>
 <td>1</td>
 <td>0</td>
@@ -2524,6 +2701,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -2534,6 +2712,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC1</td>
 <td>1</td>
 <td>1</td>
@@ -2544,6 +2723,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC13</td>
 <td>1</td>
 <td>1</td>
@@ -2554,6 +2734,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -2564,6 +2745,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -2574,9 +2756,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[10].MUX">IM[10].MUX</th>
 <th>0.10.0</th>
@@ -2588,7 +2775,9 @@ xa2c32a-7
 <th>0.10.12</th>
 <th>0.10.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC7</td>
 <td>0</td>
@@ -2600,6 +2789,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC3</td>
 <td>1</td>
 <td>0</td>
@@ -2610,6 +2800,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -2620,6 +2811,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC3</td>
 <td>1</td>
 <td>1</td>
@@ -2630,6 +2822,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC0</td>
 <td>1</td>
 <td>1</td>
@@ -2640,6 +2833,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC14</td>
 <td>1</td>
 <td>1</td>
@@ -2650,6 +2844,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -2660,9 +2855,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[11].MUX">IM[11].MUX</th>
 <th>0.11.0</th>
@@ -2674,7 +2874,9 @@ xa2c32a-7
 <th>0.11.12</th>
 <th>0.11.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
@@ -2686,6 +2888,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC11</td>
 <td>1</td>
 <td>0</td>
@@ -2696,6 +2899,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
@@ -2706,6 +2910,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC2</td>
 <td>1</td>
 <td>1</td>
@@ -2716,6 +2921,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC14</td>
 <td>1</td>
 <td>1</td>
@@ -2726,6 +2932,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
@@ -2736,6 +2943,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -2746,9 +2954,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[12].MUX">IM[12].MUX</th>
 <th>0.12.0</th>
@@ -2760,7 +2973,9 @@ xa2c32a-7
 <th>0.12.12</th>
 <th>0.12.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC1</td>
 <td>0</td>
@@ -2772,6 +2987,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC12</td>
 <td>1</td>
 <td>0</td>
@@ -2782,6 +2998,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC13</td>
 <td>1</td>
 <td>1</td>
@@ -2792,6 +3009,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC4</td>
 <td>1</td>
 <td>1</td>
@@ -2802,6 +3020,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC1</td>
 <td>1</td>
 <td>1</td>
@@ -2812,6 +3031,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
@@ -2822,6 +3042,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -2832,9 +3053,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[13].MUX">IM[13].MUX</th>
 <th>0.13.0</th>
@@ -2846,7 +3072,9 @@ xa2c32a-7
 <th>0.13.12</th>
 <th>0.13.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC2</td>
 <td>0</td>
@@ -2858,6 +3086,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC2</td>
 <td>1</td>
 <td>0</td>
@@ -2868,6 +3097,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC7</td>
 <td>1</td>
 <td>1</td>
@@ -2878,6 +3108,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC9</td>
 <td>1</td>
 <td>1</td>
@@ -2888,6 +3119,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC0</td>
 <td>1</td>
 <td>1</td>
@@ -2898,6 +3130,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC13</td>
 <td>1</td>
 <td>1</td>
@@ -2908,6 +3141,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -2918,9 +3152,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[14].MUX">IM[14].MUX</th>
 <th>0.14.0</th>
@@ -2932,7 +3171,9 @@ xa2c32a-7
 <th>0.14.12</th>
 <th>0.14.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC3</td>
 <td>0</td>
@@ -2944,6 +3185,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC15</td>
 <td>1</td>
 <td>0</td>
@@ -2954,6 +3196,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC14</td>
 <td>1</td>
 <td>1</td>
@@ -2964,6 +3207,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC3</td>
 <td>1</td>
 <td>1</td>
@@ -2974,6 +3218,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC11</td>
 <td>1</td>
 <td>1</td>
@@ -2984,6 +3229,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -2994,6 +3240,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3004,9 +3251,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[15].MUX">IM[15].MUX</th>
 <th>0.15.0</th>
@@ -3018,7 +3270,9 @@ xa2c32a-7
 <th>0.15.12</th>
 <th>0.15.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC4</td>
 <td>0</td>
@@ -3030,6 +3284,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3040,6 +3295,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
@@ -3050,6 +3306,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC0</td>
 <td>1</td>
 <td>1</td>
@@ -3060,6 +3317,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC15</td>
 <td>1</td>
 <td>1</td>
@@ -3070,6 +3328,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC7</td>
 <td>1</td>
 <td>1</td>
@@ -3080,6 +3339,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3090,9 +3350,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[16].MUX">IM[16].MUX</th>
 <th>0.16.0</th>
@@ -3104,7 +3369,9 @@ xa2c32a-7
 <th>0.16.12</th>
 <th>0.16.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC5</td>
 <td>0</td>
@@ -3116,6 +3383,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC3</td>
 <td>1</td>
 <td>0</td>
@@ -3126,6 +3394,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -3136,6 +3405,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC6</td>
 <td>1</td>
 <td>1</td>
@@ -3146,6 +3416,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC12</td>
 <td>1</td>
 <td>1</td>
@@ -3156,6 +3427,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -3166,6 +3438,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3176,9 +3449,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[17].MUX">IM[17].MUX</th>
 <th>0.17.0</th>
@@ -3190,7 +3468,9 @@ xa2c32a-7
 <th>0.17.12</th>
 <th>0.17.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC6</td>
 <td>0</td>
@@ -3202,6 +3482,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC10</td>
 <td>1</td>
 <td>0</td>
@@ -3212,6 +3493,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -3222,6 +3504,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC8</td>
 <td>1</td>
 <td>1</td>
@@ -3232,6 +3515,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC2</td>
 <td>1</td>
 <td>1</td>
@@ -3242,6 +3526,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC8</td>
 <td>1</td>
 <td>1</td>
@@ -3252,6 +3537,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3262,9 +3548,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[18].MUX">IM[18].MUX</th>
 <th>0.18.0</th>
@@ -3276,7 +3567,9 @@ xa2c32a-7
 <th>0.18.12</th>
 <th>0.18.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC7</td>
 <td>0</td>
@@ -3288,6 +3581,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IPAD0</td>
 <td>1</td>
 <td>0</td>
@@ -3298,6 +3592,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC4</td>
 <td>1</td>
 <td>1</td>
@@ -3308,6 +3603,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC1</td>
 <td>1</td>
 <td>1</td>
@@ -3318,6 +3614,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC4</td>
 <td>1</td>
 <td>1</td>
@@ -3328,6 +3625,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC14</td>
 <td>1</td>
 <td>1</td>
@@ -3338,6 +3636,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3348,9 +3647,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[19].MUX">IM[19].MUX</th>
 <th>0.19.0</th>
@@ -3362,7 +3666,9 @@ xa2c32a-7
 <th>0.19.12</th>
 <th>0.19.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC8</td>
 <td>0</td>
@@ -3374,6 +3680,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3384,6 +3691,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -3394,6 +3702,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
@@ -3404,6 +3713,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC13</td>
 <td>1</td>
 <td>1</td>
@@ -3414,6 +3724,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
@@ -3424,6 +3735,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3434,9 +3746,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[1].MUX">IM[1].MUX</th>
 <th>0.1.0</th>
@@ -3448,7 +3765,9 @@ xa2c32a-7
 <th>0.1.12</th>
 <th>0.1.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC1</td>
 <td>0</td>
@@ -3460,6 +3779,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3470,6 +3790,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
@@ -3480,6 +3801,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC8</td>
 <td>1</td>
 <td>1</td>
@@ -3490,6 +3812,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC15</td>
 <td>1</td>
 <td>1</td>
@@ -3500,6 +3823,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -3510,6 +3834,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3520,9 +3845,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[20].MUX">IM[20].MUX</th>
 <th>0.28.0</th>
@@ -3534,7 +3864,9 @@ xa2c32a-7
 <th>0.28.12</th>
 <th>0.28.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC9</td>
 <td>0</td>
@@ -3546,6 +3878,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3556,6 +3889,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -3566,6 +3900,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC7</td>
 <td>1</td>
 <td>1</td>
@@ -3576,6 +3911,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC10</td>
 <td>1</td>
 <td>1</td>
@@ -3586,6 +3922,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -3596,6 +3933,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3606,9 +3944,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[21].MUX">IM[21].MUX</th>
 <th>0.29.0</th>
@@ -3620,7 +3963,9 @@ xa2c32a-7
 <th>0.29.12</th>
 <th>0.29.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC8</td>
 <td>0</td>
@@ -3632,6 +3977,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC1</td>
 <td>1</td>
 <td>0</td>
@@ -3642,6 +3988,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC8</td>
 <td>1</td>
 <td>1</td>
@@ -3652,6 +3999,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC5</td>
 <td>1</td>
 <td>1</td>
@@ -3662,6 +4010,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC3</td>
 <td>1</td>
 <td>1</td>
@@ -3672,6 +4021,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -3682,6 +4032,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3692,9 +4043,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[22].MUX">IM[22].MUX</th>
 <th>0.30.0</th>
@@ -3706,7 +4062,9 @@ xa2c32a-7
 <th>0.30.12</th>
 <th>0.30.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
@@ -3718,6 +4076,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3728,6 +4087,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC7</td>
 <td>1</td>
 <td>1</td>
@@ -3738,6 +4098,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC3</td>
 <td>1</td>
 <td>1</td>
@@ -3748,6 +4109,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC15</td>
 <td>1</td>
 <td>1</td>
@@ -3758,6 +4120,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -3768,6 +4131,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3778,9 +4142,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[23].MUX">IM[23].MUX</th>
 <th>0.31.0</th>
@@ -3792,7 +4161,9 @@ xa2c32a-7
 <th>0.31.12</th>
 <th>0.31.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC1</td>
 <td>0</td>
@@ -3804,6 +4175,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC2</td>
 <td>1</td>
 <td>0</td>
@@ -3814,6 +4186,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -3824,6 +4197,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC6</td>
 <td>1</td>
 <td>1</td>
@@ -3834,6 +4208,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC4</td>
 <td>1</td>
 <td>1</td>
@@ -3844,6 +4219,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -3854,6 +4230,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3864,9 +4241,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[24].MUX">IM[24].MUX</th>
 <th>0.32.0</th>
@@ -3878,7 +4260,9 @@ xa2c32a-7
 <th>0.32.12</th>
 <th>0.32.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC2</td>
 <td>0</td>
@@ -3890,6 +4274,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3900,6 +4285,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC14</td>
 <td>1</td>
 <td>1</td>
@@ -3910,6 +4296,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC5</td>
 <td>1</td>
 <td>1</td>
@@ -3920,6 +4307,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC2</td>
 <td>1</td>
 <td>1</td>
@@ -3930,6 +4318,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
@@ -3940,6 +4329,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -3950,9 +4340,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[25].MUX">IM[25].MUX</th>
 <th>0.33.0</th>
@@ -3964,7 +4359,9 @@ xa2c32a-7
 <th>0.33.12</th>
 <th>0.33.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC3</td>
 <td>0</td>
@@ -3976,6 +4373,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC3</td>
 <td>1</td>
 <td>0</td>
@@ -3986,6 +4384,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC8</td>
 <td>1</td>
 <td>1</td>
@@ -3996,6 +4395,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC0</td>
 <td>1</td>
 <td>1</td>
@@ -4006,6 +4406,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC1</td>
 <td>1</td>
 <td>1</td>
@@ -4016,6 +4417,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC14</td>
 <td>1</td>
 <td>1</td>
@@ -4026,6 +4428,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4036,9 +4439,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[26].MUX">IM[26].MUX</th>
 <th>0.34.0</th>
@@ -4050,7 +4458,9 @@ xa2c32a-7
 <th>0.34.12</th>
 <th>0.34.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC4</td>
 <td>0</td>
@@ -4062,6 +4472,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IPAD0</td>
 <td>1</td>
 <td>0</td>
@@ -4072,6 +4483,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -4082,6 +4494,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC4</td>
 <td>1</td>
 <td>1</td>
@@ -4092,6 +4505,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC12</td>
 <td>1</td>
 <td>1</td>
@@ -4102,6 +4516,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC13</td>
 <td>1</td>
 <td>1</td>
@@ -4112,6 +4527,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4122,9 +4538,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[27].MUX">IM[27].MUX</th>
 <th>0.35.0</th>
@@ -4136,7 +4557,9 @@ xa2c32a-7
 <th>0.35.12</th>
 <th>0.35.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC5</td>
 <td>0</td>
@@ -4148,6 +4571,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC1</td>
 <td>1</td>
 <td>0</td>
@@ -4158,6 +4582,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -4168,6 +4593,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC1</td>
 <td>1</td>
 <td>1</td>
@@ -4178,6 +4604,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC0</td>
 <td>1</td>
 <td>1</td>
@@ -4188,6 +4615,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC8</td>
 <td>1</td>
 <td>1</td>
@@ -4198,6 +4626,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4208,9 +4637,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[28].MUX">IM[28].MUX</th>
 <th>0.36.0</th>
@@ -4222,7 +4656,9 @@ xa2c32a-7
 <th>0.36.12</th>
 <th>0.36.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC6</td>
 <td>0</td>
@@ -4234,6 +4670,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC11</td>
 <td>1</td>
 <td>0</td>
@@ -4244,6 +4681,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC13</td>
 <td>1</td>
 <td>1</td>
@@ -4254,6 +4692,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC7</td>
 <td>1</td>
 <td>1</td>
@@ -4264,6 +4703,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC13</td>
 <td>1</td>
 <td>1</td>
@@ -4274,6 +4714,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -4284,6 +4725,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4294,9 +4736,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[29].MUX">IM[29].MUX</th>
 <th>0.37.0</th>
@@ -4308,7 +4755,9 @@ xa2c32a-7
 <th>0.37.12</th>
 <th>0.37.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC7</td>
 <td>0</td>
@@ -4320,6 +4769,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC10</td>
 <td>1</td>
 <td>0</td>
@@ -4330,6 +4780,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
@@ -4340,6 +4791,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC9</td>
 <td>1</td>
 <td>1</td>
@@ -4350,6 +4802,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC3</td>
 <td>1</td>
 <td>1</td>
@@ -4360,6 +4813,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -4370,6 +4824,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4380,9 +4835,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[2].MUX">IM[2].MUX</th>
 <th>0.2.0</th>
@@ -4394,7 +4854,9 @@ xa2c32a-7
 <th>0.2.12</th>
 <th>0.2.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC2</td>
 <td>0</td>
@@ -4406,6 +4868,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC12</td>
 <td>1</td>
 <td>0</td>
@@ -4416,6 +4879,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC13</td>
 <td>1</td>
 <td>1</td>
@@ -4426,6 +4890,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC2</td>
 <td>1</td>
 <td>1</td>
@@ -4436,6 +4901,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC4</td>
 <td>1</td>
 <td>1</td>
@@ -4446,6 +4912,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -4456,6 +4923,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4466,9 +4934,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[30].MUX">IM[30].MUX</th>
 <th>0.38.0</th>
@@ -4480,7 +4953,9 @@ xa2c32a-7
 <th>0.38.12</th>
 <th>0.38.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC8</td>
 <td>0</td>
@@ -4492,6 +4967,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC0</td>
 <td>1</td>
 <td>0</td>
@@ -4502,6 +4978,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC4</td>
 <td>1</td>
 <td>1</td>
@@ -4512,6 +4989,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC2</td>
 <td>1</td>
 <td>1</td>
@@ -4522,6 +5000,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC11</td>
 <td>1</td>
 <td>1</td>
@@ -4532,6 +5011,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
@@ -4542,6 +5022,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4552,9 +5033,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[31].MUX">IM[31].MUX</th>
 <th>0.39.0</th>
@@ -4566,7 +5052,9 @@ xa2c32a-7
 <th>0.39.12</th>
 <th>0.39.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC9</td>
 <td>0</td>
@@ -4578,6 +5066,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC15</td>
 <td>1</td>
 <td>0</td>
@@ -4588,6 +5077,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -4598,6 +5088,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
@@ -4608,6 +5099,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC14</td>
 <td>1</td>
 <td>1</td>
@@ -4618,6 +5110,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC7</td>
 <td>1</td>
 <td>1</td>
@@ -4628,6 +5121,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4638,9 +5132,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[32].MUX">IM[32].MUX</th>
 <th>0.40.0</th>
@@ -4652,7 +5151,9 @@ xa2c32a-7
 <th>0.40.12</th>
 <th>0.40.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC9</td>
 <td>0</td>
@@ -4664,6 +5165,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>1</td>
 <td>0</td>
@@ -4674,6 +5176,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
@@ -4684,6 +5187,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC8</td>
 <td>1</td>
 <td>1</td>
@@ -4694,6 +5198,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC10</td>
 <td>1</td>
 <td>1</td>
@@ -4704,6 +5209,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
@@ -4714,6 +5220,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4724,9 +5231,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[33].MUX">IM[33].MUX</th>
 <th>0.41.0</th>
@@ -4738,7 +5250,9 @@ xa2c32a-7
 <th>0.41.12</th>
 <th>0.41.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
@@ -4750,6 +5264,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC13</td>
 <td>1</td>
 <td>0</td>
@@ -4760,6 +5275,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC8</td>
 <td>1</td>
 <td>1</td>
@@ -4770,6 +5286,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC4</td>
 <td>1</td>
 <td>1</td>
@@ -4780,6 +5297,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC0</td>
 <td>1</td>
 <td>1</td>
@@ -4790,6 +5308,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -4800,6 +5319,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4810,9 +5330,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[34].MUX">IM[34].MUX</th>
 <th>0.42.0</th>
@@ -4824,7 +5349,9 @@ xa2c32a-7
 <th>0.42.12</th>
 <th>0.42.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC1</td>
 <td>0</td>
@@ -4836,6 +5363,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC15</td>
 <td>1</td>
 <td>0</td>
@@ -4846,6 +5374,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -4856,6 +5385,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC9</td>
 <td>1</td>
 <td>1</td>
@@ -4866,6 +5396,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC10</td>
 <td>1</td>
 <td>1</td>
@@ -4876,6 +5407,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -4886,6 +5418,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4896,9 +5429,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[35].MUX">IM[35].MUX</th>
 <th>0.43.0</th>
@@ -4910,7 +5448,9 @@ xa2c32a-7
 <th>0.43.12</th>
 <th>0.43.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC2</td>
 <td>0</td>
@@ -4922,6 +5462,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC3</td>
 <td>1</td>
 <td>0</td>
@@ -4932,6 +5473,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
@@ -4942,6 +5484,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC7</td>
 <td>1</td>
 <td>1</td>
@@ -4952,6 +5495,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC11</td>
 <td>1</td>
 <td>1</td>
@@ -4962,6 +5506,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -4972,6 +5517,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -4982,9 +5528,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[36].MUX">IM[36].MUX</th>
 <th>0.44.0</th>
@@ -4996,7 +5547,9 @@ xa2c32a-7
 <th>0.44.12</th>
 <th>0.44.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC3</td>
 <td>0</td>
@@ -5008,6 +5561,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>1</td>
 <td>0</td>
@@ -5018,6 +5572,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -5028,6 +5583,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC6</td>
 <td>1</td>
 <td>1</td>
@@ -5038,6 +5594,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC3</td>
 <td>1</td>
 <td>1</td>
@@ -5048,6 +5605,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC7</td>
 <td>1</td>
 <td>1</td>
@@ -5058,6 +5616,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5068,9 +5627,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[37].MUX">IM[37].MUX</th>
 <th>0.45.0</th>
@@ -5082,7 +5646,9 @@ xa2c32a-7
 <th>0.45.12</th>
 <th>0.45.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC4</td>
 <td>0</td>
@@ -5094,6 +5660,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC11</td>
 <td>1</td>
 <td>0</td>
@@ -5104,6 +5671,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -5114,6 +5682,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC1</td>
 <td>1</td>
 <td>1</td>
@@ -5124,6 +5693,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC2</td>
 <td>1</td>
 <td>1</td>
@@ -5134,6 +5704,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
@@ -5144,6 +5715,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5154,9 +5726,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[38].MUX">IM[38].MUX</th>
 <th>0.46.0</th>
@@ -5168,7 +5745,9 @@ xa2c32a-7
 <th>0.46.12</th>
 <th>0.46.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC5</td>
 <td>0</td>
@@ -5180,6 +5759,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC0</td>
 <td>1</td>
 <td>0</td>
@@ -5190,6 +5770,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
@@ -5200,6 +5781,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC5</td>
 <td>1</td>
 <td>1</td>
@@ -5210,6 +5792,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC13</td>
 <td>1</td>
 <td>1</td>
@@ -5220,6 +5803,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC14</td>
 <td>1</td>
 <td>1</td>
@@ -5230,6 +5814,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5240,9 +5825,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[39].MUX">IM[39].MUX</th>
 <th>0.47.0</th>
@@ -5254,7 +5844,9 @@ xa2c32a-7
 <th>0.47.12</th>
 <th>0.47.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC6</td>
 <td>0</td>
@@ -5266,6 +5858,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5276,6 +5869,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC12</td>
 <td>1</td>
 <td>1</td>
@@ -5286,6 +5880,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC2</td>
 <td>1</td>
 <td>1</td>
@@ -5296,6 +5891,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC1</td>
 <td>1</td>
 <td>1</td>
@@ -5306,6 +5902,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -5316,6 +5913,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5326,9 +5924,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[3].MUX">IM[3].MUX</th>
 <th>0.3.0</th>
@@ -5340,7 +5943,9 @@ xa2c32a-7
 <th>0.3.12</th>
 <th>0.3.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC3</td>
 <td>0</td>
@@ -5352,6 +5957,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC13</td>
 <td>1</td>
 <td>0</td>
@@ -5362,6 +5968,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
@@ -5372,6 +5979,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC9</td>
 <td>1</td>
 <td>1</td>
@@ -5382,6 +5990,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC14</td>
 <td>1</td>
 <td>1</td>
@@ -5392,6 +6001,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
@@ -5402,6 +6012,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5412,9 +6023,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[4].MUX">IM[4].MUX</th>
 <th>0.4.0</th>
@@ -5426,7 +6042,9 @@ xa2c32a-7
 <th>0.4.12</th>
 <th>0.4.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC4</td>
 <td>0</td>
@@ -5438,6 +6056,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>1</td>
 <td>0</td>
@@ -5448,6 +6067,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC11</td>
 <td>1</td>
 <td>1</td>
@@ -5458,6 +6078,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC5</td>
 <td>1</td>
 <td>1</td>
@@ -5468,6 +6089,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC11</td>
 <td>1</td>
 <td>1</td>
@@ -5478,6 +6100,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
@@ -5488,6 +6111,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5498,9 +6122,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[5].MUX">IM[5].MUX</th>
 <th>0.5.0</th>
@@ -5512,7 +6141,9 @@ xa2c32a-7
 <th>0.5.12</th>
 <th>0.5.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC5</td>
 <td>0</td>
@@ -5524,6 +6155,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC15</td>
 <td>1</td>
 <td>0</td>
@@ -5534,6 +6166,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC14</td>
 <td>1</td>
 <td>1</td>
@@ -5544,6 +6177,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC7</td>
 <td>1</td>
 <td>1</td>
@@ -5554,6 +6188,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC1</td>
 <td>1</td>
 <td>1</td>
@@ -5564,6 +6199,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC7</td>
 <td>1</td>
 <td>1</td>
@@ -5574,6 +6210,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5584,9 +6221,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[6].MUX">IM[6].MUX</th>
 <th>0.6.0</th>
@@ -5598,7 +6240,9 @@ xa2c32a-7
 <th>0.6.12</th>
 <th>0.6.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC6</td>
 <td>0</td>
@@ -5610,6 +6254,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IPAD0</td>
 <td>1</td>
 <td>0</td>
@@ -5620,6 +6265,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC4</td>
 <td>1</td>
 <td>1</td>
@@ -5630,6 +6276,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC0</td>
 <td>1</td>
 <td>1</td>
@@ -5640,6 +6287,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC3</td>
 <td>1</td>
 <td>1</td>
@@ -5650,6 +6298,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC13</td>
 <td>1</td>
 <td>1</td>
@@ -5660,6 +6309,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5670,9 +6320,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[7].MUX">IM[7].MUX</th>
 <th>0.7.0</th>
@@ -5684,7 +6339,9 @@ xa2c32a-7
 <th>0.7.12</th>
 <th>0.7.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC7</td>
 <td>0</td>
@@ -5696,6 +6353,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC0</td>
 <td>1</td>
 <td>0</td>
@@ -5706,6 +6364,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
@@ -5716,6 +6375,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
@@ -5726,6 +6386,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC12</td>
 <td>1</td>
 <td>1</td>
@@ -5736,6 +6397,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
@@ -5746,6 +6408,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5756,9 +6419,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[8].MUX">IM[8].MUX</th>
 <th>0.8.0</th>
@@ -5770,7 +6438,9 @@ xa2c32a-7
 <th>0.8.12</th>
 <th>0.8.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC8</td>
 <td>0</td>
@@ -5782,6 +6452,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC1</td>
 <td>1</td>
 <td>0</td>
@@ -5792,6 +6463,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC8</td>
 <td>1</td>
 <td>1</td>
@@ -5802,6 +6474,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC6</td>
 <td>1</td>
 <td>1</td>
@@ -5812,6 +6485,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC10</td>
 <td>1</td>
 <td>1</td>
@@ -5822,6 +6496,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC8</td>
 <td>1</td>
 <td>1</td>
@@ -5832,6 +6507,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5842,9 +6518,14 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-imux-IM[9].MUX">IM[9].MUX</th>
 <th>0.9.0</th>
@@ -5856,7 +6537,9 @@ xa2c32a-7
 <th>0.9.12</th>
 <th>0.9.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IOB_C0B0MC9</td>
 <td>0</td>
@@ -5868,6 +6551,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5878,6 +6562,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC7</td>
 <td>1</td>
 <td>1</td>
@@ -5888,6 +6573,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC4</td>
 <td>1</td>
 <td>1</td>
@@ -5898,6 +6584,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC2</td>
 <td>1</td>
 <td>1</td>
@@ -5908,6 +6595,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
@@ -5918,6 +6606,7 @@ xa2c32a-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
@@ -5928,13 +6617,19 @@ xa2c32a-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="macrocell-bits"><a class="header" href="#macrocell-bits">Macrocell bits</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc2c32a mc bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="9">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5946,7 +6641,9 @@ xa2c32a-7
 <th>7</th>
 <th>8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
@@ -5977,6 +6674,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-mc-SET_MUX">SET_MUX[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.1.0">
 <a href="#tile-xc2c32a-mc-REG_MODE">REG_MODE[0]</a>
@@ -6006,6 +6704,7 @@ xa2c32a-7
 <a href="#tile-xc2c32a-mc-XOR_MUX">XOR_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.2.0">
 <a href="#tile-xc2c32a-mc-XOR_MUX">XOR_MUX[1]</a>
@@ -6035,154 +6734,221 @@ xa2c32a-7
 <a href="#tile-xc2c32a-mc-REG_INIT">~REG_INIT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-CLK_DDR">CLK_DDR</th>
 <th>0.0.4</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-mc-CLK_INV">CLK_INV</th>
 <th>0.0.1</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-mc-IOB_TERM_ENABLE">IOB_TERM_ENABLE</th>
 <th>0.2.6</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-CLK_MUX">CLK_MUX</th>
 <th>0.0.3</th>
 <th>0.0.2</th>
 <th>0.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>FCLK1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>FCLK2</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>PT</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CT4</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-IBUF_MODE">IBUF_MODE</th>
 <th>0.1.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PLAIN</td>
 <td>0</td>
 </tr>
+
 <tr><td>SCHMITT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-IOB_SLEW">IOB_SLEW</th>
 <th>0.2.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FAST</td>
 <td>0</td>
 </tr>
+
 <tr><td>SLOW</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-IOB_ZIA_MUX">IOB_ZIA_MUX</th>
 <th>0.1.3</th>
 <th>0.1.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IBUF</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>REG</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-MC_IOB_MUX">MC_IOB_MUX</th>
 <th>0.2.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>REG</td>
 <td>0</td>
 </tr>
+
 <tr><td>XOR</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-MC_ZIA_MUX">MC_ZIA_MUX</th>
 <th>0.1.5</th>
 <th>0.1.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>XOR</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>REG</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-OE_MUX">OE_MUX</th>
 <th>0.2.5</th>
@@ -6190,7 +6956,9 @@ non-inverted
 <th>0.2.3</th>
 <th>0.2.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>VCC</td>
 <td>0</td>
@@ -6198,319 +6966,422 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CT7</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PT</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>FOE0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>FOE1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>FOE2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>FOE3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IS_GND</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>OPEN_DRAIN</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GND</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-REG_D_MUX">REG_D_MUX</th>
 <th>0.1.6</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IBUF</td>
 <td>0</td>
 </tr>
+
 <tr><td>XOR</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-REG_INIT">REG_INIT</th>
 <th>0.2.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-REG_MODE">REG_MODE</th>
 <th>0.1.1</th>
 <th>0.1.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DFF</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>TFF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>LATCH</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DFFCE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-RST_MUX">RST_MUX</th>
 <th>0.0.6</th>
 <th>0.0.5</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PT</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CT5</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>FSR</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>GND</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-SET_MUX">SET_MUX</th>
 <th>0.0.8</th>
 <th>0.0.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PT</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CT6</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>FSR</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>GND</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-mc-XOR_MUX">XOR_MUX</th>
 <th>0.2.0</th>
 <th>0.1.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GND</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>PT</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PT_INV</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="jed-mapping"><a class="header" href="#jed-mapping">JED mapping</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr>
 <th>JED offset</th>
 <th>Bit</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr>
 <td>0</td>
 <td><a href="#tile-xc2c32a-mc-CLK_MUX">CLK_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>1</td>
 <td><a href="#tile-xc2c32a-mc-CLK_INV">CLK_INV</a></td>
 </tr>
+
 <tr>
 <td>2</td>
 <td><a href="#tile-xc2c32a-mc-CLK_MUX">CLK_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>3</td>
 <td><a href="#tile-xc2c32a-mc-CLK_MUX">CLK_MUX[2]</a></td>
 </tr>
+
 <tr>
 <td>4</td>
 <td><a href="#tile-xc2c32a-mc-CLK_DDR">CLK_DDR</a></td>
 </tr>
+
 <tr>
 <td>5</td>
 <td><a href="#tile-xc2c32a-mc-RST_MUX">RST_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>6</td>
 <td><a href="#tile-xc2c32a-mc-RST_MUX">RST_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>7</td>
 <td><a href="#tile-xc2c32a-mc-SET_MUX">SET_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>8</td>
 <td><a href="#tile-xc2c32a-mc-SET_MUX">SET_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>9</td>
 <td><a href="#tile-xc2c32a-mc-REG_MODE">REG_MODE[0]</a></td>
 </tr>
+
 <tr>
 <td>10</td>
 <td><a href="#tile-xc2c32a-mc-REG_MODE">REG_MODE[1]</a></td>
 </tr>
+
 <tr>
 <td>11</td>
 <td><a href="#tile-xc2c32a-mc-IOB_ZIA_MUX">IOB_ZIA_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>12</td>
 <td><a href="#tile-xc2c32a-mc-IOB_ZIA_MUX">IOB_ZIA_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>13</td>
 <td><a href="#tile-xc2c32a-mc-MC_ZIA_MUX">MC_ZIA_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>14</td>
 <td><a href="#tile-xc2c32a-mc-MC_ZIA_MUX">MC_ZIA_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>15</td>
 <td><a href="#tile-xc2c32a-mc-REG_D_MUX">REG_D_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>16</td>
 <td><a href="#tile-xc2c32a-mc-IBUF_MODE">IBUF_MODE[0]</a></td>
 </tr>
+
 <tr>
 <td>17</td>
 <td><a href="#tile-xc2c32a-mc-XOR_MUX">XOR_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>18</td>
 <td><a href="#tile-xc2c32a-mc-XOR_MUX">XOR_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>19</td>
 <td><a href="#tile-xc2c32a-mc-MC_IOB_MUX">MC_IOB_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>20</td>
 <td><a href="#tile-xc2c32a-mc-OE_MUX">OE_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>21</td>
 <td><a href="#tile-xc2c32a-mc-OE_MUX">OE_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>22</td>
 <td><a href="#tile-xc2c32a-mc-OE_MUX">OE_MUX[2]</a></td>
 </tr>
+
 <tr>
 <td>23</td>
 <td><a href="#tile-xc2c32a-mc-OE_MUX">OE_MUX[3]</a></td>
 </tr>
+
 <tr>
 <td>24</td>
 <td><a href="#tile-xc2c32a-mc-IOB_TERM_ENABLE">IOB_TERM_ENABLE</a></td>
 </tr>
+
 <tr>
 <td>25</td>
 <td><a href="#tile-xc2c32a-mc-IOB_SLEW">IOB_SLEW[0]</a></td>
 </tr>
+
 <tr>
 <td>26</td>
 <td><a href="#tile-xc2c32a-mc-REG_INIT">REG_INIT</a></td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="global-bits"><a class="header" href="#global-bits">Global bits</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc2c32a global bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="250">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -6763,7 +7634,9 @@ inverted
 <th>248</th>
 <th>249</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -7017,6 +7890,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7269,6 +8143,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -7521,6 +8396,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -7773,6 +8649,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -8025,6 +8902,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -8277,6 +9155,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -8529,6 +9408,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -8781,6 +9661,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -9033,6 +9914,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -9285,6 +10167,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -9537,6 +10420,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -9789,6 +10673,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -10041,6 +10926,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -10293,6 +11179,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -10545,6 +11432,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -10797,6 +11685,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -11049,6 +11938,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -11301,6 +12191,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -11553,6 +12444,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -11805,6 +12697,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -12057,6 +12950,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -12309,6 +13203,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -12561,6 +13456,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -12825,6 +13721,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -13091,6 +13988,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -13361,6 +14259,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -13613,6 +14512,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -13865,6 +14765,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -14117,6 +15018,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -14369,6 +15271,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -14621,6 +15524,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -14873,6 +15777,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -15125,6 +16030,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -15377,6 +16283,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -15629,6 +16536,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -15881,6 +16789,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -16133,6 +17042,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -16385,6 +17295,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -16637,6 +17548,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -16889,6 +17801,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -17141,6 +18054,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -17393,6 +18307,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -17645,6 +18560,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -17897,6 +18813,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -18149,6 +19066,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -18401,6 +19319,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -18653,6 +19572,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -18905,6 +19825,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td title="0.48.1">
@@ -19167,6 +20088,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -19483,135 +20405,193 @@ inverted
 <a href="#tile-xc2c32a-global-USERCODE">USERCODE[31]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-BANK0_IBUF_VOLT">BANK0_IBUF_VOLT</th>
 <th>0.25.131</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-BANK0_OBUF_VOLT">BANK0_OBUF_VOLT</th>
 <th>0.25.132</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-BANK1_IBUF_VOLT">BANK1_IBUF_VOLT</th>
 <th>0.25.133</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-BANK1_OBUF_VOLT">BANK1_OBUF_VOLT</th>
 <th>0.25.134</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-IBUF_VOLT">IBUF_VOLT</th>
 <th>0.25.130</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-OBUF_VOLT">OBUF_VOLT</th>
 <th>0.24.130</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HIGH</td>
 <td>0</td>
 </tr>
+
 <tr><td>LOW</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-DONE">DONE</th>
 <th>0.48.9</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-FSR_INV">FSR_INV</th>
 <th>0.23.129</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-FCLK0_ENABLE">FCLK0_ENABLE</th>
 <th>0.23.126</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-FCLK1_ENABLE">FCLK1_ENABLE</th>
 <th>0.23.127</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-FCLK2_ENABLE">FCLK2_ENABLE</th>
 <th>0.23.128</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-FSR_ENABLE">FSR_ENABLE</th>
 <th>0.23.130</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-IPAD0_TERM_ENABLE">IPAD0_TERM_ENABLE</th>
 <th>0.24.132</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-FOE0_MUX">FOE0_MUX</th>
 <th>0.24.127</th>
 <th>0.24.126</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-FOE1_MUX">FOE1_MUX</th>
 <th>0.24.129</th>
 <th>0.24.128</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-FOE2_MUX">FOE2_MUX</th>
 <th>0.25.127</th>
 <th>0.25.126</th>
 </tr>
+
 <tr><th id="tile-xc2c32a-global-FOE3_MUX">FOE3_MUX</th>
 <th>0.25.129</th>
 <th>0.25.128</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>IBUF_INV</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IBUF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-IPAD0_IBUF_MODE">IPAD0_IBUF_MODE</th>
 <th>0.24.131</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PLAIN</td>
 <td>0</td>
 </tr>
+
 <tr><td>SCHMITT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-READ_PROT">READ_PROT</th>
 <th>0.48.1</th>
@@ -19619,7 +20599,9 @@ non-inverted
 <th>0.48.5</th>
 <th>0.48.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
@@ -19629,24 +20611,37 @@ inverted
 <td>~[1]</td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-TERM_MODE">TERM_MODE</th>
 <th>0.23.131</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>KEEPER</td>
 <td>0</td>
 </tr>
+
 <tr><td>PULLUP</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc2c32a-global-USERCODE">USERCODE</th>
 <th>0.49.249</th>
@@ -19682,7 +20677,9 @@ inverted
 <th>0.49.219</th>
 <th>0.49.218</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -19720,118 +20717,150 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="jed-mapping-1"><a class="header" href="#jed-mapping-1">JED mapping</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr>
 <th>JED offset</th>
 <th>Bit</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr>
 <td>0</td>
 <td><a href="#tile-xc2c32a-global-FCLK0_ENABLE">FCLK0_ENABLE</a></td>
 </tr>
+
 <tr>
 <td>1</td>
 <td><a href="#tile-xc2c32a-global-FCLK1_ENABLE">FCLK1_ENABLE</a></td>
 </tr>
+
 <tr>
 <td>2</td>
 <td><a href="#tile-xc2c32a-global-FCLK2_ENABLE">FCLK2_ENABLE</a></td>
 </tr>
+
 <tr>
 <td>3</td>
 <td><a href="#tile-xc2c32a-global-FSR_INV">FSR_INV</a></td>
 </tr>
+
 <tr>
 <td>4</td>
 <td><a href="#tile-xc2c32a-global-FSR_ENABLE">FSR_ENABLE</a></td>
 </tr>
+
 <tr>
 <td>5</td>
 <td><a href="#tile-xc2c32a-global-FOE0_MUX">FOE0_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>6</td>
 <td><a href="#tile-xc2c32a-global-FOE0_MUX">FOE0_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>7</td>
 <td><a href="#tile-xc2c32a-global-FOE1_MUX">FOE1_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>8</td>
 <td><a href="#tile-xc2c32a-global-FOE1_MUX">FOE1_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>9</td>
 <td><a href="#tile-xc2c32a-global-FOE2_MUX">FOE2_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>10</td>
 <td><a href="#tile-xc2c32a-global-FOE2_MUX">FOE2_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>11</td>
 <td><a href="#tile-xc2c32a-global-FOE3_MUX">FOE3_MUX[0]</a></td>
 </tr>
+
 <tr>
 <td>12</td>
 <td><a href="#tile-xc2c32a-global-FOE3_MUX">FOE3_MUX[1]</a></td>
 </tr>
+
 <tr>
 <td>13</td>
 <td><a href="#tile-xc2c32a-global-TERM_MODE">TERM_MODE[0]</a></td>
 </tr>
+
 <tr>
 <td>14</td>
 <td><a href="#tile-xc2c32a-global-OBUF_VOLT">OBUF_VOLT[0]</a></td>
 </tr>
+
 <tr>
 <td>15</td>
 <td><a href="#tile-xc2c32a-global-IBUF_VOLT">IBUF_VOLT[0]</a></td>
 </tr>
+
 <tr>
 <td>16</td>
 <td><a href="#tile-xc2c32a-global-IPAD0_IBUF_MODE">IPAD0_IBUF_MODE[0]</a></td>
 </tr>
+
 <tr>
 <td>17</td>
 <td><a href="#tile-xc2c32a-global-IPAD0_TERM_ENABLE">IPAD0_TERM_ENABLE</a></td>
 </tr>
+
 <tr>
 <td>18</td>
 <td><a href="#tile-xc2c32a-global-BANK0_IBUF_VOLT">BANK0_IBUF_VOLT[0]</a></td>
 </tr>
+
 <tr>
 <td>19</td>
 <td><a href="#tile-xc2c32a-global-BANK0_OBUF_VOLT">BANK0_OBUF_VOLT[0]</a></td>
 </tr>
+
 <tr>
 <td>20</td>
 <td><a href="#tile-xc2c32a-global-BANK1_IBUF_VOLT">BANK1_IBUF_VOLT[0]</a></td>
 </tr>
+
 <tr>
 <td>21</td>
 <td><a href="#tile-xc2c32a-global-BANK1_OBUF_VOLT">BANK1_OBUF_VOLT[0]</a></td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../../coolrunner2/devices/xc2c32.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../../coolrunner2/devices/xc2c64.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -19841,16 +20870,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../../coolrunner2/devices/xc2c32.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../../coolrunner2/devices/xc2c64.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -19860,9 +20894,9 @@ non-inverted
 
 
 
-        <script src="../../clipboard.min.js"></script>
-        <script src="../../highlight.js"></script>
-        <script src="../../book.js"></script>
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

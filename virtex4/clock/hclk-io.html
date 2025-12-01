@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../../favicon.svg">
-        <link rel="shortcut icon" href="../../favicon.png">
-        <link rel="stylesheet" href="../../css/variables.css">
-        <link rel="stylesheet" href="../../css/general.css">
-        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../../fonts/fonts.css">
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../../custom.css">
+        <link rel="stylesheet" href="../../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc.js"></script>
+        <script src="../../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,124 +142,203 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="clock-io-and-dcm-buffers"><a class="header" href="#clock-io-and-dcm-buffers">Clock I/O and DCM buffers</a></h1>
 <h2 id="tile-hclk_iois_lvds"><a class="header" href="#tile-hclk_iois_lvds">Tile HCLK_IOIS_LVDS</a></h2>
 <p>Cells: 3</p>
 <h3 id="bel-ioclk"><a class="header" href="#bel-ioclk">Bel IOCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel IOCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-rclk"><a class="header" href="#bel-rclk">Bel RCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel RCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+
 <tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.BYP4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufr0"><a class="header" href="#bel-bufr0">Bel BUFR0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel BUFR0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL2:IMUX.BYP0</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>TCELL2:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufr1"><a class="header" href="#bel-bufr1">Bel BUFR1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel BUFR1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio0"><a class="header" href="#bel-bufio0">Bel BUFIO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel BUFIO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio1"><a class="header" href="#bel-bufio1">Bel BUFIO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel BUFIO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-idelayctrl"><a class="header" href="#bel-idelayctrl">Bel IDELAYCTRL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel IDELAYCTRL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+
 <tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL1:IMUX.BYP0</td><td>BUFR1.CE</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP2</td><td>BUFR1.CLR</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP4</td><td>RCLK.CKINT0</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP0</td><td>BUFR0.CE</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP2</td><td>BUFR0.CLR</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP4</td><td>RCLK.CKINT1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_LVDS bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="26">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -289,7 +367,9 @@
 <th>24</th>
 <th>25</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td>-</td>
@@ -347,6 +427,7 @@
 <a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -405,6 +486,7 @@
 <a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[2]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -463,6 +545,7 @@
 <a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[1]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -515,6 +598,7 @@
 <a href="#tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0[3]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -543,6 +627,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -571,6 +656,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -599,6 +685,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -627,6 +714,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -655,6 +743,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -683,6 +772,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -711,6 +801,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -739,6 +830,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -767,6 +859,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -795,6 +888,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -823,6 +917,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -851,9 +946,14 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE</th>
 <th>0.14.14</th>
@@ -861,13 +961,16 @@
 <th>0.14.12</th>
 <th>0.14.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE</th>
 <th>0.22.14</th>
 <th>0.22.13</th>
 <th>0.22.12</th>
 <th>0.22.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td>
 <td>0</td>
@@ -875,206 +978,269 @@
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>3</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>4</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>5</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>6</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>7</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>8</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR0:ENABLE">BUFR0:ENABLE</th>
 <th>0.21.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR1:ENABLE">BUFR1:ENABLE</th>
 <th>0.21.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
 <th>0.11.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
 <th>0.7.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
 <th>0.7.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
 <th>0.7.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
 <th>0.7.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
 <th>0.8.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
 <th>0.8.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
 <th>0.17.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
 <th>0.17.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
 <th>0.17.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
 <th>0.17.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
 <th>0.21.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
 <th>0.24.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
 <th>0.16.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
 <th>0.16.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR0:MUX.I">BUFR0:MUX.I</th>
 <th>0.19.15</th>
 <th>0.19.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-BUFR1:MUX.I">BUFR1:MUX.I</th>
 <th>0.19.12</th>
 <th>0.19.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>BUFIO0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CKINT0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CKINT1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
 <th>0.24.14</th>
 <th>0.24.13</th>
 <th>0.24.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK7</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
 <th>0.20.13</th>
@@ -1082,7 +1248,9 @@ non-inverted
 <th>0.15.14</th>
 <th>0.15.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1092,9 +1260,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-LVDS:LVDSBIAS">LVDS:LVDSBIAS</th>
 <th>0.3.12</th>
@@ -1108,7 +1281,9 @@ non-inverted
 <th>0.5.14</th>
 <th>0.5.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1124,9 +1299,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0</th>
 <th>0.25.12</th>
@@ -1134,13 +1314,16 @@ non-inverted
 <th>0.25.13</th>
 <th>0.25.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_LVDS-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1</th>
 <th>0.23.12</th>
 <th>0.23.14</th>
 <th>0.23.13</th>
 <th>0.23.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -1148,193 +1331,320 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>VRCLK_N0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK_S0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK_N1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK_S1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hclk_iois_dci"><a class="header" href="#tile-hclk_iois_dci">Tile HCLK_IOIS_DCI</a></h2>
 <p>Cells: 3</p>
 <h3 id="bel-ioclk-1"><a class="header" href="#bel-ioclk-1">Bel IOCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel IOCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-rclk-1"><a class="header" href="#bel-rclk-1">Bel RCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel RCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CKINT0</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+
 <tr><td>CKINT1</td><td>input</td><td>TCELL2:IMUX.BYP4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufr0-1"><a class="header" href="#bel-bufr0-1">Bel BUFR0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel BUFR0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL2:IMUX.BYP0</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>TCELL2:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufr1-1"><a class="header" href="#bel-bufr1-1">Bel BUFR1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel BUFR1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+
 <tr><td>CLR</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio0-1"><a class="header" href="#bel-bufio0-1">Bel BUFIO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel BUFIO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio1-1"><a class="header" href="#bel-bufio1-1">Bel BUFIO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel BUFIO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-idelayctrl-1"><a class="header" href="#bel-idelayctrl-1">Bel IDELAYCTRL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel IDELAYCTRL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+
 <tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dci"><a class="header" href="#bel-dci">Bel DCI</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel DCI</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCIADDRESS0</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIADDRESS1</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>DCIADDRESS2</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDATA</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDONE</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>DCISCLK</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>TSTCLK</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+
 <tr><td>TSTHLN</td><td>input</td><td>TCELL0:IMUX.BYP4</td></tr>
+
 <tr><td>TSTHLP</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+
 <tr><td>TSTRST</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP4</td><td>DCI.TSTHLN</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP7</td><td>DCI.TSTHLP</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP0</td><td>BUFR1.CE</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP2</td><td>BUFR1.CLR</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP4</td><td>RCLK.CKINT0</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP0</td><td>BUFR0.CE</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP2</td><td>BUFR0.CLR</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP4</td><td>RCLK.CKINT1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOIS_DCI bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1365,7 +1675,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td title="0.0.15">
@@ -1435,6 +1747,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NREF">DCI:NREF[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:ENABLE">DCI:ENABLE</a>
@@ -1503,6 +1816,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:LVDIV2">DCI:LVDIV2[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td title="0.1.13">
@@ -1569,6 +1883,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:LVDIV2">DCI:LVDIV2[0]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td title="0.1.12">
@@ -1633,6 +1948,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_IOIS_DCI-DCI:NREF">DCI:NREF[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -1663,6 +1979,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -1693,6 +2010,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -1723,6 +2041,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -1753,6 +2072,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1783,6 +2103,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1813,6 +2134,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1843,6 +2165,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1873,6 +2196,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1903,6 +2227,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1933,6 +2258,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1963,6 +2289,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1993,9 +2320,14 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR0:BUFR_DIVIDE">BUFR0:BUFR_DIVIDE</th>
 <th>0.14.14</th>
@@ -2003,13 +2335,16 @@ non-inverted
 <th>0.14.12</th>
 <th>0.14.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR1:BUFR_DIVIDE">BUFR1:BUFR_DIVIDE</th>
 <th>0.22.14</th>
 <th>0.22.13</th>
 <th>0.22.12</th>
 <th>0.22.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td>
 <td>0</td>
@@ -2017,175 +2352,230 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>3</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>4</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>5</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>6</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>7</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>8</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR0:ENABLE">BUFR0:ENABLE</th>
 <th>0.21.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR1:ENABLE">BUFR1:ENABLE</th>
 <th>0.21.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:ENABLE">DCI:ENABLE</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:QUIET">DCI:QUIET</th>
 <th>0.5.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
 <th>0.11.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
 <th>0.7.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
 <th>0.7.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
 <th>0.7.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
 <th>0.7.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
 <th>0.8.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
 <th>0.8.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
 <th>0.17.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
 <th>0.17.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
 <th>0.17.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
 <th>0.17.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
 <th>0.21.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
 <th>0.24.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
 <th>0.16.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
 <th>0.16.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR0:MUX.I">BUFR0:MUX.I</th>
 <th>0.19.15</th>
 <th>0.19.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-BUFR1:MUX.I">BUFR1:MUX.I</th>
 <th>0.19.12</th>
 <th>0.19.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>BUFIO0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CKINT0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CKINT1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:LVDIV2">DCI:LVDIV2</th>
 <th>0.27.14</th>
 <th>0.27.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:NREF">DCI:NREF</th>
 <th>0.27.12</th>
 <th>0.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
 <th>0.5.13</th>
 <th>0.0.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -2193,9 +2583,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
 <th>0.10.12</th>
@@ -2204,6 +2599,7 @@ non-inverted
 <th>0.12.13</th>
 <th>0.12.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
 <th>0.11.15</th>
 <th>0.10.15</th>
@@ -2211,6 +2607,7 @@ non-inverted
 <th>0.10.14</th>
 <th>0.10.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
 <th>0.2.12</th>
 <th>0.4.15</th>
@@ -2218,7 +2615,9 @@ non-inverted
 <th>0.4.13</th>
 <th>0.4.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -2229,9 +2628,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-DCI:PREF">DCI:PREF</th>
 <th>0.1.12</th>
@@ -2239,13 +2643,16 @@ non-inverted
 <th>0.1.14</th>
 <th>0.1.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
 <th>0.20.13</th>
 <th>0.15.15</th>
 <th>0.15.14</th>
 <th>0.15.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -2255,60 +2662,79 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
 <th>0.24.14</th>
 <th>0.24.13</th>
 <th>0.24.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK7</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK0">RCLK:MUX.RCLK0</th>
 <th>0.25.12</th>
@@ -2316,13 +2742,16 @@ non-inverted
 <th>0.25.13</th>
 <th>0.25.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOIS_DCI-RCLK:MUX.RCLK1">RCLK:MUX.RCLK1</th>
 <th>0.23.12</th>
 <th>0.23.14</th>
 <th>0.23.13</th>
 <th>0.23.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -2330,154 +2759,251 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>VRCLK_N0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK_S0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK_N1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>VRCLK_S1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hclk_center"><a class="header" href="#tile-hclk_center">Tile HCLK_CENTER</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-ioclk-2"><a class="header" href="#bel-ioclk-2">Bel IOCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER bel IOCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio0-2"><a class="header" href="#bel-bufio0-2">Bel BUFIO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER bel BUFIO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio1-2"><a class="header" href="#bel-bufio1-2">Bel BUFIO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER bel BUFIO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-idelayctrl-2"><a class="header" href="#bel-idelayctrl-2">Bel IDELAYCTRL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER bel IDELAYCTRL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+
 <tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dci-1"><a class="header" href="#bel-dci-1">Bel DCI</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER bel DCI</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCIADDRESS0</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIADDRESS1</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>DCIADDRESS2</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDATA</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDONE</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>DCISCLK</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>TSTCLK</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+
 <tr><td>TSTHLN</td><td>input</td><td>TCELL0:IMUX.BYP4</td></tr>
+
 <tr><td>TSTHLP</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+
 <tr><td>TSTRST</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP4</td><td>DCI.TSTHLN</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP7</td><td>DCI.TSTHLP</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2508,7 +3034,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td title="0.0.15">
@@ -2568,6 +3096,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER-DCI:NREF">DCI:NREF[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-virtex4-HCLK_CENTER-DCI:ENABLE">DCI:ENABLE</a>
@@ -2624,6 +3153,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER-DCI:LVDIV2">DCI:LVDIV2[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</a>
@@ -2680,6 +3210,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER-DCI:LVDIV2">DCI:LVDIV2[0]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_BELOW">DCI:CASCADE_FROM_BELOW</a>
@@ -2736,6 +3267,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER-DCI:NREF">DCI:NREF[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -2766,6 +3298,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -2796,6 +3329,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -2826,6 +3360,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -2856,6 +3391,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2886,6 +3422,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2916,6 +3453,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2946,6 +3484,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2976,6 +3515,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3006,6 +3546,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3036,6 +3577,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3066,6 +3608,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -3096,97 +3639,133 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</th>
 <th>0.0.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:CASCADE_FROM_BELOW">DCI:CASCADE_FROM_BELOW</th>
 <th>0.0.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:ENABLE">DCI:ENABLE</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:QUIET">DCI:QUIET</th>
 <th>0.5.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
 <th>0.11.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
 <th>0.7.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
 <th>0.7.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
 <th>0.7.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
 <th>0.7.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
 <th>0.8.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
 <th>0.8.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
 <th>0.17.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
 <th>0.17.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
 <th>0.17.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
 <th>0.17.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
 <th>0.21.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
 <th>0.24.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
 <th>0.16.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
 <th>0.16.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:LVDIV2">DCI:LVDIV2</th>
 <th>0.27.14</th>
 <th>0.27.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:NREF">DCI:NREF</th>
 <th>0.27.12</th>
 <th>0.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
 <th>0.5.13</th>
 <th>0.0.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3194,9 +3773,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
 <th>0.10.12</th>
@@ -3205,6 +3789,7 @@ non-inverted
 <th>0.12.13</th>
 <th>0.12.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
 <th>0.11.15</th>
 <th>0.10.15</th>
@@ -3212,6 +3797,7 @@ non-inverted
 <th>0.10.14</th>
 <th>0.10.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
 <th>0.2.12</th>
 <th>0.4.15</th>
@@ -3219,7 +3805,9 @@ non-inverted
 <th>0.4.13</th>
 <th>0.4.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3230,9 +3818,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER-DCI:PREF">DCI:PREF</th>
 <th>0.1.12</th>
@@ -3240,13 +3833,16 @@ non-inverted
 <th>0.1.14</th>
 <th>0.1.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
 <th>0.20.13</th>
 <th>0.15.15</th>
 <th>0.15.14</th>
 <th>0.15.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3256,169 +3852,274 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
 <th>0.24.14</th>
 <th>0.24.13</th>
 <th>0.24.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK7</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hclk_center_above_cfg"><a class="header" href="#tile-hclk_center_above_cfg">Tile HCLK_CENTER_ABOVE_CFG</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-ioclk-3"><a class="header" href="#bel-ioclk-3">Bel IOCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER_ABOVE_CFG bel IOCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio0-3"><a class="header" href="#bel-bufio0-3">Bel BUFIO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER_ABOVE_CFG bel BUFIO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio1-3"><a class="header" href="#bel-bufio1-3">Bel BUFIO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER_ABOVE_CFG bel BUFIO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-idelayctrl-3"><a class="header" href="#bel-idelayctrl-3">Bel IDELAYCTRL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER_ABOVE_CFG bel IDELAYCTRL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DNPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT0.TMIN, TCELL0:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>OUTN1</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>OUTN65</td><td>output</td><td>TCELL0:OUT.HALF.BOT2.TMIN, TCELL0:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>RDY</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+
 <tr><td>UPPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT1.TMIN, TCELL0:OUT.HALT.TOP1.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dci-2"><a class="header" href="#bel-dci-2">Bel DCI</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER_ABOVE_CFG bel DCI</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCIADDRESS0</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIADDRESS1</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>DCIADDRESS2</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDATA</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDONE</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>DCISCLK</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>TSTCLK</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+
 <tr><td>TSTHLN</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+
 <tr><td>TSTHLP</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+
 <tr><td>TSTRST</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER_ABOVE_CFG bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP4</td><td>DCI.TSTHLP</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP7</td><td>DCI.TSTHLN</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_CENTER_ABOVE_CFG bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3449,7 +4150,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td title="0.0.15">
@@ -3509,6 +4212,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NREF">DCI:NREF[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:ENABLE">DCI:ENABLE</a>
@@ -3565,6 +4269,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:LVDIV2">DCI:LVDIV2[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</a>
@@ -3621,6 +4326,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:LVDIV2">DCI:LVDIV2[0]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td title="0.1.12">
@@ -3675,6 +4381,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NREF">DCI:NREF[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -3705,6 +4412,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -3735,6 +4443,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -3765,6 +4474,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -3795,6 +4505,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -3825,6 +4536,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3855,6 +4567,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3885,6 +4598,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3915,6 +4629,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3945,6 +4660,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3975,6 +4691,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -4005,6 +4722,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -4035,94 +4753,129 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:CASCADE_FROM_ABOVE">DCI:CASCADE_FROM_ABOVE</th>
 <th>0.0.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:ENABLE">DCI:ENABLE</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:QUIET">DCI:QUIET</th>
 <th>0.5.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
 <th>0.11.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
 <th>0.7.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
 <th>0.7.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
 <th>0.7.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
 <th>0.7.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
 <th>0.8.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
 <th>0.8.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
 <th>0.17.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
 <th>0.17.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
 <th>0.17.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
 <th>0.17.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
 <th>0.21.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
 <th>0.24.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
 <th>0.16.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
 <th>0.16.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:LVDIV2">DCI:LVDIV2</th>
 <th>0.27.14</th>
 <th>0.27.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NREF">DCI:NREF</th>
 <th>0.27.12</th>
 <th>0.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
 <th>0.5.13</th>
 <th>0.0.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -4130,9 +4883,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
 <th>0.10.12</th>
@@ -4141,6 +4899,7 @@ non-inverted
 <th>0.12.13</th>
 <th>0.12.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
 <th>0.11.15</th>
 <th>0.10.15</th>
@@ -4148,6 +4907,7 @@ non-inverted
 <th>0.10.14</th>
 <th>0.10.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
 <th>0.2.12</th>
 <th>0.4.15</th>
@@ -4155,7 +4915,9 @@ non-inverted
 <th>0.4.13</th>
 <th>0.4.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -4166,9 +4928,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-DCI:PREF">DCI:PREF</th>
 <th>0.1.12</th>
@@ -4176,13 +4943,16 @@ non-inverted
 <th>0.1.14</th>
 <th>0.1.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
 <th>0.20.13</th>
 <th>0.15.15</th>
 <th>0.15.14</th>
 <th>0.15.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -4192,187 +4962,304 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_CENTER_ABOVE_CFG-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
 <th>0.24.14</th>
 <th>0.24.13</th>
 <th>0.24.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK7</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hclk_iobdcm"><a class="header" href="#tile-hclk_iobdcm">Tile HCLK_IOBDCM</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-ioclk-4"><a class="header" href="#bel-ioclk-4">Bel IOCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel IOCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-hclk_dcm_hrow"><a class="header" href="#bel-hclk_dcm_hrow">Bel HCLK_DCM_HROW</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel HCLK_DCM_HROW</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-hclk_dcm_n"><a class="header" href="#bel-hclk_dcm_n">Bel HCLK_DCM_N</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel HCLK_DCM_N</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio0-4"><a class="header" href="#bel-bufio0-4">Bel BUFIO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel BUFIO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio1-4"><a class="header" href="#bel-bufio1-4">Bel BUFIO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel BUFIO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-idelayctrl-4"><a class="header" href="#bel-idelayctrl-4">Bel IDELAYCTRL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel IDELAYCTRL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DNPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT0.TMIN, TCELL1:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>OUTN1</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>OUTN65</td><td>output</td><td>TCELL1:OUT.HALF.BOT2.TMIN, TCELL1:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>RDY</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+
 <tr><td>UPPULSEOUT</td><td>output</td><td>TCELL1:OUT.HALF.BOT1.TMIN, TCELL1:OUT.HALT.TOP1.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dci-3"><a class="header" href="#bel-dci-3">Bel DCI</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel DCI</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCIADDRESS0</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIADDRESS1</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>DCIADDRESS2</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDATA</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDONE</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>DCISCLK</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>TSTCLK</td><td>input</td><td>TCELL0:IMUX.BYP0</td></tr>
+
 <tr><td>TSTHLN</td><td>input</td><td>TCELL0:IMUX.BYP4</td></tr>
+
 <tr><td>TSTHLP</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+
 <tr><td>TSTRST</td><td>input</td><td>TCELL0:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP4</td><td>DCI.TSTHLN</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP7</td><td>DCI.TSTHLP</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_IOBDCM bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="29">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -4404,7 +5291,9 @@ non-inverted
 <th>27</th>
 <th>28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td title="0.0.15">
@@ -4479,6 +5368,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-virtex4-HCLK_IOBDCM-DCI:ENABLE">DCI:ENABLE</a>
@@ -4552,6 +5442,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td title="0.1.13">
@@ -4625,6 +5516,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U4">HCLK_DCM_N:BUF.GIOB_U4</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td title="0.1.12">
@@ -4696,6 +5588,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U5">HCLK_DCM_N:BUF.GIOB_U5</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4727,6 +5620,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -4758,6 +5652,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -4789,6 +5684,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -4820,6 +5716,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -4851,6 +5748,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -4882,6 +5780,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -4913,6 +5812,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -4944,6 +5844,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -4975,6 +5876,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5006,6 +5908,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5037,6 +5940,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -5068,178 +5972,241 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:ENABLE">DCI:ENABLE</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:QUIET">DCI:QUIET</th>
 <th>0.5.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U0">HCLK_DCM_N:BUF.GIOB_U0</th>
 <th>0.3.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U1">HCLK_DCM_N:BUF.GIOB_U1</th>
 <th>0.21.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U10">HCLK_DCM_N:BUF.GIOB_U10</th>
 <th>0.26.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U11">HCLK_DCM_N:BUF.GIOB_U11</th>
 <th>0.25.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U12">HCLK_DCM_N:BUF.GIOB_U12</th>
 <th>0.25.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U13">HCLK_DCM_N:BUF.GIOB_U13</th>
 <th>0.19.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U14">HCLK_DCM_N:BUF.GIOB_U14</th>
 <th>0.3.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U15">HCLK_DCM_N:BUF.GIOB_U15</th>
 <th>0.3.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U2">HCLK_DCM_N:BUF.GIOB_U2</th>
 <th>0.22.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U3">HCLK_DCM_N:BUF.GIOB_U3</th>
 <th>0.19.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U4">HCLK_DCM_N:BUF.GIOB_U4</th>
 <th>0.28.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U5">HCLK_DCM_N:BUF.GIOB_U5</th>
 <th>0.28.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U6">HCLK_DCM_N:BUF.GIOB_U6</th>
 <th>0.25.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U7">HCLK_DCM_N:BUF.GIOB_U7</th>
 <th>0.23.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U8">HCLK_DCM_N:BUF.GIOB_U8</th>
 <th>0.23.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.GIOB_U9">HCLK_DCM_N:BUF.GIOB_U9</th>
 <th>0.22.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U0">HCLK_DCM_N:BUF.HCLK_U0</th>
 <th>0.21.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U1">HCLK_DCM_N:BUF.HCLK_U1</th>
 <th>0.25.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U2">HCLK_DCM_N:BUF.HCLK_U2</th>
 <th>0.22.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U3">HCLK_DCM_N:BUF.HCLK_U3</th>
 <th>0.14.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U4">HCLK_DCM_N:BUF.HCLK_U4</th>
 <th>0.19.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U5">HCLK_DCM_N:BUF.HCLK_U5</th>
 <th>0.23.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U6">HCLK_DCM_N:BUF.HCLK_U6</th>
 <th>0.22.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.HCLK_U7">HCLK_DCM_N:BUF.HCLK_U7</th>
 <th>0.26.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U0">HCLK_DCM_N:BUF.MGT_U0</th>
 <th>0.14.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U1">HCLK_DCM_N:BUF.MGT_U1</th>
 <th>0.26.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U2">HCLK_DCM_N:BUF.MGT_U2</th>
 <th>0.26.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:BUF.MGT_U3">HCLK_DCM_N:BUF.MGT_U3</th>
 <th>0.23.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON_MGT">HCLK_DCM_N:COMMON_MGT</th>
 <th>0.16.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
 <th>0.11.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
 <th>0.7.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
 <th>0.7.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
 <th>0.7.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
 <th>0.7.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
 <th>0.8.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
 <th>0.8.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
 <th>0.17.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
 <th>0.17.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
 <th>0.17.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
 <th>0.17.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
 <th>0.21.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
 <th>0.24.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
 <th>0.16.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
 <th>0.16.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:LVDIV2">DCI:LVDIV2</th>
 <th>0.27.14</th>
 <th>0.27.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:NREF">DCI:NREF</th>
 <th>0.27.12</th>
 <th>0.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
 <th>0.5.13</th>
 <th>0.0.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -5247,9 +6214,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
 <th>0.10.12</th>
@@ -5258,6 +6230,7 @@ non-inverted
 <th>0.12.13</th>
 <th>0.12.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
 <th>0.11.15</th>
 <th>0.10.15</th>
@@ -5265,6 +6238,7 @@ non-inverted
 <th>0.10.14</th>
 <th>0.10.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
 <th>0.2.12</th>
 <th>0.4.15</th>
@@ -5272,7 +6246,9 @@ non-inverted
 <th>0.4.13</th>
 <th>0.4.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -5283,9 +6259,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOBDCM-DCI:PREF">DCI:PREF</th>
 <th>0.1.12</th>
@@ -5293,13 +6274,16 @@ non-inverted
 <th>0.1.14</th>
 <th>0.1.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
 <th>0.20.13</th>
 <th>0.15.15</th>
 <th>0.15.14</th>
 <th>0.15.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -5309,16 +6293,23 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOBDCM-HCLK_DCM_N:COMMON">HCLK_DCM_N:COMMON</th>
 <th>0.21.13</th>
 <th>0.19.15</th>
 <th>0.14.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -5327,187 +6318,304 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_IOBDCM-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
 <th>0.24.14</th>
 <th>0.24.13</th>
 <th>0.24.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK7</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hclk_dcmiob"><a class="header" href="#tile-hclk_dcmiob">Tile HCLK_DCMIOB</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-ioclk-5"><a class="header" href="#bel-ioclk-5">Bel IOCLK</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel IOCLK</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-hclk_dcm_hrow-1"><a class="header" href="#bel-hclk_dcm_hrow-1">Bel HCLK_DCM_HROW</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel HCLK_DCM_HROW</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-hclk_dcm_s"><a class="header" href="#bel-hclk_dcm_s">Bel HCLK_DCM_S</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel HCLK_DCM_S</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio0-5"><a class="header" href="#bel-bufio0-5">Bel BUFIO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel BUFIO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bufio1-5"><a class="header" href="#bel-bufio1-5">Bel BUFIO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel BUFIO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-idelayctrl-5"><a class="header" href="#bel-idelayctrl-5">Bel IDELAYCTRL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel IDELAYCTRL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DNPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT0.TMIN, TCELL0:OUT.HALT.TOP0.TMIN</td></tr>
+
 <tr><td>OUTN1</td><td>output</td><td>TCELL0:OUT.HALF.BOT3.TMIN, TCELL0:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>OUTN65</td><td>output</td><td>TCELL0:OUT.HALF.BOT2.TMIN, TCELL0:OUT.HALT.TOP2.TMIN</td></tr>
+
 <tr><td>RDY</td><td>output</td><td>TCELL0:OUT.HALF.BOT4.TMIN, TCELL0:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL0:IMUX.BYP7</td></tr>
+
 <tr><td>UPPULSEOUT</td><td>output</td><td>TCELL0:OUT.HALF.BOT1.TMIN, TCELL0:OUT.HALT.TOP1.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dci-4"><a class="header" href="#bel-dci-4">Bel DCI</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel DCI</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCIADDRESS0</td><td>output</td><td>TCELL0:OUT.HALF.BOT5.TMIN, TCELL0:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIADDRESS1</td><td>output</td><td>TCELL0:OUT.HALF.BOT6.TMIN, TCELL0:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>DCIADDRESS2</td><td>output</td><td>TCELL0:OUT.HALF.BOT7.TMIN, TCELL0:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDATA</td><td>output</td><td>TCELL1:OUT.HALF.BOT7.TMIN, TCELL1:OUT.HALT.TOP7.TMIN</td></tr>
+
 <tr><td>DCIDONE</td><td>output</td><td>TCELL1:OUT.HALF.BOT3.TMIN, TCELL1:OUT.HALT.TOP3.TMIN</td></tr>
+
 <tr><td>DCIIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT5.TMIN, TCELL1:OUT.HALT.TOP5.TMIN</td></tr>
+
 <tr><td>DCIREFIOUPDATE</td><td>output</td><td>TCELL1:OUT.HALF.BOT4.TMIN, TCELL1:OUT.HALT.TOP4.TMIN</td></tr>
+
 <tr><td>DCISCLK</td><td>output</td><td>TCELL1:OUT.HALF.BOT6.TMIN, TCELL1:OUT.HALT.TOP6.TMIN</td></tr>
+
 <tr><td>TSTCLK</td><td>input</td><td>TCELL1:IMUX.BYP0</td></tr>
+
 <tr><td>TSTHLN</td><td>input</td><td>TCELL1:IMUX.BYP7</td></tr>
+
 <tr><td>TSTHLP</td><td>input</td><td>TCELL1:IMUX.BYP4</td></tr>
+
 <tr><td>TSTRST</td><td>input</td><td>TCELL1:IMUX.BYP2</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.BYP7</td><td>IDELAYCTRL.RST</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL0:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP0.TMIN</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP1.TMIN</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP2.TMIN</td><td>IDELAYCTRL.OUTN65</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP3.TMIN</td><td>IDELAYCTRL.OUTN1</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP4.TMIN</td><td>IDELAYCTRL.RDY</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIADDRESS0</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP6.TMIN</td><td>DCI.DCIADDRESS1</td></tr>
+
 <tr><td>TCELL0:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIADDRESS2</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP0</td><td>DCI.TSTCLK</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP2</td><td>DCI.TSTRST</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP4</td><td>DCI.TSTHLP</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP7</td><td>DCI.TSTHLN</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL1:OUT.HALF.BOT7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP3.TMIN</td><td>DCI.DCIDONE</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP4.TMIN</td><td>DCI.DCIREFIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP5.TMIN</td><td>DCI.DCIIOUPDATE</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP6.TMIN</td><td>DCI.DCISCLK</td></tr>
+
 <tr><td>TCELL1:OUT.HALT.TOP7.TMIN</td><td>DCI.DCIDATA</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCMIOB bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="29">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5539,7 +6647,9 @@ non-inverted
 <th>27</th>
 <th>28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td title="0.0.15">
@@ -5614,6 +6724,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-virtex4-HCLK_DCMIOB-DCI:ENABLE">DCI:ENABLE</a>
@@ -5687,6 +6798,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td title="0.1.13">
@@ -5760,6 +6872,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D4">HCLK_DCM_S:BUF.GIOB_D4</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td title="0.1.12">
@@ -5831,6 +6944,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D5">HCLK_DCM_S:BUF.GIOB_D5</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -5862,6 +6976,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -5893,6 +7008,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -5924,6 +7040,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -5955,6 +7072,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -5986,6 +7104,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6017,6 +7136,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6048,6 +7168,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6079,6 +7200,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -6110,6 +7232,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -6141,6 +7264,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -6172,6 +7296,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -6203,178 +7328,241 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:ENABLE">DCI:ENABLE</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:QUIET">DCI:QUIET</th>
 <th>0.5.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D0">HCLK_DCM_S:BUF.GIOB_D0</th>
 <th>0.3.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D1">HCLK_DCM_S:BUF.GIOB_D1</th>
 <th>0.21.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D10">HCLK_DCM_S:BUF.GIOB_D10</th>
 <th>0.26.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D11">HCLK_DCM_S:BUF.GIOB_D11</th>
 <th>0.25.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D12">HCLK_DCM_S:BUF.GIOB_D12</th>
 <th>0.25.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D13">HCLK_DCM_S:BUF.GIOB_D13</th>
 <th>0.19.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D14">HCLK_DCM_S:BUF.GIOB_D14</th>
 <th>0.3.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D15">HCLK_DCM_S:BUF.GIOB_D15</th>
 <th>0.3.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D2">HCLK_DCM_S:BUF.GIOB_D2</th>
 <th>0.22.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D3">HCLK_DCM_S:BUF.GIOB_D3</th>
 <th>0.19.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D4">HCLK_DCM_S:BUF.GIOB_D4</th>
 <th>0.28.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D5">HCLK_DCM_S:BUF.GIOB_D5</th>
 <th>0.28.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D6">HCLK_DCM_S:BUF.GIOB_D6</th>
 <th>0.25.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D7">HCLK_DCM_S:BUF.GIOB_D7</th>
 <th>0.23.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D8">HCLK_DCM_S:BUF.GIOB_D8</th>
 <th>0.23.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.GIOB_D9">HCLK_DCM_S:BUF.GIOB_D9</th>
 <th>0.22.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D0">HCLK_DCM_S:BUF.HCLK_D0</th>
 <th>0.21.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D1">HCLK_DCM_S:BUF.HCLK_D1</th>
 <th>0.25.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D2">HCLK_DCM_S:BUF.HCLK_D2</th>
 <th>0.22.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D3">HCLK_DCM_S:BUF.HCLK_D3</th>
 <th>0.14.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D4">HCLK_DCM_S:BUF.HCLK_D4</th>
 <th>0.19.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D5">HCLK_DCM_S:BUF.HCLK_D5</th>
 <th>0.23.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D6">HCLK_DCM_S:BUF.HCLK_D6</th>
 <th>0.22.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.HCLK_D7">HCLK_DCM_S:BUF.HCLK_D7</th>
 <th>0.26.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D0">HCLK_DCM_S:BUF.MGT_D0</th>
 <th>0.14.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D1">HCLK_DCM_S:BUF.MGT_D1</th>
 <th>0.26.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D2">HCLK_DCM_S:BUF.MGT_D2</th>
 <th>0.26.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:BUF.MGT_D3">HCLK_DCM_S:BUF.MGT_D3</th>
 <th>0.23.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON_MGT">HCLK_DCM_S:COMMON_MGT</th>
 <th>0.16.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:ENABLE">IDELAYCTRL:ENABLE</th>
 <th>0.11.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK0">IOCLK:BUF.HCLK0</th>
 <th>0.7.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK1">IOCLK:BUF.HCLK1</th>
 <th>0.7.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK2">IOCLK:BUF.HCLK2</th>
 <th>0.7.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK3">IOCLK:BUF.HCLK3</th>
 <th>0.7.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK4">IOCLK:BUF.HCLK4</th>
 <th>0.8.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK5">IOCLK:BUF.HCLK5</th>
 <th>0.8.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK6">IOCLK:BUF.HCLK6</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.HCLK7">IOCLK:BUF.HCLK7</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_N0">IOCLK:BUF.IOCLK_N0</th>
 <th>0.17.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_N1">IOCLK:BUF.IOCLK_N1</th>
 <th>0.17.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_S0">IOCLK:BUF.IOCLK_S0</th>
 <th>0.17.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.IOCLK_S1">IOCLK:BUF.IOCLK_S1</th>
 <th>0.17.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.RCLK0">IOCLK:BUF.RCLK0</th>
 <th>0.21.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.RCLK1">IOCLK:BUF.RCLK1</th>
 <th>0.24.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.VIOCLK0">IOCLK:BUF.VIOCLK0</th>
 <th>0.16.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:BUF.VIOCLK1">IOCLK:BUF.VIOCLK1</th>
 <th>0.16.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:LVDIV2">DCI:LVDIV2</th>
 <th>0.27.14</th>
 <th>0.27.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:NREF">DCI:NREF</th>
 <th>0.27.12</th>
 <th>0.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:TEST_ENABLE">DCI:TEST_ENABLE</th>
 <th>0.5.13</th>
 <th>0.0.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -6382,9 +7570,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:NMASK_TERM_SPLIT">DCI:NMASK_TERM_SPLIT</th>
 <th>0.10.12</th>
@@ -6393,6 +7586,7 @@ non-inverted
 <th>0.12.13</th>
 <th>0.12.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_SPLIT">DCI:PMASK_TERM_SPLIT</th>
 <th>0.11.15</th>
 <th>0.10.15</th>
@@ -6400,6 +7594,7 @@ non-inverted
 <th>0.10.14</th>
 <th>0.10.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:PMASK_TERM_VCC">DCI:PMASK_TERM_VCC</th>
 <th>0.2.12</th>
 <th>0.4.15</th>
@@ -6407,7 +7602,9 @@ non-inverted
 <th>0.4.13</th>
 <th>0.4.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -6418,9 +7615,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCMIOB-DCI:PREF">DCI:PREF</th>
 <th>0.1.12</th>
@@ -6428,13 +7630,16 @@ non-inverted
 <th>0.1.14</th>
 <th>0.1.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IOCLK:VIOCLK_ENABLE">IOCLK:VIOCLK_ENABLE</th>
 <th>0.20.13</th>
 <th>0.15.15</th>
 <th>0.15.14</th>
 <th>0.15.13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -6444,16 +7649,23 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCMIOB-HCLK_DCM_S:COMMON">HCLK_DCM_S:COMMON</th>
 <th>0.21.13</th>
 <th>0.19.15</th>
 <th>0.14.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -6462,84 +7674,116 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCMIOB-IDELAYCTRL:MUX.REFCLK">IDELAYCTRL:MUX.REFCLK</th>
 <th>0.24.14</th>
 <th>0.24.13</th>
 <th>0.24.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HCLK0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>HCLK6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK7</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hclk_dcm"><a class="header" href="#tile-hclk_dcm">Tile HCLK_DCM</a></h2>
 <p>Cells: 0</p>
 <h3 id="bel-hclk_dcm_hrow-2"><a class="header" href="#bel-hclk_dcm_hrow-2">Bel HCLK_DCM_HROW</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCM bel HCLK_DCM_HROW</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-hclk_dcm"><a class="header" href="#bel-hclk_dcm">Bel HCLK_DCM</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCM bel HCLK_DCM</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-6"><a class="header" href="#bitstream-6">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex4 HCLK_DCM bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -6570,7 +7814,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td>-</td>
@@ -6634,6 +7880,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON">HCLK_DCM:COMMON</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -6694,6 +7941,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_MGT">HCLK_DCM:COMMON_MGT</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -6754,6 +8002,7 @@ non-inverted
 <a href="#tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_HCLK_GIOB">HCLK_DCM:COMMON_HCLK_GIOB[2]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -6814,6 +8063,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -6844,6 +8094,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -6874,6 +8125,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -6904,6 +8156,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -6934,6 +8187,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -6964,6 +8218,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6994,6 +8249,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -7024,6 +8280,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -7054,6 +8311,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -7084,6 +8342,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -7114,6 +8373,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7144,6 +8404,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -7174,201 +8435,272 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D0">HCLK_DCM:BUF.GIOB_D0</th>
 <th>0.20.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D1">HCLK_DCM:BUF.GIOB_D1</th>
 <th>0.24.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D10">HCLK_DCM:BUF.GIOB_D10</th>
 <th>0.3.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D11">HCLK_DCM:BUF.GIOB_D11</th>
 <th>0.3.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D12">HCLK_DCM:BUF.GIOB_D12</th>
 <th>0.10.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D13">HCLK_DCM:BUF.GIOB_D13</th>
 <th>0.10.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D14">HCLK_DCM:BUF.GIOB_D14</th>
 <th>0.11.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D15">HCLK_DCM:BUF.GIOB_D15</th>
 <th>0.11.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D2">HCLK_DCM:BUF.GIOB_D2</th>
 <th>0.23.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D3">HCLK_DCM:BUF.GIOB_D3</th>
 <th>0.22.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D4">HCLK_DCM:BUF.GIOB_D4</th>
 <th>0.20.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D5">HCLK_DCM:BUF.GIOB_D5</th>
 <th>0.24.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D6">HCLK_DCM:BUF.GIOB_D6</th>
 <th>0.22.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D7">HCLK_DCM:BUF.GIOB_D7</th>
 <th>0.22.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D8">HCLK_DCM:BUF.GIOB_D8</th>
 <th>0.12.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_D9">HCLK_DCM:BUF.GIOB_D9</th>
 <th>0.12.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U0">HCLK_DCM:BUF.GIOB_U0</th>
 <th>0.17.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U1">HCLK_DCM:BUF.GIOB_U1</th>
 <th>0.25.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U10">HCLK_DCM:BUF.GIOB_U10</th>
 <th>0.16.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U11">HCLK_DCM:BUF.GIOB_U11</th>
 <th>0.16.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U12">HCLK_DCM:BUF.GIOB_U12</th>
 <th>0.10.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U13">HCLK_DCM:BUF.GIOB_U13</th>
 <th>0.5.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U14">HCLK_DCM:BUF.GIOB_U14</th>
 <th>0.11.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U15">HCLK_DCM:BUF.GIOB_U15</th>
 <th>0.16.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U2">HCLK_DCM:BUF.GIOB_U2</th>
 <th>0.14.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U3">HCLK_DCM:BUF.GIOB_U3</th>
 <th>0.26.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U4">HCLK_DCM:BUF.GIOB_U4</th>
 <th>0.17.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U5">HCLK_DCM:BUF.GIOB_U5</th>
 <th>0.25.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U6">HCLK_DCM:BUF.GIOB_U6</th>
 <th>0.14.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U7">HCLK_DCM:BUF.GIOB_U7</th>
 <th>0.26.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U8">HCLK_DCM:BUF.GIOB_U8</th>
 <th>0.5.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.GIOB_U9">HCLK_DCM:BUF.GIOB_U9</th>
 <th>0.5.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D0">HCLK_DCM:BUF.HCLK_D0</th>
 <th>0.20.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D1">HCLK_DCM:BUF.HCLK_D1</th>
 <th>0.24.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D2">HCLK_DCM:BUF.HCLK_D2</th>
 <th>0.23.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D3">HCLK_DCM:BUF.HCLK_D3</th>
 <th>0.21.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D4">HCLK_DCM:BUF.HCLK_D4</th>
 <th>0.20.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D5">HCLK_DCM:BUF.HCLK_D5</th>
 <th>0.24.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D6">HCLK_DCM:BUF.HCLK_D6</th>
 <th>0.23.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_D7">HCLK_DCM:BUF.HCLK_D7</th>
 <th>0.22.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U0">HCLK_DCM:BUF.HCLK_U0</th>
 <th>0.17.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U1">HCLK_DCM:BUF.HCLK_U1</th>
 <th>0.25.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U2">HCLK_DCM:BUF.HCLK_U2</th>
 <th>0.14.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U3">HCLK_DCM:BUF.HCLK_U3</th>
 <th>0.26.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U4">HCLK_DCM:BUF.HCLK_U4</th>
 <th>0.17.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U5">HCLK_DCM:BUF.HCLK_U5</th>
 <th>0.25.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U6">HCLK_DCM:BUF.HCLK_U6</th>
 <th>0.14.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.HCLK_U7">HCLK_DCM:BUF.HCLK_U7</th>
 <th>0.26.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D0">HCLK_DCM:BUF.MGT_D0</th>
 <th>0.12.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D1">HCLK_DCM:BUF.MGT_D1</th>
 <th>0.12.13</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D2">HCLK_DCM:BUF.MGT_D2</th>
 <th>0.3.12</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_D3">HCLK_DCM:BUF.MGT_D3</th>
 <th>0.3.14</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U0">HCLK_DCM:BUF.MGT_U0</th>
 <th>0.10.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U1">HCLK_DCM:BUF.MGT_U1</th>
 <th>0.5.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U2">HCLK_DCM:BUF.MGT_U2</th>
 <th>0.11.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:BUF.MGT_U3">HCLK_DCM:BUF.MGT_U3</th>
 <th>0.16.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON">HCLK_DCM:COMMON</th>
 <th>0.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_MGT">HCLK_DCM:COMMON_MGT</th>
 <th>0.27.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex4-HCLK_DCM-HCLK_DCM:COMMON_HCLK_GIOB">HCLK_DCM:COMMON_HCLK_GIOB</th>
 <th>0.27.13</th>
 <th>0.21.12</th>
 <th>0.19.12</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -7377,19 +8709,23 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../../virtex4/clock/hclk.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../../virtex4/clock/hclk-mgt.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -7399,16 +8735,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../../virtex4/clock/hclk.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../../virtex4/clock/hclk-mgt.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -7418,9 +8759,9 @@ non-inverted
 
 
 
-        <script src="../../clipboard.min.js"></script>
-        <script src="../../highlight.js"></script>
-        <script src="../../book.js"></script>
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

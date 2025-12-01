@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../../favicon.svg">
-        <link rel="shortcut icon" href="../../favicon.png">
-        <link rel="stylesheet" href="../../css/variables.css">
-        <link rel="stylesheet" href="../../css/general.css">
-        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../../fonts/fonts.css">
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../../custom.css">
+        <link rel="stylesheet" href="../../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc.js"></script>
+        <script src="../../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,23 +142,25 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="io-buffers"><a class="header" href="#io-buffers">I/O Buffers</a></h1>
 <h2 id="tile-iob_w_l04"><a class="header" href="#tile-iob_w_l04">Tile IOB_W_L04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_W_L04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -178,7 +179,9 @@
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -200,6 +203,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -218,6 +222,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -240,6 +245,7 @@
 <a href="#tile-siliconblue-IOB_W_L04-IOB1:DRIVE">IOB1:DRIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -260,6 +266,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -280,6 +287,7 @@
 <a href="#tile-siliconblue-IOB_W_L04-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -300,6 +308,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -322,6 +331,7 @@
 <a href="#tile-siliconblue-IOB_W_L04-IOB0:IOSTD_MISC">IOB0:IOSTD_MISC</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -340,6 +350,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -362,6 +373,7 @@
 <a href="#tile-siliconblue-IOB_W_L04-IOB0:DRIVE">IOB0:DRIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -382,45 +394,64 @@
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB0:CMOS_INPUT">IOB0:CMOS_INPUT</th>
 <th>0.6.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB0:IOSTD_MISC">IOB0:IOSTD_MISC</th>
 <th>0.6.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.4.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB1:CMOS_INPUT">IOB1:CMOS_INPUT</th>
 <th>0.3.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB1:IOSTD_MISC">IOB1:IOSTD_MISC</th>
 <th>0.0.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB0:DRIVE">IOB0:DRIVE</th>
 <th>0.9.14</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB1:DRIVE">IOB1:DRIVE</th>
 <th>0.2.15</th>
 <th>0.2.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -428,39 +459,55 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.5.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_e_l04"><a class="header" href="#tile-iob_e_l04">Tile IOB_E_L04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_E_L04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="4">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -468,6 +515,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -476,30 +524,35 @@ inverted
 <a href="#tile-siliconblue-IOB_E_L04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -508,32 +561,46 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_L04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_L04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_l04"><a class="header" href="#tile-iob_s_l04">Tile IOB_S_L04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_L04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -564,7 +631,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -596,6 +665,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -626,6 +696,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -656,6 +727,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -686,6 +758,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -716,6 +789,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -746,6 +820,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -776,6 +851,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -806,6 +882,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -838,6 +915,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -868,6 +946,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -898,6 +977,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -928,6 +1008,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -958,6 +1039,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -988,6 +1070,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -1020,32 +1103,46 @@ inverted
 <a href="#tile-siliconblue-IOB_S_L04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_L04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_L04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_l04"><a class="header" href="#tile-iob_n_l04">Tile IOB_N_L04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_L04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1076,7 +1173,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1108,6 +1207,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1140,6 +1240,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_L04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1170,6 +1271,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1200,6 +1302,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1230,6 +1333,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1260,6 +1364,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1290,6 +1395,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1322,32 +1428,46 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_L04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_L04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_w_p04"><a class="header" href="#tile-iob_w_p04">Tile IOB_W_P04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_W_P04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1366,7 +1486,9 @@ inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1388,6 +1510,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1406,6 +1529,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1428,6 +1552,7 @@ inverted
 <a href="#tile-siliconblue-IOB_W_P04-IOB1:DRIVE">IOB1:DRIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1448,6 +1573,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1468,6 +1594,7 @@ inverted
 <a href="#tile-siliconblue-IOB_W_P04-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1488,6 +1615,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1510,6 +1638,7 @@ inverted
 <a href="#tile-siliconblue-IOB_W_P04-IOB0:IOSTD_MISC">IOB0:IOSTD_MISC</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1528,6 +1657,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -1550,6 +1680,7 @@ inverted
 <a href="#tile-siliconblue-IOB_W_P04-IOB0:DRIVE">IOB0:DRIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -1570,6 +1701,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -1588,6 +1720,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -1606,6 +1739,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -1624,6 +1758,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -1644,48 +1779,68 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB0:CMOS_INPUT">IOB0:CMOS_INPUT</th>
 <th>0.6.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB0:IOSTD_MISC">IOB0:IOSTD_MISC</th>
 <th>0.6.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.4.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB1:CMOS_INPUT">IOB1:CMOS_INPUT</th>
 <th>0.3.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB1:IOSTD_MISC">IOB1:IOSTD_MISC</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.13.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB0:DRIVE">IOB0:DRIVE</th>
 <th>0.9.14</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB1:DRIVE">IOB1:DRIVE</th>
 <th>0.2.15</th>
 <th>0.2.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1693,39 +1848,55 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.8.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.5.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_e_p04"><a class="header" href="#tile-iob_e_p04">Tile IOB_E_P04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_E_P04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="4">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1733,6 +1904,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1741,30 +1913,35 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1773,42 +1950,49 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -1817,46 +2001,67 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.13.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_p04"><a class="header" href="#tile-iob_s_p04">Tile IOB_S_P04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-6"><a class="header" href="#bitstream-6">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_P04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1887,7 +2092,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1919,6 +2126,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1949,6 +2157,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1979,6 +2188,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2009,6 +2219,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2039,6 +2250,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2069,6 +2281,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2099,6 +2312,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2129,6 +2343,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -2161,6 +2376,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -2191,6 +2407,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -2221,6 +2438,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -2251,6 +2469,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -2281,6 +2500,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -2311,6 +2531,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -2343,32 +2564,46 @@ non-inverted
 <a href="#tile-siliconblue-IOB_S_P04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_P04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_p04"><a class="header" href="#tile-iob_n_p04">Tile IOB_N_P04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-7"><a class="header" href="#bitstream-7">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_P04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2399,7 +2634,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -2431,6 +2668,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2463,6 +2701,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2493,6 +2732,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2523,6 +2763,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2553,6 +2794,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2583,6 +2825,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2613,6 +2856,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2645,6 +2889,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -2675,6 +2920,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -2705,6 +2951,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -2735,6 +2982,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -2765,6 +3013,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -2795,6 +3044,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -2827,46 +3077,67 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.13.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_w_l08"><a class="header" href="#tile-iob_w_l08">Tile IOB_W_L08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-8"><a class="header" href="#bitstream-8">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_W_L08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2885,7 +3156,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -2907,6 +3180,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2925,6 +3199,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2947,6 +3222,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_L08-IOB0:DRIVE">IOB0:DRIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2967,6 +3243,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2987,6 +3264,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_L08-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3007,6 +3285,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3029,6 +3308,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_L08-IOB1:IOSTD_MISC">IOB1:IOSTD_MISC</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -3047,6 +3327,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -3069,6 +3350,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_L08-IOB1:DRIVE">IOB1:DRIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -3089,45 +3371,64 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB0:CMOS_INPUT">IOB0:CMOS_INPUT</th>
 <th>0.3.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB0:IOSTD_MISC">IOB0:IOSTD_MISC</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.4.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB1:CMOS_INPUT">IOB1:CMOS_INPUT</th>
 <th>0.6.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB1:IOSTD_MISC">IOB1:IOSTD_MISC</th>
 <th>0.6.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB0:DRIVE">IOB0:DRIVE</th>
 <th>0.2.15</th>
 <th>0.2.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB1:DRIVE">IOB1:DRIVE</th>
 <th>0.9.14</th>
 <th>0.8.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3135,39 +3436,55 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.5.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.8.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_e_l08"><a class="header" href="#tile-iob_e_l08">Tile IOB_E_L08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-9"><a class="header" href="#bitstream-9">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_E_L08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="4">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -3175,6 +3492,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3183,30 +3501,35 @@ inverted
 <a href="#tile-siliconblue-IOB_E_L08-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3215,32 +3538,46 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_L08-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_L08-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_l08"><a class="header" href="#tile-iob_s_l08">Tile IOB_S_L08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-10"><a class="header" href="#bitstream-10">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_L08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3271,7 +3608,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -3303,6 +3642,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3333,6 +3673,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3363,6 +3704,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3393,6 +3735,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3423,6 +3766,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3453,6 +3797,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3483,6 +3828,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -3513,6 +3859,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -3545,6 +3892,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -3575,6 +3923,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -3605,6 +3954,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -3635,6 +3985,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -3665,6 +4016,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -3695,6 +4047,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -3727,32 +4080,46 @@ inverted
 <a href="#tile-siliconblue-IOB_S_L08-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_L08-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_L08-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_l08"><a class="header" href="#tile-iob_n_l08">Tile IOB_N_L08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-11"><a class="header" href="#bitstream-11">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_L08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3783,7 +4150,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -3815,6 +4184,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3847,6 +4217,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_L08-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3877,6 +4248,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3907,6 +4279,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3937,6 +4310,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3967,6 +4341,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3997,6 +4372,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -4029,32 +4405,46 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_L08-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_L08-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_w_l01"><a class="header" href="#tile-iob_w_l01">Tile IOB_W_L01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-12"><a class="header" href="#bitstream-12">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_W_L01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -4073,7 +4463,9 @@ inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -4093,6 +4485,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -4113,6 +4506,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -4131,6 +4525,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -4149,6 +4544,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -4167,6 +4563,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -4185,6 +4582,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -4205,6 +4603,7 @@ inverted
 <a href="#tile-siliconblue-IOB_W_L01-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -4223,6 +4622,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -4241,6 +4641,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -4259,6 +4660,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -4277,6 +4679,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4297,53 +4700,76 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_L01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_L01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_e_l01"><a class="header" href="#tile-iob_e_l01">Tile IOB_E_L01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-13"><a class="header" href="#bitstream-13">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_E_L01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="4">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -4351,6 +4777,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -4359,30 +4786,35 @@ non-inverted
 <a href="#tile-siliconblue-IOB_E_L01-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -4391,30 +4823,35 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4423,46 +4860,67 @@ non-inverted
 <a href="#tile-siliconblue-IOB_E_L01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_L01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_L01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_L01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_l01"><a class="header" href="#tile-iob_s_l01">Tile IOB_S_L01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-14"><a class="header" href="#bitstream-14">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_L01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -4493,7 +4951,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -4525,6 +4985,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -4555,6 +5016,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -4585,6 +5047,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -4615,6 +5078,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -4645,6 +5109,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -4677,6 +5142,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_S_L01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -4707,6 +5173,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -4737,6 +5204,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -4769,6 +5237,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -4799,6 +5268,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -4829,6 +5299,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4859,6 +5330,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -4889,6 +5361,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -4919,6 +5392,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -4951,46 +5425,67 @@ non-inverted
 <a href="#tile-siliconblue-IOB_S_L01-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_L01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_L01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_L01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_l01"><a class="header" href="#tile-iob_n_l01">Tile IOB_N_L01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-15"><a class="header" href="#bitstream-15">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_L01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5021,7 +5516,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5053,6 +5550,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5085,6 +5583,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_N_L01-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5115,6 +5614,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5145,6 +5645,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -5175,6 +5676,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -5205,6 +5707,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -5235,6 +5738,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -5267,6 +5771,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -5297,6 +5802,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -5327,6 +5833,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -5359,46 +5866,67 @@ non-inverted
 <a href="#tile-siliconblue-IOB_N_L01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_L01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_L01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_L01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.10.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_w_p01"><a class="header" href="#tile-iob_w_p01">Tile IOB_W_P01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-16"><a class="header" href="#bitstream-16">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_W_P01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5417,7 +5945,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5437,6 +5967,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5457,6 +5988,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5475,6 +6007,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5493,6 +6026,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -5511,6 +6045,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -5529,6 +6064,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -5551,6 +6087,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_P01-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -5569,6 +6106,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -5589,6 +6127,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_P01-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -5609,6 +6148,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -5627,6 +6167,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -5647,62 +6188,88 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P01-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.6.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P01-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P01-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_e_p01"><a class="header" href="#tile-iob_e_p01">Tile IOB_E_P01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-17"><a class="header" href="#bitstream-17">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_E_P01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="4">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5710,6 +6277,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5718,30 +6286,35 @@ non-inverted
 <a href="#tile-siliconblue-IOB_E_P01-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -5752,18 +6325,21 @@ non-inverted
 <a href="#tile-siliconblue-IOB_E_P01-IOB1:IBUF_ENABLE">~IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -5772,12 +6348,14 @@ non-inverted
 <a href="#tile-siliconblue-IOB_E_P01-IOB0:IBUF_ENABLE">~IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -5786,52 +6364,75 @@ non-inverted
 <a href="#tile-siliconblue-IOB_E_P01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P01-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.9.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.6.2</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P01-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.1.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_p01"><a class="header" href="#tile-iob_s_p01">Tile IOB_S_P01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-18"><a class="header" href="#bitstream-18">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_P01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5862,7 +6463,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5894,6 +6497,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5924,6 +6528,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5954,6 +6559,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5984,6 +6590,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6014,6 +6621,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6046,6 +6654,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_S_P01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6078,6 +6687,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_S_P01-IOB0:IBUF_ENABLE">~IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -6108,6 +6718,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -6142,6 +6753,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_S_P01-IOB1:IBUF_ENABLE">~IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -6172,6 +6784,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -6202,6 +6815,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -6232,6 +6846,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -6262,6 +6877,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -6292,6 +6908,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -6324,52 +6941,75 @@ non-inverted
 <a href="#tile-siliconblue-IOB_S_P01-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_P01-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P01-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.8.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_P01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_p01"><a class="header" href="#tile-iob_n_p01">Tile IOB_N_P01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-19"><a class="header" href="#bitstream-19">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_P01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -6400,7 +7040,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -6432,6 +7074,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -6464,6 +7107,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_N_P01-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -6494,6 +7138,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -6524,6 +7169,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6554,6 +7200,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6584,6 +7231,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6614,6 +7262,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -6648,6 +7297,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_N_P01-IOB1:IBUF_ENABLE">~IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -6678,6 +7328,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -6710,6 +7361,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_N_P01-IOB0:IBUF_ENABLE">~IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -6742,52 +7394,75 @@ non-inverted
 <a href="#tile-siliconblue-IOB_N_P01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P01-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P01-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.7.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.10.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_w_p08"><a class="header" href="#tile-iob_w_p08">Tile IOB_W_P08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-20"><a class="header" href="#bitstream-20">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_W_P08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -6806,7 +7481,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -6826,6 +7503,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -6846,6 +7524,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -6864,6 +7543,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -6882,6 +7562,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6900,6 +7581,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6918,6 +7600,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6940,6 +7623,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_P08-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -6958,6 +7642,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -6978,6 +7663,7 @@ non-inverted
 <a href="#tile-siliconblue-IOB_W_P08-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -6998,6 +7684,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -7016,6 +7703,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -7036,62 +7724,88 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.9.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P08-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P08-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P08-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.6.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P08-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.1.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_e_p08"><a class="header" href="#tile-iob_e_p08">Tile IOB_E_P08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-21"><a class="header" href="#bitstream-21">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_E_P08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="4">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -7099,6 +7813,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7107,30 +7822,35 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P08-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -7141,18 +7861,21 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -7161,12 +7884,14 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -7175,52 +7900,75 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P08-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.9.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P08-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P08-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.6.2</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P08-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.1.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_p08"><a class="header" href="#tile-iob_s_p08">Tile IOB_S_P08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-22"><a class="header" href="#bitstream-22">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_P08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -7251,7 +7999,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -7283,6 +8033,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7313,6 +8064,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -7343,6 +8095,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -7373,6 +8126,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -7403,6 +8157,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -7433,6 +8188,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -7465,6 +8221,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_P08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -7495,6 +8252,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -7529,6 +8287,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_P08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -7559,6 +8318,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -7589,6 +8349,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -7619,6 +8380,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -7649,6 +8411,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -7679,6 +8442,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -7711,49 +8475,71 @@ inverted
 <a href="#tile-siliconblue-IOB_S_P08-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_P08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.8.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_P08-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P08-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_p08"><a class="header" href="#tile-iob_n_p08">Tile IOB_N_P08</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-23"><a class="header" href="#bitstream-23">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_P08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -7784,7 +8570,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -7816,6 +8604,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7848,6 +8637,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P08-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -7878,6 +8668,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -7908,6 +8699,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -7938,6 +8730,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -7968,6 +8761,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -7998,6 +8792,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -8032,6 +8827,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -8062,6 +8858,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -8094,49 +8891,71 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P08-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P08-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.7.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P08-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P08-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_w_p03"><a class="header" href="#tile-iob_w_p03">Tile IOB_W_P03</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-24"><a class="header" href="#bitstream-24">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_W_P03 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -8155,7 +8974,9 @@ inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -8175,6 +8996,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -8195,6 +9017,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -8213,6 +9036,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -8231,6 +9055,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -8249,6 +9074,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -8267,6 +9093,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -8289,6 +9116,7 @@ inverted
 <a href="#tile-siliconblue-IOB_W_P03-IOB1:PULLUP">~IOB1:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -8307,6 +9135,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -8327,6 +9156,7 @@ inverted
 <a href="#tile-siliconblue-IOB_W_P03-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -8347,6 +9177,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -8365,6 +9196,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -8385,62 +9217,88 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P03-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.6.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P03-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.8.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P03-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P03-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_W_P03-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_W_P03-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_e_p03"><a class="header" href="#tile-iob_e_p03">Tile IOB_E_P03</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-25"><a class="header" href="#bitstream-25">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_E_P03 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="4">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -8448,6 +9306,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -8456,30 +9315,35 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P03-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -8490,18 +9354,21 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P03-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -8510,12 +9377,14 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P03-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -8524,52 +9393,75 @@ inverted
 <a href="#tile-siliconblue-IOB_E_P03-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P03-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.6.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P03-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P03-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.11.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_E_P03-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.3</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_E_P03-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.6.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_p03"><a class="header" href="#tile-iob_s_p03">Tile IOB_S_P03</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-26"><a class="header" href="#bitstream-26">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_P03 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -8600,7 +9492,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -8632,6 +9526,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -8662,6 +9557,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -8692,6 +9588,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -8722,6 +9619,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -8752,6 +9650,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -8784,6 +9683,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_P03-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -8816,6 +9716,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_P03-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -8846,6 +9747,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -8880,6 +9782,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_P03-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -8910,6 +9813,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -8940,6 +9844,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -8970,6 +9875,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -9000,6 +9906,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -9030,6 +9937,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -9062,52 +9970,75 @@ inverted
 <a href="#tile-siliconblue-IOB_S_P03-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_P03-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.8.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P03-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P03-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_P03-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_P03-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_p03"><a class="header" href="#tile-iob_n_p03">Tile IOB_N_P03</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-27"><a class="header" href="#bitstream-27">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_P03 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -9138,7 +10069,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -9170,6 +10103,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -9202,6 +10136,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P03-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -9232,6 +10167,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -9262,6 +10198,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -9292,6 +10229,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -9322,6 +10260,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -9352,6 +10291,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -9386,6 +10326,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P03-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -9416,6 +10357,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -9448,6 +10390,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P03-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -9480,52 +10423,75 @@ inverted
 <a href="#tile-siliconblue-IOB_N_P03-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P03-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.7.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P03-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P03-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.10.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_P03-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_P03-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_r04"><a class="header" href="#tile-iob_s_r04">Tile IOB_S_R04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-28"><a class="header" href="#bitstream-28">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_R04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -9556,7 +10522,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -9588,6 +10556,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -9618,6 +10587,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -9648,6 +10618,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -9678,6 +10649,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -9712,6 +10684,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_R04-IOB:HARDIP_FABRIC_IN">IOB:HARDIP_FABRIC_IN</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -9744,6 +10717,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_R04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -9776,6 +10750,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_R04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -9806,6 +10781,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -9840,6 +10816,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_R04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -9870,6 +10847,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -9900,6 +10878,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -9930,6 +10909,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -9960,6 +10940,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -9990,6 +10971,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -10022,58 +11004,83 @@ inverted
 <a href="#tile-siliconblue-IOB_S_R04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_R04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.8.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_R04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_R04-IOB:HARDIP_DEDICATED_OUT">IOB:HARDIP_DEDICATED_OUT</th>
 <th>0.4.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_R04-IOB:HARDIP_FABRIC_IN">IOB:HARDIP_FABRIC_IN</th>
 <th>0.4.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_R04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_R04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_R04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_r04"><a class="header" href="#tile-iob_n_r04">Tile IOB_N_R04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-29"><a class="header" href="#bitstream-29">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_R04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -10104,7 +11111,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -10136,6 +11145,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -10168,6 +11178,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_R04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -10198,6 +11209,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -10228,6 +11240,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -10258,6 +11271,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -10288,6 +11302,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -10318,6 +11333,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -10352,6 +11368,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_R04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -10384,6 +11401,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -10416,6 +11434,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_R04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -10446,6 +11465,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -10480,58 +11500,83 @@ inverted
 <a href="#tile-siliconblue-IOB_N_R04-IOB:HARDIP_FABRIC_IN">IOB:HARDIP_FABRIC_IN</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_R04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.7.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_R04-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_R04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_R04-IOB:HARDIP_DEDICATED_OUT">IOB:HARDIP_DEDICATED_OUT</th>
 <th>0.11.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_R04-IOB:HARDIP_FABRIC_IN">IOB:HARDIP_FABRIC_IN</th>
 <th>0.11.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_R04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_R04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_t04"><a class="header" href="#tile-iob_s_t04">Tile IOB_S_T04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-30"><a class="header" href="#bitstream-30">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_T04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -10562,7 +11607,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -10594,6 +11641,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -10624,6 +11672,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -10656,6 +11705,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T04-IOB1:HARDIP_DEDICATED_OUT">IOB1:HARDIP_DEDICATED_OUT</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -10688,6 +11738,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -10722,6 +11773,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T04-IOB0:HARDIP_FABRIC_IN">IOB0:HARDIP_FABRIC_IN</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -10754,6 +11806,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -10786,6 +11839,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -10818,6 +11872,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -10852,6 +11907,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -10882,6 +11938,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -10912,6 +11969,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -10942,6 +12000,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -10972,6 +12031,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -11002,6 +12062,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -11034,67 +12095,95 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB0:HARDIP_DEDICATED_OUT">IOB0:HARDIP_DEDICATED_OUT</th>
 <th>0.4.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB0:HARDIP_FABRIC_IN">IOB0:HARDIP_FABRIC_IN</th>
 <th>0.4.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.8.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB1:HARDIP_DEDICATED_OUT">IOB1:HARDIP_DEDICATED_OUT</th>
 <th>0.2.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB1:HARDIP_FABRIC_IN">IOB1:HARDIP_FABRIC_IN</th>
 <th>0.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_t04"><a class="header" href="#tile-iob_n_t04">Tile IOB_N_T04</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-31"><a class="header" href="#bitstream-31">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_T04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -11125,7 +12214,9 @@ inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -11157,6 +12248,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -11189,6 +12281,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T04-IOB0:PULLUP">~IOB0:PULLUP</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -11219,6 +12312,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -11249,6 +12343,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -11279,6 +12374,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -11309,6 +12405,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -11339,6 +12436,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -11373,6 +12471,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -11405,6 +12504,7 @@ inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -11437,6 +12537,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -11467,6 +12568,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -11501,6 +12603,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T04-IOB0:HARDIP_FABRIC_IN">IOB0:HARDIP_FABRIC_IN</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -11536,6 +12639,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T04-IOB1:SDA_INPUT_DELAYED">IOB1:SDA_INPUT_DELAYED</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -11568,6 +12672,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T04-IOB1:HARDIP_DEDICATED_OUT">IOB1:HARDIP_DEDICATED_OUT</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -11601,76 +12706,107 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T04-IOB1:SDA_OUTPUT_DELAYED">IOB1:SDA_OUTPUT_DELAYED</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB0:HARDIP_DEDICATED_OUT">IOB0:HARDIP_DEDICATED_OUT</th>
 <th>0.11.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB0:HARDIP_FABRIC_IN">IOB0:HARDIP_FABRIC_IN</th>
 <th>0.11.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.7.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB0:SDA_INPUT_DELAYED">IOB0:SDA_INPUT_DELAYED</th>
 <th>0.12.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB0:SDA_OUTPUT_DELAYED">IOB0:SDA_OUTPUT_DELAYED</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB1:HARDIP_DEDICATED_OUT">IOB1:HARDIP_DEDICATED_OUT</th>
 <th>0.13.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB1:HARDIP_FABRIC_IN">IOB1:HARDIP_FABRIC_IN</th>
 <th>0.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB1:SDA_INPUT_DELAYED">IOB1:SDA_INPUT_DELAYED</th>
 <th>0.12.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB1:SDA_OUTPUT_DELAYED">IOB1:SDA_OUTPUT_DELAYED</th>
 <th>0.14.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T04-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_t05"><a class="header" href="#tile-iob_s_t05">Tile IOB_S_T05</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-32"><a class="header" href="#bitstream-32">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_T05 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="38">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -11711,7 +12847,9 @@ inverted
 <th>36</th>
 <th>37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -11753,6 +12891,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -11793,6 +12932,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -11839,6 +12979,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T05-IOB1:PULLUP_10K">IOB1:PULLUP_10K</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -11885,6 +13026,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T05-IOB1:WEAK_PULLUP">~IOB1:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -11929,6 +13071,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -11971,6 +13114,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -12013,6 +13157,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -12055,6 +13200,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -12103,6 +13249,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T05-IOB0:WEAK_PULLUP">~IOB0:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -12147,6 +13294,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T05-IOB0:PULLUP_10K">IOB0:PULLUP_10K</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -12187,6 +13335,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -12227,6 +13376,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -12267,6 +13417,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -12307,6 +13458,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -12349,91 +13501,127 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:HARDIP_DEDICATED_OUT">IOB0:HARDIP_DEDICATED_OUT</th>
 <th>0.4.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:HARDIP_FABRIC_IN">IOB0:HARDIP_FABRIC_IN</th>
 <th>0.4.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.8.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:PULLUP_10K">IOB0:PULLUP_10K</th>
 <th>0.9.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:PULLUP_3P3K">IOB0:PULLUP_3P3K</th>
 <th>0.9.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:PULLUP_6P8K">IOB0:PULLUP_6P8K</th>
 <th>0.8.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:HARDIP_DEDICATED_OUT">IOB1:HARDIP_DEDICATED_OUT</th>
 <th>0.2.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:HARDIP_FABRIC_IN">IOB1:HARDIP_FABRIC_IN</th>
 <th>0.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:PULLUP_10K">IOB1:PULLUP_10K</th>
 <th>0.2.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:PULLUP_3P3K">IOB1:PULLUP_3P3K</th>
 <th>0.2.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:PULLUP_6P8K">IOB1:PULLUP_6P8K</th>
 <th>0.3.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB0:WEAK_PULLUP">IOB0:WEAK_PULLUP</th>
 <th>0.8.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T05-IOB1:WEAK_PULLUP">IOB1:WEAK_PULLUP</th>
 <th>0.3.37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_t05"><a class="header" href="#tile-iob_n_t05">Tile IOB_N_T05</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-33"><a class="header" href="#bitstream-33">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_T05 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="38">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -12474,7 +13662,9 @@ inverted
 <th>36</th>
 <th>37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -12516,6 +13706,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -12558,6 +13749,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -12598,6 +13790,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -12638,6 +13831,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -12678,6 +13872,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -12718,6 +13913,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -12762,6 +13958,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T05-IOB0:PULLUP_10K">IOB0:PULLUP_10K</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -12810,6 +14007,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T05-IOB0:WEAK_PULLUP">~IOB0:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -12852,6 +14050,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -12894,6 +14093,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -12934,6 +14134,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -12978,6 +14179,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -13027,6 +14229,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T05-IOB1:WEAK_PULLUP">~IOB1:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -13073,6 +14276,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T05-IOB1:PULLUP_10K">IOB1:PULLUP_10K</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -13116,100 +14320,139 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:HARDIP_DEDICATED_OUT">IOB0:HARDIP_DEDICATED_OUT</th>
 <th>0.11.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:HARDIP_FABRIC_IN">IOB0:HARDIP_FABRIC_IN</th>
 <th>0.11.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.7.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:PULLUP_10K">IOB0:PULLUP_10K</th>
 <th>0.6.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:PULLUP_3P3K">IOB0:PULLUP_3P3K</th>
 <th>0.6.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:PULLUP_6P8K">IOB0:PULLUP_6P8K</th>
 <th>0.7.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:SDA_INPUT_DELAYED">IOB0:SDA_INPUT_DELAYED</th>
 <th>0.12.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:SDA_OUTPUT_DELAYED">IOB0:SDA_OUTPUT_DELAYED</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:HARDIP_DEDICATED_OUT">IOB1:HARDIP_DEDICATED_OUT</th>
 <th>0.13.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:HARDIP_FABRIC_IN">IOB1:HARDIP_FABRIC_IN</th>
 <th>0.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:PULLUP_10K">IOB1:PULLUP_10K</th>
 <th>0.13.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:PULLUP_3P3K">IOB1:PULLUP_3P3K</th>
 <th>0.13.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:PULLUP_6P8K">IOB1:PULLUP_6P8K</th>
 <th>0.12.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:SDA_INPUT_DELAYED">IOB1:SDA_INPUT_DELAYED</th>
 <th>0.12.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:SDA_OUTPUT_DELAYED">IOB1:SDA_OUTPUT_DELAYED</th>
 <th>0.14.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB0:WEAK_PULLUP">IOB0:WEAK_PULLUP</th>
 <th>0.7.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T05-IOB1:WEAK_PULLUP">IOB1:WEAK_PULLUP</th>
 <th>0.12.37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_s_t01"><a class="header" href="#tile-iob_s_t01">Tile IOB_S_T01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-34"><a class="header" href="#bitstream-34">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_S_T01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="38">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -13250,7 +14493,9 @@ inverted
 <th>36</th>
 <th>37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -13292,6 +14537,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -13334,6 +14580,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -13380,6 +14627,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T01-IOB1:PULLUP_10K">IOB1:PULLUP_10K</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -13428,6 +14676,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T01-IOB1:WEAK_PULLUP">~IOB1:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -13472,6 +14721,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -13514,6 +14764,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -13556,6 +14807,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -13598,6 +14850,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -13646,6 +14899,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T01-IOB0:WEAK_PULLUP">~IOB0:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -13690,6 +14944,7 @@ inverted
 <a href="#tile-siliconblue-IOB_S_T01-IOB0:PULLUP_10K">IOB0:PULLUP_10K</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -13730,6 +14985,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -13770,6 +15026,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -13810,6 +15067,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -13850,6 +15108,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -13892,97 +15151,135 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:HARDIP_DEDICATED_OUT">IOB0:HARDIP_DEDICATED_OUT</th>
 <th>0.4.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:HARDIP_FABRIC_IN">IOB0:HARDIP_FABRIC_IN</th>
 <th>0.4.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.8.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:PULLUP_10K">IOB0:PULLUP_10K</th>
 <th>0.9.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:PULLUP_3P3K">IOB0:PULLUP_3P3K</th>
 <th>0.9.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:PULLUP_6P8K">IOB0:PULLUP_6P8K</th>
 <th>0.8.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:SDA_INPUT_DELAYED">IOB0:SDA_INPUT_DELAYED</th>
 <th>0.3.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:SDA_OUTPUT_DELAYED">IOB0:SDA_OUTPUT_DELAYED</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:HARDIP_DEDICATED_OUT">IOB1:HARDIP_DEDICATED_OUT</th>
 <th>0.2.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:HARDIP_FABRIC_IN">IOB1:HARDIP_FABRIC_IN</th>
 <th>0.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:PULLUP_10K">IOB1:PULLUP_10K</th>
 <th>0.2.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:PULLUP_3P3K">IOB1:PULLUP_3P3K</th>
 <th>0.2.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:PULLUP_6P8K">IOB1:PULLUP_6P8K</th>
 <th>0.3.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.14.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB0:WEAK_PULLUP">IOB0:WEAK_PULLUP</th>
 <th>0.8.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_S_T01-IOB1:WEAK_PULLUP">IOB1:WEAK_PULLUP</th>
 <th>0.3.37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-iob_n_t01"><a class="header" href="#tile-iob_n_t01">Tile IOB_N_T01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-35"><a class="header" href="#bitstream-35">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IOB_N_T01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="38">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -14023,7 +15320,9 @@ inverted
 <th>36</th>
 <th>37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -14065,6 +15364,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -14107,6 +15407,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -14147,6 +15448,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -14187,6 +15489,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -14227,6 +15530,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -14267,6 +15571,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -14311,6 +15616,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T01-IOB0:PULLUP_10K">IOB0:PULLUP_10K</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -14359,6 +15665,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T01-IOB0:WEAK_PULLUP">~IOB0:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -14401,6 +15708,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -14443,6 +15751,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -14485,6 +15794,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -14525,6 +15835,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -14569,6 +15880,7 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T01-IOB1:WEAK_PULLUP">~IOB1:WEAK_PULLUP</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -14613,248 +15925,332 @@ inverted
 <a href="#tile-siliconblue-IOB_N_T01-IOB1:PULLUP_10K">IOB1:PULLUP_10K</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB0:IBUF_ENABLE">IOB0:IBUF_ENABLE</th>
 <th>0.7.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB0:LVDS_INPUT">IOB0:LVDS_INPUT</th>
 <th>0.8.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB0:PULLUP_10K">IOB0:PULLUP_10K</th>
 <th>0.6.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB0:PULLUP_3P3K">IOB0:PULLUP_3P3K</th>
 <th>0.6.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB0:PULLUP_6P8K">IOB0:PULLUP_6P8K</th>
 <th>0.7.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB1:IBUF_ENABLE">IOB1:IBUF_ENABLE</th>
 <th>0.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB1:PULLUP_10K">IOB1:PULLUP_10K</th>
 <th>0.13.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB1:PULLUP_3P3K">IOB1:PULLUP_3P3K</th>
 <th>0.13.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB1:PULLUP_6P8K">IOB1:PULLUP_6P8K</th>
 <th>0.12.32</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB:LATCH_GLOBAL_OUT">IOB:LATCH_GLOBAL_OUT</th>
 <th>0.10.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB0:PULLUP">IOB0:PULLUP</th>
 <th>0.1.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB0:WEAK_PULLUP">IOB0:WEAK_PULLUP</th>
 <th>0.7.37</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB1:PULLUP">IOB1:PULLUP</th>
 <th>0.7.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IOB_N_T01-IOB1:WEAK_PULLUP">IOB1:WEAK_PULLUP</th>
 <th>0.12.37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="bitstream--misc-data"><a class="header" href="#bitstream--misc-data">Bitstream — misc data</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th rowspan="2">Name</th>
 <th colspan="2">IOSTD:DRIVE</th>
 </tr>
+
 <tr>
 <th>[1]</th>
 <th>[0]</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>SB_LVCMOS15_2</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS15_4</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_10</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_2</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_4</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_8</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_12</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_16</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_4</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_8</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS33_8</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_MDDR10</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_MDDR2</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_MDDR4</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_MDDR8</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_SSTL18_FULL</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_SSTL18_HALF</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_SSTL2_CLASS_1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_SSTL2_CLASS_2</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th rowspan="2">Name</th>
 <th colspan="1">IOSTD:IOSTD_MISC</th>
 </tr>
+
 <tr>
 <th>[0]</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>SB_LVCMOS15_2</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS15_4</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_10</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_2</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_4</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS18_8</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_12</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_16</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_4</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS25_8</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVCMOS33_8</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_LVDS_INPUT</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_MDDR10</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_MDDR2</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_MDDR4</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_MDDR8</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_SSTL18_FULL</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_SSTL18_HALF</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_SSTL2_CLASS_1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_SSTL2_CLASS_2</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_SUBLVDS_INPUT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../../siliconblue/io/ioi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../../siliconblue/bram.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -14864,16 +16260,21 @@ inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../../siliconblue/io/ioi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../../siliconblue/bram.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -14883,9 +16284,9 @@ inverted
 
 
 
-        <script src="../../clipboard.min.js"></script>
-        <script src="../../highlight.js"></script>
-        <script src="../../book.js"></script>
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

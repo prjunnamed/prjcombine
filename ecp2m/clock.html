@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,575 +142,975 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="clock-interconnect"><a class="header" href="#clock-interconnect">Clock interconnect</a></h1>
 <h2 id="tile-clk_root_8pll"><a class="header" href="#tile-clk_root_8pll">Tile CLK_ROOT_8PLL</a></h2>
 <p>Cells: 30</p>
 <h3 id="bel-dcs_sw0"><a class="header" href="#bel-dcs_sw0">Bel DCS_SW0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_SW0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL0:PCLK6</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcs_sw1"><a class="header" href="#bel-dcs_sw1">Bel DCS_SW1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_SW1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL0:PCLK7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcs_se0"><a class="header" href="#bel-dcs_se0">Bel DCS_SE0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_SE0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL1:PCLK6</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcs_se1"><a class="header" href="#bel-dcs_se1">Bel DCS_SE1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_SE1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL1:PCLK7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcs_nw0"><a class="header" href="#bel-dcs_nw0">Bel DCS_NW0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_NW0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL2:PCLK6</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcs_nw1"><a class="header" href="#bel-dcs_nw1">Bel DCS_NW1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_NW1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL2:PCLK7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcs_ne0"><a class="header" href="#bel-dcs_ne0">Bel DCS_NE0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_NE0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL3:PCLK6</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcs_ne1"><a class="header" href="#bel-dcs_ne1">Bel DCS_NE1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel DCS_NE1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT</td><td>input</td><td>TCELL3:PCLK7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-clk_root"><a class="header" href="#bel-clk_root">Bel CLK_ROOT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel CLK_ROOT</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PCLK0_NE</td><td>input</td><td>TCELL3:PCLK0</td></tr>
+
 <tr><td>PCLK0_NW</td><td>input</td><td>TCELL2:PCLK0</td></tr>
+
 <tr><td>PCLK0_SE</td><td>input</td><td>TCELL1:PCLK0</td></tr>
+
 <tr><td>PCLK0_SW</td><td>input</td><td>TCELL0:PCLK0</td></tr>
+
 <tr><td>PCLK1_NE</td><td>input</td><td>TCELL3:PCLK1</td></tr>
+
 <tr><td>PCLK1_NW</td><td>input</td><td>TCELL2:PCLK1</td></tr>
+
 <tr><td>PCLK1_SE</td><td>input</td><td>TCELL1:PCLK1</td></tr>
+
 <tr><td>PCLK1_SW</td><td>input</td><td>TCELL0:PCLK1</td></tr>
+
 <tr><td>PCLK2_NE</td><td>input</td><td>TCELL3:PCLK2</td></tr>
+
 <tr><td>PCLK2_NW</td><td>input</td><td>TCELL2:PCLK2</td></tr>
+
 <tr><td>PCLK2_SE</td><td>input</td><td>TCELL1:PCLK2</td></tr>
+
 <tr><td>PCLK2_SW</td><td>input</td><td>TCELL0:PCLK2</td></tr>
+
 <tr><td>PCLK3_NE</td><td>input</td><td>TCELL3:PCLK3</td></tr>
+
 <tr><td>PCLK3_NW</td><td>input</td><td>TCELL2:PCLK3</td></tr>
+
 <tr><td>PCLK3_SE</td><td>input</td><td>TCELL1:PCLK3</td></tr>
+
 <tr><td>PCLK3_SW</td><td>input</td><td>TCELL0:PCLK3</td></tr>
+
 <tr><td>PCLK4_NE</td><td>input</td><td>TCELL3:PCLK4</td></tr>
+
 <tr><td>PCLK4_NW</td><td>input</td><td>TCELL2:PCLK4</td></tr>
+
 <tr><td>PCLK4_SE</td><td>input</td><td>TCELL1:PCLK4</td></tr>
+
 <tr><td>PCLK4_SW</td><td>input</td><td>TCELL0:PCLK4</td></tr>
+
 <tr><td>PCLK5_NE</td><td>input</td><td>TCELL3:PCLK5</td></tr>
+
 <tr><td>PCLK5_NW</td><td>input</td><td>TCELL2:PCLK5</td></tr>
+
 <tr><td>PCLK5_SE</td><td>input</td><td>TCELL1:PCLK5</td></tr>
+
 <tr><td>PCLK5_SW</td><td>input</td><td>TCELL0:PCLK5</td></tr>
+
 <tr><td>PCLK_IN_E0</td><td>input</td><td>TCELL6:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_E1</td><td>input</td><td>TCELL7:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_E2</td><td>input</td><td>TCELL8:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_E3</td><td>input</td><td>TCELL9:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_N0</td><td>input</td><td>TCELL12:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_N1</td><td>input</td><td>TCELL13:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_S0</td><td>input</td><td>TCELL10:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_S1</td><td>input</td><td>TCELL11:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_W0</td><td>input</td><td>TCELL4:IMUX_C3</td></tr>
+
 <tr><td>PCLK_IN_W1</td><td>input</td><td>TCELL5:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_E0</td><td>input</td><td>TCELL18:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_E1</td><td>input</td><td>TCELL19:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_E2</td><td>input</td><td>TCELL20:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_E3</td><td>input</td><td>TCELL21:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_N0</td><td>input</td><td>TCELL26:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_N1</td><td>input</td><td>TCELL27:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_N2</td><td>input</td><td>TCELL28:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_N3</td><td>input</td><td>TCELL29:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_S0</td><td>input</td><td>TCELL22:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_S1</td><td>input</td><td>TCELL23:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_S2</td><td>input</td><td>TCELL24:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_S3</td><td>input</td><td>TCELL25:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_W0</td><td>input</td><td>TCELL14:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_W1</td><td>input</td><td>TCELL15:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_W2</td><td>input</td><td>TCELL16:IMUX_C3</td></tr>
+
 <tr><td>SCLK_IN_W3</td><td>input</td><td>TCELL17:IMUX_C3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m CLK_ROOT_8PLL bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:PCLK0</td><td>CLK_ROOT.PCLK0_SW</td></tr>
+
 <tr><td>TCELL0:PCLK1</td><td>CLK_ROOT.PCLK1_SW</td></tr>
+
 <tr><td>TCELL0:PCLK2</td><td>CLK_ROOT.PCLK2_SW</td></tr>
+
 <tr><td>TCELL0:PCLK3</td><td>CLK_ROOT.PCLK3_SW</td></tr>
+
 <tr><td>TCELL0:PCLK4</td><td>CLK_ROOT.PCLK4_SW</td></tr>
+
 <tr><td>TCELL0:PCLK5</td><td>CLK_ROOT.PCLK5_SW</td></tr>
+
 <tr><td>TCELL0:PCLK6</td><td>DCS_SW0.OUT</td></tr>
+
 <tr><td>TCELL0:PCLK7</td><td>DCS_SW1.OUT</td></tr>
+
 <tr><td>TCELL1:PCLK0</td><td>CLK_ROOT.PCLK0_SE</td></tr>
+
 <tr><td>TCELL1:PCLK1</td><td>CLK_ROOT.PCLK1_SE</td></tr>
+
 <tr><td>TCELL1:PCLK2</td><td>CLK_ROOT.PCLK2_SE</td></tr>
+
 <tr><td>TCELL1:PCLK3</td><td>CLK_ROOT.PCLK3_SE</td></tr>
+
 <tr><td>TCELL1:PCLK4</td><td>CLK_ROOT.PCLK4_SE</td></tr>
+
 <tr><td>TCELL1:PCLK5</td><td>CLK_ROOT.PCLK5_SE</td></tr>
+
 <tr><td>TCELL1:PCLK6</td><td>DCS_SE0.OUT</td></tr>
+
 <tr><td>TCELL1:PCLK7</td><td>DCS_SE1.OUT</td></tr>
+
 <tr><td>TCELL2:PCLK0</td><td>CLK_ROOT.PCLK0_NW</td></tr>
+
 <tr><td>TCELL2:PCLK1</td><td>CLK_ROOT.PCLK1_NW</td></tr>
+
 <tr><td>TCELL2:PCLK2</td><td>CLK_ROOT.PCLK2_NW</td></tr>
+
 <tr><td>TCELL2:PCLK3</td><td>CLK_ROOT.PCLK3_NW</td></tr>
+
 <tr><td>TCELL2:PCLK4</td><td>CLK_ROOT.PCLK4_NW</td></tr>
+
 <tr><td>TCELL2:PCLK5</td><td>CLK_ROOT.PCLK5_NW</td></tr>
+
 <tr><td>TCELL2:PCLK6</td><td>DCS_NW0.OUT</td></tr>
+
 <tr><td>TCELL2:PCLK7</td><td>DCS_NW1.OUT</td></tr>
+
 <tr><td>TCELL3:PCLK0</td><td>CLK_ROOT.PCLK0_NE</td></tr>
+
 <tr><td>TCELL3:PCLK1</td><td>CLK_ROOT.PCLK1_NE</td></tr>
+
 <tr><td>TCELL3:PCLK2</td><td>CLK_ROOT.PCLK2_NE</td></tr>
+
 <tr><td>TCELL3:PCLK3</td><td>CLK_ROOT.PCLK3_NE</td></tr>
+
 <tr><td>TCELL3:PCLK4</td><td>CLK_ROOT.PCLK4_NE</td></tr>
+
 <tr><td>TCELL3:PCLK5</td><td>CLK_ROOT.PCLK5_NE</td></tr>
+
 <tr><td>TCELL3:PCLK6</td><td>DCS_NE0.OUT</td></tr>
+
 <tr><td>TCELL3:PCLK7</td><td>DCS_NE1.OUT</td></tr>
+
 <tr><td>TCELL4:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W0</td></tr>
+
 <tr><td>TCELL5:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_W1</td></tr>
+
 <tr><td>TCELL6:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E0</td></tr>
+
 <tr><td>TCELL7:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E1</td></tr>
+
 <tr><td>TCELL8:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E2</td></tr>
+
 <tr><td>TCELL9:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_E3</td></tr>
+
 <tr><td>TCELL10:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S0</td></tr>
+
 <tr><td>TCELL11:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_S1</td></tr>
+
 <tr><td>TCELL12:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N0</td></tr>
+
 <tr><td>TCELL13:IMUX_C3</td><td>CLK_ROOT.PCLK_IN_N1</td></tr>
+
 <tr><td>TCELL14:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W0</td></tr>
+
 <tr><td>TCELL15:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W1</td></tr>
+
 <tr><td>TCELL16:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W2</td></tr>
+
 <tr><td>TCELL17:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_W3</td></tr>
+
 <tr><td>TCELL18:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E0</td></tr>
+
 <tr><td>TCELL19:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E1</td></tr>
+
 <tr><td>TCELL20:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E2</td></tr>
+
 <tr><td>TCELL21:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_E3</td></tr>
+
 <tr><td>TCELL22:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S0</td></tr>
+
 <tr><td>TCELL23:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S1</td></tr>
+
 <tr><td>TCELL24:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S2</td></tr>
+
 <tr><td>TCELL25:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_S3</td></tr>
+
 <tr><td>TCELL26:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N0</td></tr>
+
 <tr><td>TCELL27:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N1</td></tr>
+
 <tr><td>TCELL28:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N2</td></tr>
+
 <tr><td>TCELL29:IMUX_C3</td><td>CLK_ROOT.SCLK_IN_N3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-eclk_root_e"><a class="header" href="#tile-eclk_root_e">Tile ECLK_ROOT_E</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-eclk_root"><a class="header" href="#bel-eclk_root">Bel ECLK_ROOT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_E bel ECLK_ROOT</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>ECLK0_IN</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>ECLK1_IN</td><td>input</td><td>IMUX_B3</td></tr>
+
 <tr><td>PAD0_OUT</td><td>output</td><td>OUT_F6</td></tr>
+
 <tr><td>PAD1_OUT</td><td>output</td><td>OUT_F7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_E bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_B2</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+
 <tr><td>IMUX_B3</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+
 <tr><td>OUT_F6</td><td>ECLK_ROOT.PAD0_OUT</td></tr>
+
 <tr><td>OUT_F7</td><td>ECLK_ROOT.PAD1_OUT</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-eclk_root_n"><a class="header" href="#tile-eclk_root_n">Tile ECLK_ROOT_N</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-eclk_root-1"><a class="header" href="#bel-eclk_root-1">Bel ECLK_ROOT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_N bel ECLK_ROOT</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>ECLK0_IN</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+
 <tr><td>ECLK1_IN</td><td>input</td><td>TCELL0:IMUX_B3</td></tr>
+
 <tr><td>PAD0_OUT0</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+
 <tr><td>PAD0_OUT1</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+
 <tr><td>PAD1_OUT0</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+
 <tr><td>PAD1_OUT1</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_N bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX_B2</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+
 <tr><td>TCELL0:IMUX_B3</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+
 <tr><td>TCELL0:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT0</td></tr>
+
 <tr><td>TCELL0:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT0</td></tr>
+
 <tr><td>TCELL1:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT1</td></tr>
+
 <tr><td>TCELL1:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-eclk_root_s"><a class="header" href="#tile-eclk_root_s">Tile ECLK_ROOT_S</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-eclk_root-2"><a class="header" href="#bel-eclk_root-2">Bel ECLK_ROOT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_S bel ECLK_ROOT</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>ECLK0_IN</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+
 <tr><td>ECLK1_IN</td><td>input</td><td>TCELL0:IMUX_B3</td></tr>
+
 <tr><td>PAD0_OUT0</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+
 <tr><td>PAD0_OUT1</td><td>output</td><td>TCELL1:OUT_F6</td></tr>
+
 <tr><td>PAD1_OUT0</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+
 <tr><td>PAD1_OUT1</td><td>output</td><td>TCELL1:OUT_F7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_S bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX_B2</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+
 <tr><td>TCELL0:IMUX_B3</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+
 <tr><td>TCELL0:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT0</td></tr>
+
 <tr><td>TCELL0:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT0</td></tr>
+
 <tr><td>TCELL1:OUT_F6</td><td>ECLK_ROOT.PAD0_OUT1</td></tr>
+
 <tr><td>TCELL1:OUT_F7</td><td>ECLK_ROOT.PAD1_OUT1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-eclk_root_w"><a class="header" href="#tile-eclk_root_w">Tile ECLK_ROOT_W</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-eclk_root-3"><a class="header" href="#bel-eclk_root-3">Bel ECLK_ROOT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_W bel ECLK_ROOT</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>ECLK0_IN</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>ECLK1_IN</td><td>input</td><td>IMUX_B3</td></tr>
+
 <tr><td>PAD0_OUT</td><td>output</td><td>OUT_F6</td></tr>
+
 <tr><td>PAD1_OUT</td><td>output</td><td>OUT_F7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_ROOT_W bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_B2</td><td>ECLK_ROOT.ECLK0_IN</td></tr>
+
 <tr><td>IMUX_B3</td><td>ECLK_ROOT.ECLK1_IN</td></tr>
+
 <tr><td>OUT_F6</td><td>ECLK_ROOT.PAD0_OUT</td></tr>
+
 <tr><td>OUT_F7</td><td>ECLK_ROOT.PAD1_OUT</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-eclk_tap"><a class="header" href="#tile-eclk_tap">Tile ECLK_TAP</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-eclk_tap"><a class="header" href="#bel-eclk_tap">Bel ECLK_TAP</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_TAP bel ECLK_TAP</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>ECLK0</td><td>output</td><td>OUT_F6</td></tr>
+
 <tr><td>ECLK1</td><td>output</td><td>OUT_F7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m ECLK_TAP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT_F6</td><td>ECLK_TAP.ECLK0</td></tr>
+
 <tr><td>OUT_F7</td><td>ECLK_TAP.ECLK1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hsdclk_root"><a class="header" href="#tile-hsdclk_root">Tile HSDCLK_ROOT</a></h2>
 <p>Cells: 8</p>
 <h3 id="bel-hsdclk_root"><a class="header" href="#bel-hsdclk_root">Bel HSDCLK_ROOT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m HSDCLK_ROOT bel HSDCLK_ROOT</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>OUT_E0</td><td>output</td><td>TCELL4:HSDCLK0</td></tr>
+
 <tr><td>OUT_E1</td><td>output</td><td>TCELL5:HSDCLK0</td></tr>
+
 <tr><td>OUT_E2</td><td>output</td><td>TCELL6:HSDCLK0</td></tr>
+
 <tr><td>OUT_E3</td><td>output</td><td>TCELL7:HSDCLK0</td></tr>
+
 <tr><td>OUT_E4</td><td>output</td><td>TCELL4:HSDCLK4</td></tr>
+
 <tr><td>OUT_E5</td><td>output</td><td>TCELL5:HSDCLK4</td></tr>
+
 <tr><td>OUT_E6</td><td>output</td><td>TCELL6:HSDCLK4</td></tr>
+
 <tr><td>OUT_E7</td><td>output</td><td>TCELL7:HSDCLK4</td></tr>
+
 <tr><td>OUT_W0</td><td>output</td><td>TCELL0:HSDCLK0</td></tr>
+
 <tr><td>OUT_W1</td><td>output</td><td>TCELL1:HSDCLK0</td></tr>
+
 <tr><td>OUT_W2</td><td>output</td><td>TCELL2:HSDCLK0</td></tr>
+
 <tr><td>OUT_W3</td><td>output</td><td>TCELL3:HSDCLK0</td></tr>
+
 <tr><td>OUT_W4</td><td>output</td><td>TCELL0:HSDCLK4</td></tr>
+
 <tr><td>OUT_W5</td><td>output</td><td>TCELL1:HSDCLK4</td></tr>
+
 <tr><td>OUT_W6</td><td>output</td><td>TCELL2:HSDCLK4</td></tr>
+
 <tr><td>OUT_W7</td><td>output</td><td>TCELL3:HSDCLK4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="switchbox-hsdclk_splitter"><a class="header" href="#switchbox-hsdclk_splitter">Switchbox HSDCLK_SPLITTER</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m HSDCLK_ROOT switchbox HSDCLK_SPLITTER</caption>
 <thead>
 <tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td rowspan="1">TCELL0_HSDCLK0</td><td>TCELL4_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL0_HSDCLK4</td><td>TCELL4_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL1_HSDCLK0</td><td>TCELL5_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL1_HSDCLK4</td><td>TCELL5_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL2_HSDCLK0</td><td>TCELL6_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL2_HSDCLK4</td><td>TCELL6_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL3_HSDCLK0</td><td>TCELL7_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL3_HSDCLK4</td><td>TCELL7_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL4_HSDCLK0</td><td>TCELL0_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL4_HSDCLK4</td><td>TCELL0_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL5_HSDCLK0</td><td>TCELL1_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL5_HSDCLK4</td><td>TCELL1_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL6_HSDCLK0</td><td>TCELL2_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL6_HSDCLK4</td><td>TCELL2_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL7_HSDCLK0</td><td>TCELL3_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL7_HSDCLK4</td><td>TCELL3_HSDCLK4</td><td>buffer</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-6"><a class="header" href="#bel-wires-6">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m HSDCLK_ROOT bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W0</td></tr>
+
 <tr><td>TCELL0:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W4</td></tr>
+
 <tr><td>TCELL1:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W1</td></tr>
+
 <tr><td>TCELL1:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W5</td></tr>
+
 <tr><td>TCELL2:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W2</td></tr>
+
 <tr><td>TCELL2:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W6</td></tr>
+
 <tr><td>TCELL3:HSDCLK0</td><td>HSDCLK_ROOT.OUT_W3</td></tr>
+
 <tr><td>TCELL3:HSDCLK4</td><td>HSDCLK_ROOT.OUT_W7</td></tr>
+
 <tr><td>TCELL4:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E0</td></tr>
+
 <tr><td>TCELL4:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E4</td></tr>
+
 <tr><td>TCELL5:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E1</td></tr>
+
 <tr><td>TCELL5:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E5</td></tr>
+
 <tr><td>TCELL6:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E2</td></tr>
+
 <tr><td>TCELL6:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E6</td></tr>
+
 <tr><td>TCELL7:HSDCLK0</td><td>HSDCLK_ROOT.OUT_E3</td></tr>
+
 <tr><td>TCELL7:HSDCLK4</td><td>HSDCLK_ROOT.OUT_E7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-hsdclk_splitter"><a class="header" href="#tile-hsdclk_splitter">Tile HSDCLK_SPLITTER</a></h2>
 <p>Cells: 8</p>
 <h3 id="switchbox-hsdclk_splitter-1"><a class="header" href="#switchbox-hsdclk_splitter-1">Switchbox HSDCLK_SPLITTER</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m HSDCLK_SPLITTER switchbox HSDCLK_SPLITTER</caption>
 <thead>
 <tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td rowspan="1">TCELL0_HSDCLK0</td><td>TCELL4_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL0_HSDCLK4</td><td>TCELL4_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL1_HSDCLK0</td><td>TCELL5_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL1_HSDCLK4</td><td>TCELL5_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL2_HSDCLK0</td><td>TCELL6_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL2_HSDCLK4</td><td>TCELL6_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL3_HSDCLK0</td><td>TCELL7_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL3_HSDCLK4</td><td>TCELL7_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL4_HSDCLK0</td><td>TCELL0_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL4_HSDCLK4</td><td>TCELL0_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL5_HSDCLK0</td><td>TCELL1_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL5_HSDCLK4</td><td>TCELL1_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL6_HSDCLK0</td><td>TCELL2_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL6_HSDCLK4</td><td>TCELL2_HSDCLK4</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL7_HSDCLK0</td><td>TCELL3_HSDCLK0</td><td>buffer</td>
 </tr>
+
 <tr><td rowspan="1">TCELL7_HSDCLK4</td><td>TCELL3_HSDCLK4</td><td>buffer</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-sclk0_source"><a class="header" href="#tile-sclk0_source">Tile SCLK0_SOURCE</a></h2>
 <p>Cells: 1</p>
 <h3 id="switchbox-sclk_source"><a class="header" href="#switchbox-sclk_source">Switchbox SCLK_SOURCE</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m SCLK0_SOURCE switchbox SCLK_SOURCE</caption>
 <thead>
 <tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td rowspan="1">SCLK0</td><td>VSDCLK0</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="1">SCLK4</td><td>VSDCLK1</td><td>fixed buffer</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-sclk1_source"><a class="header" href="#tile-sclk1_source">Tile SCLK1_SOURCE</a></h2>
 <p>Cells: 1</p>
 <h3 id="switchbox-sclk_source-1"><a class="header" href="#switchbox-sclk_source-1">Switchbox SCLK_SOURCE</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m SCLK1_SOURCE switchbox SCLK_SOURCE</caption>
 <thead>
 <tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td rowspan="1">SCLK1</td><td>VSDCLK0</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="1">SCLK5</td><td>VSDCLK1</td><td>fixed buffer</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-sclk2_source"><a class="header" href="#tile-sclk2_source">Tile SCLK2_SOURCE</a></h2>
 <p>Cells: 1</p>
 <h3 id="switchbox-sclk_source-2"><a class="header" href="#switchbox-sclk_source-2">Switchbox SCLK_SOURCE</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m SCLK2_SOURCE switchbox SCLK_SOURCE</caption>
 <thead>
 <tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td rowspan="1">SCLK2</td><td>VSDCLK0</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="1">SCLK6</td><td>VSDCLK1</td><td>fixed buffer</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-sclk3_source"><a class="header" href="#tile-sclk3_source">Tile SCLK3_SOURCE</a></h2>
 <p>Cells: 1</p>
 <h3 id="switchbox-sclk_source-3"><a class="header" href="#switchbox-sclk_source-3">Switchbox SCLK_SOURCE</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp2m SCLK3_SOURCE switchbox SCLK_SOURCE</caption>
 <thead>
 <tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td rowspan="1">SCLK3</td><td>VSDCLK0</td><td>fixed buffer</td>
 </tr>
+
 <tr><td rowspan="1">SCLK7</td><td>VSDCLK1</td><td>fixed buffer</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../ecp2m/dsp.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../ecp2m/io.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -721,16 +1120,21 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../ecp2m/dsp.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../ecp2m/io.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -740,9 +1144,9 @@
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

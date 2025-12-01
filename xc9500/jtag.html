@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,21 +142,26 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="jtag-interface"><a class="header" href="#jtag-interface">JTAG interface</a></h1>
 <h2 id="frequency"><a class="header" href="#frequency">Frequency</a></h2>
 <p>The max TCK frequency for all XC9500 family devices is 10MHz.</p>
 <h2 id="ir"><a class="header" href="#ir">IR</a></h2>
 <p>The IR is 8 bits long.  The following instructions exist:</p>
-<div class="table-wrapper"><table><thead><tr><th>IR</th><th>Instruction</th><th>Register</th><th>Notes</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>IR</th><th>Instruction</th><th>Register</th><th>Notes</th></tr>
+</thead>
+<tbody>
 <tr><td><code>00000000</code></td><td><code>EXTEST</code></td><td><code>BOUNDARY</code></td><td></td></tr>
 <tr><td><code>00000001</code></td><td><code>SAMPLE</code></td><td><code>BOUNDARY</code></td><td></td></tr>
 <tr><td><code>00000010</code></td><td><code>INTEST</code></td><td><code>BOUNDARY</code></td><td></td></tr>
@@ -178,7 +182,8 @@
 <tr><td><code>11111101</code></td><td><code>USERCODE</code></td><td><code>USERCODE</code></td><td></td></tr>
 <tr><td><code>11111110</code></td><td><code>IDCODE</code></td><td><code>IDCODE</code></td><td></td></tr>
 <tr><td><code>11111111</code></td><td><code>BYPASS</code></td><td><code>BYPASS</code></td><td></td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <p>The IR status is:</p>
 <ul>
@@ -191,7 +196,7 @@
 <li>bits 6-7: const 0</li>
 </ul>
 <p>Note that the protection and <code>DONE</code> status is latched when the device is reset and when
-<code>ISPEX</code> is executed — when erasing or programming the fuses, the new settings won't take
+<code>ISPEX</code> is executed — when erasing or programming the fuses, the new settings won’t take
 effect before exiting the ISP mode.</p>
 <h2 id="idcode"><a class="header" href="#idcode">IDCODE</a></h2>
 <p>The IDCODE for XC9500* devices can be determined as follows:</p>
@@ -220,11 +225,11 @@ have a corresponding IOB.</p>
 <li>output enable: <code>(num_fbs - 1 - i) * 18 * 3 + (17 - j) * 3 + 0</code></li>
 </ul>
 <p>All bits of the register are <code>BC_1</code> type cells.</p>
-<p>Note that the "programmed ground" feature is implemented outside of the boundary scan.  Thus,
+<p>Note that the “programmed ground” feature is implemented outside of the boundary scan.  Thus,
 a macrocell with programmed ground enabled will show an output enable of <code>0</code> in <code>INTEST</code>,
 and the ground connection will <em>not</em> be overriden by <code>EXTEST</code>.</p>
 <p>For <code>INTEST</code>, the output and output enable bits in boundary scan register are connected
-directly to the macrocell's data and <code>IOB_OE</code> outputs for all macrocells, even ones that
+directly to the macrocell’s data and <code>IOB_OE</code> outputs for all macrocells, even ones that
 do not have an IOB.</p>
 <p>TODO: details on the cell connection, EXTEST, INTEST semantics</p>
 <h2 id="isp-instructions--xc9500"><a class="header" href="#isp-instructions--xc9500">ISP instructions — XC9500</a></h2>
@@ -282,7 +287,7 @@ The instruction uses the <code>ISPENABLE</code> register, which is described abo
 <li>bits 0 - <code>num_fbs</code>: set to 1</li>
 <li>bits <code>num_fbs + 1</code> - <code>num_fbs + 3</code>: set to 0</li>
 </ul>
-<p>The step of shifting a value into DR above is thus optional if the default hasn't been modified.</p>
+<p>The step of shifting a value into DR above is thus optional if the default hasn’t been modified.</p>
 <p>When read, the <code>ISPENABLE</code> register always returns the reset value, regardless of the actual
 value that was last shifted in.</p>
 <h3 id="write-protection--xc9500"><a class="header" href="#write-protection--xc9500">Write protection — XC9500</a></h3>
@@ -295,7 +300,7 @@ be written (erased or programmed) without unlocking write protection first.</p>
 <li>shift the following value to DR:
 <ul>
 <li>bits 0-1 (control): <code>0b10</code></li>
-<li>bits 2-9 (data): don't care</li>
+<li>bits 2-9 (data): don’t care</li>
 <li>bits 10-26 (address): <code>0x1aa55</code></li>
 </ul>
 </li>
@@ -327,6 +332,7 @@ but it appears to be too small for the two devices I (@wanda-phi) personally pos
 which require a timeout of 2s.  Since these devices came from random ebay listings, this
 may be due to age or mishandling.  Still, you may want to consider using a larger timeout
 in your programming software.</div>
+
 <p>To erase fuses:</p>
 <ul>
 <li>
@@ -339,15 +345,15 @@ in your programming software.</div>
 <p>shift a value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b10</code></li>
-<li>bits 2-9 (data): don't care</li>
+<li>bits 2-9 (data): don’t care</li>
 <li>bits 10-27 (address):
 <ul>
-<li>bits 0-11 (row, column): don't care</li>
+<li>bits 0-11 (row, column): don’t care</li>
 <li>bit 12: 0 to erase main area, 1 to erase UIM wire-AND area</li>
 <li>bits 13-16:
 <ul>
 <li>for <code>FERASE</code>: FB index</li>
-<li>for <code>FBULK</code>: don't care</li>
+<li>for <code>FBULK</code>: don’t care</li>
 </ul>
 </li>
 </ul>
@@ -361,7 +367,7 @@ in your programming software.</div>
 <p>shift a neutral value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b11</code></li>
-<li>all other bits: don't care</li>
+<li>all other bits: don’t care</li>
 </ul>
 <p>Verify that the low 2 bits of the value shifted out are <code>0b11</code>.  Any other value is an error.
 Value <code>0b00</code> could mean that the erase was still in progress.  Value <code>0b10</code> could mean that
@@ -408,7 +414,7 @@ that attempts to set an already-0 bit to 1 will fail, and result in <code>0b01</
 <p>shift a neutral value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b11</code></li>
-<li>all other bits: don't care</li>
+<li>all other bits: don’t care</li>
 </ul>
 <p>Verify that the low 2 bits of the value shifted out are <code>0b11</code>.  Any other value is an error.</p>
 </li>
@@ -423,7 +429,7 @@ trigger the second program:</p>
 <li>shift second address + data + control into DR, verify low 2 bits of the value shifted out</li>
 <li>go to RTI for programming time</li>
 <li>shift third address + data + control into DR, verify low 2 bits of the value shifted out</li>
-<li>...</li>
+<li>…</li>
 <li>shift neutral value into DR, verify low 2 bits of the value shifted out</li>
 </ul>
 <p>When a block of sequential addresses is to be programmed (including programming the whole device),
@@ -459,7 +465,7 @@ the <code>FPGMI</code> auto-incrementing instruction can be used as follows:</p>
 <p>go to RTI for programming time</p>
 </li>
 <li>
-<p>...</p>
+<p>…</p>
 </li>
 <li>
 <p>shift neutral value (control <code>0b11</code>) into DR, verify status of the last byte</p>
@@ -493,7 +499,7 @@ valid address in the device.</p>
 <p>shift a value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b10</code></li>
-<li>bits 2-9 (data): don't care</li>
+<li>bits 2-9 (data): don’t care</li>
 <li>bits 10-26 (address): the address to read</li>
 </ul>
 </li>
@@ -504,7 +510,7 @@ valid address in the device.</p>
 <p>shift a neutral value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b11</code></li>
-<li>all other bits: don't care</li>
+<li>all other bits: don’t care</li>
 </ul>
 <p>The data read will be:</p>
 <ul>
@@ -524,7 +530,7 @@ trigger the second read:</p>
 <li>shift second address + control into DR, grab first data from the value shifted out</li>
 <li>go to RTI for one clock</li>
 <li>shift third address + control into DR, grab second data from the value shifted out</li>
-<li>...</li>
+<li>…</li>
 <li>shift neutral value into DR, grab final data from the value shifted out</li>
 </ul>
 <p>When a block of sequential addresses is to be read (including reading the whole device),
@@ -546,7 +552,7 @@ the <code>FVFYI</code> auto-incrementing instruction can be used as follows:</p>
 <p>shift second control into DR, ie. shift the following value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b10</code></li>
-<li>bits 2-9 (data): don't care</li>
+<li>bits 2-9 (data): don’t care</li>
 </ul>
 <p>Grab first data byte from the value shifted out</p>
 </li>
@@ -560,7 +566,7 @@ the <code>FVFYI</code> auto-incrementing instruction can be used as follows:</p>
 <p>go to RTI for one clock</p>
 </li>
 <li>
-<p>...</p>
+<p>…</p>
 </li>
 <li>
 <p>shift neutral value (control <code>0b11</code>) into DR, grab final data from the value shifted out</p>
@@ -622,7 +628,7 @@ is unknown.</p>
 <li>go to Run-Test/Idle state for at least 1 clock</li>
 </ul>
 <p>If the <code>ISPEN</code> instruction is used, all outputs will be put in high-Z with weak pull-ups while ISP mode is active.
-If the <code>ISPENC</code> ("clamp" mode) instruction is used, all output and output enable signals will be snapshotted
+If the <code>ISPENC</code> (“clamp” mode) instruction is used, all output and output enable signals will be snapshotted
 and outputs will continue driving the last value while ISP mode is active.</p>
 <p>To exit ISP mode:</p>
 <ul>
@@ -645,7 +651,7 @@ and outputs will continue driving the last value while ISP mode is active.</p>
 <p>shift the following value to DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b11</code></li>
-<li>bits 2-17 (address): don't care</li>
+<li>bits 2-17 (address): don’t care</li>
 </ul>
 </li>
 <li>
@@ -704,11 +710,11 @@ abort it and return <code>0b10</code> in the low bits.</p>
 <li>bits 0-1 (control): <code>0b11</code></li>
 <li>bits 2-17 (address):
 <ul>
-<li>bits 0-11 (row, column): don't care</li>
+<li>bits 0-11 (row, column): don’t care</li>
 <li>bits 12-15:
 <ul>
 <li>for <code>FERASE</code>: FB index</li>
-<li>for <code>FBULK</code>: don't care</li>
+<li>for <code>FBULK</code>: don’t care</li>
 </ul>
 </li>
 </ul>
@@ -722,7 +728,7 @@ abort it and return <code>0b10</code> in the low bits.</p>
 <p>shift a neutral value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b01</code></li>
-<li>all other bits: don't care</li>
+<li>all other bits: don’t care</li>
 </ul>
 <p>Verify that the low 2 bits of the value shifted out are <code>0b01</code>.  Any other value is an error.
 Value <code>0b10</code> could mean that the erase was still in progress.  Value <code>0b00</code> could mean that
@@ -733,7 +739,7 @@ device is write protected.  Other values are unknown.</p>
 <p>The programming sequence is markedly different from XC9500 — while data is uploaded
 to the device a word at a time, the actual programming happens a row at a time.</p>
 <p>As on XC9500, the opcodes used for programming are <code>FPGM</code> and <code>FPGMI</code>.</p>
-<p>The device has a "row buffer", which stores a row worth of data.  Writing to DR with
+<p>The device has a “row buffer”, which stores a row worth of data.  Writing to DR with
 any of the above opcodes will place the data bits into the row buffer, at the position
 determined by the column encoded in the address.</p>
 <p>A program operation will write the entire contents of the row buffer into the array.
@@ -762,7 +768,7 @@ in the bottom two bits.</p>
 <li>shift a value into DR:
 <ul>
 <li>bits 0-1 (control): <code>0b01</code></li>
-<li>bits 2-... (data): the data to be programmed</li>
+<li>bits 2-… (data): the data to be programmed</li>
 <li>top 16 bits (address): the address to be programmed</li>
 </ul>
 </li>
@@ -774,7 +780,7 @@ in the bottom two bits.</p>
 <li>shift a value into DR:
 <ul>
 <li>bits 0-1 (control): <code>0b11</code></li>
-<li>bits 2-... (data): the data to be programmed</li>
+<li>bits 2-… (data): the data to be programmed</li>
 <li>top 16 bits (address): the address to be programmed</li>
 </ul>
 </li>
@@ -787,7 +793,7 @@ in the bottom two bits.</p>
 <p>shift a neutral value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b01</code></li>
-<li>all other bits: don't care</li>
+<li>all other bits: don’t care</li>
 </ul>
 <p>Verify that the low 2 bits of the value shifted out are <code>0b01</code>.  Any other value is an error.</p>
 </li>
@@ -838,7 +844,7 @@ valid address in the device.</p>
 <p>shift a value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b11</code></li>
-<li>bits 2-... (data): don't care</li>
+<li>bits 2-… (data): don’t care</li>
 <li>top 16 bits (address): the address to read</li>
 </ul>
 </li>
@@ -849,12 +855,12 @@ valid address in the device.</p>
 <p>shift a neutral value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b01</code></li>
-<li>all other bits: don't care</li>
+<li>all other bits: don’t care</li>
 </ul>
 <p>The data read will be:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b01</code> if operation succeeded</li>
-<li>bits 2-... (data): the data word read</li>
+<li>bits 2-… (data): the data word read</li>
 <li>top 16 bits (address): the address</li>
 </ul>
 </li>
@@ -869,7 +875,7 @@ trigger the second read:</p>
 <li>shift second address + control into DR, grab first data from the value shifted out</li>
 <li>go to RTI for one clock</li>
 <li>shift third address + control into DR, grab second data from the value shifted out</li>
-<li>...</li>
+<li>…</li>
 <li>shift neutral value into DR, grab final data from the value shifted out</li>
 </ul>
 <p>When a block of sequential addresses is to be read (including reading the whole device),
@@ -891,7 +897,7 @@ the <code>FVFYI</code> auto-incrementing instruction can be used as follows:</p>
 <p>shift second control into DR, ie. shift the following value into DR:</p>
 <ul>
 <li>bits 0-1 (control): <code>0b11</code></li>
-<li>bits 2-... (data): don't care</li>
+<li>bits 2-… (data): don’t care</li>
 </ul>
 <p>Grab first data word from the value shifted out</p>
 </li>
@@ -905,7 +911,7 @@ the <code>FVFYI</code> auto-incrementing instruction can be used as follows:</p>
 <p>go to RTI for one clock</p>
 </li>
 <li>
-<p>...</p>
+<p>…</p>
 </li>
 <li>
 <p>shift neutral value (control <code>0b01</code>) into DR, grab final data from the value shifted out</p>
@@ -954,11 +960,11 @@ erasing the device.</p>
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../xc9500/database.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../xc9500/devices/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -968,16 +974,21 @@ erasing the device.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../xc9500/database.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../xc9500/devices/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -987,9 +998,9 @@ erasing the device.</p>
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

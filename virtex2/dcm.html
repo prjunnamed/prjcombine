@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,129 +142,225 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="digital-clock-managers"><a class="header" href="#digital-clock-managers">Digital Clock Managers</a></h1>
 <p>TODO: reverse, document</p>
 <h2 id="tile-dcmv2"><a class="header" href="#tile-dcmv2">Tile DCM.V2</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-dcm"><a class="header" href="#bel-dcm">Bel DCM</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2 bel DCM</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLK0</td><td>output</td><td>OUT.SEC10</td></tr>
+
 <tr><td>CLK180</td><td>output</td><td>OUT.SEC8</td></tr>
+
 <tr><td>CLK270</td><td>output</td><td>OUT.SEC7</td></tr>
+
 <tr><td>CLK2X</td><td>output</td><td>OUT.SEC6</td></tr>
+
 <tr><td>CLK2X180</td><td>output</td><td>OUT.SEC5</td></tr>
+
 <tr><td>CLK90</td><td>output</td><td>OUT.SEC9</td></tr>
+
 <tr><td>CLKDV</td><td>output</td><td>OUT.SEC4</td></tr>
+
 <tr><td>CLKFB</td><td>input</td><td>IMUX.DCMCLK0</td></tr>
+
 <tr><td>CLKFX</td><td>output</td><td>OUT.SEC3</td></tr>
+
 <tr><td>CLKFX180</td><td>output</td><td>OUT.SEC2</td></tr>
+
 <tr><td>CLKIN</td><td>input</td><td>IMUX.DCMCLK1</td></tr>
+
 <tr><td>CONCUR</td><td>output</td><td>OUT.SEC11</td></tr>
+
 <tr><td>CTLGO</td><td>input</td><td>IMUX.G1.DATA3</td></tr>
+
 <tr><td>CTLMODE</td><td>input</td><td>IMUX.G2.DATA1</td></tr>
+
 <tr><td>CTLOSC1</td><td>input</td><td>IMUX.G1.DATA2</td></tr>
+
 <tr><td>CTLOSC2</td><td>input</td><td>IMUX.G1.DATA1</td></tr>
+
 <tr><td>CTLSEL0</td><td>input</td><td>IMUX.G0.DATA1</td></tr>
+
 <tr><td>CTLSEL1</td><td>input</td><td>IMUX.G0.DATA2</td></tr>
+
 <tr><td>CTLSEL2</td><td>input</td><td>IMUX.G0.DATA3</td></tr>
+
 <tr><td>DSSEN</td><td>input</td><td>IMUX.G0.DATA0</td></tr>
+
 <tr><td>FREEZEDFS</td><td>input</td><td>IMUX.G2.DATA3</td></tr>
+
 <tr><td>FREEZEDLL</td><td>input</td><td>IMUX.G2.DATA2</td></tr>
+
 <tr><td>LOCKED</td><td>output</td><td>OUT.SEC13</td></tr>
+
 <tr><td>PSCLK</td><td>input</td><td>IMUX.DCMCLK2</td></tr>
+
 <tr><td>PSDONE</td><td>output</td><td>OUT.SEC12</td></tr>
+
 <tr><td>PSEN</td><td>input</td><td>IMUX.G1.DATA0</td></tr>
+
 <tr><td>PSINCDEC</td><td>input</td><td>IMUX.G2.DATA0</td></tr>
+
 <tr><td>RST</td><td>input</td><td>IMUX.G3.DATA0</td></tr>
+
 <tr><td>STATUS0</td><td>output</td><td>OUT.HALF14.0</td></tr>
+
 <tr><td>STATUS1</td><td>output</td><td>OUT.HALF15.0</td></tr>
+
 <tr><td>STATUS2</td><td>output</td><td>OUT.HALF16.0</td></tr>
+
 <tr><td>STATUS3</td><td>output</td><td>OUT.HALF17.0</td></tr>
+
 <tr><td>STATUS4</td><td>output</td><td>OUT.HALF14.1</td></tr>
+
 <tr><td>STATUS5</td><td>output</td><td>OUT.HALF15.1</td></tr>
+
 <tr><td>STATUS6</td><td>output</td><td>OUT.HALF16.1</td></tr>
+
 <tr><td>STATUS7</td><td>output</td><td>OUT.HALF17.1</td></tr>
+
 <tr><td>STSADRS0</td><td>input</td><td>IMUX.G3.DATA1</td></tr>
+
 <tr><td>STSADRS1</td><td>input</td><td>IMUX.G3.DATA2</td></tr>
+
 <tr><td>STSADRS2</td><td>input</td><td>IMUX.G3.DATA3</td></tr>
+
 <tr><td>STSADRS3</td><td>input</td><td>IMUX.G3.DATA4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX.DCMCLK0</td><td>DCM.CLKFB</td></tr>
+
 <tr><td>IMUX.DCMCLK1</td><td>DCM.CLKIN</td></tr>
+
 <tr><td>IMUX.DCMCLK2</td><td>DCM.PSCLK</td></tr>
+
 <tr><td>IMUX.G0.DATA0</td><td>DCM.DSSEN</td></tr>
+
 <tr><td>IMUX.G0.DATA1</td><td>DCM.CTLSEL0</td></tr>
+
 <tr><td>IMUX.G0.DATA2</td><td>DCM.CTLSEL1</td></tr>
+
 <tr><td>IMUX.G0.DATA3</td><td>DCM.CTLSEL2</td></tr>
+
 <tr><td>IMUX.G1.DATA0</td><td>DCM.PSEN</td></tr>
+
 <tr><td>IMUX.G1.DATA1</td><td>DCM.CTLOSC2</td></tr>
+
 <tr><td>IMUX.G1.DATA2</td><td>DCM.CTLOSC1</td></tr>
+
 <tr><td>IMUX.G1.DATA3</td><td>DCM.CTLGO</td></tr>
+
 <tr><td>IMUX.G2.DATA0</td><td>DCM.PSINCDEC</td></tr>
+
 <tr><td>IMUX.G2.DATA1</td><td>DCM.CTLMODE</td></tr>
+
 <tr><td>IMUX.G2.DATA2</td><td>DCM.FREEZEDLL</td></tr>
+
 <tr><td>IMUX.G2.DATA3</td><td>DCM.FREEZEDFS</td></tr>
+
 <tr><td>IMUX.G3.DATA0</td><td>DCM.RST</td></tr>
+
 <tr><td>IMUX.G3.DATA1</td><td>DCM.STSADRS0</td></tr>
+
 <tr><td>IMUX.G3.DATA2</td><td>DCM.STSADRS1</td></tr>
+
 <tr><td>IMUX.G3.DATA3</td><td>DCM.STSADRS2</td></tr>
+
 <tr><td>IMUX.G3.DATA4</td><td>DCM.STSADRS3</td></tr>
+
 <tr><td>OUT.SEC2</td><td>DCM.CLKFX180</td></tr>
+
 <tr><td>OUT.SEC3</td><td>DCM.CLKFX</td></tr>
+
 <tr><td>OUT.SEC4</td><td>DCM.CLKDV</td></tr>
+
 <tr><td>OUT.SEC5</td><td>DCM.CLK2X180</td></tr>
+
 <tr><td>OUT.SEC6</td><td>DCM.CLK2X</td></tr>
+
 <tr><td>OUT.SEC7</td><td>DCM.CLK270</td></tr>
+
 <tr><td>OUT.SEC8</td><td>DCM.CLK180</td></tr>
+
 <tr><td>OUT.SEC9</td><td>DCM.CLK90</td></tr>
+
 <tr><td>OUT.SEC10</td><td>DCM.CLK0</td></tr>
+
 <tr><td>OUT.SEC11</td><td>DCM.CONCUR</td></tr>
+
 <tr><td>OUT.SEC12</td><td>DCM.PSDONE</td></tr>
+
 <tr><td>OUT.SEC13</td><td>DCM.LOCKED</td></tr>
+
 <tr><td>OUT.HALF14.0</td><td>DCM.STATUS0</td></tr>
+
 <tr><td>OUT.HALF14.1</td><td>DCM.STATUS4</td></tr>
+
 <tr><td>OUT.HALF15.0</td><td>DCM.STATUS1</td></tr>
+
 <tr><td>OUT.HALF15.1</td><td>DCM.STATUS5</td></tr>
+
 <tr><td>OUT.HALF16.0</td><td>DCM.STATUS2</td></tr>
+
 <tr><td>OUT.HALF16.1</td><td>DCM.STATUS6</td></tr>
+
 <tr><td>OUT.HALF17.0</td><td>DCM.STATUS3</td></tr>
+
 <tr><td>OUT.HALF17.1</td><td>DCM.STATUS7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>79</td>
 <td title="0.0.79">
@@ -278,6 +373,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:TEST_ENABLE">DCM:TEST_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>78</td>
 <td title="0.0.78">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[14]</a>
@@ -289,6 +385,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[30]</a>
 </td>
 </tr>
+
 <tr><td>77</td>
 <td title="0.0.77">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[13]</a>
@@ -300,6 +397,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[29]</a>
 </td>
 </tr>
+
 <tr><td>76</td>
 <td title="0.0.76">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[12]</a>
@@ -311,6 +409,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[28]</a>
 </td>
 </tr>
+
 <tr><td>75</td>
 <td title="0.0.75">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[11]</a>
@@ -322,6 +421,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[27]</a>
 </td>
 </tr>
+
 <tr><td>74</td>
 <td title="0.0.74">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[10]</a>
@@ -333,6 +433,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[26]</a>
 </td>
 </tr>
+
 <tr><td>73</td>
 <td title="0.0.73">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[9]</a>
@@ -344,6 +445,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[25]</a>
 </td>
 </tr>
+
 <tr><td>72</td>
 <td title="0.0.72">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[8]</a>
@@ -355,6 +457,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[24]</a>
 </td>
 </tr>
+
 <tr><td>71</td>
 <td title="0.0.71">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[7]</a>
@@ -366,6 +469,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[23]</a>
 </td>
 </tr>
+
 <tr><td>70</td>
 <td title="0.0.70">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[6]</a>
@@ -377,6 +481,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[22]</a>
 </td>
 </tr>
+
 <tr><td>69</td>
 <td title="0.0.69">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[5]</a>
@@ -388,6 +493,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[21]</a>
 </td>
 </tr>
+
 <tr><td>68</td>
 <td title="0.0.68">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[4]</a>
@@ -399,6 +505,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[20]</a>
 </td>
 </tr>
+
 <tr><td>67</td>
 <td title="0.0.67">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[3]</a>
@@ -410,6 +517,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[19]</a>
 </td>
 </tr>
+
 <tr><td>66</td>
 <td title="0.0.66">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[2]</a>
@@ -421,6 +529,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[18]</a>
 </td>
 </tr>
+
 <tr><td>65</td>
 <td title="0.0.65">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[1]</a>
@@ -432,6 +541,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[17]</a>
 </td>
 </tr>
+
 <tr><td>64</td>
 <td title="0.0.64">
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[0]</a>
@@ -443,6 +553,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[16]</a>
 </td>
 </tr>
+
 <tr><td>63</td>
 <td title="0.0.63">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[31]</a>
@@ -454,6 +565,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[15]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td title="0.0.62">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[30]</a>
@@ -464,6 +576,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[14]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td title="0.0.61">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[29]</a>
@@ -475,6 +588,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[13]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td title="0.0.60">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[28]</a>
@@ -486,6 +600,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[12]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td title="0.0.59">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[27]</a>
@@ -498,6 +613,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:STARTUP_WAIT">DCM:STARTUP_WAIT</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td title="0.0.58">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[26]</a>
@@ -510,6 +626,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[10]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td title="0.0.57">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[25]</a>
@@ -522,6 +639,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[9]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td title="0.0.56">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[24]</a>
@@ -534,6 +652,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[8]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td title="0.0.55">
 <a href="#tile-virtex2-DCM.V2-DCM:CLK_FEEDBACK">DCM:CLK_FEEDBACK[0]</a>
@@ -546,6 +665,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[7]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td title="0.0.54">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[22]</a>
@@ -558,6 +678,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[6]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td title="0.0.53">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[21]</a>
@@ -570,6 +691,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[5]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td title="0.0.52">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_MODE">DCM:CLKDV_MODE[0]</a>
@@ -582,6 +704,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[4]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td title="0.0.51">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_PHASE_FALL">DCM:CLKDV_PHASE_FALL[1]</a>
@@ -594,6 +717,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[3]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td title="0.0.50">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_PHASE_FALL">DCM:CLKDV_PHASE_FALL[0]</a>
@@ -606,6 +730,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[2]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td title="0.0.49">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_PHASE_RISE">DCM:CLKDV_PHASE_RISE[1]</a>
@@ -618,6 +743,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[1]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td title="0.0.48">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_PHASE_RISE">DCM:CLKDV_PHASE_RISE[0]</a>
@@ -629,6 +755,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC[0]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td title="0.0.47">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[3]</a>
@@ -641,6 +768,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:PL_CENTERED">DCM:PL_CENTERED</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td title="0.0.46">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[2]</a>
@@ -653,6 +781,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:SEL_PL_DLY">DCM:SEL_PL_DLY[1]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td title="0.0.45">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[1]</a>
@@ -665,6 +794,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:SEL_PL_DLY">DCM:SEL_PL_DLY[0]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td title="0.0.44">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[0]</a>
@@ -677,6 +807,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS_FREQUENCY_MODE">DCM:DFS_FREQUENCY_MODE[0]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td title="0.0.43">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[3]</a>
@@ -689,6 +820,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS_FEEDBACK">DCM:DFS_FEEDBACK</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td title="0.0.42">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[2]</a>
@@ -700,6 +832,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[26]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td title="0.0.41">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[1]</a>
@@ -711,6 +844,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[25]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td title="0.0.40">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[0]</a>
@@ -722,6 +856,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[24]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td title="0.0.39">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[3]</a>
@@ -734,6 +869,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[23]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td title="0.0.38">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[2]</a>
@@ -746,6 +882,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[22]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td title="0.0.37">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[1]</a>
@@ -758,6 +895,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[21]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td title="0.0.36">
 <a href="#tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[0]</a>
@@ -770,6 +908,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[20]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td title="0.0.35">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[3]</a>
@@ -782,6 +921,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[19]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td title="0.0.34">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[2]</a>
@@ -794,6 +934,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[18]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td title="0.0.33">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[1]</a>
@@ -806,6 +947,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[17]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td title="0.0.32">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC[0]</a>
@@ -818,6 +960,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[16]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td title="0.0.31">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[31]</a>
@@ -830,6 +973,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[15]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td title="0.0.30">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[30]</a>
@@ -842,6 +986,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[14]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td title="0.0.29">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[29]</a>
@@ -854,6 +999,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[13]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td title="0.0.28">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[28]</a>
@@ -866,6 +1012,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[12]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td title="0.0.27">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[27]</a>
@@ -878,6 +1025,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[11]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td title="0.0.26">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[26]</a>
@@ -890,6 +1038,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[10]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td title="0.0.25">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[25]</a>
@@ -902,6 +1051,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[9]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td title="0.0.24">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[24]</a>
@@ -914,6 +1064,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[8]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td title="0.0.23">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[23]</a>
@@ -926,6 +1077,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[7]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td title="0.0.22">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[22]</a>
@@ -938,6 +1090,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[6]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td title="0.0.21">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[21]</a>
@@ -950,6 +1103,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[5]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td title="0.0.20">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[20]</a>
@@ -962,6 +1116,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[4]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td title="0.0.19">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[19]</a>
@@ -974,6 +1129,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[3]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td title="0.0.18">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[18]</a>
@@ -986,6 +1142,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[2]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td title="0.0.17">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[17]</a>
@@ -998,6 +1155,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[1]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td title="0.0.16">
 <a href="#tile-virtex2-DCM.V2-DCM:DFS_ENABLE">DCM:DFS_ENABLE</a>
@@ -1010,6 +1168,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS[0]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.0.15">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[15]</a>
@@ -1022,6 +1181,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:NON_STOP">DCM:NON_STOP</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[14]</a>
@@ -1034,6 +1194,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[30]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[13]</a>
@@ -1046,6 +1207,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[29]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[12]</a>
@@ -1058,6 +1220,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:VBG_PD">DCM:VBG_PD[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[11]</a>
@@ -1070,6 +1233,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:VBG_PD">DCM:VBG_PD[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[10]</a>
@@ -1082,6 +1246,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:VBG_SEL">DCM:VBG_SEL[2]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[9]</a>
@@ -1094,6 +1259,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:VBG_SEL">DCM:VBG_SEL[1]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[8]</a>
@@ -1106,6 +1272,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:VBG_SEL">DCM:VBG_SEL[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[7]</a>
@@ -1117,6 +1284,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[23]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[6]</a>
@@ -1129,6 +1297,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[22]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[5]</a>
@@ -1141,6 +1310,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[21]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[4]</a>
@@ -1153,6 +1323,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[3]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[3]</a>
@@ -1165,6 +1336,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[2]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[2]</a>
@@ -1177,6 +1349,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[1]</a>
@@ -1189,6 +1362,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[0]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS[0]</a>
@@ -1201,12 +1375,18 @@
 <a href="#tile-virtex2-DCM.V2-DCM:COM">DCM:COM[16]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="8">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1217,7 +1397,9 @@
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>11</td>
 <td>-</td>
@@ -1231,6 +1413,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC[2]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -1243,6 +1426,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:ZD2_BY1">DCM:ZD2_BY1</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -1257,6 +1441,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:EN_DUMMY_OSC_OR_NON_STOP">DCM:EN_DUMMY_OSC_OR_NON_STOP</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -1267,6 +1452,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1279,6 +1465,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1291,6 +1478,7 @@
 <a href="#tile-virtex2-DCM.V2-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1301,6 +1489,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1311,6 +1500,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1321,6 +1511,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1331,6 +1522,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1341,6 +1533,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1351,9 +1544,14 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL</th>
 <th>0.0.43</th>
@@ -1361,31 +1559,37 @@
 <th>0.0.41</th>
 <th>0.0.40</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2</th>
 <th>0.0.47</th>
 <th>0.0.46</th>
 <th>0.0.45</th>
 <th>0.0.44</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX</th>
 <th>0.0.39</th>
 <th>0.0.38</th>
 <th>0.0.37</th>
 <th>0.0.36</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST</th>
 <th>0.3.4</th>
 <th>0.3.3</th>
 <th>0.3.2</th>
 <th>0.3.1</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DUTY_CYCLE_CORRECTION">DCM:DUTY_CYCLE_CORRECTION</th>
 <th>0.0.35</th>
 <th>0.0.34</th>
 <th>0.0.33</th>
 <th>0.0.32</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1395,38 +1599,55 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKDV_MODE">DCM:CLKDV_MODE</th>
 <th>0.0.52</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HALF</td>
 <td>0</td>
 </tr>
+
 <tr><td>INT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKDV_PHASE_FALL">DCM:CLKDV_PHASE_FALL</th>
 <th>0.0.51</th>
 <th>0.0.50</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKDV_PHASE_RISE">DCM:CLKDV_PHASE_RISE</th>
 <th>0.0.49</th>
 <th>0.0.48</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:VBG_PD">DCM:VBG_PD</th>
 <th>0.3.12</th>
 <th>0.3.11</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1434,110 +1655,151 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKFB_IOB">DCM:CLKFB_IOB</th>
 <th>0.3.6</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKIN_DIVIDE_BY_2">DCM:CLKIN_DIVIDE_BY_2</th>
 <th>0.3.0</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKIN_IOB">DCM:CLKIN_IOB</th>
 <th>0.3.5</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DFS_ENABLE">DCM:DFS_ENABLE</th>
 <th>0.0.16</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DFS_FEEDBACK">DCM:DFS_FEEDBACK</th>
 <th>0.3.43</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DLL_ENABLE">DCM:DLL_ENABLE</th>
 <th>0.0.17</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DSS_ENABLE">DCM:DSS_ENABLE</th>
 <th>0.0.20</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLK0">DCM:ENABLE.CLK0</th>
 <th>0.3.49</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLK180">DCM:ENABLE.CLK180</th>
 <th>0.3.51</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLK270">DCM:ENABLE.CLK270</th>
 <th>0.3.52</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLK2X">DCM:ENABLE.CLK2X</th>
 <th>0.3.53</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLK2X180">DCM:ENABLE.CLK2X180</th>
 <th>0.3.54</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLK90">DCM:ENABLE.CLK90</th>
 <th>0.3.50</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLKDV">DCM:ENABLE.CLKDV</th>
 <th>0.3.55</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLKFB">DCM:ENABLE.CLKFB</th>
 <th>0.0.18</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLKFX">DCM:ENABLE.CLKFX</th>
 <th>0.3.57</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CLKFX180">DCM:ENABLE.CLKFX180</th>
 <th>0.3.56</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ENABLE.CONCUR">DCM:ENABLE.CONCUR</th>
 <th>0.3.58</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:EN_DUMMY_OSC_OR_NON_STOP">DCM:EN_DUMMY_OSC_OR_NON_STOP</th>
 <th>1.7.9</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:EN_OSC_COARSE">DCM:EN_OSC_COARSE</th>
 <th>1.6.9</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:NON_STOP">DCM:NON_STOP</th>
 <th>0.3.15</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:PHASE_SHIFT_NEGATIVE">DCM:PHASE_SHIFT_NEGATIVE</th>
 <th>0.0.21</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:PL_CENTERED">DCM:PL_CENTERED</th>
 <th>0.3.47</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:PS_CENTERED">DCM:PS_CENTERED</th>
 <th>0.0.57</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:PS_ENABLE">DCM:PS_ENABLE</th>
 <th>0.0.19</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:STARTUP_WAIT">DCM:STARTUP_WAIT</th>
 <th>0.3.59</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:STATUS1">DCM:STATUS1</th>
 <th>0.0.60</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:STATUS7">DCM:STATUS7</th>
 <th>0.0.59</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:TEST_ENABLE">DCM:TEST_ENABLE</th>
 <th>0.3.79</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:ZD2_BY1">DCM:ZD2_BY1</th>
 <th>1.7.10</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKFX_DIVIDE">DCM:CLKFX_DIVIDE</th>
 <th>0.3.27</th>
@@ -1553,6 +1815,7 @@ non-inverted
 <th>0.3.17</th>
 <th>0.3.16</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLKFX_MULTIPLY">DCM:CLKFX_MULTIPLY</th>
 <th>0.3.39</th>
 <th>0.3.38</th>
@@ -1567,7 +1830,9 @@ non-inverted
 <th>0.3.29</th>
 <th>0.3.28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1585,54 +1850,78 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:CLK_FEEDBACK">DCM:CLK_FEEDBACK</th>
 <th>0.0.55</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1X</td>
 <td>0</td>
 </tr>
+
 <tr><td>2X</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:COIN_WINDOW">DCM:COIN_WINDOW</th>
 <th>0.3.14</th>
 <th>0.3.13</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:SEL_PL_DLY">DCM:SEL_PL_DLY</th>
 <th>0.3.46</th>
 <th>0.3.45</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:COM">DCM:COM</th>
 <th>0.3.15</th>
@@ -1668,6 +1957,7 @@ non-inverted
 <th>0.0.65</th>
 <th>0.0.64</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DFS">DCM:DFS</th>
 <th>0.3.47</th>
 <th>0.3.46</th>
@@ -1702,6 +1992,7 @@ non-inverted
 <th>0.3.17</th>
 <th>0.3.16</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DLLC">DCM:DLLC</th>
 <th>0.0.63</th>
 <th>0.0.62</th>
@@ -1736,6 +2027,7 @@ non-inverted
 <th>0.0.33</th>
 <th>0.0.32</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DLLS">DCM:DLLS</th>
 <th>0.0.31</th>
 <th>0.0.30</th>
@@ -1770,6 +2062,7 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:MISC">DCM:MISC</th>
 <th>0.3.79</th>
 <th>0.3.78</th>
@@ -1804,7 +2097,9 @@ non-inverted
 <th>0.3.49</th>
 <th>0.3.48</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1842,65 +2137,92 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:DFS_FREQUENCY_MODE">DCM:DFS_FREQUENCY_MODE</th>
 <th>0.3.44</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:DLL_FREQUENCY_MODE">DCM:DLL_FREQUENCY_MODE</th>
 <th>0.0.56</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>LOW</td>
 <td>0</td>
 </tr>
+
 <tr><td>HIGH</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:DSS_MODE">DCM:DSS_MODE</th>
 <th>0.0.31</th>
 <th>0.0.30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>SPREAD_2</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SPREAD_4</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SPREAD_6</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SPREAD_8</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC</th>
 <th>1.7.11</th>
 <th>1.7.7</th>
 <th>1.7.6</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:VBG_SEL">DCM:VBG_SEL</th>
 <th>0.3.10</th>
 <th>0.3.9</th>
 <th>0.3.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1909,9 +2231,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:FACTORY_JF1">DCM:FACTORY_JF1</th>
 <th>0.0.15</th>
@@ -1923,6 +2250,7 @@ non-inverted
 <th>0.0.9</th>
 <th>0.0.8</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:FACTORY_JF2">DCM:FACTORY_JF2</th>
 <th>0.0.7</th>
 <th>0.0.6</th>
@@ -1933,6 +2261,7 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:PHASE_SHIFT">DCM:PHASE_SHIFT</th>
 <th>0.0.29</th>
 <th>0.0.28</th>
@@ -1943,7 +2272,9 @@ non-inverted
 <th>0.0.23</th>
 <th>0.0.22</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1957,225 +2288,368 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.CTLGO">DCM:INV.CTLGO</th>
 <th>0.3.71</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.CTLMODE">DCM:INV.CTLMODE</th>
 <th>0.3.72</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.CTLOSC1">DCM:INV.CTLOSC1</th>
 <th>0.3.70</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.CTLOSC2">DCM:INV.CTLOSC2</th>
 <th>0.3.69</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.CTLSEL0">DCM:INV.CTLSEL0</th>
 <th>0.3.66</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.CTLSEL1">DCM:INV.CTLSEL1</th>
 <th>0.3.67</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.CTLSEL2">DCM:INV.CTLSEL2</th>
 <th>0.3.68</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.DSSEN">DCM:INV.DSSEN</th>
 <th>0.3.61</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.FREEZEDFS">DCM:INV.FREEZEDFS</th>
 <th>0.3.74</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.FREEZEDLL">DCM:INV.FREEZEDLL</th>
 <th>0.3.73</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.PSEN">DCM:INV.PSEN</th>
 <th>0.3.63</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.PSINCDEC">DCM:INV.PSINCDEC</th>
 <th>0.3.64</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.RST">DCM:INV.RST</th>
 <th>0.3.65</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.STSADRS0">DCM:INV.STSADRS0</th>
 <th>0.3.75</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.STSADRS1">DCM:INV.STSADRS1</th>
 <th>0.3.76</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.STSADRS2">DCM:INV.STSADRS2</th>
 <th>0.3.77</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2-DCM:INV.STSADRS3">DCM:INV.STSADRS3</th>
 <th>0.3.78</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:PS_MODE">DCM:PS_MODE</th>
 <th>0.0.58</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLKFB</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLKIN</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2-DCM:TEST_OSC">DCM:TEST_OSC</th>
 <th>0.0.54</th>
 <th>0.0.53</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>90</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>180</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>270</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>360</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-dcmv2p"><a class="header" href="#tile-dcmv2p">Tile DCM.V2P</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-dcm-1"><a class="header" href="#bel-dcm-1">Bel DCM</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2P bel DCM</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLK0</td><td>output</td><td>OUT.SEC10</td></tr>
+
 <tr><td>CLK180</td><td>output</td><td>OUT.SEC8</td></tr>
+
 <tr><td>CLK270</td><td>output</td><td>OUT.SEC7</td></tr>
+
 <tr><td>CLK2X</td><td>output</td><td>OUT.SEC6</td></tr>
+
 <tr><td>CLK2X180</td><td>output</td><td>OUT.SEC5</td></tr>
+
 <tr><td>CLK90</td><td>output</td><td>OUT.SEC9</td></tr>
+
 <tr><td>CLKDV</td><td>output</td><td>OUT.SEC4</td></tr>
+
 <tr><td>CLKFB</td><td>input</td><td>IMUX.DCMCLK0</td></tr>
+
 <tr><td>CLKFX</td><td>output</td><td>OUT.SEC3</td></tr>
+
 <tr><td>CLKFX180</td><td>output</td><td>OUT.SEC2</td></tr>
+
 <tr><td>CLKIN</td><td>input</td><td>IMUX.DCMCLK1</td></tr>
+
 <tr><td>CONCUR</td><td>output</td><td>OUT.SEC11</td></tr>
+
 <tr><td>CTLGO</td><td>input</td><td>IMUX.G1.DATA3</td></tr>
+
 <tr><td>CTLMODE</td><td>input</td><td>IMUX.G2.DATA1</td></tr>
+
 <tr><td>CTLOSC1</td><td>input</td><td>IMUX.G1.DATA2</td></tr>
+
 <tr><td>CTLOSC2</td><td>input</td><td>IMUX.G1.DATA1</td></tr>
+
 <tr><td>CTLSEL0</td><td>input</td><td>IMUX.G0.DATA1</td></tr>
+
 <tr><td>CTLSEL1</td><td>input</td><td>IMUX.G0.DATA2</td></tr>
+
 <tr><td>CTLSEL2</td><td>input</td><td>IMUX.G0.DATA3</td></tr>
+
 <tr><td>DSSEN</td><td>input</td><td>IMUX.G0.DATA0</td></tr>
+
 <tr><td>FREEZEDFS</td><td>input</td><td>IMUX.G2.DATA3</td></tr>
+
 <tr><td>FREEZEDLL</td><td>input</td><td>IMUX.G2.DATA2</td></tr>
+
 <tr><td>LOCKED</td><td>output</td><td>OUT.SEC13</td></tr>
+
 <tr><td>PSCLK</td><td>input</td><td>IMUX.DCMCLK2</td></tr>
+
 <tr><td>PSDONE</td><td>output</td><td>OUT.SEC12</td></tr>
+
 <tr><td>PSEN</td><td>input</td><td>IMUX.G1.DATA0</td></tr>
+
 <tr><td>PSINCDEC</td><td>input</td><td>IMUX.G2.DATA0</td></tr>
+
 <tr><td>RST</td><td>input</td><td>IMUX.G3.DATA0</td></tr>
+
 <tr><td>STATUS0</td><td>output</td><td>OUT.HALF14.0</td></tr>
+
 <tr><td>STATUS1</td><td>output</td><td>OUT.HALF15.0</td></tr>
+
 <tr><td>STATUS2</td><td>output</td><td>OUT.HALF16.0</td></tr>
+
 <tr><td>STATUS3</td><td>output</td><td>OUT.HALF17.0</td></tr>
+
 <tr><td>STATUS4</td><td>output</td><td>OUT.HALF14.1</td></tr>
+
 <tr><td>STATUS5</td><td>output</td><td>OUT.HALF15.1</td></tr>
+
 <tr><td>STATUS6</td><td>output</td><td>OUT.HALF16.1</td></tr>
+
 <tr><td>STATUS7</td><td>output</td><td>OUT.HALF17.1</td></tr>
+
 <tr><td>STSADRS0</td><td>input</td><td>IMUX.G3.DATA1</td></tr>
+
 <tr><td>STSADRS1</td><td>input</td><td>IMUX.G3.DATA2</td></tr>
+
 <tr><td>STSADRS2</td><td>input</td><td>IMUX.G3.DATA3</td></tr>
+
 <tr><td>STSADRS3</td><td>input</td><td>IMUX.G3.DATA4</td></tr>
+
 <tr><td>STSADRS4</td><td>input</td><td>IMUX.G3.DATA5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2P bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX.DCMCLK0</td><td>DCM.CLKFB</td></tr>
+
 <tr><td>IMUX.DCMCLK1</td><td>DCM.CLKIN</td></tr>
+
 <tr><td>IMUX.DCMCLK2</td><td>DCM.PSCLK</td></tr>
+
 <tr><td>IMUX.G0.DATA0</td><td>DCM.DSSEN</td></tr>
+
 <tr><td>IMUX.G0.DATA1</td><td>DCM.CTLSEL0</td></tr>
+
 <tr><td>IMUX.G0.DATA2</td><td>DCM.CTLSEL1</td></tr>
+
 <tr><td>IMUX.G0.DATA3</td><td>DCM.CTLSEL2</td></tr>
+
 <tr><td>IMUX.G1.DATA0</td><td>DCM.PSEN</td></tr>
+
 <tr><td>IMUX.G1.DATA1</td><td>DCM.CTLOSC2</td></tr>
+
 <tr><td>IMUX.G1.DATA2</td><td>DCM.CTLOSC1</td></tr>
+
 <tr><td>IMUX.G1.DATA3</td><td>DCM.CTLGO</td></tr>
+
 <tr><td>IMUX.G2.DATA0</td><td>DCM.PSINCDEC</td></tr>
+
 <tr><td>IMUX.G2.DATA1</td><td>DCM.CTLMODE</td></tr>
+
 <tr><td>IMUX.G2.DATA2</td><td>DCM.FREEZEDLL</td></tr>
+
 <tr><td>IMUX.G2.DATA3</td><td>DCM.FREEZEDFS</td></tr>
+
 <tr><td>IMUX.G3.DATA0</td><td>DCM.RST</td></tr>
+
 <tr><td>IMUX.G3.DATA1</td><td>DCM.STSADRS0</td></tr>
+
 <tr><td>IMUX.G3.DATA2</td><td>DCM.STSADRS1</td></tr>
+
 <tr><td>IMUX.G3.DATA3</td><td>DCM.STSADRS2</td></tr>
+
 <tr><td>IMUX.G3.DATA4</td><td>DCM.STSADRS3</td></tr>
+
 <tr><td>IMUX.G3.DATA5</td><td>DCM.STSADRS4</td></tr>
+
 <tr><td>OUT.SEC2</td><td>DCM.CLKFX180</td></tr>
+
 <tr><td>OUT.SEC3</td><td>DCM.CLKFX</td></tr>
+
 <tr><td>OUT.SEC4</td><td>DCM.CLKDV</td></tr>
+
 <tr><td>OUT.SEC5</td><td>DCM.CLK2X180</td></tr>
+
 <tr><td>OUT.SEC6</td><td>DCM.CLK2X</td></tr>
+
 <tr><td>OUT.SEC7</td><td>DCM.CLK270</td></tr>
+
 <tr><td>OUT.SEC8</td><td>DCM.CLK180</td></tr>
+
 <tr><td>OUT.SEC9</td><td>DCM.CLK90</td></tr>
+
 <tr><td>OUT.SEC10</td><td>DCM.CLK0</td></tr>
+
 <tr><td>OUT.SEC11</td><td>DCM.CONCUR</td></tr>
+
 <tr><td>OUT.SEC12</td><td>DCM.PSDONE</td></tr>
+
 <tr><td>OUT.SEC13</td><td>DCM.LOCKED</td></tr>
+
 <tr><td>OUT.HALF14.0</td><td>DCM.STATUS0</td></tr>
+
 <tr><td>OUT.HALF14.1</td><td>DCM.STATUS4</td></tr>
+
 <tr><td>OUT.HALF15.0</td><td>DCM.STATUS1</td></tr>
+
 <tr><td>OUT.HALF15.1</td><td>DCM.STATUS5</td></tr>
+
 <tr><td>OUT.HALF16.0</td><td>DCM.STATUS2</td></tr>
+
 <tr><td>OUT.HALF16.1</td><td>DCM.STATUS6</td></tr>
+
 <tr><td>OUT.HALF17.0</td><td>DCM.STATUS3</td></tr>
+
 <tr><td>OUT.HALF17.1</td><td>DCM.STATUS7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2P bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>79</td>
 <td title="0.0.79">
@@ -2188,6 +2662,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:TEST_ENABLE">DCM:TEST_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>78</td>
 <td title="0.0.78">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[14]</a>
@@ -2199,6 +2674,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[30]</a>
 </td>
 </tr>
+
 <tr><td>77</td>
 <td title="0.0.77">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[13]</a>
@@ -2210,6 +2686,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[29]</a>
 </td>
 </tr>
+
 <tr><td>76</td>
 <td title="0.0.76">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[12]</a>
@@ -2221,6 +2698,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[28]</a>
 </td>
 </tr>
+
 <tr><td>75</td>
 <td title="0.0.75">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[11]</a>
@@ -2232,6 +2710,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[27]</a>
 </td>
 </tr>
+
 <tr><td>74</td>
 <td title="0.0.74">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[10]</a>
@@ -2243,6 +2722,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[26]</a>
 </td>
 </tr>
+
 <tr><td>73</td>
 <td title="0.0.73">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[9]</a>
@@ -2254,6 +2734,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[25]</a>
 </td>
 </tr>
+
 <tr><td>72</td>
 <td title="0.0.72">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[8]</a>
@@ -2265,6 +2746,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[24]</a>
 </td>
 </tr>
+
 <tr><td>71</td>
 <td title="0.0.71">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[7]</a>
@@ -2276,6 +2758,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[23]</a>
 </td>
 </tr>
+
 <tr><td>70</td>
 <td title="0.0.70">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[6]</a>
@@ -2287,6 +2770,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[22]</a>
 </td>
 </tr>
+
 <tr><td>69</td>
 <td title="0.0.69">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[5]</a>
@@ -2298,6 +2782,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[21]</a>
 </td>
 </tr>
+
 <tr><td>68</td>
 <td title="0.0.68">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[4]</a>
@@ -2309,6 +2794,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[20]</a>
 </td>
 </tr>
+
 <tr><td>67</td>
 <td title="0.0.67">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[3]</a>
@@ -2320,6 +2806,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[19]</a>
 </td>
 </tr>
+
 <tr><td>66</td>
 <td title="0.0.66">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[2]</a>
@@ -2331,6 +2818,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[18]</a>
 </td>
 </tr>
+
 <tr><td>65</td>
 <td title="0.0.65">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[1]</a>
@@ -2342,6 +2830,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[17]</a>
 </td>
 </tr>
+
 <tr><td>64</td>
 <td title="0.0.64">
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[0]</a>
@@ -2353,6 +2842,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[16]</a>
 </td>
 </tr>
+
 <tr><td>63</td>
 <td title="0.0.63">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[31]</a>
@@ -2364,6 +2854,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[15]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td title="0.0.62">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[30]</a>
@@ -2374,6 +2865,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[14]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td title="0.0.61">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[29]</a>
@@ -2385,6 +2877,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[13]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td title="0.0.60">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[28]</a>
@@ -2397,6 +2890,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[12]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td title="0.0.59">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[27]</a>
@@ -2409,6 +2903,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:STARTUP_WAIT">DCM:STARTUP_WAIT</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td title="0.0.58">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[26]</a>
@@ -2421,6 +2916,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[10]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td title="0.0.57">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[25]</a>
@@ -2433,6 +2929,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[9]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td title="0.0.56">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[24]</a>
@@ -2445,6 +2942,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[8]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td title="0.0.55">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLK_FEEDBACK">DCM:CLK_FEEDBACK[0]</a>
@@ -2457,6 +2955,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[7]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td title="0.0.54">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[22]</a>
@@ -2469,6 +2968,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[6]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td title="0.0.53">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[21]</a>
@@ -2481,6 +2981,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[5]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td title="0.0.52">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_MODE">DCM:CLKDV_MODE[0]</a>
@@ -2493,6 +2994,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[4]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td title="0.0.51">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_PHASE_FALL">DCM:CLKDV_PHASE_FALL[1]</a>
@@ -2505,6 +3007,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[3]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td title="0.0.50">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_PHASE_FALL">DCM:CLKDV_PHASE_FALL[0]</a>
@@ -2517,6 +3020,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[2]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td title="0.0.49">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_PHASE_RISE">DCM:CLKDV_PHASE_RISE[1]</a>
@@ -2529,6 +3033,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[1]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td title="0.0.48">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_PHASE_RISE">DCM:CLKDV_PHASE_RISE[0]</a>
@@ -2540,6 +3045,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC[0]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td title="0.0.47">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[3]</a>
@@ -2552,6 +3058,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:PL_CENTERED">DCM:PL_CENTERED</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td title="0.0.46">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[2]</a>
@@ -2564,6 +3071,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:SEL_PL_DLY">DCM:SEL_PL_DLY[1]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td title="0.0.45">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[1]</a>
@@ -2576,6 +3084,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:SEL_PL_DLY">DCM:SEL_PL_DLY[0]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td title="0.0.44">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2[0]</a>
@@ -2588,6 +3097,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS_FREQUENCY_MODE">DCM:DFS_FREQUENCY_MODE[0]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td title="0.0.43">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[3]</a>
@@ -2600,6 +3110,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS_FEEDBACK">DCM:DFS_FEEDBACK</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td title="0.0.42">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[2]</a>
@@ -2611,6 +3122,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[26]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td title="0.0.41">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[1]</a>
@@ -2622,6 +3134,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[25]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td title="0.0.40">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL[0]</a>
@@ -2633,6 +3146,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[24]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td title="0.0.39">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[3]</a>
@@ -2645,6 +3159,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[23]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td title="0.0.38">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[2]</a>
@@ -2657,6 +3172,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[22]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td title="0.0.37">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[1]</a>
@@ -2669,6 +3185,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[21]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td title="0.0.36">
 <a href="#tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX[0]</a>
@@ -2681,6 +3198,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[20]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td title="0.0.35">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[3]</a>
@@ -2693,6 +3211,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[19]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td title="0.0.34">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[2]</a>
@@ -2705,6 +3224,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[18]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td title="0.0.33">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[1]</a>
@@ -2717,6 +3237,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[17]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td title="0.0.32">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC[0]</a>
@@ -2729,6 +3250,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[16]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td title="0.0.31">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[31]</a>
@@ -2741,6 +3263,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[15]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td title="0.0.30">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[30]</a>
@@ -2753,6 +3276,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[14]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td title="0.0.29">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[29]</a>
@@ -2765,6 +3289,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[13]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td title="0.0.28">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[28]</a>
@@ -2777,6 +3302,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[12]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td title="0.0.27">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[27]</a>
@@ -2789,6 +3315,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[11]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td title="0.0.26">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[26]</a>
@@ -2801,6 +3328,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[10]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td title="0.0.25">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[25]</a>
@@ -2813,6 +3341,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[9]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td title="0.0.24">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[24]</a>
@@ -2825,6 +3354,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[8]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td title="0.0.23">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[23]</a>
@@ -2837,6 +3367,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[7]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td title="0.0.22">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[22]</a>
@@ -2849,6 +3380,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[6]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td title="0.0.21">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[21]</a>
@@ -2861,6 +3393,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[5]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td title="0.0.20">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[20]</a>
@@ -2873,6 +3406,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[4]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td title="0.0.19">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[19]</a>
@@ -2885,6 +3419,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[3]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td title="0.0.18">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[18]</a>
@@ -2897,6 +3432,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[2]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td title="0.0.17">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[17]</a>
@@ -2909,6 +3445,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[1]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td title="0.0.16">
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS_ENABLE">DCM:DFS_ENABLE</a>
@@ -2921,6 +3458,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS[0]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.0.15">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[15]</a>
@@ -2933,6 +3471,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:NON_STOP">DCM:NON_STOP</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[14]</a>
@@ -2945,6 +3484,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[30]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.0.13">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[13]</a>
@@ -2957,6 +3497,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[29]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.0.12">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[12]</a>
@@ -2969,6 +3510,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:VBG_PD">DCM:VBG_PD[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td title="0.0.11">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[11]</a>
@@ -2981,6 +3523,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:VBG_PD">DCM:VBG_PD[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td title="0.0.10">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[10]</a>
@@ -2993,6 +3536,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:VBG_SEL">DCM:VBG_SEL[2]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.0.9">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[9]</a>
@@ -3005,6 +3549,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:VBG_SEL">DCM:VBG_SEL[1]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.0.8">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[8]</a>
@@ -3017,6 +3562,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:VBG_SEL">DCM:VBG_SEL[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.0.7">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[7]</a>
@@ -3028,6 +3574,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[23]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.0.6">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[6]</a>
@@ -3040,6 +3587,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[22]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.0.5">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[5]</a>
@@ -3052,6 +3600,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[21]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.0.4">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[4]</a>
@@ -3064,6 +3613,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[3]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.0.3">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[3]</a>
@@ -3076,6 +3626,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[2]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.0.2">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[2]</a>
@@ -3088,6 +3639,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.0.1">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[1]</a>
@@ -3100,6 +3652,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST[0]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td title="0.0.0">
 <a href="#tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS[0]</a>
@@ -3112,12 +3665,18 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:COM">DCM:COM[16]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex2 DCM.V2P bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="8">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3128,7 +3687,9 @@ inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>11</td>
 <td>-</td>
@@ -3142,6 +3703,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC[2]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -3156,6 +3718,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:ZD2_BY1">DCM:ZD2_BY1</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -3170,6 +3733,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:EN_DUMMY_OSC_OR_NON_STOP">DCM:EN_DUMMY_OSC_OR_NON_STOP</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -3182,6 +3746,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:ZD1_BY1">DCM:ZD1_BY1</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -3194,6 +3759,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3206,6 +3772,7 @@ inverted
 <a href="#tile-virtex2-DCM.V2P-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3216,6 +3783,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3226,6 +3794,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3236,6 +3805,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3246,6 +3816,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3256,6 +3827,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -3266,9 +3838,14 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL</th>
 <th>0.0.43</th>
@@ -3276,31 +3853,37 @@ inverted
 <th>0.0.41</th>
 <th>0.0.40</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2</th>
 <th>0.0.47</th>
 <th>0.0.46</th>
 <th>0.0.45</th>
 <th>0.0.44</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX</th>
 <th>0.0.39</th>
 <th>0.0.38</th>
 <th>0.0.37</th>
 <th>0.0.36</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST</th>
 <th>0.3.4</th>
 <th>0.3.3</th>
 <th>0.3.2</th>
 <th>0.3.1</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DUTY_CYCLE_CORRECTION">DCM:DUTY_CYCLE_CORRECTION</th>
 <th>0.0.35</th>
 <th>0.0.34</th>
 <th>0.0.33</th>
 <th>0.0.32</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3310,38 +3893,55 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKDV_MODE">DCM:CLKDV_MODE</th>
 <th>0.0.52</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HALF</td>
 <td>0</td>
 </tr>
+
 <tr><td>INT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKDV_PHASE_FALL">DCM:CLKDV_PHASE_FALL</th>
 <th>0.0.51</th>
 <th>0.0.50</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKDV_PHASE_RISE">DCM:CLKDV_PHASE_RISE</th>
 <th>0.0.49</th>
 <th>0.0.48</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:VBG_PD">DCM:VBG_PD</th>
 <th>0.3.12</th>
 <th>0.3.11</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3349,116 +3949,159 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKFB_IOB">DCM:CLKFB_IOB</th>
 <th>0.3.6</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKIN_DIVIDE_BY_2">DCM:CLKIN_DIVIDE_BY_2</th>
 <th>0.3.0</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKIN_IOB">DCM:CLKIN_IOB</th>
 <th>0.3.5</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DFS_ENABLE">DCM:DFS_ENABLE</th>
 <th>0.0.16</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DFS_FEEDBACK">DCM:DFS_FEEDBACK</th>
 <th>0.3.43</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DLL_ENABLE">DCM:DLL_ENABLE</th>
 <th>0.0.17</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DSS_ENABLE">DCM:DSS_ENABLE</th>
 <th>0.0.20</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLK0">DCM:ENABLE.CLK0</th>
 <th>0.3.49</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLK180">DCM:ENABLE.CLK180</th>
 <th>0.3.51</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLK270">DCM:ENABLE.CLK270</th>
 <th>0.3.52</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLK2X">DCM:ENABLE.CLK2X</th>
 <th>0.3.53</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLK2X180">DCM:ENABLE.CLK2X180</th>
 <th>0.3.54</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLK90">DCM:ENABLE.CLK90</th>
 <th>0.3.50</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLKDV">DCM:ENABLE.CLKDV</th>
 <th>0.3.55</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLKFB">DCM:ENABLE.CLKFB</th>
 <th>0.0.18</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLKFX">DCM:ENABLE.CLKFX</th>
 <th>0.3.57</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CLKFX180">DCM:ENABLE.CLKFX180</th>
 <th>0.3.56</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ENABLE.CONCUR">DCM:ENABLE.CONCUR</th>
 <th>0.3.58</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:EN_DUMMY_OSC_OR_NON_STOP">DCM:EN_DUMMY_OSC_OR_NON_STOP</th>
 <th>1.7.9</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:EN_OSC_COARSE">DCM:EN_OSC_COARSE</th>
 <th>1.6.9</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:NON_STOP">DCM:NON_STOP</th>
 <th>0.3.15</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:PHASE_SHIFT_NEGATIVE">DCM:PHASE_SHIFT_NEGATIVE</th>
 <th>0.0.21</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:PL_CENTERED">DCM:PL_CENTERED</th>
 <th>0.3.47</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:PS_CENTERED">DCM:PS_CENTERED</th>
 <th>0.0.57</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:PS_ENABLE">DCM:PS_ENABLE</th>
 <th>0.0.19</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:RESET_PS_SEL">DCM:RESET_PS_SEL</th>
 <th>1.4.10</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:STARTUP_WAIT">DCM:STARTUP_WAIT</th>
 <th>0.3.59</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:STATUS1">DCM:STATUS1</th>
 <th>0.0.60</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:STATUS7">DCM:STATUS7</th>
 <th>0.0.59</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:TEST_ENABLE">DCM:TEST_ENABLE</th>
 <th>0.3.79</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ZD1_BY1">DCM:ZD1_BY1</th>
 <th>1.7.8</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:ZD2_BY1">DCM:ZD2_BY1</th>
 <th>1.7.10</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKFX_DIVIDE">DCM:CLKFX_DIVIDE</th>
 <th>0.3.27</th>
@@ -3474,6 +4117,7 @@ non-inverted
 <th>0.3.17</th>
 <th>0.3.16</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLKFX_MULTIPLY">DCM:CLKFX_MULTIPLY</th>
 <th>0.3.39</th>
 <th>0.3.38</th>
@@ -3488,7 +4132,9 @@ non-inverted
 <th>0.3.29</th>
 <th>0.3.28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3506,54 +4152,78 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:CLK_FEEDBACK">DCM:CLK_FEEDBACK</th>
 <th>0.0.55</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1X</td>
 <td>0</td>
 </tr>
+
 <tr><td>2X</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:COIN_WINDOW">DCM:COIN_WINDOW</th>
 <th>0.3.14</th>
 <th>0.3.13</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:SEL_PL_DLY">DCM:SEL_PL_DLY</th>
 <th>0.3.46</th>
 <th>0.3.45</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:COM">DCM:COM</th>
 <th>0.3.15</th>
@@ -3589,6 +4259,7 @@ non-inverted
 <th>0.0.65</th>
 <th>0.0.64</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DFS">DCM:DFS</th>
 <th>0.3.47</th>
 <th>0.3.46</th>
@@ -3623,6 +4294,7 @@ non-inverted
 <th>0.3.17</th>
 <th>0.3.16</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DLLC">DCM:DLLC</th>
 <th>0.0.63</th>
 <th>0.0.62</th>
@@ -3657,6 +4329,7 @@ non-inverted
 <th>0.0.33</th>
 <th>0.0.32</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DLLS">DCM:DLLS</th>
 <th>0.0.31</th>
 <th>0.0.30</th>
@@ -3691,6 +4364,7 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:MISC">DCM:MISC</th>
 <th>0.3.79</th>
 <th>0.3.78</th>
@@ -3725,7 +4399,9 @@ non-inverted
 <th>0.3.49</th>
 <th>0.3.48</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3763,65 +4439,92 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DFS_FREQUENCY_MODE">DCM:DFS_FREQUENCY_MODE</th>
 <th>0.3.44</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DLL_FREQUENCY_MODE">DCM:DLL_FREQUENCY_MODE</th>
 <th>0.0.56</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>LOW</td>
 <td>0</td>
 </tr>
+
 <tr><td>HIGH</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:DSS_MODE">DCM:DSS_MODE</th>
 <th>0.0.31</th>
 <th>0.0.30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>SPREAD_2</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SPREAD_4</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SPREAD_6</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SPREAD_8</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC</th>
 <th>1.7.11</th>
 <th>1.7.7</th>
 <th>1.7.6</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:VBG_SEL">DCM:VBG_SEL</th>
 <th>0.3.10</th>
 <th>0.3.9</th>
 <th>0.3.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3830,9 +4533,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:FACTORY_JF1">DCM:FACTORY_JF1</th>
 <th>0.0.15</th>
@@ -3844,6 +4552,7 @@ non-inverted
 <th>0.0.9</th>
 <th>0.0.8</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:FACTORY_JF2">DCM:FACTORY_JF2</th>
 <th>0.0.7</th>
 <th>0.0.6</th>
@@ -3854,6 +4563,7 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:PHASE_SHIFT">DCM:PHASE_SHIFT</th>
 <th>0.0.29</th>
 <th>0.0.28</th>
@@ -3864,7 +4574,9 @@ non-inverted
 <th>0.0.23</th>
 <th>0.0.22</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -3878,122 +4590,170 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.CTLGO">DCM:INV.CTLGO</th>
 <th>0.3.71</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.CTLMODE">DCM:INV.CTLMODE</th>
 <th>0.3.72</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.CTLOSC1">DCM:INV.CTLOSC1</th>
 <th>0.3.70</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.CTLOSC2">DCM:INV.CTLOSC2</th>
 <th>0.3.69</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.CTLSEL0">DCM:INV.CTLSEL0</th>
 <th>0.3.66</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.CTLSEL1">DCM:INV.CTLSEL1</th>
 <th>0.3.67</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.CTLSEL2">DCM:INV.CTLSEL2</th>
 <th>0.3.68</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.DSSEN">DCM:INV.DSSEN</th>
 <th>0.3.61</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.FREEZEDFS">DCM:INV.FREEZEDFS</th>
 <th>0.3.74</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.FREEZEDLL">DCM:INV.FREEZEDLL</th>
 <th>0.3.73</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.PSEN">DCM:INV.PSEN</th>
 <th>0.3.63</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.PSINCDEC">DCM:INV.PSINCDEC</th>
 <th>0.3.64</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.RST">DCM:INV.RST</th>
 <th>0.3.65</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.STSADRS0">DCM:INV.STSADRS0</th>
 <th>0.3.75</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.STSADRS1">DCM:INV.STSADRS1</th>
 <th>0.3.76</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.STSADRS2">DCM:INV.STSADRS2</th>
 <th>0.3.77</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.STSADRS3">DCM:INV.STSADRS3</th>
 <th>0.3.78</th>
 </tr>
+
 <tr><th id="tile-virtex2-DCM.V2P-DCM:INV.STSADRS4">DCM:INV.STSADRS4</th>
 <th>0.3.60</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:PS_MODE">DCM:PS_MODE</th>
 <th>0.0.58</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLKFB</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLKIN</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex2-DCM.V2P-DCM:TEST_OSC">DCM:TEST_OSC</th>
 <th>0.0.54</th>
 <th>0.0.53</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>90</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>180</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>270</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>360</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="device-data"><a class="header" href="#device-data">Device data</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th rowspan="2">Device</th>
 <th colspan="4">DCM:DESKEW_ADJUST</th>
 <th colspan="2">DCM:VBG_PD</th>
 <th colspan="3">DCM:VBG_SEL</th>
 </tr>
+
 <tr>
 <th>[3]</th>
 <th>[2]</th>
@@ -4005,7 +4765,9 @@ inverted
 <th>[1]</th>
 <th>[0]</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>xc2v40</td>
 <td>1</td>
@@ -4018,6 +4780,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2v80</td>
 <td>1</td>
 <td>0</td>
@@ -4029,6 +4792,7 @@ inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc2v250</td>
 <td>1</td>
 <td>0</td>
@@ -4040,6 +4804,7 @@ inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc2v500</td>
 <td>1</td>
 <td>0</td>
@@ -4051,6 +4816,7 @@ inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc2v1000</td>
 <td>1</td>
 <td>0</td>
@@ -4062,6 +4828,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xq2v1000</td>
 <td>1</td>
 <td>0</td>
@@ -4073,6 +4840,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xqr2v1000</td>
 <td>1</td>
 <td>0</td>
@@ -4084,6 +4852,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2v1500</td>
 <td>1</td>
 <td>0</td>
@@ -4095,6 +4864,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2v2000</td>
 <td>1</td>
 <td>0</td>
@@ -4106,6 +4876,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2v3000</td>
 <td>1</td>
 <td>1</td>
@@ -4117,6 +4888,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xq2v3000</td>
 <td>1</td>
 <td>1</td>
@@ -4128,6 +4900,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xqr2v3000</td>
 <td>1</td>
 <td>1</td>
@@ -4139,6 +4912,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2v4000</td>
 <td>1</td>
 <td>1</td>
@@ -4150,6 +4924,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2v6000</td>
 <td>1</td>
 <td>1</td>
@@ -4161,6 +4936,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xq2v6000</td>
 <td>1</td>
 <td>1</td>
@@ -4172,6 +4948,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xqr2v6000</td>
 <td>1</td>
 <td>1</td>
@@ -4183,6 +4960,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2v8000</td>
 <td>1</td>
 <td>1</td>
@@ -4194,6 +4972,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp2</td>
 <td>0</td>
 <td>1</td>
@@ -4205,6 +4984,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp4</td>
 <td>0</td>
 <td>1</td>
@@ -4216,6 +4996,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp7</td>
 <td>0</td>
 <td>1</td>
@@ -4227,6 +5008,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp20</td>
 <td>0</td>
 <td>1</td>
@@ -4238,6 +5020,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp30</td>
 <td>0</td>
 <td>1</td>
@@ -4249,6 +5032,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp40</td>
 <td>0</td>
 <td>1</td>
@@ -4260,6 +5044,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xq2vp40</td>
 <td>0</td>
 <td>1</td>
@@ -4271,6 +5056,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp50</td>
 <td>0</td>
 <td>1</td>
@@ -4282,6 +5068,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp70</td>
 <td>0</td>
 <td>1</td>
@@ -4293,6 +5080,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xq2vp70</td>
 <td>0</td>
 <td>1</td>
@@ -4304,6 +5092,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vp100</td>
 <td>0</td>
 <td>1</td>
@@ -4315,6 +5104,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vpx20</td>
 <td>0</td>
 <td>1</td>
@@ -4326,6 +5116,7 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>xc2vpx70</td>
 <td>0</td>
 <td>1</td>
@@ -4337,19 +5128,23 @@ inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../virtex2/io/iob-v2p.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../virtex2/ppc.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -4359,16 +5154,21 @@ inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../virtex2/io/iob-v2p.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../virtex2/ppc.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -4378,9 +5178,9 @@ inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

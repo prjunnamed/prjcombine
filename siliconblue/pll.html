@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,84 +142,138 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="phase-locked-loop"><a class="header" href="#phase-locked-loop">Phase-Locked Loop</a></h1>
 <h2 id="tile-pll_s_p04"><a class="header" href="#tile-pll_s_p04">Tile PLL_S_P04</a></h2>
 <p>Cells: 12</p>
 <h3 id="bel-pll"><a class="header" href="#bel-pll">Bel PLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P04 bel PLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td><td>input</td><td>TCELL8:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_0</td><td>input</td><td>TCELL2:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_1</td><td>input</td><td>TCELL3:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_2</td><td>input</td><td>TCELL4:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_3</td><td>input</td><td>TCELL5:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>EXTFEEDBACK</td><td>input</td><td>TCELL7:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>TCELL0:OUT.LC0, TCELL0:OUT.LC1, TCELL0:OUT.LC2, TCELL0:OUT.LC3, TCELL0:OUT.LC4, TCELL0:OUT.LC5, TCELL0:OUT.LC6, TCELL0:OUT.LC7</td></tr>
+
 <tr><td>REFERENCECLK</td><td>input</td><td>TCELL6:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>RESET</td><td>input</td><td>TCELL9:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL10:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDI</td><td>input</td><td>TCELL11:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDO</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC1, TCELL1:OUT.LC2, TCELL1:OUT.LC3, TCELL1:OUT.LC4, TCELL1:OUT.LC5, TCELL1:OUT.LC6, TCELL1:OUT.LC7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P04 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:OUT.LC0</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC1</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC2</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC3</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC7</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC1</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC2</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL2:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_0</td></tr>
+
 <tr><td>TCELL3:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_1</td></tr>
+
 <tr><td>TCELL4:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_2</td></tr>
+
 <tr><td>TCELL5:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_3</td></tr>
+
 <tr><td>TCELL6:IMUX.IO.EXTRA</td><td>PLL.REFERENCECLK</td></tr>
+
 <tr><td>TCELL7:IMUX.IO.EXTRA</td><td>PLL.EXTFEEDBACK</td></tr>
+
 <tr><td>TCELL8:IMUX.IO.EXTRA</td><td>PLL.BYPASS</td></tr>
+
 <tr><td>TCELL9:IMUX.IO.EXTRA</td><td>PLL.RESET</td></tr>
+
 <tr><td>TCELL10:IMUX.IO.EXTRA</td><td>PLL.SCLK</td></tr>
+
 <tr><td>TCELL11:IMUX.IO.EXTRA</td><td>PLL.SDI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="0.0.0">
@@ -230,6 +283,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVR">PLL:DIVR[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="0.1.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVR">PLL:DIVR[2]</a>
@@ -238,6 +292,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVR">PLL:DIVR[3]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="0.2.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVF">PLL:DIVF[4]</a>
@@ -246,6 +301,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVF">PLL:DIVF[5]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="0.3.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVQ">PLL:DIVQ[0]</a>
@@ -254,6 +310,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVQ">PLL:DIVQ[1]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="0.4.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[0]</a>
@@ -262,6 +319,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="0.5.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[2]</a>
@@ -270,6 +328,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:PLLOUT_PHASE">PLL:PLLOUT_PHASE[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.6.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FIXED_DELAY_ADJUSTMENT">PLL:FIXED_DELAY_ADJUSTMENT[0]</a>
@@ -278,6 +337,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DELAY_ADJUSTMENT_MODE">PLL:DELAY_ADJUSTMENT_MODE[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.7.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FIXED_DELAY_ADJUSTMENT">PLL:FIXED_DELAY_ADJUSTMENT[1]</a>
@@ -286,6 +346,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DELAY_ADJUSTMENT_MODE">PLL:DELAY_ADJUSTMENT_MODE[1]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td title="0.8.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:MODE">PLL:MODE[0]</a>
@@ -294,6 +355,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td title="0.9.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:MODE">PLL:MODE[2]</a>
@@ -302,17 +364,25 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P04 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td title="1.0.0">
@@ -322,6 +392,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVF">PLL:DIVF[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td title="1.1.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVF">PLL:DIVF[2]</a>
@@ -330,6 +401,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVF">PLL:DIVF[3]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td title="1.2.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DIVQ">PLL:DIVQ[2]</a>
@@ -338,6 +410,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FILTER_RANGE">PLL:FILTER_RANGE[0]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td title="1.3.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FILTER_RANGE">PLL:FILTER_RANGE[1]</a>
@@ -346,6 +419,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FILTER_RANGE">PLL:FILTER_RANGE[2]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td title="1.4.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:PLLOUT_PHASE">PLL:PLLOUT_PHASE[2]</a>
@@ -354,6 +428,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:PLLOUT_PHASE">PLL:PLLOUT_PHASE[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td title="1.5.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:MODE">PLL:MODE[1]</a>
@@ -362,6 +437,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:TEST_MODE">PLL:TEST_MODE</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td title="1.6.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FIXED_DELAY_ADJUSTMENT">PLL:FIXED_DELAY_ADJUSTMENT[2]</a>
@@ -370,6 +446,7 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DELAY_ADJUSTMENT_MODE">PLL:DELAY_ADJUSTMENT_MODE[2]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="1.7.0">
 <a href="#tile-siliconblue-PLL_S_P04-PLL:FIXED_DELAY_ADJUSTMENT">PLL:FIXED_DELAY_ADJUSTMENT[3]</a>
@@ -378,9 +455,14 @@
 <a href="#tile-siliconblue-PLL_S_P04-PLL:DELAY_ADJUSTMENT_MODE">PLL:DELAY_ADJUSTMENT_MODE[3]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:DELAY_ADJUSTMENT_MODE">PLL:DELAY_ADJUSTMENT_MODE</th>
 <th>1.7.1</th>
@@ -388,7 +470,9 @@
 <th>0.7.1</th>
 <th>0.6.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FIXED</td>
 <td>0</td>
@@ -396,15 +480,21 @@
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DYNAMIC</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:DIVF">PLL:DIVF</th>
 <th>0.2.1</th>
@@ -414,7 +504,9 @@
 <th>1.0.1</th>
 <th>1.0.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -426,21 +518,29 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:DIVQ">PLL:DIVQ</th>
 <th>1.2.0</th>
 <th>0.3.1</th>
 <th>0.3.0</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:FILTER_RANGE">PLL:FILTER_RANGE</th>
 <th>1.3.1</th>
 <th>1.3.0</th>
 <th>1.2.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -449,9 +549,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:DIVR">PLL:DIVR</th>
 <th>0.1.1</th>
@@ -459,13 +564,16 @@ non-inverted
 <th>0.0.1</th>
 <th>0.0.0</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:FIXED_DELAY_ADJUSTMENT">PLL:FIXED_DELAY_ADJUSTMENT</th>
 <th>1.7.0</th>
 <th>1.6.0</th>
 <th>0.7.0</th>
 <th>0.6.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -475,217 +583,335 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH</th>
 <th>0.5.0</th>
 <th>0.4.1</th>
 <th>0.4.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DELAY</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SIMPLE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PHASE_AND_DELAY</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXTERNAL</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</th>
 <th>0.8.1</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</th>
 <th>0.9.1</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:TEST_MODE">PLL:TEST_MODE</th>
 <th>1.5.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:MODE">PLL:MODE</th>
 <th>0.9.0</th>
 <th>1.5.0</th>
 <th>0.8.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL_PAD</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL_CORE</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL_2_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P04-PLL:PLLOUT_PHASE">PLL:PLLOUT_PHASE</th>
 <th>1.4.0</th>
 <th>0.5.1</th>
 <th>1.4.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>0deg</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>90deg</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>180deg</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>270deg</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-pll_s_p01"><a class="header" href="#tile-pll_s_p01">Tile PLL_S_P01</a></h2>
 <p>Cells: 17</p>
 <h3 id="bel-pll-1"><a class="header" href="#bel-pll-1">Bel PLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bel PLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td><td>input</td><td>TCELL13:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_0</td><td>input</td><td>TCELL5:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_1</td><td>input</td><td>TCELL6:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_2</td><td>input</td><td>TCELL7:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_3</td><td>input</td><td>TCELL8:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_4</td><td>input</td><td>TCELL9:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_5</td><td>input</td><td>TCELL10:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_6</td><td>input</td><td>TCELL11:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_7</td><td>input</td><td>TCELL12:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>EXTFEEDBACK</td><td>input</td><td>TCELL3:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>TCELL0:OUT.LC0, TCELL0:OUT.LC1, TCELL0:OUT.LC2, TCELL0:OUT.LC3, TCELL0:OUT.LC4, TCELL0:OUT.LC5, TCELL0:OUT.LC6, TCELL0:OUT.LC7</td></tr>
+
 <tr><td>REFERENCECLK</td><td>input</td><td>TCELL2:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>RESETB</td><td>input</td><td>TCELL14:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL15:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDI</td><td>input</td><td>TCELL16:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDO</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC1, TCELL1:OUT.LC2, TCELL1:OUT.LC3, TCELL1:OUT.LC4, TCELL1:OUT.LC5, TCELL1:OUT.LC6, TCELL1:OUT.LC7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:OUT.LC0</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC1</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC2</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC3</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC7</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC1</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC2</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL2:IMUX.IO.EXTRA</td><td>PLL.REFERENCECLK</td></tr>
+
 <tr><td>TCELL3:IMUX.IO.EXTRA</td><td>PLL.EXTFEEDBACK</td></tr>
+
 <tr><td>TCELL5:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_0</td></tr>
+
 <tr><td>TCELL6:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_1</td></tr>
+
 <tr><td>TCELL7:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_2</td></tr>
+
 <tr><td>TCELL8:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_3</td></tr>
+
 <tr><td>TCELL9:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_4</td></tr>
+
 <tr><td>TCELL10:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_5</td></tr>
+
 <tr><td>TCELL11:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_6</td></tr>
+
 <tr><td>TCELL12:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_7</td></tr>
+
 <tr><td>TCELL13:IMUX.IO.EXTRA</td><td>PLL.BYPASS</td></tr>
+
 <tr><td>TCELL14:IMUX.IO.EXTRA</td><td>PLL.RESETB</td></tr>
+
 <tr><td>TCELL15:IMUX.IO.EXTRA</td><td>PLL.SCLK</td></tr>
+
 <tr><td>TCELL16:IMUX.IO.EXTRA</td><td>PLL.SDI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -704,7 +930,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -728,6 +956,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:DIVR">PLL:DIVR[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -746,6 +975,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -768,6 +998,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:DIVR">PLL:DIVR[3]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -788,6 +1019,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -810,6 +1042,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:DIVF">PLL:DIVF[2]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -830,6 +1063,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -848,6 +1082,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -868,12 +1103,18 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -892,7 +1133,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -916,6 +1159,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:DIVF">PLL:DIVF[5]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -934,6 +1178,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -956,6 +1201,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:DIVQ">PLL:DIVQ[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -976,6 +1222,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -998,6 +1245,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:FILTER_RANGE">PLL:FILTER_RANGE[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1018,6 +1266,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1036,6 +1285,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1056,12 +1306,18 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1080,7 +1336,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1104,6 +1362,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[2]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1122,6 +1381,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1144,6 +1404,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:SHIFTREG_DIV_MODE">PLL:SHIFTREG_DIV_MODE</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1164,6 +1425,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1186,6 +1448,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1206,6 +1469,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1224,6 +1488,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1244,12 +1509,18 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bittile 5</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1268,7 +1539,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1292,6 +1565,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1310,6 +1584,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1332,6 +1607,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK">PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK[0]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1352,6 +1628,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1374,6 +1651,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[2]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1394,6 +1672,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1412,6 +1691,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1432,12 +1712,18 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P01 bittile 6</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="16">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1456,7 +1742,9 @@ non-inverted
 <th>14</th>
 <th>15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1478,6 +1766,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P01-PLL:MODE">PLL:MODE[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1496,6 +1785,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1516,6 +1806,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1536,27 +1827,41 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK">PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK</th>
 <th>5.2.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE</th>
 <th>5.7.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FIXED</td>
 <td>0</td>
 </tr>
+
 <tr><td>DYNAMIC</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:DIVF">PLL:DIVF</th>
 <th>3.0.14</th>
@@ -1567,7 +1872,9 @@ non-inverted
 <th>2.5.14</th>
 <th>2.2.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1580,21 +1887,29 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:DIVQ">PLL:DIVQ</th>
 <th>3.2.14</th>
 <th>3.2.15</th>
 <th>3.3.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:FILTER_RANGE">PLL:FILTER_RANGE</th>
 <th>3.4.14</th>
 <th>3.4.15</th>
 <th>3.5.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1603,9 +1918,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:DIVR">PLL:DIVR</th>
 <th>2.2.15</th>
@@ -1613,19 +1933,23 @@ non-inverted
 <th>2.0.14</th>
 <th>2.0.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK</th>
 <th>5.3.14</th>
 <th>5.0.14</th>
 <th>5.0.15</th>
 <th>4.7.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE</th>
 <th>5.4.14</th>
 <th>5.4.15</th>
 <th>5.5.14</th>
 <th>5.2.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1635,308 +1959,490 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH</th>
 <th>4.0.15</th>
 <th>3.7.14</th>
 <th>6.2.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DELAY</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SIMPLE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PHASE_AND_DELAY</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXTERNAL</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:MODE">PLL:MODE</th>
 <th>6.3.14</th>
 <th>4.2.14</th>
 <th>6.0.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_PAD</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_CORE</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_CORE</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA</th>
 <th>4.4.15</th>
 <th>4.5.14</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB</th>
 <th>4.3.14</th>
 <th>4.0.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GENCLK</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GENCLK_HALF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SHIFTREG_90deg</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SHIFTREG_0deg</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:SHIFTREG_DIV_MODE">PLL:SHIFTREG_DIV_MODE</th>
 <th>4.2.15</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P01-PLL:TEST_MODE">PLL:TEST_MODE</th>
 <th>4.4.14</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-pll_s_p08"><a class="header" href="#tile-pll_s_p08">Tile PLL_S_P08</a></h2>
 <p>Cells: 20</p>
 <h3 id="bel-pll-2"><a class="header" href="#bel-pll-2">Bel PLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bel PLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td><td>input</td><td>TCELL16:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_0</td><td>input</td><td>TCELL2:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_1</td><td>input</td><td>TCELL3:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_2</td><td>input</td><td>TCELL4:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_3</td><td>input</td><td>TCELL5:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_4</td><td>input</td><td>TCELL6:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_5</td><td>input</td><td>TCELL7:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_6</td><td>input</td><td>TCELL8:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_7</td><td>input</td><td>TCELL9:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>EXTFEEDBACK</td><td>input</td><td>TCELL11:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>TCELL0:OUT.LC0, TCELL0:OUT.LC1, TCELL0:OUT.LC2, TCELL0:OUT.LC3, TCELL0:OUT.LC4, TCELL0:OUT.LC5, TCELL0:OUT.LC6, TCELL0:OUT.LC7</td></tr>
+
 <tr><td>REFERENCECLK</td><td>input</td><td>TCELL10:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>RESETB</td><td>input</td><td>TCELL17:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL18:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDI</td><td>input</td><td>TCELL19:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDO</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC1, TCELL1:OUT.LC2, TCELL1:OUT.LC3, TCELL1:OUT.LC4, TCELL1:OUT.LC5, TCELL1:OUT.LC6, TCELL1:OUT.LC7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:OUT.LC0</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC1</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC2</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC3</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC7</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC1</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC2</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL2:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_0</td></tr>
+
 <tr><td>TCELL3:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_1</td></tr>
+
 <tr><td>TCELL4:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_2</td></tr>
+
 <tr><td>TCELL5:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_3</td></tr>
+
 <tr><td>TCELL6:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_4</td></tr>
+
 <tr><td>TCELL7:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_5</td></tr>
+
 <tr><td>TCELL8:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_6</td></tr>
+
 <tr><td>TCELL9:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_7</td></tr>
+
 <tr><td>TCELL10:IMUX.IO.EXTRA</td><td>PLL.REFERENCECLK</td></tr>
+
 <tr><td>TCELL11:IMUX.IO.EXTRA</td><td>PLL.EXTFEEDBACK</td></tr>
+
 <tr><td>TCELL16:IMUX.IO.EXTRA</td><td>PLL.BYPASS</td></tr>
+
 <tr><td>TCELL17:IMUX.IO.EXTRA</td><td>PLL.RESETB</td></tr>
+
 <tr><td>TCELL18:IMUX.IO.EXTRA</td><td>PLL.SCLK</td></tr>
+
 <tr><td>TCELL19:IMUX.IO.EXTRA</td><td>PLL.SDI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 5</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 6</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 7</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 8</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 9</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 10</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 11</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1967,7 +2473,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1999,6 +2507,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2029,6 +2538,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2059,6 +2569,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2089,6 +2600,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2119,6 +2631,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2149,6 +2662,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2179,6 +2693,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2209,6 +2724,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -2239,6 +2755,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -2271,6 +2788,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVF">PLL:DIVF[4]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -2303,6 +2821,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVF">PLL:DIVF[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -2337,6 +2856,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVF">PLL:DIVF[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -2371,6 +2891,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVF">PLL:DIVF[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -2403,6 +2924,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVR">PLL:DIVR[2]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -2433,6 +2955,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -2467,12 +2990,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVR">PLL:DIVR[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 12</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2503,7 +3032,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -2535,6 +3066,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2565,6 +3097,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2595,6 +3128,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2625,6 +3159,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2655,6 +3190,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2685,6 +3221,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2715,6 +3252,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2745,6 +3283,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -2775,6 +3314,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -2807,6 +3347,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -2839,6 +3380,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FILTER_RANGE">PLL:FILTER_RANGE[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -2873,6 +3415,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FILTER_RANGE">PLL:FILTER_RANGE[2]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -2907,6 +3450,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVQ">PLL:DIVQ[2]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -2939,6 +3483,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVQ">PLL:DIVQ[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -2969,6 +3514,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -3003,12 +3549,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DIVF">PLL:DIVF[6]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 13</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3039,7 +3591,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -3071,6 +3625,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3101,6 +3656,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3131,6 +3687,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3161,6 +3718,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3191,6 +3749,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3221,6 +3780,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3251,6 +3811,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -3281,6 +3842,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -3311,6 +3873,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -3343,6 +3906,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -3375,6 +3939,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -3409,6 +3974,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:TEST_MODE">PLL:TEST_MODE</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -3443,6 +4009,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:MODE">PLL:MODE[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -3475,6 +4042,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[1]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -3505,6 +4073,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -3539,12 +4108,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 14</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3575,7 +4150,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -3607,6 +4184,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3637,6 +4215,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3667,6 +4246,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3697,6 +4277,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3727,6 +4308,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3757,6 +4339,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3787,6 +4370,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -3817,6 +4401,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -3847,6 +4432,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -3879,6 +4465,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -3911,6 +4498,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -3945,6 +4533,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -3979,6 +4568,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -4011,6 +4601,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[3]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -4041,6 +4632,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -4075,12 +4667,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[2]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_P08 bittile 15</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -4111,7 +4709,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -4143,6 +4743,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -4173,6 +4774,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -4203,6 +4805,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -4233,6 +4836,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -4263,6 +4867,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -4293,6 +4898,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -4323,6 +4929,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -4353,6 +4960,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -4383,6 +4991,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -4413,6 +5022,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -4443,6 +5053,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4473,6 +5084,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -4507,6 +5119,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -4539,6 +5152,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:MODE">PLL:MODE[2]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -4569,6 +5183,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -4603,27 +5218,41 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_P08-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK">PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK</th>
 <th>14.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE</th>
 <th>14.9.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FIXED</td>
 <td>0</td>
 </tr>
+
 <tr><td>DYNAMIC</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:DIVF">PLL:DIVF</th>
 <th>12.15.27</th>
@@ -4634,7 +5263,9 @@ non-inverted
 <th>11.10.27</th>
 <th>11.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -4647,21 +5278,29 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:DIVQ">PLL:DIVQ</th>
 <th>12.12.27</th>
 <th>12.12.26</th>
 <th>12.13.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:FILTER_RANGE">PLL:FILTER_RANGE</th>
 <th>12.11.27</th>
 <th>12.11.26</th>
 <th>12.10.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -4670,9 +5309,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:DIVR">PLL:DIVR</th>
 <th>11.12.26</th>
@@ -4680,19 +5324,23 @@ non-inverted
 <th>11.15.27</th>
 <th>11.15.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK</th>
 <th>14.13.27</th>
 <th>14.15.27</th>
 <th>14.15.26</th>
 <th>13.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE</th>
 <th>14.11.27</th>
 <th>14.11.26</th>
 <th>14.10.27</th>
 <th>14.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -4702,314 +5350,498 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH</th>
 <th>13.15.26</th>
 <th>12.9.27</th>
 <th>15.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DELAY</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SIMPLE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PHASE_AND_DELAY</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXTERNAL</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</th>
 <th>15.15.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</th>
 <th>15.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:SHIFTREG_DIV_MODE">PLL:SHIFTREG_DIV_MODE</th>
 <th>13.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:TEST_MODE">PLL:TEST_MODE</th>
 <th>13.11.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:MODE">PLL:MODE</th>
 <th>15.13.27</th>
 <th>13.12.27</th>
 <th>15.15.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_PAD</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_CORE</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_CORE</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA</th>
 <th>13.11.26</th>
 <th>13.10.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_P08-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB</th>
 <th>13.13.27</th>
 <th>13.15.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GENCLK</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GENCLK_HALF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SHIFTREG_90deg</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SHIFTREG_0deg</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-pll_n_p08"><a class="header" href="#tile-pll_n_p08">Tile PLL_N_P08</a></h2>
 <p>Cells: 20</p>
 <h3 id="bel-pll-3"><a class="header" href="#bel-pll-3">Bel PLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bel PLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td><td>input</td><td>TCELL16:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_0</td><td>input</td><td>TCELL2:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_1</td><td>input</td><td>TCELL3:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_2</td><td>input</td><td>TCELL4:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_3</td><td>input</td><td>TCELL5:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_4</td><td>input</td><td>TCELL6:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_5</td><td>input</td><td>TCELL7:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_6</td><td>input</td><td>TCELL8:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_7</td><td>input</td><td>TCELL9:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>EXTFEEDBACK</td><td>input</td><td>TCELL11:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>TCELL0:OUT.LC0, TCELL0:OUT.LC1, TCELL0:OUT.LC2, TCELL0:OUT.LC3, TCELL0:OUT.LC4, TCELL0:OUT.LC5, TCELL0:OUT.LC6, TCELL0:OUT.LC7</td></tr>
+
 <tr><td>REFERENCECLK</td><td>input</td><td>TCELL10:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>RESETB</td><td>input</td><td>TCELL17:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL18:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDI</td><td>input</td><td>TCELL19:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDO</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC1, TCELL1:OUT.LC2, TCELL1:OUT.LC3, TCELL1:OUT.LC4, TCELL1:OUT.LC5, TCELL1:OUT.LC6, TCELL1:OUT.LC7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:OUT.LC0</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC1</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC2</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC3</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC7</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC1</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC2</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL2:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_0</td></tr>
+
 <tr><td>TCELL3:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_1</td></tr>
+
 <tr><td>TCELL4:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_2</td></tr>
+
 <tr><td>TCELL5:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_3</td></tr>
+
 <tr><td>TCELL6:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_4</td></tr>
+
 <tr><td>TCELL7:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_5</td></tr>
+
 <tr><td>TCELL8:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_6</td></tr>
+
 <tr><td>TCELL9:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_7</td></tr>
+
 <tr><td>TCELL10:IMUX.IO.EXTRA</td><td>PLL.REFERENCECLK</td></tr>
+
 <tr><td>TCELL11:IMUX.IO.EXTRA</td><td>PLL.EXTFEEDBACK</td></tr>
+
 <tr><td>TCELL16:IMUX.IO.EXTRA</td><td>PLL.BYPASS</td></tr>
+
 <tr><td>TCELL17:IMUX.IO.EXTRA</td><td>PLL.RESETB</td></tr>
+
 <tr><td>TCELL18:IMUX.IO.EXTRA</td><td>PLL.SCLK</td></tr>
+
 <tr><td>TCELL19:IMUX.IO.EXTRA</td><td>PLL.SDI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 5</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 6</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 7</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 8</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 9</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 10</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 11</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5040,7 +5872,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5076,6 +5910,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVR">PLL:DIVR[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5106,6 +5941,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5138,6 +5974,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVR">PLL:DIVR[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5172,6 +6009,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVF">PLL:DIVF[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -5206,6 +6044,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVF">PLL:DIVF[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -5238,6 +6077,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVF">PLL:DIVF[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -5270,12 +6110,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVF">PLL:DIVF[4]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 12</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5306,7 +6152,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5342,6 +6190,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVF">PLL:DIVF[6]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5372,6 +6221,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5404,6 +6254,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVQ">PLL:DIVQ[0]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5438,6 +6289,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DIVQ">PLL:DIVQ[2]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -5472,6 +6324,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FILTER_RANGE">PLL:FILTER_RANGE[2]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -5504,6 +6357,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FILTER_RANGE">PLL:FILTER_RANGE[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -5536,12 +6390,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 13</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5572,7 +6432,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5608,6 +6470,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5638,6 +6501,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5670,6 +6534,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5704,6 +6569,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:MODE">PLL:MODE[1]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -5738,6 +6604,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:TEST_MODE">PLL:TEST_MODE</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -5770,6 +6637,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -5802,12 +6670,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 14</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5838,7 +6712,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -5874,6 +6750,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[2]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5904,6 +6781,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5936,6 +6814,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[3]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5970,6 +6849,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6004,6 +6884,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6036,6 +6917,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6068,12 +6950,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_P08 bittile 15</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -6104,7 +6992,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -6140,6 +7030,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -6170,6 +7061,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -6202,6 +7094,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:MODE">PLL:MODE[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -6236,27 +7129,41 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_P08-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK">PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK</th>
 <th>14.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE</th>
 <th>14.6.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FIXED</td>
 <td>0</td>
 </tr>
+
 <tr><td>DYNAMIC</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:DIVF">PLL:DIVF</th>
 <th>12.0.27</th>
@@ -6267,7 +7174,9 @@ non-inverted
 <th>11.5.27</th>
 <th>11.3.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -6280,21 +7189,29 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:DIVQ">PLL:DIVQ</th>
 <th>12.3.27</th>
 <th>12.3.26</th>
 <th>12.2.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:FILTER_RANGE">PLL:FILTER_RANGE</th>
 <th>12.4.27</th>
 <th>12.4.26</th>
 <th>12.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -6303,9 +7220,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:DIVR">PLL:DIVR</th>
 <th>11.3.26</th>
@@ -6313,19 +7235,23 @@ non-inverted
 <th>11.0.27</th>
 <th>11.0.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK</th>
 <th>14.2.27</th>
 <th>14.0.27</th>
 <th>14.0.26</th>
 <th>13.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE</th>
 <th>14.4.27</th>
 <th>14.4.26</th>
 <th>14.5.27</th>
 <th>14.3.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -6335,304 +7261,481 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH</th>
 <th>13.0.26</th>
 <th>12.6.27</th>
 <th>15.3.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DELAY</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SIMPLE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PHASE_AND_DELAY</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXTERNAL</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</th>
 <th>15.0.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</th>
 <th>15.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:SHIFTREG_DIV_MODE">PLL:SHIFTREG_DIV_MODE</th>
 <th>13.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:TEST_MODE">PLL:TEST_MODE</th>
 <th>13.4.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:MODE">PLL:MODE</th>
 <th>15.2.27</th>
 <th>13.3.27</th>
 <th>15.0.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_PAD</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_CORE</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_CORE</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA</th>
 <th>13.4.26</th>
 <th>13.5.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_P08-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB</th>
 <th>13.2.27</th>
 <th>13.0.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GENCLK</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GENCLK_HALF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SHIFTREG_90deg</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SHIFTREG_0deg</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-pll_s_r04"><a class="header" href="#tile-pll_s_r04">Tile PLL_S_R04</a></h2>
 <p>Cells: 19</p>
 <h3 id="bel-pll-4"><a class="header" href="#bel-pll-4">Bel PLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bel PLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td><td>input</td><td>TCELL15:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_0</td><td>input</td><td>TCELL2:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_1</td><td>input</td><td>TCELL3:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_2</td><td>input</td><td>TCELL4:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_3</td><td>input</td><td>TCELL5:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_4</td><td>input</td><td>TCELL6:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_5</td><td>input</td><td>TCELL7:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_6</td><td>input</td><td>TCELL8:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_7</td><td>input</td><td>TCELL9:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>EXTFEEDBACK</td><td>input</td><td>TCELL11:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>TCELL0:OUT.LC0, TCELL0:OUT.LC1, TCELL0:OUT.LC2, TCELL0:OUT.LC3, TCELL0:OUT.LC4, TCELL0:OUT.LC5, TCELL0:OUT.LC6, TCELL0:OUT.LC7</td></tr>
+
 <tr><td>REFERENCECLK</td><td>input</td><td>TCELL10:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>RESETB</td><td>input</td><td>TCELL16:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL17:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDI</td><td>input</td><td>TCELL18:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDO</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC1, TCELL1:OUT.LC2, TCELL1:OUT.LC3, TCELL1:OUT.LC4, TCELL1:OUT.LC5, TCELL1:OUT.LC6, TCELL1:OUT.LC7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:OUT.LC0</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC1</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC2</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC3</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC7</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC1</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC2</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL2:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_0</td></tr>
+
 <tr><td>TCELL3:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_1</td></tr>
+
 <tr><td>TCELL4:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_2</td></tr>
+
 <tr><td>TCELL5:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_3</td></tr>
+
 <tr><td>TCELL6:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_4</td></tr>
+
 <tr><td>TCELL7:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_5</td></tr>
+
 <tr><td>TCELL8:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_6</td></tr>
+
 <tr><td>TCELL9:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_7</td></tr>
+
 <tr><td>TCELL10:IMUX.IO.EXTRA</td><td>PLL.REFERENCECLK</td></tr>
+
 <tr><td>TCELL11:IMUX.IO.EXTRA</td><td>PLL.EXTFEEDBACK</td></tr>
+
 <tr><td>TCELL15:IMUX.IO.EXTRA</td><td>PLL.BYPASS</td></tr>
+
 <tr><td>TCELL16:IMUX.IO.EXTRA</td><td>PLL.RESETB</td></tr>
+
 <tr><td>TCELL17:IMUX.IO.EXTRA</td><td>PLL.SCLK</td></tr>
+
 <tr><td>TCELL18:IMUX.IO.EXTRA</td><td>PLL.SDI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 5</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 6</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 7</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 8</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 9</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 10</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -6663,7 +7766,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -6695,6 +7800,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -6725,6 +7831,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -6755,6 +7862,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -6785,6 +7893,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6815,6 +7924,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6845,6 +7955,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6875,6 +7986,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -6905,6 +8017,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -6935,6 +8048,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -6967,6 +8081,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVF">PLL:DIVF[4]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -6999,6 +8114,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVF">PLL:DIVF[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -7033,6 +8149,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVF">PLL:DIVF[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -7067,6 +8184,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVF">PLL:DIVF[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -7099,6 +8217,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVR">PLL:DIVR[2]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -7129,6 +8248,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -7163,12 +8283,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVR">PLL:DIVR[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 11</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -7199,7 +8325,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -7231,6 +8359,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7261,6 +8390,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -7291,6 +8421,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -7321,6 +8452,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -7351,6 +8483,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -7381,6 +8514,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -7411,6 +8545,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -7441,6 +8576,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -7471,6 +8607,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -7503,6 +8640,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -7535,6 +8673,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FILTER_RANGE">PLL:FILTER_RANGE[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -7569,6 +8708,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FILTER_RANGE">PLL:FILTER_RANGE[2]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -7603,6 +8743,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVQ">PLL:DIVQ[2]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -7635,6 +8776,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVQ">PLL:DIVQ[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -7665,6 +8807,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -7699,12 +8842,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DIVF">PLL:DIVF[6]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 12</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -7735,7 +8884,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -7767,6 +8918,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7797,6 +8949,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -7827,6 +8980,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -7857,6 +9011,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -7887,6 +9042,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -7917,6 +9073,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -7947,6 +9104,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -7977,6 +9135,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -8007,6 +9166,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -8039,6 +9199,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -8071,6 +9232,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -8105,6 +9267,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:TEST_MODE">PLL:TEST_MODE</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -8139,6 +9302,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:MODE">PLL:MODE[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -8171,6 +9335,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[1]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -8201,6 +9366,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -8235,12 +9401,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 13</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -8271,7 +9443,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -8303,6 +9477,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -8333,6 +9508,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -8363,6 +9539,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -8393,6 +9570,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -8423,6 +9601,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -8453,6 +9632,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -8483,6 +9663,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -8513,6 +9694,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -8543,6 +9725,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -8575,6 +9758,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -8607,6 +9791,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -8641,6 +9826,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -8675,6 +9861,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -8707,6 +9894,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[3]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -8737,6 +9925,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -8771,12 +9960,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[2]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_R04 bittile 14</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -8807,7 +10002,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -8839,6 +10036,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -8869,6 +10067,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -8899,6 +10098,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -8929,6 +10129,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -8959,6 +10160,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -8989,6 +10191,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -9019,6 +10222,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -9049,6 +10253,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -9079,6 +10284,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -9109,6 +10315,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -9139,6 +10346,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -9169,6 +10377,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -9203,6 +10412,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -9235,6 +10445,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:MODE">PLL:MODE[2]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -9265,6 +10476,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -9299,27 +10511,41 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_R04-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK">PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK</th>
 <th>13.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE</th>
 <th>13.9.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FIXED</td>
 <td>0</td>
 </tr>
+
 <tr><td>DYNAMIC</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:DIVF">PLL:DIVF</th>
 <th>11.15.27</th>
@@ -9330,7 +10556,9 @@ non-inverted
 <th>10.10.27</th>
 <th>10.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -9343,21 +10571,29 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:DIVQ">PLL:DIVQ</th>
 <th>11.12.27</th>
 <th>11.12.26</th>
 <th>11.13.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:FILTER_RANGE">PLL:FILTER_RANGE</th>
 <th>11.11.27</th>
 <th>11.11.26</th>
 <th>11.10.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -9366,9 +10602,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:DIVR">PLL:DIVR</th>
 <th>10.12.26</th>
@@ -9376,19 +10617,23 @@ non-inverted
 <th>10.15.27</th>
 <th>10.15.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK</th>
 <th>13.13.27</th>
 <th>13.15.27</th>
 <th>13.15.26</th>
 <th>12.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE</th>
 <th>13.11.27</th>
 <th>13.11.26</th>
 <th>13.10.27</th>
 <th>13.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -9398,304 +10643,481 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH</th>
 <th>12.15.26</th>
 <th>11.9.27</th>
 <th>14.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DELAY</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SIMPLE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PHASE_AND_DELAY</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXTERNAL</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</th>
 <th>14.15.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</th>
 <th>14.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:SHIFTREG_DIV_MODE">PLL:SHIFTREG_DIV_MODE</th>
 <th>12.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:TEST_MODE">PLL:TEST_MODE</th>
 <th>12.11.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:MODE">PLL:MODE</th>
 <th>14.13.27</th>
 <th>12.12.27</th>
 <th>14.15.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_PAD</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_CORE</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_CORE</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA</th>
 <th>12.11.26</th>
 <th>12.10.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_R04-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB</th>
 <th>12.13.27</th>
 <th>12.15.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GENCLK</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GENCLK_HALF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SHIFTREG_90deg</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SHIFTREG_0deg</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-pll_n_r04"><a class="header" href="#tile-pll_n_r04">Tile PLL_N_R04</a></h2>
 <p>Cells: 19</p>
 <h3 id="bel-pll-5"><a class="header" href="#bel-pll-5">Bel PLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bel PLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td><td>input</td><td>TCELL15:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_0</td><td>input</td><td>TCELL2:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_1</td><td>input</td><td>TCELL3:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_2</td><td>input</td><td>TCELL4:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_3</td><td>input</td><td>TCELL5:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_4</td><td>input</td><td>TCELL6:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_5</td><td>input</td><td>TCELL7:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_6</td><td>input</td><td>TCELL8:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_7</td><td>input</td><td>TCELL9:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>EXTFEEDBACK</td><td>input</td><td>TCELL11:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>TCELL0:OUT.LC0, TCELL0:OUT.LC1, TCELL0:OUT.LC2, TCELL0:OUT.LC3, TCELL0:OUT.LC4, TCELL0:OUT.LC5, TCELL0:OUT.LC6, TCELL0:OUT.LC7</td></tr>
+
 <tr><td>REFERENCECLK</td><td>input</td><td>TCELL10:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>RESETB</td><td>input</td><td>TCELL16:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL17:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDI</td><td>input</td><td>TCELL18:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SDO</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC1, TCELL1:OUT.LC2, TCELL1:OUT.LC3, TCELL1:OUT.LC4, TCELL1:OUT.LC5, TCELL1:OUT.LC6, TCELL1:OUT.LC7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:OUT.LC0</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC1</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC2</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC3</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC7</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC1</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC2</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL2:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_0</td></tr>
+
 <tr><td>TCELL3:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_1</td></tr>
+
 <tr><td>TCELL4:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_2</td></tr>
+
 <tr><td>TCELL5:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_3</td></tr>
+
 <tr><td>TCELL6:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_4</td></tr>
+
 <tr><td>TCELL7:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_5</td></tr>
+
 <tr><td>TCELL8:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_6</td></tr>
+
 <tr><td>TCELL9:IMUX.IO.EXTRA</td><td>PLL.DYNAMICDELAY_7</td></tr>
+
 <tr><td>TCELL10:IMUX.IO.EXTRA</td><td>PLL.REFERENCECLK</td></tr>
+
 <tr><td>TCELL11:IMUX.IO.EXTRA</td><td>PLL.EXTFEEDBACK</td></tr>
+
 <tr><td>TCELL15:IMUX.IO.EXTRA</td><td>PLL.BYPASS</td></tr>
+
 <tr><td>TCELL16:IMUX.IO.EXTRA</td><td>PLL.RESETB</td></tr>
+
 <tr><td>TCELL17:IMUX.IO.EXTRA</td><td>PLL.SCLK</td></tr>
+
 <tr><td>TCELL18:IMUX.IO.EXTRA</td><td>PLL.SDI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 5</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 6</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 7</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 8</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 9</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 10</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -9726,7 +11148,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -9762,6 +11186,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVR">PLL:DIVR[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -9792,6 +11217,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -9824,6 +11250,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVR">PLL:DIVR[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -9858,6 +11285,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVF">PLL:DIVF[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -9892,6 +11320,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVF">PLL:DIVF[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -9924,6 +11353,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVF">PLL:DIVF[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -9956,12 +11386,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVF">PLL:DIVF[4]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 11</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -9992,7 +11428,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -10028,6 +11466,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVF">PLL:DIVF[6]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -10058,6 +11497,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -10090,6 +11530,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVQ">PLL:DIVQ[0]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -10124,6 +11565,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DIVQ">PLL:DIVQ[2]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -10158,6 +11600,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FILTER_RANGE">PLL:FILTER_RANGE[2]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -10190,6 +11633,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FILTER_RANGE">PLL:FILTER_RANGE[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -10222,12 +11666,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 12</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -10258,7 +11708,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -10294,6 +11746,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -10324,6 +11777,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -10356,6 +11810,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -10390,6 +11845,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:MODE">PLL:MODE[1]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -10424,6 +11880,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:TEST_MODE">PLL:TEST_MODE</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -10456,6 +11913,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -10488,12 +11946,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 13</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -10524,7 +11988,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -10560,6 +12026,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[2]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -10590,6 +12057,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -10622,6 +12090,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[3]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -10656,6 +12125,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -10690,6 +12160,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -10722,6 +12193,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -10754,12 +12226,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_N_R04 bittile 14</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -10790,7 +12268,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -10826,6 +12306,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -10856,6 +12337,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -10888,6 +12370,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:MODE">PLL:MODE[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -10922,27 +12405,41 @@ non-inverted
 <a href="#tile-siliconblue-PLL_N_R04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK">PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK</th>
 <th>13.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE</th>
 <th>13.6.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FIXED</td>
 <td>0</td>
 </tr>
+
 <tr><td>DYNAMIC</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:DIVF">PLL:DIVF</th>
 <th>11.0.27</th>
@@ -10953,7 +12450,9 @@ non-inverted
 <th>10.5.27</th>
 <th>10.3.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -10966,21 +12465,29 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:DIVQ">PLL:DIVQ</th>
 <th>11.3.27</th>
 <th>11.3.26</th>
 <th>11.2.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:FILTER_RANGE">PLL:FILTER_RANGE</th>
 <th>11.4.27</th>
 <th>11.4.26</th>
 <th>11.5.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -10989,9 +12496,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:DIVR">PLL:DIVR</th>
 <th>10.3.26</th>
@@ -10999,19 +12511,23 @@ non-inverted
 <th>10.0.27</th>
 <th>10.0.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK</th>
 <th>13.2.27</th>
 <th>13.0.27</th>
 <th>13.0.26</th>
 <th>12.6.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE</th>
 <th>13.4.27</th>
 <th>13.4.26</th>
 <th>13.5.27</th>
 <th>13.3.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -11021,254 +12537,396 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH</th>
 <th>12.0.26</th>
 <th>11.6.27</th>
 <th>14.3.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DELAY</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SIMPLE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PHASE_AND_DELAY</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXTERNAL</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</th>
 <th>14.0.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</th>
 <th>14.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:SHIFTREG_DIV_MODE">PLL:SHIFTREG_DIV_MODE</th>
 <th>12.3.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:TEST_MODE">PLL:TEST_MODE</th>
 <th>12.4.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:MODE">PLL:MODE</th>
 <th>14.2.27</th>
 <th>12.3.27</th>
 <th>14.0.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_PAD</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_CORE</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_CORE</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA</th>
 <th>12.4.26</th>
 <th>12.5.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_N_R04-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB</th>
 <th>12.2.27</th>
 <th>12.0.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GENCLK</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GENCLK_HALF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SHIFTREG_90deg</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SHIFTREG_0deg</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-pll_s_t01"><a class="header" href="#tile-pll_s_t01">Tile PLL_S_T01</a></h2>
 <p>Cells: 11</p>
 <h3 id="bel-pll-6"><a class="header" href="#bel-pll-6">Bel PLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bel PLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BYPASS</td><td>input</td><td>TCELL10:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>DYNAMICDELAY_0</td><td>input</td><td>TCELL2:IMUX.LC2.I3</td></tr>
+
 <tr><td>DYNAMICDELAY_1</td><td>input</td><td>TCELL2:IMUX.LC3.I3</td></tr>
+
 <tr><td>DYNAMICDELAY_2</td><td>input</td><td>TCELL2:IMUX.LC4.I3</td></tr>
+
 <tr><td>DYNAMICDELAY_3</td><td>input</td><td>TCELL2:IMUX.LC5.I3</td></tr>
+
 <tr><td>DYNAMICDELAY_4</td><td>input</td><td>TCELL2:IMUX.LC6.I3</td></tr>
+
 <tr><td>DYNAMICDELAY_5</td><td>input</td><td>TCELL2:IMUX.LC7.I3</td></tr>
+
 <tr><td>DYNAMICDELAY_6</td><td>input</td><td>TCELL2:IMUX.LC0.I1</td></tr>
+
 <tr><td>DYNAMICDELAY_7</td><td>input</td><td>TCELL2:IMUX.LC1.I1</td></tr>
+
 <tr><td>EXTFEEDBACK</td><td>input</td><td>TCELL4:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>TCELL0:OUT.LC0, TCELL0:OUT.LC1, TCELL0:OUT.LC2, TCELL0:OUT.LC3, TCELL0:OUT.LC4, TCELL0:OUT.LC5, TCELL0:OUT.LC6, TCELL0:OUT.LC7</td></tr>
+
 <tr><td>REFERENCECLK</td><td>input</td><td>TCELL3:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>RESETB</td><td>input</td><td>TCELL9:IMUX.IO.EXTRA</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL2:IMUX.LC0.I3</td></tr>
+
 <tr><td>SDI</td><td>input</td><td>TCELL2:IMUX.LC1.I3</td></tr>
+
 <tr><td>SDO</td><td>output</td><td>TCELL1:OUT.LC0, TCELL1:OUT.LC1, TCELL1:OUT.LC2, TCELL1:OUT.LC3, TCELL1:OUT.LC4, TCELL1:OUT.LC5, TCELL1:OUT.LC6, TCELL1:OUT.LC7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-6"><a class="header" href="#bel-wires-6">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:OUT.LC0</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC1</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC2</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC3</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL0:OUT.LC7</td><td>PLL.LOCK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC1</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC2</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>PLL.SDO</td></tr>
+
 <tr><td>TCELL2:IMUX.LC0.I1</td><td>PLL.DYNAMICDELAY_6</td></tr>
+
 <tr><td>TCELL2:IMUX.LC0.I3</td><td>PLL.SCLK</td></tr>
+
 <tr><td>TCELL2:IMUX.LC1.I1</td><td>PLL.DYNAMICDELAY_7</td></tr>
+
 <tr><td>TCELL2:IMUX.LC1.I3</td><td>PLL.SDI</td></tr>
+
 <tr><td>TCELL2:IMUX.LC2.I3</td><td>PLL.DYNAMICDELAY_0</td></tr>
+
 <tr><td>TCELL2:IMUX.LC3.I3</td><td>PLL.DYNAMICDELAY_1</td></tr>
+
 <tr><td>TCELL2:IMUX.LC4.I3</td><td>PLL.DYNAMICDELAY_2</td></tr>
+
 <tr><td>TCELL2:IMUX.LC5.I3</td><td>PLL.DYNAMICDELAY_3</td></tr>
+
 <tr><td>TCELL2:IMUX.LC6.I3</td><td>PLL.DYNAMICDELAY_4</td></tr>
+
 <tr><td>TCELL2:IMUX.LC7.I3</td><td>PLL.DYNAMICDELAY_5</td></tr>
+
 <tr><td>TCELL3:IMUX.IO.EXTRA</td><td>PLL.REFERENCECLK</td></tr>
+
 <tr><td>TCELL4:IMUX.IO.EXTRA</td><td>PLL.EXTFEEDBACK</td></tr>
+
 <tr><td>TCELL9:IMUX.IO.EXTRA</td><td>PLL.RESETB</td></tr>
+
 <tr><td>TCELL10:IMUX.IO.EXTRA</td><td>PLL.BYPASS</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-6"><a class="header" href="#bitstream-6">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 5</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -11299,7 +12957,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -11331,6 +12991,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -11361,6 +13022,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -11391,6 +13053,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -11421,6 +13084,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -11451,6 +13115,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -11481,6 +13146,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -11511,6 +13177,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -11541,6 +13208,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -11571,6 +13239,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -11603,6 +13272,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVF">PLL:DIVF[4]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -11635,6 +13305,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVF">PLL:DIVF[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -11669,6 +13340,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVF">PLL:DIVF[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -11703,6 +13375,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVF">PLL:DIVF[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -11735,6 +13408,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVR">PLL:DIVR[2]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -11765,6 +13439,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -11799,12 +13474,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVR">PLL:DIVR[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 6</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -11835,7 +13516,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -11867,6 +13550,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -11897,6 +13581,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -11927,6 +13612,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -11957,6 +13643,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -11987,6 +13674,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -12017,6 +13705,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -12047,6 +13736,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -12077,6 +13767,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -12107,6 +13798,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -12139,6 +13831,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -12171,6 +13864,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FILTER_RANGE">PLL:FILTER_RANGE[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -12205,6 +13899,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FILTER_RANGE">PLL:FILTER_RANGE[2]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -12239,6 +13934,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVQ">PLL:DIVQ[2]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -12271,6 +13967,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVQ">PLL:DIVQ[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -12301,6 +13998,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -12335,12 +14033,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DIVF">PLL:DIVF[6]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 7</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -12371,7 +14075,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -12403,6 +14109,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -12433,6 +14140,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -12463,6 +14171,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -12493,6 +14202,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -12523,6 +14233,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -12553,6 +14264,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -12583,6 +14295,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -12613,6 +14326,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -12643,6 +14357,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -12675,6 +14390,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -12707,6 +14423,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -12741,6 +14458,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:TEST_MODE">PLL:TEST_MODE</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -12775,6 +14493,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:MODE">PLL:MODE[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -12807,6 +14526,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[1]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -12837,6 +14557,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -12871,12 +14592,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 8</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -12907,7 +14634,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -12939,6 +14668,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -12969,6 +14699,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -12999,6 +14730,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -13029,6 +14761,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -13059,6 +14792,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -13089,6 +14823,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -13119,6 +14854,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -13149,6 +14885,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -13179,6 +14916,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -13211,6 +14949,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -13243,6 +14982,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -13277,6 +15017,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -13311,6 +15052,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -13343,6 +15085,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[3]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -13373,6 +15116,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -13407,12 +15151,18 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK[2]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_S_T01 bittile 9</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -13443,7 +15193,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -13475,6 +15227,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -13505,6 +15258,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -13535,6 +15289,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -13565,6 +15320,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -13595,6 +15351,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -13625,6 +15382,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -13655,6 +15413,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -13685,6 +15444,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -13715,6 +15475,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -13745,6 +15506,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -13775,6 +15537,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -13805,6 +15568,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -13839,6 +15603,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -13871,6 +15636,7 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:MODE">PLL:MODE[2]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -13901,6 +15667,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -13935,27 +15702,41 @@ non-inverted
 <a href="#tile-siliconblue-PLL_S_T01-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK">PLL:DELAY_ADJUSTMENT_MODE_FEEDBACK</th>
 <th>8.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:DELAY_ADJUSTMENT_MODE_RELATIVE">PLL:DELAY_ADJUSTMENT_MODE_RELATIVE</th>
 <th>8.9.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FIXED</td>
 <td>0</td>
 </tr>
+
 <tr><td>DYNAMIC</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:DIVF">PLL:DIVF</th>
 <th>6.15.27</th>
@@ -13966,7 +15747,9 @@ non-inverted
 <th>5.10.27</th>
 <th>5.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -13979,21 +15762,29 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:DIVQ">PLL:DIVQ</th>
 <th>6.12.27</th>
 <th>6.12.26</th>
 <th>6.13.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:FILTER_RANGE">PLL:FILTER_RANGE</th>
 <th>6.11.27</th>
 <th>6.11.26</th>
 <th>6.10.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -14002,9 +15793,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:DIVR">PLL:DIVR</th>
 <th>5.12.26</th>
@@ -14012,19 +15808,23 @@ non-inverted
 <th>5.15.27</th>
 <th>5.15.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:FDA_FEEDBACK">PLL:FDA_FEEDBACK</th>
 <th>8.13.27</th>
 <th>8.15.27</th>
 <th>8.15.26</th>
 <th>7.9.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:FDA_RELATIVE">PLL:FDA_RELATIVE</th>
 <th>8.11.27</th>
 <th>8.11.26</th>
 <th>8.10.27</th>
 <th>8.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -14034,140 +15834,189 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:FEEDBACK_PATH">PLL:FEEDBACK_PATH</th>
 <th>7.15.26</th>
 <th>6.9.27</th>
 <th>9.12.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DELAY</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SIMPLE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>PHASE_AND_DELAY</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXTERNAL</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</th>
 <th>9.15.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</th>
 <th>9.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:SHIFTREG_DIV_MODE">PLL:SHIFTREG_DIV_MODE</th>
 <th>7.12.26</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:TEST_MODE">PLL:TEST_MODE</th>
 <th>7.11.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:MODE">PLL:MODE</th>
 <th>9.13.27</th>
 <th>7.12.27</th>
 <th>9.15.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_PAD</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_CORE</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_PAD</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SB_PLL40_2F_CORE</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:PLLOUT_SELECT_PORTA">PLL:PLLOUT_SELECT_PORTA</th>
 <th>7.11.26</th>
 <th>7.10.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_S_T01-PLL:PLLOUT_SELECT_PORTB">PLL:PLLOUT_SELECT_PORTB</th>
 <th>7.13.27</th>
 <th>7.15.27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GENCLK</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GENCLK_HALF</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SHIFTREG_90deg</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>SHIFTREG_0deg</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-pll_stub_s"><a class="header" href="#tile-pll_stub_s">Tile PLL_STUB_S</a></h2>
 <p>Cells: 1</p>
 <h3 id="bitstream-7"><a class="header" href="#bitstream-7">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue PLL_STUB_S bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="28">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -14198,7 +16047,9 @@ non-inverted
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -14230,6 +16081,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -14260,6 +16112,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -14290,6 +16143,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -14320,6 +16174,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -14350,6 +16205,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -14380,6 +16236,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -14410,6 +16267,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -14440,6 +16298,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -14470,6 +16329,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -14500,6 +16360,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -14530,6 +16391,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -14560,6 +16422,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -14592,6 +16455,7 @@ non-inverted
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -14622,6 +16486,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -14652,6 +16517,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -14684,36 +16550,48 @@ non-inverted
 <a href="#tile-siliconblue-PLL_STUB_S-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-PLL_STUB_S-PLL:LATCH_GLOBAL_OUT_A">PLL:LATCH_GLOBAL_OUT_A</th>
 <th>0.15.27</th>
 </tr>
+
 <tr><th id="tile-siliconblue-PLL_STUB_S-PLL:LATCH_GLOBAL_OUT_B">PLL:LATCH_GLOBAL_OUT_B</th>
 <th>0.12.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../siliconblue/spram.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../siliconblue/spi.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -14723,16 +16601,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../siliconblue/spram.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../siliconblue/spi.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -14742,9 +16625,9 @@ non-inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

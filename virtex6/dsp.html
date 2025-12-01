@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,943 +142,1853 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="dsp"><a class="header" href="#dsp">DSP</a></h1>
 <h2 id="tile-dsp"><a class="header" href="#tile-dsp">Tile DSP</a></h2>
 <p>Cells: 5</p>
 <h3 id="bel-dsp0"><a class="header" href="#bel-dsp0">Bel DSP0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bel DSP0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>A0</td><td>input</td><td>TCELL0:IMUX.IMUX23</td></tr>
+
 <tr><td>A1</td><td>input</td><td>TCELL0:IMUX.IMUX19</td></tr>
+
 <tr><td>A10</td><td>input</td><td>TCELL2:IMUX.IMUX21</td></tr>
+
 <tr><td>A11</td><td>input</td><td>TCELL2:IMUX.IMUX17</td></tr>
+
 <tr><td>A12</td><td>input</td><td>TCELL3:IMUX.IMUX47</td></tr>
+
 <tr><td>A13</td><td>input</td><td>TCELL3:IMUX.IMUX7</td></tr>
+
 <tr><td>A14</td><td>input</td><td>TCELL3:IMUX.IMUX46</td></tr>
+
 <tr><td>A15</td><td>input</td><td>TCELL3:IMUX.IMUX6</td></tr>
+
 <tr><td>A16</td><td>input</td><td>TCELL4:IMUX.IMUX47</td></tr>
+
 <tr><td>A17</td><td>input</td><td>TCELL4:IMUX.IMUX7</td></tr>
+
 <tr><td>A18</td><td>input</td><td>TCELL4:IMUX.IMUX46</td></tr>
+
 <tr><td>A19</td><td>input</td><td>TCELL4:IMUX.IMUX6</td></tr>
+
 <tr><td>A2</td><td>input</td><td>TCELL0:IMUX.IMUX21</td></tr>
+
 <tr><td>A20</td><td>input</td><td>TCELL0:IMUX.IMUX47</td></tr>
+
 <tr><td>A21</td><td>input</td><td>TCELL0:IMUX.IMUX7</td></tr>
+
 <tr><td>A22</td><td>input</td><td>TCELL0:IMUX.IMUX46</td></tr>
+
 <tr><td>A23</td><td>input</td><td>TCELL0:IMUX.IMUX6</td></tr>
+
 <tr><td>A24</td><td>input</td><td>TCELL1:IMUX.IMUX47</td></tr>
+
 <tr><td>A25</td><td>input</td><td>TCELL1:IMUX.IMUX7</td></tr>
+
 <tr><td>A26</td><td>input</td><td>TCELL1:IMUX.IMUX46</td></tr>
+
 <tr><td>A27</td><td>input</td><td>TCELL1:IMUX.IMUX6</td></tr>
+
 <tr><td>A28</td><td>input</td><td>TCELL2:IMUX.IMUX47</td></tr>
+
 <tr><td>A29</td><td>input</td><td>TCELL2:IMUX.IMUX7</td></tr>
+
 <tr><td>A3</td><td>input</td><td>TCELL0:IMUX.IMUX17</td></tr>
+
 <tr><td>A4</td><td>input</td><td>TCELL1:IMUX.IMUX23</td></tr>
+
 <tr><td>A5</td><td>input</td><td>TCELL1:IMUX.IMUX19</td></tr>
+
 <tr><td>A6</td><td>input</td><td>TCELL1:IMUX.IMUX21</td></tr>
+
 <tr><td>A7</td><td>input</td><td>TCELL1:IMUX.IMUX17</td></tr>
+
 <tr><td>A8</td><td>input</td><td>TCELL2:IMUX.IMUX23</td></tr>
+
 <tr><td>A9</td><td>input</td><td>TCELL2:IMUX.IMUX19</td></tr>
+
 <tr><td>ALUMODE0</td><td>input</td><td>TCELL3:IMUX.IMUX21</td></tr>
+
 <tr><td>ALUMODE1</td><td>input</td><td>TCELL3:IMUX.IMUX13</td></tr>
+
 <tr><td>ALUMODE2</td><td>input</td><td>TCELL0:IMUX.FAN0.SITE</td></tr>
+
 <tr><td>ALUMODE3</td><td>input</td><td>TCELL0:IMUX.BYP0.SITE</td></tr>
+
 <tr><td>B0</td><td>input</td><td>TCELL0:IMUX.IMUX22</td></tr>
+
 <tr><td>B1</td><td>input</td><td>TCELL0:IMUX.IMUX34</td></tr>
+
 <tr><td>B10</td><td>input</td><td>TCELL2:IMUX.IMUX36</td></tr>
+
 <tr><td>B11</td><td>input</td><td>TCELL2:IMUX.IMUX16</td></tr>
+
 <tr><td>B12</td><td>input</td><td>TCELL3:IMUX.IMUX43</td></tr>
+
 <tr><td>B13</td><td>input</td><td>TCELL3:IMUX.IMUX3</td></tr>
+
 <tr><td>B14</td><td>input</td><td>TCELL3:IMUX.IMUX42</td></tr>
+
 <tr><td>B15</td><td>input</td><td>TCELL3:IMUX.IMUX2</td></tr>
+
 <tr><td>B16</td><td>input</td><td>TCELL4:IMUX.IMUX43</td></tr>
+
 <tr><td>B17</td><td>input</td><td>TCELL4:IMUX.IMUX3</td></tr>
+
 <tr><td>B2</td><td>input</td><td>TCELL0:IMUX.IMUX36</td></tr>
+
 <tr><td>B3</td><td>input</td><td>TCELL0:IMUX.IMUX40</td></tr>
+
 <tr><td>B4</td><td>input</td><td>TCELL1:IMUX.IMUX38</td></tr>
+
 <tr><td>B5</td><td>input</td><td>TCELL1:IMUX.IMUX18</td></tr>
+
 <tr><td>B6</td><td>input</td><td>TCELL1:IMUX.IMUX36</td></tr>
+
 <tr><td>B7</td><td>input</td><td>TCELL1:IMUX.IMUX16</td></tr>
+
 <tr><td>B8</td><td>input</td><td>TCELL2:IMUX.IMUX22</td></tr>
+
 <tr><td>B9</td><td>input</td><td>TCELL2:IMUX.IMUX18</td></tr>
+
 <tr><td>C0</td><td>input</td><td>TCELL0:IMUX.IMUX39</td></tr>
+
 <tr><td>C1</td><td>input</td><td>TCELL0:IMUX.IMUX3</td></tr>
+
 <tr><td>C10</td><td>input</td><td>TCELL2:IMUX.IMUX37</td></tr>
+
 <tr><td>C11</td><td>input</td><td>TCELL2:IMUX.IMUX33</td></tr>
+
 <tr><td>C12</td><td>input</td><td>TCELL3:IMUX.IMUX39</td></tr>
+
 <tr><td>C13</td><td>input</td><td>TCELL3:IMUX.IMUX35</td></tr>
+
 <tr><td>C14</td><td>input</td><td>TCELL3:IMUX.IMUX37</td></tr>
+
 <tr><td>C15</td><td>input</td><td>TCELL3:IMUX.IMUX33</td></tr>
+
 <tr><td>C16</td><td>input</td><td>TCELL4:IMUX.IMUX39</td></tr>
+
 <tr><td>C17</td><td>input</td><td>TCELL4:IMUX.IMUX35</td></tr>
+
 <tr><td>C18</td><td>input</td><td>TCELL4:IMUX.IMUX21</td></tr>
+
 <tr><td>C19</td><td>input</td><td>TCELL4:IMUX.IMUX1</td></tr>
+
 <tr><td>C2</td><td>input</td><td>TCELL0:IMUX.IMUX37</td></tr>
+
 <tr><td>C20</td><td>input</td><td>TCELL0:IMUX.IMUX38</td></tr>
+
 <tr><td>C21</td><td>input</td><td>TCELL0:IMUX.IMUX18</td></tr>
+
 <tr><td>C22</td><td>input</td><td>TCELL0:IMUX.IMUX20</td></tr>
+
 <tr><td>C23</td><td>input</td><td>TCELL0:IMUX.IMUX32</td></tr>
+
 <tr><td>C24</td><td>input</td><td>TCELL1:IMUX.IMUX22</td></tr>
+
 <tr><td>C25</td><td>input</td><td>TCELL1:IMUX.IMUX34</td></tr>
+
 <tr><td>C26</td><td>input</td><td>TCELL1:IMUX.IMUX20</td></tr>
+
 <tr><td>C27</td><td>input</td><td>TCELL1:IMUX.IMUX32</td></tr>
+
 <tr><td>C28</td><td>input</td><td>TCELL2:IMUX.IMUX6</td></tr>
+
 <tr><td>C29</td><td>input</td><td>TCELL2:IMUX.IMUX2</td></tr>
+
 <tr><td>C3</td><td>input</td><td>TCELL0:IMUX.IMUX1</td></tr>
+
 <tr><td>C30</td><td>input</td><td>TCELL2:IMUX.IMUX4</td></tr>
+
 <tr><td>C31</td><td>input</td><td>TCELL2:IMUX.IMUX32</td></tr>
+
 <tr><td>C32</td><td>input</td><td>TCELL3:IMUX.IMUX38</td></tr>
+
 <tr><td>C33</td><td>input</td><td>TCELL3:IMUX.IMUX18</td></tr>
+
 <tr><td>C34</td><td>input</td><td>TCELL3:IMUX.IMUX20</td></tr>
+
 <tr><td>C35</td><td>input</td><td>TCELL3:IMUX.IMUX32</td></tr>
+
 <tr><td>C36</td><td>input</td><td>TCELL4:IMUX.IMUX38</td></tr>
+
 <tr><td>C37</td><td>input</td><td>TCELL4:IMUX.IMUX32</td></tr>
+
 <tr><td>C38</td><td>input</td><td>TCELL4:IMUX.IMUX20</td></tr>
+
 <tr><td>C39</td><td>input</td><td>TCELL4:IMUX.IMUX18</td></tr>
+
 <tr><td>C4</td><td>input</td><td>TCELL1:IMUX.IMUX39</td></tr>
+
 <tr><td>C40</td><td>input</td><td>TCELL0:IMUX.IMUX35</td></tr>
+
 <tr><td>C41</td><td>input</td><td>TCELL0:IMUX.IMUX16</td></tr>
+
 <tr><td>C42</td><td>input</td><td>TCELL0:IMUX.IMUX42</td></tr>
+
 <tr><td>C43</td><td>input</td><td>TCELL0:IMUX.IMUX33</td></tr>
+
 <tr><td>C44</td><td>input</td><td>TCELL4:IMUX.IMUX34</td></tr>
+
 <tr><td>C45</td><td>input</td><td>TCELL4:IMUX.IMUX37</td></tr>
+
 <tr><td>C46</td><td>input</td><td>TCELL4:IMUX.IMUX19</td></tr>
+
 <tr><td>C47</td><td>input</td><td>TCELL4:IMUX.IMUX33</td></tr>
+
 <tr><td>C5</td><td>input</td><td>TCELL1:IMUX.IMUX35</td></tr>
+
 <tr><td>C6</td><td>input</td><td>TCELL1:IMUX.IMUX37</td></tr>
+
 <tr><td>C7</td><td>input</td><td>TCELL1:IMUX.IMUX33</td></tr>
+
 <tr><td>C8</td><td>input</td><td>TCELL2:IMUX.IMUX39</td></tr>
+
 <tr><td>C9</td><td>input</td><td>TCELL2:IMUX.IMUX3</td></tr>
+
 <tr><td>CARRYIN</td><td>input</td><td>TCELL3:IMUX.IMUX23</td></tr>
+
 <tr><td>CARRYINSEL0</td><td>input</td><td>TCELL3:IMUX.IMUX30</td></tr>
+
 <tr><td>CARRYINSEL1</td><td>input</td><td>TCELL3:IMUX.IMUX14</td></tr>
+
 <tr><td>CARRYINSEL2</td><td>input</td><td>TCELL2:IMUX.BYP2.SITE</td></tr>
+
 <tr><td>CARRYOUT0</td><td>output</td><td>TCELL1:OUT12.TMIN</td></tr>
+
 <tr><td>CARRYOUT1</td><td>output</td><td>TCELL1:OUT11.TMIN</td></tr>
+
 <tr><td>CARRYOUT2</td><td>output</td><td>TCELL1:OUT13.TMIN</td></tr>
+
 <tr><td>CARRYOUT3</td><td>output</td><td>TCELL1:OUT10.TMIN</td></tr>
+
 <tr><td>CEA1</td><td>input</td><td>TCELL1:IMUX.IMUX40</td></tr>
+
 <tr><td>CEA2</td><td>input</td><td>TCELL1:IMUX.IMUX0</td></tr>
+
 <tr><td>CEAD</td><td>input</td><td>TCELL1:IMUX.BYP0.SITE</td></tr>
+
 <tr><td>CEALUMODE</td><td>input</td><td>TCELL0:IMUX.BYP4.SITE</td></tr>
+
 <tr><td>CEB1</td><td>input</td><td>TCELL1:IMUX.IMUX41</td></tr>
+
 <tr><td>CEB2</td><td>input</td><td>TCELL1:IMUX.IMUX1</td></tr>
+
 <tr><td>CEC</td><td>input</td><td>TCELL2:IMUX.IMUX40</td></tr>
+
 <tr><td>CECARRYIN</td><td>input</td><td>TCELL2:IMUX.IMUX0</td></tr>
+
 <tr><td>CECTRL</td><td>input</td><td>TCELL2:IMUX.IMUX41</td></tr>
+
 <tr><td>CED</td><td>input</td><td>TCELL1:IMUX.FAN0.SITE</td></tr>
+
 <tr><td>CEINMODE</td><td>input</td><td>TCELL0:IMUX.FAN2.SITE</td></tr>
+
 <tr><td>CEM</td><td>input</td><td>TCELL2:IMUX.IMUX1</td></tr>
+
 <tr><td>CEP</td><td>input</td><td>TCELL2:IMUX.IMUX34</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL1:IMUX.CLK0</td></tr>
+
 <tr><td>D0</td><td>input</td><td>TCELL0:IMUX.BYP7.SITE</td></tr>
+
 <tr><td>D1</td><td>input</td><td>TCELL0:IMUX.BYP5.SITE</td></tr>
+
 <tr><td>D10</td><td>input</td><td>TCELL2:IMUX.BYP3.SITE</td></tr>
+
 <tr><td>D11</td><td>input</td><td>TCELL2:IMUX.BYP1.SITE</td></tr>
+
 <tr><td>D12</td><td>input</td><td>TCELL3:IMUX.BYP7.SITE</td></tr>
+
 <tr><td>D13</td><td>input</td><td>TCELL3:IMUX.BYP5.SITE</td></tr>
+
 <tr><td>D14</td><td>input</td><td>TCELL3:IMUX.BYP3.SITE</td></tr>
+
 <tr><td>D15</td><td>input</td><td>TCELL3:IMUX.BYP1.SITE</td></tr>
+
 <tr><td>D16</td><td>input</td><td>TCELL4:IMUX.BYP7.SITE</td></tr>
+
 <tr><td>D17</td><td>input</td><td>TCELL4:IMUX.BYP5.SITE</td></tr>
+
 <tr><td>D18</td><td>input</td><td>TCELL4:IMUX.BYP3.SITE</td></tr>
+
 <tr><td>D19</td><td>input</td><td>TCELL4:IMUX.BYP1.SITE</td></tr>
+
 <tr><td>D2</td><td>input</td><td>TCELL0:IMUX.BYP3.SITE</td></tr>
+
 <tr><td>D20</td><td>input</td><td>TCELL0:IMUX.BYP6.SITE</td></tr>
+
 <tr><td>D21</td><td>input</td><td>TCELL1:IMUX.BYP6.SITE</td></tr>
+
 <tr><td>D22</td><td>input</td><td>TCELL2:IMUX.BYP0.SITE</td></tr>
+
 <tr><td>D23</td><td>input</td><td>TCELL3:IMUX.BYP2.SITE</td></tr>
+
 <tr><td>D24</td><td>input</td><td>TCELL0:IMUX.BYP2.SITE</td></tr>
+
 <tr><td>D3</td><td>input</td><td>TCELL0:IMUX.BYP1.SITE</td></tr>
+
 <tr><td>D4</td><td>input</td><td>TCELL1:IMUX.BYP7.SITE</td></tr>
+
 <tr><td>D5</td><td>input</td><td>TCELL1:IMUX.BYP5.SITE</td></tr>
+
 <tr><td>D6</td><td>input</td><td>TCELL1:IMUX.BYP3.SITE</td></tr>
+
 <tr><td>D7</td><td>input</td><td>TCELL1:IMUX.BYP1.SITE</td></tr>
+
 <tr><td>D8</td><td>input</td><td>TCELL2:IMUX.BYP7.SITE</td></tr>
+
 <tr><td>D9</td><td>input</td><td>TCELL2:IMUX.BYP5.SITE</td></tr>
+
 <tr><td>INMODE0</td><td>input</td><td>TCELL3:IMUX.BYP6.SITE</td></tr>
+
 <tr><td>INMODE1</td><td>input</td><td>TCELL1:IMUX.FAN7.SITE</td></tr>
+
 <tr><td>INMODE2</td><td>input</td><td>TCELL2:IMUX.FAN1.SITE</td></tr>
+
 <tr><td>INMODE3</td><td>input</td><td>TCELL2:IMUX.BYP6.SITE</td></tr>
+
 <tr><td>INMODE4</td><td>input</td><td>TCELL3:IMUX.FAN1.SITE</td></tr>
+
 <tr><td>OPMODE0</td><td>input</td><td>TCELL2:IMUX.IMUX35</td></tr>
+
 <tr><td>OPMODE1</td><td>input</td><td>TCELL2:IMUX.IMUX30</td></tr>
+
 <tr><td>OPMODE2</td><td>input</td><td>TCELL2:IMUX.IMUX27</td></tr>
+
 <tr><td>OPMODE3</td><td>input</td><td>TCELL2:IMUX.IMUX38</td></tr>
+
 <tr><td>OPMODE4</td><td>input</td><td>TCELL2:IMUX.IMUX20</td></tr>
+
 <tr><td>OPMODE5</td><td>input</td><td>TCELL2:IMUX.IMUX12</td></tr>
+
 <tr><td>OPMODE6</td><td>input</td><td>TCELL2:IMUX.FAN7.SITE</td></tr>
+
 <tr><td>OVERFLOW</td><td>output</td><td>TCELL2:OUT10.TMIN</td></tr>
+
 <tr><td>P0</td><td>output</td><td>TCELL0:OUT21.TMIN</td></tr>
+
 <tr><td>P1</td><td>output</td><td>TCELL0:OUT23.TMIN</td></tr>
+
 <tr><td>P10</td><td>output</td><td>TCELL2:OUT16.TMIN</td></tr>
+
 <tr><td>P11</td><td>output</td><td>TCELL2:OUT18.TMIN</td></tr>
+
 <tr><td>P12</td><td>output</td><td>TCELL3:OUT21.TMIN</td></tr>
+
 <tr><td>P13</td><td>output</td><td>TCELL3:OUT23.TMIN</td></tr>
+
 <tr><td>P14</td><td>output</td><td>TCELL3:OUT16.TMIN</td></tr>
+
 <tr><td>P15</td><td>output</td><td>TCELL3:OUT18.TMIN</td></tr>
+
 <tr><td>P16</td><td>output</td><td>TCELL4:OUT21.TMIN</td></tr>
+
 <tr><td>P17</td><td>output</td><td>TCELL4:OUT23.TMIN</td></tr>
+
 <tr><td>P18</td><td>output</td><td>TCELL4:OUT16.TMIN</td></tr>
+
 <tr><td>P19</td><td>output</td><td>TCELL4:OUT18.TMIN</td></tr>
+
 <tr><td>P2</td><td>output</td><td>TCELL0:OUT16.TMIN</td></tr>
+
 <tr><td>P20</td><td>output</td><td>TCELL0:OUT17.TMIN</td></tr>
+
 <tr><td>P21</td><td>output</td><td>TCELL0:OUT19.TMIN</td></tr>
+
 <tr><td>P22</td><td>output</td><td>TCELL0:OUT20.TMIN</td></tr>
+
 <tr><td>P23</td><td>output</td><td>TCELL0:OUT22.TMIN</td></tr>
+
 <tr><td>P24</td><td>output</td><td>TCELL1:OUT17.TMIN</td></tr>
+
 <tr><td>P25</td><td>output</td><td>TCELL1:OUT19.TMIN</td></tr>
+
 <tr><td>P26</td><td>output</td><td>TCELL1:OUT20.TMIN</td></tr>
+
 <tr><td>P27</td><td>output</td><td>TCELL1:OUT22.TMIN</td></tr>
+
 <tr><td>P28</td><td>output</td><td>TCELL2:OUT17.TMIN</td></tr>
+
 <tr><td>P29</td><td>output</td><td>TCELL2:OUT19.TMIN</td></tr>
+
 <tr><td>P3</td><td>output</td><td>TCELL0:OUT18.TMIN</td></tr>
+
 <tr><td>P30</td><td>output</td><td>TCELL2:OUT20.TMIN</td></tr>
+
 <tr><td>P31</td><td>output</td><td>TCELL2:OUT22.TMIN</td></tr>
+
 <tr><td>P32</td><td>output</td><td>TCELL3:OUT17.TMIN</td></tr>
+
 <tr><td>P33</td><td>output</td><td>TCELL3:OUT19.TMIN</td></tr>
+
 <tr><td>P34</td><td>output</td><td>TCELL3:OUT20.TMIN</td></tr>
+
 <tr><td>P35</td><td>output</td><td>TCELL3:OUT22.TMIN</td></tr>
+
 <tr><td>P36</td><td>output</td><td>TCELL4:OUT17.TMIN</td></tr>
+
 <tr><td>P37</td><td>output</td><td>TCELL4:OUT22.TMIN</td></tr>
+
 <tr><td>P38</td><td>output</td><td>TCELL4:OUT20.TMIN</td></tr>
+
 <tr><td>P39</td><td>output</td><td>TCELL4:OUT19.TMIN</td></tr>
+
 <tr><td>P4</td><td>output</td><td>TCELL1:OUT21.TMIN</td></tr>
+
 <tr><td>P40</td><td>output</td><td>TCELL0:OUT13.TMIN</td></tr>
+
 <tr><td>P41</td><td>output</td><td>TCELL0:OUT12.TMIN</td></tr>
+
 <tr><td>P42</td><td>output</td><td>TCELL0:OUT9.TMIN</td></tr>
+
 <tr><td>P43</td><td>output</td><td>TCELL0:OUT8.TMIN</td></tr>
+
 <tr><td>P44</td><td>output</td><td>TCELL4:OUT9.TMIN</td></tr>
+
 <tr><td>P45</td><td>output</td><td>TCELL4:OUT10.TMIN</td></tr>
+
 <tr><td>P46</td><td>output</td><td>TCELL4:OUT13.TMIN</td></tr>
+
 <tr><td>P47</td><td>output</td><td>TCELL4:OUT8.TMIN</td></tr>
+
 <tr><td>P5</td><td>output</td><td>TCELL1:OUT23.TMIN</td></tr>
+
 <tr><td>P6</td><td>output</td><td>TCELL1:OUT16.TMIN</td></tr>
+
 <tr><td>P7</td><td>output</td><td>TCELL1:OUT18.TMIN</td></tr>
+
 <tr><td>P8</td><td>output</td><td>TCELL2:OUT21.TMIN</td></tr>
+
 <tr><td>P9</td><td>output</td><td>TCELL2:OUT23.TMIN</td></tr>
+
 <tr><td>PATTERNBDETECT</td><td>output</td><td>TCELL2:OUT14.TMIN</td></tr>
+
 <tr><td>PATTERNDETECT</td><td>output</td><td>TCELL2:OUT11.TMIN</td></tr>
+
 <tr><td>RSTA</td><td>input</td><td>TCELL0:IMUX.CTRL1</td></tr>
+
 <tr><td>RSTALLCARRYIN</td><td>input</td><td>TCELL1:IMUX.IMUX2</td></tr>
+
 <tr><td>RSTALUMODE</td><td>input</td><td>TCELL1:IMUX.IMUX3</td></tr>
+
 <tr><td>RSTB</td><td>input</td><td>TCELL2:IMUX.CTRL0</td></tr>
+
 <tr><td>RSTC</td><td>input</td><td>TCELL1:IMUX.CTRL0</td></tr>
+
 <tr><td>RSTCTRL</td><td>input</td><td>TCELL1:IMUX.IMUX43</td></tr>
+
 <tr><td>RSTD</td><td>input</td><td>TCELL1:IMUX.BYP4.SITE</td></tr>
+
 <tr><td>RSTINMODE</td><td>input</td><td>TCELL1:IMUX.IMUX42</td></tr>
+
 <tr><td>RSTM</td><td>input</td><td>TCELL1:IMUX.CTRL1</td></tr>
+
 <tr><td>RSTP</td><td>input</td><td>TCELL0:IMUX.CTRL0</td></tr>
+
 <tr><td>UNDERFLOW</td><td>output</td><td>TCELL2:OUT9.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dsp1"><a class="header" href="#bel-dsp1">Bel DSP1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bel DSP1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>A0</td><td>input</td><td>TCELL0:IMUX.IMUX15</td></tr>
+
 <tr><td>A1</td><td>input</td><td>TCELL0:IMUX.IMUX11</td></tr>
+
 <tr><td>A10</td><td>input</td><td>TCELL2:IMUX.IMUX13</td></tr>
+
 <tr><td>A11</td><td>input</td><td>TCELL2:IMUX.IMUX9</td></tr>
+
 <tr><td>A12</td><td>input</td><td>TCELL3:IMUX.IMUX45</td></tr>
+
 <tr><td>A13</td><td>input</td><td>TCELL3:IMUX.IMUX5</td></tr>
+
 <tr><td>A14</td><td>input</td><td>TCELL3:IMUX.IMUX44</td></tr>
+
 <tr><td>A15</td><td>input</td><td>TCELL3:IMUX.IMUX4</td></tr>
+
 <tr><td>A16</td><td>input</td><td>TCELL4:IMUX.IMUX45</td></tr>
+
 <tr><td>A17</td><td>input</td><td>TCELL4:IMUX.IMUX5</td></tr>
+
 <tr><td>A18</td><td>input</td><td>TCELL4:IMUX.IMUX44</td></tr>
+
 <tr><td>A19</td><td>input</td><td>TCELL4:IMUX.IMUX4</td></tr>
+
 <tr><td>A2</td><td>input</td><td>TCELL0:IMUX.IMUX13</td></tr>
+
 <tr><td>A20</td><td>input</td><td>TCELL0:IMUX.IMUX45</td></tr>
+
 <tr><td>A21</td><td>input</td><td>TCELL0:IMUX.IMUX5</td></tr>
+
 <tr><td>A22</td><td>input</td><td>TCELL0:IMUX.IMUX44</td></tr>
+
 <tr><td>A23</td><td>input</td><td>TCELL0:IMUX.IMUX4</td></tr>
+
 <tr><td>A24</td><td>input</td><td>TCELL1:IMUX.IMUX45</td></tr>
+
 <tr><td>A25</td><td>input</td><td>TCELL1:IMUX.IMUX5</td></tr>
+
 <tr><td>A26</td><td>input</td><td>TCELL1:IMUX.IMUX44</td></tr>
+
 <tr><td>A27</td><td>input</td><td>TCELL1:IMUX.IMUX4</td></tr>
+
 <tr><td>A28</td><td>input</td><td>TCELL2:IMUX.IMUX45</td></tr>
+
 <tr><td>A29</td><td>input</td><td>TCELL2:IMUX.IMUX5</td></tr>
+
 <tr><td>A3</td><td>input</td><td>TCELL0:IMUX.IMUX9</td></tr>
+
 <tr><td>A4</td><td>input</td><td>TCELL1:IMUX.IMUX15</td></tr>
+
 <tr><td>A5</td><td>input</td><td>TCELL1:IMUX.IMUX11</td></tr>
+
 <tr><td>A6</td><td>input</td><td>TCELL1:IMUX.IMUX13</td></tr>
+
 <tr><td>A7</td><td>input</td><td>TCELL1:IMUX.IMUX9</td></tr>
+
 <tr><td>A8</td><td>input</td><td>TCELL2:IMUX.IMUX15</td></tr>
+
 <tr><td>A9</td><td>input</td><td>TCELL2:IMUX.IMUX11</td></tr>
+
 <tr><td>ALUMODE0</td><td>input</td><td>TCELL4:IMUX.IMUX0</td></tr>
+
 <tr><td>ALUMODE1</td><td>input</td><td>TCELL4:IMUX.IMUX40</td></tr>
+
 <tr><td>ALUMODE2</td><td>input</td><td>TCELL4:IMUX.FAN0.SITE</td></tr>
+
 <tr><td>ALUMODE3</td><td>input</td><td>TCELL4:IMUX.BYP0.SITE</td></tr>
+
 <tr><td>B0</td><td>input</td><td>TCELL0:IMUX.IMUX14</td></tr>
+
 <tr><td>B1</td><td>input</td><td>TCELL0:IMUX.IMUX26</td></tr>
+
 <tr><td>B10</td><td>input</td><td>TCELL2:IMUX.IMUX44</td></tr>
+
 <tr><td>B11</td><td>input</td><td>TCELL2:IMUX.IMUX8</td></tr>
+
 <tr><td>B12</td><td>input</td><td>TCELL3:IMUX.IMUX41</td></tr>
+
 <tr><td>B13</td><td>input</td><td>TCELL3:IMUX.IMUX1</td></tr>
+
 <tr><td>B14</td><td>input</td><td>TCELL3:IMUX.IMUX40</td></tr>
+
 <tr><td>B15</td><td>input</td><td>TCELL3:IMUX.IMUX0</td></tr>
+
 <tr><td>B16</td><td>input</td><td>TCELL4:IMUX.IMUX42</td></tr>
+
 <tr><td>B17</td><td>input</td><td>TCELL4:IMUX.IMUX2</td></tr>
+
 <tr><td>B2</td><td>input</td><td>TCELL0:IMUX.IMUX28</td></tr>
+
 <tr><td>B3</td><td>input</td><td>TCELL0:IMUX.IMUX0</td></tr>
+
 <tr><td>B4</td><td>input</td><td>TCELL1:IMUX.IMUX30</td></tr>
+
 <tr><td>B5</td><td>input</td><td>TCELL1:IMUX.IMUX10</td></tr>
+
 <tr><td>B6</td><td>input</td><td>TCELL1:IMUX.IMUX28</td></tr>
+
 <tr><td>B7</td><td>input</td><td>TCELL1:IMUX.IMUX8</td></tr>
+
 <tr><td>B8</td><td>input</td><td>TCELL2:IMUX.IMUX14</td></tr>
+
 <tr><td>B9</td><td>input</td><td>TCELL2:IMUX.IMUX42</td></tr>
+
 <tr><td>C0</td><td>input</td><td>TCELL0:IMUX.IMUX31</td></tr>
+
 <tr><td>C1</td><td>input</td><td>TCELL0:IMUX.IMUX43</td></tr>
+
 <tr><td>C10</td><td>input</td><td>TCELL2:IMUX.IMUX29</td></tr>
+
 <tr><td>C11</td><td>input</td><td>TCELL2:IMUX.IMUX25</td></tr>
+
 <tr><td>C12</td><td>input</td><td>TCELL3:IMUX.IMUX31</td></tr>
+
 <tr><td>C13</td><td>input</td><td>TCELL3:IMUX.IMUX27</td></tr>
+
 <tr><td>C14</td><td>input</td><td>TCELL3:IMUX.IMUX29</td></tr>
+
 <tr><td>C15</td><td>input</td><td>TCELL3:IMUX.IMUX25</td></tr>
+
 <tr><td>C16</td><td>input</td><td>TCELL4:IMUX.IMUX31</td></tr>
+
 <tr><td>C17</td><td>input</td><td>TCELL4:IMUX.IMUX27</td></tr>
+
 <tr><td>C18</td><td>input</td><td>TCELL4:IMUX.IMUX13</td></tr>
+
 <tr><td>C19</td><td>input</td><td>TCELL4:IMUX.IMUX41</td></tr>
+
 <tr><td>C2</td><td>input</td><td>TCELL0:IMUX.IMUX29</td></tr>
+
 <tr><td>C20</td><td>input</td><td>TCELL0:IMUX.IMUX30</td></tr>
+
 <tr><td>C21</td><td>input</td><td>TCELL0:IMUX.IMUX10</td></tr>
+
 <tr><td>C22</td><td>input</td><td>TCELL0:IMUX.IMUX12</td></tr>
+
 <tr><td>C23</td><td>input</td><td>TCELL0:IMUX.IMUX24</td></tr>
+
 <tr><td>C24</td><td>input</td><td>TCELL1:IMUX.IMUX14</td></tr>
+
 <tr><td>C25</td><td>input</td><td>TCELL1:IMUX.IMUX26</td></tr>
+
 <tr><td>C26</td><td>input</td><td>TCELL1:IMUX.IMUX12</td></tr>
+
 <tr><td>C27</td><td>input</td><td>TCELL1:IMUX.IMUX24</td></tr>
+
 <tr><td>C28</td><td>input</td><td>TCELL2:IMUX.IMUX46</td></tr>
+
 <tr><td>C29</td><td>input</td><td>TCELL2:IMUX.IMUX10</td></tr>
+
 <tr><td>C3</td><td>input</td><td>TCELL0:IMUX.IMUX41</td></tr>
+
 <tr><td>C30</td><td>input</td><td>TCELL2:IMUX.IMUX28</td></tr>
+
 <tr><td>C31</td><td>input</td><td>TCELL2:IMUX.IMUX24</td></tr>
+
 <tr><td>C32</td><td>input</td><td>TCELL3:IMUX.IMUX22</td></tr>
+
 <tr><td>C33</td><td>input</td><td>TCELL3:IMUX.IMUX10</td></tr>
+
 <tr><td>C34</td><td>input</td><td>TCELL3:IMUX.IMUX12</td></tr>
+
 <tr><td>C35</td><td>input</td><td>TCELL3:IMUX.IMUX24</td></tr>
+
 <tr><td>C36</td><td>input</td><td>TCELL4:IMUX.IMUX30</td></tr>
+
 <tr><td>C37</td><td>input</td><td>TCELL4:IMUX.IMUX24</td></tr>
+
 <tr><td>C38</td><td>input</td><td>TCELL4:IMUX.IMUX12</td></tr>
+
 <tr><td>C39</td><td>input</td><td>TCELL4:IMUX.IMUX10</td></tr>
+
 <tr><td>C4</td><td>input</td><td>TCELL1:IMUX.IMUX31</td></tr>
+
 <tr><td>C40</td><td>input</td><td>TCELL0:IMUX.IMUX27</td></tr>
+
 <tr><td>C41</td><td>input</td><td>TCELL0:IMUX.IMUX8</td></tr>
+
 <tr><td>C42</td><td>input</td><td>TCELL0:IMUX.IMUX2</td></tr>
+
 <tr><td>C43</td><td>input</td><td>TCELL0:IMUX.IMUX25</td></tr>
+
 <tr><td>C44</td><td>input</td><td>TCELL4:IMUX.IMUX26</td></tr>
+
 <tr><td>C45</td><td>input</td><td>TCELL4:IMUX.IMUX29</td></tr>
+
 <tr><td>C46</td><td>input</td><td>TCELL4:IMUX.IMUX11</td></tr>
+
 <tr><td>C47</td><td>input</td><td>TCELL4:IMUX.IMUX25</td></tr>
+
 <tr><td>C5</td><td>input</td><td>TCELL1:IMUX.IMUX27</td></tr>
+
 <tr><td>C6</td><td>input</td><td>TCELL1:IMUX.IMUX29</td></tr>
+
 <tr><td>C7</td><td>input</td><td>TCELL1:IMUX.IMUX25</td></tr>
+
 <tr><td>C8</td><td>input</td><td>TCELL2:IMUX.IMUX31</td></tr>
+
 <tr><td>C9</td><td>input</td><td>TCELL2:IMUX.IMUX43</td></tr>
+
 <tr><td>CARRYIN</td><td>input</td><td>TCELL3:IMUX.IMUX15</td></tr>
+
 <tr><td>CARRYINSEL0</td><td>input</td><td>TCELL4:IMUX.IMUX36</td></tr>
+
 <tr><td>CARRYINSEL1</td><td>input</td><td>TCELL4:IMUX.IMUX28</td></tr>
+
 <tr><td>CARRYINSEL2</td><td>input</td><td>TCELL4:IMUX.BYP2.SITE</td></tr>
+
 <tr><td>CARRYOUT0</td><td>output</td><td>TCELL3:OUT8.TMIN</td></tr>
+
 <tr><td>CARRYOUT1</td><td>output</td><td>TCELL3:OUT11.TMIN</td></tr>
+
 <tr><td>CARRYOUT2</td><td>output</td><td>TCELL3:OUT10.TMIN</td></tr>
+
 <tr><td>CARRYOUT3</td><td>output</td><td>TCELL3:OUT15.TMIN</td></tr>
+
 <tr><td>CEA1</td><td>input</td><td>TCELL3:IMUX.IMUX9</td></tr>
+
 <tr><td>CEA2</td><td>input</td><td>TCELL3:IMUX.IMUX17</td></tr>
+
 <tr><td>CEAD</td><td>input</td><td>TCELL3:IMUX.BYP0.SITE</td></tr>
+
 <tr><td>CEALUMODE</td><td>input</td><td>TCELL3:IMUX.BYP4.SITE</td></tr>
+
 <tr><td>CEB1</td><td>input</td><td>TCELL3:IMUX.IMUX8</td></tr>
+
 <tr><td>CEB2</td><td>input</td><td>TCELL3:IMUX.IMUX16</td></tr>
+
 <tr><td>CEC</td><td>input</td><td>TCELL3:IMUX.IMUX34</td></tr>
+
 <tr><td>CECARRYIN</td><td>input</td><td>TCELL3:IMUX.IMUX26</td></tr>
+
 <tr><td>CECTRL</td><td>input</td><td>TCELL3:IMUX.IMUX11</td></tr>
+
 <tr><td>CED</td><td>input</td><td>TCELL3:IMUX.FAN0.SITE</td></tr>
+
 <tr><td>CEINMODE</td><td>input</td><td>TCELL3:IMUX.FAN2.SITE</td></tr>
+
 <tr><td>CEM</td><td>input</td><td>TCELL3:IMUX.IMUX19</td></tr>
+
 <tr><td>CEP</td><td>input</td><td>TCELL2:IMUX.IMUX26</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL3:IMUX.CLK0</td></tr>
+
 <tr><td>D0</td><td>input</td><td>TCELL0:IMUX.FAN3.SITE</td></tr>
+
 <tr><td>D1</td><td>input</td><td>TCELL0:IMUX.FAN6.SITE</td></tr>
+
 <tr><td>D10</td><td>input</td><td>TCELL2:IMUX.FAN5.SITE</td></tr>
+
 <tr><td>D11</td><td>input</td><td>TCELL2:IMUX.FAN4.SITE</td></tr>
+
 <tr><td>D12</td><td>input</td><td>TCELL3:IMUX.FAN3.SITE</td></tr>
+
 <tr><td>D13</td><td>input</td><td>TCELL3:IMUX.FAN6.SITE</td></tr>
+
 <tr><td>D14</td><td>input</td><td>TCELL3:IMUX.FAN5.SITE</td></tr>
+
 <tr><td>D15</td><td>input</td><td>TCELL3:IMUX.FAN4.SITE</td></tr>
+
 <tr><td>D16</td><td>input</td><td>TCELL4:IMUX.FAN3.SITE</td></tr>
+
 <tr><td>D17</td><td>input</td><td>TCELL4:IMUX.FAN6.SITE</td></tr>
+
 <tr><td>D18</td><td>input</td><td>TCELL4:IMUX.FAN5.SITE</td></tr>
+
 <tr><td>D19</td><td>input</td><td>TCELL4:IMUX.FAN4.SITE</td></tr>
+
 <tr><td>D2</td><td>input</td><td>TCELL0:IMUX.FAN5.SITE</td></tr>
+
 <tr><td>D20</td><td>input</td><td>TCELL0:IMUX.FAN1.SITE</td></tr>
+
 <tr><td>D21</td><td>input</td><td>TCELL1:IMUX.FAN1.SITE</td></tr>
+
 <tr><td>D22</td><td>input</td><td>TCELL2:IMUX.FAN0.SITE</td></tr>
+
 <tr><td>D23</td><td>input</td><td>TCELL3:IMUX.FAN7.SITE</td></tr>
+
 <tr><td>D24</td><td>input</td><td>TCELL0:IMUX.FAN7.SITE</td></tr>
+
 <tr><td>D3</td><td>input</td><td>TCELL0:IMUX.FAN4.SITE</td></tr>
+
 <tr><td>D4</td><td>input</td><td>TCELL1:IMUX.FAN3.SITE</td></tr>
+
 <tr><td>D5</td><td>input</td><td>TCELL1:IMUX.FAN6.SITE</td></tr>
+
 <tr><td>D6</td><td>input</td><td>TCELL1:IMUX.FAN5.SITE</td></tr>
+
 <tr><td>D7</td><td>input</td><td>TCELL1:IMUX.FAN4.SITE</td></tr>
+
 <tr><td>D8</td><td>input</td><td>TCELL2:IMUX.FAN3.SITE</td></tr>
+
 <tr><td>D9</td><td>input</td><td>TCELL2:IMUX.FAN6.SITE</td></tr>
+
 <tr><td>INMODE0</td><td>input</td><td>TCELL2:IMUX.BYP4.SITE</td></tr>
+
 <tr><td>INMODE1</td><td>input</td><td>TCELL1:IMUX.BYP2.SITE</td></tr>
+
 <tr><td>INMODE2</td><td>input</td><td>TCELL4:IMUX.FAN7.SITE</td></tr>
+
 <tr><td>INMODE3</td><td>input</td><td>TCELL4:IMUX.BYP4.SITE</td></tr>
+
 <tr><td>INMODE4</td><td>input</td><td>TCELL2:IMUX.FAN2.SITE</td></tr>
+
 <tr><td>OPMODE0</td><td>input</td><td>TCELL3:IMUX.IMUX28</td></tr>
+
 <tr><td>OPMODE1</td><td>input</td><td>TCELL4:IMUX.IMUX8</td></tr>
+
 <tr><td>OPMODE2</td><td>input</td><td>TCELL3:IMUX.IMUX36</td></tr>
+
 <tr><td>OPMODE3</td><td>input</td><td>TCELL4:IMUX.IMUX16</td></tr>
+
 <tr><td>OPMODE4</td><td>input</td><td>TCELL4:IMUX.IMUX17</td></tr>
+
 <tr><td>OPMODE5</td><td>input</td><td>TCELL4:IMUX.IMUX9</td></tr>
+
 <tr><td>OPMODE6</td><td>input</td><td>TCELL4:IMUX.FAN2.SITE</td></tr>
+
 <tr><td>OVERFLOW</td><td>output</td><td>TCELL2:OUT8.TMIN</td></tr>
+
 <tr><td>P0</td><td>output</td><td>TCELL0:OUT3.TMIN</td></tr>
+
 <tr><td>P1</td><td>output</td><td>TCELL0:OUT1.TMIN</td></tr>
+
 <tr><td>P10</td><td>output</td><td>TCELL2:OUT6.TMIN</td></tr>
+
 <tr><td>P11</td><td>output</td><td>TCELL2:OUT4.TMIN</td></tr>
+
 <tr><td>P12</td><td>output</td><td>TCELL3:OUT3.TMIN</td></tr>
+
 <tr><td>P13</td><td>output</td><td>TCELL3:OUT1.TMIN</td></tr>
+
 <tr><td>P14</td><td>output</td><td>TCELL3:OUT6.TMIN</td></tr>
+
 <tr><td>P15</td><td>output</td><td>TCELL3:OUT4.TMIN</td></tr>
+
 <tr><td>P16</td><td>output</td><td>TCELL4:OUT3.TMIN</td></tr>
+
 <tr><td>P17</td><td>output</td><td>TCELL4:OUT1.TMIN</td></tr>
+
 <tr><td>P18</td><td>output</td><td>TCELL4:OUT6.TMIN</td></tr>
+
 <tr><td>P19</td><td>output</td><td>TCELL4:OUT4.TMIN</td></tr>
+
 <tr><td>P2</td><td>output</td><td>TCELL0:OUT6.TMIN</td></tr>
+
 <tr><td>P20</td><td>output</td><td>TCELL0:OUT7.TMIN</td></tr>
+
 <tr><td>P21</td><td>output</td><td>TCELL0:OUT5.TMIN</td></tr>
+
 <tr><td>P22</td><td>output</td><td>TCELL0:OUT2.TMIN</td></tr>
+
 <tr><td>P23</td><td>output</td><td>TCELL0:OUT0.TMIN</td></tr>
+
 <tr><td>P24</td><td>output</td><td>TCELL1:OUT7.TMIN</td></tr>
+
 <tr><td>P25</td><td>output</td><td>TCELL1:OUT5.TMIN</td></tr>
+
 <tr><td>P26</td><td>output</td><td>TCELL1:OUT2.TMIN</td></tr>
+
 <tr><td>P27</td><td>output</td><td>TCELL1:OUT0.TMIN</td></tr>
+
 <tr><td>P28</td><td>output</td><td>TCELL2:OUT7.TMIN</td></tr>
+
 <tr><td>P29</td><td>output</td><td>TCELL2:OUT5.TMIN</td></tr>
+
 <tr><td>P3</td><td>output</td><td>TCELL0:OUT4.TMIN</td></tr>
+
 <tr><td>P30</td><td>output</td><td>TCELL2:OUT2.TMIN</td></tr>
+
 <tr><td>P31</td><td>output</td><td>TCELL2:OUT0.TMIN</td></tr>
+
 <tr><td>P32</td><td>output</td><td>TCELL3:OUT7.TMIN</td></tr>
+
 <tr><td>P33</td><td>output</td><td>TCELL3:OUT5.TMIN</td></tr>
+
 <tr><td>P34</td><td>output</td><td>TCELL3:OUT2.TMIN</td></tr>
+
 <tr><td>P35</td><td>output</td><td>TCELL3:OUT0.TMIN</td></tr>
+
 <tr><td>P36</td><td>output</td><td>TCELL4:OUT7.TMIN</td></tr>
+
 <tr><td>P37</td><td>output</td><td>TCELL4:OUT0.TMIN</td></tr>
+
 <tr><td>P38</td><td>output</td><td>TCELL4:OUT2.TMIN</td></tr>
+
 <tr><td>P39</td><td>output</td><td>TCELL4:OUT5.TMIN</td></tr>
+
 <tr><td>P4</td><td>output</td><td>TCELL1:OUT3.TMIN</td></tr>
+
 <tr><td>P40</td><td>output</td><td>TCELL0:OUT15.TMIN</td></tr>
+
 <tr><td>P41</td><td>output</td><td>TCELL0:OUT11.TMIN</td></tr>
+
 <tr><td>P42</td><td>output</td><td>TCELL0:OUT10.TMIN</td></tr>
+
 <tr><td>P43</td><td>output</td><td>TCELL0:OUT14.TMIN</td></tr>
+
 <tr><td>P44</td><td>output</td><td>TCELL4:OUT12.TMIN</td></tr>
+
 <tr><td>P45</td><td>output</td><td>TCELL4:OUT11.TMIN</td></tr>
+
 <tr><td>P46</td><td>output</td><td>TCELL4:OUT14.TMIN</td></tr>
+
 <tr><td>P47</td><td>output</td><td>TCELL4:OUT15.TMIN</td></tr>
+
 <tr><td>P5</td><td>output</td><td>TCELL1:OUT1.TMIN</td></tr>
+
 <tr><td>P6</td><td>output</td><td>TCELL1:OUT6.TMIN</td></tr>
+
 <tr><td>P7</td><td>output</td><td>TCELL1:OUT4.TMIN</td></tr>
+
 <tr><td>P8</td><td>output</td><td>TCELL2:OUT3.TMIN</td></tr>
+
 <tr><td>P9</td><td>output</td><td>TCELL2:OUT1.TMIN</td></tr>
+
 <tr><td>PATTERNBDETECT</td><td>output</td><td>TCELL2:OUT15.TMIN</td></tr>
+
 <tr><td>PATTERNDETECT</td><td>output</td><td>TCELL2:OUT13.TMIN</td></tr>
+
 <tr><td>RSTA</td><td>input</td><td>TCELL2:IMUX.CTRL1</td></tr>
+
 <tr><td>RSTALLCARRYIN</td><td>input</td><td>TCELL4:IMUX.IMUX15</td></tr>
+
 <tr><td>RSTALUMODE</td><td>input</td><td>TCELL4:IMUX.IMUX22</td></tr>
+
 <tr><td>RSTB</td><td>input</td><td>TCELL4:IMUX.CTRL1</td></tr>
+
 <tr><td>RSTC</td><td>input</td><td>TCELL3:IMUX.CTRL0</td></tr>
+
 <tr><td>RSTCTRL</td><td>input</td><td>TCELL4:IMUX.IMUX14</td></tr>
+
 <tr><td>RSTD</td><td>input</td><td>TCELL4:IMUX.BYP6.SITE</td></tr>
+
 <tr><td>RSTINMODE</td><td>input</td><td>TCELL4:IMUX.IMUX23</td></tr>
+
 <tr><td>RSTM</td><td>input</td><td>TCELL3:IMUX.CTRL1</td></tr>
+
 <tr><td>RSTP</td><td>input</td><td>TCELL4:IMUX.CTRL0</td></tr>
+
 <tr><td>UNDERFLOW</td><td>output</td><td>TCELL3:OUT14.TMIN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-tieoff_dsp"><a class="header" href="#bel-tieoff_dsp">Bel TIEOFF_DSP</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bel TIEOFF_DSP</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.CTRL0</td><td>DSP0.RSTP</td></tr>
+
 <tr><td>TCELL0:IMUX.CTRL1</td><td>DSP0.RSTA</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP0.SITE</td><td>DSP0.ALUMODE3</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP1.SITE</td><td>DSP0.D3</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP2.SITE</td><td>DSP0.D24</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP3.SITE</td><td>DSP0.D2</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP4.SITE</td><td>DSP0.CEALUMODE</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP5.SITE</td><td>DSP0.D1</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP6.SITE</td><td>DSP0.D20</td></tr>
+
 <tr><td>TCELL0:IMUX.BYP7.SITE</td><td>DSP0.D0</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN0.SITE</td><td>DSP0.ALUMODE2</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN1.SITE</td><td>DSP1.D20</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN2.SITE</td><td>DSP0.CEINMODE</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN3.SITE</td><td>DSP1.D0</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN4.SITE</td><td>DSP1.D3</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN5.SITE</td><td>DSP1.D2</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN6.SITE</td><td>DSP1.D1</td></tr>
+
 <tr><td>TCELL0:IMUX.FAN7.SITE</td><td>DSP1.D24</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX0</td><td>DSP1.B3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX1</td><td>DSP0.C3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX2</td><td>DSP1.C42</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX3</td><td>DSP0.C1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX4</td><td>DSP1.A23</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX5</td><td>DSP1.A21</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX6</td><td>DSP0.A23</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX7</td><td>DSP0.A21</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX8</td><td>DSP1.C41</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX9</td><td>DSP1.A3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX10</td><td>DSP1.C21</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX11</td><td>DSP1.A1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX12</td><td>DSP1.C22</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX13</td><td>DSP1.A2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX14</td><td>DSP1.B0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX15</td><td>DSP1.A0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX16</td><td>DSP0.C41</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX17</td><td>DSP0.A3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX18</td><td>DSP0.C21</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX19</td><td>DSP0.A1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX20</td><td>DSP0.C22</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX21</td><td>DSP0.A2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX22</td><td>DSP0.B0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX23</td><td>DSP0.A0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX24</td><td>DSP1.C23</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX25</td><td>DSP1.C43</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX26</td><td>DSP1.B1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX27</td><td>DSP1.C40</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX28</td><td>DSP1.B2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX29</td><td>DSP1.C2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX30</td><td>DSP1.C20</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX31</td><td>DSP1.C0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX32</td><td>DSP0.C23</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX33</td><td>DSP0.C43</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX34</td><td>DSP0.B1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX35</td><td>DSP0.C40</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX36</td><td>DSP0.B2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX37</td><td>DSP0.C2</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX38</td><td>DSP0.C20</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX39</td><td>DSP0.C0</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX40</td><td>DSP0.B3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX41</td><td>DSP1.C3</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX42</td><td>DSP0.C42</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX43</td><td>DSP1.C1</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX44</td><td>DSP1.A22</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX45</td><td>DSP1.A20</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX46</td><td>DSP0.A22</td></tr>
+
 <tr><td>TCELL0:IMUX.IMUX47</td><td>DSP0.A20</td></tr>
+
 <tr><td>TCELL0:OUT0.TMIN</td><td>DSP1.P23</td></tr>
+
 <tr><td>TCELL0:OUT1.TMIN</td><td>DSP1.P1</td></tr>
+
 <tr><td>TCELL0:OUT2.TMIN</td><td>DSP1.P22</td></tr>
+
 <tr><td>TCELL0:OUT3.TMIN</td><td>DSP1.P0</td></tr>
+
 <tr><td>TCELL0:OUT4.TMIN</td><td>DSP1.P3</td></tr>
+
 <tr><td>TCELL0:OUT5.TMIN</td><td>DSP1.P21</td></tr>
+
 <tr><td>TCELL0:OUT6.TMIN</td><td>DSP1.P2</td></tr>
+
 <tr><td>TCELL0:OUT7.TMIN</td><td>DSP1.P20</td></tr>
+
 <tr><td>TCELL0:OUT8.TMIN</td><td>DSP0.P43</td></tr>
+
 <tr><td>TCELL0:OUT9.TMIN</td><td>DSP0.P42</td></tr>
+
 <tr><td>TCELL0:OUT10.TMIN</td><td>DSP1.P42</td></tr>
+
 <tr><td>TCELL0:OUT11.TMIN</td><td>DSP1.P41</td></tr>
+
 <tr><td>TCELL0:OUT12.TMIN</td><td>DSP0.P41</td></tr>
+
 <tr><td>TCELL0:OUT13.TMIN</td><td>DSP0.P40</td></tr>
+
 <tr><td>TCELL0:OUT14.TMIN</td><td>DSP1.P43</td></tr>
+
 <tr><td>TCELL0:OUT15.TMIN</td><td>DSP1.P40</td></tr>
+
 <tr><td>TCELL0:OUT16.TMIN</td><td>DSP0.P2</td></tr>
+
 <tr><td>TCELL0:OUT17.TMIN</td><td>DSP0.P20</td></tr>
+
 <tr><td>TCELL0:OUT18.TMIN</td><td>DSP0.P3</td></tr>
+
 <tr><td>TCELL0:OUT19.TMIN</td><td>DSP0.P21</td></tr>
+
 <tr><td>TCELL0:OUT20.TMIN</td><td>DSP0.P22</td></tr>
+
 <tr><td>TCELL0:OUT21.TMIN</td><td>DSP0.P0</td></tr>
+
 <tr><td>TCELL0:OUT22.TMIN</td><td>DSP0.P23</td></tr>
+
 <tr><td>TCELL0:OUT23.TMIN</td><td>DSP0.P1</td></tr>
+
 <tr><td>TCELL1:IMUX.CLK0</td><td>DSP0.CLK</td></tr>
+
 <tr><td>TCELL1:IMUX.CTRL0</td><td>DSP0.RSTC</td></tr>
+
 <tr><td>TCELL1:IMUX.CTRL1</td><td>DSP0.RSTM</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP0.SITE</td><td>DSP0.CEAD</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP1.SITE</td><td>DSP0.D7</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP2.SITE</td><td>DSP1.INMODE1</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP3.SITE</td><td>DSP0.D6</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP4.SITE</td><td>DSP0.RSTD</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP5.SITE</td><td>DSP0.D5</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP6.SITE</td><td>DSP0.D21</td></tr>
+
 <tr><td>TCELL1:IMUX.BYP7.SITE</td><td>DSP0.D4</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN0.SITE</td><td>DSP0.CED</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN1.SITE</td><td>DSP1.D21</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN3.SITE</td><td>DSP1.D4</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN4.SITE</td><td>DSP1.D7</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN5.SITE</td><td>DSP1.D6</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN6.SITE</td><td>DSP1.D5</td></tr>
+
 <tr><td>TCELL1:IMUX.FAN7.SITE</td><td>DSP0.INMODE1</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX0</td><td>DSP0.CEA2</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX1</td><td>DSP0.CEB2</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX2</td><td>DSP0.RSTALLCARRYIN</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX3</td><td>DSP0.RSTALUMODE</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX4</td><td>DSP1.A27</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX5</td><td>DSP1.A25</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX6</td><td>DSP0.A27</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX7</td><td>DSP0.A25</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX8</td><td>DSP1.B7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX9</td><td>DSP1.A7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX10</td><td>DSP1.B5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX11</td><td>DSP1.A5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX12</td><td>DSP1.C26</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX13</td><td>DSP1.A6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX14</td><td>DSP1.C24</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX15</td><td>DSP1.A4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX16</td><td>DSP0.B7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX17</td><td>DSP0.A7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX18</td><td>DSP0.B5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX19</td><td>DSP0.A5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX20</td><td>DSP0.C26</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX21</td><td>DSP0.A6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX22</td><td>DSP0.C24</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX23</td><td>DSP0.A4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX24</td><td>DSP1.C27</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX25</td><td>DSP1.C7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX26</td><td>DSP1.C25</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX27</td><td>DSP1.C5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX28</td><td>DSP1.B6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX29</td><td>DSP1.C6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX30</td><td>DSP1.B4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX31</td><td>DSP1.C4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX32</td><td>DSP0.C27</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX33</td><td>DSP0.C7</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX34</td><td>DSP0.C25</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX35</td><td>DSP0.C5</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX36</td><td>DSP0.B6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX37</td><td>DSP0.C6</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX38</td><td>DSP0.B4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX39</td><td>DSP0.C4</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX40</td><td>DSP0.CEA1</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX41</td><td>DSP0.CEB1</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX42</td><td>DSP0.RSTINMODE</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX43</td><td>DSP0.RSTCTRL</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX44</td><td>DSP1.A26</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX45</td><td>DSP1.A24</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX46</td><td>DSP0.A26</td></tr>
+
 <tr><td>TCELL1:IMUX.IMUX47</td><td>DSP0.A24</td></tr>
+
 <tr><td>TCELL1:OUT0.TMIN</td><td>DSP1.P27</td></tr>
+
 <tr><td>TCELL1:OUT1.TMIN</td><td>DSP1.P5</td></tr>
+
 <tr><td>TCELL1:OUT2.TMIN</td><td>DSP1.P26</td></tr>
+
 <tr><td>TCELL1:OUT3.TMIN</td><td>DSP1.P4</td></tr>
+
 <tr><td>TCELL1:OUT4.TMIN</td><td>DSP1.P7</td></tr>
+
 <tr><td>TCELL1:OUT5.TMIN</td><td>DSP1.P25</td></tr>
+
 <tr><td>TCELL1:OUT6.TMIN</td><td>DSP1.P6</td></tr>
+
 <tr><td>TCELL1:OUT7.TMIN</td><td>DSP1.P24</td></tr>
+
 <tr><td>TCELL1:OUT10.TMIN</td><td>DSP0.CARRYOUT3</td></tr>
+
 <tr><td>TCELL1:OUT11.TMIN</td><td>DSP0.CARRYOUT1</td></tr>
+
 <tr><td>TCELL1:OUT12.TMIN</td><td>DSP0.CARRYOUT0</td></tr>
+
 <tr><td>TCELL1:OUT13.TMIN</td><td>DSP0.CARRYOUT2</td></tr>
+
 <tr><td>TCELL1:OUT16.TMIN</td><td>DSP0.P6</td></tr>
+
 <tr><td>TCELL1:OUT17.TMIN</td><td>DSP0.P24</td></tr>
+
 <tr><td>TCELL1:OUT18.TMIN</td><td>DSP0.P7</td></tr>
+
 <tr><td>TCELL1:OUT19.TMIN</td><td>DSP0.P25</td></tr>
+
 <tr><td>TCELL1:OUT20.TMIN</td><td>DSP0.P26</td></tr>
+
 <tr><td>TCELL1:OUT21.TMIN</td><td>DSP0.P4</td></tr>
+
 <tr><td>TCELL1:OUT22.TMIN</td><td>DSP0.P27</td></tr>
+
 <tr><td>TCELL1:OUT23.TMIN</td><td>DSP0.P5</td></tr>
+
 <tr><td>TCELL2:IMUX.CTRL0</td><td>DSP0.RSTB</td></tr>
+
 <tr><td>TCELL2:IMUX.CTRL1</td><td>DSP1.RSTA</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP0.SITE</td><td>DSP0.D22</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP1.SITE</td><td>DSP0.D11</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP2.SITE</td><td>DSP0.CARRYINSEL2</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP3.SITE</td><td>DSP0.D10</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP4.SITE</td><td>DSP1.INMODE0</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP5.SITE</td><td>DSP0.D9</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP6.SITE</td><td>DSP0.INMODE3</td></tr>
+
 <tr><td>TCELL2:IMUX.BYP7.SITE</td><td>DSP0.D8</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN0.SITE</td><td>DSP1.D22</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN1.SITE</td><td>DSP0.INMODE2</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN2.SITE</td><td>DSP1.INMODE4</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN3.SITE</td><td>DSP1.D8</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN4.SITE</td><td>DSP1.D11</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN5.SITE</td><td>DSP1.D10</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN6.SITE</td><td>DSP1.D9</td></tr>
+
 <tr><td>TCELL2:IMUX.FAN7.SITE</td><td>DSP0.OPMODE6</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX0</td><td>DSP0.CECARRYIN</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX1</td><td>DSP0.CEM</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX2</td><td>DSP0.C29</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX3</td><td>DSP0.C9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX4</td><td>DSP0.C30</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX5</td><td>DSP1.A29</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX6</td><td>DSP0.C28</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX7</td><td>DSP0.A29</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX8</td><td>DSP1.B11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX9</td><td>DSP1.A11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX10</td><td>DSP1.C29</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX11</td><td>DSP1.A9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX12</td><td>DSP0.OPMODE5</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX13</td><td>DSP1.A10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX14</td><td>DSP1.B8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX15</td><td>DSP1.A8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX16</td><td>DSP0.B11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX17</td><td>DSP0.A11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX18</td><td>DSP0.B9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX19</td><td>DSP0.A9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX20</td><td>DSP0.OPMODE4</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX21</td><td>DSP0.A10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX22</td><td>DSP0.B8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX23</td><td>DSP0.A8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX24</td><td>DSP1.C31</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX25</td><td>DSP1.C11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX26</td><td>DSP1.CEP</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX27</td><td>DSP0.OPMODE2</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX28</td><td>DSP1.C30</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX29</td><td>DSP1.C10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX30</td><td>DSP0.OPMODE1</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX31</td><td>DSP1.C8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX32</td><td>DSP0.C31</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX33</td><td>DSP0.C11</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX34</td><td>DSP0.CEP</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX35</td><td>DSP0.OPMODE0</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX36</td><td>DSP0.B10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX37</td><td>DSP0.C10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX38</td><td>DSP0.OPMODE3</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX39</td><td>DSP0.C8</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX40</td><td>DSP0.CEC</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX41</td><td>DSP0.CECTRL</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX42</td><td>DSP1.B9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX43</td><td>DSP1.C9</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX44</td><td>DSP1.B10</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX45</td><td>DSP1.A28</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX46</td><td>DSP1.C28</td></tr>
+
 <tr><td>TCELL2:IMUX.IMUX47</td><td>DSP0.A28</td></tr>
+
 <tr><td>TCELL2:OUT0.TMIN</td><td>DSP1.P31</td></tr>
+
 <tr><td>TCELL2:OUT1.TMIN</td><td>DSP1.P9</td></tr>
+
 <tr><td>TCELL2:OUT2.TMIN</td><td>DSP1.P30</td></tr>
+
 <tr><td>TCELL2:OUT3.TMIN</td><td>DSP1.P8</td></tr>
+
 <tr><td>TCELL2:OUT4.TMIN</td><td>DSP1.P11</td></tr>
+
 <tr><td>TCELL2:OUT5.TMIN</td><td>DSP1.P29</td></tr>
+
 <tr><td>TCELL2:OUT6.TMIN</td><td>DSP1.P10</td></tr>
+
 <tr><td>TCELL2:OUT7.TMIN</td><td>DSP1.P28</td></tr>
+
 <tr><td>TCELL2:OUT8.TMIN</td><td>DSP1.OVERFLOW</td></tr>
+
 <tr><td>TCELL2:OUT9.TMIN</td><td>DSP0.UNDERFLOW</td></tr>
+
 <tr><td>TCELL2:OUT10.TMIN</td><td>DSP0.OVERFLOW</td></tr>
+
 <tr><td>TCELL2:OUT11.TMIN</td><td>DSP0.PATTERNDETECT</td></tr>
+
 <tr><td>TCELL2:OUT13.TMIN</td><td>DSP1.PATTERNDETECT</td></tr>
+
 <tr><td>TCELL2:OUT14.TMIN</td><td>DSP0.PATTERNBDETECT</td></tr>
+
 <tr><td>TCELL2:OUT15.TMIN</td><td>DSP1.PATTERNBDETECT</td></tr>
+
 <tr><td>TCELL2:OUT16.TMIN</td><td>DSP0.P10</td></tr>
+
 <tr><td>TCELL2:OUT17.TMIN</td><td>DSP0.P28</td></tr>
+
 <tr><td>TCELL2:OUT18.TMIN</td><td>DSP0.P11</td></tr>
+
 <tr><td>TCELL2:OUT19.TMIN</td><td>DSP0.P29</td></tr>
+
 <tr><td>TCELL2:OUT20.TMIN</td><td>DSP0.P30</td></tr>
+
 <tr><td>TCELL2:OUT21.TMIN</td><td>DSP0.P8</td></tr>
+
 <tr><td>TCELL2:OUT22.TMIN</td><td>DSP0.P31</td></tr>
+
 <tr><td>TCELL2:OUT23.TMIN</td><td>DSP0.P9</td></tr>
+
 <tr><td>TCELL3:IMUX.CLK0</td><td>DSP1.CLK</td></tr>
+
 <tr><td>TCELL3:IMUX.CTRL0</td><td>DSP1.RSTC</td></tr>
+
 <tr><td>TCELL3:IMUX.CTRL1</td><td>DSP1.RSTM</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP0.SITE</td><td>DSP1.CEAD</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP1.SITE</td><td>DSP0.D15</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP2.SITE</td><td>DSP0.D23</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP3.SITE</td><td>DSP0.D14</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP4.SITE</td><td>DSP1.CEALUMODE</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP5.SITE</td><td>DSP0.D13</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP6.SITE</td><td>DSP0.INMODE0</td></tr>
+
 <tr><td>TCELL3:IMUX.BYP7.SITE</td><td>DSP0.D12</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN0.SITE</td><td>DSP1.CED</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN1.SITE</td><td>DSP0.INMODE4</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN2.SITE</td><td>DSP1.CEINMODE</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN3.SITE</td><td>DSP1.D12</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN4.SITE</td><td>DSP1.D15</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN5.SITE</td><td>DSP1.D14</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN6.SITE</td><td>DSP1.D13</td></tr>
+
 <tr><td>TCELL3:IMUX.FAN7.SITE</td><td>DSP1.D23</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX0</td><td>DSP1.B15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX1</td><td>DSP1.B13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX2</td><td>DSP0.B15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX3</td><td>DSP0.B13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX4</td><td>DSP1.A15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX5</td><td>DSP1.A13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX6</td><td>DSP0.A15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX7</td><td>DSP0.A13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX8</td><td>DSP1.CEB1</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX9</td><td>DSP1.CEA1</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX10</td><td>DSP1.C33</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX11</td><td>DSP1.CECTRL</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX12</td><td>DSP1.C34</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX13</td><td>DSP0.ALUMODE1</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX14</td><td>DSP0.CARRYINSEL1</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX15</td><td>DSP1.CARRYIN</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX16</td><td>DSP1.CEB2</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX17</td><td>DSP1.CEA2</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX18</td><td>DSP0.C33</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX19</td><td>DSP1.CEM</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX20</td><td>DSP0.C34</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX21</td><td>DSP0.ALUMODE0</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX22</td><td>DSP1.C32</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX23</td><td>DSP0.CARRYIN</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX24</td><td>DSP1.C35</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX25</td><td>DSP1.C15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX26</td><td>DSP1.CECARRYIN</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX27</td><td>DSP1.C13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX28</td><td>DSP1.OPMODE0</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX29</td><td>DSP1.C14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX30</td><td>DSP0.CARRYINSEL0</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX31</td><td>DSP1.C12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX32</td><td>DSP0.C35</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX33</td><td>DSP0.C15</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX34</td><td>DSP1.CEC</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX35</td><td>DSP0.C13</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX36</td><td>DSP1.OPMODE2</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX37</td><td>DSP0.C14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX38</td><td>DSP0.C32</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX39</td><td>DSP0.C12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX40</td><td>DSP1.B14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX41</td><td>DSP1.B12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX42</td><td>DSP0.B14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX43</td><td>DSP0.B12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX44</td><td>DSP1.A14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX45</td><td>DSP1.A12</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX46</td><td>DSP0.A14</td></tr>
+
 <tr><td>TCELL3:IMUX.IMUX47</td><td>DSP0.A12</td></tr>
+
 <tr><td>TCELL3:OUT0.TMIN</td><td>DSP1.P35</td></tr>
+
 <tr><td>TCELL3:OUT1.TMIN</td><td>DSP1.P13</td></tr>
+
 <tr><td>TCELL3:OUT2.TMIN</td><td>DSP1.P34</td></tr>
+
 <tr><td>TCELL3:OUT3.TMIN</td><td>DSP1.P12</td></tr>
+
 <tr><td>TCELL3:OUT4.TMIN</td><td>DSP1.P15</td></tr>
+
 <tr><td>TCELL3:OUT5.TMIN</td><td>DSP1.P33</td></tr>
+
 <tr><td>TCELL3:OUT6.TMIN</td><td>DSP1.P14</td></tr>
+
 <tr><td>TCELL3:OUT7.TMIN</td><td>DSP1.P32</td></tr>
+
 <tr><td>TCELL3:OUT8.TMIN</td><td>DSP1.CARRYOUT0</td></tr>
+
 <tr><td>TCELL3:OUT10.TMIN</td><td>DSP1.CARRYOUT2</td></tr>
+
 <tr><td>TCELL3:OUT11.TMIN</td><td>DSP1.CARRYOUT1</td></tr>
+
 <tr><td>TCELL3:OUT14.TMIN</td><td>DSP1.UNDERFLOW</td></tr>
+
 <tr><td>TCELL3:OUT15.TMIN</td><td>DSP1.CARRYOUT3</td></tr>
+
 <tr><td>TCELL3:OUT16.TMIN</td><td>DSP0.P14</td></tr>
+
 <tr><td>TCELL3:OUT17.TMIN</td><td>DSP0.P32</td></tr>
+
 <tr><td>TCELL3:OUT18.TMIN</td><td>DSP0.P15</td></tr>
+
 <tr><td>TCELL3:OUT19.TMIN</td><td>DSP0.P33</td></tr>
+
 <tr><td>TCELL3:OUT20.TMIN</td><td>DSP0.P34</td></tr>
+
 <tr><td>TCELL3:OUT21.TMIN</td><td>DSP0.P12</td></tr>
+
 <tr><td>TCELL3:OUT22.TMIN</td><td>DSP0.P35</td></tr>
+
 <tr><td>TCELL3:OUT23.TMIN</td><td>DSP0.P13</td></tr>
+
 <tr><td>TCELL4:IMUX.CTRL0</td><td>DSP1.RSTP</td></tr>
+
 <tr><td>TCELL4:IMUX.CTRL1</td><td>DSP1.RSTB</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP0.SITE</td><td>DSP1.ALUMODE3</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP1.SITE</td><td>DSP0.D19</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP2.SITE</td><td>DSP1.CARRYINSEL2</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP3.SITE</td><td>DSP0.D18</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP4.SITE</td><td>DSP1.INMODE3</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP5.SITE</td><td>DSP0.D17</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP6.SITE</td><td>DSP1.RSTD</td></tr>
+
 <tr><td>TCELL4:IMUX.BYP7.SITE</td><td>DSP0.D16</td></tr>
+
 <tr><td>TCELL4:IMUX.FAN0.SITE</td><td>DSP1.ALUMODE2</td></tr>
+
 <tr><td>TCELL4:IMUX.FAN2.SITE</td><td>DSP1.OPMODE6</td></tr>
+
 <tr><td>TCELL4:IMUX.FAN3.SITE</td><td>DSP1.D16</td></tr>
+
 <tr><td>TCELL4:IMUX.FAN4.SITE</td><td>DSP1.D19</td></tr>
+
 <tr><td>TCELL4:IMUX.FAN5.SITE</td><td>DSP1.D18</td></tr>
+
 <tr><td>TCELL4:IMUX.FAN6.SITE</td><td>DSP1.D17</td></tr>
+
 <tr><td>TCELL4:IMUX.FAN7.SITE</td><td>DSP1.INMODE2</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX0</td><td>DSP1.ALUMODE0</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX1</td><td>DSP0.C19</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX2</td><td>DSP1.B17</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX3</td><td>DSP0.B17</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX4</td><td>DSP1.A19</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX5</td><td>DSP1.A17</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX6</td><td>DSP0.A19</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX7</td><td>DSP0.A17</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX8</td><td>DSP1.OPMODE1</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX9</td><td>DSP1.OPMODE5</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX10</td><td>DSP1.C39</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX11</td><td>DSP1.C46</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX12</td><td>DSP1.C38</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX13</td><td>DSP1.C18</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX14</td><td>DSP1.RSTCTRL</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX15</td><td>DSP1.RSTALLCARRYIN</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX16</td><td>DSP1.OPMODE3</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX17</td><td>DSP1.OPMODE4</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX18</td><td>DSP0.C39</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX19</td><td>DSP0.C46</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX20</td><td>DSP0.C38</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX21</td><td>DSP0.C18</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX22</td><td>DSP1.RSTALUMODE</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX23</td><td>DSP1.RSTINMODE</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX24</td><td>DSP1.C37</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX25</td><td>DSP1.C47</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX26</td><td>DSP1.C44</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX27</td><td>DSP1.C17</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX28</td><td>DSP1.CARRYINSEL1</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX29</td><td>DSP1.C45</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX30</td><td>DSP1.C36</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX31</td><td>DSP1.C16</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX32</td><td>DSP0.C37</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX33</td><td>DSP0.C47</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX34</td><td>DSP0.C44</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX35</td><td>DSP0.C17</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX36</td><td>DSP1.CARRYINSEL0</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX37</td><td>DSP0.C45</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX38</td><td>DSP0.C36</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX39</td><td>DSP0.C16</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX40</td><td>DSP1.ALUMODE1</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX41</td><td>DSP1.C19</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX42</td><td>DSP1.B16</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX43</td><td>DSP0.B16</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX44</td><td>DSP1.A18</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX45</td><td>DSP1.A16</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX46</td><td>DSP0.A18</td></tr>
+
 <tr><td>TCELL4:IMUX.IMUX47</td><td>DSP0.A16</td></tr>
+
 <tr><td>TCELL4:OUT0.TMIN</td><td>DSP1.P37</td></tr>
+
 <tr><td>TCELL4:OUT1.TMIN</td><td>DSP1.P17</td></tr>
+
 <tr><td>TCELL4:OUT2.TMIN</td><td>DSP1.P38</td></tr>
+
 <tr><td>TCELL4:OUT3.TMIN</td><td>DSP1.P16</td></tr>
+
 <tr><td>TCELL4:OUT4.TMIN</td><td>DSP1.P19</td></tr>
+
 <tr><td>TCELL4:OUT5.TMIN</td><td>DSP1.P39</td></tr>
+
 <tr><td>TCELL4:OUT6.TMIN</td><td>DSP1.P18</td></tr>
+
 <tr><td>TCELL4:OUT7.TMIN</td><td>DSP1.P36</td></tr>
+
 <tr><td>TCELL4:OUT8.TMIN</td><td>DSP0.P47</td></tr>
+
 <tr><td>TCELL4:OUT9.TMIN</td><td>DSP0.P44</td></tr>
+
 <tr><td>TCELL4:OUT10.TMIN</td><td>DSP0.P45</td></tr>
+
 <tr><td>TCELL4:OUT11.TMIN</td><td>DSP1.P45</td></tr>
+
 <tr><td>TCELL4:OUT12.TMIN</td><td>DSP1.P44</td></tr>
+
 <tr><td>TCELL4:OUT13.TMIN</td><td>DSP0.P46</td></tr>
+
 <tr><td>TCELL4:OUT14.TMIN</td><td>DSP1.P46</td></tr>
+
 <tr><td>TCELL4:OUT15.TMIN</td><td>DSP1.P47</td></tr>
+
 <tr><td>TCELL4:OUT16.TMIN</td><td>DSP0.P18</td></tr>
+
 <tr><td>TCELL4:OUT17.TMIN</td><td>DSP0.P36</td></tr>
+
 <tr><td>TCELL4:OUT18.TMIN</td><td>DSP0.P19</td></tr>
+
 <tr><td>TCELL4:OUT19.TMIN</td><td>DSP0.P39</td></tr>
+
 <tr><td>TCELL4:OUT20.TMIN</td><td>DSP0.P38</td></tr>
+
 <tr><td>TCELL4:OUT21.TMIN</td><td>DSP0.P16</td></tr>
+
 <tr><td>TCELL4:OUT22.TMIN</td><td>DSP0.P37</td></tr>
+
 <tr><td>TCELL4:OUT23.TMIN</td><td>DSP0.P17</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1110,7 +2019,9 @@
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -1146,6 +2057,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[23]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -1178,6 +2090,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -1212,6 +2125,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[22]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -1244,6 +2158,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.INMODE2">DSP0:MUX.INMODE2[1]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -1276,6 +2191,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -1308,6 +2224,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[21]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -1340,6 +2257,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D11">DSP0:MUX.D11[1]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -1374,6 +2292,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[20]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -1406,6 +2325,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[20]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -1438,6 +2358,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -1472,6 +2393,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[19]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -1506,6 +2428,7 @@
 <a href="#tile-virtex6-DSP-DSP0:BREG_BCASCREG">DSP0:BREG_BCASCREG[4]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -1540,6 +2463,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[18]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -1572,6 +2496,7 @@
 <a href="#tile-virtex6-DSP-DSP0:BREG_BCASCREG">DSP0:BREG_BCASCREG[0]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -1604,6 +2529,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -1634,6 +2560,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -1666,6 +2593,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D8">DSP0:MUX.D8[1]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -1698,6 +2626,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[17]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -1730,6 +2659,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[17]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -1764,6 +2694,7 @@
 <a href="#tile-virtex6-DSP-DSP0:USE_SIMD">DSP0:USE_SIMD[1]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -1798,6 +2729,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[16]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -1830,6 +2762,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.OPMODE6">DSP0:MUX.OPMODE6[0]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -1864,6 +2797,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D7">DSP0:MUX.D7[0]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -1898,6 +2832,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.OPMODE6">~DSP0:INV.OPMODE6</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -1932,6 +2867,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D7">DSP0:MUX.D7[1]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -1964,6 +2900,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[14]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -1998,6 +2935,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D6">DSP0:MUX.D6[1]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -2032,6 +2970,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[13]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -2064,6 +3003,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -2098,6 +3038,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D6">DSP0:MUX.D6[0]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -2130,6 +3071,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[12]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -2162,6 +3104,7 @@
 <a href="#tile-virtex6-DSP-DSP0:BREG_BCASCREG">DSP0:BREG_BCASCREG[1]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -2194,6 +3137,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -2228,6 +3172,7 @@
 <a href="#tile-virtex6-DSP-DSP0:BREG_BCASCREG">DSP0:BREG_BCASCREG[3]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -2260,6 +3205,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -2292,6 +3238,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -2324,6 +3271,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[10]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -2358,6 +3306,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.INMODE4">~DSP0:INV.INMODE4</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -2392,6 +3341,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[9]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -2426,6 +3376,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.INMODE4">DSP0:MUX.INMODE4[0]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -2460,6 +3411,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[8]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -2492,6 +3444,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D4">DSP0:MUX.D4[1]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -2526,6 +3479,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[7]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -2560,6 +3514,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.OPMODE4">~DSP0:INV.OPMODE4</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -2592,6 +3547,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -2624,6 +3580,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[6]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -2658,6 +3615,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[6]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -2688,6 +3646,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -2722,6 +3681,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D3">DSP0:MUX.D3[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -2756,6 +3716,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D3">DSP0:MUX.D3[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -2790,6 +3751,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D2">DSP0:MUX.D2[1]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -2822,6 +3784,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -2854,6 +3817,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D2">DSP0:MUX.D2[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -2888,6 +3852,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[4]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -2922,6 +3887,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[4]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -2954,6 +3920,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[3]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2988,6 +3955,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[3]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -3022,6 +3990,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D1">DSP0:MUX.D1[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -3054,6 +4023,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[2]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -3088,6 +4058,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D0">DSP0:MUX.D0[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -3122,6 +4093,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -3152,6 +4124,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -3184,6 +4157,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -3218,12 +4192,18 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -3254,7 +4234,9 @@
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -3290,6 +4272,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[39]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -3322,6 +4305,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[38]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -3356,6 +4340,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[38]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -3388,6 +4373,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.OPMODE0">~DSP0:INV.OPMODE0</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -3422,6 +4408,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[37]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -3454,6 +4441,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.OPMODE1">~DSP0:INV.OPMODE1</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -3486,6 +4474,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -3520,6 +4509,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.INMODE1">DSP0:MUX.INMODE1[0]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -3552,6 +4542,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D17">DSP0:MUX.D17[0]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -3584,6 +4575,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -3618,6 +4610,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[35]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -3652,6 +4645,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.INMODE1">DSP0:MUX.INMODE1[1]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -3686,6 +4680,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D16">DSP0:MUX.D16[1]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -3718,6 +4713,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.INMODE1">~DSP0:INV.INMODE1</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -3752,6 +4748,7 @@
 <a href="#tile-virtex6-DSP-DSP0:AREG_ACASCREG">DSP0:AREG_ACASCREG[2]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -3786,6 +4783,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D16">DSP0:MUX.D16[0]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -3818,6 +4816,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -3852,6 +4851,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[32]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -3886,6 +4886,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D15">DSP0:MUX.D15[0]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -3918,6 +4919,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -3952,6 +4954,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D15">DSP0:MUX.D15[1]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -3984,6 +4987,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.INMODE0">~DSP0:INV.INMODE0</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -4018,6 +5022,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[30]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -4052,6 +5057,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[30]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -4084,6 +5090,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D14">DSP0:MUX.D14[0]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -4114,6 +5121,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -4146,6 +5154,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -4180,6 +5189,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[29]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -4214,6 +5224,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D13">DSP0:MUX.D13[0]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -4248,6 +5259,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[28]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -4282,6 +5294,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[28]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -4314,6 +5327,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.OPMODE2">~DSP0:INV.OPMODE2</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -4348,6 +5362,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[27]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -4380,6 +5395,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D12">DSP0:MUX.D12[0]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -4412,6 +5428,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -4446,6 +5463,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[26]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -4476,6 +5494,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -4510,6 +5529,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[25]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -4544,6 +5564,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[25]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -4578,6 +5599,7 @@
 <a href="#tile-virtex6-DSP-DSP0:USE_SIMD">DSP0:USE_SIMD[0]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -4612,6 +5634,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[24]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -4642,6 +5665,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -4676,6 +5700,7 @@
 <a href="#tile-virtex6-DSP-DSP0:USE_DPORT">DSP0:USE_DPORT</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -4708,6 +5733,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.CEAD">DSP0:MUX.CEAD[0]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -4740,6 +5766,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -4774,6 +5801,7 @@
 <a href="#tile-virtex6-DSP-DSP0:AREG_ACASCREG">DSP0:AREG_ACASCREG[4]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -4806,6 +5834,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -4838,6 +5867,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PREG">DSP0:PREG[0]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -4872,6 +5902,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.CEINMODE">DSP0:MUX.CEINMODE[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -4904,6 +5935,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.RSTD">DSP0:MUX.RSTD[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -4936,6 +5968,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -4966,6 +5999,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4998,6 +6032,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.INMODE3">~DSP0:INV.INMODE3</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -5030,6 +6065,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.CEALUMODE">DSP0:MUX.CEALUMODE[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -5064,6 +6100,7 @@
 <a href="#tile-virtex6-DSP-DSP0:AUTORESET_PATDET">DSP0:AUTORESET_PATDET[1]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -5098,6 +6135,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.CEALUMODE">DSP0:MUX.CEALUMODE[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -5130,6 +6168,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -5160,6 +6199,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -5192,6 +6232,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -5226,6 +6267,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.CEINMODE">DSP0:MUX.CEINMODE[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -5260,6 +6302,7 @@
 <a href="#tile-virtex6-DSP-DSP0:SEL_MASK">DSP0:SEL_MASK[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -5294,6 +6337,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.INMODE2">~DSP0:INV.INMODE2</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -5324,6 +6368,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -5356,12 +6401,18 @@
 </td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -5392,7 +6443,9 @@
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -5426,6 +6479,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -5460,6 +6514,7 @@
 <a href="#tile-virtex6-DSP-DSP1:BREG_BCASCREG">DSP1:BREG_BCASCREG[3]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -5492,6 +6547,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -5524,6 +6580,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -5556,6 +6613,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[10]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -5590,6 +6648,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.INMODE4">~DSP1:INV.INMODE4</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -5624,6 +6683,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[9]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -5658,6 +6718,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.INMODE4">DSP1:MUX.INMODE4[0]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -5692,6 +6753,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[8]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -5724,6 +6786,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D4">DSP1:MUX.D4[1]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -5758,6 +6821,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[7]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -5792,6 +6856,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.OPMODE4">~DSP1:INV.OPMODE4</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -5824,6 +6889,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -5856,6 +6922,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[6]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -5890,6 +6957,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[6]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -5920,6 +6988,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -5954,6 +7023,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D3">DSP1:MUX.D3[0]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -5988,6 +7058,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D3">DSP1:MUX.D3[1]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -6022,6 +7093,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D2">DSP1:MUX.D2[1]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -6054,6 +7126,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -6086,6 +7159,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D2">DSP1:MUX.D2[0]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -6120,6 +7194,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[4]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -6154,6 +7229,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[4]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -6186,6 +7262,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[3]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -6220,6 +7297,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[3]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -6254,6 +7332,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D1">DSP1:MUX.D1[1]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -6286,6 +7365,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[2]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -6320,6 +7400,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D0">DSP1:MUX.D0[1]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -6354,6 +7435,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[1]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -6384,6 +7466,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -6416,6 +7499,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -6450,6 +7534,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[0]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -6482,6 +7567,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -6514,6 +7600,7 @@
 <a href="#tile-virtex6-DSP-DSP0:USE_MULT">~DSP0:USE_MULT</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -6544,6 +7631,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -6576,6 +7664,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D24">DSP0:MUX.D24[0]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -6606,6 +7695,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -6636,6 +7726,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -6668,6 +7759,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -6700,6 +7792,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.ALUMODE0">~DSP0:INV.ALUMODE0</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -6734,6 +7827,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D23">DSP0:MUX.D23[1]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -6768,6 +7862,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[47]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -6800,6 +7895,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -6834,6 +7930,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.ALUMODE1">~DSP0:INV.ALUMODE1</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -6868,6 +7965,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D22">DSP0:MUX.D22[0]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -6900,6 +7998,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -6932,6 +8031,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[45]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -6966,6 +8066,7 @@
 <a href="#tile-virtex6-DSP-DSP0:INV.ALUMODE2">~DSP0:INV.ALUMODE2</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -7000,6 +8101,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[44]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -7034,6 +8136,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D21">DSP0:MUX.D21[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -7068,6 +8171,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[43]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -7102,6 +8206,7 @@
 <a href="#tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN[43]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -7134,6 +8239,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -7168,6 +8274,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[42]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -7200,6 +8307,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D20">DSP0:MUX.D20[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -7232,6 +8340,7 @@
 <a href="#tile-virtex6-DSP-DSP0:A_INPUT">DSP0:A_INPUT[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -7264,6 +8373,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -7296,6 +8406,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -7328,6 +8439,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -7360,6 +8472,7 @@
 <a href="#tile-virtex6-DSP-DSP0:AREG_ACASCREG">DSP0:AREG_ACASCREG[3]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -7394,6 +8507,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.D19">DSP0:MUX.D19[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -7428,6 +8542,7 @@
 <a href="#tile-virtex6-DSP-DSP0:MUX.ALUMODE3">DSP0:MUX.ALUMODE3[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -7460,6 +8575,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -7494,12 +8610,18 @@
 <a href="#tile-virtex6-DSP-DSP0:MASK">DSP0:MASK[39]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -7530,7 +8652,9 @@
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -7566,6 +8690,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[27]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -7598,6 +8723,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D12">DSP1:MUX.D12[0]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -7630,6 +8756,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -7664,6 +8791,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[26]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -7694,6 +8822,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -7728,6 +8857,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[25]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -7762,6 +8892,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[25]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -7796,6 +8927,7 @@
 <a href="#tile-virtex6-DSP-DSP1:USE_SIMD">DSP1:USE_SIMD[0]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -7830,6 +8962,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[24]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -7860,6 +8993,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -7894,6 +9028,7 @@
 <a href="#tile-virtex6-DSP-DSP1:USE_DPORT">DSP1:USE_DPORT</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -7926,6 +9061,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.CEAD">DSP1:MUX.CEAD[0]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -7958,6 +9094,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -7992,6 +9129,7 @@
 <a href="#tile-virtex6-DSP-DSP1:AREG_ACASCREG">DSP1:AREG_ACASCREG[4]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -8024,6 +9162,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -8056,6 +9195,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PREG">DSP1:PREG[0]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -8090,6 +9230,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.CEINMODE">DSP1:MUX.CEINMODE[0]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -8122,6 +9263,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.RSTD">DSP1:MUX.RSTD[0]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -8154,6 +9296,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -8184,6 +9327,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -8216,6 +9360,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.INMODE3">~DSP1:INV.INMODE3</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -8248,6 +9393,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.CEALUMODE">DSP1:MUX.CEALUMODE[0]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -8282,6 +9428,7 @@
 <a href="#tile-virtex6-DSP-DSP1:AUTORESET_PATDET">DSP1:AUTORESET_PATDET[1]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -8316,6 +9463,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.CEALUMODE">DSP1:MUX.CEALUMODE[1]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -8348,6 +9496,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -8378,6 +9527,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -8410,6 +9560,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -8444,6 +9595,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.CEINMODE">DSP1:MUX.CEINMODE[1]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -8478,6 +9630,7 @@
 <a href="#tile-virtex6-DSP-DSP1:SEL_MASK">DSP1:SEL_MASK[1]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -8512,6 +9665,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.INMODE2">~DSP1:INV.INMODE2</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -8542,6 +9696,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -8574,6 +9729,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -8608,6 +9764,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[23]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -8640,6 +9797,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -8674,6 +9832,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[22]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -8706,6 +9865,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.INMODE2">DSP1:MUX.INMODE2[1]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -8738,6 +9898,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -8770,6 +9931,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[21]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -8802,6 +9964,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D11">DSP1:MUX.D11[1]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -8836,6 +9999,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[20]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -8868,6 +10032,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[20]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -8900,6 +10065,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -8934,6 +10100,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[19]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -8968,6 +10135,7 @@
 <a href="#tile-virtex6-DSP-DSP1:BREG_BCASCREG">DSP1:BREG_BCASCREG[4]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -9002,6 +10170,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[18]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -9034,6 +10203,7 @@
 <a href="#tile-virtex6-DSP-DSP1:BREG_BCASCREG">DSP1:BREG_BCASCREG[0]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -9066,6 +10236,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -9096,6 +10267,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -9128,6 +10300,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D8">DSP1:MUX.D8[1]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -9160,6 +10333,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[17]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -9192,6 +10366,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[17]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -9226,6 +10401,7 @@
 <a href="#tile-virtex6-DSP-DSP1:USE_SIMD">DSP1:USE_SIMD[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -9260,6 +10436,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[16]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -9292,6 +10469,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.OPMODE6">DSP1:MUX.OPMODE6[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -9326,6 +10504,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D7">DSP1:MUX.D7[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -9360,6 +10539,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.OPMODE6">~DSP1:INV.OPMODE6</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -9394,6 +10574,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D7">DSP1:MUX.D7[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -9426,6 +10607,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[14]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -9460,6 +10642,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D6">DSP1:MUX.D6[1]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -9494,6 +10677,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[13]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -9526,6 +10710,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -9560,6 +10745,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D6">DSP1:MUX.D6[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -9592,6 +10778,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[12]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -9624,12 +10811,18 @@
 <a href="#tile-virtex6-DSP-DSP1:BREG_BCASCREG">DSP1:BREG_BCASCREG[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>virtex6 DSP bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="28">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -9660,7 +10853,9 @@
 <th>26</th>
 <th>27</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -9694,6 +10889,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -9726,6 +10922,7 @@
 <a href="#tile-virtex6-DSP-DSP1:USE_MULT">~DSP1:USE_MULT</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -9756,6 +10953,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -9788,6 +10986,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D24">DSP1:MUX.D24[0]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -9818,6 +11017,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -9848,6 +11048,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -9880,6 +11081,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -9912,6 +11114,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.ALUMODE0">~DSP1:INV.ALUMODE0</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -9946,6 +11149,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D23">DSP1:MUX.D23[1]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -9980,6 +11184,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[47]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -10012,6 +11217,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -10046,6 +11252,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.ALUMODE1">~DSP1:INV.ALUMODE1</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -10080,6 +11287,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D22">DSP1:MUX.D22[0]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -10112,6 +11320,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -10144,6 +11353,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[45]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -10178,6 +11388,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.ALUMODE2">~DSP1:INV.ALUMODE2</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -10212,6 +11423,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[44]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -10246,6 +11458,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D21">DSP1:MUX.D21[1]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -10280,6 +11493,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[43]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -10314,6 +11528,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[43]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -10346,6 +11561,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -10380,6 +11596,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[42]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -10412,6 +11629,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D20">DSP1:MUX.D20[0]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -10444,6 +11662,7 @@
 <a href="#tile-virtex6-DSP-DSP1:A_INPUT">DSP1:A_INPUT[0]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -10476,6 +11695,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -10508,6 +11728,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -10540,6 +11761,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -10572,6 +11794,7 @@
 <a href="#tile-virtex6-DSP-DSP1:AREG_ACASCREG">DSP1:AREG_ACASCREG[3]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -10606,6 +11829,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D19">DSP1:MUX.D19[1]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -10640,6 +11864,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.ALUMODE3">DSP1:MUX.ALUMODE3[0]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -10672,6 +11897,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -10706,6 +11932,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[39]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -10740,6 +11967,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[39]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -10772,6 +12000,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[38]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -10806,6 +12035,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[38]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -10838,6 +12068,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.OPMODE0">~DSP1:INV.OPMODE0</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -10872,6 +12103,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[37]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -10904,6 +12136,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.OPMODE1">~DSP1:INV.OPMODE1</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -10936,6 +12169,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -10970,6 +12204,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.INMODE1">DSP1:MUX.INMODE1[0]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -11002,6 +12237,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D17">DSP1:MUX.D17[0]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -11034,6 +12270,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -11068,6 +12305,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[35]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -11102,6 +12340,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.INMODE1">DSP1:MUX.INMODE1[1]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -11136,6 +12375,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D16">DSP1:MUX.D16[1]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -11168,6 +12408,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.INMODE1">~DSP1:INV.INMODE1</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -11202,6 +12443,7 @@
 <a href="#tile-virtex6-DSP-DSP1:AREG_ACASCREG">DSP1:AREG_ACASCREG[2]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -11236,6 +12478,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D16">DSP1:MUX.D16[0]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -11268,6 +12511,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -11302,6 +12546,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[32]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -11336,6 +12581,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D15">DSP1:MUX.D15[0]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -11368,6 +12614,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -11402,6 +12649,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D15">DSP1:MUX.D15[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -11434,6 +12682,7 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.INMODE0">~DSP1:INV.INMODE0</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -11468,6 +12717,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[30]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -11502,6 +12752,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[30]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -11534,6 +12785,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D14">DSP1:MUX.D14[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -11564,6 +12816,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -11596,6 +12849,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -11630,6 +12884,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[29]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -11664,6 +12919,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MUX.D13">DSP1:MUX.D13[0]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -11698,6 +12954,7 @@
 <a href="#tile-virtex6-DSP-DSP1:MASK">DSP1:MASK[28]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -11732,6 +12989,7 @@
 <a href="#tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN[28]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -11764,81 +13022,113 @@
 <a href="#tile-virtex6-DSP-DSP1:INV.OPMODE2">~DSP1:INV.OPMODE2</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:ADREG">DSP0:ADREG</th>
 <th>1.26.25</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:ALUMODEREG">DSP0:ALUMODEREG</th>
 <th>2.26.11</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:CARRYINREG">DSP0:CARRYINREG</th>
 <th>0.26.13</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:CARRYINSELREG">DSP0:CARRYINSELREG</th>
 <th>0.26.17</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:CREG">DSP0:CREG</th>
 <th>1.26.15</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:DREG">DSP0:DREG</th>
 <th>1.26.23</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INMODEREG">DSP0:INMODEREG</th>
 <th>1.26.2</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MREG">DSP0:MREG</th>
 <th>1.26.21</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:OPMODEREG">DSP0:OPMODEREG</th>
 <th>1.26.45</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:PREG">DSP0:PREG</th>
 <th>1.27.16</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:ADREG">DSP1:ADREG</th>
 <th>3.26.57</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:ALUMODEREG">DSP1:ALUMODEREG</th>
 <th>4.26.43</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:CARRYINREG">DSP1:CARRYINREG</th>
 <th>2.26.45</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:CARRYINSELREG">DSP1:CARRYINSELREG</th>
 <th>2.26.49</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:CREG">DSP1:CREG</th>
 <th>3.26.47</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:DREG">DSP1:DREG</th>
 <th>3.26.55</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INMODEREG">DSP1:INMODEREG</th>
 <th>3.26.34</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MREG">DSP1:MREG</th>
 <th>3.26.53</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:OPMODEREG">DSP1:OPMODEREG</th>
 <th>4.26.13</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:PREG">DSP1:PREG</th>
 <th>3.27.48</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:AREG_ACASCREG">DSP0:AREG_ACASCREG</th>
 <th>1.27.18</th>
@@ -11847,6 +13137,7 @@
 <th>1.26.47</th>
 <th>1.26.17</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:AREG_ACASCREG">DSP1:AREG_ACASCREG</th>
 <th>3.27.50</th>
 <th>4.27.36</th>
@@ -11854,7 +13145,9 @@
 <th>4.26.15</th>
 <th>3.26.49</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1_1</td>
 <td>0</td>
@@ -11863,6 +13156,7 @@
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>1_1_INMODE0_GND</td>
 <td>0</td>
 <td>0</td>
@@ -11870,6 +13164,7 @@
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>0_0</td>
 <td>0</td>
 <td>1</td>
@@ -11877,6 +13172,7 @@
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>2_1</td>
 <td>1</td>
 <td>0</td>
@@ -11884,6 +13180,7 @@
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>2_2</td>
 <td>1</td>
 <td>0</td>
@@ -11891,59 +13188,85 @@
 <td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:AUTORESET_PATDET">DSP0:AUTORESET_PATDET</th>
 <th>1.27.9</th>
 <th>1.26.8</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:AUTORESET_PATDET">DSP1:AUTORESET_PATDET</th>
 <th>3.27.41</th>
 <th>3.26.40</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NO_RESET</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>RESET_MATCH</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>RESET_NOT_MATCH</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:A_INPUT">DSP0:A_INPUT</th>
 <th>2.27.8</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:B_INPUT">DSP0:B_INPUT</th>
 <th>0.26.9</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:A_INPUT">DSP1:A_INPUT</th>
 <th>4.27.40</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:B_INPUT">DSP1:B_INPUT</th>
 <th>2.26.41</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DIRECT</td>
 <td>0</td>
 </tr>
+
 <tr><td>CASCADE</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:BREG_BCASCREG">DSP0:BREG_BCASCREG</th>
 <th>0.27.52</th>
@@ -11952,6 +13275,7 @@
 <th>0.27.32</th>
 <th>0.27.50</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:BREG_BCASCREG">DSP1:BREG_BCASCREG</th>
 <th>3.27.20</th>
 <th>2.27.62</th>
@@ -11959,7 +13283,9 @@
 <th>3.27.0</th>
 <th>3.27.18</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1_1</td>
 <td>0</td>
@@ -11968,6 +13294,7 @@
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>1_1_INMODE4_GND</td>
 <td>0</td>
 <td>0</td>
@@ -11975,6 +13302,7 @@
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>0_0</td>
 <td>0</td>
 <td>1</td>
@@ -11982,6 +13310,7 @@
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>2_1</td>
 <td>1</td>
 <td>0</td>
@@ -11989,6 +13318,7 @@
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>2_2</td>
 <td>1</td>
 <td>0</td>
@@ -11996,134 +13326,183 @@
 <td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:INV.ALUMODE0">DSP0:INV.ALUMODE0</th>
 <th>2.27.24</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.ALUMODE1">DSP0:INV.ALUMODE1</th>
 <th>2.27.20</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.ALUMODE2">DSP0:INV.ALUMODE2</th>
 <th>2.27.16</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.ALUMODE3">DSP0:INV.ALUMODE3</th>
 <th>2.26.0</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.CARRYIN">DSP0:INV.CARRYIN</th>
 <th>0.26.4</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.CLK">DSP0:INV.CLK</th>
 <th>1.26.18</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.INMODE0">DSP0:INV.INMODE0</th>
 <th>1.27.42</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.INMODE1">DSP0:INV.INMODE1</th>
 <th>1.27.50</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.INMODE2">DSP0:INV.INMODE2</th>
 <th>1.27.2</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.INMODE3">DSP0:INV.INMODE3</th>
 <th>1.27.11</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.INMODE4">DSP0:INV.INMODE4</th>
 <th>0.27.26</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.OPMODE0">DSP0:INV.OPMODE0</th>
 <th>1.27.60</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.OPMODE1">DSP0:INV.OPMODE1</th>
 <th>1.27.58</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.OPMODE2">DSP0:INV.OPMODE2</th>
 <th>1.27.32</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.OPMODE3">DSP0:INV.OPMODE3</th>
 <th>1.26.35</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.OPMODE4">DSP0:INV.OPMODE4</th>
 <th>0.27.20</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.OPMODE5">DSP0:INV.OPMODE5</th>
 <th>0.26.35</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:INV.OPMODE6">DSP0:INV.OPMODE6</th>
 <th>0.27.40</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:USE_MULT">DSP0:USE_MULT</th>
 <th>2.27.30</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.ALUMODE0">DSP1:INV.ALUMODE0</th>
 <th>4.27.56</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.ALUMODE1">DSP1:INV.ALUMODE1</th>
 <th>4.27.52</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.ALUMODE2">DSP1:INV.ALUMODE2</th>
 <th>4.27.48</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.ALUMODE3">DSP1:INV.ALUMODE3</th>
 <th>4.26.32</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.CARRYIN">DSP1:INV.CARRYIN</th>
 <th>2.26.36</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.CLK">DSP1:INV.CLK</th>
 <th>3.26.50</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.INMODE0">DSP1:INV.INMODE0</th>
 <th>4.27.10</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.INMODE1">DSP1:INV.INMODE1</th>
 <th>4.27.18</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.INMODE2">DSP1:INV.INMODE2</th>
 <th>3.27.34</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.INMODE3">DSP1:INV.INMODE3</th>
 <th>3.27.43</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.INMODE4">DSP1:INV.INMODE4</th>
 <th>2.27.58</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.OPMODE0">DSP1:INV.OPMODE0</th>
 <th>4.27.28</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.OPMODE1">DSP1:INV.OPMODE1</th>
 <th>4.27.26</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.OPMODE2">DSP1:INV.OPMODE2</th>
 <th>4.27.0</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.OPMODE3">DSP1:INV.OPMODE3</th>
 <th>4.26.3</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.OPMODE4">DSP1:INV.OPMODE4</th>
 <th>2.27.52</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.OPMODE5">DSP1:INV.OPMODE5</th>
 <th>3.26.3</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:INV.OPMODE6">DSP1:INV.OPMODE6</th>
 <th>3.27.8</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:USE_MULT">DSP1:USE_MULT</th>
 <th>4.27.62</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:MASK">DSP0:MASK</th>
 <th>2.26.23</th>
@@ -12175,6 +13554,7 @@ inverted
 <th>0.27.3</th>
 <th>0.27.0</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:PATTERN">DSP0:PATTERN</th>
 <th>2.27.22</th>
 <th>2.26.20</th>
@@ -12225,6 +13605,7 @@ inverted
 <th>0.26.3</th>
 <th>0.26.0</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MASK">DSP1:MASK</th>
 <th>4.26.55</th>
 <th>4.26.53</th>
@@ -12275,6 +13656,7 @@ inverted
 <th>2.27.35</th>
 <th>2.27.32</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:PATTERN">DSP1:PATTERN</th>
 <th>4.27.54</th>
 <th>4.26.52</th>
@@ -12325,7 +13707,9 @@ inverted
 <th>2.26.35</th>
 <th>2.26.32</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -12379,451 +13763,579 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.ALUMODE2">DSP0:MUX.ALUMODE2</th>
 <th>2.26.19</th>
 <th>2.26.14</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.ALUMODE3">DSP0:MUX.ALUMODE3</th>
 <th>1.26.63</th>
 <th>2.27.2</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.CARRYINSEL2">DSP0:MUX.CARRYINSEL2</th>
 <th>0.26.15</th>
 <th>0.26.19</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.CEAD">DSP0:MUX.CEAD</th>
 <th>1.26.28</th>
 <th>1.27.20</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.CEALUMODE">DSP0:MUX.CEALUMODE</th>
 <th>1.27.8</th>
 <th>1.27.10</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.CED">DSP0:MUX.CED</th>
 <th>1.26.13</th>
 <th>1.26.26</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.CEINMODE">DSP0:MUX.CEINMODE</th>
 <th>1.27.4</th>
 <th>1.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D0">DSP0:MUX.D0</th>
 <th>0.27.4</th>
 <th>0.26.1</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D1">DSP0:MUX.D1</th>
 <th>0.27.6</th>
 <th>0.26.7</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D10">DSP0:MUX.D10</th>
 <th>0.26.56</th>
 <th>0.26.53</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D11">DSP0:MUX.D11</th>
 <th>0.27.57</th>
 <th>0.26.62</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D12">DSP0:MUX.D12</th>
 <th>1.26.33</th>
 <th>1.27.30</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D13">DSP0:MUX.D13</th>
 <th>1.26.34</th>
 <th>1.27.35</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D14">DSP0:MUX.D14</th>
 <th>1.26.40</th>
 <th>1.27.39</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D15">DSP0:MUX.D15</th>
 <th>1.27.43</th>
 <th>1.27.45</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D16">DSP0:MUX.D16</th>
 <th>1.27.51</th>
 <th>1.27.48</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D17">DSP0:MUX.D17</th>
 <th>1.26.53</th>
 <th>1.27.55</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D18">DSP0:MUX.D18</th>
 <th>2.26.1</th>
 <th>1.26.61</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D19">DSP0:MUX.D19</th>
 <th>2.27.3</th>
 <th>2.26.7</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D2">DSP0:MUX.D2</th>
 <th>0.27.13</th>
 <th>0.27.11</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D20">DSP0:MUX.D20</th>
 <th>2.26.12</th>
 <th>2.27.9</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D21">DSP0:MUX.D21</th>
 <th>2.27.14</th>
 <th>2.26.16</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D22">DSP0:MUX.D22</th>
 <th>2.26.22</th>
 <th>2.27.19</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D23">DSP0:MUX.D23</th>
 <th>2.27.23</th>
 <th>2.26.25</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D24">DSP0:MUX.D24</th>
 <th>2.26.31</th>
 <th>2.27.28</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D3">DSP0:MUX.D3</th>
 <th>0.27.14</th>
 <th>0.27.15</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D4">DSP0:MUX.D4</th>
 <th>0.27.22</th>
 <th>0.26.21</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D5">DSP0:MUX.D5</th>
 <th>0.26.24</th>
 <th>0.26.26</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D6">DSP0:MUX.D6</th>
 <th>0.27.37</th>
 <th>0.27.34</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D7">DSP0:MUX.D7</th>
 <th>0.27.39</th>
 <th>0.27.41</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D8">DSP0:MUX.D8</th>
 <th>0.27.47</th>
 <th>0.26.44</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.D9">DSP0:MUX.D9</th>
 <th>0.26.49</th>
 <th>0.26.52</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.INMODE0">DSP0:MUX.INMODE0</th>
 <th>1.26.41</th>
 <th>1.26.37</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.INMODE1">DSP0:MUX.INMODE1</th>
 <th>1.27.52</th>
 <th>1.27.56</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.INMODE2">DSP0:MUX.INMODE2</th>
 <th>0.27.60</th>
 <th>0.26.63</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.INMODE3">DSP0:MUX.INMODE3</th>
 <th>1.26.7</th>
 <th>1.26.9</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.INMODE4">DSP0:MUX.INMODE4</th>
 <th>0.26.29</th>
 <th>0.27.24</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.OPMODE6">DSP0:MUX.OPMODE6</th>
 <th>0.26.37</th>
 <th>0.27.42</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP0:MUX.RSTD">DSP0:MUX.RSTD</th>
 <th>1.26.19</th>
 <th>1.27.14</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.ALUMODE2">DSP1:MUX.ALUMODE2</th>
 <th>4.26.51</th>
 <th>4.26.46</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.ALUMODE3">DSP1:MUX.ALUMODE3</th>
 <th>4.26.31</th>
 <th>4.27.34</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.CARRYINSEL2">DSP1:MUX.CARRYINSEL2</th>
 <th>2.26.47</th>
 <th>2.26.51</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.CEAD">DSP1:MUX.CEAD</th>
 <th>3.26.60</th>
 <th>3.27.52</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.CEALUMODE">DSP1:MUX.CEALUMODE</th>
 <th>3.27.40</th>
 <th>3.27.42</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.CED">DSP1:MUX.CED</th>
 <th>3.26.45</th>
 <th>3.26.58</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.CEINMODE">DSP1:MUX.CEINMODE</th>
 <th>3.27.36</th>
 <th>3.27.47</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D0">DSP1:MUX.D0</th>
 <th>2.27.36</th>
 <th>2.26.33</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D1">DSP1:MUX.D1</th>
 <th>2.27.38</th>
 <th>2.26.39</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D10">DSP1:MUX.D10</th>
 <th>3.26.24</th>
 <th>3.26.21</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D11">DSP1:MUX.D11</th>
 <th>3.27.25</th>
 <th>3.26.30</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D12">DSP1:MUX.D12</th>
 <th>4.26.1</th>
 <th>3.27.62</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D13">DSP1:MUX.D13</th>
 <th>4.26.2</th>
 <th>4.27.3</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D14">DSP1:MUX.D14</th>
 <th>4.26.8</th>
 <th>4.27.7</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D15">DSP1:MUX.D15</th>
 <th>4.27.11</th>
 <th>4.27.13</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D16">DSP1:MUX.D16</th>
 <th>4.27.19</th>
 <th>4.27.16</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D17">DSP1:MUX.D17</th>
 <th>4.26.21</th>
 <th>4.27.23</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D18">DSP1:MUX.D18</th>
 <th>4.26.33</th>
 <th>4.26.29</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D19">DSP1:MUX.D19</th>
 <th>4.27.35</th>
 <th>4.26.39</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D2">DSP1:MUX.D2</th>
 <th>2.27.45</th>
 <th>2.27.43</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D20">DSP1:MUX.D20</th>
 <th>4.26.44</th>
 <th>4.27.41</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D21">DSP1:MUX.D21</th>
 <th>4.27.46</th>
 <th>4.26.48</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D22">DSP1:MUX.D22</th>
 <th>4.26.54</th>
 <th>4.27.51</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D23">DSP1:MUX.D23</th>
 <th>4.27.55</th>
 <th>4.26.57</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D24">DSP1:MUX.D24</th>
 <th>4.26.63</th>
 <th>4.27.60</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D3">DSP1:MUX.D3</th>
 <th>2.27.46</th>
 <th>2.27.47</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D4">DSP1:MUX.D4</th>
 <th>2.27.54</th>
 <th>2.26.53</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D5">DSP1:MUX.D5</th>
 <th>2.26.56</th>
 <th>2.26.58</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D6">DSP1:MUX.D6</th>
 <th>3.27.5</th>
 <th>3.27.2</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D7">DSP1:MUX.D7</th>
 <th>3.27.7</th>
 <th>3.27.9</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D8">DSP1:MUX.D8</th>
 <th>3.27.15</th>
 <th>3.26.12</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.D9">DSP1:MUX.D9</th>
 <th>3.26.17</th>
 <th>3.26.20</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.INMODE0">DSP1:MUX.INMODE0</th>
 <th>4.26.9</th>
 <th>4.26.5</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.INMODE1">DSP1:MUX.INMODE1</th>
 <th>4.27.20</th>
 <th>4.27.24</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.INMODE2">DSP1:MUX.INMODE2</th>
 <th>3.27.28</th>
 <th>3.26.31</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.INMODE3">DSP1:MUX.INMODE3</th>
 <th>3.26.39</th>
 <th>3.26.41</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.INMODE4">DSP1:MUX.INMODE4</th>
 <th>2.26.61</th>
 <th>2.27.56</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.OPMODE6">DSP1:MUX.OPMODE6</th>
 <th>3.26.5</th>
 <th>3.27.10</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:MUX.RSTD">DSP1:MUX.RSTD</th>
 <th>3.26.51</th>
 <th>3.27.46</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>INT</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>GND</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VCC</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:SEL_MASK">DSP0:SEL_MASK</th>
 <th>1.26.4</th>
 <th>1.27.3</th>
 <th>1.26.5</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:SEL_MASK">DSP1:SEL_MASK</th>
 <th>3.26.36</th>
 <th>3.27.35</th>
 <th>3.26.37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>MASK</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>C</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>ROUNDING_MODE1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>ROUNDING_MODE2</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:SEL_PATTERN">DSP0:SEL_PATTERN</th>
 <th>1.26.3</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:SEL_PATTERN">DSP1:SEL_PATTERN</th>
 <th>3.26.35</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PATTERN</td>
 <td>0</td>
 </tr>
+
 <tr><td>C</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:USE_DPORT">DSP0:USE_DPORT</th>
 <th>1.27.21</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:USE_DPORT">DSP1:USE_DPORT</th>
 <th>3.27.53</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-virtex6-DSP-DSP0:USE_SIMD">DSP0:USE_SIMD</th>
 <th>2.26.13</th>
 <th>0.27.44</th>
 <th>1.27.24</th>
 </tr>
+
 <tr><th id="tile-virtex6-DSP-DSP1:USE_SIMD">DSP1:USE_SIMD</th>
 <th>4.26.45</th>
 <th>3.27.12</th>
 <th>3.27.56</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>ONE48</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>TWO24</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>FOUR12</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../virtex6/bram.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../virtex6/clock/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -12833,16 +14345,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../virtex6/bram.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../virtex6/clock/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -12852,9 +14369,9 @@ non-inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

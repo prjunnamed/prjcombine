@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../../favicon.svg">
-        <link rel="shortcut icon" href="../../favicon.png">
-        <link rel="stylesheet" href="../../css/variables.css">
-        <link rel="stylesheet" href="../../css/general.css">
-        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="icon" href="../../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../../css/general-2459343d.css">
+        <link rel="stylesheet" href="../../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../../fonts/fonts.css">
+        <link rel="stylesheet" href="../../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../../custom.css">
+        <link rel="stylesheet" href="../../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc.js"></script>
+        <script src="../../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,26 +142,33 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="xc95144xv"><a class="header" href="#xc95144xv">XC95144XV</a></h1>
-<div class="table-wrapper"><table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Parameter</th><th>Value</th></tr>
+</thead>
+<tbody>
 <tr><td>IDCODE</td><td>0x09708093</td></tr>
 <tr><td>Block count</td><td>8</td></tr>
 <tr><td>I/O bank count</td><td>2</td></tr>
 <tr><td>FPGM/FPGMI time</td><td>20000</td></tr>
 <tr><td>FERASE/FBULK time</td><td>200000</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <h2 id="io-pins"><a class="header" href="#io-pins">I/O pins</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr>
 <th>Function</th>
@@ -171,7 +177,9 @@
 <th>xc95144xv-tq144</th>
 <th>xc95144xv-cs144</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr>
 <td>IOB_C0B0MC0</td>
@@ -180,6 +188,7 @@
 <td>P23</td>
 <td>H3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC1</td>
 <td>BANK0</td>
@@ -187,6 +196,7 @@
 <td>P16</td>
 <td>F1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC2</td>
 <td>BANK0</td>
@@ -194,6 +204,7 @@
 <td>P17</td>
 <td>G2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC3</td>
 <td>BANK0</td>
@@ -201,6 +212,7 @@
 <td>P25</td>
 <td>J1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC4</td>
 <td>BANK0</td>
@@ -208,6 +220,7 @@
 <td>P19</td>
 <td>G3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC5</td>
 <td>BANK0</td>
@@ -215,6 +228,7 @@
 <td>P20</td>
 <td>G4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC7</td>
 <td>BANK0</td>
@@ -222,6 +236,7 @@
 <td>P21</td>
 <td>H1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC8</td>
 <td>BANK0</td>
@@ -229,6 +244,7 @@
 <td>P22</td>
 <td>H2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC9</td>
 <td>BANK0</td>
@@ -236,6 +252,7 @@
 <td>P31</td>
 <td>K3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC10</td>
 <td>BANK0</td>
@@ -243,6 +260,7 @@
 <td>P24</td>
 <td>H4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC11</td>
 <td>BANK0</td>
@@ -250,6 +268,7 @@
 <td>P26</td>
 <td>J2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC13</td>
 <td>BANK0</td>
@@ -257,6 +276,7 @@
 <td>P27</td>
 <td>J3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC14</td>
 <td>BANK0</td>
@@ -264,6 +284,7 @@
 <td>P28</td>
 <td>J4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC15</td>
 <td>BANK0</td>
@@ -271,6 +292,7 @@
 <td>P35</td>
 <td>M1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B0MC16</td>
 <td>BANK0</td>
@@ -278,6 +300,7 @@
 <td>P30 (GCLK0)</td>
 <td>K2 (GCLK0)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC0</td>
 <td>BANK1</td>
@@ -285,6 +308,7 @@
 <td>P142</td>
 <td>C3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC1</td>
 <td>BANK1</td>
@@ -292,6 +316,7 @@
 <td>P143 (GSR)</td>
 <td>A2 (GSR)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC3</td>
 <td>BANK1</td>
@@ -299,6 +324,7 @@
 <td>P4</td>
 <td>C1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC4</td>
 <td>BANK1</td>
@@ -306,6 +332,7 @@
 <td>P2 (GOE2)</td>
 <td>B1 (GOE2)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC5</td>
 <td>BANK1</td>
@@ -313,6 +340,7 @@
 <td>P3 (GOE3)</td>
 <td>C2 (GOE3)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC7</td>
 <td>BANK1</td>
@@ -320,6 +348,7 @@
 <td>P5 (GOE0)</td>
 <td>D4 (GOE0)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC8</td>
 <td>BANK1</td>
@@ -327,6 +356,7 @@
 <td>P6 (GOE1)</td>
 <td>D3 (GOE1)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC9</td>
 <td>BANK1</td>
@@ -334,6 +364,7 @@
 <td>P7</td>
 <td>D2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC10</td>
 <td>BANK1</td>
@@ -341,6 +372,7 @@
 <td>P9</td>
 <td>E4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC11</td>
 <td>BANK1</td>
@@ -348,6 +380,7 @@
 <td>P10</td>
 <td>E3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC12</td>
 <td>BANK1</td>
@@ -355,6 +388,7 @@
 <td>P12</td>
 <td>E1</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC13</td>
 <td>BANK1</td>
@@ -362,6 +396,7 @@
 <td>P11</td>
 <td>E2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC14</td>
 <td>BANK1</td>
@@ -369,6 +404,7 @@
 <td>P13</td>
 <td>F4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC15</td>
 <td>BANK1</td>
@@ -376,6 +412,7 @@
 <td>P14</td>
 <td>F3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B1MC16</td>
 <td>BANK1</td>
@@ -383,6 +420,7 @@
 <td>P15</td>
 <td>F2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC0</td>
 <td>BANK0</td>
@@ -390,6 +428,7 @@
 <td>P39</td>
 <td>M3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC1</td>
 <td>BANK0</td>
@@ -397,6 +436,7 @@
 <td>P32 (GCLK1)</td>
 <td>L1 (GCLK1)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC2</td>
 <td>BANK0</td>
@@ -404,6 +444,7 @@
 <td>P41</td>
 <td>K4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC3</td>
 <td>BANK0</td>
@@ -411,6 +452,7 @@
 <td>P44</td>
 <td>N4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC4</td>
 <td>BANK0</td>
@@ -418,6 +460,7 @@
 <td>P33</td>
 <td>L2</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC5</td>
 <td>BANK0</td>
@@ -425,6 +468,7 @@
 <td>P34</td>
 <td>L3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC6</td>
 <td>BANK0</td>
@@ -432,6 +476,7 @@
 <td>P46</td>
 <td>L5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC7</td>
 <td>BANK0</td>
@@ -439,6 +484,7 @@
 <td>P38 (GCLK2)</td>
 <td>N2 (GCLK2)</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC8</td>
 <td>BANK0</td>
@@ -446,6 +492,7 @@
 <td>P40</td>
 <td>N3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC9</td>
 <td>BANK0</td>
@@ -453,6 +500,7 @@
 <td>P48</td>
 <td>N5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC10</td>
 <td>BANK0</td>
@@ -460,6 +508,7 @@
 <td>P43</td>
 <td>M4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC11</td>
 <td>BANK0</td>
@@ -467,6 +516,7 @@
 <td>P45</td>
 <td>K5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC13</td>
 <td>BANK0</td>
@@ -474,6 +524,7 @@
 <td>P49</td>
 <td>K6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC14</td>
 <td>BANK0</td>
@@ -481,6 +532,7 @@
 <td>P50</td>
 <td>L6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B2MC16</td>
 <td>BANK0</td>
@@ -488,6 +540,7 @@
 <td>P51</td>
 <td>M6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC0</td>
 <td>BANK1</td>
@@ -495,6 +548,7 @@
 <td>P118</td>
 <td>C9</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC1</td>
 <td>BANK1</td>
@@ -502,6 +556,7 @@
 <td>P126</td>
 <td>A7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC2</td>
 <td>BANK1</td>
@@ -509,6 +564,7 @@
 <td>P133</td>
 <td>A5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC4</td>
 <td>BANK1</td>
@@ -516,6 +572,7 @@
 <td>P128</td>
 <td>D7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC5</td>
 <td>BANK1</td>
@@ -523,6 +580,7 @@
 <td>P129</td>
 <td>A6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC7</td>
 <td>BANK1</td>
@@ -530,6 +588,7 @@
 <td>P130</td>
 <td>B6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC8</td>
 <td>BANK1</td>
@@ -537,6 +596,7 @@
 <td>P131</td>
 <td>C6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC9</td>
 <td>BANK1</td>
@@ -544,6 +604,7 @@
 <td>P135</td>
 <td>C5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC10</td>
 <td>BANK1</td>
@@ -551,6 +612,7 @@
 <td>P132</td>
 <td>D6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC11</td>
 <td>BANK1</td>
@@ -558,6 +620,7 @@
 <td>P134</td>
 <td>B5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC12</td>
 <td>BANK1</td>
@@ -565,6 +628,7 @@
 <td>P137</td>
 <td>A4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC13</td>
 <td>BANK1</td>
@@ -572,6 +636,7 @@
 <td>P136</td>
 <td>D5</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC14</td>
 <td>BANK1</td>
@@ -579,6 +644,7 @@
 <td>P138</td>
 <td>B4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC15</td>
 <td>BANK1</td>
@@ -586,6 +652,7 @@
 <td>P139</td>
 <td>C4</td>
 </tr>
+
 <tr>
 <td>IOB_C0B3MC16</td>
 <td>BANK1</td>
@@ -593,6 +660,7 @@
 <td>P140</td>
 <td>A3</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC1</td>
 <td>BANK0</td>
@@ -600,6 +668,7 @@
 <td>P52</td>
 <td>N6</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC2</td>
 <td>BANK0</td>
@@ -607,6 +676,7 @@
 <td>P59</td>
 <td>L8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC4</td>
 <td>BANK0</td>
@@ -614,6 +684,7 @@
 <td>P53</td>
 <td>M7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC5</td>
 <td>BANK0</td>
@@ -621,6 +692,7 @@
 <td>P54</td>
 <td>N7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC6</td>
 <td>BANK0</td>
@@ -628,6 +700,7 @@
 <td>P66</td>
 <td>M10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC7</td>
 <td>BANK0</td>
@@ -635,6 +708,7 @@
 <td>P56</td>
 <td>K7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC8</td>
 <td>BANK0</td>
@@ -642,6 +716,7 @@
 <td>P57</td>
 <td>N8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC9</td>
 <td>BANK0</td>
@@ -649,6 +724,7 @@
 <td>P68</td>
 <td>N11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC10</td>
 <td>BANK0</td>
@@ -656,6 +732,7 @@
 <td>P58</td>
 <td>M8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC11</td>
 <td>BANK0</td>
@@ -663,6 +740,7 @@
 <td>P60</td>
 <td>K8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC12</td>
 <td>BANK0</td>
@@ -670,6 +748,7 @@
 <td>P70</td>
 <td>L11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC13</td>
 <td>BANK0</td>
@@ -677,6 +756,7 @@
 <td>P61</td>
 <td>N9</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC14</td>
 <td>BANK0</td>
@@ -684,6 +764,7 @@
 <td>P64</td>
 <td>K9</td>
 </tr>
+
 <tr>
 <td>IOB_C0B4MC16</td>
 <td>BANK0</td>
@@ -691,6 +772,7 @@
 <td>P69</td>
 <td>M11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC1</td>
 <td>BANK1</td>
@@ -698,6 +780,7 @@
 <td>P106</td>
 <td>C11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC3</td>
 <td>BANK1</td>
@@ -705,6 +788,7 @@
 <td>P111</td>
 <td>B11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC4</td>
 <td>BANK1</td>
@@ -712,6 +796,7 @@
 <td>P110</td>
 <td>A12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC5</td>
 <td>BANK1</td>
@@ -719,6 +804,7 @@
 <td>P112</td>
 <td>A11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC7</td>
 <td>BANK1</td>
@@ -726,6 +812,7 @@
 <td>P113</td>
 <td>D10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC8</td>
 <td>BANK1</td>
@@ -733,6 +820,7 @@
 <td>P116</td>
 <td>A10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC9</td>
 <td>BANK1</td>
@@ -740,6 +828,7 @@
 <td>P115</td>
 <td>B10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC10</td>
 <td>BANK1</td>
@@ -747,6 +836,7 @@
 <td>P119</td>
 <td>B9</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC11</td>
 <td>BANK1</td>
@@ -754,6 +844,7 @@
 <td>P120</td>
 <td>A9</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC13</td>
 <td>BANK1</td>
@@ -761,6 +852,7 @@
 <td>P121</td>
 <td>D8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC14</td>
 <td>BANK1</td>
@@ -768,6 +860,7 @@
 <td>P124</td>
 <td>A8</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC15</td>
 <td>BANK1</td>
@@ -775,6 +868,7 @@
 <td>P117</td>
 <td>D9</td>
 </tr>
+
 <tr>
 <td>IOB_C0B5MC16</td>
 <td>BANK1</td>
@@ -782,6 +876,7 @@
 <td>P125</td>
 <td>B7</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC1</td>
 <td>BANK0</td>
@@ -789,6 +884,7 @@
 <td>P71</td>
 <td>N12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC2</td>
 <td>BANK0</td>
@@ -796,6 +892,7 @@
 <td>P75</td>
 <td>L12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC4</td>
 <td>BANK0</td>
@@ -803,6 +900,7 @@
 <td>P74</td>
 <td>M13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC5</td>
 <td>BANK0</td>
@@ -810,6 +908,7 @@
 <td>P76</td>
 <td>L13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC6</td>
 <td>BANK0</td>
@@ -817,6 +916,7 @@
 <td>P77</td>
 <td>K10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC7</td>
 <td>BANK0</td>
@@ -824,6 +924,7 @@
 <td>P78</td>
 <td>K11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC8</td>
 <td>BANK0</td>
@@ -831,6 +932,7 @@
 <td>P80</td>
 <td>K13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC9</td>
 <td>BANK0</td>
@@ -838,6 +940,7 @@
 <td>P79</td>
 <td>K12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC10</td>
 <td>BANK0</td>
@@ -845,6 +948,7 @@
 <td>P82</td>
 <td>J11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC11</td>
 <td>BANK0</td>
@@ -852,6 +956,7 @@
 <td>P85</td>
 <td>H10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC12</td>
 <td>BANK0</td>
@@ -859,6 +964,7 @@
 <td>P81</td>
 <td>J10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC13</td>
 <td>BANK0</td>
@@ -866,6 +972,7 @@
 <td>P86</td>
 <td>H11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC14</td>
 <td>BANK0</td>
@@ -873,6 +980,7 @@
 <td>P87</td>
 <td>H12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC15</td>
 <td>BANK0</td>
@@ -880,6 +988,7 @@
 <td>P83</td>
 <td>J12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B6MC16</td>
 <td>BANK0</td>
@@ -887,6 +996,7 @@
 <td>P88</td>
 <td>H13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC1</td>
 <td>BANK1</td>
@@ -894,6 +1004,7 @@
 <td>P91</td>
 <td>G11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC2</td>
 <td>BANK1</td>
@@ -901,6 +1012,7 @@
 <td>P95</td>
 <td>F11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC3</td>
 <td>BANK1</td>
@@ -908,6 +1020,7 @@
 <td>P97</td>
 <td>E13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC4</td>
 <td>BANK1</td>
@@ -915,6 +1028,7 @@
 <td>P92</td>
 <td>G10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC5</td>
 <td>BANK1</td>
@@ -922,6 +1036,7 @@
 <td>P93</td>
 <td>F13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC7</td>
 <td>BANK1</td>
@@ -929,6 +1044,7 @@
 <td>P94</td>
 <td>F12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC8</td>
 <td>BANK1</td>
@@ -936,6 +1052,7 @@
 <td>P96</td>
 <td>F10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC9</td>
 <td>BANK1</td>
@@ -943,6 +1060,7 @@
 <td>P101</td>
 <td>D13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC10</td>
 <td>BANK1</td>
@@ -950,6 +1068,7 @@
 <td>P98</td>
 <td>E12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC11</td>
 <td>BANK1</td>
@@ -957,6 +1076,7 @@
 <td>P100</td>
 <td>E10</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC12</td>
 <td>BANK1</td>
@@ -964,6 +1084,7 @@
 <td>P103</td>
 <td>D11</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC13</td>
 <td>BANK1</td>
@@ -971,6 +1092,7 @@
 <td>P102</td>
 <td>D12</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC14</td>
 <td>BANK1</td>
@@ -978,6 +1100,7 @@
 <td>P104</td>
 <td>C13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC15</td>
 <td>BANK1</td>
@@ -985,6 +1108,7 @@
 <td>P107</td>
 <td>B13</td>
 </tr>
+
 <tr>
 <td>IOB_C0B7MC16</td>
 <td>BANK1</td>
@@ -992,6 +1116,7 @@
 <td>P105</td>
 <td>C12</td>
 </tr>
+
 <tr>
 <td>TCK</td>
 <td>-</td>
@@ -999,6 +1124,7 @@
 <td>P67</td>
 <td>L10</td>
 </tr>
+
 <tr>
 <td>TMS</td>
 <td>-</td>
@@ -1006,6 +1132,7 @@
 <td>P65</td>
 <td>N10</td>
 </tr>
+
 <tr>
 <td>TDI</td>
 <td>-</td>
@@ -1013,6 +1140,7 @@
 <td>P63</td>
 <td>L9</td>
 </tr>
+
 <tr>
 <td>TDO</td>
 <td>BANK1</td>
@@ -1020,6 +1148,7 @@
 <td>P122</td>
 <td>C8</td>
 </tr>
+
 <tr>
 <td>GND</td>
 <td>-</td>
@@ -1027,6 +1156,7 @@
 <td>P108<br>P114<br>P123<br>P144<br>P18<br>P29<br>P36<br>P47<br>P62<br>P72<br>P89<br>P90<br>P99</td>
 <td>B12<br>B2<br>B8<br>C10<br>E11<br>G1<br>G12<br>G13<br>K1<br>M12<br>M2<br>M5<br>M9</td>
 </tr>
+
 <tr>
 <td>VCCINT</td>
 <td>-</td>
@@ -1034,6 +1164,7 @@
 <td>P141<br>P42<br>P8<br>P84</td>
 <td>B3<br>D1<br>J13<br>L4</td>
 </tr>
+
 <tr>
 <td>VCCIO0</td>
 <td>BANK0</td>
@@ -1041,6 +1172,7 @@
 <td>P37<br>P55<br>P73</td>
 <td>L7<br>N1<br>N13</td>
 </tr>
+
 <tr>
 <td>VCCIO1</td>
 <td>BANK1</td>
@@ -1048,6 +1180,7 @@
 <td>P1<br>P109<br>P127</td>
 <td>A1<br>A13<br>C7</td>
 </tr>
+
 <tr>
 <td>NC</td>
 <td>-</td>
@@ -1055,10 +1188,15 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="speed-data"><a class="header" href="#speed-data">Speed data</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc95144xv speed data</caption>
 <thead>
 <tr>
@@ -1070,150 +1208,184 @@ xc95144xv-5
 xc95144xv-7
 </th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr>
 <td colspan="2">DEL_CLK_Q</td>
 <td>200ps</td>
 <td>500ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_D_Q_COMB</td>
 <td>200ps</td>
 <td>1300ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_EXP_D</td>
 <td>700ps</td>
 <td>800ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_EXP_EXP</td>
 <td>300ps</td>
 <td>300ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_FCLK</td>
 <td>1200ps</td>
 <td>1500ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_FOE</td>
 <td>4000ps</td>
 <td>5000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_FSR</td>
 <td>2000ps</td>
 <td>3100ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IBUF_IMUX</td>
 <td>2000ps</td>
 <td>2300ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_D_HP</td>
 <td>700ps</td>
 <td>1400ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_D_LP</td>
 <td>5700ps</td>
 <td>6400ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_PT_CE</td>
 <td>700ps</td>
 <td>1400ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_PT_CLK</td>
 <td>1700ps</td>
 <td>2400ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_PT_OE</td>
 <td>5000ps</td>
 <td>7200ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_IMUX_PT_SR</td>
 <td>700ps</td>
 <td>1400ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_FAST</td>
 <td>2100ps</td>
 <td>2500ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_OBUF_SLOW</td>
 <td>5100ps</td>
 <td>6500ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_SR_Q</td>
 <td>5900ps</td>
 <td>6400ps</td>
 </tr>
+
 <tr>
 <td colspan="2">DEL_UIM_IMUX</td>
 <td>1600ps</td>
 <td>3500ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">RECREM_SR_CLK</td><td>recovery</td>
 <td>5000ps</td>
 <td>7500ps</td>
 </tr>
+
 <tr>
 <td>removal</td>
 <td>0ps</td>
 <td>0ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">SETUPHOLD_CE_CLK</td><td>hold</td>
 <td>1500ps</td>
 <td>2200ps</td>
 </tr>
+
 <tr>
 <td>setup</td>
 <td>2000ps</td>
 <td>2600ps</td>
 </tr>
+
 <tr>
 <td rowspan="2">SETUPHOLD_D_CLK</td><td>hold</td>
 <td>1500ps</td>
 <td>2200ps</td>
 </tr>
+
 <tr>
 <td>setup</td>
 <td>2000ps</td>
 <td>2600ps</td>
 </tr>
+
 <tr>
 <td colspan="2">WIDTH_CLK</td>
 <td>2200ps</td>
 <td>4000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">WIDTH_CLK_PT</td>
 <td>2200ps</td>
 <td>4000ps</td>
 </tr>
+
 <tr>
 <td colspan="2">WIDTH_SR</td>
 <td>5000ps</td>
 <td>6500ps</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="imux-bits"><a class="header" href="#imux-bits">IMUX bits</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc95144xv imux bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="14">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1230,7 +1402,9 @@ xc95144xv-7
 <th>12</th>
 <th>13</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1248,6 +1422,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1264,6 +1439,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1280,6 +1456,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1296,6 +1473,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1312,6 +1490,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1328,6 +1507,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1344,6 +1524,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1360,6 +1541,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -1376,6 +1558,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -1392,6 +1575,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -1408,6 +1592,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -1424,6 +1609,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -1440,6 +1626,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -1456,6 +1643,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -1472,6 +1660,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -1488,6 +1677,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -1504,6 +1694,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -1520,6 +1711,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -1536,6 +1728,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -1552,6 +1745,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -1568,6 +1762,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -1584,6 +1779,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -1600,6 +1796,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -1616,6 +1813,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -1632,6 +1830,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -1648,6 +1847,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -1664,6 +1864,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -1680,6 +1881,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -1696,6 +1898,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -1712,6 +1915,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -1728,6 +1932,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -1744,6 +1949,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -1760,6 +1966,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -1776,6 +1983,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -1792,6 +2000,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -1808,6 +2017,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -1824,6 +2034,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -1840,6 +2051,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -1856,6 +2068,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -1872,6 +2085,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -1888,6 +2102,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -1904,6 +2119,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -1920,6 +2136,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -1936,6 +2153,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -1952,6 +2170,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -1968,6 +2187,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -1984,6 +2204,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -2000,6 +2221,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -2016,6 +2238,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -2032,6 +2255,7 @@ xc95144xv-7
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td title="0.50.0">
 <a href="#tile-xc95144xv-imux-IM[0].MUX">IM[0].MUX[0]</a>
@@ -2068,6 +2292,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[27].MUX">IM[27].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td title="0.51.0">
 <a href="#tile-xc95144xv-imux-IM[1].MUX">IM[1].MUX[0]</a>
@@ -2102,6 +2327,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[28].MUX">IM[28].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td title="0.52.0">
 <a href="#tile-xc95144xv-imux-IM[2].MUX">IM[2].MUX[0]</a>
@@ -2138,6 +2364,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[29].MUX">IM[29].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td title="0.53.0">
 <a href="#tile-xc95144xv-imux-IM[3].MUX">IM[3].MUX[0]</a>
@@ -2172,6 +2399,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[30].MUX">IM[30].MUX[3]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td title="0.54.0">
 <a href="#tile-xc95144xv-imux-IM[4].MUX">IM[4].MUX[0]</a>
@@ -2208,6 +2436,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[31].MUX">IM[31].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td title="0.55.0">
 <a href="#tile-xc95144xv-imux-IM[5].MUX">IM[5].MUX[0]</a>
@@ -2242,6 +2471,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[32].MUX">IM[32].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td title="0.56.0">
 <a href="#tile-xc95144xv-imux-IM[6].MUX">IM[6].MUX[0]</a>
@@ -2276,6 +2506,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[33].MUX">IM[33].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td title="0.57.0">
 <a href="#tile-xc95144xv-imux-IM[7].MUX">IM[7].MUX[0]</a>
@@ -2312,6 +2543,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[34].MUX">IM[34].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td title="0.58.0">
 <a href="#tile-xc95144xv-imux-IM[8].MUX">IM[8].MUX[0]</a>
@@ -2348,6 +2580,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[35].MUX">IM[35].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td title="0.59.0">
 <a href="#tile-xc95144xv-imux-IM[9].MUX">IM[9].MUX[0]</a>
@@ -2384,6 +2617,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[36].MUX">IM[36].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td title="0.60.0">
 <a href="#tile-xc95144xv-imux-IM[10].MUX">IM[10].MUX[0]</a>
@@ -2418,6 +2652,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[37].MUX">IM[37].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td title="0.61.0">
 <a href="#tile-xc95144xv-imux-IM[11].MUX">IM[11].MUX[0]</a>
@@ -2454,6 +2689,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[38].MUX">IM[38].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td title="0.62.0">
 <a href="#tile-xc95144xv-imux-IM[12].MUX">IM[12].MUX[0]</a>
@@ -2490,6 +2726,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[39].MUX">IM[39].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>63</td>
 <td title="0.63.0">
 <a href="#tile-xc95144xv-imux-IM[13].MUX">IM[13].MUX[0]</a>
@@ -2524,6 +2761,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[40].MUX">IM[40].MUX[3]</a>
 </td>
 </tr>
+
 <tr><td>64</td>
 <td title="0.64.0">
 <a href="#tile-xc95144xv-imux-IM[14].MUX">IM[14].MUX[0]</a>
@@ -2558,6 +2796,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[41].MUX">IM[41].MUX[3]</a>
 </td>
 </tr>
+
 <tr><td>65</td>
 <td title="0.65.0">
 <a href="#tile-xc95144xv-imux-IM[15].MUX">IM[15].MUX[0]</a>
@@ -2592,6 +2831,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[42].MUX">IM[42].MUX[3]</a>
 </td>
 </tr>
+
 <tr><td>66</td>
 <td title="0.66.0">
 <a href="#tile-xc95144xv-imux-IM[16].MUX">IM[16].MUX[0]</a>
@@ -2628,6 +2868,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[43].MUX">IM[43].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>67</td>
 <td title="0.67.0">
 <a href="#tile-xc95144xv-imux-IM[17].MUX">IM[17].MUX[0]</a>
@@ -2664,6 +2905,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[44].MUX">IM[44].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>68</td>
 <td title="0.68.0">
 <a href="#tile-xc95144xv-imux-IM[18].MUX">IM[18].MUX[0]</a>
@@ -2698,6 +2940,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[45].MUX">IM[45].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>69</td>
 <td title="0.69.0">
 <a href="#tile-xc95144xv-imux-IM[19].MUX">IM[19].MUX[0]</a>
@@ -2734,6 +2977,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[46].MUX">IM[46].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>70</td>
 <td title="0.70.0">
 <a href="#tile-xc95144xv-imux-IM[20].MUX">IM[20].MUX[0]</a>
@@ -2768,6 +3012,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[47].MUX">IM[47].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>71</td>
 <td title="0.71.0">
 <a href="#tile-xc95144xv-imux-IM[21].MUX">IM[21].MUX[0]</a>
@@ -2804,6 +3049,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[48].MUX">IM[48].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>72</td>
 <td title="0.72.0">
 <a href="#tile-xc95144xv-imux-IM[22].MUX">IM[22].MUX[0]</a>
@@ -2838,6 +3084,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[49].MUX">IM[49].MUX[3]</a>
 </td>
 </tr>
+
 <tr><td>73</td>
 <td title="0.73.0">
 <a href="#tile-xc95144xv-imux-IM[23].MUX">IM[23].MUX[0]</a>
@@ -2874,6 +3121,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[50].MUX">IM[50].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>74</td>
 <td title="0.74.0">
 <a href="#tile-xc95144xv-imux-IM[24].MUX">IM[24].MUX[0]</a>
@@ -2910,6 +3158,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[51].MUX">IM[51].MUX[4]</a>
 </td>
 </tr>
+
 <tr><td>75</td>
 <td title="0.75.0">
 <a href="#tile-xc95144xv-imux-IM[25].MUX">IM[25].MUX[0]</a>
@@ -2944,6 +3193,7 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[52].MUX">IM[52].MUX[3]</a>
 </td>
 </tr>
+
 <tr><td>76</td>
 <td title="0.76.0">
 <a href="#tile-xc95144xv-imux-IM[26].MUX">IM[26].MUX[0]</a>
@@ -2980,9 +3230,14 @@ xc95144xv-7
 <a href="#tile-xc95144xv-imux-IM[53].MUX">IM[53].MUX[4]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[0].MUX">IM[0].MUX</th>
 <th>0.50.4</th>
@@ -2991,7 +3246,9 @@ xc95144xv-7
 <th>0.50.1</th>
 <th>0.50.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3000,6 +3257,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC4</td>
 <td>0</td>
 <td>0</td>
@@ -3007,6 +3265,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC1</td>
 <td>0</td>
 <td>0</td>
@@ -3014,6 +3273,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC9</td>
 <td>0</td>
 <td>0</td>
@@ -3021,6 +3281,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC4</td>
 <td>0</td>
 <td>0</td>
@@ -3028,6 +3289,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC11</td>
 <td>0</td>
 <td>0</td>
@@ -3035,6 +3297,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC4</td>
 <td>0</td>
 <td>0</td>
@@ -3042,6 +3305,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC11</td>
 <td>0</td>
 <td>1</td>
@@ -3049,6 +3313,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3056,6 +3321,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3063,6 +3329,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3070,6 +3337,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3077,6 +3345,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3084,6 +3353,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3091,6 +3361,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3098,6 +3369,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC0</td>
 <td>1</td>
 <td>0</td>
@@ -3105,9 +3377,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[10].MUX">IM[10].MUX</th>
 <th>0.60.4</th>
@@ -3115,7 +3392,9 @@ xc95144xv-7
 <th>0.60.1</th>
 <th>0.60.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3123,99 +3402,119 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC2</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC15</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC7</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC14</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC11</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC9</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC6</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC10</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC10</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC10</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC10</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC10</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC10</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC10</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC10</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[11].MUX">IM[11].MUX</th>
 <th>0.61.4</th>
@@ -3224,7 +3523,9 @@ xc95144xv-7
 <th>0.61.1</th>
 <th>0.61.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3233,6 +3534,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC10</td>
 <td>0</td>
 <td>0</td>
@@ -3240,6 +3542,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC5</td>
 <td>0</td>
 <td>0</td>
@@ -3247,6 +3550,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC12</td>
 <td>0</td>
 <td>0</td>
@@ -3254,6 +3558,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC2</td>
 <td>0</td>
 <td>0</td>
@@ -3261,6 +3566,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
 <td>0</td>
@@ -3268,6 +3574,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC2</td>
 <td>0</td>
 <td>0</td>
@@ -3275,6 +3582,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC7</td>
 <td>0</td>
 <td>1</td>
@@ -3282,6 +3590,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3289,6 +3598,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3296,6 +3606,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3303,6 +3614,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3310,6 +3622,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3317,6 +3630,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3324,6 +3638,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3331,6 +3646,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC11</td>
 <td>1</td>
 <td>0</td>
@@ -3338,9 +3654,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[12].MUX">IM[12].MUX</th>
 <th>0.62.4</th>
@@ -3349,7 +3670,9 @@ xc95144xv-7
 <th>0.62.1</th>
 <th>0.62.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3358,6 +3681,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC11</td>
 <td>0</td>
 <td>0</td>
@@ -3365,6 +3689,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC16</td>
 <td>0</td>
 <td>0</td>
@@ -3372,6 +3697,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC15</td>
 <td>0</td>
 <td>0</td>
@@ -3379,6 +3705,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC15</td>
 <td>0</td>
 <td>0</td>
@@ -3386,6 +3713,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC1</td>
 <td>0</td>
 <td>0</td>
@@ -3393,6 +3721,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC14</td>
 <td>0</td>
 <td>0</td>
@@ -3400,6 +3729,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC14</td>
 <td>0</td>
 <td>1</td>
@@ -3407,6 +3737,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3414,6 +3745,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3421,6 +3753,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3428,6 +3761,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3435,6 +3769,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3442,6 +3777,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3449,6 +3785,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3456,6 +3793,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC12</td>
 <td>1</td>
 <td>0</td>
@@ -3463,9 +3801,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[13].MUX">IM[13].MUX</th>
 <th>0.63.4</th>
@@ -3474,7 +3817,9 @@ xc95144xv-7
 <th>0.63.1</th>
 <th>0.63.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3483,6 +3828,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC0</td>
 <td>0</td>
 <td>0</td>
@@ -3490,6 +3836,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC3</td>
 <td>0</td>
 <td>0</td>
@@ -3497,6 +3844,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC13</td>
 <td>0</td>
 <td>0</td>
@@ -3504,6 +3852,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC7</td>
 <td>0</td>
 <td>0</td>
@@ -3511,6 +3860,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC10</td>
 <td>0</td>
 <td>0</td>
@@ -3518,6 +3868,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC2</td>
 <td>0</td>
 <td>0</td>
@@ -3525,6 +3876,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC10</td>
 <td>0</td>
 <td>0</td>
@@ -3532,6 +3884,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC5</td>
 <td>0</td>
 <td>1</td>
@@ -3539,6 +3892,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3546,6 +3900,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3553,6 +3908,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3560,6 +3916,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3567,6 +3924,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3574,6 +3932,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3581,6 +3940,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3588,6 +3948,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC13</td>
 <td>1</td>
 <td>0</td>
@@ -3595,9 +3956,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[14].MUX">IM[14].MUX</th>
 <th>0.64.4</th>
@@ -3606,7 +3972,9 @@ xc95144xv-7
 <th>0.64.1</th>
 <th>0.64.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3615,6 +3983,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC0</td>
 <td>0</td>
 <td>0</td>
@@ -3622,6 +3991,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC8</td>
 <td>0</td>
 <td>0</td>
@@ -3629,6 +3999,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC16</td>
 <td>0</td>
 <td>0</td>
@@ -3636,6 +4007,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC10</td>
 <td>0</td>
 <td>0</td>
@@ -3643,6 +4015,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC4</td>
 <td>0</td>
 <td>0</td>
@@ -3650,6 +4023,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC13</td>
 <td>0</td>
 <td>0</td>
@@ -3657,6 +4031,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC16</td>
 <td>0</td>
 <td>1</td>
@@ -3664,6 +4039,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3671,6 +4047,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3678,6 +4055,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3685,6 +4063,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3692,6 +4071,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3699,6 +4079,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3706,6 +4087,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3713,6 +4095,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC14</td>
 <td>1</td>
 <td>0</td>
@@ -3720,9 +4103,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[15].MUX">IM[15].MUX</th>
 <th>0.65.4</th>
@@ -3731,7 +4119,9 @@ xc95144xv-7
 <th>0.65.1</th>
 <th>0.65.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3740,6 +4130,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC15</td>
 <td>0</td>
 <td>0</td>
@@ -3747,6 +4138,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC4</td>
 <td>0</td>
 <td>0</td>
@@ -3754,6 +4146,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC9</td>
 <td>0</td>
 <td>0</td>
@@ -3761,6 +4154,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC5</td>
 <td>0</td>
 <td>0</td>
@@ -3768,6 +4162,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC3</td>
 <td>0</td>
 <td>0</td>
@@ -3775,6 +4170,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC3</td>
 <td>0</td>
 <td>0</td>
@@ -3782,6 +4178,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC4</td>
 <td>0</td>
 <td>1</td>
@@ -3789,6 +4186,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3796,6 +4194,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3803,6 +4202,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3810,6 +4210,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3817,6 +4218,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3824,6 +4226,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3831,6 +4234,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3838,6 +4242,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC15</td>
 <td>1</td>
 <td>0</td>
@@ -3845,9 +4250,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[16].MUX">IM[16].MUX</th>
 <th>0.66.4</th>
@@ -3856,7 +4266,9 @@ xc95144xv-7
 <th>0.66.1</th>
 <th>0.66.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3865,6 +4277,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC7</td>
 <td>0</td>
 <td>0</td>
@@ -3872,6 +4285,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC5</td>
 <td>0</td>
 <td>0</td>
@@ -3879,6 +4293,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC15</td>
 <td>0</td>
 <td>0</td>
@@ -3886,6 +4301,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC1</td>
 <td>0</td>
 <td>0</td>
@@ -3893,6 +4309,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC12</td>
 <td>0</td>
 <td>0</td>
@@ -3900,6 +4317,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC5</td>
 <td>0</td>
 <td>0</td>
@@ -3907,6 +4325,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC11</td>
 <td>0</td>
 <td>0</td>
@@ -3914,6 +4333,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC1</td>
 <td>0</td>
 <td>1</td>
@@ -3921,6 +4341,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3928,6 +4349,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3935,6 +4357,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3942,6 +4365,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3949,6 +4373,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3956,6 +4381,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3963,6 +4389,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3970,6 +4397,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC16</td>
 <td>1</td>
 <td>0</td>
@@ -3977,9 +4405,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[17].MUX">IM[17].MUX</th>
 <th>0.67.4</th>
@@ -3988,7 +4421,9 @@ xc95144xv-7
 <th>0.67.1</th>
 <th>0.67.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -3997,6 +4432,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC8</td>
 <td>0</td>
 <td>0</td>
@@ -4004,6 +4440,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC16</td>
 <td>0</td>
 <td>0</td>
@@ -4011,6 +4448,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>0</td>
 <td>0</td>
@@ -4018,6 +4456,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC14</td>
 <td>0</td>
 <td>0</td>
@@ -4025,6 +4464,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC16</td>
 <td>0</td>
 <td>0</td>
@@ -4032,6 +4472,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>0</td>
 <td>0</td>
@@ -4039,6 +4480,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC15</td>
 <td>0</td>
 <td>0</td>
@@ -4046,6 +4488,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC6</td>
 <td>0</td>
 <td>1</td>
@@ -4053,6 +4496,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4060,6 +4504,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4067,6 +4512,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4074,6 +4520,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4081,6 +4528,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4088,6 +4536,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4095,6 +4544,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4102,6 +4552,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4109,9 +4560,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[18].MUX">IM[18].MUX</th>
 <th>0.68.4</th>
@@ -4119,7 +4575,9 @@ xc95144xv-7
 <th>0.68.1</th>
 <th>0.68.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4127,87 +4585,105 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC10</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC15</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC10</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC6</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC10</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC13</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC9</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC10</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC7</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC2</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC3</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC6</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[19].MUX">IM[19].MUX</th>
 <th>0.69.4</th>
@@ -4216,7 +4692,9 @@ xc95144xv-7
 <th>0.69.1</th>
 <th>0.69.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4225,6 +4703,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC2</td>
 <td>0</td>
 <td>0</td>
@@ -4232,6 +4711,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC13</td>
 <td>0</td>
 <td>0</td>
@@ -4239,6 +4719,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC14</td>
 <td>0</td>
 <td>0</td>
@@ -4246,6 +4727,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC8</td>
 <td>0</td>
 <td>0</td>
@@ -4253,6 +4735,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC11</td>
 <td>0</td>
 <td>0</td>
@@ -4260,6 +4743,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC11</td>
 <td>0</td>
 <td>0</td>
@@ -4267,6 +4751,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC12</td>
 <td>0</td>
 <td>0</td>
@@ -4274,6 +4759,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC2</td>
 <td>0</td>
 <td>1</td>
@@ -4281,6 +4767,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC10</td>
 <td>1</td>
 <td>0</td>
@@ -4288,6 +4775,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC13</td>
 <td>1</td>
 <td>0</td>
@@ -4295,6 +4783,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC12</td>
 <td>1</td>
 <td>0</td>
@@ -4302,6 +4791,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC15</td>
 <td>1</td>
 <td>0</td>
@@ -4309,6 +4799,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC10</td>
 <td>1</td>
 <td>0</td>
@@ -4316,6 +4807,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC5</td>
 <td>1</td>
 <td>0</td>
@@ -4323,6 +4815,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC8</td>
 <td>1</td>
 <td>0</td>
@@ -4330,6 +4823,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC15</td>
 <td>1</td>
 <td>0</td>
@@ -4337,9 +4831,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[1].MUX">IM[1].MUX</th>
 <th>0.51.4</th>
@@ -4347,7 +4846,9 @@ xc95144xv-7
 <th>0.51.1</th>
 <th>0.51.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4355,81 +4856,98 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC11</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC2</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC8</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[20].MUX">IM[20].MUX</th>
 <th>0.70.4</th>
@@ -4437,7 +4955,9 @@ xc95144xv-7
 <th>0.70.1</th>
 <th>0.70.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4445,93 +4965,112 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC8</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC15</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC15</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC5</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC2</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC6</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC12</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC2</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC16</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC17</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC3</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[21].MUX">IM[21].MUX</th>
 <th>0.71.4</th>
@@ -4540,7 +5079,9 @@ xc95144xv-7
 <th>0.71.1</th>
 <th>0.71.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4549,6 +5090,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC13</td>
 <td>0</td>
 <td>0</td>
@@ -4556,6 +5098,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC14</td>
 <td>0</td>
 <td>0</td>
@@ -4563,6 +5106,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC1</td>
 <td>0</td>
 <td>0</td>
@@ -4570,6 +5114,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC12</td>
 <td>0</td>
 <td>0</td>
@@ -4577,6 +5122,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC10</td>
 <td>0</td>
 <td>0</td>
@@ -4584,6 +5130,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC9</td>
 <td>0</td>
 <td>0</td>
@@ -4591,6 +5138,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC16</td>
 <td>0</td>
 <td>0</td>
@@ -4598,6 +5146,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC9</td>
 <td>0</td>
 <td>1</td>
@@ -4605,6 +5154,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC1</td>
 <td>1</td>
 <td>0</td>
@@ -4612,6 +5162,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC4</td>
 <td>1</td>
 <td>0</td>
@@ -4619,6 +5170,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC9</td>
 <td>1</td>
 <td>0</td>
@@ -4626,6 +5178,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC11</td>
 <td>1</td>
 <td>0</td>
@@ -4633,6 +5186,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC8</td>
 <td>1</td>
 <td>0</td>
@@ -4640,6 +5194,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC14</td>
 <td>1</td>
 <td>0</td>
@@ -4647,6 +5202,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC4</td>
 <td>1</td>
 <td>0</td>
@@ -4654,6 +5210,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC17</td>
 <td>1</td>
 <td>0</td>
@@ -4661,9 +5218,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[22].MUX">IM[22].MUX</th>
 <th>0.72.4</th>
@@ -4672,7 +5234,9 @@ xc95144xv-7
 <th>0.72.1</th>
 <th>0.72.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4681,6 +5245,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC1</td>
 <td>0</td>
 <td>0</td>
@@ -4688,6 +5253,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC9</td>
 <td>0</td>
 <td>0</td>
@@ -4695,6 +5261,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC4</td>
 <td>0</td>
 <td>0</td>
@@ -4702,6 +5269,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC16</td>
 <td>0</td>
 <td>0</td>
@@ -4709,6 +5277,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC12</td>
 <td>0</td>
 <td>0</td>
@@ -4716,6 +5285,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC7</td>
 <td>0</td>
 <td>0</td>
@@ -4723,6 +5293,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC13</td>
 <td>0</td>
 <td>0</td>
@@ -4730,6 +5301,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC16</td>
 <td>0</td>
 <td>1</td>
@@ -4737,6 +5309,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC1</td>
 <td>1</td>
 <td>0</td>
@@ -4744,6 +5317,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC3</td>
 <td>1</td>
 <td>0</td>
@@ -4751,6 +5325,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC14</td>
 <td>1</td>
 <td>0</td>
@@ -4758,6 +5333,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC4</td>
 <td>1</td>
 <td>0</td>
@@ -4765,6 +5341,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC11</td>
 <td>1</td>
 <td>0</td>
@@ -4772,6 +5349,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC8</td>
 <td>1</td>
 <td>0</td>
@@ -4779,6 +5357,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC1</td>
 <td>1</td>
 <td>0</td>
@@ -4786,6 +5365,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC5</td>
 <td>1</td>
 <td>0</td>
@@ -4793,9 +5373,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[23].MUX">IM[23].MUX</th>
 <th>0.73.4</th>
@@ -4804,7 +5389,9 @@ xc95144xv-7
 <th>0.73.1</th>
 <th>0.73.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4813,6 +5400,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC11</td>
 <td>0</td>
 <td>0</td>
@@ -4820,6 +5408,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC4</td>
 <td>0</td>
 <td>0</td>
@@ -4827,6 +5416,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC13</td>
 <td>0</td>
 <td>0</td>
@@ -4834,6 +5424,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC9</td>
 <td>0</td>
 <td>0</td>
@@ -4841,6 +5432,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC14</td>
 <td>0</td>
 <td>0</td>
@@ -4848,6 +5440,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC4</td>
 <td>0</td>
 <td>0</td>
@@ -4855,6 +5448,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC0</td>
 <td>0</td>
 <td>0</td>
@@ -4862,6 +5456,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC10</td>
 <td>0</td>
 <td>1</td>
@@ -4869,6 +5464,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC9</td>
 <td>1</td>
 <td>0</td>
@@ -4876,6 +5472,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC6</td>
 <td>1</td>
 <td>0</td>
@@ -4883,6 +5480,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC4</td>
 <td>1</td>
 <td>0</td>
@@ -4890,6 +5488,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC8</td>
 <td>1</td>
 <td>0</td>
@@ -4897,6 +5496,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC7</td>
 <td>1</td>
 <td>0</td>
@@ -4904,6 +5504,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC2</td>
 <td>1</td>
 <td>0</td>
@@ -4911,6 +5512,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC10</td>
 <td>1</td>
 <td>0</td>
@@ -4918,6 +5520,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC12</td>
 <td>1</td>
 <td>0</td>
@@ -4925,9 +5528,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[24].MUX">IM[24].MUX</th>
 <th>0.74.4</th>
@@ -4936,7 +5544,9 @@ xc95144xv-7
 <th>0.74.1</th>
 <th>0.74.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -4945,6 +5555,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC10</td>
 <td>0</td>
 <td>0</td>
@@ -4952,6 +5563,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC12</td>
 <td>0</td>
 <td>0</td>
@@ -4959,6 +5571,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC14</td>
 <td>0</td>
 <td>0</td>
@@ -4966,6 +5579,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC5</td>
 <td>0</td>
 <td>0</td>
@@ -4973,6 +5587,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC4</td>
 <td>0</td>
 <td>0</td>
@@ -4980,6 +5595,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>0</td>
 <td>0</td>
@@ -4987,6 +5603,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC1</td>
 <td>0</td>
 <td>0</td>
@@ -4994,6 +5611,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC5</td>
 <td>0</td>
 <td>1</td>
@@ -5001,6 +5619,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC11</td>
 <td>1</td>
 <td>0</td>
@@ -5008,6 +5627,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC12</td>
 <td>1</td>
 <td>0</td>
@@ -5015,6 +5635,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC6</td>
 <td>1</td>
 <td>0</td>
@@ -5022,6 +5643,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC9</td>
 <td>1</td>
 <td>0</td>
@@ -5029,6 +5651,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC4</td>
 <td>1</td>
 <td>0</td>
@@ -5036,6 +5659,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC9</td>
 <td>1</td>
 <td>0</td>
@@ -5043,6 +5667,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC0</td>
 <td>1</td>
 <td>0</td>
@@ -5050,6 +5675,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC7</td>
 <td>1</td>
 <td>0</td>
@@ -5057,9 +5683,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[25].MUX">IM[25].MUX</th>
 <th>0.75.4</th>
@@ -5068,7 +5699,9 @@ xc95144xv-7
 <th>0.75.1</th>
 <th>0.75.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5077,6 +5710,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC16</td>
 <td>0</td>
 <td>0</td>
@@ -5084,6 +5718,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC16</td>
 <td>0</td>
 <td>0</td>
@@ -5091,6 +5726,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC5</td>
 <td>0</td>
 <td>0</td>
@@ -5098,6 +5734,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
 <td>0</td>
@@ -5105,6 +5742,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC2</td>
 <td>0</td>
 <td>0</td>
@@ -5112,6 +5750,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC7</td>
 <td>0</td>
 <td>0</td>
@@ -5119,6 +5758,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC4</td>
 <td>0</td>
 <td>1</td>
@@ -5126,6 +5766,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5133,6 +5774,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC1</td>
 <td>1</td>
 <td>0</td>
@@ -5140,6 +5782,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC8</td>
 <td>1</td>
 <td>0</td>
@@ -5147,6 +5790,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC14</td>
 <td>1</td>
 <td>0</td>
@@ -5154,6 +5798,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC4</td>
 <td>1</td>
 <td>0</td>
@@ -5161,6 +5806,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC10</td>
 <td>1</td>
 <td>0</td>
@@ -5168,6 +5814,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC6</td>
 <td>1</td>
 <td>0</td>
@@ -5175,6 +5822,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC13</td>
 <td>1</td>
 <td>0</td>
@@ -5182,9 +5830,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[26].MUX">IM[26].MUX</th>
 <th>0.76.4</th>
@@ -5193,7 +5846,9 @@ xc95144xv-7
 <th>0.76.1</th>
 <th>0.76.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5202,6 +5857,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC10</td>
 <td>0</td>
 <td>0</td>
@@ -5209,6 +5865,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC15</td>
 <td>0</td>
 <td>0</td>
@@ -5216,6 +5873,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC7</td>
 <td>0</td>
 <td>0</td>
@@ -5223,6 +5881,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC11</td>
 <td>0</td>
 <td>0</td>
@@ -5230,6 +5889,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC4</td>
 <td>0</td>
 <td>0</td>
@@ -5237,6 +5897,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC3</td>
 <td>0</td>
 <td>0</td>
@@ -5244,6 +5905,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC16</td>
 <td>0</td>
 <td>1</td>
@@ -5251,6 +5913,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC17</td>
 <td>1</td>
 <td>0</td>
@@ -5258,6 +5921,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC13</td>
 <td>1</td>
 <td>0</td>
@@ -5265,6 +5929,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC15</td>
 <td>1</td>
 <td>0</td>
@@ -5272,6 +5937,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC10</td>
 <td>1</td>
 <td>0</td>
@@ -5279,6 +5945,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC5</td>
 <td>1</td>
 <td>0</td>
@@ -5286,6 +5953,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC17</td>
 <td>1</td>
 <td>0</td>
@@ -5293,6 +5961,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC5</td>
 <td>1</td>
 <td>0</td>
@@ -5300,6 +5969,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC4</td>
 <td>1</td>
 <td>0</td>
@@ -5307,9 +5977,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[27].MUX">IM[27].MUX</th>
 <th>0.50.13</th>
@@ -5318,7 +5993,9 @@ xc95144xv-7
 <th>0.50.10</th>
 <th>0.50.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5327,6 +6004,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC5</td>
 <td>0</td>
 <td>0</td>
@@ -5334,6 +6012,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC7</td>
 <td>0</td>
 <td>0</td>
@@ -5341,6 +6020,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC9</td>
 <td>0</td>
 <td>0</td>
@@ -5348,6 +6028,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC11</td>
 <td>0</td>
 <td>0</td>
@@ -5355,6 +6036,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC13</td>
 <td>0</td>
 <td>0</td>
@@ -5362,6 +6044,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC0</td>
 <td>0</td>
 <td>0</td>
@@ -5369,6 +6052,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC14</td>
 <td>0</td>
 <td>1</td>
@@ -5376,6 +6060,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5383,6 +6068,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC1</td>
 <td>1</td>
 <td>0</td>
@@ -5390,6 +6076,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC14</td>
 <td>1</td>
 <td>0</td>
@@ -5397,6 +6084,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC3</td>
 <td>1</td>
 <td>0</td>
@@ -5404,6 +6092,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC3</td>
 <td>1</td>
 <td>0</td>
@@ -5411,6 +6100,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC4</td>
 <td>1</td>
 <td>0</td>
@@ -5418,6 +6108,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC10</td>
 <td>1</td>
 <td>0</td>
@@ -5425,6 +6116,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC0</td>
 <td>1</td>
 <td>0</td>
@@ -5432,9 +6124,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[28].MUX">IM[28].MUX</th>
 <th>0.51.13</th>
@@ -5443,7 +6140,9 @@ xc95144xv-7
 <th>0.51.10</th>
 <th>0.51.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5452,6 +6151,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC4</td>
 <td>0</td>
 <td>0</td>
@@ -5459,6 +6159,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC1</td>
 <td>0</td>
 <td>0</td>
@@ -5466,6 +6167,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC16</td>
 <td>0</td>
 <td>0</td>
@@ -5473,6 +6175,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC10</td>
 <td>0</td>
 <td>0</td>
@@ -5480,6 +6183,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC5</td>
 <td>0</td>
 <td>1</td>
@@ -5487,6 +6191,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC3</td>
 <td>1</td>
 <td>0</td>
@@ -5494,6 +6199,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC17</td>
 <td>1</td>
 <td>0</td>
@@ -5501,6 +6207,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC1</td>
 <td>1</td>
 <td>0</td>
@@ -5508,6 +6215,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC17</td>
 <td>1</td>
 <td>0</td>
@@ -5515,6 +6223,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC10</td>
 <td>1</td>
 <td>0</td>
@@ -5522,6 +6231,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC16</td>
 <td>1</td>
 <td>0</td>
@@ -5529,6 +6239,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC4</td>
 <td>1</td>
 <td>0</td>
@@ -5536,6 +6247,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC5</td>
 <td>1</td>
 <td>0</td>
@@ -5543,9 +6255,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[29].MUX">IM[29].MUX</th>
 <th>0.52.13</th>
@@ -5554,7 +6271,9 @@ xc95144xv-7
 <th>0.52.10</th>
 <th>0.52.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5563,6 +6282,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC15</td>
 <td>0</td>
 <td>0</td>
@@ -5570,6 +6290,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC0</td>
 <td>0</td>
 <td>0</td>
@@ -5577,6 +6298,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC13</td>
 <td>0</td>
 <td>0</td>
@@ -5584,6 +6306,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC7</td>
 <td>0</td>
 <td>0</td>
@@ -5591,6 +6314,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC15</td>
 <td>0</td>
 <td>0</td>
@@ -5598,6 +6322,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC3</td>
 <td>0</td>
 <td>0</td>
@@ -5605,6 +6330,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC11</td>
 <td>0</td>
 <td>1</td>
@@ -5612,6 +6338,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC14</td>
 <td>1</td>
 <td>0</td>
@@ -5619,6 +6346,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC5</td>
 <td>1</td>
 <td>0</td>
@@ -5626,6 +6354,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC4</td>
 <td>1</td>
 <td>0</td>
@@ -5633,6 +6362,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC16</td>
 <td>1</td>
 <td>0</td>
@@ -5640,6 +6370,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC13</td>
 <td>1</td>
 <td>0</td>
@@ -5647,6 +6378,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC11</td>
 <td>1</td>
 <td>0</td>
@@ -5654,6 +6386,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC12</td>
 <td>1</td>
 <td>0</td>
@@ -5661,6 +6394,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC1</td>
 <td>1</td>
 <td>0</td>
@@ -5668,9 +6402,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[2].MUX">IM[2].MUX</th>
 <th>0.52.4</th>
@@ -5679,7 +6418,9 @@ xc95144xv-7
 <th>0.52.1</th>
 <th>0.52.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5688,6 +6429,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC5</td>
 <td>0</td>
 <td>0</td>
@@ -5695,6 +6437,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC9</td>
 <td>0</td>
 <td>0</td>
@@ -5702,6 +6445,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC4</td>
 <td>0</td>
 <td>0</td>
@@ -5709,6 +6453,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC10</td>
 <td>0</td>
 <td>0</td>
@@ -5716,6 +6461,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC1</td>
 <td>0</td>
 <td>0</td>
@@ -5723,6 +6469,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC13</td>
 <td>0</td>
 <td>0</td>
@@ -5730,6 +6477,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC1</td>
 <td>0</td>
 <td>0</td>
@@ -5737,6 +6485,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC6</td>
 <td>0</td>
 <td>1</td>
@@ -5744,6 +6493,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5751,6 +6501,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5758,6 +6509,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5765,6 +6517,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5772,6 +6525,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5779,6 +6533,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5786,6 +6541,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5793,6 +6549,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC2</td>
 <td>1</td>
 <td>0</td>
@@ -5800,9 +6557,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[30].MUX">IM[30].MUX</th>
 <th>0.53.13</th>
@@ -5810,7 +6572,9 @@ xc95144xv-7
 <th>0.53.10</th>
 <th>0.53.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5818,99 +6582,119 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC10</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC16</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC8</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC11</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC15</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC11</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC7</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC12</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC8</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC9</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC8</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC9</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC2</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC15</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[31].MUX">IM[31].MUX</th>
 <th>0.54.13</th>
@@ -5919,7 +6703,9 @@ xc95144xv-7
 <th>0.54.10</th>
 <th>0.54.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -5928,6 +6714,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC2</td>
 <td>0</td>
 <td>0</td>
@@ -5935,6 +6722,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC9</td>
 <td>0</td>
 <td>0</td>
@@ -5942,6 +6730,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC3</td>
 <td>0</td>
 <td>0</td>
@@ -5949,6 +6738,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC13</td>
 <td>0</td>
 <td>0</td>
@@ -5956,6 +6746,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC3</td>
 <td>0</td>
 <td>0</td>
@@ -5963,6 +6754,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC6</td>
 <td>0</td>
 <td>0</td>
@@ -5970,6 +6762,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC9</td>
 <td>0</td>
 <td>0</td>
@@ -5977,6 +6770,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC9</td>
 <td>0</td>
 <td>1</td>
@@ -5984,6 +6778,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC8</td>
 <td>1</td>
 <td>0</td>
@@ -5991,6 +6786,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC8</td>
 <td>1</td>
 <td>0</td>
@@ -5998,6 +6794,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC8</td>
 <td>1</td>
 <td>0</td>
@@ -6005,6 +6802,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC1</td>
 <td>1</td>
 <td>0</td>
@@ -6012,6 +6810,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC15</td>
 <td>1</td>
 <td>0</td>
@@ -6019,6 +6818,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC14</td>
 <td>1</td>
 <td>0</td>
@@ -6026,6 +6826,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC16</td>
 <td>1</td>
 <td>0</td>
@@ -6033,6 +6834,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC9</td>
 <td>1</td>
 <td>0</td>
@@ -6040,9 +6842,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[32].MUX">IM[32].MUX</th>
 <th>0.55.13</th>
@@ -6051,7 +6858,9 @@ xc95144xv-7
 <th>0.55.10</th>
 <th>0.55.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6060,6 +6869,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC14</td>
 <td>0</td>
 <td>0</td>
@@ -6067,6 +6877,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC9</td>
 <td>0</td>
 <td>0</td>
@@ -6074,6 +6885,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC4</td>
 <td>0</td>
 <td>0</td>
@@ -6081,6 +6893,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC4</td>
 <td>0</td>
 <td>0</td>
@@ -6088,6 +6901,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC5</td>
 <td>0</td>
 <td>0</td>
@@ -6095,6 +6909,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC4</td>
 <td>0</td>
 <td>0</td>
@@ -6102,6 +6917,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC10</td>
 <td>0</td>
 <td>1</td>
@@ -6109,6 +6925,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC6</td>
 <td>1</td>
 <td>0</td>
@@ -6116,6 +6933,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC2</td>
 <td>1</td>
 <td>0</td>
@@ -6123,6 +6941,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC10</td>
 <td>1</td>
 <td>0</td>
@@ -6130,6 +6949,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC12</td>
 <td>1</td>
 <td>0</td>
@@ -6137,6 +6957,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC14</td>
 <td>1</td>
 <td>0</td>
@@ -6144,6 +6965,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC7</td>
 <td>1</td>
 <td>0</td>
@@ -6151,6 +6973,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC6</td>
 <td>1</td>
 <td>0</td>
@@ -6158,6 +6981,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC12</td>
 <td>1</td>
 <td>0</td>
@@ -6165,9 +6989,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[33].MUX">IM[33].MUX</th>
 <th>0.56.13</th>
@@ -6176,7 +7005,9 @@ xc95144xv-7
 <th>0.56.10</th>
 <th>0.56.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6185,6 +7016,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC5</td>
 <td>0</td>
 <td>0</td>
@@ -6192,6 +7024,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC3</td>
 <td>0</td>
 <td>0</td>
@@ -6199,6 +7032,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC7</td>
 <td>0</td>
 <td>0</td>
@@ -6206,6 +7040,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC8</td>
 <td>0</td>
 <td>0</td>
@@ -6213,6 +7048,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC4</td>
 <td>0</td>
 <td>0</td>
@@ -6220,6 +7056,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC5</td>
 <td>0</td>
 <td>0</td>
@@ -6227,6 +7064,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC15</td>
 <td>0</td>
 <td>0</td>
@@ -6234,6 +7072,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC13</td>
 <td>0</td>
 <td>1</td>
@@ -6241,6 +7080,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC8</td>
 <td>1</td>
 <td>0</td>
@@ -6248,6 +7088,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC6</td>
 <td>1</td>
 <td>0</td>
@@ -6255,6 +7096,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC1</td>
 <td>1</td>
 <td>0</td>
@@ -6262,6 +7104,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC15</td>
 <td>1</td>
 <td>0</td>
@@ -6269,6 +7112,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC8</td>
 <td>1</td>
 <td>0</td>
@@ -6276,6 +7120,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC2</td>
 <td>1</td>
 <td>0</td>
@@ -6283,6 +7128,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC3</td>
 <td>1</td>
 <td>0</td>
@@ -6290,6 +7136,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC2</td>
 <td>1</td>
 <td>0</td>
@@ -6297,9 +7144,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[34].MUX">IM[34].MUX</th>
 <th>0.57.13</th>
@@ -6308,7 +7160,9 @@ xc95144xv-7
 <th>0.57.10</th>
 <th>0.57.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6317,6 +7171,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC11</td>
 <td>0</td>
 <td>0</td>
@@ -6324,6 +7179,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC3</td>
 <td>0</td>
 <td>0</td>
@@ -6331,6 +7187,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>0</td>
 <td>0</td>
@@ -6338,6 +7195,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC10</td>
 <td>0</td>
 <td>0</td>
@@ -6345,6 +7203,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC7</td>
 <td>0</td>
 <td>0</td>
@@ -6352,6 +7211,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC1</td>
 <td>0</td>
 <td>0</td>
@@ -6359,6 +7219,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC13</td>
 <td>0</td>
 <td>0</td>
@@ -6366,6 +7227,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC7</td>
 <td>0</td>
 <td>1</td>
@@ -6373,6 +7235,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC17</td>
 <td>1</td>
 <td>0</td>
@@ -6380,6 +7243,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC11</td>
 <td>1</td>
 <td>0</td>
@@ -6387,6 +7251,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC11</td>
 <td>1</td>
 <td>0</td>
@@ -6394,6 +7259,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC10</td>
 <td>1</td>
 <td>0</td>
@@ -6401,6 +7267,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC7</td>
 <td>1</td>
 <td>0</td>
@@ -6408,6 +7275,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC7</td>
 <td>1</td>
 <td>0</td>
@@ -6415,6 +7283,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC7</td>
 <td>1</td>
 <td>0</td>
@@ -6422,6 +7291,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC3</td>
 <td>1</td>
 <td>0</td>
@@ -6429,9 +7299,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[35].MUX">IM[35].MUX</th>
 <th>0.58.13</th>
@@ -6440,7 +7315,9 @@ xc95144xv-7
 <th>0.58.10</th>
 <th>0.58.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6449,6 +7326,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC14</td>
 <td>0</td>
 <td>0</td>
@@ -6456,6 +7334,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC7</td>
 <td>0</td>
 <td>0</td>
@@ -6463,6 +7342,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC2</td>
 <td>0</td>
 <td>0</td>
@@ -6470,6 +7350,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC8</td>
 <td>0</td>
 <td>0</td>
@@ -6477,6 +7358,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC14</td>
 <td>0</td>
 <td>0</td>
@@ -6484,6 +7366,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC4</td>
 <td>0</td>
 <td>1</td>
@@ -6491,6 +7374,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC5</td>
 <td>1</td>
 <td>0</td>
@@ -6498,6 +7382,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC14</td>
 <td>1</td>
 <td>0</td>
@@ -6505,6 +7390,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC11</td>
 <td>1</td>
 <td>0</td>
@@ -6512,6 +7398,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC5</td>
 <td>1</td>
 <td>0</td>
@@ -6519,6 +7406,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC1</td>
 <td>1</td>
 <td>0</td>
@@ -6526,6 +7414,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC6</td>
 <td>1</td>
 <td>0</td>
@@ -6533,6 +7422,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC16</td>
 <td>1</td>
 <td>0</td>
@@ -6540,6 +7430,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC11</td>
 <td>1</td>
 <td>0</td>
@@ -6547,9 +7438,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[36].MUX">IM[36].MUX</th>
 <th>0.59.13</th>
@@ -6558,7 +7454,9 @@ xc95144xv-7
 <th>0.59.10</th>
 <th>0.59.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6567,6 +7465,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC14</td>
 <td>0</td>
 <td>0</td>
@@ -6574,6 +7473,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC16</td>
 <td>0</td>
 <td>0</td>
@@ -6581,6 +7481,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC4</td>
 <td>0</td>
 <td>0</td>
@@ -6588,6 +7489,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC3</td>
 <td>0</td>
 <td>0</td>
@@ -6595,6 +7497,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC10</td>
 <td>0</td>
 <td>0</td>
@@ -6602,6 +7505,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC4</td>
 <td>0</td>
 <td>0</td>
@@ -6609,6 +7513,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC13</td>
 <td>0</td>
 <td>1</td>
@@ -6616,6 +7521,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC4</td>
 <td>1</td>
 <td>0</td>
@@ -6623,6 +7529,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC10</td>
 <td>1</td>
 <td>0</td>
@@ -6630,6 +7537,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC3</td>
 <td>1</td>
 <td>0</td>
@@ -6637,6 +7545,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC2</td>
 <td>1</td>
 <td>0</td>
@@ -6644,6 +7553,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC6</td>
 <td>1</td>
 <td>0</td>
@@ -6651,6 +7561,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC9</td>
 <td>1</td>
 <td>0</td>
@@ -6658,6 +7569,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC15</td>
 <td>1</td>
 <td>0</td>
@@ -6665,6 +7577,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC10</td>
 <td>1</td>
 <td>0</td>
@@ -6672,9 +7585,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[37].MUX">IM[37].MUX</th>
 <th>0.60.13</th>
@@ -6683,7 +7601,9 @@ xc95144xv-7
 <th>0.60.10</th>
 <th>0.60.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6692,6 +7612,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC15</td>
 <td>0</td>
 <td>0</td>
@@ -6699,6 +7620,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC15</td>
 <td>0</td>
 <td>0</td>
@@ -6706,6 +7628,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC3</td>
 <td>0</td>
 <td>0</td>
@@ -6713,6 +7636,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC1</td>
 <td>0</td>
 <td>0</td>
@@ -6720,6 +7644,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC1</td>
 <td>0</td>
 <td>0</td>
@@ -6727,6 +7652,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC9</td>
 <td>0</td>
 <td>0</td>
@@ -6734,6 +7660,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC11</td>
 <td>0</td>
 <td>0</td>
@@ -6741,6 +7668,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC11</td>
 <td>0</td>
 <td>1</td>
@@ -6748,6 +7676,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC16</td>
 <td>1</td>
 <td>0</td>
@@ -6755,6 +7684,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC5</td>
 <td>1</td>
 <td>0</td>
@@ -6762,6 +7692,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC12</td>
 <td>1</td>
 <td>0</td>
@@ -6769,6 +7700,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC7</td>
 <td>1</td>
 <td>0</td>
@@ -6776,6 +7708,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC14</td>
 <td>1</td>
 <td>0</td>
@@ -6783,6 +7716,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC16</td>
 <td>1</td>
 <td>0</td>
@@ -6790,6 +7724,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC14</td>
 <td>1</td>
 <td>0</td>
@@ -6797,6 +7732,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC2</td>
 <td>1</td>
 <td>0</td>
@@ -6804,9 +7740,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[38].MUX">IM[38].MUX</th>
 <th>0.61.13</th>
@@ -6815,7 +7756,9 @@ xc95144xv-7
 <th>0.61.10</th>
 <th>0.61.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6824,6 +7767,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC9</td>
 <td>0</td>
 <td>0</td>
@@ -6831,6 +7775,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC15</td>
 <td>0</td>
 <td>0</td>
@@ -6838,6 +7783,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC14</td>
 <td>0</td>
 <td>0</td>
@@ -6845,6 +7791,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
 <td>0</td>
@@ -6852,6 +7799,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC16</td>
 <td>0</td>
 <td>0</td>
@@ -6859,6 +7807,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC9</td>
 <td>0</td>
 <td>0</td>
@@ -6866,6 +7815,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC8</td>
 <td>0</td>
 <td>1</td>
@@ -6873,6 +7823,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC7</td>
 <td>1</td>
 <td>0</td>
@@ -6880,6 +7831,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC3</td>
 <td>1</td>
 <td>0</td>
@@ -6887,6 +7839,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC16</td>
 <td>1</td>
 <td>0</td>
@@ -6894,6 +7847,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC1</td>
 <td>1</td>
 <td>0</td>
@@ -6901,6 +7855,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC9</td>
 <td>1</td>
 <td>0</td>
@@ -6908,6 +7863,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC8</td>
 <td>1</td>
 <td>0</td>
@@ -6915,6 +7871,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC15</td>
 <td>1</td>
 <td>0</td>
@@ -6922,6 +7879,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC4</td>
 <td>1</td>
 <td>0</td>
@@ -6929,9 +7887,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[39].MUX">IM[39].MUX</th>
 <th>0.62.13</th>
@@ -6940,7 +7903,9 @@ xc95144xv-7
 <th>0.62.10</th>
 <th>0.62.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -6949,6 +7914,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC11</td>
 <td>0</td>
 <td>0</td>
@@ -6956,6 +7922,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC8</td>
 <td>0</td>
 <td>0</td>
@@ -6963,6 +7930,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>0</td>
 <td>0</td>
@@ -6970,6 +7938,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC3</td>
 <td>0</td>
 <td>0</td>
@@ -6977,6 +7946,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC14</td>
 <td>0</td>
 <td>0</td>
@@ -6984,6 +7954,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>0</td>
 <td>0</td>
@@ -6991,6 +7962,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC12</td>
 <td>0</td>
 <td>0</td>
@@ -6998,6 +7970,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC10</td>
 <td>0</td>
 <td>1</td>
@@ -7005,6 +7978,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC10</td>
 <td>1</td>
 <td>0</td>
@@ -7012,6 +7986,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC2</td>
 <td>1</td>
 <td>0</td>
@@ -7019,6 +7994,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC2</td>
 <td>1</td>
 <td>0</td>
@@ -7026,6 +8002,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC14</td>
 <td>1</td>
 <td>0</td>
@@ -7033,6 +8010,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7040,6 +8018,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC1</td>
 <td>1</td>
 <td>0</td>
@@ -7047,6 +8026,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC5</td>
 <td>1</td>
 <td>0</td>
@@ -7054,6 +8034,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC14</td>
 <td>1</td>
 <td>0</td>
@@ -7061,9 +8042,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[3].MUX">IM[3].MUX</th>
 <th>0.53.4</th>
@@ -7072,7 +8058,9 @@ xc95144xv-7
 <th>0.53.1</th>
 <th>0.53.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7081,6 +8069,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC16</td>
 <td>0</td>
 <td>0</td>
@@ -7088,6 +8077,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC8</td>
 <td>0</td>
 <td>0</td>
@@ -7095,6 +8085,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC15</td>
 <td>0</td>
 <td>0</td>
@@ -7102,6 +8093,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC4</td>
 <td>0</td>
 <td>0</td>
@@ -7109,6 +8101,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC9</td>
 <td>0</td>
 <td>0</td>
@@ -7116,6 +8109,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC15</td>
 <td>0</td>
 <td>0</td>
@@ -7123,6 +8117,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC2</td>
 <td>0</td>
 <td>1</td>
@@ -7130,6 +8125,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7137,6 +8133,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7144,6 +8141,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7151,6 +8149,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7158,6 +8157,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7165,6 +8165,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7172,6 +8173,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7179,6 +8181,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7186,9 +8189,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[40].MUX">IM[40].MUX</th>
 <th>0.63.13</th>
@@ -7196,7 +8204,9 @@ xc95144xv-7
 <th>0.63.10</th>
 <th>0.63.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7204,93 +8214,112 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC8</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC10</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC13</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC9</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC14</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC16</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC13</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC17</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC17</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC4</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC9</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC9</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[41].MUX">IM[41].MUX</th>
 <th>0.64.13</th>
@@ -7298,7 +8327,9 @@ xc95144xv-7
 <th>0.64.10</th>
 <th>0.64.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7306,99 +8337,119 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC7</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC5</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC16</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC12</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC13</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC8</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC2</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC11</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC10</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC7</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC6</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC16</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC13</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC8</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC8</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[42].MUX">IM[42].MUX</th>
 <th>0.65.13</th>
@@ -7406,7 +8457,9 @@ xc95144xv-7
 <th>0.65.10</th>
 <th>0.65.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7414,93 +8467,112 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC10</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC14</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC12</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC16</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC4</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC14</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC13</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC3</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC7</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC14</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[43].MUX">IM[43].MUX</th>
 <th>0.66.13</th>
@@ -7509,7 +8581,9 @@ xc95144xv-7
 <th>0.66.10</th>
 <th>0.66.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7518,6 +8592,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC16</td>
 <td>0</td>
 <td>0</td>
@@ -7525,6 +8600,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC7</td>
 <td>0</td>
 <td>0</td>
@@ -7532,6 +8608,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC16</td>
 <td>0</td>
 <td>0</td>
@@ -7539,6 +8616,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC13</td>
 <td>0</td>
 <td>0</td>
@@ -7546,6 +8624,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC12</td>
 <td>0</td>
 <td>0</td>
@@ -7553,6 +8632,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC16</td>
 <td>0</td>
 <td>0</td>
@@ -7560,6 +8640,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC6</td>
 <td>0</td>
 <td>0</td>
@@ -7567,6 +8648,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC6</td>
 <td>0</td>
 <td>1</td>
@@ -7574,6 +8656,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC6</td>
 <td>1</td>
 <td>0</td>
@@ -7581,6 +8664,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC0</td>
 <td>1</td>
 <td>0</td>
@@ -7588,6 +8672,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC15</td>
 <td>1</td>
 <td>0</td>
@@ -7595,6 +8680,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC4</td>
 <td>1</td>
 <td>0</td>
@@ -7602,6 +8688,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC11</td>
 <td>1</td>
 <td>0</td>
@@ -7609,6 +8696,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC15</td>
 <td>1</td>
 <td>0</td>
@@ -7616,6 +8704,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC12</td>
 <td>1</td>
 <td>0</td>
@@ -7623,6 +8712,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC13</td>
 <td>1</td>
 <td>0</td>
@@ -7630,9 +8720,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[44].MUX">IM[44].MUX</th>
 <th>0.67.13</th>
@@ -7641,7 +8736,9 @@ xc95144xv-7
 <th>0.67.10</th>
 <th>0.67.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7650,6 +8747,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC1</td>
 <td>0</td>
 <td>0</td>
@@ -7657,6 +8755,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC12</td>
 <td>0</td>
 <td>0</td>
@@ -7664,6 +8763,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC1</td>
 <td>0</td>
 <td>0</td>
@@ -7671,6 +8771,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC1</td>
 <td>0</td>
 <td>0</td>
@@ -7678,6 +8779,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC2</td>
 <td>0</td>
 <td>0</td>
@@ -7685,6 +8787,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC13</td>
 <td>0</td>
 <td>0</td>
@@ -7692,6 +8795,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC7</td>
 <td>0</td>
 <td>1</td>
@@ -7699,6 +8803,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC5</td>
 <td>1</td>
 <td>0</td>
@@ -7706,6 +8811,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC0</td>
 <td>1</td>
 <td>0</td>
@@ -7713,6 +8819,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC17</td>
 <td>1</td>
 <td>0</td>
@@ -7720,6 +8827,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC2</td>
 <td>1</td>
 <td>0</td>
@@ -7727,6 +8835,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC1</td>
 <td>1</td>
 <td>0</td>
@@ -7734,6 +8843,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC10</td>
 <td>1</td>
 <td>0</td>
@@ -7741,6 +8851,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC1</td>
 <td>1</td>
 <td>0</td>
@@ -7748,6 +8859,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC11</td>
 <td>1</td>
 <td>0</td>
@@ -7755,9 +8867,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[45].MUX">IM[45].MUX</th>
 <th>0.68.13</th>
@@ -7766,7 +8883,9 @@ xc95144xv-7
 <th>0.68.10</th>
 <th>0.68.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7775,6 +8894,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC11</td>
 <td>0</td>
 <td>0</td>
@@ -7782,6 +8902,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC5</td>
 <td>0</td>
 <td>0</td>
@@ -7789,6 +8910,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC9</td>
 <td>0</td>
 <td>0</td>
@@ -7796,6 +8918,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC9</td>
 <td>0</td>
 <td>0</td>
@@ -7803,6 +8926,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC8</td>
 <td>0</td>
 <td>0</td>
@@ -7810,6 +8934,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC13</td>
 <td>0</td>
 <td>0</td>
@@ -7817,6 +8942,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC16</td>
 <td>0</td>
 <td>0</td>
@@ -7824,6 +8950,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC4</td>
 <td>0</td>
 <td>1</td>
@@ -7831,6 +8958,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC16</td>
 <td>1</td>
 <td>0</td>
@@ -7838,6 +8966,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC15</td>
 <td>1</td>
 <td>0</td>
@@ -7845,6 +8974,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC0</td>
 <td>1</td>
 <td>0</td>
@@ -7852,6 +8982,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC5</td>
 <td>1</td>
 <td>0</td>
@@ -7859,6 +8990,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC12</td>
 <td>1</td>
 <td>0</td>
@@ -7866,6 +8998,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC13</td>
 <td>1</td>
 <td>0</td>
@@ -7873,6 +9006,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC17</td>
 <td>1</td>
 <td>0</td>
@@ -7880,6 +9014,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC3</td>
 <td>1</td>
 <td>0</td>
@@ -7887,9 +9022,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[46].MUX">IM[46].MUX</th>
 <th>0.69.13</th>
@@ -7898,7 +9038,9 @@ xc95144xv-7
 <th>0.69.10</th>
 <th>0.69.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -7907,6 +9049,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC13</td>
 <td>0</td>
 <td>0</td>
@@ -7914,6 +9057,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC4</td>
 <td>0</td>
 <td>0</td>
@@ -7921,6 +9065,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC1</td>
 <td>0</td>
 <td>0</td>
@@ -7928,6 +9073,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC2</td>
 <td>0</td>
 <td>0</td>
@@ -7935,6 +9081,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC4</td>
 <td>0</td>
 <td>0</td>
@@ -7942,6 +9089,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC7</td>
 <td>0</td>
 <td>0</td>
@@ -7949,6 +9097,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC1</td>
 <td>0</td>
 <td>1</td>
@@ -7956,6 +9105,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC15</td>
 <td>1</td>
 <td>0</td>
@@ -7963,6 +9113,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC7</td>
 <td>1</td>
 <td>0</td>
@@ -7970,6 +9121,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC17</td>
 <td>1</td>
 <td>0</td>
@@ -7977,6 +9129,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC13</td>
 <td>1</td>
 <td>0</td>
@@ -7984,6 +9137,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC16</td>
 <td>1</td>
 <td>0</td>
@@ -7991,6 +9145,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC12</td>
 <td>1</td>
 <td>0</td>
@@ -7998,6 +9153,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC13</td>
 <td>1</td>
 <td>0</td>
@@ -8005,6 +9161,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC7</td>
 <td>1</td>
 <td>0</td>
@@ -8012,9 +9169,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[47].MUX">IM[47].MUX</th>
 <th>0.70.13</th>
@@ -8023,7 +9185,9 @@ xc95144xv-7
 <th>0.70.10</th>
 <th>0.70.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8032,6 +9196,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC3</td>
 <td>0</td>
 <td>0</td>
@@ -8039,6 +9204,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC1</td>
 <td>0</td>
 <td>0</td>
@@ -8046,6 +9212,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC10</td>
 <td>0</td>
 <td>0</td>
@@ -8053,6 +9220,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC16</td>
 <td>0</td>
 <td>0</td>
@@ -8060,6 +9228,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC13</td>
 <td>0</td>
 <td>0</td>
@@ -8067,6 +9236,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC8</td>
 <td>0</td>
 <td>0</td>
@@ -8074,6 +9244,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC1</td>
 <td>0</td>
 <td>1</td>
@@ -8081,6 +9252,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC3</td>
 <td>1</td>
 <td>0</td>
@@ -8088,6 +9260,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC9</td>
 <td>1</td>
 <td>0</td>
@@ -8095,6 +9268,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC0</td>
 <td>1</td>
 <td>0</td>
@@ -8102,6 +9276,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC0</td>
 <td>1</td>
 <td>0</td>
@@ -8109,6 +9284,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC12</td>
 <td>1</td>
 <td>0</td>
@@ -8116,6 +9292,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC17</td>
 <td>1</td>
 <td>0</td>
@@ -8123,6 +9300,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC9</td>
 <td>1</td>
 <td>0</td>
@@ -8130,6 +9308,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC16</td>
 <td>1</td>
 <td>0</td>
@@ -8137,9 +9316,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[48].MUX">IM[48].MUX</th>
 <th>0.71.13</th>
@@ -8148,7 +9332,9 @@ xc95144xv-7
 <th>0.71.10</th>
 <th>0.71.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8157,6 +9343,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC4</td>
 <td>0</td>
 <td>0</td>
@@ -8164,6 +9351,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC13</td>
 <td>0</td>
 <td>0</td>
@@ -8171,6 +9359,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC7</td>
 <td>0</td>
 <td>0</td>
@@ -8178,6 +9367,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC3</td>
 <td>0</td>
 <td>0</td>
@@ -8185,6 +9375,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC1</td>
 <td>0</td>
 <td>0</td>
@@ -8192,6 +9383,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC1</td>
 <td>0</td>
 <td>0</td>
@@ -8199,6 +9391,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC2</td>
 <td>0</td>
 <td>1</td>
@@ -8206,6 +9399,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC13</td>
 <td>1</td>
 <td>0</td>
@@ -8213,6 +9407,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC11</td>
 <td>1</td>
 <td>0</td>
@@ -8220,6 +9415,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC7</td>
 <td>1</td>
 <td>0</td>
@@ -8227,6 +9423,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC12</td>
 <td>1</td>
 <td>0</td>
@@ -8234,6 +9431,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC5</td>
 <td>1</td>
 <td>0</td>
@@ -8241,6 +9439,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC5</td>
 <td>1</td>
 <td>0</td>
@@ -8248,6 +9447,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC14</td>
 <td>1</td>
 <td>0</td>
@@ -8255,6 +9455,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC1</td>
 <td>1</td>
 <td>0</td>
@@ -8262,9 +9463,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[49].MUX">IM[49].MUX</th>
 <th>0.72.13</th>
@@ -8272,7 +9478,9 @@ xc95144xv-7
 <th>0.72.10</th>
 <th>0.72.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8280,93 +9488,112 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC8</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC8</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC10</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC7</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC5</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC11</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC14</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC7</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC16</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC9</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC12</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC13</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC17</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[4].MUX">IM[4].MUX</th>
 <th>0.54.4</th>
@@ -8375,7 +9602,9 @@ xc95144xv-7
 <th>0.54.1</th>
 <th>0.54.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8384,6 +9613,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC7</td>
 <td>0</td>
 <td>0</td>
@@ -8391,6 +9621,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC13</td>
 <td>0</td>
 <td>0</td>
@@ -8398,6 +9629,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC11</td>
 <td>0</td>
 <td>0</td>
@@ -8405,6 +9637,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC16</td>
 <td>0</td>
 <td>0</td>
@@ -8412,6 +9645,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC14</td>
 <td>0</td>
 <td>0</td>
@@ -8419,6 +9653,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC12</td>
 <td>0</td>
 <td>0</td>
@@ -8426,6 +9661,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC9</td>
 <td>0</td>
 <td>1</td>
@@ -8433,6 +9669,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8440,6 +9677,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8447,6 +9685,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8454,6 +9693,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8461,6 +9701,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8468,6 +9709,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8475,6 +9717,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8482,6 +9725,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8489,9 +9733,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[50].MUX">IM[50].MUX</th>
 <th>0.73.13</th>
@@ -8500,7 +9749,9 @@ xc95144xv-7
 <th>0.73.10</th>
 <th>0.73.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8509,6 +9760,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC1</td>
 <td>0</td>
 <td>0</td>
@@ -8516,6 +9768,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC8</td>
 <td>0</td>
 <td>0</td>
@@ -8523,6 +9776,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC13</td>
 <td>0</td>
 <td>0</td>
@@ -8530,6 +9784,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC8</td>
 <td>0</td>
 <td>0</td>
@@ -8537,6 +9792,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC9</td>
 <td>0</td>
 <td>0</td>
@@ -8544,6 +9800,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC2</td>
 <td>0</td>
 <td>0</td>
@@ -8551,6 +9808,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC8</td>
 <td>0</td>
 <td>1</td>
@@ -8558,6 +9816,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC15</td>
 <td>1</td>
 <td>0</td>
@@ -8565,6 +9824,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC17</td>
 <td>1</td>
 <td>0</td>
@@ -8572,6 +9832,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC6</td>
 <td>1</td>
 <td>0</td>
@@ -8579,6 +9840,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC0</td>
 <td>1</td>
 <td>0</td>
@@ -8586,6 +9848,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC13</td>
 <td>1</td>
 <td>0</td>
@@ -8593,6 +9856,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC15</td>
 <td>1</td>
 <td>0</td>
@@ -8600,6 +9864,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC11</td>
 <td>1</td>
 <td>0</td>
@@ -8607,6 +9872,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC10</td>
 <td>1</td>
 <td>0</td>
@@ -8614,9 +9880,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[51].MUX">IM[51].MUX</th>
 <th>0.74.13</th>
@@ -8625,7 +9896,9 @@ xc95144xv-7
 <th>0.74.10</th>
 <th>0.74.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8634,6 +9907,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC7</td>
 <td>0</td>
 <td>0</td>
@@ -8641,6 +9915,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC9</td>
 <td>0</td>
 <td>0</td>
@@ -8648,6 +9923,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC12</td>
 <td>0</td>
 <td>0</td>
@@ -8655,6 +9931,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC2</td>
 <td>0</td>
 <td>0</td>
@@ -8662,6 +9939,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC11</td>
 <td>0</td>
 <td>0</td>
@@ -8669,6 +9947,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC2</td>
 <td>0</td>
 <td>0</td>
@@ -8676,6 +9955,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC1</td>
 <td>0</td>
 <td>0</td>
@@ -8683,6 +9963,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC14</td>
 <td>0</td>
 <td>1</td>
@@ -8690,6 +9971,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC9</td>
 <td>1</td>
 <td>0</td>
@@ -8697,6 +9979,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC4</td>
 <td>1</td>
 <td>0</td>
@@ -8704,6 +9987,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC5</td>
 <td>1</td>
 <td>0</td>
@@ -8711,6 +9995,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC3</td>
 <td>1</td>
 <td>0</td>
@@ -8718,6 +10003,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC2</td>
 <td>1</td>
 <td>0</td>
@@ -8725,6 +10011,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC1</td>
 <td>1</td>
 <td>0</td>
@@ -8732,6 +10019,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC2</td>
 <td>1</td>
 <td>0</td>
@@ -8739,6 +10027,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC6</td>
 <td>1</td>
 <td>0</td>
@@ -8746,9 +10035,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[52].MUX">IM[52].MUX</th>
 <th>0.75.13</th>
@@ -8756,7 +10050,9 @@ xc95144xv-7
 <th>0.75.10</th>
 <th>0.75.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8764,87 +10060,105 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC0</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC14</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC10</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC5</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC8</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC12</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC15</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC3</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC6</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC15</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC11</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC16</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[53].MUX">IM[53].MUX</th>
 <th>0.76.13</th>
@@ -8853,7 +10167,9 @@ xc95144xv-7
 <th>0.76.10</th>
 <th>0.76.9</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8862,6 +10178,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC0</td>
 <td>0</td>
 <td>0</td>
@@ -8869,6 +10186,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC12</td>
 <td>0</td>
 <td>0</td>
@@ -8876,6 +10194,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC11</td>
 <td>0</td>
 <td>0</td>
@@ -8883,6 +10202,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC5</td>
 <td>0</td>
 <td>0</td>
@@ -8890,6 +10210,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC11</td>
 <td>0</td>
 <td>0</td>
@@ -8897,6 +10218,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC1</td>
 <td>0</td>
 <td>1</td>
@@ -8904,6 +10226,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC7</td>
 <td>1</td>
 <td>0</td>
@@ -8911,6 +10234,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC16</td>
 <td>1</td>
 <td>0</td>
@@ -8918,6 +10242,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC13</td>
 <td>1</td>
 <td>0</td>
@@ -8925,6 +10250,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC11</td>
 <td>1</td>
 <td>0</td>
@@ -8932,6 +10258,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC0</td>
 <td>1</td>
 <td>0</td>
@@ -8939,6 +10266,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC11</td>
 <td>1</td>
 <td>0</td>
@@ -8946,6 +10274,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC17</td>
 <td>1</td>
 <td>0</td>
@@ -8953,6 +10282,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC8</td>
 <td>1</td>
 <td>0</td>
@@ -8960,9 +10290,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[5].MUX">IM[5].MUX</th>
 <th>0.55.4</th>
@@ -8970,7 +10305,9 @@ xc95144xv-7
 <th>0.55.1</th>
 <th>0.55.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -8978,99 +10315,119 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC14</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC9</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC10</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC5</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC7</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC7</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC5</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC5</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC5</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC5</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC5</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC5</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC5</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[6].MUX">IM[6].MUX</th>
 <th>0.56.4</th>
@@ -9078,7 +10435,9 @@ xc95144xv-7
 <th>0.56.1</th>
 <th>0.56.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -9086,93 +10445,112 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC8</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC12</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC5</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC13</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC14</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC16</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B0MC6</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC6</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC6</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC6</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC6</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC6</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC6</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[7].MUX">IM[7].MUX</th>
 <th>0.57.4</th>
@@ -9181,7 +10559,9 @@ xc95144xv-7
 <th>0.57.1</th>
 <th>0.57.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -9190,6 +10570,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC13</td>
 <td>0</td>
 <td>0</td>
@@ -9197,6 +10578,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B5MC7</td>
 <td>0</td>
 <td>0</td>
@@ -9204,6 +10586,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B7MC16</td>
 <td>0</td>
 <td>0</td>
@@ -9211,6 +10594,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC3</td>
 <td>0</td>
 <td>0</td>
@@ -9218,6 +10602,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC7</td>
 <td>0</td>
 <td>0</td>
@@ -9225,6 +10610,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC6</td>
 <td>0</td>
 <td>0</td>
@@ -9232,6 +10618,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC0</td>
 <td>0</td>
 <td>0</td>
@@ -9239,6 +10626,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC10</td>
 <td>0</td>
 <td>1</td>
@@ -9246,6 +10634,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9253,6 +10642,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9260,6 +10650,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9267,6 +10658,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9274,6 +10666,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9281,6 +10674,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9288,6 +10682,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9295,6 +10690,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC7</td>
 <td>1</td>
 <td>0</td>
@@ -9302,9 +10698,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[8].MUX">IM[8].MUX</th>
 <th>0.58.4</th>
@@ -9313,7 +10714,9 @@ xc95144xv-7
 <th>0.58.1</th>
 <th>0.58.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -9322,6 +10725,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B3MC10</td>
 <td>0</td>
 <td>0</td>
@@ -9329,6 +10733,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B3MC14</td>
 <td>0</td>
 <td>0</td>
@@ -9336,6 +10741,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B1MC3</td>
 <td>0</td>
 <td>0</td>
@@ -9343,6 +10749,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B1MC12</td>
 <td>0</td>
 <td>0</td>
@@ -9350,6 +10757,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B6MC13</td>
 <td>0</td>
 <td>0</td>
@@ -9357,6 +10765,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B0MC16</td>
 <td>0</td>
 <td>0</td>
@@ -9364,6 +10773,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B4MC9</td>
 <td>0</td>
 <td>0</td>
@@ -9371,6 +10781,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B2MC13</td>
 <td>0</td>
 <td>1</td>
@@ -9378,6 +10789,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9385,6 +10797,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9392,6 +10805,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9399,6 +10813,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9406,6 +10821,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9413,6 +10829,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9420,6 +10837,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9427,6 +10845,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC8</td>
 <td>1</td>
 <td>0</td>
@@ -9434,9 +10853,14 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc95144xv-imux-IM[9].MUX">IM[9].MUX</th>
 <th>0.59.4</th>
@@ -9445,7 +10869,9 @@ xc95144xv-7
 <th>0.59.1</th>
 <th>0.59.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -9454,6 +10880,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B5MC11</td>
 <td>0</td>
 <td>0</td>
@@ -9461,6 +10888,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC14</td>
 <td>0</td>
 <td>0</td>
@@ -9468,6 +10896,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B7MC8</td>
 <td>0</td>
 <td>0</td>
@@ -9475,6 +10904,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B0MC8</td>
 <td>0</td>
 <td>0</td>
@@ -9482,6 +10912,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B6MC5</td>
 <td>0</td>
 <td>0</td>
@@ -9489,6 +10920,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>IOB_C0B2MC8</td>
 <td>0</td>
 <td>0</td>
@@ -9496,6 +10928,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>IOB_C0B4MC8</td>
 <td>0</td>
 <td>1</td>
@@ -9503,6 +10936,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B0MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9510,6 +10944,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B2MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9517,6 +10952,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B4MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9524,6 +10960,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B6MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9531,6 +10968,7 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B1MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9538,6 +10976,7 @@ xc95144xv-7
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B3MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9545,6 +10984,7 @@ xc95144xv-7
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>MC_C0B5MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9552,6 +10992,7 @@ xc95144xv-7
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>MC_C0B7MC9</td>
 <td>1</td>
 <td>0</td>
@@ -9559,19 +11000,23 @@ xc95144xv-7
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../../xc9500/devices/xc9572xv.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../../xc9500/devices/xc95288xv.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -9581,16 +11026,21 @@ xc95144xv-7
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../../xc9500/devices/xc9572xv.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../../xc9500/devices/xc95288xv.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -9600,9 +11050,9 @@ xc95144xv-7
 
 
 
-        <script src="../../clipboard.min.js"></script>
-        <script src="../../highlight.js"></script>
-        <script src="../../book.js"></script>
+        <script src="../../clipboard-1626706a.min.js"></script>
+        <script src="../../highlight-abc7f01d.js"></script>
+        <script src="../../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

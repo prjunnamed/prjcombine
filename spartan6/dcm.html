@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,246 +142,455 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="digital-clock-manager"><a class="header" href="#digital-clock-manager">Digital clock manager</a></h1>
 <p>TODO: document</p>
 <h2 id="tile-cmt_dcm"><a class="header" href="#tile-cmt_dcm">Tile CMT_DCM</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-dcm0"><a class="header" href="#bel-dcm0">Bel DCM0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bel DCM0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLKFB_CKINT0</td><td>input</td><td>TCELL0:IMUX.CLK0</td></tr>
+
 <tr><td>CLKFB_CKINT1</td><td>input</td><td>TCELL0:IMUX.LOGICIN57</td></tr>
+
 <tr><td>CLKIN_CKINT0</td><td>input</td><td>TCELL0:IMUX.CLK1</td></tr>
+
 <tr><td>CLKIN_CKINT1</td><td>input</td><td>TCELL0:IMUX.LOGICIN25</td></tr>
+
 <tr><td>CTLGO</td><td>input</td><td>TCELL0:IMUX.LOGICIN17</td></tr>
+
 <tr><td>CTLMODE</td><td>input</td><td>TCELL0:IMUX.LOGICIN23</td></tr>
+
 <tr><td>CTLOSC1</td><td>input</td><td>TCELL0:IMUX.LOGICIN54</td></tr>
+
 <tr><td>CTLOSC2</td><td>input</td><td>TCELL0:IMUX.LOGICIN34</td></tr>
+
 <tr><td>CTLSEL0</td><td>input</td><td>TCELL0:IMUX.LOGICIN38</td></tr>
+
 <tr><td>CTLSEL1</td><td>input</td><td>TCELL0:IMUX.LOGICIN45</td></tr>
+
 <tr><td>CTLSEL2</td><td>input</td><td>TCELL0:IMUX.LOGICIN20</td></tr>
+
 <tr><td>FREEZEDFS</td><td>input</td><td>TCELL0:IMUX.LOGICIN42</td></tr>
+
 <tr><td>FREEZEDLL</td><td>input</td><td>TCELL0:IMUX.LOGICIN7</td></tr>
+
 <tr><td>LOCKED</td><td>output</td><td>TCELL0:OUT14.TMIN</td></tr>
+
 <tr><td>PSCLK</td><td>input</td><td>TCELL0:IMUX.GFAN1</td></tr>
+
 <tr><td>PSDONE</td><td>output</td><td>TCELL0:OUT15.TMIN</td></tr>
+
 <tr><td>PSEN</td><td>input</td><td>TCELL0:IMUX.LOGICIN24</td></tr>
+
 <tr><td>PSINCDEC</td><td>input</td><td>TCELL0:IMUX.LOGICIN15</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL0:IMUX.LOGICIN47</td></tr>
+
 <tr><td>SCANOUT</td><td>output</td><td>TCELL0:OUT13.TMIN</td></tr>
+
 <tr><td>SKEWIN</td><td>input</td><td>TCELL0:IMUX.GFAN0</td></tr>
+
 <tr><td>SKEWOUT</td><td>output</td><td>TCELL0:OUT12.TMIN</td></tr>
+
 <tr><td>SKEWRST</td><td>input</td><td>TCELL0:IMUX.LOGICIN48</td></tr>
+
 <tr><td>STATUS0</td><td>output</td><td>TCELL0:OUT16.TMIN</td></tr>
+
 <tr><td>STATUS1</td><td>output</td><td>TCELL0:OUT17.TMIN</td></tr>
+
 <tr><td>STATUS2</td><td>output</td><td>TCELL0:OUT18.TMIN</td></tr>
+
 <tr><td>STATUS3</td><td>output</td><td>TCELL0:OUT19.TMIN</td></tr>
+
 <tr><td>STATUS4</td><td>output</td><td>TCELL0:OUT20.TMIN</td></tr>
+
 <tr><td>STATUS5</td><td>output</td><td>TCELL0:OUT21.TMIN</td></tr>
+
 <tr><td>STATUS6</td><td>output</td><td>TCELL0:OUT22.TMIN</td></tr>
+
 <tr><td>STATUS7</td><td>output</td><td>TCELL0:OUT23.TMIN</td></tr>
+
 <tr><td>STSADRS0</td><td>input</td><td>TCELL0:IMUX.LOGICIN16</td></tr>
+
 <tr><td>STSADRS1</td><td>input</td><td>TCELL0:IMUX.LOGICIN62</td></tr>
+
 <tr><td>STSADRS2</td><td>input</td><td>TCELL0:IMUX.LOGICIN12</td></tr>
+
 <tr><td>STSADRS3</td><td>input</td><td>TCELL0:IMUX.LOGICIN5</td></tr>
+
 <tr><td>STSADRS4</td><td>input</td><td>TCELL0:IMUX.LOGICIN36</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-dcm1"><a class="header" href="#bel-dcm1">Bel DCM1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bel DCM1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLKFB_CKINT0</td><td>input</td><td>TCELL1:IMUX.CLK0</td></tr>
+
 <tr><td>CLKFB_CKINT1</td><td>input</td><td>TCELL1:IMUX.LOGICIN57</td></tr>
+
 <tr><td>CLKIN_CKINT0</td><td>input</td><td>TCELL1:IMUX.CLK1</td></tr>
+
 <tr><td>CLKIN_CKINT1</td><td>input</td><td>TCELL1:IMUX.LOGICIN25</td></tr>
+
 <tr><td>CTLGO</td><td>input</td><td>TCELL1:IMUX.LOGICIN17</td></tr>
+
 <tr><td>CTLMODE</td><td>input</td><td>TCELL1:IMUX.LOGICIN23</td></tr>
+
 <tr><td>CTLOSC1</td><td>input</td><td>TCELL1:IMUX.LOGICIN54</td></tr>
+
 <tr><td>CTLOSC2</td><td>input</td><td>TCELL1:IMUX.LOGICIN34</td></tr>
+
 <tr><td>CTLSEL0</td><td>input</td><td>TCELL1:IMUX.LOGICIN38</td></tr>
+
 <tr><td>CTLSEL1</td><td>input</td><td>TCELL1:IMUX.LOGICIN45</td></tr>
+
 <tr><td>CTLSEL2</td><td>input</td><td>TCELL1:IMUX.LOGICIN20</td></tr>
+
 <tr><td>FREEZEDFS</td><td>input</td><td>TCELL1:IMUX.LOGICIN42</td></tr>
+
 <tr><td>FREEZEDLL</td><td>input</td><td>TCELL1:IMUX.LOGICIN7</td></tr>
+
 <tr><td>LOCKED</td><td>output</td><td>TCELL1:OUT14.TMIN</td></tr>
+
 <tr><td>PSCLK</td><td>input</td><td>TCELL1:IMUX.GFAN1</td></tr>
+
 <tr><td>PSDONE</td><td>output</td><td>TCELL1:OUT15.TMIN</td></tr>
+
 <tr><td>PSEN</td><td>input</td><td>TCELL1:IMUX.LOGICIN24</td></tr>
+
 <tr><td>PSINCDEC</td><td>input</td><td>TCELL1:IMUX.LOGICIN15</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL1:IMUX.LOGICIN47</td></tr>
+
 <tr><td>SCANOUT</td><td>output</td><td>TCELL1:OUT13.TMIN</td></tr>
+
 <tr><td>SKEWIN</td><td>input</td><td>TCELL1:IMUX.GFAN0</td></tr>
+
 <tr><td>SKEWOUT</td><td>output</td><td>TCELL1:OUT12.TMIN</td></tr>
+
 <tr><td>SKEWRST</td><td>input</td><td>TCELL1:IMUX.LOGICIN48</td></tr>
+
 <tr><td>STATUS0</td><td>output</td><td>TCELL1:OUT16.TMIN</td></tr>
+
 <tr><td>STATUS1</td><td>output</td><td>TCELL1:OUT17.TMIN</td></tr>
+
 <tr><td>STATUS2</td><td>output</td><td>TCELL1:OUT18.TMIN</td></tr>
+
 <tr><td>STATUS3</td><td>output</td><td>TCELL1:OUT19.TMIN</td></tr>
+
 <tr><td>STATUS4</td><td>output</td><td>TCELL1:OUT20.TMIN</td></tr>
+
 <tr><td>STATUS5</td><td>output</td><td>TCELL1:OUT21.TMIN</td></tr>
+
 <tr><td>STATUS6</td><td>output</td><td>TCELL1:OUT22.TMIN</td></tr>
+
 <tr><td>STATUS7</td><td>output</td><td>TCELL1:OUT23.TMIN</td></tr>
+
 <tr><td>STSADRS0</td><td>input</td><td>TCELL1:IMUX.LOGICIN16</td></tr>
+
 <tr><td>STSADRS1</td><td>input</td><td>TCELL1:IMUX.LOGICIN62</td></tr>
+
 <tr><td>STSADRS2</td><td>input</td><td>TCELL1:IMUX.LOGICIN12</td></tr>
+
 <tr><td>STSADRS3</td><td>input</td><td>TCELL1:IMUX.LOGICIN5</td></tr>
+
 <tr><td>STSADRS4</td><td>input</td><td>TCELL1:IMUX.LOGICIN36</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-cmt"><a class="header" href="#bel-cmt">Bel CMT</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bel CMT</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>HCLK0_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN44</td></tr>
+
 <tr><td>HCLK10_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN32</td></tr>
+
 <tr><td>HCLK11_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN59</td></tr>
+
 <tr><td>HCLK12_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN52</td></tr>
+
 <tr><td>HCLK13_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN2</td></tr>
+
 <tr><td>HCLK14_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN39</td></tr>
+
 <tr><td>HCLK15_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN8</td></tr>
+
 <tr><td>HCLK1_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN55</td></tr>
+
 <tr><td>HCLK2_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN26</td></tr>
+
 <tr><td>HCLK3_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN30</td></tr>
+
 <tr><td>HCLK4_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN41</td></tr>
+
 <tr><td>HCLK5_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN3</td></tr>
+
 <tr><td>HCLK6_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN58</td></tr>
+
 <tr><td>HCLK7_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN19</td></tr>
+
 <tr><td>HCLK8_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN28</td></tr>
+
 <tr><td>HCLK9_CKINT</td><td>input</td><td>TCELL1:IMUX.LOGICIN29</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.GFAN0</td><td>DCM0.SKEWIN</td></tr>
+
 <tr><td>TCELL0:IMUX.GFAN1</td><td>DCM0.PSCLK</td></tr>
+
 <tr><td>TCELL0:IMUX.CLK0</td><td>DCM0.CLKFB_CKINT0</td></tr>
+
 <tr><td>TCELL0:IMUX.CLK1</td><td>DCM0.CLKIN_CKINT0</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN5</td><td>DCM0.STSADRS3</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN7</td><td>DCM0.FREEZEDLL</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN12</td><td>DCM0.STSADRS2</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN15</td><td>DCM0.PSINCDEC</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN16</td><td>DCM0.STSADRS0</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN17</td><td>DCM0.CTLGO</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN20</td><td>DCM0.CTLSEL2</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN23</td><td>DCM0.CTLMODE</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN24</td><td>DCM0.PSEN</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN25</td><td>DCM0.CLKIN_CKINT1</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN34</td><td>DCM0.CTLOSC2</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN36</td><td>DCM0.STSADRS4</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN38</td><td>DCM0.CTLSEL0</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN42</td><td>DCM0.FREEZEDFS</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN45</td><td>DCM0.CTLSEL1</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN47</td><td>DCM0.RST</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN48</td><td>DCM0.SKEWRST</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN54</td><td>DCM0.CTLOSC1</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN57</td><td>DCM0.CLKFB_CKINT1</td></tr>
+
 <tr><td>TCELL0:IMUX.LOGICIN62</td><td>DCM0.STSADRS1</td></tr>
+
 <tr><td>TCELL0:OUT12.TMIN</td><td>DCM0.SKEWOUT</td></tr>
+
 <tr><td>TCELL0:OUT13.TMIN</td><td>DCM0.SCANOUT</td></tr>
+
 <tr><td>TCELL0:OUT14.TMIN</td><td>DCM0.LOCKED</td></tr>
+
 <tr><td>TCELL0:OUT15.TMIN</td><td>DCM0.PSDONE</td></tr>
+
 <tr><td>TCELL0:OUT16.TMIN</td><td>DCM0.STATUS0</td></tr>
+
 <tr><td>TCELL0:OUT17.TMIN</td><td>DCM0.STATUS1</td></tr>
+
 <tr><td>TCELL0:OUT18.TMIN</td><td>DCM0.STATUS2</td></tr>
+
 <tr><td>TCELL0:OUT19.TMIN</td><td>DCM0.STATUS3</td></tr>
+
 <tr><td>TCELL0:OUT20.TMIN</td><td>DCM0.STATUS4</td></tr>
+
 <tr><td>TCELL0:OUT21.TMIN</td><td>DCM0.STATUS5</td></tr>
+
 <tr><td>TCELL0:OUT22.TMIN</td><td>DCM0.STATUS6</td></tr>
+
 <tr><td>TCELL0:OUT23.TMIN</td><td>DCM0.STATUS7</td></tr>
+
 <tr><td>TCELL1:IMUX.GFAN0</td><td>DCM1.SKEWIN</td></tr>
+
 <tr><td>TCELL1:IMUX.GFAN1</td><td>DCM1.PSCLK</td></tr>
+
 <tr><td>TCELL1:IMUX.CLK0</td><td>DCM1.CLKFB_CKINT0</td></tr>
+
 <tr><td>TCELL1:IMUX.CLK1</td><td>DCM1.CLKIN_CKINT0</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN2</td><td>CMT.HCLK13_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN3</td><td>CMT.HCLK5_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN5</td><td>DCM1.STSADRS3</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN7</td><td>DCM1.FREEZEDLL</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN8</td><td>CMT.HCLK15_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN12</td><td>DCM1.STSADRS2</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN15</td><td>DCM1.PSINCDEC</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN16</td><td>DCM1.STSADRS0</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN17</td><td>DCM1.CTLGO</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN19</td><td>CMT.HCLK7_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN20</td><td>DCM1.CTLSEL2</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN23</td><td>DCM1.CTLMODE</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN24</td><td>DCM1.PSEN</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN25</td><td>DCM1.CLKIN_CKINT1</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN26</td><td>CMT.HCLK2_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN28</td><td>CMT.HCLK8_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN29</td><td>CMT.HCLK9_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN30</td><td>CMT.HCLK3_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN32</td><td>CMT.HCLK10_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN34</td><td>DCM1.CTLOSC2</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN36</td><td>DCM1.STSADRS4</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN38</td><td>DCM1.CTLSEL0</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN39</td><td>CMT.HCLK14_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN41</td><td>CMT.HCLK4_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN42</td><td>DCM1.FREEZEDFS</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN44</td><td>CMT.HCLK0_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN45</td><td>DCM1.CTLSEL1</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN47</td><td>DCM1.RST</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN48</td><td>DCM1.SKEWRST</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN52</td><td>CMT.HCLK12_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN54</td><td>DCM1.CTLOSC1</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN55</td><td>CMT.HCLK1_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN57</td><td>DCM1.CLKFB_CKINT1</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN58</td><td>CMT.HCLK6_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN59</td><td>CMT.HCLK11_CKINT</td></tr>
+
 <tr><td>TCELL1:IMUX.LOGICIN62</td><td>DCM1.STSADRS1</td></tr>
+
 <tr><td>TCELL1:OUT12.TMIN</td><td>DCM1.SKEWOUT</td></tr>
+
 <tr><td>TCELL1:OUT13.TMIN</td><td>DCM1.SCANOUT</td></tr>
+
 <tr><td>TCELL1:OUT14.TMIN</td><td>DCM1.LOCKED</td></tr>
+
 <tr><td>TCELL1:OUT15.TMIN</td><td>DCM1.PSDONE</td></tr>
+
 <tr><td>TCELL1:OUT16.TMIN</td><td>DCM1.STATUS0</td></tr>
+
 <tr><td>TCELL1:OUT17.TMIN</td><td>DCM1.STATUS1</td></tr>
+
 <tr><td>TCELL1:OUT18.TMIN</td><td>DCM1.STATUS2</td></tr>
+
 <tr><td>TCELL1:OUT19.TMIN</td><td>DCM1.STATUS3</td></tr>
+
 <tr><td>TCELL1:OUT20.TMIN</td><td>DCM1.STATUS4</td></tr>
+
 <tr><td>TCELL1:OUT21.TMIN</td><td>DCM1.STATUS5</td></tr>
+
 <tr><td>TCELL1:OUT22.TMIN</td><td>DCM1.STATUS6</td></tr>
+
 <tr><td>TCELL1:OUT23.TMIN</td><td>DCM1.STATUS7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -416,7 +624,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>58</td>
 <td>-</td>
@@ -454,6 +664,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[0]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -487,6 +698,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -522,6 +734,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[1]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -555,6 +768,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -590,6 +804,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[2]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -625,6 +840,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[3]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -658,6 +874,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -691,6 +908,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -724,6 +942,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -760,6 +979,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[5]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -793,6 +1013,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -826,6 +1047,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -861,6 +1083,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[6]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -896,6 +1119,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[7]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -929,6 +1153,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -962,6 +1187,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -998,6 +1224,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:NO_FEEDBACK">DCM0:NO_FEEDBACK</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -1033,6 +1260,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[9]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -1066,6 +1294,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -1101,6 +1330,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[10]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -1136,6 +1366,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[11]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -1169,6 +1400,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -1202,6 +1434,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -1235,6 +1468,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -1270,6 +1504,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[12]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -1305,6 +1540,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[13]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -1338,6 +1574,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -1373,6 +1610,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[14]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -1408,6 +1646,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[15]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -1441,6 +1680,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -1474,6 +1714,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -1510,6 +1751,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[16]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -1545,6 +1787,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[17]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -1578,6 +1821,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -1611,6 +1855,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -1644,6 +1889,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -1680,6 +1926,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT_NEGATIVE">DCM0:PHASE_SHIFT_NEGATIVE</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -1713,6 +1960,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -1749,6 +1997,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[0]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -1785,6 +2034,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[1]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -1818,6 +2068,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -1851,6 +2102,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -1887,6 +2139,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[2]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -1923,6 +2176,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[3]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -1956,6 +2210,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -1989,6 +2244,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -2025,6 +2281,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[4]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -2061,6 +2318,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[5]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -2094,6 +2352,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -2127,6 +2386,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -2163,6 +2423,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[6]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2199,6 +2460,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT[7]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2232,6 +2494,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2267,6 +2530,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[28]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2300,6 +2564,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2335,6 +2600,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[29]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2370,6 +2636,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[30]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2405,6 +2672,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[31]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -2438,12 +2706,18 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2477,7 +2751,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -2514,6 +2790,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[27]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -2547,6 +2824,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -2580,6 +2858,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -2616,6 +2895,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[18]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -2652,6 +2932,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S[4]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -2687,6 +2968,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[28]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -2722,6 +3004,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[29]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -2757,6 +3040,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[30]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -2792,6 +3076,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[31]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -2825,6 +3110,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -2858,6 +3144,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -2891,6 +3178,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -2924,6 +3212,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -2957,6 +3246,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -2990,6 +3280,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -3023,6 +3314,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -3056,6 +3348,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -3089,6 +3382,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -3122,6 +3416,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -3155,6 +3450,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -3188,6 +3484,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -3221,6 +3518,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -3254,6 +3552,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -3287,6 +3586,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -3320,6 +3620,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -3353,6 +3654,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -3386,6 +3688,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -3419,6 +3722,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -3452,6 +3756,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -3485,6 +3790,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -3518,6 +3824,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -3551,6 +3858,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -3584,6 +3892,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -3617,6 +3926,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -3650,6 +3960,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -3683,6 +3994,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -3716,6 +4028,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -3749,6 +4062,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -3782,6 +4096,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -3815,6 +4130,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -3848,6 +4164,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -3881,6 +4198,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -3914,6 +4232,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -3947,6 +4266,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -3980,6 +4300,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -4013,6 +4334,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -4046,6 +4368,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -4079,6 +4402,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -4112,6 +4436,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -4145,6 +4470,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -4178,6 +4504,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -4211,6 +4538,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -4244,6 +4572,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -4277,6 +4606,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -4310,6 +4640,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -4343,6 +4674,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -4376,6 +4708,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -4409,6 +4742,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -4442,6 +4776,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -4475,6 +4810,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -4508,6 +4844,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -4541,6 +4878,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -4574,6 +4912,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -4607,12 +4946,18 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 3</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -4646,7 +4991,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -4683,6 +5030,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[49]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -4716,6 +5064,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -4751,6 +5100,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[50]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -4784,6 +5134,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -4819,6 +5170,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[51]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -4852,6 +5204,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -4887,6 +5240,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[52]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -4922,6 +5276,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[53]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -4955,6 +5310,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -4988,6 +5344,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -5023,6 +5380,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[54]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -5058,6 +5416,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[55]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -5091,6 +5450,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -5124,6 +5484,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -5159,6 +5520,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[56]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -5194,6 +5556,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[57]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -5227,6 +5590,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -5262,6 +5626,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[58]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -5295,6 +5660,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -5330,6 +5696,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[59]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -5363,6 +5730,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -5396,6 +5764,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -5431,6 +5800,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[60]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -5466,6 +5836,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[61]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -5499,6 +5870,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -5534,6 +5906,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[62]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -5569,6 +5942,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[63]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -5602,6 +5976,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -5635,6 +6010,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -5670,6 +6046,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[64]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -5705,6 +6082,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[65]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -5738,6 +6116,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -5773,6 +6152,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[66]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -5806,6 +6186,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -5841,6 +6222,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[67]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -5874,6 +6256,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -5907,6 +6290,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -5943,6 +6327,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[0]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -5978,6 +6363,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[69]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -6011,6 +6397,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -6046,6 +6433,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[70]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -6082,6 +6470,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[11]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -6115,6 +6504,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -6148,6 +6538,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -6183,6 +6574,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[72]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -6218,6 +6610,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[73]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -6251,6 +6644,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -6284,6 +6678,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -6319,6 +6714,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[74]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -6354,6 +6750,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[75]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -6387,6 +6784,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -6420,6 +6818,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -6453,6 +6852,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -6486,6 +6886,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -6519,6 +6920,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -6552,6 +6954,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -6585,6 +6988,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -6618,6 +7022,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -6651,6 +7056,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -6687,6 +7093,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_C">DCM0:DFS_C[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -6723,6 +7130,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_C">DCM0:DFS_C[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -6759,6 +7167,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_C">DCM0:DFS_C[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -6795,6 +7204,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[18]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -6830,12 +7240,18 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[26]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 4</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -6869,7 +7285,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>61</td>
 <td>-</td>
@@ -6906,6 +7324,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[16]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -6941,6 +7360,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[17]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -6974,6 +7394,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -7007,6 +7428,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -7042,6 +7464,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[18]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -7077,6 +7500,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[19]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -7110,6 +7534,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -7145,6 +7570,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[20]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -7178,6 +7604,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -7213,6 +7640,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[21]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -7246,6 +7674,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -7282,6 +7711,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[22]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -7315,6 +7745,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -7351,6 +7782,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[23]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -7384,6 +7816,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -7420,6 +7853,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLKFX">DCM0:ENABLE.CLKFX</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -7456,6 +7890,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CONCUR">DCM0:ENABLE.CONCUR</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -7489,6 +7924,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -7522,6 +7958,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -7558,6 +7995,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[26]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -7593,6 +8031,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[27]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -7626,6 +8065,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -7662,6 +8102,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:PROG_ENABLE">DCM0:PROG_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -7695,6 +8136,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -7730,6 +8172,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[29]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -7763,6 +8206,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -7796,6 +8240,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -7831,6 +8276,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[30]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -7866,6 +8312,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[31]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -7899,6 +8346,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -7935,6 +8383,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[4]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -7971,6 +8420,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[3]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -8004,6 +8454,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -8037,6 +8488,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -8072,6 +8524,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[34]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -8105,6 +8558,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -8140,6 +8594,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[35]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -8173,6 +8628,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -8208,6 +8664,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[36]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -8243,6 +8700,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[37]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -8276,6 +8734,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -8309,6 +8768,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -8344,6 +8804,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[38]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -8379,6 +8840,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[39]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -8412,6 +8874,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -8447,6 +8910,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[40]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -8483,6 +8947,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[2]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -8516,6 +8981,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -8549,6 +9015,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -8584,6 +9051,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[42]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -8619,6 +9087,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[43]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -8652,6 +9121,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -8685,6 +9155,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -8721,6 +9192,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[8]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -8757,6 +9229,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[1]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -8790,6 +9263,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -8823,6 +9297,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -8858,6 +9333,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[46]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -8894,6 +9370,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[12]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -8927,6 +9404,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -8960,6 +9438,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -8995,12 +9474,18 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[48]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 5</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -9034,7 +9519,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -9072,6 +9559,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[15]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -9105,6 +9593,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -9141,6 +9630,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK270">DCM0:ENABLE.CLK270</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -9177,6 +9667,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK90">DCM0:ENABLE.CLK90</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -9213,6 +9704,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK180">DCM0:ENABLE.CLK180</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -9249,6 +9741,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.SKEWCLKIN2">DCM1:MUX.SKEWCLKIN2[2]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -9285,6 +9778,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DUTY_CYCLE_CORRECTION">DCM0:DUTY_CYCLE_CORRECTION</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -9321,6 +9815,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[16]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -9357,6 +9852,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[14]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -9390,6 +9886,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -9426,6 +9923,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:STARTUP_WAIT">DCM0:STARTUP_WAIT</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -9461,6 +9959,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[12]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -9496,6 +9995,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[13]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -9532,6 +10032,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.SKEWCLKIN2">DCM1:MUX.SKEWCLKIN2[1]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -9567,6 +10068,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.FREEZEDFS">DCM0:INV.FREEZEDFS</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -9602,6 +10104,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.PSEN">DCM0:INV.PSEN</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -9637,6 +10140,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.PSINCDEC">DCM0:INV.PSINCDEC</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -9672,6 +10176,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.CTLSEL0">DCM0:INV.CTLSEL0</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -9707,6 +10212,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.CTLSEL1">DCM0:INV.CTLSEL1</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -9742,6 +10248,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.CTLMODE">DCM0:INV.CTLMODE</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -9777,6 +10284,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.CTLSEL2">DCM0:INV.CTLSEL2</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -9810,6 +10318,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -9846,6 +10355,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK0">DCM0:ENABLE.CLK0</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -9882,6 +10392,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[9]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -9918,6 +10429,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[7]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -9954,6 +10466,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[10]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -9989,6 +10502,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.STSADRS4">DCM0:INV.STSADRS4</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -10024,6 +10538,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[79]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -10059,6 +10574,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[80]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -10094,6 +10610,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.STSADRS3">DCM0:INV.STSADRS3</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -10130,6 +10647,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[5]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -10165,6 +10683,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[82]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -10200,6 +10719,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[83]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -10235,6 +10755,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.STSADRS2">DCM0:INV.STSADRS2</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -10270,6 +10791,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[84]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -10305,6 +10827,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.STSADRS1">DCM0:INV.STSADRS1</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -10341,6 +10864,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[0]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -10377,6 +10901,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[1]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -10412,6 +10937,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.STSADRS0">DCM0:INV.STSADRS0</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -10448,6 +10974,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[2]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -10484,6 +11011,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[3]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -10519,6 +11047,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.RST">DCM0:INV.RST</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -10554,6 +11083,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:OPT_INV">DCM0:OPT_INV[2]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -10590,6 +11120,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[4]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -10626,6 +11157,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[5]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -10661,6 +11193,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:OPT_INV">DCM0:OPT_INV[1]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -10696,6 +11229,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:OPT_INV">DCM0:OPT_INV[0]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -10732,6 +11266,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[6]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -10768,6 +11303,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[7]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -10801,6 +11337,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -10837,6 +11374,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM[6]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -10873,6 +11411,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[8]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -10909,6 +11448,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[9]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -10944,6 +11484,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[86]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -10977,6 +11518,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -11013,6 +11555,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[10]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -11049,6 +11592,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[11]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -11082,6 +11626,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -11118,6 +11663,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[12]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -11151,6 +11697,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -11187,6 +11734,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[13]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -11220,6 +11768,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -11256,6 +11805,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[14]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -11292,12 +11842,18 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S[15]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 6</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -11331,7 +11887,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -11368,6 +11926,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.FREEZEDLL">DCM0:INV.FREEZEDLL</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -11403,6 +11962,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.CTLOSC2">DCM0:INV.CTLOSC2</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -11439,6 +11999,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[11]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -11475,6 +12036,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[10]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -11511,6 +12073,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKIN">DCM0:MUX.CLKIN[2]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -11546,6 +12109,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.CTLOSC1">DCM0:INV.CTLOSC1</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -11582,6 +12146,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[16]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -11618,6 +12183,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKFB">DCM0:MUX.CLKFB[3]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -11654,6 +12220,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKIN">DCM0:MUX.CLKIN[4]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -11690,6 +12257,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKFB">DCM0:MUX.CLKFB[0]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -11725,6 +12293,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.CTLGO">DCM0:INV.CTLGO</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -11761,6 +12330,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLK_TO_PLL">DCM0:MUX.CLK_TO_PLL[1]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -11797,6 +12367,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKFB">DCM0:MUX.CLKFB[1]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -11833,6 +12404,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKFB">DCM0:MUX.CLKFB[2]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -11868,6 +12440,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[15]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -11903,6 +12476,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[14]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -11938,6 +12512,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[2]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -11974,6 +12549,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.SKEWRST">DCM1:INV.SKEWRST</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -12010,6 +12586,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.SKEWIN">DCM1:INV.SKEWIN</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -12046,6 +12623,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[37]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -12082,6 +12660,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.SKEWCLKIN2">DCM1:MUX.SKEWCLKIN2[3]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -12118,6 +12697,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.SKEWRST">DCM0:INV.SKEWRST</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -12154,6 +12734,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INV.SKEWIN">DCM0:INV.SKEWIN</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -12190,6 +12771,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[37]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -12226,6 +12808,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.SKEWCLKIN2">DCM0:MUX.SKEWCLKIN2[3]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -12262,6 +12845,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.SKEWCLKIN2">DCM0:MUX.SKEWCLKIN2[2]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -12298,6 +12882,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.SKEWCLKIN2">DCM0:MUX.SKEWCLKIN2[1]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -12334,6 +12919,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.SKEWCLKIN2">DCM0:MUX.SKEWCLKIN2[0]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -12370,6 +12956,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLK_TO_PLL">DCM0:MUX.CLK_TO_PLL[3]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -12406,6 +12993,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLK_TO_PLL">DCM0:MUX.CLK_TO_PLL[2]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -12442,6 +13030,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLK_TO_PLL">DCM0:MUX.CLK_TO_PLL[0]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -12478,6 +13067,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKFB">DCM0:MUX.CLKFB[4]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -12514,6 +13104,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[0]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -12550,6 +13141,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKIN">DCM0:MUX.CLKIN[3]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -12586,6 +13178,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKIN">DCM0:MUX.CLKIN[1]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -12622,6 +13215,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:MUX.CLKIN">DCM0:MUX.CLKIN[0]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -12657,6 +13251,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[1]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -12693,6 +13288,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[3]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -12729,6 +13325,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[4]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -12765,6 +13362,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[5]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -12801,6 +13399,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[6]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -12834,6 +13433,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -12867,6 +13467,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -12903,6 +13504,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[7]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -12939,6 +13541,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[8]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -12975,6 +13578,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[7]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -13011,6 +13615,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[6]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -13047,6 +13652,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[8]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -13083,6 +13689,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[5]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -13119,6 +13726,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[4]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -13155,6 +13763,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[3]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -13191,6 +13800,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[2]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -13227,6 +13837,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -13263,6 +13874,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[12]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -13299,6 +13911,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[9]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -13335,6 +13948,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[17]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -13370,6 +13984,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[9]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -13406,6 +14021,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLKDV">DCM0:ENABLE.CLKDV</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -13442,6 +14058,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK2X180">DCM0:ENABLE.CLK2X180</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -13478,6 +14095,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK2X">DCM0:ENABLE.CLK2X</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -13513,6 +14131,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[17]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -13548,6 +14167,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[18]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -13583,6 +14203,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE[10]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -13619,32 +14240,52 @@
 <a href="#tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C[13]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 7</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 8</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 9</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -13678,7 +14319,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -13716,6 +14359,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[5]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -13752,6 +14396,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[4]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -13788,6 +14433,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CONCUR">DCM1:ENABLE.CONCUR</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -13824,6 +14470,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLKFX">DCM1:ENABLE.CLKFX</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -13860,6 +14507,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[3]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -13896,6 +14544,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[2]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -13932,6 +14581,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[23]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -13968,6 +14618,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[22]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -14001,6 +14652,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -14036,6 +14688,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[21]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -14071,6 +14724,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[20]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -14107,6 +14761,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[1]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -14143,6 +14798,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DUTY_CYCLE_CORRECTION">DCM1:DUTY_CYCLE_CORRECTION</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -14178,6 +14834,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[19]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -14213,6 +14870,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[18]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -14248,6 +14906,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.RST">DCM1:INV.RST</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -14283,6 +14942,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.PSEN">DCM1:INV.PSEN</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -14318,6 +14978,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[17]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -14353,6 +15014,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[16]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -14388,6 +15050,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.PSINCDEC">DCM1:INV.PSINCDEC</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -14423,6 +15086,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.FREEZEDFS">DCM1:INV.FREEZEDFS</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -14459,6 +15123,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[15]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -14495,6 +15160,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[14]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -14530,6 +15196,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.FREEZEDLL">DCM1:INV.FREEZEDLL</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -14566,6 +15233,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[13]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -14602,6 +15270,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[12]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -14637,6 +15306,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.STSADRS4">DCM1:INV.STSADRS4</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -14672,6 +15342,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.STSADRS3">DCM1:INV.STSADRS3</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -14708,6 +15379,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[11]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -14744,6 +15416,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[10]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -14779,6 +15452,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.STSADRS2">DCM1:INV.STSADRS2</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -14814,6 +15488,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.STSADRS1">DCM1:INV.STSADRS1</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -14850,6 +15525,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[9]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -14886,6 +15562,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[8]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -14921,6 +15598,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.STSADRS0">DCM1:INV.STSADRS0</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -14956,6 +15634,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.CTLSEL2">DCM1:INV.CTLSEL2</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -14992,6 +15671,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[7]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -15028,6 +15708,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[6]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -15063,6 +15744,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.CTLSEL1">DCM1:INV.CTLSEL1</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -15098,6 +15780,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.CTLSEL0">DCM1:INV.CTLSEL0</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -15134,6 +15817,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[5]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -15170,6 +15854,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[4]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -15205,6 +15890,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.CTLGO">DCM1:INV.CTLGO</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -15240,6 +15926,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[86]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -15276,6 +15963,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[3]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -15312,6 +16000,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[2]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -15348,6 +16037,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[6]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -15384,6 +16074,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[1]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -15420,6 +16111,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -15455,6 +16147,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.CTLMODE">DCM1:INV.CTLMODE</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -15490,6 +16183,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[84]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -15525,6 +16219,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.CTLOSC2">DCM1:INV.CTLOSC2</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -15560,6 +16255,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[83]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -15595,6 +16291,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[82]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -15630,6 +16327,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INV.CTLOSC1">DCM1:INV.CTLOSC1</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -15666,6 +16364,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[5]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -15701,6 +16400,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[80]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -15736,6 +16436,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[79]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -15772,6 +16473,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[10]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -15807,6 +16509,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:OPT_INV">DCM1:OPT_INV[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -15843,6 +16546,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[7]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -15879,6 +16583,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[9]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -15914,6 +16619,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:OPT_INV">DCM1:OPT_INV[1]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -15949,12 +16655,18 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:OPT_INV">DCM1:OPT_INV[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 10</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -15988,7 +16700,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -16026,6 +16740,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[6]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -16061,6 +16776,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[59]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -16097,6 +16813,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[5]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -16132,6 +16849,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[58]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -16168,6 +16886,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[4]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -16203,6 +16922,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[57]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -16239,6 +16959,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[3]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -16274,6 +16995,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[56]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -16309,6 +17031,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[2]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -16344,6 +17067,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[55]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -16379,6 +17103,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[54]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -16414,6 +17139,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[1]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -16450,6 +17176,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[0]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -16485,6 +17212,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[53]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -16520,6 +17248,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[52]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -16555,6 +17284,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[31]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -16590,6 +17320,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[51]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -16625,6 +17356,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[30]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -16660,6 +17392,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[50]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -16695,6 +17428,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[29]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -16730,6 +17464,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[28]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -16765,6 +17500,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[49]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -16800,6 +17536,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[48]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -16836,6 +17573,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLKDV">DCM1:ENABLE.CLKDV</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -16872,6 +17610,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[11]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -16907,6 +17646,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[46]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -16943,6 +17683,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK2X180">DCM1:ENABLE.CLK2X180</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -16979,6 +17720,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK2X">DCM1:ENABLE.CLK2X</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -17015,6 +17757,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[4]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -17051,6 +17794,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[8]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -17087,6 +17831,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK270">DCM1:ENABLE.CLK270</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -17123,6 +17868,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK90">DCM1:ENABLE.CLK90</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -17158,6 +17904,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[43]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -17193,6 +17940,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[42]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -17229,6 +17977,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK180">DCM1:ENABLE.CLK180</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -17265,6 +18014,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK0">DCM1:ENABLE.CLK0</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -17301,6 +18051,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[3]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -17336,6 +18087,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[40]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -17372,6 +18124,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[17]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -17407,6 +18160,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[39]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -17442,6 +18196,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[38]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -17478,6 +18233,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[16]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -17514,6 +18270,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[15]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -17549,6 +18306,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[37]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -17584,6 +18342,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[36]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -17620,6 +18379,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[14]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -17656,6 +18416,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[13]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -17691,6 +18452,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[35]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -17726,6 +18488,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[34]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -17762,6 +18525,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[12]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -17798,6 +18562,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[11]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -17834,6 +18599,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[2]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -17870,6 +18636,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[1]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -17906,6 +18673,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[10]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -17942,6 +18710,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[9]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -17977,6 +18746,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[31]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -18012,6 +18782,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[30]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -18048,6 +18819,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[8]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -18083,6 +18855,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[29]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -18119,6 +18892,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PROG_ENABLE">DCM1:PROG_ENABLE</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -18155,6 +18929,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[7]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -18191,6 +18966,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[6]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -18226,6 +19002,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[27]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -18262,12 +19039,18 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[26]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 11</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -18301,7 +19084,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>53</td>
 <td>-</td>
@@ -18339,6 +19124,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.SKEWCLKIN2">DCM1:MUX.SKEWCLKIN2[0]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -18375,6 +19161,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLK_TO_PLL">DCM1:MUX.CLK_TO_PLL[3]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -18411,6 +19198,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLK_TO_PLL">DCM1:MUX.CLK_TO_PLL[2]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -18447,6 +19235,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLK_TO_PLL">DCM1:MUX.CLK_TO_PLL[1]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -18483,6 +19272,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLK_TO_PLL">DCM1:MUX.CLK_TO_PLL[0]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -18519,6 +19309,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKIN">DCM1:MUX.CLKIN[4]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -18555,6 +19346,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKIN">DCM1:MUX.CLKIN[3]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -18591,6 +19383,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKIN">DCM1:MUX.CLKIN[2]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -18627,6 +19420,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[18]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -18660,6 +19454,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -18696,6 +19491,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[18]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -18732,6 +19528,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[4]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -18767,6 +19564,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[27]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -18802,6 +19600,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C[26]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -18838,6 +19637,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_C">DCM1:DFS_C[2]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -18874,6 +19674,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_C">DCM1:DFS_C[1]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -18910,6 +19711,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_C">DCM1:DFS_C[0]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -18946,6 +19748,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKIN">DCM1:MUX.CLKIN[1]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -18982,6 +19785,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKIN">DCM1:MUX.CLKIN[0]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -19015,6 +19819,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -19048,6 +19853,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -19084,6 +19890,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKFB">DCM1:MUX.CLKFB[4]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -19120,6 +19927,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKFB">DCM1:MUX.CLKFB[3]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -19156,6 +19964,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKFB">DCM1:MUX.CLKFB[2]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -19192,6 +20001,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKFB">DCM1:MUX.CLKFB[1]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -19227,6 +20037,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[75]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -19262,6 +20073,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[74]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -19298,6 +20110,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:MUX.CLKFB">DCM1:MUX.CLKFB[0]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -19333,6 +20146,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[18]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -19368,6 +20182,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[73]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -19403,6 +20218,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[72]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -19438,6 +20254,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[17]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -19474,6 +20291,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[16]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -19510,6 +20328,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[12]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -19545,6 +20364,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[70]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -19580,6 +20400,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[15]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -19615,6 +20436,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[14]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -19650,6 +20472,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[69]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -19686,6 +20509,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -19721,6 +20545,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[13]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -19756,6 +20581,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[67]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -19791,6 +20617,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[66]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -19826,6 +20653,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[12]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -19862,6 +20690,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:STARTUP_WAIT">DCM1:STARTUP_WAIT</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -19897,6 +20726,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[65]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -19932,6 +20762,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[64]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -19967,6 +20798,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[10]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -20002,6 +20834,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[9]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -20037,6 +20870,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[63]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -20072,6 +20906,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[62]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -20108,6 +20943,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[8]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -20144,6 +20980,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE[7]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -20179,6 +21016,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[61]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -20214,12 +21052,18 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S[60]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 12</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -20253,7 +21097,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -20291,6 +21137,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:NO_FEEDBACK">DCM1:NO_FEEDBACK</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -20324,6 +21171,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -20359,6 +21207,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[7]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -20394,6 +21243,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[6]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -20427,6 +21277,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -20460,6 +21311,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -20496,6 +21348,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[5]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -20529,6 +21382,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -20562,6 +21416,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -20595,6 +21450,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -20630,6 +21486,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[3]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -20665,6 +21522,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[2]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -20698,6 +21556,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -20731,6 +21590,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -20766,6 +21626,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[1]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -20802,6 +21663,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[0]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -20835,6 +21697,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -20868,6 +21731,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -20901,6 +21765,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -20934,6 +21799,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -20967,6 +21833,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -21000,6 +21867,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -21033,6 +21901,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -21066,6 +21935,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -21099,6 +21969,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -21132,6 +22003,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -21165,6 +22037,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -21198,6 +22071,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -21231,6 +22105,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -21264,6 +22139,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -21297,6 +22173,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -21330,6 +22207,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -21363,6 +22241,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -21396,6 +22275,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -21429,6 +22309,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -21462,6 +22343,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -21495,6 +22377,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -21528,6 +22411,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -21561,6 +22445,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -21594,6 +22479,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -21627,6 +22513,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -21660,6 +22547,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -21693,6 +22581,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -21726,6 +22615,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -21759,6 +22649,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -21792,6 +22683,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -21825,6 +22717,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -21858,6 +22751,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -21891,6 +22785,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -21924,6 +22819,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -21957,6 +22853,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -21990,6 +22887,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -22023,6 +22921,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -22056,6 +22955,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -22089,6 +22989,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -22124,6 +23025,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[8]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -22159,6 +23061,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[7]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -22194,6 +23097,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[6]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -22229,6 +23133,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[5]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -22264,6 +23169,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[4]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -22299,6 +23205,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[3]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -22334,6 +23241,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[2]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -22369,6 +23277,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[1]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -22404,12 +23313,18 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:REG">CMT:REG[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 13</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -22443,7 +23358,9 @@
 <th>29</th>
 <th>30</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>41</td>
 <td>-</td>
@@ -22480,6 +23397,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[31]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -22515,6 +23433,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[30]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -22550,6 +23469,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[29]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -22585,6 +23505,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[28]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -22618,6 +23539,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -22651,6 +23573,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -22687,6 +23610,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[7]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -22723,6 +23647,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[6]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -22756,6 +23681,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -22789,6 +23715,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -22825,6 +23752,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[5]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -22861,6 +23789,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[4]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -22894,6 +23823,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -22927,6 +23857,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -22963,6 +23894,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[3]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -22999,6 +23931,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[2]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -23032,6 +23965,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -23065,6 +23999,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -23101,6 +24036,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[1]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -23137,6 +24073,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT[0]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -23170,6 +24107,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -23203,6 +24141,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -23239,6 +24178,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT_NEGATIVE">DCM1:PHASE_SHIFT_NEGATIVE</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -23272,6 +24212,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -23305,6 +24246,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -23340,6 +24282,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[17]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -23376,6 +24319,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[16]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -23409,6 +24353,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -23442,6 +24387,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -23477,6 +24423,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[15]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -23512,6 +24459,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[14]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -23545,6 +24493,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -23578,6 +24527,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -23613,6 +24563,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[13]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -23648,6 +24599,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[12]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -23681,6 +24633,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -23714,6 +24667,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -23749,6 +24703,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[11]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -23784,6 +24739,7 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[10]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -23817,6 +24773,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -23850,6 +24807,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -23885,89 +24843,146 @@
 <a href="#tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S[9]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 14</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 15</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 16</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 17</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 18</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 19</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 20</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 21</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -23977,6 +24992,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[4]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -23985,6 +25001,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[3]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -23993,6 +25010,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[5]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -24001,6 +25019,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[2]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -24009,6 +25028,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[9]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -24017,6 +25037,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[6]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -24025,6 +25046,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[8]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -24033,6 +25055,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[7]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -24041,6 +25064,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[4]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -24049,6 +25073,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[3]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -24057,6 +25082,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[5]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -24065,6 +25091,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[2]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -24073,6 +25100,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[9]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -24081,6 +25109,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[6]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -24089,6 +25118,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[8]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -24097,6 +25127,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[7]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -24105,6 +25136,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[4]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -24113,6 +25145,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[3]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -24121,6 +25154,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[5]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -24129,6 +25163,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[2]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -24137,6 +25172,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[9]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -24145,6 +25181,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[6]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -24153,6 +25190,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[8]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -24161,6 +25199,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[7]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -24169,6 +25208,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[4]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -24177,6 +25217,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[3]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -24185,6 +25226,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[5]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -24193,6 +25235,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[2]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -24201,6 +25244,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[9]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -24209,6 +25253,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[6]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -24217,6 +25262,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[8]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -24225,6 +25271,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[7]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -24233,6 +25280,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[4]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -24241,6 +25289,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[3]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -24249,6 +25298,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[5]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -24257,6 +25307,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[2]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -24265,6 +25316,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[9]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -24273,6 +25325,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[6]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -24281,6 +25334,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[8]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -24289,6 +25343,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[7]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -24297,6 +25352,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[4]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -24305,6 +25361,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[3]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -24313,6 +25370,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[5]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -24321,6 +25379,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[2]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -24329,6 +25388,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[9]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -24337,6 +25397,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[6]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -24345,6 +25406,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[8]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -24353,6 +25415,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[7]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -24361,6 +25424,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC7">CMT:MUX.CASC7[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -24369,6 +25433,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC6">CMT:MUX.CASC6[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -24377,6 +25442,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC5">CMT:MUX.CASC5[0]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -24385,6 +25451,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC4">CMT:MUX.CASC4[0]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -24393,6 +25460,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC3">CMT:MUX.CASC3[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -24401,6 +25469,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC2">CMT:MUX.CASC2[0]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -24409,6 +25478,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC1">CMT:MUX.CASC1[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -24417,6 +25487,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC0">CMT:MUX.CASC0[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -24425,6 +25496,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -24433,6 +25505,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -24441,6 +25514,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -24449,6 +25523,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -24457,6 +25532,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[0]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -24465,6 +25541,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2[1]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -24473,6 +25550,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[0]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -24481,19 +25559,27 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 22</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>31</td>
 <td>-</td>
@@ -24503,6 +25589,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[0]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -24511,6 +25598,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4[1]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -24519,6 +25607,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[0]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -24527,6 +25616,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5[1]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -24535,6 +25625,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[0]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -24543,6 +25634,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[1]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -24551,6 +25643,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[0]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -24559,54 +25652,63 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[1]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -24615,6 +25717,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[4]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -24623,6 +25726,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[3]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -24631,6 +25735,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[5]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -24639,6 +25744,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[2]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -24647,6 +25753,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[9]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -24655,6 +25762,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[6]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -24663,6 +25771,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[8]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -24671,6 +25780,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7[7]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -24679,6 +25789,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[4]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -24687,6 +25798,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -24695,6 +25807,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[5]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -24703,6 +25816,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -24711,6 +25825,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[9]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -24719,6 +25834,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[6]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -24727,6 +25843,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[8]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -24735,29 +25852,44 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6[7]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 23</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 24</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>55</td>
 <td>-</td>
@@ -24767,6 +25899,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[0]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -24775,6 +25908,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[1]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -24783,6 +25917,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[0]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -24791,6 +25926,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[1]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -24799,6 +25935,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[0]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -24807,6 +25944,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[1]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -24815,6 +25953,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[0]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -24823,6 +25962,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[1]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -24831,6 +25971,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC15">CMT:MUX.CASC15[0]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -24839,6 +25980,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC14">CMT:MUX.CASC14[0]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -24847,6 +25989,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC13">CMT:MUX.CASC13[0]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -24855,6 +25998,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC12">CMT:MUX.CASC12[0]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -24863,6 +26007,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC11">CMT:MUX.CASC11[0]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -24871,6 +26016,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC10">CMT:MUX.CASC10[0]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -24879,6 +26025,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC9">CMT:MUX.CASC9[0]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -24887,259 +26034,307 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.CASC8">CMT:MUX.CASC8[0]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 25</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -25149,6 +26344,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[4]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -25157,6 +26353,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[3]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -25165,6 +26362,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[5]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -25173,6 +26371,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[2]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -25181,6 +26380,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[9]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -25189,6 +26389,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[6]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -25197,6 +26398,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[8]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -25205,6 +26407,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[7]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -25213,6 +26416,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[4]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -25221,6 +26425,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[3]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -25229,6 +26434,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[5]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -25237,6 +26443,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[2]</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -25245,6 +26452,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[9]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -25253,6 +26461,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[6]</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -25261,6 +26470,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[8]</a>
 </td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -25269,6 +26479,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[7]</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -25277,6 +26488,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[4]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -25285,6 +26497,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[3]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -25293,6 +26506,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[5]</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -25301,6 +26515,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[2]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -25309,6 +26524,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[9]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -25317,6 +26533,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[6]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -25325,6 +26542,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[8]</a>
 </td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -25333,6 +26551,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[7]</a>
 </td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -25341,6 +26560,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[4]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -25349,6 +26569,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[3]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -25357,6 +26578,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[5]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -25365,6 +26587,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[2]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -25373,6 +26596,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[9]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -25381,6 +26605,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[6]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -25389,6 +26614,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[8]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -25397,6 +26623,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[7]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -25405,6 +26632,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[4]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -25413,6 +26641,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[3]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -25421,6 +26650,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[5]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -25429,6 +26659,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[2]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -25437,6 +26668,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[9]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -25445,6 +26677,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[6]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -25453,6 +26686,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[8]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -25461,6 +26695,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11[7]</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -25469,6 +26704,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[4]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -25477,6 +26713,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[3]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -25485,6 +26722,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[5]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -25493,6 +26731,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[2]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -25501,6 +26740,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[9]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -25509,6 +26749,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[6]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -25517,6 +26758,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[8]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -25525,6 +26767,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10[7]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -25533,6 +26776,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[4]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -25541,6 +26785,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[3]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -25549,6 +26794,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[5]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -25557,6 +26803,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[2]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -25565,6 +26812,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[9]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -25573,6 +26821,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[6]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -25581,6 +26830,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[8]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -25589,6 +26839,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9[7]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -25597,6 +26848,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[4]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -25605,6 +26857,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -25613,6 +26866,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[5]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -25621,6 +26875,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -25629,6 +26884,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[9]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -25637,6 +26893,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[6]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -25645,6 +26902,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[8]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
@@ -25653,19 +26911,27 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8[7]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 26</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>15</td>
 <td>-</td>
@@ -25675,6 +26941,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[0]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -25683,6 +26950,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12[1]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -25691,6 +26959,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[0]</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -25699,6 +26968,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13[1]</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -25707,6 +26977,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[0]</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -25715,6 +26986,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14[1]</a>
 </td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -25723,6 +26995,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[0]</a>
 </td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -25731,97 +27004,134 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 27</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 28</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 29</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="0">Frame</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>spartan6 CMT_DCM bittile 30</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -25831,6 +27141,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[10]</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -25839,6 +27150,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[9]</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -25847,6 +27159,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[8]</a>
 </td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -25855,6 +27168,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[7]</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -25863,6 +27177,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[6]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -25871,6 +27186,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[5]</a>
 </td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -25879,6 +27195,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[4]</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -25887,6 +27204,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[3]</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -25895,6 +27213,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[2]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -25903,6 +27222,7 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[1]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -25911,327 +27231,385 @@
 <a href="#tile-spartan6-CMT_DCM-CMT:BG">CMT:BG[0]</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-CMT:BG">CMT:BG</th>
 <th>30.3.63</th>
@@ -26246,7 +27624,9 @@
 <th>30.3.54</th>
 <th>30.3.53</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -26263,69 +27643,97 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC0">CMT:MUX.CASC0</th>
 <th>21.3.8</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC1">CMT:MUX.CASC1</th>
 <th>21.3.9</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC10">CMT:MUX.CASC10</th>
 <th>24.3.42</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC11">CMT:MUX.CASC11</th>
 <th>24.3.43</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC12">CMT:MUX.CASC12</th>
 <th>24.3.44</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC13">CMT:MUX.CASC13</th>
 <th>24.3.45</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC14">CMT:MUX.CASC14</th>
 <th>24.3.46</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC15">CMT:MUX.CASC15</th>
 <th>24.3.47</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC2">CMT:MUX.CASC2</th>
 <th>21.3.10</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC3">CMT:MUX.CASC3</th>
 <th>21.3.11</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC4">CMT:MUX.CASC4</th>
 <th>21.3.12</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC5">CMT:MUX.CASC5</th>
 <th>21.3.13</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC6">CMT:MUX.CASC6</th>
 <th>21.3.14</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC7">CMT:MUX.CASC7</th>
 <th>21.3.15</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC8">CMT:MUX.CASC8</th>
 <th>24.3.40</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.CASC9">CMT:MUX.CASC9</th>
 <th>24.3.41</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PASS</td>
 <td>0</td>
 </tr>
+
 <tr><td>HCLK</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK0">CMT:MUX.HCLK0</th>
 <th>21.3.19</th>
@@ -26339,6 +27747,7 @@ non-inverted
 <th>21.3.6</th>
 <th>21.3.7</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK1">CMT:MUX.HCLK1</th>
 <th>21.3.27</th>
 <th>21.3.25</th>
@@ -26351,6 +27760,7 @@ non-inverted
 <th>21.3.4</th>
 <th>21.3.5</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK10">CMT:MUX.HCLK10</th>
 <th>25.3.19</th>
 <th>25.3.17</th>
@@ -26363,6 +27773,7 @@ non-inverted
 <th>24.3.50</th>
 <th>24.3.51</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK11">CMT:MUX.HCLK11</th>
 <th>25.3.27</th>
 <th>25.3.25</th>
@@ -26375,6 +27786,7 @@ non-inverted
 <th>24.3.48</th>
 <th>24.3.49</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK12">CMT:MUX.HCLK12</th>
 <th>25.3.35</th>
 <th>25.3.33</th>
@@ -26387,6 +27799,7 @@ non-inverted
 <th>26.3.14</th>
 <th>26.3.15</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK13">CMT:MUX.HCLK13</th>
 <th>25.3.43</th>
 <th>25.3.41</th>
@@ -26399,6 +27812,7 @@ non-inverted
 <th>26.3.12</th>
 <th>26.3.13</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK14">CMT:MUX.HCLK14</th>
 <th>25.3.51</th>
 <th>25.3.49</th>
@@ -26411,6 +27825,7 @@ non-inverted
 <th>26.3.10</th>
 <th>26.3.11</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK15">CMT:MUX.HCLK15</th>
 <th>25.3.59</th>
 <th>25.3.57</th>
@@ -26423,6 +27838,7 @@ non-inverted
 <th>26.3.8</th>
 <th>26.3.9</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK2">CMT:MUX.HCLK2</th>
 <th>21.3.35</th>
 <th>21.3.33</th>
@@ -26435,6 +27851,7 @@ non-inverted
 <th>21.3.2</th>
 <th>21.3.3</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK3">CMT:MUX.HCLK3</th>
 <th>21.3.43</th>
 <th>21.3.41</th>
@@ -26447,6 +27864,7 @@ non-inverted
 <th>21.3.0</th>
 <th>21.3.1</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK4">CMT:MUX.HCLK4</th>
 <th>21.3.51</th>
 <th>21.3.49</th>
@@ -26459,6 +27877,7 @@ non-inverted
 <th>22.3.30</th>
 <th>22.3.31</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK5">CMT:MUX.HCLK5</th>
 <th>21.3.59</th>
 <th>21.3.57</th>
@@ -26471,6 +27890,7 @@ non-inverted
 <th>22.3.28</th>
 <th>22.3.29</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK6">CMT:MUX.HCLK6</th>
 <th>22.3.3</th>
 <th>22.3.1</th>
@@ -26483,6 +27903,7 @@ non-inverted
 <th>22.3.26</th>
 <th>22.3.27</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK7">CMT:MUX.HCLK7</th>
 <th>22.3.11</th>
 <th>22.3.9</th>
@@ -26495,6 +27916,7 @@ non-inverted
 <th>22.3.24</th>
 <th>22.3.25</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK8">CMT:MUX.HCLK8</th>
 <th>25.3.3</th>
 <th>25.3.1</th>
@@ -26507,6 +27929,7 @@ non-inverted
 <th>24.3.54</th>
 <th>24.3.55</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-CMT:MUX.HCLK9">CMT:MUX.HCLK9</th>
 <th>25.3.11</th>
 <th>25.3.9</th>
@@ -26519,7 +27942,9 @@ non-inverted
 <th>24.3.52</th>
 <th>24.3.53</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
@@ -26533,6 +27958,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CKINT</td>
 <td>0</td>
 <td>0</td>
@@ -26545,6 +27971,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>DCM0_CLK0</td>
 <td>0</td>
 <td>0</td>
@@ -26557,6 +27984,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLK90</td>
 <td>0</td>
 <td>0</td>
@@ -26569,6 +27997,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLK180</td>
 <td>0</td>
 <td>0</td>
@@ -26581,6 +28010,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLK270</td>
 <td>0</td>
 <td>0</td>
@@ -26593,6 +28023,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLK2X</td>
 <td>0</td>
 <td>0</td>
@@ -26605,6 +28036,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLKFX180</td>
 <td>0</td>
 <td>0</td>
@@ -26617,6 +28049,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLK2X180</td>
 <td>0</td>
 <td>0</td>
@@ -26629,6 +28062,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CONCUR</td>
 <td>0</td>
 <td>0</td>
@@ -26641,6 +28075,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLKDV</td>
 <td>0</td>
 <td>0</td>
@@ -26653,6 +28088,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM0_CLKFX</td>
 <td>0</td>
 <td>0</td>
@@ -26665,6 +28101,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLK0</td>
 <td>0</td>
 <td>0</td>
@@ -26677,6 +28114,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLK90</td>
 <td>0</td>
 <td>0</td>
@@ -26689,6 +28127,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLK180</td>
 <td>0</td>
 <td>1</td>
@@ -26701,6 +28140,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLK270</td>
 <td>0</td>
 <td>1</td>
@@ -26713,6 +28153,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLK2X</td>
 <td>1</td>
 <td>0</td>
@@ -26725,6 +28166,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLKFX180</td>
 <td>1</td>
 <td>0</td>
@@ -26737,6 +28179,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLK2X180</td>
 <td>1</td>
 <td>0</td>
@@ -26749,6 +28192,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CONCUR</td>
 <td>1</td>
 <td>0</td>
@@ -26761,6 +28205,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLKDV</td>
 <td>1</td>
 <td>1</td>
@@ -26773,6 +28218,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>DCM1_CLKFX</td>
 <td>1</td>
 <td>1</td>
@@ -26785,9 +28231,14 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-CMT:REG">CMT:REG</th>
 <th>12.30.8</th>
@@ -26800,7 +28251,9 @@ non-inverted
 <th>12.30.1</th>
 <th>12.30.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -26815,266 +28268,359 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:BUF.CLK_FROM_PLL">DCM0:BUF.CLK_FROM_PLL</th>
 <th>6.30.57</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKFB_IOB">DCM0:CLKFB_IOB</th>
 <th>6.30.20</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKIN_CLKFB_ENABLE">DCM0:CLKIN_CLKFB_ENABLE</th>
 <th>6.30.40</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKIN_DIVIDE_BY_2">DCM0:CLKIN_DIVIDE_BY_2</th>
 <th>6.30.31</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKIN_IOB">DCM0:CLKIN_IOB</th>
 <th>6.30.16</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DFS_ENABLE">DCM0:DFS_ENABLE</th>
 <th>4.30.42</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DFS_FEEDBACK">DCM0:DFS_FEEDBACK</th>
 <th>4.30.50</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DLL_ENABLE">DCM0:DLL_ENABLE</th>
 <th>2.30.59</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DUTY_CYCLE_CORRECTION">DCM0:DUTY_CYCLE_CORRECTION</th>
 <th>5.30.57</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK0">DCM0:ENABLE.CLK0</th>
 <th>5.30.41</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK180">DCM0:ENABLE.CLK180</th>
 <th>5.30.59</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK270">DCM0:ENABLE.CLK270</th>
 <th>5.30.61</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK2X">DCM0:ENABLE.CLK2X</th>
 <th>6.30.4</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK2X180">DCM0:ENABLE.CLK2X180</th>
 <th>6.30.5</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLK90">DCM0:ENABLE.CLK90</th>
 <th>5.30.60</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLKDV">DCM0:ENABLE.CLKDV</th>
 <th>6.30.6</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CLKFX">DCM0:ENABLE.CLKFX</th>
 <th>4.30.46</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:ENABLE.CONCUR">DCM0:ENABLE.CONCUR</th>
 <th>4.30.45</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.CTLGO">DCM0:INV.CTLGO</th>
 <th>6.30.53</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.CTLMODE">DCM0:INV.CTLMODE</th>
 <th>5.30.44</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.CTLOSC1">DCM0:INV.CTLOSC1</th>
 <th>6.30.58</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.CTLOSC2">DCM0:INV.CTLOSC2</th>
 <th>6.30.62</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.CTLSEL0">DCM0:INV.CTLSEL0</th>
 <th>5.30.46</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.CTLSEL1">DCM0:INV.CTLSEL1</th>
 <th>5.30.45</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.CTLSEL2">DCM0:INV.CTLSEL2</th>
 <th>5.30.43</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.FREEZEDFS">DCM0:INV.FREEZEDFS</th>
 <th>5.30.49</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.FREEZEDLL">DCM0:INV.FREEZEDLL</th>
 <th>6.30.63</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.PSEN">DCM0:INV.PSEN</th>
 <th>5.30.48</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.PSINCDEC">DCM0:INV.PSINCDEC</th>
 <th>5.30.47</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.RST">DCM0:INV.RST</th>
 <th>5.30.22</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.SKEWIN">DCM0:INV.SKEWIN</th>
 <th>6.30.41</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.SKEWRST">DCM0:INV.SKEWRST</th>
 <th>6.30.42</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.STSADRS0">DCM0:INV.STSADRS0</th>
 <th>5.30.25</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.STSADRS1">DCM0:INV.STSADRS1</th>
 <th>5.30.28</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.STSADRS2">DCM0:INV.STSADRS2</th>
 <th>5.30.30</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.STSADRS3">DCM0:INV.STSADRS3</th>
 <th>5.30.34</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INV.STSADRS4">DCM0:INV.STSADRS4</th>
 <th>5.30.37</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:NO_FEEDBACK">DCM0:NO_FEEDBACK</th>
 <th>1.30.42</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT_NEGATIVE">DCM0:PHASE_SHIFT_NEGATIVE</th>
 <th>1.30.22</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:PROG_ENABLE">DCM0:PROG_ENABLE</th>
 <th>4.30.39</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:STARTUP_WAIT">DCM0:STARTUP_WAIT</th>
 <th>5.30.53</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:BUF.CLK_FROM_PLL">DCM1:BUF.CLK_FROM_PLL</th>
 <th>11.30.21</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKFB_IOB">DCM1:CLKFB_IOB</th>
 <th>11.30.2</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKIN_CLKFB_ENABLE">DCM1:CLKIN_CLKFB_ENABLE</th>
 <th>6.30.44</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKIN_DIVIDE_BY_2">DCM1:CLKIN_DIVIDE_BY_2</th>
 <th>10.30.51</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKIN_IOB">DCM1:CLKIN_IOB</th>
 <th>11.30.3</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DFS_ENABLE">DCM1:DFS_ENABLE</th>
 <th>10.30.0</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DFS_FEEDBACK">DCM1:DFS_FEEDBACK</th>
 <th>9.30.56</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DLL_ENABLE">DCM1:DLL_ENABLE</th>
 <th>11.30.42</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DUTY_CYCLE_CORRECTION">DCM1:DUTY_CYCLE_CORRECTION</th>
 <th>9.30.51</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK0">DCM1:ENABLE.CLK0</th>
 <th>10.30.28</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK180">DCM1:ENABLE.CLK180</th>
 <th>10.30.29</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK270">DCM1:ENABLE.CLK270</th>
 <th>10.30.33</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK2X">DCM1:ENABLE.CLK2X</th>
 <th>10.30.36</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK2X180">DCM1:ENABLE.CLK2X180</th>
 <th>10.30.37</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLK90">DCM1:ENABLE.CLK90</th>
 <th>10.30.32</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLKDV">DCM1:ENABLE.CLKDV</th>
 <th>10.30.40</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CLKFX">DCM1:ENABLE.CLKFX</th>
 <th>9.30.60</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:ENABLE.CONCUR">DCM1:ENABLE.CONCUR</th>
 <th>9.30.61</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.CTLGO">DCM1:INV.CTLGO</th>
 <th>9.30.21</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.CTLMODE">DCM1:INV.CTLMODE</th>
 <th>9.30.14</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.CTLOSC1">DCM1:INV.CTLOSC1</th>
 <th>9.30.9</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.CTLOSC2">DCM1:INV.CTLOSC2</th>
 <th>9.30.12</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.CTLSEL0">DCM1:INV.CTLSEL0</th>
 <th>9.30.24</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.CTLSEL1">DCM1:INV.CTLSEL1</th>
 <th>9.30.25</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.CTLSEL2">DCM1:INV.CTLSEL2</th>
 <th>9.30.28</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.FREEZEDFS">DCM1:INV.FREEZEDFS</th>
 <th>9.30.43</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.FREEZEDLL">DCM1:INV.FREEZEDLL</th>
 <th>9.30.40</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.PSEN">DCM1:INV.PSEN</th>
 <th>9.30.47</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.PSINCDEC">DCM1:INV.PSINCDEC</th>
 <th>9.30.44</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.RST">DCM1:INV.RST</th>
 <th>9.30.48</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.SKEWIN">DCM1:INV.SKEWIN</th>
 <th>6.30.45</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.SKEWRST">DCM1:INV.SKEWRST</th>
 <th>6.30.46</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.STSADRS0">DCM1:INV.STSADRS0</th>
 <th>9.30.29</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.STSADRS1">DCM1:INV.STSADRS1</th>
 <th>9.30.32</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.STSADRS2">DCM1:INV.STSADRS2</th>
 <th>9.30.33</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.STSADRS3">DCM1:INV.STSADRS3</th>
 <th>9.30.36</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INV.STSADRS4">DCM1:INV.STSADRS4</th>
 <th>9.30.37</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:NO_FEEDBACK">DCM1:NO_FEEDBACK</th>
 <th>12.30.63</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT_NEGATIVE">DCM1:PHASE_SHIFT_NEGATIVE</th>
 <th>13.30.19</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:PROG_ENABLE">DCM1:PROG_ENABLE</th>
 <th>10.30.4</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:STARTUP_WAIT">DCM1:STARTUP_WAIT</th>
 <th>11.30.10</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKDV_COUNT_FALL">DCM0:CLKDV_COUNT_FALL</th>
 <th>6.30.19</th>
@@ -27082,49 +28628,58 @@ non-inverted
 <th>6.30.17</th>
 <th>6.30.15</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKDV_COUNT_FALL_2">DCM0:CLKDV_COUNT_FALL_2</th>
 <th>6.30.10</th>
 <th>6.30.61</th>
 <th>6.30.60</th>
 <th>6.30.9</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKDV_COUNT_MAX">DCM0:CLKDV_COUNT_MAX</th>
 <th>6.30.14</th>
 <th>6.30.13</th>
 <th>6.30.12</th>
 <th>6.30.11</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DESKEW_ADJUST">DCM0:DESKEW_ADJUST</th>
 <th>6.30.23</th>
 <th>6.30.24</th>
 <th>6.30.25</th>
 <th>6.30.26</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKDV_COUNT_FALL">DCM1:CLKDV_COUNT_FALL</th>
 <th>10.30.6</th>
 <th>10.30.3</th>
 <th>10.30.2</th>
 <th>9.30.63</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKDV_COUNT_FALL_2">DCM1:CLKDV_COUNT_FALL_2</th>
 <th>10.30.14</th>
 <th>10.30.13</th>
 <th>10.30.10</th>
 <th>10.30.9</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKDV_COUNT_MAX">DCM1:CLKDV_COUNT_MAX</th>
 <th>9.30.62</th>
 <th>9.30.59</th>
 <th>9.30.58</th>
 <th>9.30.52</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DESKEW_ADJUST">DCM1:DESKEW_ADJUST</th>
 <th>10.30.63</th>
 <th>10.30.61</th>
 <th>10.30.59</th>
 <th>10.30.57</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -27134,45 +28689,64 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKDV_MODE">DCM0:CLKDV_MODE</th>
 <th>6.30.8</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKDV_MODE">DCM1:CLKDV_MODE</th>
 <th>10.30.25</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HALF</td>
 <td>0</td>
 </tr>
+
 <tr><td>INT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKDV_PHASE_FALL">DCM0:CLKDV_PHASE_FALL</th>
 <th>5.30.56</th>
 <th>5.30.63</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKDV_PHASE_RISE">DCM0:CLKDV_PHASE_RISE</th>
 <th>5.30.55</th>
 <th>6.30.0</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKDV_PHASE_FALL">DCM1:CLKDV_PHASE_FALL</th>
 <th>10.30.22</th>
 <th>10.30.21</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKDV_PHASE_RISE">DCM1:CLKDV_PHASE_RISE</th>
 <th>10.30.18</th>
 <th>10.30.17</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -27180,55 +28754,73 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKFXDV_DIVIDE">DCM0:CLKFXDV_DIVIDE</th>
 <th>3.30.4</th>
 <th>3.30.3</th>
 <th>3.30.2</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKFXDV_DIVIDE">DCM1:CLKFXDV_DIVIDE</th>
 <th>11.30.39</th>
 <th>11.30.38</th>
 <th>11.30.37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>32</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>16</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>8</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>4</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>2</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKFX_DIVIDE">DCM0:CLKFX_DIVIDE</th>
 <th>5.30.15</th>
@@ -27240,6 +28832,7 @@ non-inverted
 <th>5.30.26</th>
 <th>5.30.27</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKFX_MULTIPLY">DCM0:CLKFX_MULTIPLY</th>
 <th>5.30.0</th>
 <th>5.30.1</th>
@@ -27250,6 +28843,7 @@ non-inverted
 <th>5.30.11</th>
 <th>5.30.12</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:PHASE_SHIFT">DCM0:PHASE_SHIFT</th>
 <th>1.30.7</th>
 <th>1.30.8</th>
@@ -27260,6 +28854,7 @@ non-inverted
 <th>1.30.19</th>
 <th>1.30.20</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKFX_DIVIDE">DCM1:CLKFX_DIVIDE</th>
 <th>9.30.27</th>
 <th>9.30.26</th>
@@ -27270,6 +28865,7 @@ non-inverted
 <th>9.30.16</th>
 <th>9.30.15</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKFX_MULTIPLY">DCM1:CLKFX_MULTIPLY</th>
 <th>9.30.42</th>
 <th>9.30.41</th>
@@ -27280,6 +28876,7 @@ non-inverted
 <th>9.30.31</th>
 <th>9.30.30</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:PHASE_SHIFT">DCM1:PHASE_SHIFT</th>
 <th>13.30.35</th>
 <th>13.30.34</th>
@@ -27290,7 +28887,9 @@ non-inverted
 <th>13.30.23</th>
 <th>13.30.22</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -27304,80 +28903,109 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLKOUT_PHASE_SHIFT">DCM0:CLKOUT_PHASE_SHIFT</th>
 <th>1.30.27</th>
 <th>2.30.60</th>
 <th>1.30.58</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLKOUT_PHASE_SHIFT">DCM1:CLKOUT_PHASE_SHIFT</th>
 <th>13.30.15</th>
 <th>11.30.43</th>
 <th>12.30.48</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>FIXED</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>VARIABLE</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:CLK_FEEDBACK">DCM0:CLK_FEEDBACK</th>
 <th>3.30.1</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:CLK_FEEDBACK">DCM1:CLK_FEEDBACK</th>
 <th>11.30.45</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1X</td>
 <td>0</td>
 </tr>
+
 <tr><td>2X</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DFS_C">DCM0:DFS_C</th>
 <th>3.30.4</th>
 <th>3.30.3</th>
 <th>3.30.2</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:OPT_INV">DCM0:OPT_INV</th>
 <th>5.30.21</th>
 <th>5.30.18</th>
 <th>5.30.17</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DFS_C">DCM1:DFS_C</th>
 <th>11.30.39</th>
 <th>11.30.38</th>
 <th>11.30.37</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:OPT_INV">DCM1:OPT_INV</th>
 <th>9.30.4</th>
 <th>9.30.1</th>
 <th>9.30.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -27386,33 +29014,49 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DFS_FREQUENCY_MODE">DCM0:DFS_FREQUENCY_MODE</th>
 <th>4.30.48</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DLL_FREQUENCY_MODE">DCM0:DLL_FREQUENCY_MODE</th>
 <th>1.30.49</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DFS_FREQUENCY_MODE">DCM1:DFS_FREQUENCY_MODE</th>
 <th>9.30.57</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DLL_FREQUENCY_MODE">DCM1:DLL_FREQUENCY_MODE</th>
 <th>12.30.57</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>LOW</td>
 <td>0</td>
 </tr>
+
 <tr><td>HIGH</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DFS_S">DCM0:DFS_S</th>
 <th>5.30.10</th>
@@ -27503,6 +29147,7 @@ non-inverted
 <th>5.30.26</th>
 <th>5.30.27</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DFS_S">DCM1:DFS_S</th>
 <th>9.30.20</th>
 <th>9.30.17</th>
@@ -27592,7 +29237,9 @@ non-inverted
 <th>9.30.16</th>
 <th>9.30.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -27685,9 +29332,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DLL_C">DCM0:DLL_C</th>
 <th>2.30.55</th>
@@ -27723,6 +29375,7 @@ non-inverted
 <th>6.30.11</th>
 <th>5.30.57</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:DLL_S">DCM0:DLL_S</th>
 <th>1.30.1</th>
 <th>1.30.2</th>
@@ -27757,6 +29410,7 @@ non-inverted
 <th>1.30.56</th>
 <th>1.30.58</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DLL_C">DCM1:DLL_C</th>
 <th>10.30.48</th>
 <th>10.30.46</th>
@@ -27791,6 +29445,7 @@ non-inverted
 <th>9.30.52</th>
 <th>9.30.51</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:DLL_S">DCM1:DLL_S</th>
 <th>13.30.41</th>
 <th>13.30.40</th>
@@ -27825,7 +29480,9 @@ non-inverted
 <th>12.30.49</th>
 <th>12.30.48</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -27863,9 +29520,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:INTERFACE">DCM0:INTERFACE</th>
 <th>6.30.42</th>
@@ -27909,6 +29571,7 @@ non-inverted
 <th>6.30.27</th>
 <th>6.30.31</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:INTERFACE">DCM1:INTERFACE</th>
 <th>6.30.46</th>
 <th>6.30.45</th>
@@ -27951,7 +29614,9 @@ non-inverted
 <th>10.30.52</th>
 <th>10.30.51</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -27997,9 +29662,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:MUX.CLKFB">DCM0:MUX.CLKFB</th>
 <th>6.30.32</th>
@@ -28008,6 +29678,7 @@ non-inverted
 <th>6.30.51</th>
 <th>6.30.54</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:MUX.CLKFB">DCM1:MUX.CLKFB</th>
 <th>11.30.32</th>
 <th>11.30.31</th>
@@ -28015,7 +29686,9 @@ non-inverted
 <th>11.30.29</th>
 <th>11.30.26</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>BUFIO2FB_LR0</td>
 <td>0</td>
@@ -28024,6 +29697,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_LR1</td>
 <td>0</td>
 <td>0</td>
@@ -28031,6 +29705,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2FB_LR2</td>
 <td>0</td>
 <td>0</td>
@@ -28038,6 +29713,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_LR3</td>
 <td>0</td>
 <td>0</td>
@@ -28045,6 +29721,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2FB_LR4</td>
 <td>0</td>
 <td>0</td>
@@ -28052,6 +29729,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_LR5</td>
 <td>0</td>
 <td>0</td>
@@ -28059,6 +29737,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2FB_LR6</td>
 <td>0</td>
 <td>1</td>
@@ -28066,6 +29745,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_LR7</td>
 <td>0</td>
 <td>1</td>
@@ -28073,6 +29753,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT0</td>
 <td>0</td>
 <td>1</td>
@@ -28080,6 +29761,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT1</td>
 <td>0</td>
 <td>1</td>
@@ -28087,6 +29769,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT2</td>
 <td>0</td>
 <td>1</td>
@@ -28094,6 +29777,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT3</td>
 <td>0</td>
 <td>1</td>
@@ -28101,6 +29785,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT4</td>
 <td>1</td>
 <td>0</td>
@@ -28108,6 +29793,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT5</td>
 <td>1</td>
 <td>0</td>
@@ -28115,6 +29801,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT6</td>
 <td>1</td>
 <td>0</td>
@@ -28122,6 +29809,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2FB_BT7</td>
 <td>1</td>
 <td>0</td>
@@ -28129,6 +29817,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CKINT0</td>
 <td>1</td>
 <td>0</td>
@@ -28136,6 +29825,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CKINT1</td>
 <td>1</td>
 <td>0</td>
@@ -28143,9 +29833,14 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:MUX.CLKIN">DCM0:MUX.CLKIN</th>
 <th>6.30.55</th>
@@ -28154,6 +29849,7 @@ non-inverted
 <th>6.30.29</th>
 <th>6.30.28</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:MUX.CLKIN">DCM1:MUX.CLKIN</th>
 <th>11.30.48</th>
 <th>11.30.47</th>
@@ -28161,7 +29857,9 @@ non-inverted
 <th>11.30.36</th>
 <th>11.30.35</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>BUFIO2_LR0</td>
 <td>0</td>
@@ -28170,6 +29868,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_LR1</td>
 <td>0</td>
 <td>0</td>
@@ -28177,6 +29876,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2_LR2</td>
 <td>0</td>
 <td>0</td>
@@ -28184,6 +29884,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_LR3</td>
 <td>0</td>
 <td>0</td>
@@ -28191,6 +29892,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2_LR4</td>
 <td>0</td>
 <td>0</td>
@@ -28198,6 +29900,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_LR5</td>
 <td>0</td>
 <td>0</td>
@@ -28205,6 +29908,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2_LR6</td>
 <td>0</td>
 <td>1</td>
@@ -28212,6 +29916,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_LR7</td>
 <td>0</td>
 <td>1</td>
@@ -28219,6 +29924,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2_BT0</td>
 <td>0</td>
 <td>1</td>
@@ -28226,6 +29932,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_BT1</td>
 <td>0</td>
 <td>1</td>
@@ -28233,6 +29940,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2_BT2</td>
 <td>0</td>
 <td>1</td>
@@ -28240,6 +29948,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_BT3</td>
 <td>0</td>
 <td>1</td>
@@ -28247,6 +29956,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2_BT4</td>
 <td>1</td>
 <td>0</td>
@@ -28254,6 +29964,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_BT5</td>
 <td>1</td>
 <td>0</td>
@@ -28261,6 +29972,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>BUFIO2_BT6</td>
 <td>1</td>
 <td>0</td>
@@ -28268,6 +29980,7 @@ non-inverted
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>BUFIO2_BT7</td>
 <td>1</td>
 <td>0</td>
@@ -28275,6 +29988,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CKINT0</td>
 <td>1</td>
 <td>0</td>
@@ -28282,6 +29996,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CKINT1</td>
 <td>1</td>
 <td>0</td>
@@ -28289,6 +30004,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLK_FROM_PLL</td>
 <td>1</td>
 <td>1</td>
@@ -28296,9 +30012,14 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:MUX.CLK_TO_PLL">DCM0:MUX.CLK_TO_PLL</th>
 <th>6.30.35</th>
@@ -28306,25 +30027,30 @@ non-inverted
 <th>6.30.52</th>
 <th>6.30.33</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:MUX.SKEWCLKIN2">DCM0:MUX.SKEWCLKIN2</th>
 <th>6.30.39</th>
 <th>6.30.38</th>
 <th>6.30.37</th>
 <th>6.30.36</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:MUX.CLK_TO_PLL">DCM1:MUX.CLK_TO_PLL</th>
 <th>11.30.52</th>
 <th>11.30.51</th>
 <th>11.30.50</th>
 <th>11.30.49</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:MUX.SKEWCLKIN2">DCM1:MUX.SKEWCLKIN2</th>
 <th>6.30.43</th>
 <th>5.30.58</th>
 <th>5.30.50</th>
 <th>11.30.53</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLK0</td>
 <td>0</td>
@@ -28332,63 +30058,77 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLK90</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLK180</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLK270</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLK2X</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLK2X180</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLKDV</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLKFX</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CLKFX180</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>CONCUR</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan6-CMT_DCM-DCM0:SPREAD_SPECTRUM">DCM0:SPREAD_SPECTRUM</th>
 <th>4.30.3</th>
@@ -28405,6 +30145,7 @@ non-inverted
 <th>4.30.7</th>
 <th>3.30.26</th>
 </tr>
+
 <tr><th id="tile-spartan6-CMT_DCM-DCM1:SPREAD_SPECTRUM">DCM1:SPREAD_SPECTRUM</th>
 <th>11.30.20</th>
 <th>10.30.39</th>
@@ -28420,7 +30161,9 @@ non-inverted
 <th>10.30.11</th>
 <th>11.30.15</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCM</td>
 <td>0</td>
@@ -28437,6 +30180,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>0</td>
 <td>0</td>
@@ -28452,6 +30196,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CENTER_HIGH_SPREAD</td>
 <td>0</td>
 <td>0</td>
@@ -28467,6 +30212,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>CENTER_LOW_SPREAD</td>
 <td>0</td>
 <td>0</td>
@@ -28482,6 +30228,7 @@ non-inverted
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>VIDEO_LINK_M0</td>
 <td>0</td>
 <td>0</td>
@@ -28497,6 +30244,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VIDEO_LINK_M1</td>
 <td>0</td>
 <td>0</td>
@@ -28512,6 +30260,7 @@ non-inverted
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>VIDEO_LINK_M2</td>
 <td>1</td>
 <td>1</td>
@@ -28527,19 +30276,23 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../spartan6/gtp.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../spartan6/pll.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -28549,16 +30302,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../spartan6/gtp.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../spartan6/pll.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -28568,9 +30326,9 @@ non-inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,73 +142,116 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="led-drivers"><a class="header" href="#led-drivers">Led drivers</a></h1>
 <h2 id="tile-led_drv_cur_t04"><a class="header" href="#tile-led_drv_cur_t04">Tile LED_DRV_CUR_T04</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-led_drv_cur"><a class="header" href="#bel-led_drv_cur">Bel LED_DRV_CUR</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T04 bel LED_DRV_CUR</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>EN</td><td>input</td><td>TCELL1:IMUX.LC6.I3</td></tr>
+
 <tr><td>TRIM0</td><td>input</td><td>TCELL0:IMUX.LC0.I3</td></tr>
+
 <tr><td>TRIM1</td><td>input</td><td>TCELL0:IMUX.LC1.I3</td></tr>
+
 <tr><td>TRIM2</td><td>input</td><td>TCELL0:IMUX.LC2.I3</td></tr>
+
 <tr><td>TRIM3</td><td>input</td><td>TCELL0:IMUX.LC3.I3</td></tr>
+
 <tr><td>TRIM4</td><td>input</td><td>TCELL0:IMUX.LC4.I3</td></tr>
+
 <tr><td>TRIM5</td><td>input</td><td>TCELL0:IMUX.LC5.I3</td></tr>
+
 <tr><td>TRIM6</td><td>input</td><td>TCELL0:IMUX.LC6.I3</td></tr>
+
 <tr><td>TRIM7</td><td>input</td><td>TCELL0:IMUX.LC7.I3</td></tr>
+
 <tr><td>TRIM8</td><td>input</td><td>TCELL0:IMUX.LC0.I1</td></tr>
+
 <tr><td>TRIM9</td><td>input</td><td>TCELL0:IMUX.LC1.I1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T04 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LC0.I1</td><td>LED_DRV_CUR.TRIM8</td></tr>
+
 <tr><td>TCELL0:IMUX.LC0.I3</td><td>LED_DRV_CUR.TRIM0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I1</td><td>LED_DRV_CUR.TRIM9</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I3</td><td>LED_DRV_CUR.TRIM1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I3</td><td>LED_DRV_CUR.TRIM2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I3</td><td>LED_DRV_CUR.TRIM3</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I3</td><td>LED_DRV_CUR.TRIM4</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I3</td><td>LED_DRV_CUR.TRIM5</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I3</td><td>LED_DRV_CUR.TRIM6</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I3</td><td>LED_DRV_CUR.TRIM7</td></tr>
+
 <tr><td>TCELL1:IMUX.LC6.I3</td><td>LED_DRV_CUR.EN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T04 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T04 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -220,7 +262,9 @@
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -232,6 +276,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -242,6 +287,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -252,6 +298,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -262,6 +309,7 @@
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -274,139 +322,240 @@
 <a href="#tile-siliconblue-LED_DRV_CUR_T04-LED_DRV_CUR:ENABLE">LED_DRV_CUR:ENABLE</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-LED_DRV_CUR_T04-LED_DRV_CUR:ENABLE">LED_DRV_CUR:ENABLE</th>
 <th>1.4.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-led_drv_cur_t05"><a class="header" href="#tile-led_drv_cur_t05">Tile LED_DRV_CUR_T05</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-led_drv_cur-1"><a class="header" href="#bel-led_drv_cur-1">Bel LED_DRV_CUR</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T05 bel LED_DRV_CUR</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>EN</td><td>input</td><td>TCELL1:IMUX.LC6.I3</td></tr>
+
 <tr><td>TRIM0</td><td>input</td><td>TCELL0:IMUX.LC0.I3</td></tr>
+
 <tr><td>TRIM1</td><td>input</td><td>TCELL0:IMUX.LC1.I3</td></tr>
+
 <tr><td>TRIM2</td><td>input</td><td>TCELL0:IMUX.LC2.I3</td></tr>
+
 <tr><td>TRIM3</td><td>input</td><td>TCELL0:IMUX.LC3.I3</td></tr>
+
 <tr><td>TRIM4</td><td>input</td><td>TCELL0:IMUX.LC4.I3</td></tr>
+
 <tr><td>TRIM5</td><td>input</td><td>TCELL0:IMUX.LC5.I3</td></tr>
+
 <tr><td>TRIM6</td><td>input</td><td>TCELL0:IMUX.LC6.I3</td></tr>
+
 <tr><td>TRIM7</td><td>input</td><td>TCELL0:IMUX.LC7.I3</td></tr>
+
 <tr><td>TRIM8</td><td>input</td><td>TCELL0:IMUX.LC0.I1</td></tr>
+
 <tr><td>TRIM9</td><td>input</td><td>TCELL0:IMUX.LC1.I1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T05 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LC0.I1</td><td>LED_DRV_CUR.TRIM8</td></tr>
+
 <tr><td>TCELL0:IMUX.LC0.I3</td><td>LED_DRV_CUR.TRIM0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I1</td><td>LED_DRV_CUR.TRIM9</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I3</td><td>LED_DRV_CUR.TRIM1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I3</td><td>LED_DRV_CUR.TRIM2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I3</td><td>LED_DRV_CUR.TRIM3</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I3</td><td>LED_DRV_CUR.TRIM4</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I3</td><td>LED_DRV_CUR.TRIM5</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I3</td><td>LED_DRV_CUR.TRIM6</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I3</td><td>LED_DRV_CUR.TRIM7</td></tr>
+
 <tr><td>TCELL1:IMUX.LC6.I3</td><td>LED_DRV_CUR.EN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-led_drv_cur_t01"><a class="header" href="#tile-led_drv_cur_t01">Tile LED_DRV_CUR_T01</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-led_drv_cur-2"><a class="header" href="#bel-led_drv_cur-2">Bel LED_DRV_CUR</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T01 bel LED_DRV_CUR</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>EN</td><td>input</td><td>IMUX.LC0.I1</td></tr>
+
 <tr><td>TRIM0</td><td>input</td><td>IMUX.LC1.I1</td></tr>
+
 <tr><td>TRIM1</td><td>input</td><td>IMUX.LC2.I1</td></tr>
+
 <tr><td>TRIM2</td><td>input</td><td>IMUX.LC3.I1</td></tr>
+
 <tr><td>TRIM3</td><td>input</td><td>IMUX.LC4.I1</td></tr>
+
 <tr><td>TRIM4</td><td>input</td><td>IMUX.LC5.I1</td></tr>
+
 <tr><td>TRIM5</td><td>input</td><td>IMUX.LC6.I1</td></tr>
+
 <tr><td>TRIM6</td><td>input</td><td>IMUX.LC7.I1</td></tr>
+
 <tr><td>TRIM7</td><td>input</td><td>IMUX.LC0.I0</td></tr>
+
 <tr><td>TRIM8</td><td>input</td><td>IMUX.LC1.I0</td></tr>
+
 <tr><td>TRIM9</td><td>input</td><td>IMUX.LC2.I0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LED_DRV_CUR_T01 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX.LC0.I0</td><td>LED_DRV_CUR.TRIM7</td></tr>
+
 <tr><td>IMUX.LC0.I1</td><td>LED_DRV_CUR.EN</td></tr>
+
 <tr><td>IMUX.LC1.I0</td><td>LED_DRV_CUR.TRIM8</td></tr>
+
 <tr><td>IMUX.LC1.I1</td><td>LED_DRV_CUR.TRIM0</td></tr>
+
 <tr><td>IMUX.LC2.I0</td><td>LED_DRV_CUR.TRIM9</td></tr>
+
 <tr><td>IMUX.LC2.I1</td><td>LED_DRV_CUR.TRIM1</td></tr>
+
 <tr><td>IMUX.LC3.I1</td><td>LED_DRV_CUR.TRIM2</td></tr>
+
 <tr><td>IMUX.LC4.I1</td><td>LED_DRV_CUR.TRIM3</td></tr>
+
 <tr><td>IMUX.LC5.I1</td><td>LED_DRV_CUR.TRIM4</td></tr>
+
 <tr><td>IMUX.LC6.I1</td><td>LED_DRV_CUR.TRIM5</td></tr>
+
 <tr><td>IMUX.LC7.I1</td><td>LED_DRV_CUR.TRIM6</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-rgb_drv"><a class="header" href="#tile-rgb_drv">Tile RGB_DRV</a></h2>
 <p>Cells: 3</p>
 <h3 id="bel-rgb_drv"><a class="header" href="#bel-rgb_drv">Bel RGB_DRV</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGB_DRV bel RGB_DRV</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>RGB0PWM</td><td>input</td><td>TCELL2:IMUX.LC2.I1</td></tr>
+
 <tr><td>RGB1PWM</td><td>input</td><td>TCELL2:IMUX.LC3.I1</td></tr>
+
 <tr><td>RGB2PWM</td><td>input</td><td>TCELL2:IMUX.LC4.I1</td></tr>
+
 <tr><td>RGBLEDEN</td><td>input</td><td>TCELL2:IMUX.LC1.I1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGB_DRV bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL2:IMUX.LC1.I1</td><td>RGB_DRV.RGBLEDEN</td></tr>
+
 <tr><td>TCELL2:IMUX.LC2.I1</td><td>RGB_DRV.RGB0PWM</td></tr>
+
 <tr><td>TCELL2:IMUX.LC3.I1</td><td>RGB_DRV.RGB1PWM</td></tr>
+
 <tr><td>TCELL2:IMUX.LC4.I1</td><td>RGB_DRV.RGB2PWM</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGB_DRV bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -417,7 +566,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -429,6 +580,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -439,6 +591,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -449,6 +602,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -459,6 +613,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -471,6 +626,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:ENABLE">RGB_DRV:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -481,6 +637,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -493,6 +650,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB0_CURRENT">RGB_DRV:RGB0_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -505,12 +663,18 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB0_CURRENT">RGB_DRV:RGB0_CURRENT[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGB_DRV bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -521,7 +685,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -535,6 +701,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB0_CURRENT">RGB_DRV:RGB0_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -547,6 +714,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB0_CURRENT">RGB_DRV:RGB0_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -559,6 +727,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB0_CURRENT">RGB_DRV:RGB0_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -571,6 +740,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB0_CURRENT">RGB_DRV:RGB0_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -583,6 +753,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB1_CURRENT">RGB_DRV:RGB1_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -595,6 +766,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB1_CURRENT">RGB_DRV:RGB1_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -607,6 +779,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB1_CURRENT">RGB_DRV:RGB1_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -619,12 +792,18 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB1_CURRENT">RGB_DRV:RGB1_CURRENT[2]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGB_DRV bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -635,7 +814,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -649,6 +830,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB1_CURRENT">RGB_DRV:RGB1_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -661,6 +843,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB1_CURRENT">RGB_DRV:RGB1_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -673,6 +856,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB2_CURRENT">RGB_DRV:RGB2_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -685,6 +869,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB2_CURRENT">RGB_DRV:RGB2_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -697,6 +882,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB2_CURRENT">RGB_DRV:RGB2_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -709,6 +895,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB2_CURRENT">RGB_DRV:RGB2_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -721,6 +908,7 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB2_CURRENT">RGB_DRV:RGB2_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -733,23 +921,35 @@ non-inverted
 <a href="#tile-siliconblue-RGB_DRV-RGB_DRV:RGB2_CURRENT">RGB_DRV:RGB2_CURRENT[4]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-RGB_DRV-RGB_DRV:ENABLE">RGB_DRV:ENABLE</th>
 <th>0.4.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-RGB_DRV-RGB_DRV:RGB0_CURRENT">RGB_DRV:RGB0_CURRENT</th>
 <th>1.2.7</th>
@@ -759,6 +959,7 @@ non-inverted
 <th>0.6.7</th>
 <th>0.7.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGB_DRV-RGB_DRV:RGB1_CURRENT">RGB_DRV:RGB1_CURRENT</th>
 <th>2.0.7</th>
 <th>2.1.7</th>
@@ -767,6 +968,7 @@ non-inverted
 <th>1.4.7</th>
 <th>1.5.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGB_DRV-RGB_DRV:RGB2_CURRENT">RGB_DRV:RGB2_CURRENT</th>
 <th>2.6.7</th>
 <th>2.7.7</th>
@@ -775,7 +977,9 @@ non-inverted
 <th>2.2.7</th>
 <th>2.3.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -787,107 +991,188 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-ledd_ip"><a class="header" href="#tile-ledd_ip">Tile LEDD_IP</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-ledd_ip"><a class="header" href="#bel-ledd_ip">Bel LEDD_IP</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LEDD_IP bel LEDD_IP</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>LEDDADDR0</td><td>input</td><td>TCELL0:IMUX.LC4.I0</td></tr>
+
 <tr><td>LEDDADDR1</td><td>input</td><td>TCELL0:IMUX.LC5.I0</td></tr>
+
 <tr><td>LEDDADDR2</td><td>input</td><td>TCELL0:IMUX.LC6.I0</td></tr>
+
 <tr><td>LEDDADDR3</td><td>input</td><td>TCELL0:IMUX.LC7.I0</td></tr>
+
 <tr><td>LEDDCLK</td><td>input</td><td>TCELL0:IMUX.LC3.I0</td></tr>
+
 <tr><td>LEDDCS</td><td>input</td><td>TCELL0:IMUX.LC2.I0</td></tr>
+
 <tr><td>LEDDDAT0</td><td>input</td><td>TCELL0:IMUX.LC2.I1</td></tr>
+
 <tr><td>LEDDDAT1</td><td>input</td><td>TCELL0:IMUX.LC3.I1</td></tr>
+
 <tr><td>LEDDDAT2</td><td>input</td><td>TCELL0:IMUX.LC4.I1</td></tr>
+
 <tr><td>LEDDDAT3</td><td>input</td><td>TCELL0:IMUX.LC5.I1</td></tr>
+
 <tr><td>LEDDDAT4</td><td>input</td><td>TCELL0:IMUX.LC6.I1</td></tr>
+
 <tr><td>LEDDDAT5</td><td>input</td><td>TCELL0:IMUX.LC7.I1</td></tr>
+
 <tr><td>LEDDDAT6</td><td>input</td><td>TCELL0:IMUX.LC0.I0</td></tr>
+
 <tr><td>LEDDDAT7</td><td>input</td><td>TCELL0:IMUX.LC1.I0</td></tr>
+
 <tr><td>LEDDDEN</td><td>input</td><td>TCELL0:IMUX.LC1.I1</td></tr>
+
 <tr><td>LEDDEXE</td><td>input</td><td>TCELL0:IMUX.LC0.I1</td></tr>
+
 <tr><td>LEDDON</td><td>output</td><td>TCELL1:OUT.LC0</td></tr>
+
 <tr><td>PWMOUT0</td><td>output</td><td>TCELL0:OUT.LC4</td></tr>
+
 <tr><td>PWMOUT1</td><td>output</td><td>TCELL0:OUT.LC5</td></tr>
+
 <tr><td>PWMOUT2</td><td>output</td><td>TCELL0:OUT.LC6</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LEDD_IP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LC0.I0</td><td>LEDD_IP.LEDDDAT6</td></tr>
+
 <tr><td>TCELL0:IMUX.LC0.I1</td><td>LEDD_IP.LEDDEXE</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I0</td><td>LEDD_IP.LEDDDAT7</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I1</td><td>LEDD_IP.LEDDDEN</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I0</td><td>LEDD_IP.LEDDCS</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I1</td><td>LEDD_IP.LEDDDAT0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I0</td><td>LEDD_IP.LEDDCLK</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I1</td><td>LEDD_IP.LEDDDAT1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I0</td><td>LEDD_IP.LEDDADDR0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I1</td><td>LEDD_IP.LEDDDAT2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I0</td><td>LEDD_IP.LEDDADDR1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I1</td><td>LEDD_IP.LEDDDAT3</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I0</td><td>LEDD_IP.LEDDADDR2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I1</td><td>LEDD_IP.LEDDDAT4</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I0</td><td>LEDD_IP.LEDDADDR3</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I1</td><td>LEDD_IP.LEDDDAT5</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>LEDD_IP.PWMOUT0</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>LEDD_IP.PWMOUT1</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>LEDD_IP.PWMOUT2</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>LEDD_IP.LEDDON</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-ir_drv"><a class="header" href="#tile-ir_drv">Tile IR_DRV</a></h2>
 <p>Cells: 3</p>
 <h3 id="bel-ir_drv"><a class="header" href="#bel-ir_drv">Bel IR_DRV</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR_DRV bel IR_DRV</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IRLEDEN</td><td>input</td><td>TCELL0:IMUX.LC7.I0</td></tr>
+
 <tr><td>IRPWM</td><td>input</td><td>TCELL0:IMUX.LC6.I0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR_DRV bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LC6.I0</td><td>IR_DRV.IRPWM</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I0</td><td>IR_DRV.IRLEDEN</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR_DRV bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="0">Bit</th></tr>
+
 <tr>
 </tr>
+
 </thead>
+
 <tbody>
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR_DRV bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -898,7 +1183,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -910,6 +1197,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -920,6 +1208,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -930,6 +1219,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -940,6 +1230,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -950,6 +1241,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -962,6 +1254,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:ENABLE">IR_DRV:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -974,6 +1267,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -986,12 +1280,18 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR_DRV bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1002,7 +1302,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1016,6 +1318,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1028,6 +1331,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1040,6 +1344,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1052,6 +1357,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1064,6 +1370,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[7]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1076,6 +1383,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[6]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1088,6 +1396,7 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[9]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1100,23 +1409,35 @@ non-inverted
 <a href="#tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT[8]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IR_DRV-IR_DRV:ENABLE">IR_DRV:ENABLE</th>
 <th>1.5.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IR_DRV-IR_DRV:IR_CURRENT">IR_DRV:IR_CURRENT</th>
 <th>2.6.7</th>
@@ -1130,7 +1451,9 @@ non-inverted
 <th>1.6.7</th>
 <th>1.7.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1146,41 +1469,67 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-rgba_drv_t05"><a class="header" href="#tile-rgba_drv_t05">Tile RGBA_DRV_T05</a></h2>
 <p>Cells: 3</p>
 <h3 id="bel-rgba_drv"><a class="header" href="#bel-rgba_drv">Bel RGBA_DRV</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T05 bel RGBA_DRV</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>RGB0PWM</td><td>input</td><td>TCELL2:IMUX.LC2.I1</td></tr>
+
 <tr><td>RGB1PWM</td><td>input</td><td>TCELL2:IMUX.LC3.I1</td></tr>
+
 <tr><td>RGB2PWM</td><td>input</td><td>TCELL2:IMUX.LC4.I1</td></tr>
+
 <tr><td>RGBLEDEN</td><td>input</td><td>TCELL2:IMUX.LC1.I1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-6"><a class="header" href="#bel-wires-6">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T05 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL2:IMUX.LC1.I1</td><td>RGBA_DRV.RGBLEDEN</td></tr>
+
 <tr><td>TCELL2:IMUX.LC2.I1</td><td>RGBA_DRV.RGB0PWM</td></tr>
+
 <tr><td>TCELL2:IMUX.LC3.I1</td><td>RGBA_DRV.RGB1PWM</td></tr>
+
 <tr><td>TCELL2:IMUX.LC4.I1</td><td>RGBA_DRV.RGB2PWM</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T05 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1191,7 +1540,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1203,6 +1554,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1213,6 +1565,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1223,6 +1576,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1233,6 +1587,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1245,6 +1600,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:ENABLE">RGBA_DRV:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1257,6 +1613,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:CURRENT_MODE">RGBA_DRV:CURRENT_MODE</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1269,6 +1626,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1281,12 +1639,18 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T05 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1297,7 +1661,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1311,6 +1677,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1323,6 +1690,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1335,6 +1703,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1347,6 +1716,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1359,6 +1729,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1371,6 +1742,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1383,6 +1755,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1395,12 +1768,18 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[2]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T05 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1411,7 +1790,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1425,6 +1806,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1437,6 +1819,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1449,6 +1832,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1461,6 +1845,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1473,6 +1858,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1485,6 +1871,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1497,6 +1884,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1509,26 +1897,39 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[4]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:CURRENT_MODE">RGBA_DRV:CURRENT_MODE</th>
 <th>0.5.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:ENABLE">RGBA_DRV:ENABLE</th>
 <th>0.4.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT</th>
 <th>1.2.7</th>
@@ -1538,6 +1939,7 @@ non-inverted
 <th>0.6.7</th>
 <th>0.7.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT</th>
 <th>2.0.7</th>
 <th>2.1.7</th>
@@ -1546,6 +1948,7 @@ non-inverted
 <th>1.4.7</th>
 <th>1.5.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGBA_DRV_T05-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT</th>
 <th>2.6.7</th>
 <th>2.7.7</th>
@@ -1554,7 +1957,9 @@ non-inverted
 <th>2.2.7</th>
 <th>2.3.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1566,41 +1971,67 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-rgba_drv_t01"><a class="header" href="#tile-rgba_drv_t01">Tile RGBA_DRV_T01</a></h2>
 <p>Cells: 4</p>
 <h3 id="bel-rgba_drv-1"><a class="header" href="#bel-rgba_drv-1">Bel RGBA_DRV</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T01 bel RGBA_DRV</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>RGB0PWM</td><td>input</td><td>TCELL3:IMUX.LC5.I0</td></tr>
+
 <tr><td>RGB1PWM</td><td>input</td><td>TCELL3:IMUX.LC6.I0</td></tr>
+
 <tr><td>RGB2PWM</td><td>input</td><td>TCELL3:IMUX.LC7.I0</td></tr>
+
 <tr><td>RGBLEDEN</td><td>input</td><td>TCELL1:IMUX.LC1.I1</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-7"><a class="header" href="#bel-wires-7">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T01 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL1:IMUX.LC1.I1</td><td>RGBA_DRV.RGBLEDEN</td></tr>
+
 <tr><td>TCELL3:IMUX.LC5.I0</td><td>RGBA_DRV.RGB0PWM</td></tr>
+
 <tr><td>TCELL3:IMUX.LC6.I0</td><td>RGBA_DRV.RGB1PWM</td></tr>
+
 <tr><td>TCELL3:IMUX.LC7.I0</td><td>RGBA_DRV.RGB2PWM</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T01 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1611,7 +2042,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1625,6 +2058,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1637,6 +2071,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:ENABLE">RGBA_DRV:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1649,6 +2084,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1661,6 +2097,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1673,6 +2110,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1685,6 +2123,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1697,6 +2136,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1709,12 +2149,18 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT[5]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T01 bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1725,7 +2171,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1739,6 +2187,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1751,6 +2200,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1763,6 +2213,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1775,6 +2226,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1787,6 +2239,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1799,6 +2252,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -1811,6 +2265,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -1823,12 +2278,18 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue RGBA_DRV_T01 bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1839,7 +2300,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1853,6 +2316,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1865,6 +2329,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1877,6 +2342,7 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:CURRENT_MODE">RGBA_DRV:CURRENT_MODE</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1889,26 +2355,39 @@ non-inverted
 <a href="#tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT[5]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:CURRENT_MODE">RGBA_DRV:CURRENT_MODE</th>
 <th>2.2.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:ENABLE">RGBA_DRV:ENABLE</th>
 <th>0.1.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB0_CURRENT">RGBA_DRV:RGB0_CURRENT</th>
 <th>0.7.7</th>
@@ -1918,6 +2397,7 @@ non-inverted
 <th>0.3.7</th>
 <th>0.0.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB1_CURRENT">RGBA_DRV:RGB1_CURRENT</th>
 <th>1.5.7</th>
 <th>1.2.7</th>
@@ -1926,6 +2406,7 @@ non-inverted
 <th>1.1.7</th>
 <th>0.6.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-RGBA_DRV_T01-RGBA_DRV:RGB2_CURRENT">RGBA_DRV:RGB2_CURRENT</th>
 <th>2.3.7</th>
 <th>2.0.7</th>
@@ -1934,7 +2415,9 @@ non-inverted
 <th>1.7.7</th>
 <th>1.4.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1946,170 +2429,306 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-ledda_ip_t05"><a class="header" href="#tile-ledda_ip_t05">Tile LEDDA_IP_T05</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-ledda_ip"><a class="header" href="#bel-ledda_ip">Bel LEDDA_IP</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LEDDA_IP_T05 bel LEDDA_IP</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>LEDDADDR0</td><td>input</td><td>TCELL0:IMUX.LC4.I0</td></tr>
+
 <tr><td>LEDDADDR1</td><td>input</td><td>TCELL0:IMUX.LC5.I0</td></tr>
+
 <tr><td>LEDDADDR2</td><td>input</td><td>TCELL0:IMUX.LC6.I0</td></tr>
+
 <tr><td>LEDDADDR3</td><td>input</td><td>TCELL0:IMUX.LC7.I0</td></tr>
+
 <tr><td>LEDDCLK</td><td>input</td><td>TCELL1:IMUX.CLK.OPTINV</td></tr>
+
 <tr><td>LEDDCS</td><td>input</td><td>TCELL0:IMUX.LC2.I0</td></tr>
+
 <tr><td>LEDDDAT0</td><td>input</td><td>TCELL0:IMUX.LC2.I1</td></tr>
+
 <tr><td>LEDDDAT1</td><td>input</td><td>TCELL0:IMUX.LC3.I1</td></tr>
+
 <tr><td>LEDDDAT2</td><td>input</td><td>TCELL0:IMUX.LC4.I1</td></tr>
+
 <tr><td>LEDDDAT3</td><td>input</td><td>TCELL0:IMUX.LC5.I1</td></tr>
+
 <tr><td>LEDDDAT4</td><td>input</td><td>TCELL0:IMUX.LC6.I1</td></tr>
+
 <tr><td>LEDDDAT5</td><td>input</td><td>TCELL0:IMUX.LC7.I1</td></tr>
+
 <tr><td>LEDDDAT6</td><td>input</td><td>TCELL0:IMUX.LC0.I0</td></tr>
+
 <tr><td>LEDDDAT7</td><td>input</td><td>TCELL0:IMUX.LC1.I0</td></tr>
+
 <tr><td>LEDDDEN</td><td>input</td><td>TCELL0:IMUX.LC1.I1</td></tr>
+
 <tr><td>LEDDEXE</td><td>input</td><td>TCELL0:IMUX.LC0.I1</td></tr>
+
 <tr><td>LEDDON</td><td>output</td><td>TCELL1:OUT.LC0</td></tr>
+
 <tr><td>PWMOUT0</td><td>output</td><td>TCELL0:OUT.LC4</td></tr>
+
 <tr><td>PWMOUT1</td><td>output</td><td>TCELL0:OUT.LC5</td></tr>
+
 <tr><td>PWMOUT2</td><td>output</td><td>TCELL0:OUT.LC6</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-8"><a class="header" href="#bel-wires-8">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LEDDA_IP_T05 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LC0.I0</td><td>LEDDA_IP.LEDDDAT6</td></tr>
+
 <tr><td>TCELL0:IMUX.LC0.I1</td><td>LEDDA_IP.LEDDEXE</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I0</td><td>LEDDA_IP.LEDDDAT7</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I1</td><td>LEDDA_IP.LEDDDEN</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I0</td><td>LEDDA_IP.LEDDCS</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I1</td><td>LEDDA_IP.LEDDDAT0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I1</td><td>LEDDA_IP.LEDDDAT1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I0</td><td>LEDDA_IP.LEDDADDR0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I1</td><td>LEDDA_IP.LEDDDAT2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I0</td><td>LEDDA_IP.LEDDADDR1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I1</td><td>LEDDA_IP.LEDDDAT3</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I0</td><td>LEDDA_IP.LEDDADDR2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I1</td><td>LEDDA_IP.LEDDDAT4</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I0</td><td>LEDDA_IP.LEDDADDR3</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I1</td><td>LEDDA_IP.LEDDDAT5</td></tr>
+
 <tr><td>TCELL0:OUT.LC4</td><td>LEDDA_IP.PWMOUT0</td></tr>
+
 <tr><td>TCELL0:OUT.LC5</td><td>LEDDA_IP.PWMOUT1</td></tr>
+
 <tr><td>TCELL0:OUT.LC6</td><td>LEDDA_IP.PWMOUT2</td></tr>
+
 <tr><td>TCELL1:IMUX.CLK.OPTINV</td><td>LEDDA_IP.LEDDCLK</td></tr>
+
 <tr><td>TCELL1:OUT.LC0</td><td>LEDDA_IP.LEDDON</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-ledda_ip_t01"><a class="header" href="#tile-ledda_ip_t01">Tile LEDDA_IP_T01</a></h2>
 <p>Cells: 4</p>
 <h3 id="bel-ledda_ip-1"><a class="header" href="#bel-ledda_ip-1">Bel LEDDA_IP</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LEDDA_IP_T01 bel LEDDA_IP</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>LEDDADDR0</td><td>input</td><td>TCELL0:IMUX.LC6.I0</td></tr>
+
 <tr><td>LEDDADDR1</td><td>input</td><td>TCELL0:IMUX.LC7.I0</td></tr>
+
 <tr><td>LEDDADDR2</td><td>input</td><td>TCELL1:IMUX.LC0.I3</td></tr>
+
 <tr><td>LEDDADDR3</td><td>input</td><td>TCELL1:IMUX.LC1.I3</td></tr>
+
 <tr><td>LEDDCLK</td><td>input</td><td>TCELL3:IMUX.CLK.OPTINV</td></tr>
+
 <tr><td>LEDDCS</td><td>input</td><td>TCELL0:IMUX.LC4.I0</td></tr>
+
 <tr><td>LEDDDAT0</td><td>input</td><td>TCELL0:IMUX.LC4.I1</td></tr>
+
 <tr><td>LEDDDAT1</td><td>input</td><td>TCELL0:IMUX.LC5.I1</td></tr>
+
 <tr><td>LEDDDAT2</td><td>input</td><td>TCELL0:IMUX.LC6.I1</td></tr>
+
 <tr><td>LEDDDAT3</td><td>input</td><td>TCELL0:IMUX.LC7.I1</td></tr>
+
 <tr><td>LEDDDAT4</td><td>input</td><td>TCELL0:IMUX.LC0.I0</td></tr>
+
 <tr><td>LEDDDAT5</td><td>input</td><td>TCELL0:IMUX.LC1.I0</td></tr>
+
 <tr><td>LEDDDAT6</td><td>input</td><td>TCELL0:IMUX.LC2.I0</td></tr>
+
 <tr><td>LEDDDAT7</td><td>input</td><td>TCELL0:IMUX.LC3.I0</td></tr>
+
 <tr><td>LEDDDEN</td><td>input</td><td>TCELL0:IMUX.LC3.I1</td></tr>
+
 <tr><td>LEDDEXE</td><td>input</td><td>TCELL0:IMUX.LC2.I1</td></tr>
+
 <tr><td>LEDDON</td><td>output</td><td>TCELL2:OUT.LC2</td></tr>
+
 <tr><td>PWMOUT0</td><td>output</td><td>TCELL2:OUT.LC3</td></tr>
+
 <tr><td>PWMOUT1</td><td>output</td><td>TCELL2:OUT.LC4</td></tr>
+
 <tr><td>PWMOUT2</td><td>output</td><td>TCELL2:OUT.LC5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-9"><a class="header" href="#bel-wires-9">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue LEDDA_IP_T01 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LC0.I0</td><td>LEDDA_IP.LEDDDAT4</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I0</td><td>LEDDA_IP.LEDDDAT5</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I0</td><td>LEDDA_IP.LEDDDAT6</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I1</td><td>LEDDA_IP.LEDDEXE</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I0</td><td>LEDDA_IP.LEDDDAT7</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I1</td><td>LEDDA_IP.LEDDDEN</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I0</td><td>LEDDA_IP.LEDDCS</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I1</td><td>LEDDA_IP.LEDDDAT0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I1</td><td>LEDDA_IP.LEDDDAT1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I0</td><td>LEDDA_IP.LEDDADDR0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I1</td><td>LEDDA_IP.LEDDDAT2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I0</td><td>LEDDA_IP.LEDDADDR1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I1</td><td>LEDDA_IP.LEDDDAT3</td></tr>
+
 <tr><td>TCELL1:IMUX.LC0.I3</td><td>LEDDA_IP.LEDDADDR2</td></tr>
+
 <tr><td>TCELL1:IMUX.LC1.I3</td><td>LEDDA_IP.LEDDADDR3</td></tr>
+
 <tr><td>TCELL2:OUT.LC2</td><td>LEDDA_IP.LEDDON</td></tr>
+
 <tr><td>TCELL2:OUT.LC3</td><td>LEDDA_IP.PWMOUT0</td></tr>
+
 <tr><td>TCELL2:OUT.LC4</td><td>LEDDA_IP.PWMOUT1</td></tr>
+
 <tr><td>TCELL2:OUT.LC5</td><td>LEDDA_IP.PWMOUT2</td></tr>
+
 <tr><td>TCELL3:IMUX.CLK.OPTINV</td><td>LEDDA_IP.LEDDCLK</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-ir500_drv"><a class="header" href="#tile-ir500_drv">Tile IR500_DRV</a></h2>
 <p>Cells: 4</p>
 <h3 id="bel-ir400_drv"><a class="header" href="#bel-ir400_drv">Bel IR400_DRV</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR500_DRV bel IR400_DRV</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IRLEDEN</td><td>input</td><td>TCELL1:IMUX.LC4.I0</td></tr>
+
 <tr><td>IRPWM</td><td>input</td><td>TCELL3:IMUX.LC7.I0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-barcode_drv"><a class="header" href="#bel-barcode_drv">Bel BARCODE_DRV</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR500_DRV bel BARCODE_DRV</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BARCODEEN</td><td>input</td><td>TCELL1:IMUX.LC3.I0</td></tr>
+
 <tr><td>BARCODEPWM</td><td>input</td><td>TCELL3:IMUX.LC6.I0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-10"><a class="header" href="#bel-wires-10">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR500_DRV bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL1:IMUX.LC3.I0</td><td>BARCODE_DRV.BARCODEEN</td></tr>
+
 <tr><td>TCELL1:IMUX.LC4.I0</td><td>IR400_DRV.IRLEDEN</td></tr>
+
 <tr><td>TCELL3:IMUX.LC6.I0</td><td>BARCODE_DRV.BARCODEPWM</td></tr>
+
 <tr><td>TCELL3:IMUX.LC7.I0</td><td>IR400_DRV.IRPWM</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR500_DRV bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2120,7 +2739,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -2134,6 +2755,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-RGBA_DRV:ENABLE">RGBA_DRV:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2146,6 +2768,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:ENABLE">IR400_DRV:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2158,6 +2781,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-BARCODE_DRV:BARCODE_CURRENT">BARCODE_DRV:BARCODE_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2170,6 +2794,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-BARCODE_DRV:BARCODE_CURRENT">BARCODE_DRV:BARCODE_CURRENT[0]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2182,6 +2807,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-BARCODE_DRV:BARCODE_CURRENT">BARCODE_DRV:BARCODE_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2194,6 +2820,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-BARCODE_DRV:BARCODE_CURRENT">BARCODE_DRV:BARCODE_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2206,6 +2833,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[1]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2218,12 +2846,18 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[0]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR500_DRV bittile 1</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2234,7 +2868,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -2248,6 +2884,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[3]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2260,6 +2897,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[2]</a>
 </td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -2272,6 +2910,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[5]</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -2284,6 +2923,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[4]</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -2296,6 +2936,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[7]</a>
 </td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -2308,6 +2949,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT[6]</a>
 </td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -2320,6 +2962,7 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-BARCODE_DRV:ENABLE">BARCODE_DRV:ENABLE</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -2332,12 +2975,18 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR500_DRV:CURRENT_MODE">IR500_DRV:CURRENT_MODE</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR500_DRV bittile 2</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -2348,7 +2997,9 @@ non-inverted
 <th>6</th>
 <th>7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -2360,6 +3011,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -2372,9 +3024,14 @@ non-inverted
 <a href="#tile-siliconblue-IR500_DRV-IR500_DRV:ENABLE">IR500_DRV:ENABLE</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IR500_DRV-BARCODE_DRV:BARCODE_CURRENT">BARCODE_DRV:BARCODE_CURRENT</th>
 <th>0.4.7</th>
@@ -2382,7 +3039,9 @@ non-inverted
 <th>0.2.7</th>
 <th>0.3.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -2392,35 +3051,51 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IR500_DRV-BARCODE_DRV:ENABLE">BARCODE_DRV:ENABLE</th>
 <th>1.6.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IR500_DRV-IR400_DRV:ENABLE">IR400_DRV:ENABLE</th>
 <th>0.1.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IR500_DRV-IR500_DRV:CURRENT_MODE">IR500_DRV:CURRENT_MODE</th>
 <th>1.7.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IR500_DRV-IR500_DRV:ENABLE">IR500_DRV:ENABLE</th>
 <th>2.1.7</th>
 </tr>
+
 <tr><th id="tile-siliconblue-IR500_DRV-RGBA_DRV:ENABLE">RGBA_DRV:ENABLE</th>
 <th>0.0.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-siliconblue-IR500_DRV-IR400_DRV:IR400_CURRENT">IR400_DRV:IR400_CURRENT</th>
 <th>1.4.7</th>
@@ -2432,7 +3107,9 @@ non-inverted
 <th>0.6.7</th>
 <th>0.7.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -2446,101 +3123,179 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-ir_ip"><a class="header" href="#tile-ir_ip">Tile IR_IP</a></h2>
 <p>Cells: 4</p>
 <h3 id="bel-ir_ip"><a class="header" href="#bel-ir_ip">Bel IR_IP</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR_IP bel IR_IP</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>ADRI0</td><td>input</td><td>TCELL1:IMUX.LC2.I3</td></tr>
+
 <tr><td>ADRI1</td><td>input</td><td>TCELL1:IMUX.LC3.I3</td></tr>
+
 <tr><td>ADRI2</td><td>input</td><td>TCELL1:IMUX.LC4.I3</td></tr>
+
 <tr><td>ADRI3</td><td>input</td><td>TCELL1:IMUX.LC5.I3</td></tr>
+
 <tr><td>BUSY</td><td>output</td><td>TCELL1:OUT.LC3</td></tr>
+
 <tr><td>CLKI</td><td>input</td><td>TCELL3:IMUX.CLK.OPTINV</td></tr>
+
 <tr><td>CSI</td><td>input</td><td>TCELL1:IMUX.LC0.I1</td></tr>
+
 <tr><td>DENI</td><td>input</td><td>TCELL1:IMUX.LC7.I3</td></tr>
+
 <tr><td>DRDY</td><td>output</td><td>TCELL1:OUT.LC4</td></tr>
+
 <tr><td>ERR</td><td>output</td><td>TCELL1:OUT.LC5</td></tr>
+
 <tr><td>EXE</td><td>input</td><td>TCELL1:IMUX.LC2.I1</td></tr>
+
 <tr><td>IRIN</td><td>input</td><td>TCELL0:IMUX.LC0.I0</td></tr>
+
 <tr><td>IROUT</td><td>output</td><td>TCELL2:OUT.LC6</td></tr>
+
 <tr><td>LEARN</td><td>input</td><td>TCELL0:IMUX.LC1.I0</td></tr>
+
 <tr><td>RDATA0</td><td>output</td><td>TCELL1:OUT.LC6</td></tr>
+
 <tr><td>RDATA1</td><td>output</td><td>TCELL1:OUT.LC7</td></tr>
+
 <tr><td>RDATA2</td><td>output</td><td>TCELL2:OUT.LC0</td></tr>
+
 <tr><td>RDATA3</td><td>output</td><td>TCELL2:OUT.LC1</td></tr>
+
 <tr><td>RDATA4</td><td>output</td><td>TCELL2:OUT.LC2</td></tr>
+
 <tr><td>RDATA5</td><td>output</td><td>TCELL2:OUT.LC3</td></tr>
+
 <tr><td>RDATA6</td><td>output</td><td>TCELL2:OUT.LC4</td></tr>
+
 <tr><td>RDATA7</td><td>output</td><td>TCELL2:OUT.LC5</td></tr>
+
 <tr><td>WDATA0</td><td>input</td><td>TCELL0:IMUX.LC2.I0</td></tr>
+
 <tr><td>WDATA1</td><td>input</td><td>TCELL0:IMUX.LC3.I0</td></tr>
+
 <tr><td>WDATA2</td><td>input</td><td>TCELL0:IMUX.LC4.I0</td></tr>
+
 <tr><td>WDATA3</td><td>input</td><td>TCELL0:IMUX.LC5.I0</td></tr>
+
 <tr><td>WDATA4</td><td>input</td><td>TCELL0:IMUX.LC6.I0</td></tr>
+
 <tr><td>WDATA5</td><td>input</td><td>TCELL0:IMUX.LC7.I0</td></tr>
+
 <tr><td>WDATA6</td><td>input</td><td>TCELL1:IMUX.LC0.I3</td></tr>
+
 <tr><td>WDATA7</td><td>input</td><td>TCELL1:IMUX.LC1.I3</td></tr>
+
 <tr><td>WEI</td><td>input</td><td>TCELL1:IMUX.LC6.I3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-11"><a class="header" href="#bel-wires-11">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>siliconblue IR_IP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX.LC0.I0</td><td>IR_IP.IRIN</td></tr>
+
 <tr><td>TCELL0:IMUX.LC1.I0</td><td>IR_IP.LEARN</td></tr>
+
 <tr><td>TCELL0:IMUX.LC2.I0</td><td>IR_IP.WDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX.LC3.I0</td><td>IR_IP.WDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX.LC4.I0</td><td>IR_IP.WDATA2</td></tr>
+
 <tr><td>TCELL0:IMUX.LC5.I0</td><td>IR_IP.WDATA3</td></tr>
+
 <tr><td>TCELL0:IMUX.LC6.I0</td><td>IR_IP.WDATA4</td></tr>
+
 <tr><td>TCELL0:IMUX.LC7.I0</td><td>IR_IP.WDATA5</td></tr>
+
 <tr><td>TCELL1:IMUX.LC0.I1</td><td>IR_IP.CSI</td></tr>
+
 <tr><td>TCELL1:IMUX.LC0.I3</td><td>IR_IP.WDATA6</td></tr>
+
 <tr><td>TCELL1:IMUX.LC1.I3</td><td>IR_IP.WDATA7</td></tr>
+
 <tr><td>TCELL1:IMUX.LC2.I1</td><td>IR_IP.EXE</td></tr>
+
 <tr><td>TCELL1:IMUX.LC2.I3</td><td>IR_IP.ADRI0</td></tr>
+
 <tr><td>TCELL1:IMUX.LC3.I3</td><td>IR_IP.ADRI1</td></tr>
+
 <tr><td>TCELL1:IMUX.LC4.I3</td><td>IR_IP.ADRI2</td></tr>
+
 <tr><td>TCELL1:IMUX.LC5.I3</td><td>IR_IP.ADRI3</td></tr>
+
 <tr><td>TCELL1:IMUX.LC6.I3</td><td>IR_IP.WEI</td></tr>
+
 <tr><td>TCELL1:IMUX.LC7.I3</td><td>IR_IP.DENI</td></tr>
+
 <tr><td>TCELL1:OUT.LC3</td><td>IR_IP.BUSY</td></tr>
+
 <tr><td>TCELL1:OUT.LC4</td><td>IR_IP.DRDY</td></tr>
+
 <tr><td>TCELL1:OUT.LC5</td><td>IR_IP.ERR</td></tr>
+
 <tr><td>TCELL1:OUT.LC6</td><td>IR_IP.RDATA0</td></tr>
+
 <tr><td>TCELL1:OUT.LC7</td><td>IR_IP.RDATA1</td></tr>
+
 <tr><td>TCELL2:OUT.LC0</td><td>IR_IP.RDATA2</td></tr>
+
 <tr><td>TCELL2:OUT.LC1</td><td>IR_IP.RDATA3</td></tr>
+
 <tr><td>TCELL2:OUT.LC2</td><td>IR_IP.RDATA4</td></tr>
+
 <tr><td>TCELL2:OUT.LC3</td><td>IR_IP.RDATA5</td></tr>
+
 <tr><td>TCELL2:OUT.LC4</td><td>IR_IP.RDATA6</td></tr>
+
 <tr><td>TCELL2:OUT.LC5</td><td>IR_IP.RDATA7</td></tr>
+
 <tr><td>TCELL2:OUT.LC6</td><td>IR_IP.IROUT</td></tr>
+
 <tr><td>TCELL3:IMUX.CLK.OPTINV</td><td>IR_IP.CLKI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../siliconblue/osc.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../siliconblue/config.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -2550,16 +3305,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../siliconblue/osc.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../siliconblue/config.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -2569,9 +3329,9 @@ non-inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

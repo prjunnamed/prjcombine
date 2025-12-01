@@ -1,0 +1,14 @@
+.content main {
+    max-width: none;
+}
+
+.content main > * {
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+    max-width: var(--content-max-width);
+}
+
+.content main > .table-wrapper {
+    max-width: none;
+    padding: 15px;
+}

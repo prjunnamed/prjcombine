@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,131 +142,229 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="digital-clock-managers-spartan-3"><a class="header" href="#digital-clock-managers-spartan-3">Digital Clock Managers (Spartan 3)</a></h1>
 <p>TODO: reverse, document</p>
 <h2 id="tile-dcms3"><a class="header" href="#tile-dcms3">Tile DCM.S3</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-dcm"><a class="header" href="#bel-dcm">Bel DCM</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DCM.S3 bel DCM</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLK0</td><td>output</td><td>OUT.FAN3</td></tr>
+
 <tr><td>CLK180</td><td>output</td><td>OUT.FAN1</td></tr>
+
 <tr><td>CLK270</td><td>output</td><td>OUT.FAN0</td></tr>
+
 <tr><td>CLK2X</td><td>output</td><td>OUT.FAN7</td></tr>
+
 <tr><td>CLK2X180</td><td>output</td><td>OUT.FAN6</td></tr>
+
 <tr><td>CLK90</td><td>output</td><td>OUT.FAN2</td></tr>
+
 <tr><td>CLKDV</td><td>output</td><td>OUT.SEC3</td></tr>
+
 <tr><td>CLKFB</td><td>input</td><td>IMUX.CLK3</td></tr>
+
 <tr><td>CLKFX</td><td>output</td><td>OUT.FAN5</td></tr>
+
 <tr><td>CLKFX180</td><td>output</td><td>OUT.FAN4</td></tr>
+
 <tr><td>CLKIN</td><td>input</td><td>IMUX.CLK2</td></tr>
+
 <tr><td>CONCUR</td><td>output</td><td>OUT.SEC1</td></tr>
+
 <tr><td>CTLGO</td><td>input</td><td>IMUX.DATA31</td></tr>
+
 <tr><td>CTLMODE</td><td>input</td><td>IMUX.DATA24</td></tr>
+
 <tr><td>CTLOSC1</td><td>input</td><td>IMUX.DATA30</td></tr>
+
 <tr><td>CTLOSC2</td><td>input</td><td>IMUX.DATA29</td></tr>
+
 <tr><td>CTLSEL0</td><td>input</td><td>IMUX.DATA2</td></tr>
+
 <tr><td>CTLSEL1</td><td>input</td><td>IMUX.DATA3</td></tr>
+
 <tr><td>CTLSEL2</td><td>input</td><td>IMUX.DATA28</td></tr>
+
 <tr><td>DSSEN</td><td>input</td><td>IMUX.DATA16</td></tr>
+
 <tr><td>FREEZEDFS</td><td>input</td><td>IMUX.DATA26</td></tr>
+
 <tr><td>FREEZEDLL</td><td>input</td><td>IMUX.DATA25</td></tr>
+
 <tr><td>LOCKED</td><td>output</td><td>OUT.SEC2</td></tr>
+
 <tr><td>PSCLK</td><td>input</td><td>IMUX.CLK1</td></tr>
+
 <tr><td>PSDONE</td><td>output</td><td>OUT.SEC0</td></tr>
+
 <tr><td>PSEN</td><td>input</td><td>IMUX.DATA17</td></tr>
+
 <tr><td>PSINCDEC</td><td>input</td><td>IMUX.DATA18</td></tr>
+
 <tr><td>RST</td><td>input</td><td>IMUX.DATA19</td></tr>
+
 <tr><td>STATUS0</td><td>output</td><td>OUT.SEC8</td></tr>
+
 <tr><td>STATUS1</td><td>output</td><td>OUT.SEC9</td></tr>
+
 <tr><td>STATUS2</td><td>output</td><td>OUT.SEC10</td></tr>
+
 <tr><td>STATUS3</td><td>output</td><td>OUT.SEC11</td></tr>
+
 <tr><td>STATUS4</td><td>output</td><td>OUT.SEC4</td></tr>
+
 <tr><td>STATUS5</td><td>output</td><td>OUT.SEC5</td></tr>
+
 <tr><td>STATUS6</td><td>output</td><td>OUT.SEC6</td></tr>
+
 <tr><td>STATUS7</td><td>output</td><td>OUT.SEC7</td></tr>
+
 <tr><td>STSADRS0</td><td>input</td><td>IMUX.DATA27</td></tr>
+
 <tr><td>STSADRS1</td><td>input</td><td>IMUX.DATA20</td></tr>
+
 <tr><td>STSADRS2</td><td>input</td><td>IMUX.DATA21</td></tr>
+
 <tr><td>STSADRS3</td><td>input</td><td>IMUX.DATA22</td></tr>
+
 <tr><td>STSADRS4</td><td>input</td><td>IMUX.DATA23</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DCM.S3 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX.CLK1</td><td>DCM.PSCLK</td></tr>
+
 <tr><td>IMUX.CLK2</td><td>DCM.CLKIN</td></tr>
+
 <tr><td>IMUX.CLK3</td><td>DCM.CLKFB</td></tr>
+
 <tr><td>IMUX.DATA2</td><td>DCM.CTLSEL0</td></tr>
+
 <tr><td>IMUX.DATA3</td><td>DCM.CTLSEL1</td></tr>
+
 <tr><td>IMUX.DATA16</td><td>DCM.DSSEN</td></tr>
+
 <tr><td>IMUX.DATA17</td><td>DCM.PSEN</td></tr>
+
 <tr><td>IMUX.DATA18</td><td>DCM.PSINCDEC</td></tr>
+
 <tr><td>IMUX.DATA19</td><td>DCM.RST</td></tr>
+
 <tr><td>IMUX.DATA20</td><td>DCM.STSADRS1</td></tr>
+
 <tr><td>IMUX.DATA21</td><td>DCM.STSADRS2</td></tr>
+
 <tr><td>IMUX.DATA22</td><td>DCM.STSADRS3</td></tr>
+
 <tr><td>IMUX.DATA23</td><td>DCM.STSADRS4</td></tr>
+
 <tr><td>IMUX.DATA24</td><td>DCM.CTLMODE</td></tr>
+
 <tr><td>IMUX.DATA25</td><td>DCM.FREEZEDLL</td></tr>
+
 <tr><td>IMUX.DATA26</td><td>DCM.FREEZEDFS</td></tr>
+
 <tr><td>IMUX.DATA27</td><td>DCM.STSADRS0</td></tr>
+
 <tr><td>IMUX.DATA28</td><td>DCM.CTLSEL2</td></tr>
+
 <tr><td>IMUX.DATA29</td><td>DCM.CTLOSC2</td></tr>
+
 <tr><td>IMUX.DATA30</td><td>DCM.CTLOSC1</td></tr>
+
 <tr><td>IMUX.DATA31</td><td>DCM.CTLGO</td></tr>
+
 <tr><td>OUT.FAN0</td><td>DCM.CLK270</td></tr>
+
 <tr><td>OUT.FAN1</td><td>DCM.CLK180</td></tr>
+
 <tr><td>OUT.FAN2</td><td>DCM.CLK90</td></tr>
+
 <tr><td>OUT.FAN3</td><td>DCM.CLK0</td></tr>
+
 <tr><td>OUT.FAN4</td><td>DCM.CLKFX180</td></tr>
+
 <tr><td>OUT.FAN5</td><td>DCM.CLKFX</td></tr>
+
 <tr><td>OUT.FAN6</td><td>DCM.CLK2X180</td></tr>
+
 <tr><td>OUT.FAN7</td><td>DCM.CLK2X</td></tr>
+
 <tr><td>OUT.SEC0</td><td>DCM.PSDONE</td></tr>
+
 <tr><td>OUT.SEC1</td><td>DCM.CONCUR</td></tr>
+
 <tr><td>OUT.SEC2</td><td>DCM.LOCKED</td></tr>
+
 <tr><td>OUT.SEC3</td><td>DCM.CLKDV</td></tr>
+
 <tr><td>OUT.SEC4</td><td>DCM.STATUS4</td></tr>
+
 <tr><td>OUT.SEC5</td><td>DCM.STATUS5</td></tr>
+
 <tr><td>OUT.SEC6</td><td>DCM.STATUS6</td></tr>
+
 <tr><td>OUT.SEC7</td><td>DCM.STATUS7</td></tr>
+
 <tr><td>OUT.SEC8</td><td>DCM.STATUS0</td></tr>
+
 <tr><td>OUT.SEC9</td><td>DCM.STATUS1</td></tr>
+
 <tr><td>OUT.SEC10</td><td>DCM.STATUS2</td></tr>
+
 <tr><td>OUT.SEC11</td><td>DCM.STATUS3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DCM.S3 bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="4">Frame</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
 <th>2</th>
 <th>3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>63</td>
 <td>-</td>
@@ -277,6 +374,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.STSADRS4">~DCM:INV.STSADRS4</a>
 </td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td title="0.1.62">
@@ -291,6 +389,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.CTLGO">~DCM:INV.CTLGO</a>
 </td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td title="0.1.61">
@@ -303,6 +402,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td title="0.1.60">
@@ -318,6 +418,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:PL_CENTERED">DCM:PL_CENTERED</a>
 </td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td title="0.1.59">
@@ -333,6 +434,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:DFS">DCM:DFS[15]</a>
 </td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td title="0.1.58">
@@ -344,6 +446,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td title="0.1.57">
@@ -357,6 +460,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.FREEZEDFS">~DCM:INV.FREEZEDFS</a>
 </td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td title="0.1.56">
@@ -370,6 +474,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.PSINCDEC">~DCM:INV.PSINCDEC</a>
 </td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td title="0.1.55">
@@ -384,6 +489,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:VREG_PROBE">DCM:VREG_PROBE[0]</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td title="0.1.54">
@@ -398,6 +504,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:VREG_PROBE">DCM:VREG_PROBE[1]</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td title="0.1.53">
@@ -412,6 +519,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.CTLSEL0">~DCM:INV.CTLSEL0</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td title="0.1.52">
@@ -426,6 +534,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.CTLOSC2">~DCM:INV.CTLOSC2</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td title="0.1.51">
@@ -440,6 +549,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.STSADRS2">~DCM:INV.STSADRS2</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td title="0.1.50">
@@ -452,6 +562,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td title="0.1.49">
@@ -464,6 +575,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td title="0.1.48">
@@ -476,6 +588,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td title="0.1.47">
@@ -489,6 +602,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:VREG_PROBE">DCM:VREG_PROBE[2]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td title="0.0.46">
 <a href="#tile-spartan3-DCM.S3-DCM:SPLY_IDC">DCM:SPLY_IDC[1]</a>
@@ -504,6 +618,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:VREG_PROBE">DCM:VREG_PROBE[3]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td title="0.0.45">
 <a href="#tile-spartan3-DCM.S3-DCM:SPLY_IDC">DCM:SPLY_IDC[0]</a>
@@ -518,6 +633,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td title="0.0.44">
 <a href="#tile-spartan3-DCM.S3-DCM:EN_OSC_COARSE">DCM:EN_OSC_COARSE</a>
@@ -534,6 +650,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.CTLMODE">~DCM:INV.CTLMODE</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td title="0.0.43">
 <a href="#tile-spartan3-DCM.S3-DCM:EXTENDED_FLUSH_TIME">DCM:EXTENDED_FLUSH_TIME</a>
@@ -548,6 +665,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td title="0.0.42">
 <a href="#tile-spartan3-DCM.S3-DCM:EXTENDED_HALT_TIME">DCM:EXTENDED_HALT_TIME</a>
@@ -562,6 +680,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td title="0.0.41">
 <a href="#tile-spartan3-DCM.S3-DCM:EXTENDED_RUN_TIME">DCM:EXTENDED_RUN_TIME</a>
@@ -576,6 +695,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td title="0.0.40">
 <a href="#tile-spartan3-DCM.S3-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC</a>
@@ -590,6 +710,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td title="0.0.39">
 <a href="#tile-spartan3-DCM.S3-DCM:ZD2_BY1">DCM:ZD2_BY1</a>
@@ -603,6 +724,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td title="0.0.38">
 <a href="#tile-spartan3-DCM.S3-DCM:ZD1_BY1">DCM:ZD1_BY1</a>
@@ -617,6 +739,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td title="0.0.37">
 <a href="#tile-spartan3-DCM.S3-DCM:RESET_PS_SEL">DCM:RESET_PS_SEL</a>
@@ -633,6 +756,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[0]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td title="0.0.36">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[8]</a>
@@ -649,6 +773,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[1]</a>
 </td>
 </tr>
+
 <tr><td>35</td>
 <td title="0.0.35">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[7]</a>
@@ -666,6 +791,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[2]</a>
 </td>
 </tr>
+
 <tr><td>34</td>
 <td title="0.0.34">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[6]</a>
@@ -683,6 +809,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[3]</a>
 </td>
 </tr>
+
 <tr><td>33</td>
 <td title="0.0.33">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[5]</a>
@@ -700,6 +827,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[4]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td title="0.0.32">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[4]</a>
@@ -717,6 +845,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[5]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td title="0.0.31">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[3]</a>
@@ -733,6 +862,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[6]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td title="0.0.30">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[2]</a>
@@ -749,6 +879,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[7]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td title="0.0.29">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[1]</a>
@@ -765,6 +896,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[8]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td title="0.0.28">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS[0]</a>
@@ -781,6 +913,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[9]</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td title="0.0.27">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_LP">DCM:CFG_DLL_LP[2]</a>
@@ -797,6 +930,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC[10]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td title="0.0.26">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_LP">DCM:CFG_DLL_LP[1]</a>
@@ -813,6 +947,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:STARTUP_WAIT">DCM:STARTUP_WAIT</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td title="0.0.25">
 <a href="#tile-spartan3-DCM.S3-DCM:CFG_DLL_LP">DCM:CFG_DLL_LP[0]</a>
@@ -826,6 +961,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td title="0.0.24">
 <a href="#tile-spartan3-DCM.S3-DCM:SEL_HSYNC_B">DCM:SEL_HSYNC_B[0]</a>
@@ -841,6 +977,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.STSADRS0">~DCM:INV.STSADRS0</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td title="0.0.23">
 <a href="#tile-spartan3-DCM.S3-DCM:M1D1">DCM:M1D1</a>
@@ -854,6 +991,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td title="0.0.22">
 <a href="#tile-spartan3-DCM.S3-DCM:MIS1">DCM:MIS1</a>
@@ -867,6 +1005,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td title="0.0.21">
 <a href="#tile-spartan3-DCM.S3-DCM:SEL_HSYNC_B">DCM:SEL_HSYNC_B[1]</a>
@@ -880,6 +1019,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td title="0.0.20">
 <a href="#tile-spartan3-DCM.S3-DCM:EN_PWCTL">DCM:EN_PWCTL</a>
@@ -895,6 +1035,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.RST">~DCM:INV.RST</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td title="0.0.19">
 <a href="#tile-spartan3-DCM.S3-DCM:LPON_B_DFS">DCM:LPON_B_DFS[1]</a>
@@ -910,6 +1051,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.CTLSEL1">~DCM:INV.CTLSEL1</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td title="0.0.18">
 <a href="#tile-spartan3-DCM.S3-DCM:LPON_B_DFS">DCM:LPON_B_DFS[0]</a>
@@ -923,6 +1065,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td title="0.0.17">
 <a href="#tile-spartan3-DCM.S3-DCM:EN_RELRST_B">DCM:EN_RELRST_B</a>
@@ -936,6 +1079,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td title="0.0.16">
 <a href="#tile-spartan3-DCM.S3-DCM:EN_OLD_OSCCTL">DCM:EN_OLD_OSCCTL</a>
@@ -949,6 +1093,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.0.15">
 <a href="#tile-spartan3-DCM.S3-DCM:TRIM_LP_B">DCM:TRIM_LP_B</a>
@@ -964,6 +1109,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.STSADRS3">~DCM:INV.STSADRS3</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.0.14">
 <a href="#tile-spartan3-DCM.S3-DCM:INVERT_ZD1_CUSTOM">DCM:INVERT_ZD1_CUSTOM</a>
@@ -979,6 +1125,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:VREG_PROBE">DCM:VREG_PROBE[4]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td title="0.1.13">
@@ -992,6 +1139,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.CTLOSC1">~DCM:INV.CTLOSC1</a>
 </td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td title="0.1.12">
@@ -1006,6 +1154,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.PSEN">~DCM:INV.PSEN</a>
 </td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td title="0.1.11">
@@ -1020,6 +1169,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.FREEZEDLL">~DCM:INV.FREEZEDLL</a>
 </td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td title="0.1.10">
@@ -1032,6 +1182,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td title="0.1.9">
@@ -1044,6 +1195,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td title="0.1.8">
@@ -1056,6 +1208,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td title="0.1.7">
@@ -1068,6 +1221,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td title="0.1.6">
@@ -1080,6 +1234,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td title="0.1.5">
@@ -1094,6 +1249,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.CTLSEL2">~DCM:INV.CTLSEL2</a>
 </td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td title="0.1.4">
@@ -1108,6 +1264,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:INV.STSADRS1">~DCM:INV.STSADRS1</a>
 </td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td title="0.1.3">
@@ -1120,6 +1277,7 @@
 </td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td title="0.1.2">
@@ -1135,6 +1293,7 @@
 <a href="#tile-spartan3-DCM.S3-DCM:DLLC">DCM:DLLC[16]</a>
 </td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td title="0.1.1">
@@ -1150,27 +1309,36 @@
 <a href="#tile-spartan3-DCM.S3-DCM:DUTY_CYCLE_CORRECTION">DCM:DUTY_CYCLE_CORRECTION[3]</a>
 </td>
 </tr>
+
 <tr><td>0</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CFG_DLL_LP">DCM:CFG_DLL_LP</th>
 <th>0.0.27</th>
 <th>0.0.26</th>
 <th>0.0.25</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:VBG_SEL">DCM:VBG_SEL</th>
 <th>0.2.42</th>
 <th>0.2.41</th>
 <th>0.2.40</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1179,9 +1347,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CFG_DLL_PS">DCM:CFG_DLL_PS</th>
 <th>0.0.36</th>
@@ -1194,7 +1367,9 @@ non-inverted
 <th>0.0.29</th>
 <th>0.0.28</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1209,9 +1384,14 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKDV_COUNT_FALL">DCM:CLKDV_COUNT_FALL</th>
 <th>0.1.11</th>
@@ -1219,31 +1399,37 @@ non-inverted
 <th>0.1.9</th>
 <th>0.1.8</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKDV_COUNT_FALL_2">DCM:CLKDV_COUNT_FALL_2</th>
 <th>0.1.15</th>
 <th>0.1.14</th>
 <th>0.1.13</th>
 <th>0.1.12</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKDV_COUNT_MAX">DCM:CLKDV_COUNT_MAX</th>
 <th>0.1.7</th>
 <th>0.1.6</th>
 <th>0.1.5</th>
 <th>0.1.4</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DESKEW_ADJUST">DCM:DESKEW_ADJUST</th>
 <th>0.2.36</th>
 <th>0.2.35</th>
 <th>0.2.34</th>
 <th>0.2.33</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DUTY_CYCLE_CORRECTION">DCM:DUTY_CYCLE_CORRECTION</th>
 <th>0.3.1</th>
 <th>0.1.3</th>
 <th>0.1.2</th>
 <th>0.1.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1253,50 +1439,70 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKDV_MODE">DCM:CLKDV_MODE</th>
 <th>0.2.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>HALF</td>
 <td>0</td>
 </tr>
+
 <tr><td>INT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKDV_PHASE_FALL">DCM:CLKDV_PHASE_FALL</th>
 <th>0.2.3</th>
 <th>0.2.2</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKDV_PHASE_RISE">DCM:CLKDV_PHASE_RISE</th>
 <th>0.2.1</th>
 <th>0.3.2</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:LPON_B_DFS">DCM:LPON_B_DFS</th>
 <th>0.0.19</th>
 <th>0.0.18</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:SEL_HSYNC_B">DCM:SEL_HSYNC_B</th>
 <th>0.0.21</th>
 <th>0.0.24</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:SPLY_IDC">DCM:SPLY_IDC</th>
 <th>0.0.46</th>
 <th>0.0.45</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:VBG_PD">DCM:VBG_PD</th>
 <th>0.2.44</th>
 <th>0.2.43</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1304,140 +1510,191 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKFB_IOB">DCM:CLKFB_IOB</th>
 <th>0.2.38</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKIN_DIVIDE_BY_2">DCM:CLKIN_DIVIDE_BY_2</th>
 <th>0.2.32</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKIN_IOB">DCM:CLKIN_IOB</th>
 <th>0.2.37</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DFS_ENABLE">DCM:DFS_ENABLE</th>
 <th>0.1.32</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DFS_FEEDBACK">DCM:DFS_FEEDBACK</th>
 <th>0.2.59</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DLL_ENABLE">DCM:DLL_ENABLE</th>
 <th>0.1.33</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLK0">DCM:ENABLE.CLK0</th>
 <th>0.3.36</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLK180">DCM:ENABLE.CLK180</th>
 <th>0.3.34</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLK270">DCM:ENABLE.CLK270</th>
 <th>0.3.33</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLK2X">DCM:ENABLE.CLK2X</th>
 <th>0.3.32</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLK2X180">DCM:ENABLE.CLK2X180</th>
 <th>0.3.31</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLK90">DCM:ENABLE.CLK90</th>
 <th>0.3.35</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLKDV">DCM:ENABLE.CLKDV</th>
 <th>0.3.30</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLKFB">DCM:ENABLE.CLKFB</th>
 <th>0.1.34</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLKFX">DCM:ENABLE.CLKFX</th>
 <th>0.3.28</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CLKFX180">DCM:ENABLE.CLKFX180</th>
 <th>0.3.29</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ENABLE.CONCUR">DCM:ENABLE.CONCUR</th>
 <th>0.3.27</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EN_DUMMY_OSC">DCM:EN_DUMMY_OSC</th>
 <th>0.0.40</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EN_OLD_OSCCTL">DCM:EN_OLD_OSCCTL</th>
 <th>0.0.16</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EN_OSC_COARSE">DCM:EN_OSC_COARSE</th>
 <th>0.0.44</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EN_PWCTL">DCM:EN_PWCTL</th>
 <th>0.0.20</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EN_RELRST_B">DCM:EN_RELRST_B</th>
 <th>0.0.17</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EXTENDED_FLUSH_TIME">DCM:EXTENDED_FLUSH_TIME</th>
 <th>0.0.43</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EXTENDED_HALT_TIME">DCM:EXTENDED_HALT_TIME</th>
 <th>0.0.42</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:EXTENDED_RUN_TIME">DCM:EXTENDED_RUN_TIME</th>
 <th>0.0.41</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INVERT_ZD1_CUSTOM">DCM:INVERT_ZD1_CUSTOM</th>
 <th>0.0.14</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:M1D1">DCM:M1D1</th>
 <th>0.0.23</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:MIS1">DCM:MIS1</th>
 <th>0.0.22</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:NON_STOP">DCM:NON_STOP</th>
 <th>0.2.47</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:PHASE_SHIFT_NEGATIVE">DCM:PHASE_SHIFT_NEGATIVE</th>
 <th>0.1.37</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:PL_CENTERED">DCM:PL_CENTERED</th>
 <th>0.3.60</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:PS_CENTERED">DCM:PS_CENTERED</th>
 <th>0.2.9</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:PS_ENABLE">DCM:PS_ENABLE</th>
 <th>0.1.35</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:RESET_PS_SEL">DCM:RESET_PS_SEL</th>
 <th>0.0.37</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:STARTUP_WAIT">DCM:STARTUP_WAIT</th>
 <th>0.3.26</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:STATUS1">DCM:STATUS1</th>
 <th>0.2.12</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:STATUS7">DCM:STATUS7</th>
 <th>0.2.11</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:TRIM_LP_B">DCM:TRIM_LP_B</th>
 <th>0.0.15</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ZD1_BY1">DCM:ZD1_BY1</th>
 <th>0.0.38</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:ZD2_BY1">DCM:ZD2_BY1</th>
 <th>0.0.39</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
 </td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKFX_DIVIDE">DCM:CLKFX_DIVIDE</th>
 <th>0.1.59</th>
@@ -1453,6 +1710,7 @@ non-inverted
 <th>0.1.49</th>
 <th>0.1.48</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLKFX_MULTIPLY">DCM:CLKFX_MULTIPLY</th>
 <th>0.2.55</th>
 <th>0.2.54</th>
@@ -1467,6 +1725,7 @@ non-inverted
 <th>0.1.61</th>
 <th>0.1.60</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:MISC">DCM:MISC</th>
 <th>0.3.26</th>
 <th>0.3.27</th>
@@ -1481,7 +1740,9 @@ non-inverted
 <th>0.3.36</th>
 <th>0.3.37</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1499,54 +1760,78 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:CLK_FEEDBACK">DCM:CLK_FEEDBACK</th>
 <th>0.2.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>1X</td>
 <td>0</td>
 </tr>
+
 <tr><td>2X</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:COIN_WINDOW">DCM:COIN_WINDOW</th>
 <th>0.2.46</th>
 <th>0.2.45</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:SEL_PL_DLY">DCM:SEL_PL_DLY</th>
 <th>0.2.62</th>
 <th>0.2.61</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>3</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:COM">DCM:COM</th>
 <th>0.2.47</th>
@@ -1582,6 +1867,7 @@ non-inverted
 <th>0.2.17</th>
 <th>0.2.16</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DFS">DCM:DFS</th>
 <th>0.3.60</th>
 <th>0.2.62</th>
@@ -1616,6 +1902,7 @@ non-inverted
 <th>0.1.49</th>
 <th>0.1.48</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DLLC">DCM:DLLC</th>
 <th>0.2.15</th>
 <th>0.2.14</th>
@@ -1650,6 +1937,7 @@ non-inverted
 <th>0.1.1</th>
 <th>0.3.1</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DLLS">DCM:DLLS</th>
 <th>0.1.47</th>
 <th>0.1.46</th>
@@ -1684,7 +1972,9 @@ non-inverted
 <th>0.1.17</th>
 <th>0.1.16</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1722,27 +2012,41 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:DFS_FREQUENCY_MODE">DCM:DFS_FREQUENCY_MODE</th>
 <th>0.2.60</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:DLL_FREQUENCY_MODE">DCM:DLL_FREQUENCY_MODE</th>
 <th>0.2.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>LOW</td>
 <td>0</td>
 </tr>
+
 <tr><td>HIGH</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:FACTORY_JF1">DCM:FACTORY_JF1</th>
 <th>0.1.31</th>
@@ -1754,6 +2058,7 @@ non-inverted
 <th>0.1.25</th>
 <th>0.1.24</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:FACTORY_JF2">DCM:FACTORY_JF2</th>
 <th>0.1.23</th>
 <th>0.1.22</th>
@@ -1764,6 +2069,7 @@ non-inverted
 <th>0.1.17</th>
 <th>0.1.16</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:PHASE_SHIFT">DCM:PHASE_SHIFT</th>
 <th>0.1.45</th>
 <th>0.1.44</th>
@@ -1774,7 +2080,9 @@ non-inverted
 <th>0.1.39</th>
 <th>0.1.38</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1788,112 +2096,158 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.CTLGO">DCM:INV.CTLGO</th>
 <th>0.3.62</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.CTLMODE">DCM:INV.CTLMODE</th>
 <th>0.3.44</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.CTLOSC1">DCM:INV.CTLOSC1</th>
 <th>0.3.13</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.CTLOSC2">DCM:INV.CTLOSC2</th>
 <th>0.3.52</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.CTLSEL0">DCM:INV.CTLSEL0</th>
 <th>0.3.53</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.CTLSEL1">DCM:INV.CTLSEL1</th>
 <th>0.3.19</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.CTLSEL2">DCM:INV.CTLSEL2</th>
 <th>0.3.5</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.FREEZEDFS">DCM:INV.FREEZEDFS</th>
 <th>0.3.57</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.FREEZEDLL">DCM:INV.FREEZEDLL</th>
 <th>0.3.11</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.PSEN">DCM:INV.PSEN</th>
 <th>0.3.12</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.PSINCDEC">DCM:INV.PSINCDEC</th>
 <th>0.3.56</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.RST">DCM:INV.RST</th>
 <th>0.3.20</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.STSADRS0">DCM:INV.STSADRS0</th>
 <th>0.3.24</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.STSADRS1">DCM:INV.STSADRS1</th>
 <th>0.3.4</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.STSADRS2">DCM:INV.STSADRS2</th>
 <th>0.3.51</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.STSADRS3">DCM:INV.STSADRS3</th>
 <th>0.3.15</th>
 </tr>
+
 <tr><th id="tile-spartan3-DCM.S3-DCM:INV.STSADRS4">DCM:INV.STSADRS4</th>
 <th>0.3.63</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:PS_MODE">DCM:PS_MODE</th>
 <th>0.2.10</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLKFB</td>
 <td>0</td>
 </tr>
+
 <tr><td>CLKIN</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:TEST_OSC">DCM:TEST_OSC</th>
 <th>0.2.6</th>
 <th>0.2.5</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>90</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>180</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>270</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>360</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-spartan3-DCM.S3-DCM:VREG_PROBE">DCM:VREG_PROBE</th>
 <th>0.3.14</th>
@@ -1902,7 +2256,9 @@ inverted
 <th>0.3.54</th>
 <th>0.3.55</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 non-inverted
@@ -1913,88 +2269,150 @@ non-inverted
 <td>[1]</td>
 <td>[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-dcmconnbot"><a class="header" href="#tile-dcmconnbot">Tile DCMCONN.BOT</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-dcmconn"><a class="header" href="#bel-dcmconn">Bel DCMCONN</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DCMCONN.BOT bel DCMCONN</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLKPAD0</td><td>output</td><td>DCM.CLKPAD0</td></tr>
+
 <tr><td>CLKPAD1</td><td>output</td><td>DCM.CLKPAD1</td></tr>
+
 <tr><td>CLKPAD2</td><td>output</td><td>DCM.CLKPAD2</td></tr>
+
 <tr><td>CLKPAD3</td><td>output</td><td>DCM.CLKPAD3</td></tr>
+
 <tr><td>OUT0</td><td>input</td><td>OMUX0</td></tr>
+
 <tr><td>OUT1</td><td>input</td><td>OMUX3</td></tr>
+
 <tr><td>OUT2</td><td>input</td><td>OMUX4</td></tr>
+
 <tr><td>OUT3</td><td>input</td><td>OMUX5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DCMCONN.BOT bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCM.CLKPAD0</td><td>DCMCONN.CLKPAD0</td></tr>
+
 <tr><td>DCM.CLKPAD1</td><td>DCMCONN.CLKPAD1</td></tr>
+
 <tr><td>DCM.CLKPAD2</td><td>DCMCONN.CLKPAD2</td></tr>
+
 <tr><td>DCM.CLKPAD3</td><td>DCMCONN.CLKPAD3</td></tr>
+
 <tr><td>OMUX0</td><td>DCMCONN.OUT0</td></tr>
+
 <tr><td>OMUX3</td><td>DCMCONN.OUT1</td></tr>
+
 <tr><td>OMUX4</td><td>DCMCONN.OUT2</td></tr>
+
 <tr><td>OMUX5</td><td>DCMCONN.OUT3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-dcmconntop"><a class="header" href="#tile-dcmconntop">Tile DCMCONN.TOP</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-dcmconn-1"><a class="header" href="#bel-dcmconn-1">Bel DCMCONN</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DCMCONN.TOP bel DCMCONN</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLKPAD0</td><td>output</td><td>DCM.CLKPAD0</td></tr>
+
 <tr><td>CLKPAD1</td><td>output</td><td>DCM.CLKPAD1</td></tr>
+
 <tr><td>CLKPAD2</td><td>output</td><td>DCM.CLKPAD2</td></tr>
+
 <tr><td>CLKPAD3</td><td>output</td><td>DCM.CLKPAD3</td></tr>
+
 <tr><td>OUT0</td><td>input</td><td>OMUX10</td></tr>
+
 <tr><td>OUT1</td><td>input</td><td>OMUX11</td></tr>
+
 <tr><td>OUT2</td><td>input</td><td>OMUX12</td></tr>
+
 <tr><td>OUT3</td><td>input</td><td>OMUX15</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>spartan3 DCMCONN.TOP bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>DCM.CLKPAD0</td><td>DCMCONN.CLKPAD0</td></tr>
+
 <tr><td>DCM.CLKPAD1</td><td>DCMCONN.CLKPAD1</td></tr>
+
 <tr><td>DCM.CLKPAD2</td><td>DCMCONN.CLKPAD2</td></tr>
+
 <tr><td>DCM.CLKPAD3</td><td>DCMCONN.CLKPAD3</td></tr>
+
 <tr><td>OMUX10</td><td>DCMCONN.OUT0</td></tr>
+
 <tr><td>OMUX11</td><td>DCMCONN.OUT1</td></tr>
+
 <tr><td>OMUX12</td><td>DCMCONN.OUT2</td></tr>
+
 <tr><td>OMUX15</td><td>DCMCONN.OUT3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="device-data"><a class="header" href="#device-data">Device data</a></h2>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th rowspan="2">Device</th>
 <th colspan="4">DCM:DESKEW_ADJUST</th>
 <th colspan="2">DCM:VBG_PD</th>
 <th colspan="3">DCM:VBG_SEL</th>
 </tr>
+
 <tr>
 <th>[3]</th>
 <th>[2]</th>
@@ -2006,7 +2424,9 @@ non-inverted
 <th>[1]</th>
 <th>[0]</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>xc3s50</td>
 <td>0</td>
@@ -2019,6 +2439,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xa3s50</td>
 <td>0</td>
 <td>1</td>
@@ -2030,6 +2451,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s200</td>
 <td>0</td>
 <td>1</td>
@@ -2041,6 +2463,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xa3s200</td>
 <td>0</td>
 <td>1</td>
@@ -2052,6 +2475,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s400</td>
 <td>0</td>
 <td>1</td>
@@ -2063,6 +2487,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xa3s400</td>
 <td>0</td>
 <td>1</td>
@@ -2074,6 +2499,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s1000</td>
 <td>1</td>
 <td>0</td>
@@ -2085,6 +2511,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xa3s1000</td>
 <td>1</td>
 <td>0</td>
@@ -2096,6 +2523,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s1000l</td>
 <td>1</td>
 <td>0</td>
@@ -2107,6 +2535,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s1500</td>
 <td>1</td>
 <td>0</td>
@@ -2118,6 +2547,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xa3s1500</td>
 <td>1</td>
 <td>0</td>
@@ -2129,6 +2559,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s1500l</td>
 <td>1</td>
 <td>0</td>
@@ -2140,6 +2571,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s2000</td>
 <td>1</td>
 <td>0</td>
@@ -2151,6 +2583,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s4000</td>
 <td>1</td>
 <td>0</td>
@@ -2162,6 +2595,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s4000l</td>
 <td>1</td>
 <td>0</td>
@@ -2173,6 +2607,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s5000</td>
 <td>1</td>
 <td>0</td>
@@ -2184,6 +2619,7 @@ non-inverted
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>xc3s100e</td>
 <td>0</td>
 <td>1</td>
@@ -2195,6 +2631,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s100e</td>
 <td>0</td>
 <td>1</td>
@@ -2206,6 +2643,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s250e</td>
 <td>0</td>
 <td>1</td>
@@ -2217,6 +2655,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s250e</td>
 <td>0</td>
 <td>1</td>
@@ -2228,6 +2667,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s500e</td>
 <td>0</td>
 <td>1</td>
@@ -2239,6 +2679,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s500e</td>
 <td>0</td>
 <td>1</td>
@@ -2250,6 +2691,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s1200e</td>
 <td>0</td>
 <td>1</td>
@@ -2261,6 +2703,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s1200e</td>
 <td>0</td>
 <td>1</td>
@@ -2272,6 +2715,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s1600e</td>
 <td>0</td>
 <td>1</td>
@@ -2283,6 +2727,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s1600e</td>
 <td>0</td>
 <td>1</td>
@@ -2294,6 +2739,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s50a</td>
 <td>1</td>
 <td>0</td>
@@ -2305,6 +2751,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s50an</td>
 <td>1</td>
 <td>0</td>
@@ -2316,6 +2763,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s200a</td>
 <td>1</td>
 <td>0</td>
@@ -2327,6 +2775,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s200a</td>
 <td>1</td>
 <td>0</td>
@@ -2338,6 +2787,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s200an</td>
 <td>1</td>
 <td>0</td>
@@ -2349,6 +2799,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s400a</td>
 <td>1</td>
 <td>0</td>
@@ -2360,6 +2811,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s400a</td>
 <td>1</td>
 <td>0</td>
@@ -2371,6 +2823,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s400an</td>
 <td>1</td>
 <td>0</td>
@@ -2382,6 +2835,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s700a</td>
 <td>1</td>
 <td>0</td>
@@ -2393,6 +2847,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s700a</td>
 <td>1</td>
 <td>0</td>
@@ -2404,6 +2859,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s700an</td>
 <td>1</td>
 <td>0</td>
@@ -2415,6 +2871,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s1400a</td>
 <td>1</td>
 <td>0</td>
@@ -2426,6 +2883,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3s1400a</td>
 <td>1</td>
 <td>0</td>
@@ -2437,6 +2895,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3s1400an</td>
 <td>1</td>
 <td>0</td>
@@ -2448,6 +2907,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3sd1800a</td>
 <td>1</td>
 <td>0</td>
@@ -2459,6 +2919,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3sd1800a</td>
 <td>1</td>
 <td>0</td>
@@ -2470,6 +2931,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xc3sd3400a</td>
 <td>1</td>
 <td>0</td>
@@ -2481,6 +2943,7 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>xa3sd3400a</td>
 <td>1</td>
 <td>0</td>
@@ -2492,19 +2955,23 @@ non-inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../spartan3/io/iob-s3a.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../spartan3/dcm-s3e.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -2514,16 +2981,21 @@ non-inverted
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../spartan3/io/iob-s3a.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../spartan3/dcm-s3e.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -2533,9 +3005,9 @@ non-inverted
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

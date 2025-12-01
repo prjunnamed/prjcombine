@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,1519 +142,2835 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="input--output"><a class="header" href="#input--output">Input / Output</a></h1>
 <h2 id="tile-io_w4"><a class="header" href="#tile-io_w4">Tile IO_W4</a></h2>
 <p>Cells: 3</p>
 <h3 id="bel-io0"><a class="header" href="#bel-io0">Bel IO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_W4 bel IO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL2:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL2:OUT_F6</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL2:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL2:OUT_F5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL2:IMUX_A2</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL2:OUT_F4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL2:IMUX_C2</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL2:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL2:IMUX_B2</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL2:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL2:OUT_F1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL2:OUT_F2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL2:OUT_F3</td></tr>
+
 <tr><td>RXDATA4</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+
 <tr><td>RXDATA5</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+
 <tr><td>RXDATA6</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL2:IMUX_B1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL2:IMUX_B0</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL2:IMUX_C1</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL2:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL2:IMUX_C0</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL2:IMUX_D0</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL2:IMUX_A1</td></tr>
+
 <tr><td>TXDATA4</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+
 <tr><td>TXDATA5</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+
 <tr><td>TXDATA6</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io1"><a class="header" href="#bel-io1">Bel IO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_W4 bel IO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL2:IMUX_CE1</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL2:OUT_F7</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL2:IMUX_CLK1</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL2:OUT_Q5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL2:OUT_Q4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL2:IMUX_C5</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL2:IMUX_LSR1</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL2:OUT_Q0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL2:IMUX_B4</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL2:IMUX_B3</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL2:IMUX_C4</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL2:IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io2"><a class="header" href="#bel-io2">Bel IO2</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_W4 bel IO2</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL0:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL0:IMUX_A2</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL0:IMUX_C2</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL0:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+
 <tr><td>RXDATA4</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+
 <tr><td>RXDATA5</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+
 <tr><td>RXDATA6</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL0:IMUX_B1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL0:IMUX_C1</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL0:IMUX_C0</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL0:IMUX_D0</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL0:IMUX_A1</td></tr>
+
 <tr><td>TXDATA4</td><td>input</td><td>TCELL0:IMUX_A3</td></tr>
+
 <tr><td>TXDATA5</td><td>input</td><td>TCELL0:IMUX_C3</td></tr>
+
 <tr><td>TXDATA6</td><td>input</td><td>TCELL0:IMUX_D3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io3"><a class="header" href="#bel-io3">Bel IO3</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_W4 bel IO3</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL0:IMUX_CE1</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL0:IMUX_CLK1</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL0:IMUX_C5</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL0:IMUX_LSR1</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL0:IMUX_B4</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL0:IMUX_B3</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL0:IMUX_C4</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL0:IMUX_A3</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL0:IMUX_C3</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL0:IMUX_D3</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL0:IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_W4 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX_A0</td><td>IO2.TXDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_A1</td><td>IO2.TXDATA3</td></tr>
+
 <tr><td>TCELL0:IMUX_A2</td><td>IO2.DIRECTION</td></tr>
+
 <tr><td>TCELL0:IMUX_A3</td><td>IO2.TXDATA4, IO3.TXDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_A4</td><td>IO3.TXDATA3</td></tr>
+
 <tr><td>TCELL0:IMUX_A5</td><td>IO3.DIRECTION</td></tr>
+
 <tr><td>TCELL0:IMUX_B0</td><td>IO2.TSDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B1</td><td>IO2.SLIP</td></tr>
+
 <tr><td>TCELL0:IMUX_B2</td><td>IO2.MOVE</td></tr>
+
 <tr><td>TCELL0:IMUX_B3</td><td>IO3.TSDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B4</td><td>IO3.SLIP</td></tr>
+
 <tr><td>TCELL0:IMUX_B5</td><td>IO3.MOVE</td></tr>
+
 <tr><td>TCELL0:IMUX_C0</td><td>IO2.TXDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C1</td><td>IO2.TSDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C2</td><td>IO2.LOADN</td></tr>
+
 <tr><td>TCELL0:IMUX_C3</td><td>IO2.TXDATA5, IO3.TXDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C4</td><td>IO3.TSDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C5</td><td>IO3.LOADN</td></tr>
+
 <tr><td>TCELL0:IMUX_D0</td><td>IO2.TXDATA2</td></tr>
+
 <tr><td>TCELL0:IMUX_D3</td><td>IO2.TXDATA6, IO3.TXDATA2</td></tr>
+
 <tr><td>TCELL0:IMUX_CLK0</td><td>IO2.CLK</td></tr>
+
 <tr><td>TCELL0:IMUX_CLK1</td><td>IO3.CLK</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR0</td><td>IO2.LSR</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR1</td><td>IO3.LSR</td></tr>
+
 <tr><td>TCELL0:IMUX_CE0</td><td>IO2.CE</td></tr>
+
 <tr><td>TCELL0:IMUX_CE1</td><td>IO3.CE</td></tr>
+
 <tr><td>TCELL0:OUT_F0</td><td>IO2.RXDATA0</td></tr>
+
 <tr><td>TCELL0:OUT_F1</td><td>IO2.RXDATA1</td></tr>
+
 <tr><td>TCELL0:OUT_F2</td><td>IO2.RXDATA2</td></tr>
+
 <tr><td>TCELL0:OUT_F3</td><td>IO2.RXDATA3</td></tr>
+
 <tr><td>TCELL0:OUT_F4</td><td>IO2.INFF</td></tr>
+
 <tr><td>TCELL0:OUT_F5</td><td>IO2.DI</td></tr>
+
 <tr><td>TCELL0:OUT_F6</td><td>IO2.CFLAG</td></tr>
+
 <tr><td>TCELL0:OUT_F7</td><td>IO3.CFLAG</td></tr>
+
 <tr><td>TCELL0:OUT_Q0</td><td>IO3.RXDATA0</td></tr>
+
 <tr><td>TCELL0:OUT_Q1</td><td>IO2.RXDATA4, IO3.RXDATA1</td></tr>
+
 <tr><td>TCELL0:OUT_Q2</td><td>IO2.RXDATA5, IO3.RXDATA2</td></tr>
+
 <tr><td>TCELL0:OUT_Q3</td><td>IO2.RXDATA6, IO3.RXDATA3</td></tr>
+
 <tr><td>TCELL0:OUT_Q4</td><td>IO3.INFF</td></tr>
+
 <tr><td>TCELL0:OUT_Q5</td><td>IO3.DI</td></tr>
+
 <tr><td>TCELL2:IMUX_A0</td><td>IO0.TXDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_A1</td><td>IO0.TXDATA3</td></tr>
+
 <tr><td>TCELL2:IMUX_A2</td><td>IO0.DIRECTION</td></tr>
+
 <tr><td>TCELL2:IMUX_A3</td><td>IO0.TXDATA4, IO1.TXDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_A4</td><td>IO1.TXDATA3</td></tr>
+
 <tr><td>TCELL2:IMUX_A5</td><td>IO1.DIRECTION</td></tr>
+
 <tr><td>TCELL2:IMUX_B0</td><td>IO0.TSDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_B1</td><td>IO0.SLIP</td></tr>
+
 <tr><td>TCELL2:IMUX_B2</td><td>IO0.MOVE</td></tr>
+
 <tr><td>TCELL2:IMUX_B3</td><td>IO1.TSDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_B4</td><td>IO1.SLIP</td></tr>
+
 <tr><td>TCELL2:IMUX_B5</td><td>IO1.MOVE</td></tr>
+
 <tr><td>TCELL2:IMUX_C0</td><td>IO0.TXDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C1</td><td>IO0.TSDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C2</td><td>IO0.LOADN</td></tr>
+
 <tr><td>TCELL2:IMUX_C3</td><td>IO0.TXDATA5, IO1.TXDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C4</td><td>IO1.TSDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C5</td><td>IO1.LOADN</td></tr>
+
 <tr><td>TCELL2:IMUX_D0</td><td>IO0.TXDATA2</td></tr>
+
 <tr><td>TCELL2:IMUX_D3</td><td>IO0.TXDATA6, IO1.TXDATA2</td></tr>
+
 <tr><td>TCELL2:IMUX_CLK0</td><td>IO0.CLK</td></tr>
+
 <tr><td>TCELL2:IMUX_CLK1</td><td>IO1.CLK</td></tr>
+
 <tr><td>TCELL2:IMUX_LSR0</td><td>IO0.LSR</td></tr>
+
 <tr><td>TCELL2:IMUX_LSR1</td><td>IO1.LSR</td></tr>
+
 <tr><td>TCELL2:IMUX_CE0</td><td>IO0.CE</td></tr>
+
 <tr><td>TCELL2:IMUX_CE1</td><td>IO1.CE</td></tr>
+
 <tr><td>TCELL2:OUT_F0</td><td>IO0.RXDATA0</td></tr>
+
 <tr><td>TCELL2:OUT_F1</td><td>IO0.RXDATA1</td></tr>
+
 <tr><td>TCELL2:OUT_F2</td><td>IO0.RXDATA2</td></tr>
+
 <tr><td>TCELL2:OUT_F3</td><td>IO0.RXDATA3</td></tr>
+
 <tr><td>TCELL2:OUT_F4</td><td>IO0.INFF</td></tr>
+
 <tr><td>TCELL2:OUT_F5</td><td>IO0.DI</td></tr>
+
 <tr><td>TCELL2:OUT_F6</td><td>IO0.CFLAG</td></tr>
+
 <tr><td>TCELL2:OUT_F7</td><td>IO1.CFLAG</td></tr>
+
 <tr><td>TCELL2:OUT_Q0</td><td>IO1.RXDATA0</td></tr>
+
 <tr><td>TCELL2:OUT_Q1</td><td>IO0.RXDATA4, IO1.RXDATA1</td></tr>
+
 <tr><td>TCELL2:OUT_Q2</td><td>IO0.RXDATA5, IO1.RXDATA2</td></tr>
+
 <tr><td>TCELL2:OUT_Q3</td><td>IO0.RXDATA6, IO1.RXDATA3</td></tr>
+
 <tr><td>TCELL2:OUT_Q4</td><td>IO1.INFF</td></tr>
+
 <tr><td>TCELL2:OUT_Q5</td><td>IO1.DI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-io_e4"><a class="header" href="#tile-io_e4">Tile IO_E4</a></h2>
 <p>Cells: 3</p>
 <h3 id="bel-io0-1"><a class="header" href="#bel-io0-1">Bel IO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_E4 bel IO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL2:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL2:OUT_F6</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL2:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL2:OUT_F5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL2:IMUX_A2</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL2:OUT_F4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL2:IMUX_C2</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL2:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL2:IMUX_B2</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL2:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL2:OUT_F1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL2:OUT_F2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL2:OUT_F3</td></tr>
+
 <tr><td>RXDATA4</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+
 <tr><td>RXDATA5</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+
 <tr><td>RXDATA6</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL2:IMUX_B1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL2:IMUX_B0</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL2:IMUX_C1</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL2:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL2:IMUX_C0</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL2:IMUX_D0</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL2:IMUX_A1</td></tr>
+
 <tr><td>TXDATA4</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+
 <tr><td>TXDATA5</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+
 <tr><td>TXDATA6</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io1-1"><a class="header" href="#bel-io1-1">Bel IO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_E4 bel IO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL2:IMUX_CE1</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL2:OUT_F7</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL2:IMUX_CLK1</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL2:OUT_Q5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL2:IMUX_A5</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL2:OUT_Q4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL2:IMUX_C5</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL2:IMUX_LSR1</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL2:IMUX_B5</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL2:OUT_Q0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL2:OUT_Q1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL2:OUT_Q2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL2:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL2:IMUX_B4</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL2:IMUX_B3</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL2:IMUX_C4</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL2:IMUX_A3</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL2:IMUX_C3</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL2:IMUX_D3</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL2:IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io2-1"><a class="header" href="#bel-io2-1">Bel IO2</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_E4 bel IO2</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL0:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL0:OUT_F6</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL0:OUT_F5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL0:IMUX_A2</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL0:OUT_F4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL0:IMUX_C2</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL0:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL0:IMUX_B2</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+
 <tr><td>RXDATA4</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+
 <tr><td>RXDATA5</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+
 <tr><td>RXDATA6</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL0:IMUX_B1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL0:IMUX_C1</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL0:IMUX_C0</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL0:IMUX_D0</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL0:IMUX_A1</td></tr>
+
 <tr><td>TXDATA4</td><td>input</td><td>TCELL0:IMUX_A3</td></tr>
+
 <tr><td>TXDATA5</td><td>input</td><td>TCELL0:IMUX_C3</td></tr>
+
 <tr><td>TXDATA6</td><td>input</td><td>TCELL0:IMUX_D3</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io3-1"><a class="header" href="#bel-io3-1">Bel IO3</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_E4 bel IO3</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL0:IMUX_CE1</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL0:OUT_F7</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL0:IMUX_CLK1</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL0:OUT_Q5</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL0:IMUX_A5</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL0:OUT_Q4</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL0:IMUX_C5</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL0:IMUX_LSR1</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL0:IMUX_B5</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL0:OUT_Q1</td></tr>
+
 <tr><td>RXDATA2</td><td>output</td><td>TCELL0:OUT_Q2</td></tr>
+
 <tr><td>RXDATA3</td><td>output</td><td>TCELL0:OUT_Q3</td></tr>
+
 <tr><td>SLIP</td><td>input</td><td>TCELL0:IMUX_B4</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL0:IMUX_B3</td></tr>
+
 <tr><td>TSDATA1</td><td>input</td><td>TCELL0:IMUX_C4</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL0:IMUX_A3</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL0:IMUX_C3</td></tr>
+
 <tr><td>TXDATA2</td><td>input</td><td>TCELL0:IMUX_D3</td></tr>
+
 <tr><td>TXDATA3</td><td>input</td><td>TCELL0:IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_E4 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX_A0</td><td>IO2.TXDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_A1</td><td>IO2.TXDATA3</td></tr>
+
 <tr><td>TCELL0:IMUX_A2</td><td>IO2.DIRECTION</td></tr>
+
 <tr><td>TCELL0:IMUX_A3</td><td>IO2.TXDATA4, IO3.TXDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_A4</td><td>IO3.TXDATA3</td></tr>
+
 <tr><td>TCELL0:IMUX_A5</td><td>IO3.DIRECTION</td></tr>
+
 <tr><td>TCELL0:IMUX_B0</td><td>IO2.TSDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B1</td><td>IO2.SLIP</td></tr>
+
 <tr><td>TCELL0:IMUX_B2</td><td>IO2.MOVE</td></tr>
+
 <tr><td>TCELL0:IMUX_B3</td><td>IO3.TSDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B4</td><td>IO3.SLIP</td></tr>
+
 <tr><td>TCELL0:IMUX_B5</td><td>IO3.MOVE</td></tr>
+
 <tr><td>TCELL0:IMUX_C0</td><td>IO2.TXDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C1</td><td>IO2.TSDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C2</td><td>IO2.LOADN</td></tr>
+
 <tr><td>TCELL0:IMUX_C3</td><td>IO2.TXDATA5, IO3.TXDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C4</td><td>IO3.TSDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C5</td><td>IO3.LOADN</td></tr>
+
 <tr><td>TCELL0:IMUX_D0</td><td>IO2.TXDATA2</td></tr>
+
 <tr><td>TCELL0:IMUX_D3</td><td>IO2.TXDATA6, IO3.TXDATA2</td></tr>
+
 <tr><td>TCELL0:IMUX_CLK0</td><td>IO2.CLK</td></tr>
+
 <tr><td>TCELL0:IMUX_CLK1</td><td>IO3.CLK</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR0</td><td>IO2.LSR</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR1</td><td>IO3.LSR</td></tr>
+
 <tr><td>TCELL0:IMUX_CE0</td><td>IO2.CE</td></tr>
+
 <tr><td>TCELL0:IMUX_CE1</td><td>IO3.CE</td></tr>
+
 <tr><td>TCELL0:OUT_F0</td><td>IO2.RXDATA0</td></tr>
+
 <tr><td>TCELL0:OUT_F1</td><td>IO2.RXDATA1</td></tr>
+
 <tr><td>TCELL0:OUT_F2</td><td>IO2.RXDATA2</td></tr>
+
 <tr><td>TCELL0:OUT_F3</td><td>IO2.RXDATA3</td></tr>
+
 <tr><td>TCELL0:OUT_F4</td><td>IO2.INFF</td></tr>
+
 <tr><td>TCELL0:OUT_F5</td><td>IO2.DI</td></tr>
+
 <tr><td>TCELL0:OUT_F6</td><td>IO2.CFLAG</td></tr>
+
 <tr><td>TCELL0:OUT_F7</td><td>IO3.CFLAG</td></tr>
+
 <tr><td>TCELL0:OUT_Q0</td><td>IO3.RXDATA0</td></tr>
+
 <tr><td>TCELL0:OUT_Q1</td><td>IO2.RXDATA4, IO3.RXDATA1</td></tr>
+
 <tr><td>TCELL0:OUT_Q2</td><td>IO2.RXDATA5, IO3.RXDATA2</td></tr>
+
 <tr><td>TCELL0:OUT_Q3</td><td>IO2.RXDATA6, IO3.RXDATA3</td></tr>
+
 <tr><td>TCELL0:OUT_Q4</td><td>IO3.INFF</td></tr>
+
 <tr><td>TCELL0:OUT_Q5</td><td>IO3.DI</td></tr>
+
 <tr><td>TCELL2:IMUX_A0</td><td>IO0.TXDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_A1</td><td>IO0.TXDATA3</td></tr>
+
 <tr><td>TCELL2:IMUX_A2</td><td>IO0.DIRECTION</td></tr>
+
 <tr><td>TCELL2:IMUX_A3</td><td>IO0.TXDATA4, IO1.TXDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_A4</td><td>IO1.TXDATA3</td></tr>
+
 <tr><td>TCELL2:IMUX_A5</td><td>IO1.DIRECTION</td></tr>
+
 <tr><td>TCELL2:IMUX_B0</td><td>IO0.TSDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_B1</td><td>IO0.SLIP</td></tr>
+
 <tr><td>TCELL2:IMUX_B2</td><td>IO0.MOVE</td></tr>
+
 <tr><td>TCELL2:IMUX_B3</td><td>IO1.TSDATA0</td></tr>
+
 <tr><td>TCELL2:IMUX_B4</td><td>IO1.SLIP</td></tr>
+
 <tr><td>TCELL2:IMUX_B5</td><td>IO1.MOVE</td></tr>
+
 <tr><td>TCELL2:IMUX_C0</td><td>IO0.TXDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C1</td><td>IO0.TSDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C2</td><td>IO0.LOADN</td></tr>
+
 <tr><td>TCELL2:IMUX_C3</td><td>IO0.TXDATA5, IO1.TXDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C4</td><td>IO1.TSDATA1</td></tr>
+
 <tr><td>TCELL2:IMUX_C5</td><td>IO1.LOADN</td></tr>
+
 <tr><td>TCELL2:IMUX_D0</td><td>IO0.TXDATA2</td></tr>
+
 <tr><td>TCELL2:IMUX_D3</td><td>IO0.TXDATA6, IO1.TXDATA2</td></tr>
+
 <tr><td>TCELL2:IMUX_CLK0</td><td>IO0.CLK</td></tr>
+
 <tr><td>TCELL2:IMUX_CLK1</td><td>IO1.CLK</td></tr>
+
 <tr><td>TCELL2:IMUX_LSR0</td><td>IO0.LSR</td></tr>
+
 <tr><td>TCELL2:IMUX_LSR1</td><td>IO1.LSR</td></tr>
+
 <tr><td>TCELL2:IMUX_CE0</td><td>IO0.CE</td></tr>
+
 <tr><td>TCELL2:IMUX_CE1</td><td>IO1.CE</td></tr>
+
 <tr><td>TCELL2:OUT_F0</td><td>IO0.RXDATA0</td></tr>
+
 <tr><td>TCELL2:OUT_F1</td><td>IO0.RXDATA1</td></tr>
+
 <tr><td>TCELL2:OUT_F2</td><td>IO0.RXDATA2</td></tr>
+
 <tr><td>TCELL2:OUT_F3</td><td>IO0.RXDATA3</td></tr>
+
 <tr><td>TCELL2:OUT_F4</td><td>IO0.INFF</td></tr>
+
 <tr><td>TCELL2:OUT_F5</td><td>IO0.DI</td></tr>
+
 <tr><td>TCELL2:OUT_F6</td><td>IO0.CFLAG</td></tr>
+
 <tr><td>TCELL2:OUT_F7</td><td>IO1.CFLAG</td></tr>
+
 <tr><td>TCELL2:OUT_Q0</td><td>IO1.RXDATA0</td></tr>
+
 <tr><td>TCELL2:OUT_Q1</td><td>IO0.RXDATA4, IO1.RXDATA1</td></tr>
+
 <tr><td>TCELL2:OUT_Q2</td><td>IO0.RXDATA5, IO1.RXDATA2</td></tr>
+
 <tr><td>TCELL2:OUT_Q3</td><td>IO0.RXDATA6, IO1.RXDATA3</td></tr>
+
 <tr><td>TCELL2:OUT_Q4</td><td>IO1.INFF</td></tr>
+
 <tr><td>TCELL2:OUT_Q5</td><td>IO1.DI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-io_s1"><a class="header" href="#tile-io_s1">Tile IO_S1</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-io0-2"><a class="header" href="#bel-io0-2">Bel IO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_S1 bel IO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>IMUX_B0</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>IMUX_C0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_S1 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A0</td><td>IO0.TXDATA0</td></tr>
+
 <tr><td>IMUX_B0</td><td>IO0.TSDATA0</td></tr>
+
 <tr><td>IMUX_B1</td><td>IO0.DIRECTION</td></tr>
+
 <tr><td>IMUX_C0</td><td>IO0.TXDATA1</td></tr>
+
 <tr><td>IMUX_C1</td><td>IO0.MOVE</td></tr>
+
 <tr><td>IMUX_D1</td><td>IO0.LOADN</td></tr>
+
 <tr><td>IMUX_CLK0</td><td>IO0.CLK</td></tr>
+
 <tr><td>IMUX_LSR0</td><td>IO0.LSR</td></tr>
+
 <tr><td>IMUX_CE0</td><td>IO0.CE</td></tr>
+
 <tr><td>OUT_F0</td><td>IO0.RXDATA0</td></tr>
+
 <tr><td>OUT_F1</td><td>IO0.RXDATA1</td></tr>
+
 <tr><td>OUT_F2</td><td>IO0.INFF</td></tr>
+
 <tr><td>OUT_F3</td><td>IO0.CFLAG</td></tr>
+
 <tr><td>OUT_Q0</td><td>IO0.DI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-io_s2"><a class="header" href="#tile-io_s2">Tile IO_S2</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-io0-3"><a class="header" href="#bel-io0-3">Bel IO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_S2 bel IO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL0:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL0:IMUX_B1</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL0:IMUX_D1</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL0:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL0:IMUX_C1</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL0:IMUX_C0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io1-2"><a class="header" href="#bel-io1-2">Bel IO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_S2 bel IO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL1:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL1:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL1:OUT_Q0</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL1:IMUX_B1</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL1:IMUX_D1</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL1:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL1:IMUX_C1</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-3"><a class="header" href="#bel-wires-3">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_S2 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX_A0</td><td>IO0.TXDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B0</td><td>IO0.TSDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B1</td><td>IO0.DIRECTION</td></tr>
+
 <tr><td>TCELL0:IMUX_C0</td><td>IO0.TXDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C1</td><td>IO0.MOVE</td></tr>
+
 <tr><td>TCELL0:IMUX_D1</td><td>IO0.LOADN</td></tr>
+
 <tr><td>TCELL0:IMUX_CLK0</td><td>IO0.CLK</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR0</td><td>IO0.LSR</td></tr>
+
 <tr><td>TCELL0:IMUX_CE0</td><td>IO0.CE</td></tr>
+
 <tr><td>TCELL0:OUT_F0</td><td>IO0.RXDATA0</td></tr>
+
 <tr><td>TCELL0:OUT_F1</td><td>IO0.RXDATA1</td></tr>
+
 <tr><td>TCELL0:OUT_F2</td><td>IO0.INFF</td></tr>
+
 <tr><td>TCELL0:OUT_F3</td><td>IO0.CFLAG</td></tr>
+
 <tr><td>TCELL0:OUT_Q0</td><td>IO0.DI</td></tr>
+
 <tr><td>TCELL1:IMUX_A0</td><td>IO1.TXDATA0</td></tr>
+
 <tr><td>TCELL1:IMUX_B0</td><td>IO1.TSDATA0</td></tr>
+
 <tr><td>TCELL1:IMUX_B1</td><td>IO1.DIRECTION</td></tr>
+
 <tr><td>TCELL1:IMUX_C0</td><td>IO1.TXDATA1</td></tr>
+
 <tr><td>TCELL1:IMUX_C1</td><td>IO1.MOVE</td></tr>
+
 <tr><td>TCELL1:IMUX_D1</td><td>IO1.LOADN</td></tr>
+
 <tr><td>TCELL1:IMUX_CLK0</td><td>IO1.CLK</td></tr>
+
 <tr><td>TCELL1:IMUX_LSR0</td><td>IO1.LSR</td></tr>
+
 <tr><td>TCELL1:IMUX_CE0</td><td>IO1.CE</td></tr>
+
 <tr><td>TCELL1:OUT_F0</td><td>IO1.RXDATA0</td></tr>
+
 <tr><td>TCELL1:OUT_F1</td><td>IO1.RXDATA1</td></tr>
+
 <tr><td>TCELL1:OUT_F2</td><td>IO1.INFF</td></tr>
+
 <tr><td>TCELL1:OUT_F3</td><td>IO1.CFLAG</td></tr>
+
 <tr><td>TCELL1:OUT_Q0</td><td>IO1.DI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-io_n2"><a class="header" href="#tile-io_n2">Tile IO_N2</a></h2>
 <p>Cells: 2</p>
 <h3 id="bel-io0-4"><a class="header" href="#bel-io0-4">Bel IO0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_N2 bel IO0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL0:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL0:OUT_F3</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL0:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL0:OUT_Q0</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL0:IMUX_B1</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL0:OUT_F2</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL0:IMUX_D1</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL0:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL0:IMUX_C1</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL0:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL0:OUT_F1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL0:IMUX_B0</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL0:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL0:IMUX_C0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-io1-3"><a class="header" href="#bel-io1-3">Bel IO1</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_N2 bel IO1</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CE</td><td>input</td><td>TCELL1:IMUX_CE0</td></tr>
+
 <tr><td>CFLAG</td><td>output</td><td>TCELL1:OUT_F3</td></tr>
+
 <tr><td>CLK</td><td>input</td><td>TCELL1:IMUX_CLK0</td></tr>
+
 <tr><td>DI</td><td>output</td><td>TCELL1:OUT_Q0</td></tr>
+
 <tr><td>DIRECTION</td><td>input</td><td>TCELL1:IMUX_B1</td></tr>
+
 <tr><td>INFF</td><td>output</td><td>TCELL1:OUT_F2</td></tr>
+
 <tr><td>LOADN</td><td>input</td><td>TCELL1:IMUX_D1</td></tr>
+
 <tr><td>LSR</td><td>input</td><td>TCELL1:IMUX_LSR0</td></tr>
+
 <tr><td>MOVE</td><td>input</td><td>TCELL1:IMUX_C1</td></tr>
+
 <tr><td>RXDATA0</td><td>output</td><td>TCELL1:OUT_F0</td></tr>
+
 <tr><td>RXDATA1</td><td>output</td><td>TCELL1:OUT_F1</td></tr>
+
 <tr><td>TSDATA0</td><td>input</td><td>TCELL1:IMUX_B0</td></tr>
+
 <tr><td>TXDATA0</td><td>input</td><td>TCELL1:IMUX_A0</td></tr>
+
 <tr><td>TXDATA1</td><td>input</td><td>TCELL1:IMUX_C0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-4"><a class="header" href="#bel-wires-4">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 IO_N2 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL0:IMUX_A0</td><td>IO0.TXDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B0</td><td>IO0.TSDATA0</td></tr>
+
 <tr><td>TCELL0:IMUX_B1</td><td>IO0.DIRECTION</td></tr>
+
 <tr><td>TCELL0:IMUX_C0</td><td>IO0.TXDATA1</td></tr>
+
 <tr><td>TCELL0:IMUX_C1</td><td>IO0.MOVE</td></tr>
+
 <tr><td>TCELL0:IMUX_D1</td><td>IO0.LOADN</td></tr>
+
 <tr><td>TCELL0:IMUX_CLK0</td><td>IO0.CLK</td></tr>
+
 <tr><td>TCELL0:IMUX_LSR0</td><td>IO0.LSR</td></tr>
+
 <tr><td>TCELL0:IMUX_CE0</td><td>IO0.CE</td></tr>
+
 <tr><td>TCELL0:OUT_F0</td><td>IO0.RXDATA0</td></tr>
+
 <tr><td>TCELL0:OUT_F1</td><td>IO0.RXDATA1</td></tr>
+
 <tr><td>TCELL0:OUT_F2</td><td>IO0.INFF</td></tr>
+
 <tr><td>TCELL0:OUT_F3</td><td>IO0.CFLAG</td></tr>
+
 <tr><td>TCELL0:OUT_Q0</td><td>IO0.DI</td></tr>
+
 <tr><td>TCELL1:IMUX_A0</td><td>IO1.TXDATA0</td></tr>
+
 <tr><td>TCELL1:IMUX_B0</td><td>IO1.TSDATA0</td></tr>
+
 <tr><td>TCELL1:IMUX_B1</td><td>IO1.DIRECTION</td></tr>
+
 <tr><td>TCELL1:IMUX_C0</td><td>IO1.TXDATA1</td></tr>
+
 <tr><td>TCELL1:IMUX_C1</td><td>IO1.MOVE</td></tr>
+
 <tr><td>TCELL1:IMUX_D1</td><td>IO1.LOADN</td></tr>
+
 <tr><td>TCELL1:IMUX_CLK0</td><td>IO1.CLK</td></tr>
+
 <tr><td>TCELL1:IMUX_LSR0</td><td>IO1.LSR</td></tr>
+
 <tr><td>TCELL1:IMUX_CE0</td><td>IO1.CE</td></tr>
+
 <tr><td>TCELL1:OUT_F0</td><td>IO1.RXDATA0</td></tr>
+
 <tr><td>TCELL1:OUT_F1</td><td>IO1.RXDATA1</td></tr>
+
 <tr><td>TCELL1:OUT_F2</td><td>IO1.INFF</td></tr>
+
 <tr><td>TCELL1:OUT_F3</td><td>IO1.CFLAG</td></tr>
+
 <tr><td>TCELL1:OUT_Q0</td><td>IO1.DI</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-dqs_w"><a class="header" href="#tile-dqs_w">Tile DQS_W</a></h2>
 <p>Cells: 6</p>
 <h3 id="bel-dqs0"><a class="header" href="#bel-dqs0">Bel DQS0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 DQS_W bel DQS0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BURSTDET</td><td>output</td><td>TCELL4:OUT_Q7</td></tr>
+
 <tr><td>DATAVALID</td><td>output</td><td>TCELL4:OUT_Q6</td></tr>
+
 <tr><td>DQSR90</td><td>output</td><td>TCELL4:OUT_F6</td></tr>
+
 <tr><td>DQSW</td><td>output</td><td>TCELL4:OUT_F7</td></tr>
+
 <tr><td>DQSW270</td><td>output</td><td>TCELL3:OUT_Q6</td></tr>
+
 <tr><td>DYNDELAY0</td><td>input</td><td>TCELL4:IMUX_D3</td></tr>
+
 <tr><td>DYNDELAY1</td><td>input</td><td>TCELL4:IMUX_A4</td></tr>
+
 <tr><td>DYNDELAY2</td><td>input</td><td>TCELL4:IMUX_B4</td></tr>
+
 <tr><td>DYNDELAY3</td><td>input</td><td>TCELL4:IMUX_C4</td></tr>
+
 <tr><td>DYNDELAY4</td><td>input</td><td>TCELL4:IMUX_D4</td></tr>
+
 <tr><td>DYNDELAY5</td><td>input</td><td>TCELL4:IMUX_A5</td></tr>
+
 <tr><td>DYNDELAY6</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+
 <tr><td>DYNDELAY7</td><td>input</td><td>TCELL4:IMUX_C5</td></tr>
+
 <tr><td>PAUSE</td><td>input</td><td>TCELL4:IMUX_A0</td></tr>
+
 <tr><td>RDCFLAG</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+
 <tr><td>RDDIRECTION</td><td>input</td><td>TCELL3:IMUX_B6</td></tr>
+
 <tr><td>RDLOADN</td><td>input</td><td>TCELL3:IMUX_A6</td></tr>
+
 <tr><td>RDMOVE</td><td>input</td><td>TCELL3:IMUX_C6</td></tr>
+
 <tr><td>READ0</td><td>input</td><td>TCELL4:IMUX_B1</td></tr>
+
 <tr><td>READ1</td><td>input</td><td>TCELL4:IMUX_C1</td></tr>
+
 <tr><td>READCLKSEL0</td><td>input</td><td>TCELL4:IMUX_B0</td></tr>
+
 <tr><td>READCLKSEL1</td><td>input</td><td>TCELL4:IMUX_C0</td></tr>
+
 <tr><td>READCLKSEL2</td><td>input</td><td>TCELL4:IMUX_D0</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL4:IMUX_LSR1</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL4:IMUX_CLK1</td></tr>
+
 <tr><td>WRCFLAG</td><td>output</td><td>TCELL2:OUT_Q6</td></tr>
+
 <tr><td>WRDIRECTION</td><td>input</td><td>TCELL3:IMUX_A7</td></tr>
+
 <tr><td>WRLOADN</td><td>input</td><td>TCELL3:IMUX_D6</td></tr>
+
 <tr><td>WRMOVE</td><td>input</td><td>TCELL3:IMUX_B7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-5"><a class="header" href="#bel-wires-5">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 DQS_W bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL2:OUT_Q6</td><td>DQS0.WRCFLAG</td></tr>
+
 <tr><td>TCELL3:IMUX_A6</td><td>DQS0.RDLOADN</td></tr>
+
 <tr><td>TCELL3:IMUX_A7</td><td>DQS0.WRDIRECTION</td></tr>
+
 <tr><td>TCELL3:IMUX_B6</td><td>DQS0.RDDIRECTION</td></tr>
+
 <tr><td>TCELL3:IMUX_B7</td><td>DQS0.WRMOVE</td></tr>
+
 <tr><td>TCELL3:IMUX_C6</td><td>DQS0.RDMOVE</td></tr>
+
 <tr><td>TCELL3:IMUX_D6</td><td>DQS0.WRLOADN</td></tr>
+
 <tr><td>TCELL3:OUT_Q6</td><td>DQS0.DQSW270</td></tr>
+
 <tr><td>TCELL3:OUT_Q7</td><td>DQS0.RDCFLAG</td></tr>
+
 <tr><td>TCELL4:IMUX_A0</td><td>DQS0.PAUSE</td></tr>
+
 <tr><td>TCELL4:IMUX_A4</td><td>DQS0.DYNDELAY1</td></tr>
+
 <tr><td>TCELL4:IMUX_A5</td><td>DQS0.DYNDELAY5</td></tr>
+
 <tr><td>TCELL4:IMUX_B0</td><td>DQS0.READCLKSEL0</td></tr>
+
 <tr><td>TCELL4:IMUX_B1</td><td>DQS0.READ0</td></tr>
+
 <tr><td>TCELL4:IMUX_B4</td><td>DQS0.DYNDELAY2</td></tr>
+
 <tr><td>TCELL4:IMUX_B5</td><td>DQS0.DYNDELAY6</td></tr>
+
 <tr><td>TCELL4:IMUX_C0</td><td>DQS0.READCLKSEL1</td></tr>
+
 <tr><td>TCELL4:IMUX_C1</td><td>DQS0.READ1</td></tr>
+
 <tr><td>TCELL4:IMUX_C4</td><td>DQS0.DYNDELAY3</td></tr>
+
 <tr><td>TCELL4:IMUX_C5</td><td>DQS0.DYNDELAY7</td></tr>
+
 <tr><td>TCELL4:IMUX_D0</td><td>DQS0.READCLKSEL2</td></tr>
+
 <tr><td>TCELL4:IMUX_D3</td><td>DQS0.DYNDELAY0</td></tr>
+
 <tr><td>TCELL4:IMUX_D4</td><td>DQS0.DYNDELAY4</td></tr>
+
 <tr><td>TCELL4:IMUX_CLK1</td><td>DQS0.SCLK</td></tr>
+
 <tr><td>TCELL4:IMUX_LSR1</td><td>DQS0.RST</td></tr>
+
 <tr><td>TCELL4:OUT_F6</td><td>DQS0.DQSR90</td></tr>
+
 <tr><td>TCELL4:OUT_F7</td><td>DQS0.DQSW</td></tr>
+
 <tr><td>TCELL4:OUT_Q6</td><td>DQS0.DATAVALID</td></tr>
+
 <tr><td>TCELL4:OUT_Q7</td><td>DQS0.BURSTDET</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-dqs_e"><a class="header" href="#tile-dqs_e">Tile DQS_E</a></h2>
 <p>Cells: 6</p>
 <h3 id="bel-dqs0-1"><a class="header" href="#bel-dqs0-1">Bel DQS0</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 DQS_E bel DQS0</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>BURSTDET</td><td>output</td><td>TCELL4:OUT_Q7</td></tr>
+
 <tr><td>DATAVALID</td><td>output</td><td>TCELL4:OUT_Q6</td></tr>
+
 <tr><td>DQSR90</td><td>output</td><td>TCELL4:OUT_F6</td></tr>
+
 <tr><td>DQSW</td><td>output</td><td>TCELL4:OUT_F7</td></tr>
+
 <tr><td>DQSW270</td><td>output</td><td>TCELL3:OUT_Q6</td></tr>
+
 <tr><td>DYNDELAY0</td><td>input</td><td>TCELL4:IMUX_D3</td></tr>
+
 <tr><td>DYNDELAY1</td><td>input</td><td>TCELL4:IMUX_A4</td></tr>
+
 <tr><td>DYNDELAY2</td><td>input</td><td>TCELL4:IMUX_B4</td></tr>
+
 <tr><td>DYNDELAY3</td><td>input</td><td>TCELL4:IMUX_C4</td></tr>
+
 <tr><td>DYNDELAY4</td><td>input</td><td>TCELL4:IMUX_D4</td></tr>
+
 <tr><td>DYNDELAY5</td><td>input</td><td>TCELL4:IMUX_A5</td></tr>
+
 <tr><td>DYNDELAY6</td><td>input</td><td>TCELL4:IMUX_B5</td></tr>
+
 <tr><td>DYNDELAY7</td><td>input</td><td>TCELL4:IMUX_C5</td></tr>
+
 <tr><td>PAUSE</td><td>input</td><td>TCELL4:IMUX_A0</td></tr>
+
 <tr><td>RDCFLAG</td><td>output</td><td>TCELL3:OUT_Q7</td></tr>
+
 <tr><td>RDDIRECTION</td><td>input</td><td>TCELL3:IMUX_B6</td></tr>
+
 <tr><td>RDLOADN</td><td>input</td><td>TCELL3:IMUX_A6</td></tr>
+
 <tr><td>RDMOVE</td><td>input</td><td>TCELL3:IMUX_C6</td></tr>
+
 <tr><td>READ0</td><td>input</td><td>TCELL4:IMUX_B1</td></tr>
+
 <tr><td>READ1</td><td>input</td><td>TCELL4:IMUX_C1</td></tr>
+
 <tr><td>READCLKSEL0</td><td>input</td><td>TCELL4:IMUX_B0</td></tr>
+
 <tr><td>READCLKSEL1</td><td>input</td><td>TCELL4:IMUX_C0</td></tr>
+
 <tr><td>READCLKSEL2</td><td>input</td><td>TCELL4:IMUX_D0</td></tr>
+
 <tr><td>RST</td><td>input</td><td>TCELL4:IMUX_LSR1</td></tr>
+
 <tr><td>SCLK</td><td>input</td><td>TCELL4:IMUX_CLK1</td></tr>
+
 <tr><td>WRCFLAG</td><td>output</td><td>TCELL2:OUT_Q6</td></tr>
+
 <tr><td>WRDIRECTION</td><td>input</td><td>TCELL3:IMUX_A7</td></tr>
+
 <tr><td>WRLOADN</td><td>input</td><td>TCELL3:IMUX_D6</td></tr>
+
 <tr><td>WRMOVE</td><td>input</td><td>TCELL3:IMUX_B7</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-6"><a class="header" href="#bel-wires-6">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 DQS_E bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>TCELL2:OUT_Q6</td><td>DQS0.WRCFLAG</td></tr>
+
 <tr><td>TCELL3:IMUX_A6</td><td>DQS0.RDLOADN</td></tr>
+
 <tr><td>TCELL3:IMUX_A7</td><td>DQS0.WRDIRECTION</td></tr>
+
 <tr><td>TCELL3:IMUX_B6</td><td>DQS0.RDDIRECTION</td></tr>
+
 <tr><td>TCELL3:IMUX_B7</td><td>DQS0.WRMOVE</td></tr>
+
 <tr><td>TCELL3:IMUX_C6</td><td>DQS0.RDMOVE</td></tr>
+
 <tr><td>TCELL3:IMUX_D6</td><td>DQS0.WRLOADN</td></tr>
+
 <tr><td>TCELL3:OUT_Q6</td><td>DQS0.DQSW270</td></tr>
+
 <tr><td>TCELL3:OUT_Q7</td><td>DQS0.RDCFLAG</td></tr>
+
 <tr><td>TCELL4:IMUX_A0</td><td>DQS0.PAUSE</td></tr>
+
 <tr><td>TCELL4:IMUX_A4</td><td>DQS0.DYNDELAY1</td></tr>
+
 <tr><td>TCELL4:IMUX_A5</td><td>DQS0.DYNDELAY5</td></tr>
+
 <tr><td>TCELL4:IMUX_B0</td><td>DQS0.READCLKSEL0</td></tr>
+
 <tr><td>TCELL4:IMUX_B1</td><td>DQS0.READ0</td></tr>
+
 <tr><td>TCELL4:IMUX_B4</td><td>DQS0.DYNDELAY2</td></tr>
+
 <tr><td>TCELL4:IMUX_B5</td><td>DQS0.DYNDELAY6</td></tr>
+
 <tr><td>TCELL4:IMUX_C0</td><td>DQS0.READCLKSEL1</td></tr>
+
 <tr><td>TCELL4:IMUX_C1</td><td>DQS0.READ1</td></tr>
+
 <tr><td>TCELL4:IMUX_C4</td><td>DQS0.DYNDELAY3</td></tr>
+
 <tr><td>TCELL4:IMUX_C5</td><td>DQS0.DYNDELAY7</td></tr>
+
 <tr><td>TCELL4:IMUX_D0</td><td>DQS0.READCLKSEL2</td></tr>
+
 <tr><td>TCELL4:IMUX_D3</td><td>DQS0.DYNDELAY0</td></tr>
+
 <tr><td>TCELL4:IMUX_D4</td><td>DQS0.DYNDELAY4</td></tr>
+
 <tr><td>TCELL4:IMUX_CLK1</td><td>DQS0.SCLK</td></tr>
+
 <tr><td>TCELL4:IMUX_LSR1</td><td>DQS0.RST</td></tr>
+
 <tr><td>TCELL4:OUT_F6</td><td>DQS0.DQSR90</td></tr>
+
 <tr><td>TCELL4:OUT_F7</td><td>DQS0.DQSW</td></tr>
+
 <tr><td>TCELL4:OUT_Q6</td><td>DQS0.DATAVALID</td></tr>
+
 <tr><td>TCELL4:OUT_Q7</td><td>DQS0.BURSTDET</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-ddrdll"><a class="header" href="#tile-ddrdll">Tile DDRDLL</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-ddrdll"><a class="header" href="#bel-ddrdll">Bel DDRDLL</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 DDRDLL bel DDRDLL</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>CLK</td><td>input</td><td>IMUX_CLK0</td></tr>
+
 <tr><td>DCNTL0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>DCNTL1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>DCNTL2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>DCNTL3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>DCNTL4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>DCNTL5</td><td>output</td><td>OUT_F5</td></tr>
+
 <tr><td>DCNTL6</td><td>output</td><td>OUT_F6</td></tr>
+
 <tr><td>DCNTL7</td><td>output</td><td>OUT_F7</td></tr>
+
 <tr><td>DIVOSC</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>FREEZE</td><td>input</td><td>IMUX_A0</td></tr>
+
 <tr><td>LOCK</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>RST</td><td>input</td><td>IMUX_LSR0</td></tr>
+
 <tr><td>UDDCNTLN</td><td>input</td><td>IMUX_B0</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-7"><a class="header" href="#bel-wires-7">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 DDRDLL bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A0</td><td>DDRDLL.FREEZE</td></tr>
+
 <tr><td>IMUX_B0</td><td>DDRDLL.UDDCNTLN</td></tr>
+
 <tr><td>IMUX_CLK0</td><td>DDRDLL.CLK</td></tr>
+
 <tr><td>IMUX_LSR0</td><td>DDRDLL.RST</td></tr>
+
 <tr><td>OUT_F0</td><td>DDRDLL.DCNTL0</td></tr>
+
 <tr><td>OUT_F1</td><td>DDRDLL.DCNTL1</td></tr>
+
 <tr><td>OUT_F2</td><td>DDRDLL.DCNTL2</td></tr>
+
 <tr><td>OUT_F3</td><td>DDRDLL.DCNTL3</td></tr>
+
 <tr><td>OUT_F4</td><td>DDRDLL.DCNTL4</td></tr>
+
 <tr><td>OUT_F5</td><td>DDRDLL.DCNTL5</td></tr>
+
 <tr><td>OUT_F6</td><td>DDRDLL.DCNTL6</td></tr>
+
 <tr><td>OUT_F7</td><td>DDRDLL.DCNTL7</td></tr>
+
 <tr><td>OUT_Q0</td><td>DDRDLL.LOCK</td></tr>
+
 <tr><td>OUT_Q1</td><td>DDRDLL.DIVOSC</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc0"><a class="header" href="#tile-bc0">Tile BC0</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-breftest"><a class="header" href="#bel-breftest">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC0 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-8"><a class="header" href="#bel-wires-8">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC0 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc1"><a class="header" href="#tile-bc1">Tile BC1</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-breftest-1"><a class="header" href="#bel-breftest-1">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC1 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-9"><a class="header" href="#bel-wires-9">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC1 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc2"><a class="header" href="#tile-bc2">Tile BC2</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-bcinrd"><a class="header" href="#bel-bcinrd">Bel BCINRD</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC2 bel BCINRD</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>INRDENI</td><td>input</td><td>IMUX_B4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bclvdso"><a class="header" href="#bel-bclvdso">Bel BCLVDSO</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC2 bel BCLVDSO</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>LVDSENI</td><td>input</td><td>IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-breftest-2"><a class="header" href="#bel-breftest-2">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC2 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-10"><a class="header" href="#bel-wires-10">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC2 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_A4</td><td>BCLVDSO.LVDSENI</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_B4</td><td>BCINRD.INRDENI</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc3"><a class="header" href="#tile-bc3">Tile BC3</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-bcinrd-1"><a class="header" href="#bel-bcinrd-1">Bel BCINRD</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC3 bel BCINRD</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>INRDENI</td><td>input</td><td>IMUX_B4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bclvdso-1"><a class="header" href="#bel-bclvdso-1">Bel BCLVDSO</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC3 bel BCLVDSO</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>LVDSENI</td><td>input</td><td>IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-breftest-3"><a class="header" href="#bel-breftest-3">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC3 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-11"><a class="header" href="#bel-wires-11">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC3 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_A4</td><td>BCLVDSO.LVDSENI</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_B4</td><td>BCINRD.INRDENI</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc4"><a class="header" href="#tile-bc4">Tile BC4</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-breftest-4"><a class="header" href="#bel-breftest-4">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC4 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-12"><a class="header" href="#bel-wires-12">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC4 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc8"><a class="header" href="#tile-bc8">Tile BC8</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-breftest-5"><a class="header" href="#bel-breftest-5">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC8 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-13"><a class="header" href="#bel-wires-13">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC8 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc6"><a class="header" href="#tile-bc6">Tile BC6</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-bcinrd-2"><a class="header" href="#bel-bcinrd-2">Bel BCINRD</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC6 bel BCINRD</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>INRDENI</td><td>input</td><td>IMUX_B4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bclvdso-2"><a class="header" href="#bel-bclvdso-2">Bel BCLVDSO</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC6 bel BCLVDSO</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>LVDSENI</td><td>input</td><td>IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-breftest-6"><a class="header" href="#bel-breftest-6">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC6 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-14"><a class="header" href="#bel-wires-14">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC6 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_A4</td><td>BCLVDSO.LVDSENI</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_B4</td><td>BCINRD.INRDENI</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="tile-bc7"><a class="header" href="#tile-bc7">Tile BC7</a></h2>
 <p>Cells: 1</p>
 <h3 id="bel-bcinrd-3"><a class="header" href="#bel-bcinrd-3">Bel BCINRD</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC7 bel BCINRD</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>INRDENI</td><td>input</td><td>IMUX_B4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-bclvdso-3"><a class="header" href="#bel-bclvdso-3">Bel BCLVDSO</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC7 bel BCLVDSO</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>LVDSENI</td><td>input</td><td>IMUX_A4</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-breftest-7"><a class="header" href="#bel-breftest-7">Bel BREFTEST</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC7 bel BREFTEST</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>PVT_SNK_IN0</td><td>input</td><td>IMUX_A2</td></tr>
+
 <tr><td>PVT_SNK_IN1</td><td>input</td><td>IMUX_B2</td></tr>
+
 <tr><td>PVT_SNK_IN2</td><td>input</td><td>IMUX_C2</td></tr>
+
 <tr><td>PVT_SNK_IN3</td><td>input</td><td>IMUX_D2</td></tr>
+
 <tr><td>PVT_SNK_IN4</td><td>input</td><td>IMUX_C3</td></tr>
+
 <tr><td>PVT_SNK_IN5</td><td>input</td><td>IMUX_D3</td></tr>
+
 <tr><td>PVT_SNK_OUT0</td><td>output</td><td>OUT_Q0</td></tr>
+
 <tr><td>PVT_SNK_OUT1</td><td>output</td><td>OUT_Q1</td></tr>
+
 <tr><td>PVT_SNK_OUT2</td><td>output</td><td>OUT_Q2</td></tr>
+
 <tr><td>PVT_SNK_OUT3</td><td>output</td><td>OUT_Q3</td></tr>
+
 <tr><td>PVT_SNK_OUT4</td><td>output</td><td>OUT_Q4</td></tr>
+
 <tr><td>PVT_SNK_OUT5</td><td>output</td><td>OUT_Q5</td></tr>
+
 <tr><td>PVT_SRC_IN0</td><td>input</td><td>IMUX_C0</td></tr>
+
 <tr><td>PVT_SRC_IN1</td><td>input</td><td>IMUX_D0</td></tr>
+
 <tr><td>PVT_SRC_IN2</td><td>input</td><td>IMUX_A1</td></tr>
+
 <tr><td>PVT_SRC_IN3</td><td>input</td><td>IMUX_B1</td></tr>
+
 <tr><td>PVT_SRC_IN4</td><td>input</td><td>IMUX_C1</td></tr>
+
 <tr><td>PVT_SRC_IN5</td><td>input</td><td>IMUX_D1</td></tr>
+
 <tr><td>PVT_SRC_OUT0</td><td>output</td><td>OUT_F0</td></tr>
+
 <tr><td>PVT_SRC_OUT1</td><td>output</td><td>OUT_F1</td></tr>
+
 <tr><td>PVT_SRC_OUT2</td><td>output</td><td>OUT_F2</td></tr>
+
 <tr><td>PVT_SRC_OUT3</td><td>output</td><td>OUT_F3</td></tr>
+
 <tr><td>PVT_SRC_OUT4</td><td>output</td><td>OUT_F4</td></tr>
+
 <tr><td>PVT_SRC_OUT5</td><td>output</td><td>OUT_F5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h3 id="bel-wires-15"><a class="header" href="#bel-wires-15">Bel wires</a></h3>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>ecp5 BC7 bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
+
 </thead>
+
 <tbody>
 <tr><td>IMUX_A1</td><td>BREFTEST.PVT_SRC_IN2</td></tr>
+
 <tr><td>IMUX_A2</td><td>BREFTEST.PVT_SNK_IN0</td></tr>
+
 <tr><td>IMUX_A4</td><td>BCLVDSO.LVDSENI</td></tr>
+
 <tr><td>IMUX_B1</td><td>BREFTEST.PVT_SRC_IN3</td></tr>
+
 <tr><td>IMUX_B2</td><td>BREFTEST.PVT_SNK_IN1</td></tr>
+
 <tr><td>IMUX_B4</td><td>BCINRD.INRDENI</td></tr>
+
 <tr><td>IMUX_C0</td><td>BREFTEST.PVT_SRC_IN0</td></tr>
+
 <tr><td>IMUX_C1</td><td>BREFTEST.PVT_SRC_IN4</td></tr>
+
 <tr><td>IMUX_C2</td><td>BREFTEST.PVT_SNK_IN2</td></tr>
+
 <tr><td>IMUX_C3</td><td>BREFTEST.PVT_SNK_IN4</td></tr>
+
 <tr><td>IMUX_D0</td><td>BREFTEST.PVT_SRC_IN1</td></tr>
+
 <tr><td>IMUX_D1</td><td>BREFTEST.PVT_SRC_IN5</td></tr>
+
 <tr><td>IMUX_D2</td><td>BREFTEST.PVT_SNK_IN3</td></tr>
+
 <tr><td>IMUX_D3</td><td>BREFTEST.PVT_SNK_IN5</td></tr>
+
 <tr><td>OUT_F0</td><td>BREFTEST.PVT_SRC_OUT0</td></tr>
+
 <tr><td>OUT_F1</td><td>BREFTEST.PVT_SRC_OUT1</td></tr>
+
 <tr><td>OUT_F2</td><td>BREFTEST.PVT_SRC_OUT2</td></tr>
+
 <tr><td>OUT_F3</td><td>BREFTEST.PVT_SRC_OUT3</td></tr>
+
 <tr><td>OUT_F4</td><td>BREFTEST.PVT_SRC_OUT4</td></tr>
+
 <tr><td>OUT_F5</td><td>BREFTEST.PVT_SRC_OUT5</td></tr>
+
 <tr><td>OUT_Q0</td><td>BREFTEST.PVT_SNK_OUT0</td></tr>
+
 <tr><td>OUT_Q1</td><td>BREFTEST.PVT_SNK_OUT1</td></tr>
+
 <tr><td>OUT_Q2</td><td>BREFTEST.PVT_SNK_OUT2</td></tr>
+
 <tr><td>OUT_Q3</td><td>BREFTEST.PVT_SNK_OUT3</td></tr>
+
 <tr><td>OUT_Q4</td><td>BREFTEST.PVT_SNK_OUT4</td></tr>
+
 <tr><td>OUT_Q5</td><td>BREFTEST.PVT_SNK_OUT5</td></tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../ecp5/clock.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../ecp5/pll.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -1665,16 +2980,21 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../ecp5/clock.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../ecp5/pll.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -1684,9 +3004,9 @@
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 

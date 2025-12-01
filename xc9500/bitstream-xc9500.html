@@ -12,23 +12,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="../favicon.svg">
-        <link rel="shortcut icon" href="../favicon.png">
-        <link rel="stylesheet" href="../css/variables.css">
-        <link rel="stylesheet" href="../css/general.css">
-        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-2459343d.css">
+        <link rel="stylesheet" href="../css/chrome-ae938929.css">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="../fonts/fonts.css">
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../custom.css">
+        <link rel="stylesheet" href="../custom-5e178fcf.css">
 
 
         <!-- Provide site root and default themes to javascript -->
@@ -38,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc.js"></script>
+        <script src="../toc-322a2cd5.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -51,7 +50,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -80,12 +79,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -100,36 +99,36 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
                     </div>
 
@@ -143,25 +142,25 @@
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="bitstream-structure--xc9500"><a class="header" href="#bitstream-structure--xc9500">Bitstream structure — XC9500</a></h1>
-<p>On a high level, the whole bitstream is split into "areas".  Each FB
+<p>On a high level, the whole bitstream is split into “areas”.  Each FB
 of the device corresponds two areas, one of which contains the UIM wire-AND
 configuration, and the other (main area) contains everything else.</p>
-<p>The main area of a FB is made of 72 "rows".  Each row is made of 15 "columns".
+<p>The main area of a FB is made of 72 “rows”.  Each row is made of 15 “columns”.
 Each column is made of 6 or 8 bits: columns 0-8 are made of 8 bits, while
 columns 9-14 are made of 6 bits.</p>
 <p>The low 6 bits of every column are used to store product term masks, and
 the high 2 bits of columns 0-8 are used to store everything else.</p>
-<p>The UIM wire-AND area of a FB is, in turn, made of "subareas", one for each
+<p>The UIM wire-AND area of a FB is, in turn, made of “subareas”, one for each
 FB of the device.  Each subarea is in turn made of 18 rows.  Each row
 is made of 5 columns.  Column 0 is made of 8 bits, while columns 1-4 are made
 of 7 bits, making for 36 total bits per row.</p>
@@ -199,7 +198,7 @@ Address is 17 bits long, and is split to several fields:</p>
 </ul>
 <p>The unprogrammed state of a bit on XC9500 is <code>1</code>.
 The programmed state is <code>0</code>.  Thus, whenever a boolean fuse is mentioned
-in the documentation, the "true" value is actually represented as <code>0</code>
+in the documentation, the “true” value is actually represented as <code>0</code>
 in the bitstream.  This includes the USERCODE bits.</p>
 <h2 id="jed-format-mapping"><a class="header" href="#jed-format-mapping">JED format mapping</a></h2>
 <p>In the JED format, all fuses of the device are simply concatenated in order,
@@ -311,550 +310,733 @@ columns 0-8 of rows 12-54 of the main area.  The formulas are as follows:</p>
 <li>column: <code>mc_idx % 9</code></li>
 <li>bit: <code>6 + mc_idx // 9</code></li>
 </ul>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc9500 mc bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="1">Bit</th></tr>
+
 <tr>
 <th>0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td title="0.12.0">
 <a href="#tile-xc9500-mc-PT[0].ALLOC">PT[0].ALLOC[0]</a>
 </td>
 </tr>
+
 <tr><td>13</td>
 <td title="0.13.0">
 <a href="#tile-xc9500-mc-PT[0].ALLOC">PT[0].ALLOC[1]</a>
 </td>
 </tr>
+
 <tr><td>14</td>
 <td title="0.14.0">
 <a href="#tile-xc9500-mc-PT[1].ALLOC">PT[1].ALLOC[0]</a>
 </td>
 </tr>
+
 <tr><td>15</td>
 <td title="0.15.0">
 <a href="#tile-xc9500-mc-PT[1].ALLOC">PT[1].ALLOC[1]</a>
 </td>
 </tr>
+
 <tr><td>16</td>
 <td title="0.16.0">
 <a href="#tile-xc9500-mc-PT[2].ALLOC">PT[2].ALLOC[0]</a>
 </td>
 </tr>
+
 <tr><td>17</td>
 <td title="0.17.0">
 <a href="#tile-xc9500-mc-PT[2].ALLOC">PT[2].ALLOC[1]</a>
 </td>
 </tr>
+
 <tr><td>18</td>
 <td title="0.18.0">
 <a href="#tile-xc9500-mc-PT[3].ALLOC">PT[3].ALLOC[0]</a>
 </td>
 </tr>
+
 <tr><td>19</td>
 <td title="0.19.0">
 <a href="#tile-xc9500-mc-PT[3].ALLOC">PT[3].ALLOC[1]</a>
 </td>
 </tr>
+
 <tr><td>20</td>
 <td title="0.20.0">
 <a href="#tile-xc9500-mc-PT[4].ALLOC">PT[4].ALLOC[0]</a>
 </td>
 </tr>
+
 <tr><td>21</td>
 <td title="0.21.0">
 <a href="#tile-xc9500-mc-PT[4].ALLOC">PT[4].ALLOC[1]</a>
 </td>
 </tr>
+
 <tr><td>22</td>
 <td title="0.22.0">
 <a href="#tile-xc9500-mc-INV">~INV</a>
 </td>
 </tr>
+
 <tr><td>23</td>
 <td title="0.23.0">
 <a href="#tile-xc9500-mc-IMPORT_UP_ALLOC">IMPORT_UP_ALLOC[0]</a>
 </td>
 </tr>
+
 <tr><td>24</td>
 <td title="0.24.0">
 <a href="#tile-xc9500-mc-IMPORT_DOWN_ALLOC">IMPORT_DOWN_ALLOC[0]</a>
 </td>
 </tr>
+
 <tr><td>25</td>
 <td title="0.25.0">
 <a href="#tile-xc9500-mc-EXPORT_CHAIN_DIR">EXPORT_CHAIN_DIR[0]</a>
 </td>
 </tr>
+
 <tr><td>26</td>
 <td title="0.26.0">
 <a href="#tile-xc9500-mc-SUM_HP">~SUM_HP</a>
 </td>
 </tr>
+
 <tr><td>27</td>
 <td title="0.27.0">
 <a href="#tile-xc9500-mc-IOB_OE_MUX">IOB_OE_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>28</td>
 <td title="0.28.0">
 <a href="#tile-xc9500-mc-IOB_OE_MUX">IOB_OE_MUX[1]</a>
 </td>
 </tr>
+
 <tr><td>29</td>
 <td title="0.29.0">
 <a href="#tile-xc9500-mc-OE_MUX">OE_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>30</td>
 <td title="0.30.0">
 <a href="#tile-xc9500-mc-OE_MUX">OE_MUX[1]</a>
 </td>
 </tr>
+
 <tr><td>31</td>
 <td title="0.31.0">
 <a href="#tile-xc9500-mc-OE_MUX">OE_MUX[2]</a>
 </td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td title="0.35.0">
 <a href="#tile-xc9500-mc-OUT_MUX">OUT_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>36</td>
 <td title="0.36.0">
 <a href="#tile-xc9500-mc-CLK_MUX">CLK_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>37</td>
 <td title="0.37.0">
 <a href="#tile-xc9500-mc-CLK_MUX">CLK_MUX[1]</a>
 </td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td title="0.40.0">
 <a href="#tile-xc9500-mc-REG_MODE">REG_MODE[0]</a>
 </td>
 </tr>
+
 <tr><td>41</td>
 <td title="0.41.0">
 <a href="#tile-xc9500-mc-RST_MUX">RST_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>42</td>
 <td title="0.42.0">
 <a href="#tile-xc9500-mc-SET_MUX">SET_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>43</td>
 <td title="0.43.0">
 <a href="#tile-xc9500-mc-REG_INIT">~REG_INIT</a>
 </td>
 </tr>
+
 <tr><td>44</td>
 <td title="0.44.0">
 <a href="#tile-xc9500-mc-UIM_OE_MUX">UIM_OE_MUX[0]</a>
 </td>
 </tr>
+
 <tr><td>45</td>
 <td title="0.45.0">
 <a href="#tile-xc9500-mc-UIM_OE_MUX">UIM_OE_MUX[1]</a>
 </td>
 </tr>
+
 <tr><td>46</td>
 <td title="0.46.0">
 <a href="#tile-xc9500-mc-UIM_OUT_INV">~UIM_OUT_INV</a>
 </td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td title="0.48.0">
 <a href="#tile-xc9500-mc-IOB_GND">~IOB_GND</a>
 </td>
 </tr>
+
 <tr><td>49</td>
 <td title="0.49.0">
 <a href="#tile-xc9500-mc-IOB_SLEW">IOB_SLEW[0]</a>
 </td>
 </tr>
+
 <tr><td>50</td>
 <td title="0.50.0">
 <a href="#tile-xc9500-mc-PT[0].HP">~PT[0].HP</a>
 </td>
 </tr>
+
 <tr><td>51</td>
 <td title="0.51.0">
 <a href="#tile-xc9500-mc-PT[1].HP">~PT[1].HP</a>
 </td>
 </tr>
+
 <tr><td>52</td>
 <td title="0.52.0">
 <a href="#tile-xc9500-mc-PT[2].HP">~PT[2].HP</a>
 </td>
 </tr>
+
 <tr><td>53</td>
 <td title="0.53.0">
 <a href="#tile-xc9500-mc-PT[3].HP">~PT[3].HP</a>
 </td>
 </tr>
+
 <tr><td>54</td>
 <td title="0.54.0">
 <a href="#tile-xc9500-mc-PT[4].HP">~PT[4].HP</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-CLK_MUX">CLK_MUX</th>
 <th>0.37.0</th>
 <th>0.36.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>PT</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>FCLK0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>FCLK2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>FCLK1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-EXPORT_CHAIN_DIR">EXPORT_CHAIN_DIR</th>
 <th>0.25.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>DOWN</td>
 <td>0</td>
 </tr>
+
 <tr><td>UP</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-IMPORT_DOWN_ALLOC">IMPORT_DOWN_ALLOC</th>
 <th>0.24.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-IMPORT_UP_ALLOC">IMPORT_UP_ALLOC</th>
 <th>0.23.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>SUM</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXPORT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-INV">INV</th>
 <th>0.22.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-IOB_GND">IOB_GND</th>
 <th>0.48.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[0].HP">PT[0].HP</th>
 <th>0.50.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[1].HP">PT[1].HP</th>
 <th>0.51.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[2].HP">PT[2].HP</th>
 <th>0.52.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[3].HP">PT[3].HP</th>
 <th>0.53.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[4].HP">PT[4].HP</th>
 <th>0.54.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-REG_INIT">REG_INIT</th>
 <th>0.43.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-SUM_HP">SUM_HP</th>
 <th>0.26.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-UIM_OUT_INV">UIM_OUT_INV</th>
 <th>0.46.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-IOB_OE_MUX">IOB_OE_MUX</th>
 <th>0.28.0</th>
 <th>0.27.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>VCC</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>OE_MUX</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>GND</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-IOB_SLEW">IOB_SLEW</th>
 <th>0.49.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FAST</td>
 <td>0</td>
 </tr>
+
 <tr><td>SLOW</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-OE_MUX">OE_MUX</th>
 <th>0.31.0</th>
 <th>0.30.0</th>
 <th>0.29.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FOE3</td>
 <td>0</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 <tr><td>FOE2</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>FOE1</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>FOE0</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>PT</td>
 <td>1</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-OUT_MUX">OUT_MUX</th>
 <th>0.35.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>COMB</td>
 <td>0</td>
 </tr>
+
 <tr><td>FF</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-PT[0].ALLOC">PT[0].ALLOC</th>
 <th>0.13.0</th>
 <th>0.12.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[1].ALLOC">PT[1].ALLOC</th>
 <th>0.15.0</th>
 <th>0.14.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[2].ALLOC">PT[2].ALLOC</th>
 <th>0.17.0</th>
 <th>0.16.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[3].ALLOC">PT[3].ALLOC</th>
 <th>0.19.0</th>
 <th>0.18.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-PT[4].ALLOC">PT[4].ALLOC</th>
 <th>0.21.0</th>
 <th>0.20.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>SPECIAL</td>
 <td>0</td>
 <td>0</td>
 </tr>
+
 <tr><td>EXPORT</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>SUM</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-REG_MODE">REG_MODE</th>
 <th>0.40.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>TFF</td>
 <td>0</td>
 </tr>
+
 <tr><td>DFF</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-RST_MUX">RST_MUX</th>
 <th>0.41.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-mc-SET_MUX">SET_MUX</th>
 <th>0.42.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>FSR</td>
 <td>0</td>
 </tr>
+
 <tr><td>PT</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-mc-UIM_OE_MUX">UIM_OE_MUX</th>
 <th>0.45.0</th>
 <th>0.44.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>VCC</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GND</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>OE_MUX</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="fuses--fb-inputs"><a class="header" href="#fuses--fb-inputs">Fuses — FB inputs</a></h2>
 <p>The FB input mux configuraton is stored in rows 55-66, columns 0-8, bits 6-7.
 The exact bit assignments are irregular and should be obtained from the database.</p>
 <h2 id="fuses--per-fb-bits-and-globals"><a class="header" href="#fuses--per-fb-bits-and-globals">Fuses — per-FB bits and globals</a></h2>
 <p>Per-FB bits are stored in rows 67-68, columns 0-8, bits 6-7.  The bits are (row, bit, column):</p>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc9500 block bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="7">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -864,7 +1046,9 @@ The exact bit assignments are irregular and should be obtained from the database
 <th>5</th>
 <th>6</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -875,6 +1059,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -884,6 +1069,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -893,6 +1079,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -902,6 +1089,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -911,6 +1099,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -920,6 +1109,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td>-</td>
 <td>-</td>
@@ -929,6 +1119,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>7</td>
 <td>-</td>
 <td>-</td>
@@ -938,6 +1129,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>8</td>
 <td>-</td>
 <td>-</td>
@@ -947,6 +1139,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>9</td>
 <td>-</td>
 <td>-</td>
@@ -956,6 +1149,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>10</td>
 <td>-</td>
 <td>-</td>
@@ -965,6 +1159,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>11</td>
 <td>-</td>
 <td>-</td>
@@ -976,6 +1171,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>12</td>
 <td>-</td>
 <td>-</td>
@@ -985,6 +1181,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>13</td>
 <td>-</td>
 <td>-</td>
@@ -994,6 +1191,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>14</td>
 <td>-</td>
 <td>-</td>
@@ -1003,6 +1201,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>15</td>
 <td>-</td>
 <td>-</td>
@@ -1012,6 +1211,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>16</td>
 <td>-</td>
 <td>-</td>
@@ -1021,6 +1221,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>17</td>
 <td>-</td>
 <td>-</td>
@@ -1030,6 +1231,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>18</td>
 <td>-</td>
 <td>-</td>
@@ -1039,6 +1241,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>19</td>
 <td>-</td>
 <td>-</td>
@@ -1048,6 +1251,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>20</td>
 <td>-</td>
 <td>-</td>
@@ -1057,6 +1261,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>21</td>
 <td>-</td>
 <td>-</td>
@@ -1066,6 +1271,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>22</td>
 <td>-</td>
 <td>-</td>
@@ -1075,6 +1281,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>23</td>
 <td>-</td>
 <td>-</td>
@@ -1084,6 +1291,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>24</td>
 <td>-</td>
 <td>-</td>
@@ -1093,6 +1301,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>25</td>
 <td>-</td>
 <td>-</td>
@@ -1102,6 +1311,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>26</td>
 <td>-</td>
 <td>-</td>
@@ -1111,6 +1321,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>27</td>
 <td>-</td>
 <td>-</td>
@@ -1120,6 +1331,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>28</td>
 <td>-</td>
 <td>-</td>
@@ -1129,6 +1341,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>29</td>
 <td>-</td>
 <td>-</td>
@@ -1138,6 +1351,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>30</td>
 <td>-</td>
 <td>-</td>
@@ -1147,6 +1361,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>31</td>
 <td>-</td>
 <td>-</td>
@@ -1156,6 +1371,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>32</td>
 <td>-</td>
 <td>-</td>
@@ -1165,6 +1381,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>33</td>
 <td>-</td>
 <td>-</td>
@@ -1174,6 +1391,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>34</td>
 <td>-</td>
 <td>-</td>
@@ -1183,6 +1401,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>35</td>
 <td>-</td>
 <td>-</td>
@@ -1192,6 +1411,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>36</td>
 <td>-</td>
 <td>-</td>
@@ -1201,6 +1421,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>37</td>
 <td>-</td>
 <td>-</td>
@@ -1210,6 +1431,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>38</td>
 <td>-</td>
 <td>-</td>
@@ -1219,6 +1441,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>39</td>
 <td>-</td>
 <td>-</td>
@@ -1228,6 +1451,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>40</td>
 <td>-</td>
 <td>-</td>
@@ -1237,6 +1461,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>41</td>
 <td>-</td>
 <td>-</td>
@@ -1246,6 +1471,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>42</td>
 <td>-</td>
 <td>-</td>
@@ -1255,6 +1481,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>43</td>
 <td>-</td>
 <td>-</td>
@@ -1264,6 +1491,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>44</td>
 <td>-</td>
 <td>-</td>
@@ -1273,6 +1501,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>45</td>
 <td>-</td>
 <td>-</td>
@@ -1282,6 +1511,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>46</td>
 <td>-</td>
 <td>-</td>
@@ -1291,6 +1521,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>47</td>
 <td>-</td>
 <td>-</td>
@@ -1300,6 +1531,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>48</td>
 <td>-</td>
 <td>-</td>
@@ -1309,6 +1541,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>49</td>
 <td>-</td>
 <td>-</td>
@@ -1318,6 +1551,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>50</td>
 <td>-</td>
 <td>-</td>
@@ -1327,6 +1561,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>51</td>
 <td>-</td>
 <td>-</td>
@@ -1336,6 +1571,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>52</td>
 <td>-</td>
 <td>-</td>
@@ -1345,6 +1581,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>53</td>
 <td>-</td>
 <td>-</td>
@@ -1354,6 +1591,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>54</td>
 <td>-</td>
 <td>-</td>
@@ -1363,6 +1601,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>55</td>
 <td>-</td>
 <td>-</td>
@@ -1372,6 +1611,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>56</td>
 <td>-</td>
 <td>-</td>
@@ -1381,6 +1621,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>57</td>
 <td>-</td>
 <td>-</td>
@@ -1390,6 +1631,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>58</td>
 <td>-</td>
 <td>-</td>
@@ -1399,6 +1641,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>59</td>
 <td>-</td>
 <td>-</td>
@@ -1408,6 +1651,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>60</td>
 <td>-</td>
 <td>-</td>
@@ -1417,6 +1661,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>61</td>
 <td>-</td>
 <td>-</td>
@@ -1426,6 +1671,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>62</td>
 <td>-</td>
 <td>-</td>
@@ -1435,6 +1681,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>63</td>
 <td>-</td>
 <td>-</td>
@@ -1444,6 +1691,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>64</td>
 <td>-</td>
 <td>-</td>
@@ -1453,6 +1701,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>65</td>
 <td>-</td>
 <td>-</td>
@@ -1462,6 +1711,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>66</td>
 <td>-</td>
 <td>-</td>
@@ -1471,6 +1721,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>67</td>
 <td title="0.67.0">
 <a href="#tile-xc9500-block-ENABLE">~ENABLE</a>
@@ -1484,6 +1735,7 @@ The exact bit assignments are irregular and should be obtained from the database
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>68</td>
 <td title="0.68.0">
 <a href="#tile-xc9500-block-WRITE_PROT">~WRITE_PROT</a>
@@ -1499,42 +1751,60 @@ The exact bit assignments are irregular and should be obtained from the database
 <a href="#tile-xc9500-block-PULLUP_DISABLE">~PULLUP_DISABLE</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-block-ENABLE">ENABLE</th>
 <th>0.67.0</th>
 </tr>
+
 <tr><th id="tile-xc9500-block-EXPORT_ENABLE">EXPORT_ENABLE</th>
 <th>0.67.1</th>
 </tr>
+
 <tr><th id="tile-xc9500-block-PULLUP_DISABLE">PULLUP_DISABLE</th>
 <th>0.68.6</th>
 </tr>
+
 <tr><th id="tile-xc9500-block-READ_PROT_A">READ_PROT_A</th>
 <th>0.11.3</th>
 </tr>
+
 <tr><th id="tile-xc9500-block-READ_PROT_B">READ_PROT_B</th>
 <th>0.68.3</th>
 </tr>
+
 <tr><th id="tile-xc9500-block-WRITE_PROT">WRITE_PROT</th>
 <th>0.68.0</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <p>Global bits are stored in rows (0, 3, 4, 6, 7), columns 0-8, bits 6-7 of FB 0.  The bits are (fb, row, bit, column):</p>
-<div class="table-wrapper"><table>
+<div class="table-wrapper">
+<table>
 <caption>xc9500 global bittile 0</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="17">Bit</th></tr>
+
 <tr>
 <th>0</th>
 <th>1</th>
@@ -1554,7 +1824,9 @@ inverted
 <th>15</th>
 <th>16</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>0</td>
 <td>-</td>
@@ -1591,6 +1863,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>1</td>
 <td>-</td>
 <td>-</td>
@@ -1610,6 +1883,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>2</td>
 <td>-</td>
 <td>-</td>
@@ -1629,6 +1903,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>3</td>
 <td>-</td>
 <td>-</td>
@@ -1664,6 +1939,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>4</td>
 <td>-</td>
 <td>-</td>
@@ -1699,6 +1975,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>5</td>
 <td>-</td>
 <td>-</td>
@@ -1718,6 +1995,7 @@ inverted
 <td>-</td>
 <td>-</td>
 </tr>
+
 <tr><td>6</td>
 <td title="0.6.0">
 <a href="#tile-xc9500-global-USERCODE">~USERCODE[30]</a>
@@ -1769,6 +2047,7 @@ inverted
 <a href="#tile-xc9500-global-USERCODE">~USERCODE[17]</a>
 </td>
 </tr>
+
 <tr><td>7</td>
 <td title="0.7.0">
 <a href="#tile-xc9500-global-USERCODE">~USERCODE[14]</a>
@@ -1820,224 +2099,316 @@ inverted
 <a href="#tile-xc9500-global-USERCODE">~USERCODE[1]</a>
 </td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FCLK0_INV">FCLK0_INV</th>
 <th>0.0.2</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FCLK1_INV">FCLK1_INV</th>
 <th>0.0.3</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FCLK2_INV">FCLK2_INV</th>
 <th>0.0.4</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FOE0_INV">FOE0_INV</th>
 <th>0.0.5</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FOE1_INV">FOE1_INV</th>
 <th>0.0.6</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FOE2_INV">FOE2_INV</th>
 <th>0.0.7</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FOE3_INV">FOE3_INV</th>
 <th>0.0.8</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FSR_INV">FSR_INV</th>
 <th>0.0.1</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
 </td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FCLK0_MUX">FCLK0_MUX</th>
 <th>0.4.2</th>
 <th>0.3.2</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GCLKCLKPAD1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GCLKCLKPAD0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FCLK1_MUX">FCLK1_MUX</th>
 <th>0.4.3</th>
 <th>0.3.3</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GCLKCLKPAD2</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GCLKCLKPAD1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FCLK2_MUX">FCLK2_MUX</th>
 <th>0.4.4</th>
 <th>0.3.4</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GCLKCLKPAD0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GCLKCLKPAD2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FOE0_MUX.LARGE">FOE0_MUX.LARGE</th>
 <th>0.4.5</th>
 <th>0.3.5</th>
 </tr>
+
 <tr><th id="tile-xc9500-global-FOE0_MUX.SMALL">FOE0_MUX.SMALL</th>
 <th>0.4.5</th>
 <th>0.3.5</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GOEOEPAD1</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GOEOEPAD0</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FOE1_MUX.LARGE">FOE1_MUX.LARGE</th>
 <th>0.4.6</th>
 <th>0.3.6</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GOEOEPAD2</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GOEOEPAD1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FOE1_MUX.SMALL">FOE1_MUX.SMALL</th>
 <th>0.4.6</th>
 <th>0.3.6</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GOEOEPAD0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GOEOEPAD1</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FOE2_MUX.LARGE">FOE2_MUX.LARGE</th>
 <th>0.4.7</th>
 <th>0.3.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GOEOEPAD3</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GOEOEPAD2</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-FOE3_MUX.LARGE">FOE3_MUX.LARGE</th>
 <th>0.4.8</th>
 <th>0.3.8</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>GOEOEPAD0</td>
 <td>0</td>
 <td>1</td>
 </tr>
+
 <tr><td>GOEOEPAD3</td>
 <td>1</td>
 <td>0</td>
 </tr>
+
 <tr><td>NONE</td>
 <td>1</td>
 <td>1</td>
 </tr>
+
 </tbody>
-</table></div>
-<div class="table-wrapper"><table>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
 <thead>
 <tr><th id="tile-xc9500-global-USERCODE">USERCODE</th>
 <th>0.6.9</th>
@@ -2073,7 +2444,9 @@ inverted
 <th>0.7.16</th>
 <th>0.7.7</th>
 </tr>
+
 </thead>
+
 <tbody>
 <tr><td>
 inverted
@@ -2111,8 +2484,12 @@ inverted
 <td>~[1]</td>
 <td>~[0]</td>
 </tr>
+
 </tbody>
-</table></div>
+
+</table>
+</div>
+
 <h2 id="fuses--input-buffer-enable"><a class="header" href="#fuses--input-buffer-enable">Fuses — input buffer enable</a></h2>
 <p>On XC95288, the <code>IBUF_UIM_ENABLE</code> fuses are stored in rows (1, 2, 5, 8, 9),
 columns 0-8, bits 6-7 of FBs (0, 1, 14, 15) in an irregular manner.  Each
@@ -2133,11 +2510,11 @@ bit assignments.</p>
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
                             <a rel="prev" href="../xc9500/structure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                             </a>
 
                             <a rel="next prefetch" href="../xc9500/bitstream-xc9500xl.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                             </a>
 
                         <div style="clear: both"></div>
@@ -2147,16 +2524,21 @@ bit assignments.</p>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                     <a rel="prev" href="../xc9500/structure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
                     </a>
 
                     <a rel="next prefetch" href="../xc9500/bitstream-xc9500xl.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
                     </a>
             </nav>
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -2166,9 +2548,9 @@ bit assignments.</p>
 
 
 
-        <script src="../clipboard.min.js"></script>
-        <script src="../highlight.js"></script>
-        <script src="../book.js"></script>
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
 
