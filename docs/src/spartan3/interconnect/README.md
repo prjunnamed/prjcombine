@@ -37,7 +37,8 @@ The core of the interconnect is made of the following wires, each of which is in
   | `OMUX14` | `W`, then `N` | `OMUX14.W`      | `OMUX12.WN`     |
   | `OMUX15` | `N`           | `OMUX15.N`      |
 
-  <div class="warning">this table is very similar to, but subtly different from the corresponding Virtex 2 table (the differences are in `OMUX9` and `OMUX13`).</div>
+  > [!NOTE]
+  > This table is very similar to, but subtly different from the corresponding Virtex 2 table (the differences are in `OMUX9` and `OMUX13`).
 
 - Double lines going in the cardinal directions, 8 per direction, called `DBL.[EWSN][0-7]`. Each of them has three segments, called `DBL.[EWSN][0-7].[0-2]`, where `.0` is located in the source tile and is driven, `.1` is in the next tile in the relevant direction, and `.2` is in the next tile after that. Some of the lines additionally have a fourth segment:
 

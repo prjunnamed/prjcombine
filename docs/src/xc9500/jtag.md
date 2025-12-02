@@ -186,11 +186,12 @@ from the database.  When successful, the low two bits of
 DR will become `0b11`.  Note that shifting DR again before the operation is complete will
 abort it and return `0b00` in the low bits.
 
-<div class="warning">The timeout value of 1.3s present in the database is taken directly from ISE SVFs,
+> [!CAUTION]
+> The timeout value of 1.3s present in the database is taken directly from ISE SVFs,
 but it appears to be too small for the two devices I (@wanda-phi) personally possess,
 which require a timeout of 2s.  Since these devices came from random ebay listings, this
 may be due to age or mishandling.  Still, you may want to consider using a larger timeout
-in your programming software.</div>
+in your programming software.
 
 To erase fuses:
 

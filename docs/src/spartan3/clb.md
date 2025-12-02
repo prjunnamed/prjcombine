@@ -1,6 +1,7 @@
 # Logic block
 
-<div class="warning">This document describes Spartan 3 and Virtex 4 CLBs, since they are very similar.</div>
+> [!NOTE]
+> This document describes Spartan 3 and Virtex 4 CLBs, since they are very similar.
 
 The main logic resource in Spartan 3 and Virtex 4 devices is the CLB (Configurable Logic Block). It is based on the [Virtex 2 CLB](../virtex2/clb.md), but has significant changes, particularly to the LUT RAM structures.
 
@@ -262,7 +263,8 @@ The `FXINA` and `FXINB` inputs are routed as follows:
 | `SLICE2` | `SLICE0.FX` | `SLICE1.FX`                 | `MUXF7`             |
 | `SLICE3` | `SLICE2.FX` | `SLICE2.FX`, from CLB above | `MUXF8`             |
 
-<div class="warning">The routing is different from Virtex 2.</div>
+> [!NOTE]
+> The routing is different from Virtex 2.
 
 The `FX` output isn't connected across any interconnect holes — a `MUXF8` cannot be made of two CLBs separated by a hole.
 

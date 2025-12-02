@@ -54,7 +54,8 @@ The boundary scan register contains the following bits, in order from **MSB**:
 
 All bits of the register are `BC_1` type cells.
 
-<div class="warning">The GCLK cells can reliably capture pin state in EXTEST mode, but only partially override internal connections in INTEST mode: connections through ZIA are overriden by the boundary register value, but connections through per-FB `FCLK` lines are not.</div>
+> [!IMPORTANT]
+> The GCLK cells can reliably capture pin state in EXTEST mode, but only partially override internal connections in INTEST mode: connections through ZIA are overriden by the boundary register value, but connections through per-FB `FCLK` lines are not.
 
 TODO: details on the cell connection, EXTEST, INTEST semantics
 
