@@ -2933,6 +2933,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_B_VNOC2_CORE", (1, 0, 0, 0), &[]),
     TileInfo("TERM_T_VNOC2_FIRST_CORE", (1, 0, 0, 0), &[]),
     TileInfo("TERM_B_VNOC2_FIRST_CORE", (1, 0, 0, 0), &[]),
+    TileInfo("TERM_T_VNOC2_AIE_CORE", (1, 0, 0, 0), &[]),
     TileInfo("TERM_T_VNOC4CH_CORE", (4, 0, 0, 0), &[]),
     TileInfo("TERM_B_VNOC4CH_CORE", (4, 0, 0, 0), &[]),
     TileInfo("CPIPE_TOP_TILE", (0, 0, 58, 0), &[]),
@@ -2995,7 +2996,9 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("RCLK_HB_CORE", (2, 0, 0, 0), &["clk-last-buf"]),
     TileInfo("RCLK_HB_VR_CORE", (2, 0, 0, 0), &["clk-last-buf"]),
     TileInfo("RCLK_HB_FULL_L_CORE", SINGLE, &["clk-last-buf"]),
+    TileInfo("RCLK_HB_FULL_L_VR_CORE", SINGLE, &["clk-last-buf"]),
     TileInfo("RCLK_HB_FULL_R_CORE", SINGLE, &["clk-last-buf"]),
+    TileInfo("RCLK_HB_FULL_R_VR_CORE", SINGLE, &["clk-last-buf"]),
     TileInfo("RCLK_HB_HDIO_CORE", (2, 0, 0, 0), &["clk-last-buf"]),
     TileInfo("RCLK_HB_HDIO_VR_CORE", (2, 0, 0, 0), &["clk-last-buf"]),
     TileInfo("RCLK_SDFEC_CORE", (2, 0, 0, 0), &["clk-last-buf"]),
@@ -3022,7 +3025,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_P_GTY_CORE", (0, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTY_L_CORE", (0, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTY_XPIO_L_CORE", (0, 0, 0, 0), &[]),
-    TileInfo("GTYP_QUAD_SINGLE_MY", (0, 0, 58, 0), &["gty"]),
+    TileInfo("GTYP_QUAD_SINGLE_MY", (0, 0, 0, 0), &["gty"]),
     TileInfo("RBRK_GTYP_CORE_MY", (0, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTYP_CPM5_CORE", (0, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_GTYP_CPM5_BOT_CORE_MY", (0, 0, 0, 0), &["clk-brk"]),
@@ -3037,6 +3040,12 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_T_GTM_L_CORE", (0, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTM_L_AIE_CORE", (0, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTM_CORE", (0, 0, 0, 0), &[]),
+    TileInfo("GTMPW_QUAD_SINGLE_MY", (0, 0, 58, 0), &["gtm"]),
+    TileInfo("RBRK_GTMP_CORE_MY", (0, 0, 0, 0), &["clk-brk"]),
+    TileInfo("RBRK_GTMP_CPM6_CORE", (0, 0, 0, 0), &["clk-brk"]),
+    TileInfo("RBRK_GTMP_CPM6_BOT_CORE_MY", (0, 0, 0, 0), &["clk-brk"]),
+    TileInfo("TERM_T_GTMP_L_CORE", (0, 0, 0, 0), &[]),
+    TileInfo("TERM_P_GTMP_CPM6_CORE", (0, 0, 0, 0), &[]),
     TileInfo("XRAM_CORE", (0, 0, 0, 0), &["hardip"]),
     TileInfo("TERM_P_XRAM_CORE", (0, 0, 0, 0), &[]),
     TileInfo("TERM_T_PSS_CORE", (0, 0, 0, 0), &[]),
@@ -3063,6 +3072,10 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("GTM_REFCLK_TOP_TILE", (2, 0, 0, 0), &["gtclk"]),
     TileInfo("GTM_REFCLK_BOT_TILE", (2, 0, 0, 0), &["gtclk"]),
     TileInfo("GTYP_REFCLK_BOT_TILE", (2, 0, 0, 0), &["gtclk"]),
+    TileInfo("GTMPW_QUAD_SINGLE", (0, 0, 58, 0), &["gtm"]),
+    TileInfo("RBRK_GTMP_CORE", (0, 0, 0, 0), &["clk-brk"]),
+    TileInfo("TERM_T_GTMP_R_CORE", (0, 0, 0, 0), &[]),
+    TileInfo("TERM_B_GTMP_CORE", (0, 0, 0, 0), &[]),
     TileInfo("RFADC_BOT_CORE", (2, 0, 58, 0), &["hsadc"]),
     TileInfo("RFADC_TOP_CORE", (2, 0, 58, 0), &["hsadc"]),
     TileInfo("RFDAC_BOT_CORE", (2, 0, 58, 0), &["hsdac"]),
@@ -3089,6 +3102,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("RBRK_VCU_ISP_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("RBRK_ISP_VCU_CORE", (2, 0, 0, 0), &["clk-brk"]),
     TileInfo("TERM_B_ISP_CORE", (2, 0, 0, 0), &[]),
+    TileInfo("TERM_B_VCU_CORE", (2, 0, 0, 0), &[]),
     TileInfo("MISC_BFRB_DECAP_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_B_BFRB_CORE", (2, 0, 0, 0), &[]),
     TileInfo("RBRK_BFRB_GTM_CORE", (2, 0, 0, 0), &["clk-brk"]),
@@ -3115,6 +3129,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("TERM_P_GTCLK_CORE3", (2, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTCLK_CPM5_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_P_GTCLK_MMI_CORE", (2, 0, 0, 0), &[]),
+    TileInfo("TERM_P_GTCLK_CPM6_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTCLK_L_CORE", (2, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTCLK_L_CORE2", (2, 0, 0, 0), &[]),
     TileInfo("TERM_T_GTCLK_L_XPIO_CORE", (2, 0, 0, 0), &[]),
@@ -3124,6 +3139,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("FSR_GTYP_OCTAL_GT_TILE_MY", (0, 0, 118, 0), &[]),
     TileInfo("FSR_GTM_OCTAL_GT_TILE_MY", (0, 0, 118, 0), &[]),
     TileInfo("FSR_GTM_QUAD_GT_TILE_MY", (0, 0, 59, 0), &[]),
+    TileInfo("FSR_GTMPW_SHIM_OCTAL_GT_TILE_MY", (0, 0, 118, 0), &[]),
     TileInfo("FSR_XRAM_GTYP_OCTAL_GT_TILE_MY", (0, 0, 118, 0), &[]),
     TileInfo("FSR_OCTAL_REMAP_TILE_MY", (0, 0, 118, 0), &[]),
     TileInfo("FSR_OCTAL_VR_REMAP_TILE_MY", (0, 0, 118, 0), &[]),
@@ -3148,6 +3164,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("FSR_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_GTYP_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_GTM_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
+    TileInfo("FSR_GTMPW_SHIM_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_VDU_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_BFRB_DUAL_GT_TILE", (0, 0, 118, 0), &[]),
     TileInfo("FSR_ISP_GTYP_OCTAL_GT_TILE", (0, 0, 118, 0), &[]),
@@ -3170,6 +3187,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CPM_CORE", (0, 0, 58, 0), &["hardip"]),
     TileInfo("PSS_BASE_CORE", (0, 0, 97, 0), &["hardip"]),
     TileInfo("CPM_G5_TILE", (0, 0, 239, 0), &["hardip"]),
+    TileInfo("CPM6_TILE", (0, 0, 239, 0), &["hardip"]),
     TileInfo("CFRM_CPIPE_TERM_CPM5_CORE", (0, 0, 239, 0), &[]),
     TileInfo("TERM_B_PSS_DECAP_CORE", (0, 0, 20, 0), &[]),
     TileInfo("TERM_B_PSS_TILE", (0, 0, 0, 0), &[]),
@@ -3242,6 +3260,19 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CLKE2_GT_ULVT_CCA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLKE2_GT_ULVT_AAA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLKE2_GT_ULVT_BBA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_GT_ULVT_AAO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_GT_ULVT_BBO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo("CLKE2_GT_ULVT_CCO_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
+    TileInfo(
+        "CLKE2_GT_ULVT_NO_LOC_BBA_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLKE2_GT_ULVT_NO_LOC_CCA_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("AMS_SAT_GT_TOP_TILE", (0, 0, 18, 0), &["sysmon"]),
     TileInfo("AMS_SAT_GT_BOT_TILE", (0, 0, 18, 0), &["sysmon"]),
     TileInfo("NPI_VNPI_TOP_TILE", (0, 0, 5, 0), &["noc"]),
@@ -3266,6 +3297,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_REBUF_VERT_GT_ULVT_CBO_TILE",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_GT_BAA_TILE",
         (0, 0, 9, 0),
         &["clk-spine-buf"],
@@ -3276,7 +3312,17 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_REBUF_VERT_GT_ULVT_BOA_TILE",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_GT_BAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_REBUF_VERT_GT_ULVT_BAO_TILE",
         (0, 0, 9, 0),
         &["clk-spine-buf"],
     ),
@@ -3292,6 +3338,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     ),
     TileInfo(
         "CLK_REBUF_VERT_GT_ACO_TILE",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_REBUF_VERT_GT_ULVT_ACO_TILE",
         (0, 0, 9, 0),
         &["clk-spine-buf"],
     ),
@@ -3312,6 +3363,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     ),
     TileInfo(
         "CLK_REBUF_VERT_GT_BOO_TILE",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_REBUF_VERT_GT_ULVT_BOO_TILE",
         (0, 0, 9, 0),
         &["clk-spine-buf"],
     ),
@@ -3382,6 +3438,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_VERT_TO_HSR_GT_ULVT_OCO_TILE",
+        (0, 0, 8, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_VERT_TO_HSR_GT_OCO_TILE",
         (0, 0, 8, 0),
         &["clk-spine-buf"],
@@ -3413,6 +3474,16 @@ const VERSAL_TILES: &[TileInfo] = &[
     ),
     TileInfo(
         "CLKE2_GT_ULVT_CCA_TILE_MY",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLKE2_GT_ULVT_BBO_TILE_MY",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLKE2_GT_ULVT_CCO_TILE_MY",
         (0, 0, 9, 0),
         &["clk-global-buf"],
     ),
@@ -3482,6 +3553,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_REBUF_VERT_GT_ULVT_CBO_TILE_MY",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_GT_COO_TILE_MY",
         (0, 0, 9, 0),
         &["clk-spine-buf"],
@@ -3491,7 +3567,18 @@ const VERSAL_TILES: &[TileInfo] = &[
         (0, 0, 9, 0),
         &["clk-spine-buf"],
     ),
+    TileInfo(
+        "CLK_REBUF_VERT_GT_ULVT_BOO_TILE_MY",
+        (0, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
     TileInfo("RBRK_GT_DECAP_TILE_MY", (0, 0, 8, 0), &[]),
+    // CPM6 special
+    TileInfo("CLKE2_GT_ULVT_TILE_MY", (0, 0, 9, 0), &["clk-spine-buf"]),
+    TileInfo("MISC_CPM6_DECAP_TOP_CORE", (0, 0, 49, 0), &[]),
+    TileInfo("MISC_CPM6_DECAP_MID_CORE", (0, 0, 109, 0), &[]),
+    TileInfo("MISC_CPM6_DECAP_BOT_CORE", (0, 0, 59, 0), &[]),
+    TileInfo("MISC_FSR_CPM6_CORE", (0, 0, 59, 60), &[]),
     // VNOC
     TileInfo("CLK_VNOC_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
     TileInfo("CLK_VNOC_AAA_TILE", (0, 0, 9, 0), &["clk-global-buf"]),
@@ -3606,6 +3693,26 @@ const VERSAL_TILES: &[TileInfo] = &[
         (0, 0, 9, 0),
         &["clk-global-buf"],
     ),
+    TileInfo(
+        "CLKE2_VNOC_ULVT_AAO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLKE2_VNOC_ULVT_BBO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLKE2_VNOC_ULVT_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
+    TileInfo(
+        "CLKE2_VNOC_ULVT_PSS_CCO_TILE",
+        (0, 0, 9, 0),
+        &["clk-global-buf"],
+    ),
     TileInfo("MISR_TILE", (0, 0, 9, 0), &["hardip"]),
     TileInfo("NOC_NSU512_TOP", (1, 0, 8, 0), &["noc"]),
     TileInfo("NOC_NMU512_TOP", (1, 0, 10, 0), &["noc"]),
@@ -3636,6 +3743,16 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_REBUF_VERT_ULVT_VNOC_TOP_BOA_TILE",
+        (1, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_REBUF_VERT_ULVT_VNOC_TOP_BOO_TILE",
+        (1, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_VNOC_TOP_BOO_TILE",
         (1, 0, 9, 0),
         &["clk-spine-buf"],
@@ -3662,6 +3779,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_REBUF_VERT_ULVT_VNOC_ACO_TILE",
+        (1, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_VNOC_BAA_TILE",
         (1, 0, 9, 0),
         &["clk-spine-buf"],
@@ -3677,6 +3799,11 @@ const VERSAL_TILES: &[TileInfo] = &[
         &["clk-spine-buf"],
     ),
     TileInfo(
+        "CLK_REBUF_VERT_ULVT_VNOC_BAO_TILE",
+        (1, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
         "CLK_REBUF_VERT_VNOC_CBA_TILE",
         (1, 0, 9, 0),
         &["clk-spine-buf"],
@@ -3688,6 +3815,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     ),
     TileInfo(
         "CLK_REBUF_VERT_VNOC_CBO_TILE",
+        (1, 0, 9, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_REBUF_VERT_ULVT_VNOC_CBO_TILE",
         (1, 0, 9, 0),
         &["clk-spine-buf"],
     ),
@@ -3759,6 +3891,11 @@ const VERSAL_TILES: &[TileInfo] = &[
     ),
     TileInfo(
         "CLK_VERT_TO_HSR_ULVT_VNOC_OCA_TILE",
+        (1, 0, 8, 0),
+        &["clk-spine-buf"],
+    ),
+    TileInfo(
+        "CLK_VERT_TO_HSR_ULVT_VNOC_OCO_TILE",
         (1, 0, 8, 0),
         &["clk-spine-buf"],
     ),
@@ -3903,6 +4040,7 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("NOC2_XBR2X4_TOP", SINGLE, &["hardip"]),
     TileInfo("NPI2_NIR_TILE", SINGLE, &["hardip"]),
     TileInfo("NPI2_RPTR_CORE", SINGLE, &["hardip"]),
+    TileInfo("NPI2_RPTR_CORE_MY", SINGLE, &["hardip"]),
     TileInfo("NOC2_NPP_RPTR_TILE", SINGLE, &["hardip"]),
     TileInfo("NOC2_NSU512_BLI_TILE", SINGLE, &["hardip"]),
     TileInfo("NOC2_NMU512_BLI_TILE", SINGLE, &["hardip"]),
@@ -3921,7 +4059,9 @@ const VERSAL_TILES: &[TileInfo] = &[
     TileInfo("CFRM_CPIPE_TERM_CPM5NX_CORE", (0, 0, 240, 0), &[]),
     TileInfo("MISC_PSXL_DECAP_CORE", (0, 0, 0, 0), &[]),
     TileInfo("PSXC_TILE", (0, 0, 239, 0), &["hardip"]),
-    TileInfo("MMI_TILE", (0, 0, 119, 0), &["hardip"]),
+    TileInfo("MMI_TILE", SINGLE, &["hardip"]),
+    TileInfo("TERM_P_MMI_CORE", SINGLE, &[]),
+    TileInfo("MISC_MMI_TIEOFF_CORE", SINGLE, &[]),
     // junk
     TileInfo("NULL", SINGLE, &[]),
     TileInfo("__EMPTY__", SINGLE, &["crippled"]),
@@ -4037,6 +4177,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                                     if ntkn != "NULL"
                                         && ntkn != "PCIE_NULL"
                                         && ntkn != "INVALID_0_0"
+                                        && ntkn != "__EMPTY__"
                                     {
                                         println!(
                                             "Tile {} expanded onto {} which is not NULL",
