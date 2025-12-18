@@ -1073,7 +1073,7 @@ impl Generator<'_> {
 
     fn emit_led_drv_v2(&mut self) {
         let mut do_rgba: bool = self.rng.random();
-        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::RgbaDrv];
+        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::RgbDrv];
         for io in special.io.values() {
             if !self.unused_io.contains(io) {
                 do_rgba = false;
@@ -1661,7 +1661,6 @@ impl Generator<'_> {
             Bram,
             Dsp,
             LeddIp,
-            LeddaIp,
             IrIp,
             Spram(DirH),
             LsOsc,
@@ -1718,9 +1717,6 @@ impl Generator<'_> {
                 }
                 SpecialTileKey::LeddIp => {
                     things.push(Thing::LeddIp);
-                }
-                SpecialTileKey::LeddaIp => {
-                    things.push(Thing::LeddaIp);
                 }
                 SpecialTileKey::IrIp => {
                     things.push(Thing::IrIp);
@@ -1790,10 +1786,11 @@ impl Generator<'_> {
                     self.emit_osc("SB_HFOSC");
                 }
                 Thing::LeddIp => {
-                    self.emit_simple_ip("SB_LEDD_IP");
-                }
-                Thing::LeddaIp => {
-                    self.emit_simple_ip("SB_LEDDA_IP");
+                    self.emit_simple_ip(if self.cfg.edev.chip.kind == ChipKind::Ice40T04 {
+                        "SB_LEDD_IP"
+                    } else {
+                        "SB_LEDDA_IP"
+                    });
                 }
                 Thing::IrIp => {
                     self.emit_simple_ip("SB_IR_IP");

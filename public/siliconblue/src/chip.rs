@@ -325,10 +325,8 @@ pub enum SpecialTileKey {
     IrDrv,
     RgbDrv,
     Ir500Drv,
-    RgbaDrv,
     LedDrvCur,
     LeddIp,
-    LeddaIp,
     IrIp,
     Mac16(ColId, RowId),
     Mac16Trim(ColId, RowId),
@@ -384,9 +382,10 @@ impl SpecialTileKey {
                 _ => unreachable!(),
             }
             .into(),
-            SpecialTileKey::LeddaIp => match kind {
-                ChipKind::Ice40T05 => "LEDDA_IP_T05",
-                ChipKind::Ice40T01 => "LEDDA_IP_T01",
+            SpecialTileKey::LeddIp => match kind {
+                ChipKind::Ice40T04 => "LEDD_IP_T04",
+                ChipKind::Ice40T05 => "LEDD_IP_T05",
+                ChipKind::Ice40T01 => "LEDD_IP_T01",
                 _ => unreachable!(),
             }
             .into(),
@@ -415,9 +414,10 @@ impl SpecialTileKey {
                 _ => unreachable!(),
             }
             .into(),
-            SpecialTileKey::RgbaDrv => match kind {
-                ChipKind::Ice40T05 => "RGBA_DRV_T05",
-                ChipKind::Ice40T01 => "RGBA_DRV_T01",
+            SpecialTileKey::RgbDrv => match kind {
+                ChipKind::Ice40T04 => "RGB_DRV_T04",
+                ChipKind::Ice40T05 => "RGB_DRV_T05",
+                ChipKind::Ice40T01 => "RGB_DRV_T01",
                 _ => unreachable!(),
             }
             .into(),
@@ -447,10 +447,8 @@ impl std::fmt::Display for SpecialTileKey {
             SpecialTileKey::IrDrv => write!(f, "IR_DRV"),
             SpecialTileKey::RgbDrv => write!(f, "RGB_DRV"),
             SpecialTileKey::Ir500Drv => write!(f, "IR500_DRV"),
-            SpecialTileKey::RgbaDrv => write!(f, "RGBA_DRV"),
             SpecialTileKey::LedDrvCur => write!(f, "LED_DRV_CUR"),
             SpecialTileKey::LeddIp => write!(f, "LEDD_IP"),
-            SpecialTileKey::LeddaIp => write!(f, "LEDDA_IP"),
             SpecialTileKey::IrIp => write!(f, "IR_IP"),
             SpecialTileKey::Mac16(col, row) => write!(f, "MAC16_{col}{row}"),
             SpecialTileKey::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_{col}{row}"),

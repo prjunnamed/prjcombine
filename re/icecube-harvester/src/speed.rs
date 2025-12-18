@@ -1319,7 +1319,10 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
     }
 
     // LEDD_IP
-    if kind == ChipKind::Ice40T04 {
+    if matches!(
+        kind,
+        ChipKind::Ice40T04 | ChipKind::Ice40T01 | ChipKind::Ice40T05
+    ) {
         collector.want("LEDD_IP:LEDDCLK_TO_LEDDON");
         collector.want("LEDD_IP:LEDDCLK_TO_PWMOUT0");
         collector.want("LEDD_IP:LEDDCLK_TO_PWMOUT1");
@@ -1333,23 +1336,6 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
         collector.want("LEDD_IP:LEDDCS_SETUPHOLD_LEDDCLK");
         collector.want("LEDD_IP:LEDDDEN_SETUPHOLD_LEDDCLK");
         collector.want("LEDD_IP:LEDDEXE_SETUPHOLD_LEDDCLK");
-    }
-
-    // LEDDA_IP
-    if matches!(kind, ChipKind::Ice40T01 | ChipKind::Ice40T05) {
-        collector.want("LEDDA_IP:LEDDCLK_TO_LEDDON");
-        collector.want("LEDDA_IP:LEDDCLK_TO_PWMOUT0");
-        collector.want("LEDDA_IP:LEDDCLK_TO_PWMOUT1");
-        collector.want("LEDDA_IP:LEDDCLK_TO_PWMOUT2");
-        for i in 0..4 {
-            collector.want(format!("LEDDA_IP:LEDDADDR{i}_SETUPHOLD_LEDDCLK"));
-        }
-        for i in 0..8 {
-            collector.want(format!("LEDDA_IP:LEDDDAT{i}_SETUPHOLD_LEDDCLK"));
-        }
-        collector.want("LEDDA_IP:LEDDCS_SETUPHOLD_LEDDCLK");
-        collector.want("LEDDA_IP:LEDDDEN_SETUPHOLD_LEDDCLK");
-        collector.want("LEDDA_IP:LEDDEXE_SETUPHOLD_LEDDCLK");
     }
 
     // IR_IP
@@ -1401,12 +1387,12 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
         collector.want("RGB_DRV:RGB2PWM_TO_RGB2");
     }
     if matches!(kind, ChipKind::Ice40T05 | ChipKind::Ice40T01) {
-        collector.want("RGBA_DRV:RGBLEDEN_TO_RGB0");
-        collector.want("RGBA_DRV:RGBLEDEN_TO_RGB1");
-        collector.want("RGBA_DRV:RGBLEDEN_TO_RGB2");
-        collector.want("RGBA_DRV:RGB0PWM_TO_RGB0");
-        collector.want("RGBA_DRV:RGB1PWM_TO_RGB1");
-        collector.want("RGBA_DRV:RGB2PWM_TO_RGB2");
+        collector.want("RGB_DRV:RGBLEDEN_TO_RGB0");
+        collector.want("RGB_DRV:RGBLEDEN_TO_RGB1");
+        collector.want("RGB_DRV:RGBLEDEN_TO_RGB2");
+        collector.want("RGB_DRV:RGB0PWM_TO_RGB0");
+        collector.want("RGB_DRV:RGB1PWM_TO_RGB1");
+        collector.want("RGB_DRV:RGB2PWM_TO_RGB2");
     }
     if kind == ChipKind::Ice40T01 {
         collector.want("IR400_DRV:IRLEDEN_TO_IRLED");
@@ -1526,8 +1512,7 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
                 }
                 collect_simple(&mut res, &cell.typ[3..], cell);
             }
-            "SB_LEDD_IP" => collect_simple(&mut res, "LEDD_IP", cell),
-            "SB_LEDDA_IP" => collect_simple(&mut res, "LEDDA_IP", cell),
+            "SB_LEDD_IP" | "SB_LEDDA_IP" => collect_simple(&mut res, "LEDD_IP", cell),
             "SB_IR_IP" => collect_simple(&mut res, "IR_IP", cell),
             "SB_FILTER_50NS" => collect_filter(&mut res, cell),
 
@@ -1569,9 +1554,8 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
 
             // LED drivers
             "SB_LED_DRV_CUR" => collect_drv(&mut res, "LED_DRV_CUR", cell),
-            "SB_RGB_DRV" => collect_drv(&mut res, "RGB_DRV", cell),
+            "SB_RGB_DRV" | "SB_RGBA_DRV" => collect_drv(&mut res, "RGB_DRV", cell),
             "SB_IR_DRV" => collect_drv(&mut res, "IR_DRV", cell),
-            "SB_RGBA_DRV" => collect_drv(&mut res, "RGBA_DRV", cell),
             "SB_IR400_DRV" => collect_drv(&mut res, "IR400_DRV", cell),
             "SB_BARCODE_DRV" => collect_drv(&mut res, "BARCODE_DRV", cell),
             "ICE_IR500_DRV" => collect_drv(&mut res, "IR500_DRV", cell),

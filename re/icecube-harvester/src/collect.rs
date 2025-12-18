@@ -629,7 +629,7 @@ pub fn collect(
             let tile = "LED_DRV_CUR_T04";
             let bel = "LED_DRV_CUR";
             collector.collect_bit(tile, bel, "ENABLE", "");
-            let tile = "RGB_DRV";
+            let tile = &SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
             let bel = "RGB_DRV";
             collector.collect_bit(tile, bel, "ENABLE", "");
             for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
@@ -644,8 +644,8 @@ pub fn collect(
                 .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
             collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
         } else {
-            let tile = &SpecialTileKey::RgbaDrv.tile_class(edev.chip.kind);
-            let bel = "RGBA_DRV";
+            let tile = &SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+            let bel = "RGB_DRV";
             collector.collect_bit(tile, bel, "ENABLE", "");
             collector.collect_bit(tile, bel, "CURRENT_MODE", "");
             for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
@@ -653,7 +653,7 @@ pub fn collect(
             }
             if edev.chip.kind == ChipKind::Ice40T01 {
                 let tile = "IR500_DRV";
-                let bel = "RGBA_DRV";
+                let bel = "RGB_DRV";
                 collector.collect_bit(tile, bel, "ENABLE", "");
                 let bel = "IR500_DRV";
                 collector.collect_bit(tile, bel, "ENABLE", "");

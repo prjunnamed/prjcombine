@@ -1390,9 +1390,9 @@ impl PartContext<'_> {
                         [].as_slice(),
                     ),
                     "SB_LEDDA_IP" => (
-                        SpecialTileKey::LeddaIp,
+                        SpecialTileKey::LeddIp,
                         tslots::LED_IP,
-                        bels::LEDDA_IP,
+                        bels::LEDD_IP,
                         vec![],
                         [].as_slice(),
                     ),
@@ -1630,10 +1630,10 @@ impl PartContext<'_> {
                     ],
                 ),
                 (
-                    SpecialTileKey::RgbaDrv,
+                    SpecialTileKey::RgbDrv,
                     [(
                         "SB_RGBA_DRV",
-                        bels::RGBA_DRV,
+                        bels::RGB_DRV,
                         [
                             (SpecialIoKey::RgbLed0, "RGB0"),
                             (SpecialIoKey::RgbLed1, "RGB1"),

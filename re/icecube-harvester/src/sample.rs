@@ -1134,7 +1134,8 @@ pub fn make_sample(
                         );
                     }
                 }
-                "SB_RGB_DRV" => {
+                "SB_RGB_DRV" | "SB_RGBA_DRV" => {
+                    let tcls_rgb_drv = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
                     let tiles = Vec::from_iter(
                         edev.chip.special_tiles[&SpecialTileKey::RgbDrv]
                             .cells
@@ -1153,57 +1154,40 @@ pub fn make_sample(
                                 got_any = true;
                                 sample.add_tiled_pattern_single(
                                     &tiles,
-                                    format!("RGB_DRV:RGB_DRV:{prop}:BIT{i}"),
+                                    format!("{tcls_rgb_drv}:RGB_DRV:{prop}:BIT{i}"),
                                 );
                             }
                         }
                     }
-                    if got_any {
-                        sample.add_tiled_pattern_single(&tiles, "RGB_DRV:RGB_DRV:ENABLE:BIT0");
-                    }
-                }
-                "SB_RGBA_DRV" => {
-                    let tcls_rgba_drv = SpecialTileKey::RgbaDrv.tile_class(edev.chip.kind);
-                    has_led_v2 = true;
-                    let tiles = Vec::from_iter(
-                        edev.chip.special_tiles[&SpecialTileKey::RgbaDrv]
-                            .cells
-                            .values()
-                            .map(|&cell| BitOwner::Main(cell.col, cell.row)),
-                    );
-                    for prop in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
-                        let val = &inst.props[prop];
-                        for (i, c) in val.chars().rev().enumerate() {
-                            if i >= 6 {
-                                break;
-                            }
-                            assert!(c == '0' || c == '1');
-                            if c == '1' {
-                                sample.add_tiled_pattern_single(
-                                    &tiles,
-                                    format!("{tcls_rgba_drv}:RGBA_DRV:{prop}:BIT{i}"),
-                                );
-                            }
+                    if inst.kind == "SB_RGBA_DRV" {
+                        has_led_v2 = true;
+                        if inst.props["CURRENT_MODE"] == "0b1" {
+                            sample.add_tiled_pattern_single(
+                                &tiles,
+                                format!("{tcls_rgb_drv}:RGB_DRV:CURRENT_MODE:BIT0"),
+                            );
                         }
-                    }
-                    if inst.props["CURRENT_MODE"] == "0b1" {
                         sample.add_tiled_pattern_single(
                             &tiles,
-                            format!("{tcls_rgba_drv}:RGBA_DRV:CURRENT_MODE:BIT0"),
+                            format!("{tcls_rgb_drv}:RGB_DRV:ENABLE:BIT0"),
                         );
-                    }
-                    sample.add_tiled_pattern_single(
-                        &tiles,
-                        format!("{tcls_rgba_drv}:RGBA_DRV:ENABLE:BIT0"),
-                    );
-                    if edev.chip.kind == ChipKind::Ice40T01 {
-                        let tiles = Vec::from_iter(
-                            edev.chip.special_tiles[&SpecialTileKey::Ir500Drv]
-                                .cells
-                                .values()
-                                .map(|&cell| BitOwner::Main(cell.col, cell.row)),
-                        );
-                        sample.add_tiled_pattern_single(&tiles, "IR500_DRV:RGBA_DRV:ENABLE:BIT0");
+                        if edev.chip.kind == ChipKind::Ice40T01 {
+                            let tiles = Vec::from_iter(
+                                edev.chip.special_tiles[&SpecialTileKey::Ir500Drv]
+                                    .cells
+                                    .values()
+                                    .map(|&cell| BitOwner::Main(cell.col, cell.row)),
+                            );
+                            sample
+                                .add_tiled_pattern_single(&tiles, "IR500_DRV:RGB_DRV:ENABLE:BIT0");
+                        }
+                    } else {
+                        if got_any {
+                            sample.add_tiled_pattern_single(
+                                &tiles,
+                                format!("{tcls_rgb_drv}:RGB_DRV:ENABLE:BIT0"),
+                            );
+                        }
                     }
                 }
                 "SB_IR_DRV" => {
@@ -1876,28 +1860,22 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         result.push(format!("{tcls_trim}:LFOSC:TRIM_FABRIC:BIT0"));
         result.push(format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"));
         // DRV
+        let tcls_rgba_drv = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+        result.push(format!("{tcls_rgba_drv}:RGB_DRV:ENABLE:BIT0"));
+        for i in 0..3 {
+            for j in 0..6 {
+                result.push(format!("{tcls_rgba_drv}:RGB_DRV:RGB{i}_CURRENT:BIT{j}"));
+            }
+        }
         if edev.chip.kind == ChipKind::Ice40T04 {
             result.push("LED_DRV_CUR_T04:LED_DRV_CUR:ENABLE:BIT0".into());
-            result.push("RGB_DRV:RGB_DRV:ENABLE:BIT0".into());
-            for i in 0..3 {
-                for j in 0..6 {
-                    result.push(format!("RGB_DRV:RGB_DRV:RGB{i}_CURRENT:BIT{j}"));
-                }
-            }
             for j in 0..10 {
                 result.push(format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{j}"));
             }
         } else {
-            let tcls_rgba_drv = SpecialTileKey::RgbaDrv.tile_class(edev.chip.kind);
-            result.push(format!("{tcls_rgba_drv}:RGBA_DRV:ENABLE:BIT0"));
-            result.push(format!("{tcls_rgba_drv}:RGBA_DRV:CURRENT_MODE:BIT0"));
-            for i in 0..3 {
-                for j in 0..6 {
-                    result.push(format!("{tcls_rgba_drv}:RGBA_DRV:RGB{i}_CURRENT:BIT{j}"));
-                }
-            }
+            result.push(format!("{tcls_rgba_drv}:RGB_DRV:CURRENT_MODE:BIT0"));
             if edev.chip.kind == ChipKind::Ice40T01 {
-                result.push("IR500_DRV:RGBA_DRV:ENABLE:BIT0".into());
+                result.push("IR500_DRV:RGB_DRV:ENABLE:BIT0".into());
                 result.push("IR500_DRV:IR400_DRV:ENABLE:BIT0".into());
                 result.push("IR500_DRV:IR500_DRV:ENABLE:BIT0".into());
                 result.push("IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0".into());
