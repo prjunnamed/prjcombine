@@ -37,7 +37,6 @@ unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "bincode"] }
 bitvec = "1.0"
 itertools = "0.14"
 arrayvec = "0.7.6"
-ndarray = "0.17"
 bimap = "0.6"
 arrayref = "0.3.6"
 des = "0.8.1"

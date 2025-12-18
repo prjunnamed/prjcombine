@@ -6,7 +6,6 @@ edition.workspace = true
 [dependencies]
 unnamed_entity.workspace = true
 bincode.workspace = true
-ndarray.workspace = true
 bimap.workspace = true
 jzon.workspace = true
 

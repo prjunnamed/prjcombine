@@ -3,7 +3,6 @@
 use crate::{db::*, dir::Dir};
 use bimap::BiHashMap;
 use bincode::{Decode, Encode};
-use ndarray::Array2;
 use std::collections::{HashMap, HashSet};
 use unnamed_entity::{
     EntityId, EntityIds, EntityPartVec, EntityVec,
@@ -333,7 +332,9 @@ pub struct ExpandedGrid<'a> {
 
 #[derive(Clone, Debug)]
 pub struct ExpandedDie {
-    tiles: Array2<Cell>,
+    width: usize,
+    height: usize,
+    tiles: Vec<Cell>,
 }
 
 impl<'a> ExpandedGrid<'a> {
@@ -352,17 +353,25 @@ impl<'a> ExpandedGrid<'a> {
     pub fn add_die(&mut self, width: usize, height: usize) -> DieId {
         let die = self.die.next_id();
         self.die.push(ExpandedDie {
-            tiles: Array2::from_shape_fn([height, width], |(r, c)| Cell {
-                tiles: Default::default(),
-                conns: Default::default(),
-                tile_index: vec![],
-                region_root: self
-                    .db
-                    .region_slots
-                    .ids()
-                    .map(|_| CellCoord::new(die, ColId::from_idx(c), RowId::from_idx(r)))
-                    .collect(),
-            }),
+            width,
+            height,
+            tiles: (0..width * height)
+                .map(|idx| {
+                    let c = idx % width;
+                    let r = idx / width;
+                    Cell {
+                        tiles: Default::default(),
+                        conns: Default::default(),
+                        tile_index: vec![],
+                        region_root: self
+                            .db
+                            .region_slots
+                            .ids()
+                            .map(|_| CellCoord::new(die, ColId::from_idx(c), RowId::from_idx(r)))
+                            .collect(),
+                    }
+                })
+                .collect(),
         });
         die
     }
@@ -372,11 +381,11 @@ impl<'a> ExpandedGrid<'a> {
     }
 
     pub fn rows(&self, die: DieId) -> EntityIds<RowId> {
-        EntityIds::new(self.die[die].tiles.shape()[0])
+        EntityIds::new(self.die[die].height)
     }
 
     pub fn cols(&self, die: DieId) -> EntityIds<ColId> {
-        EntityIds::new(self.die[die].tiles.shape()[1])
+        EntityIds::new(self.die[die].width)
     }
 
     pub fn column(
@@ -611,13 +620,13 @@ impl<'a> ExpandedGrid<'a> {
 impl core::ops::Index<(ColId, RowId)> for ExpandedDie {
     type Output = Cell;
     fn index(&self, xy: (ColId, RowId)) -> &Cell {
-        &self.tiles[[xy.1.to_idx(), xy.0.to_idx()]]
+        &self.tiles[xy.1.to_idx() * self.width + xy.0.to_idx()]
     }
 }
 
 impl core::ops::IndexMut<(ColId, RowId)> for ExpandedDie {
     fn index_mut(&mut self, xy: (ColId, RowId)) -> &mut Cell {
-        &mut self.tiles[[xy.1.to_idx(), xy.0.to_idx()]]
+        &mut self.tiles[xy.1.to_idx() * self.width + xy.0.to_idx()]
     }
 }
 
