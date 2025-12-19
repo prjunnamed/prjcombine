@@ -64,41 +64,41 @@ where
         self.map.get_index(id.to_idx()).unwrap().0
     }
 
-    pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<(I, &V)>
+    pub fn get<Q>(&self, key: &Q) -> Option<(I, &V)>
     where
-        Q: Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K>,
     {
         let (i, _, v) = self.map.get_full(key)?;
         Some((I::from_idx(i), v))
     }
 
-    pub fn get_mut<Q: ?Sized>(&mut self, key: &Q) -> Option<(I, &mut V)>
+    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<(I, &mut V)>
     where
-        Q: Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K>,
     {
         let (i, _, v) = self.map.get_full_mut(key)?;
         Some((I::from_idx(i), v))
     }
 
-    pub fn get_full<Q: ?Sized>(&self, key: &Q) -> Option<(I, &K, &V)>
+    pub fn get_full<Q>(&self, key: &Q) -> Option<(I, &K, &V)>
     where
-        Q: Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K>,
     {
         let (i, k, v) = self.map.get_full(key)?;
         Some((I::from_idx(i), k, v))
     }
 
-    pub fn get_full_mut<Q: ?Sized>(&mut self, key: &Q) -> Option<(I, &K, &mut V)>
+    pub fn get_full_mut<Q>(&mut self, key: &Q) -> Option<(I, &K, &mut V)>
     where
-        Q: Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K>,
     {
         let (i, k, v) = self.map.get_full_mut(key)?;
         Some((I::from_idx(i), k, v))
     }
 
-    pub fn contains_key<Q: ?Sized>(&self, key: &Q) -> bool
+    pub fn contains_key<Q>(&self, key: &Q) -> bool
     where
-        Q: Hash + Equivalent<K>,
+        Q: ?Sized + Hash + Equivalent<K>,
     {
         self.map.contains_key(key)
     }

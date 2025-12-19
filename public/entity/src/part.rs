@@ -40,7 +40,7 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
 
     pub fn contains_id(&self, id: I) -> bool {
         let idx = id.to_idx();
-        self.vals.get(idx).map_or(false, |x| x.is_some())
+        self.vals.get(idx).is_some_and(|x| x.is_some())
     }
 
     pub fn clear(&mut self) {
@@ -52,7 +52,7 @@ impl<I: EntityId, V> EntityPartVec<I, V> {
         if idx >= self.vals.len() {
             self.vals.resize_with(idx + 1, Default::default);
         }
-        std::mem::replace(&mut self.vals[idx], Some(val))
+        self.vals[idx].replace(val)
     }
 
     pub fn remove(&mut self, id: I) -> Option<V> {

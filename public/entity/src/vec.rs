@@ -7,7 +7,7 @@ use std::fmt;
 use crate::EntityId;
 use crate::id::EntityIds;
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 pub struct EntityVec<I: EntityId, V> {
     vals: Vec<V>,

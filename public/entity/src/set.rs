@@ -60,17 +60,17 @@ where
         i
     }
 
-    pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<I>
+    pub fn get<Q>(&self, key: &Q) -> Option<I>
     where
-        Q: Hash + Equivalent<V>,
+        Q: ?Sized + Hash + Equivalent<V>,
     {
         let (i, _) = self.set.get_full(key)?;
         Some(I::from_idx(i))
     }
 
-    pub fn contains<Q: ?Sized>(&self, key: &Q) -> bool
+    pub fn contains<Q>(&self, key: &Q) -> bool
     where
-        Q: Hash + Equivalent<V>,
+        Q: ?Sized + Hash + Equivalent<V>,
     {
         self.set.contains(key)
     }
