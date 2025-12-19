@@ -37,7 +37,7 @@ More targets are expected to be added in the future.
 
 ## Generated documentation
 
-See https://prjunnamed.github.io/prjcombine/
+See https://prjcombine.org/
 
 ## IRC and Matrix channel
 
