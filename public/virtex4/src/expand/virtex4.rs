@@ -5,7 +5,7 @@ use prjcombine_interconnect::grid::{
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{CfgRowKind, Chip, ColumnKind, DisabledPart};

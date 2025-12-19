@@ -5,7 +5,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::{bels, tslots};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},

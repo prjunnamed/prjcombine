@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
     db::CellSlotId,
     grid::{CellCoord, DieId},
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

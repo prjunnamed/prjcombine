@@ -10,8 +10,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use unnamed_entity::EntityVec;
-use unnamed_entity::id::{EntityIdU16, EntityTag};
+use prjcombine_entity::EntityVec;
+use prjcombine_entity::id::{EntityIdU16, EntityTag};
 
 impl EntityTag for DeviceNaming {
     const PREFIX: &'static str = "DEVNAMING";

@@ -2,7 +2,7 @@ use arrayvec::ArrayVec;
 use bitvec::prelude::*;
 use prjcombine_interconnect::{dir::DirV, grid::DieId};
 use std::collections::{BTreeMap, HashMap};
-use unnamed_entity::EntityVec;
+use prjcombine_entity::EntityVec;
 
 mod packet;
 mod parse;

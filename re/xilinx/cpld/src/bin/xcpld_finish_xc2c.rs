@@ -22,7 +22,7 @@ use prjcombine_types::{
     bsdata::{Tile, TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId},
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 const JED_MC_BITS_SMALL: &[(&str, usize)] = &[
     ("CLK_MUX", 0),

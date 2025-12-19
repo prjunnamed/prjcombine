@@ -9,7 +9,7 @@ use prjcombine_siliconblue::{
     chip::{ChipKind, SpecialIoKey, SpecialTileKey},
     expanded::ExpandedDevice,
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum GenericNet {

@@ -7,7 +7,7 @@ use prjcombine_types::{
     bsdata::BsData,
     db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo},
 };
-use unnamed_entity::{EntityId, EntityMap, EntitySet, EntityVec};
+use prjcombine_entity::{EntityId, EntityMap, EntitySet, EntityVec};
 
 use crate::{bond::Bond, chip::Chip};
 

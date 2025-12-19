@@ -4,7 +4,7 @@ use std::{
 };
 
 use prjcombine_types::bsdata::TileBit;
-use unnamed_entity::{EntityVec, entity_id};
+use prjcombine_entity::{EntityVec, entity_id};
 
 #[derive(Debug, Clone)]
 pub struct Sample<BitTile: Copy + Eq + Ord + Debug> {

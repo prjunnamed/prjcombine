@@ -26,7 +26,7 @@ use prjcombine_types::{
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
 };
 use prjcombine_xc9500 as xc9500;
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 #[derive(Parser)]
 struct Args {

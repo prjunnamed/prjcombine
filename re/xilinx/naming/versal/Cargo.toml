@@ -5,7 +5,7 @@ version.workspace = true
 
 [dependencies]
 bincode.workspace = true
-unnamed_entity.workspace = true
+prjcombine-entity.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-versal.workspace = true
 prjcombine-re-xilinx-naming.workspace = true

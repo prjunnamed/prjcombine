@@ -9,7 +9,7 @@ use prjcombine_types::{
     },
     units::{Resistance, Scalar, Time, Voltage},
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::run::{Design, InstId, Instance, RunResult};
 

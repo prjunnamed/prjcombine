@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::{ColId, ExpandedGrid, RowId, TileCoord};
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{
     bitstream::{BitPos, BitTile},

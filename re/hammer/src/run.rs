@@ -8,7 +8,7 @@ use std::collections::hash_map::Entry;
 use std::sync::Condvar;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 struct BatchState<B: Backend> {
     base_bs: Option<(B::Bitstream, HashMap<B::Key, B::Value>)>,

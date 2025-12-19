@@ -20,7 +20,7 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::bitvec::BitVec;
 use prjcombine_types::cpld::{BlockId, IoCoord, IpadId, MacrocellCoord, ProductTermId};
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{collect::collect_fuzzers, fuzzers::add_fuzzers};
 

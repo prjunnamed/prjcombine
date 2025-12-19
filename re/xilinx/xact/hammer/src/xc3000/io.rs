@@ -6,7 +6,7 @@ use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{Key, Value, XactBackend},

@@ -1,6 +1,6 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use unnamed_entity::{
+use prjcombine_entity::{
     EntityId,
     id::{EntityIdU8, EntityIdU16, EntityTag},
 };

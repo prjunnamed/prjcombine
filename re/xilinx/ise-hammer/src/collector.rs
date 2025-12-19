@@ -5,7 +5,7 @@ use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::bsdata::{DbValue, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 pub struct CollectorCtx<'a, 'b>
 where

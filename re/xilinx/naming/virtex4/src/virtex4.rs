@@ -1,7 +1,7 @@
 use prjcombine_interconnect::grid::{CellCoord, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{bels, chip::CfgRowKind, expanded::ExpandedDevice, tslots};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::ExpandedNamedDevice;
 

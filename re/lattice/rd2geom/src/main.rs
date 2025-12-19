@@ -22,7 +22,7 @@ use prjcombine_re_lattice_naming::{BelNaming, ChipNaming, Database, WireName};
 use prjcombine_re_lattice_rawdump::{Grid, GridId, NodeId};
 use prjcombine_types::db::DeviceCombo;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{
     chip::{ChipExt, make_chip},

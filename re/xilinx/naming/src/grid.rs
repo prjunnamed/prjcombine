@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
         BelCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, TileCoord, TilePip, WireCoord,
     },
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::db::{
     ConnectorClassNamingId, ConnectorWireInFarNaming, ConnectorWireOutNaming, NamingDb, RawTileId,

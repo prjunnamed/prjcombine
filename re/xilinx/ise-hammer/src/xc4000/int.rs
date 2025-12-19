@@ -11,7 +11,7 @@ use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::BelNaming;
 use prjcombine_types::bsdata::TileBit;
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, Value},

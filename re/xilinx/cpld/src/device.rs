@@ -4,7 +4,7 @@ use bincode::{Decode, Encode};
 use prjcombine_types::cpld::{
     BlockId, ClusterId, IoCoord, IpadId, MacrocellCoord, MacrocellId, ProductTermId,
 };
-use unnamed_entity::{EntityId, EntityIds, EntityVec};
+use prjcombine_entity::{EntityId, EntityIds, EntityVec};
 
 use crate::types::{BankId, ClkPadId, ExportDir, FbGroupId, FbnId, ImuxId, OePadId};
 

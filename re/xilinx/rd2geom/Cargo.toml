@@ -8,7 +8,7 @@ name = "xrd2geom"
 path = "src/main.rs"
 
 [dependencies]
-unnamed_entity.workspace = true
+prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-virtex2.workspace = true

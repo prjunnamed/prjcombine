@@ -17,7 +17,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_lattice_naming::ChipNaming;
 use prjcombine_re_lattice_rawdump::Part;
 use prjcombine_types::bscan::BScanPad;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     archive::{Archive, Reader, read_archive},

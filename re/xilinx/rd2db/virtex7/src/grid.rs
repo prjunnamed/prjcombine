@@ -5,7 +5,7 @@ use prjcombine_virtex4::chip::{
     Pcie2, Pcie2Kind, RegId,
 };
 use std::collections::BTreeSet;
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{
     ExtraCol, IntGrid, extract_int_slr_column, find_row, find_rows,

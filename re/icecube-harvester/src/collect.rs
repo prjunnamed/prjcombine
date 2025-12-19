@@ -18,7 +18,7 @@ use prjcombine_types::{
     bits,
     bsdata::{BsData, TileBit, TileItem},
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 pub fn collect_iob(
     edev: &ExpandedDevice,

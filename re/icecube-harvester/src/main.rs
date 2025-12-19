@@ -45,7 +45,7 @@ use sites::{
     find_sites_plb,
 };
 use speed::{SpeedCollector, finish_speed, get_speed_data, init_speed_data};
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 mod collect;
 mod generate;

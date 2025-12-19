@@ -2,7 +2,7 @@ use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 

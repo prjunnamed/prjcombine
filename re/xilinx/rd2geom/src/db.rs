@@ -9,7 +9,7 @@ use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_types::db::{BondId, ChipId, DevBondId, DevSpeedId, InterposerId};
 use prjcombine_virtex4::gtz::GtzDb;
 use std::collections::{BTreeMap, BTreeSet, btree_map};
-use unnamed_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 
 pub struct PreDevice {
     pub name: String,

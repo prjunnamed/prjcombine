@@ -3,7 +3,7 @@ use std::{collections::HashMap, fmt::Write};
 use indexmap::IndexSet;
 use itertools::Itertools;
 use prjcombine_xc9500::{BankId, BondPad, ChipKind, Database};
-use unnamed_entity::{EntityId, EntityPartVec};
+use prjcombine_entity::{EntityId, EntityPartVec};
 
 use crate::{
     DocgenContext,

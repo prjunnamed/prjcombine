@@ -22,7 +22,7 @@ use prjcombine_re_xilinx_cpld::{
 use prjcombine_types::cpld::{
     BlockId, ClusterId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId,
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::backend::{CpldBackend, FuzzerInfo, Iostd, State};
 

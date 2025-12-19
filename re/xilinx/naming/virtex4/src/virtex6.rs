@@ -5,7 +5,7 @@ use prjcombine_virtex4::{
     chip::{Chip, ColumnKind, DisabledPart},
     expanded::ExpandedDevice,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;
 

@@ -7,7 +7,7 @@ use prjcombine_virtex4::{
     bels,
     chip::{DisabledPart, GtKind},
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.info.pins.contains_key("WE") {

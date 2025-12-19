@@ -5,7 +5,7 @@ use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
 use std::collections::{BTreeSet, HashSet};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, DisabledPart};
 use crate::expanded::ExpandedDevice;

@@ -9,7 +9,7 @@ use std::{
     io::{BufRead, BufReader},
     path::PathBuf,
 };
-use unnamed_entity::EntityPartVec;
+use prjcombine_entity::EntityPartVec;
 
 #[derive(Debug, Parser)]
 #[command(name = "rdprint", about = "Dump rawdump file.")]

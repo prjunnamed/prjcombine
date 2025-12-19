@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-unnamed_entity.workspace = true
+prjcombine-entity.workspace = true
 rayon.workspace = true
 tempfile.workspace = true
 clap.workspace = true

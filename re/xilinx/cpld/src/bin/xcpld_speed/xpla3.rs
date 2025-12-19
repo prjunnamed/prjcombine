@@ -13,7 +13,7 @@ use prjcombine_types::{
     speed::{RecRem, SetupHold, Speed, SpeedVal},
     units::Time,
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     extract::{

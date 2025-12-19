@@ -15,7 +15,7 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IpadId, MacrocellId, ProductTermId},
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub type BitPos = (u32, usize);
 

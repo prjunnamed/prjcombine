@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, path::Path};
 use bytes::{Buf, Bytes};
 use ndarray::Array2;
 use prjcombine_interconnect::dir::{Dir, DirMap};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id PrimDefId u16;

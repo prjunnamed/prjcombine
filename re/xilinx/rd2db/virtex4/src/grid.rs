@@ -1,4 +1,4 @@
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_re_xilinx_rawdump::Part;

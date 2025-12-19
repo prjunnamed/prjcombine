@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirHV, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::bels;
 

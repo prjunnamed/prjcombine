@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, DisabledPart, RegId};
 

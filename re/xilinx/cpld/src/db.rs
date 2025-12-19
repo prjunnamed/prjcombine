@@ -4,7 +4,7 @@ use crate::device::{Device, Package};
 use crate::types::{ImuxId, ImuxInput};
 use bincode::{Decode, Encode};
 use prjcombine_types::db::{BondId, ChipId};
-use unnamed_entity::EntityVec;
+use prjcombine_entity::EntityVec;
 
 pub type ImuxData = EntityVec<ImuxId, HashMap<ImuxInput, u32>>;
 

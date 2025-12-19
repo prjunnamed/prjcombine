@@ -9,7 +9,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, CellCoord, DieId},
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

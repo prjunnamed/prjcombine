@@ -8,7 +8,7 @@ use prjcombine_types::{
     cpld::MacrocellId,
 };
 use prjcombine_xpla3::{Chip, Database};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 struct Bitstream {
     fbs: Vec<FbData>,

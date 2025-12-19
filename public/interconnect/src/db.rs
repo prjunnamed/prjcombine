@@ -1,6 +1,6 @@
 use bincode::{Decode, Encode};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use unnamed_entity::{
+use prjcombine_entity::{
     EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec,
     id::{EntityIdU8, EntityIdU16, EntityTag},
 };

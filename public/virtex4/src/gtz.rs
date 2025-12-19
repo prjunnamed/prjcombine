@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_interconnect::{db::PinDir, dir::DirV};
-use unnamed_entity::{
+use prjcombine_entity::{
     EntityId, EntityMap,
     id::{EntityIdU16, EntityTag, EntityTagArith},
 };

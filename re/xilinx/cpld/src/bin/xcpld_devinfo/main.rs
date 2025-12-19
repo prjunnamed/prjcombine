@@ -12,7 +12,7 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::{error::Error, path::PathBuf};
-use unnamed_entity::EntityVec;
+use prjcombine_entity::EntityVec;
 
 use crate::imux::gather_imux;
 

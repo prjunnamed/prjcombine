@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     db::Bel,
     dir::{Dir, DirHV},
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

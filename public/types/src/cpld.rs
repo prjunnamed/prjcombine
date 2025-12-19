@@ -1,7 +1,7 @@
 use core::fmt::Debug;
 
 use bincode::{Decode, Encode};
-use unnamed_entity::{
+use prjcombine_entity::{
     EntityId,
     id::{EntityIdU8, EntityTag},
 };

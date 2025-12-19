@@ -7,7 +7,7 @@ use std::{
 use crate::types::{ClkPadId, FbnId, ImuxId};
 use enum_map::EnumMap;
 use prjcombine_types::cpld::{BlockId, IpadId, MacrocellId, ProductTermId};
-use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityMap, EntityPartVec, EntityVec};
 
 use crate::vm6::{
     BufOe, Cdr, CdrReset, Ct, Fb, FbImux, FbInput, FbPin, Fbnand, GlobalSig, IBuf, InputNode,

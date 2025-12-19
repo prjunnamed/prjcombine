@@ -10,7 +10,7 @@ use prjcombine_ultrascale::chip::{
     RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int_slr_column, find_rows};
 

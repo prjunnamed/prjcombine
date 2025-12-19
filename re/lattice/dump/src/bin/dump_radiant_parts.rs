@@ -14,7 +14,7 @@ use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::Stdio;
 use std::sync::OnceLock;
-use unnamed_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 
 struct FamilyInfo {
     name: &'static str,

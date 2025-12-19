@@ -15,7 +15,7 @@ use prjcombine_re_xilinx_naming::db::{
 use prjcombine_re_xilinx_naming::grid::{ExpandedGridNaming, TileNaming};
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use std::collections::{HashMap, HashSet};
-use unnamed_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 
 #[derive(Debug)]
 pub struct BelContext<'a> {

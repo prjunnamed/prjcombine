@@ -15,7 +15,7 @@ use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
 use prjcombine_types::bsdata::{BsData, TileBit, TileItem, TileItemKind};
 use prjcombine_types::{bittile::BitTile, bitvec::BitVec};
 use rand::seq::IndexedRandom;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 pub trait FpgaBackend: Backend<State = State, FuzzerInfo = FuzzerInfo<Self::BitTile>> {
     type BitTile: BitTile<BitPos = Self::BitPos>;

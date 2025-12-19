@@ -6,7 +6,7 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
 };
-use unnamed_entity::EntityVec;
+use prjcombine_entity::EntityVec;
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

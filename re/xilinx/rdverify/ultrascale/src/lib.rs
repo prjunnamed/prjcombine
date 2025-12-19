@@ -12,7 +12,7 @@ use prjcombine_ultrascale::chip::{
     Chip, ChipKind, CleMKind, ColumnKind, ConfigKind, DisabledPart, IoRowKind,
 };
 use prjcombine_ultrascale::expanded::{ClkSrc, HdioCoord, HpioCoord, IoCoord};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 mod xp5io;
 

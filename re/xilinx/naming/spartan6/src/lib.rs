@@ -13,7 +13,7 @@ use prjcombine_spartan6::{
     expanded::ExpandedDevice,
     tslots,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

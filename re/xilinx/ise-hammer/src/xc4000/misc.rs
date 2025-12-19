@@ -3,7 +3,7 @@ use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, 
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,

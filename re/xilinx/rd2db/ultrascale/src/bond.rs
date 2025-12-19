@@ -9,7 +9,7 @@ use prjcombine_ultrascale::chip::{Chip, ChipKind, DisabledPart, IoRowKind};
 use prjcombine_ultrascale::expanded::{IoCoord, IoDiffKind, IoKind};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::split_num;
 

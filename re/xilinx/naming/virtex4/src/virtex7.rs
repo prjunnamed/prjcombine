@@ -11,7 +11,7 @@ use prjcombine_virtex4::{
     chip::{ColumnKind, GtKind, Pcie2Kind, XadcIoLoc},
     expanded::ExpandedDevice,
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{ExpandedNamedDevice, ExpandedNamedGtz};
 

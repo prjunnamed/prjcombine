@@ -12,7 +12,7 @@ use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::DieId,
 };
-use unnamed_entity::{EntityId, EntityPartVec};
+use prjcombine_entity::{EntityId, EntityPartVec};
 
 use crate::ChipContext;
 

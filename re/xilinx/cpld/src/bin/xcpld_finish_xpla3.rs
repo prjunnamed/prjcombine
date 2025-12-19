@@ -22,7 +22,7 @@ use prjcombine_types::{
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId},
 };
 use prjcombine_xpla3 as xpla3;
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use xpla3::FbColumn;
 
 const JED_MC_BITS_IOB: &[(&str, usize)] = &[

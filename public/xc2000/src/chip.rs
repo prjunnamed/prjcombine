@@ -8,7 +8,7 @@ use jzon::JsonValue;
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
 };
-use unnamed_entity::{EntityId, EntityIds};
+use prjcombine_entity::{EntityId, EntityIds};
 
 use crate::bels;
 

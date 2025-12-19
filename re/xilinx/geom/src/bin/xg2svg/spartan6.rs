@@ -1,7 +1,7 @@
 use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_spartan6::chip::{ColumnIoKind, ColumnKind, Gts};
 use prjcombine_spartan6::expanded::ExpandedDevice;
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
 

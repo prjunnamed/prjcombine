@@ -13,7 +13,7 @@ use std::error::Error;
 use std::fmt::Write as FmtWrite;
 use std::io::{BufRead, Write};
 use std::sync::Mutex;
-use unnamed_entity::{EntitySet, entity_id};
+use prjcombine_entity::{EntitySet, entity_id};
 
 const TILE_BATCH_SIZE: usize = 4000;
 

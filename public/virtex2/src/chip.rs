@@ -6,7 +6,7 @@ use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileCoord, TileIobId,
 };
 use std::collections::BTreeMap;
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::iob::{
     IobKind, IobTileData, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w,

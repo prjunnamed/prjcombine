@@ -15,7 +15,7 @@ use prjcombine_re_xilinx_cpld::{
 use prjcombine_types::cpld::{ClusterId, IoCoord, MacrocellCoord};
 use rand::prelude::*;
 use rayon::prelude::*;
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 fn gather_imux_once(
     tc: &Toolchain,

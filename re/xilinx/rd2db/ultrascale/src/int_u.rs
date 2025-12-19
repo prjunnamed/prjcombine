@@ -13,7 +13,7 @@ use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
 use prjcombine_ultrascale::{bels, cslots, regions, tslots};
-use unnamed_entity::{EntityId, EntityPartVec};
+use prjcombine_entity::{EntityId, EntityPartVec};
 
 trait IntBuilderExt {
     fn mux_out_pair(

@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, RowId, TileCoord};
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, DisabledPart};
 

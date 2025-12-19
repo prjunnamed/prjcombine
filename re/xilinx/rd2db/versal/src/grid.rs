@@ -9,7 +9,7 @@ use prjcombine_versal::chip::{
     HardColumn, HardRowKind, Interposer, InterposerKind, PsKind, RegId, RightKind, TopKind,
 };
 use std::collections::{BTreeMap, BTreeSet};
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{
     IntGrid, extract_int_slr, extract_int_slr_column, find_rows,

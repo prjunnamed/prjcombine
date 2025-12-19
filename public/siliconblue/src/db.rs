@@ -8,7 +8,7 @@ use prjcombine_types::{
     db::{BondId, ChipId, SpeedId},
     speed::Speed,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{bond::Bond, chip::Chip};
 

@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     grid::{EdgeIoCoord, TileIobId},
 };
 use prjcombine_types::bscan::{BScanBuilder, BScanPad};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     bond::{BondPad, CfgPad, SerdesPad},

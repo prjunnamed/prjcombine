@@ -13,7 +13,7 @@ use prjcombine_siliconblue::{
     chip::{Chip, ChipKind, SpecialIoKey, SpecialTile},
     cslots, regions, tslots,
 };
-use unnamed_entity::EntityVec;
+use prjcombine_entity::EntityVec;
 
 use crate::sites::BelPins;
 

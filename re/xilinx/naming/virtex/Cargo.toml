@@ -4,7 +4,7 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
-unnamed_entity.workspace = true
+prjcombine-entity.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-virtex.workspace = true
 prjcombine-re-xilinx-naming.workspace = true

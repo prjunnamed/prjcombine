@@ -8,7 +8,7 @@ use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
 use std::collections::{BTreeSet, HashSet};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{Chip, ColumnKind, DisabledPart, GtKind};

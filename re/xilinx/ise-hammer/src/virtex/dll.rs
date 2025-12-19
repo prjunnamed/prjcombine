@@ -15,7 +15,7 @@ use prjcombine_types::{
 };
 use prjcombine_virtex::{bels, tslots};
 use prjcombine_xilinx_bitstream::Reg;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},

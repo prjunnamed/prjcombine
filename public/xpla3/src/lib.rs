@@ -13,7 +13,7 @@ use prjcombine_types::{
     db::{BondId, ChipId, SpeedId},
     speed::Speed,
 };
-use unnamed_entity::{
+use prjcombine_entity::{
     EntityId, EntityIds, EntityVec,
     id::{EntityIdU8, EntityTag},
 };

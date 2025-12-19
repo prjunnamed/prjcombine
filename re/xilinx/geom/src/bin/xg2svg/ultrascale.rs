@@ -1,7 +1,7 @@
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_ultrascale::chip::{Chip, CleMKind, ColumnKind, HardRowKind, IoRowKind};
 use prjcombine_ultrascale::expanded::ExpandedDevice;
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::drawer::Drawer;
 

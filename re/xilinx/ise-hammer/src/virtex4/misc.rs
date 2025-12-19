@@ -13,7 +13,7 @@ use prjcombine_types::{
 };
 use prjcombine_virtex4::{bels, tslots};
 use prjcombine_xilinx_bitstream::Reg;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, MultiValue},

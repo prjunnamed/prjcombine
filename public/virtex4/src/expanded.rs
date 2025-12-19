@@ -9,7 +9,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 #[derive(Clone, Debug)]
 pub struct DieFrameGeom {

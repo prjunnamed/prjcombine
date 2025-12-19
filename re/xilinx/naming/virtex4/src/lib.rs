@@ -12,7 +12,7 @@ use prjcombine_virtex4::{
     expanded::{ExpandedDevice, IoCoord},
     gtz::GtzIntColId,
 };
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 mod virtex4;
 mod virtex5;

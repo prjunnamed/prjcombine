@@ -12,7 +12,7 @@ use prjcombine_virtex2::{
     iob::{IobKind, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w},
     tslots,
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

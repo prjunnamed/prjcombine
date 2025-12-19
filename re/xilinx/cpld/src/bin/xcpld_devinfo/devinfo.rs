@@ -4,7 +4,7 @@ use prjcombine_re_xilinx_cpld::types::{BankId, FbGroupId, OePadId};
 use prjcombine_re_xilinx_cpld::v2vm6::{FitOpts, v2vm6};
 use prjcombine_re_xilinx_ise_dump::partgen::PartgenPkg;
 use prjcombine_types::cpld::{BlockId, ClusterId, IoCoord, MacrocellCoord, MacrocellId};
-use unnamed_entity::{EntityId, EntitySet, EntityVec};
+use prjcombine_entity::{EntityId, EntitySet, EntityVec};
 
 use std::collections::HashMap;
 use std::error::Error;

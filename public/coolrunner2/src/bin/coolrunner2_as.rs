@@ -8,7 +8,7 @@ use prjcombine_types::{
     bsdata::{Tile, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 struct Bitstream {
     fbs: Vec<FbData>,

@@ -16,7 +16,7 @@ use prjcombine_ultrascale::{
     },
     expanded::{ExpandedDevice, IoCoord},
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DeviceNaming {

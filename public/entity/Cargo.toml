@@ -1,0 +1,16 @@
+[package]
+name = "prjcombine-entity"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+indexmap = { version = "2.0.0", optional = true }
+bitvec = { version = "1.0.1", optional = true }
+serde = { version = "1.0.188", optional = true, features = ["derive"] }
+bincode = { version = "2.0.1", optional = true }
+
+[features]
+map = ["dep:indexmap"]
+bitvec = ["dep:bitvec"]
+serde = ["dep:serde", "indexmap?/serde", "bitvec?/serde"]
+bincode = ["dep:bincode"]

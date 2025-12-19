@@ -13,7 +13,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{BsData, TileItemKind},
 };
-use unnamed_entity::{EntityId, EntityPartVec};
+use prjcombine_entity::{EntityId, EntityPartVec};
 
 use crate::{
     parts::Part,

@@ -6,7 +6,7 @@ version.workspace = true
 [dependencies]
 itertools.workspace = true
 rand.workspace = true
-unnamed_entity.workspace = true
+prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-re-hammer.workspace = true

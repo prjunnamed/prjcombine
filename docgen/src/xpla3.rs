@@ -7,7 +7,7 @@ use prjcombine_types::{
     cpld::{ClusterId, MacrocellCoord},
 };
 use prjcombine_xpla3::{BondPad, Database};
-use unnamed_entity::{EntityId, EntityPartVec};
+use prjcombine_entity::{EntityId, EntityPartVec};
 
 use crate::{
     DocgenContext,

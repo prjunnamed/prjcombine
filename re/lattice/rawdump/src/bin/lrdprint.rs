@@ -2,7 +2,7 @@ use clap::Parser;
 use itertools::Itertools;
 use prjcombine_re_lattice_rawdump::Db;
 use std::{error::Error, path::PathBuf};
-use unnamed_entity::{EntityBitVec, EntityId};
+use prjcombine_entity::{EntityBitVec, EntityId};
 
 #[derive(Debug, Parser)]
 #[command(name = "lrdprint", about = "Dump Lattice rawdump file.")]

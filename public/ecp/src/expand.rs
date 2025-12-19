@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId},
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
     bels,

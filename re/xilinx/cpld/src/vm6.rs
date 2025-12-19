@@ -8,7 +8,7 @@ use crate::types::{ClkPadId, FbnId, FclkId, FoeId, ImuxId, Ut};
 use enum_map::EnumMap;
 pub use parser::{ParseError, ParseErrorKind};
 use prjcombine_types::cpld::{BlockId, IoCoord, IpadId, MacrocellId, ProductTermId};
-use unnamed_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
+use prjcombine_entity::{EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id NodeId u32, reserve 1;

@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
 use prjcombine_types::cpld::{ClusterId, IoCoord, MacrocellCoord};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::db::Part;
 use crate::device::{Device, DeviceKind, JtagPin, Package, PkgPin};

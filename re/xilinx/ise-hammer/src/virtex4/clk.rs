@@ -9,7 +9,7 @@ use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::bels;
 use prjcombine_virtex4::tslots;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,

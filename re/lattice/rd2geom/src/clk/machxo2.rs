@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, ColId, DieId},
 };
 use prjcombine_re_lattice_naming::WireName;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

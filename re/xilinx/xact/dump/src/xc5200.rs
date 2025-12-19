@@ -17,7 +17,7 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind, SharedCfgPad},
     cslots, regions, tslots,
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
 

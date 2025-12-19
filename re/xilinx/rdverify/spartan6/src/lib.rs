@@ -6,7 +6,7 @@ use prjcombine_spartan6::{
     chip::{ColumnKind, DisabledPart, Gts},
 };
 use std::collections::HashSet;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 fn verify_sliceml(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.info.pins.contains_key("WE") {

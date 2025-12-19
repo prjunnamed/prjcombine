@@ -11,7 +11,7 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex4::{bels, chip::ChipKind, expanded::IoCoord, tslots};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},

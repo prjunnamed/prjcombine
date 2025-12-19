@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use unnamed_entity::EntityPartVec;
+use prjcombine_entity::EntityPartVec;
 
 use crate::{
     DocgenContext,

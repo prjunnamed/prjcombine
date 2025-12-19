@@ -13,7 +13,7 @@ use prjcombine_versal::{
     expanded::ExpandedDevice,
 };
 use std::{cmp::max, collections::BTreeMap};
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
 #[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub struct DeviceNaming {

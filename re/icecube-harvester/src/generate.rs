@@ -12,7 +12,7 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::bitvec::BitVec;
 use rand::prelude::*;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     PkgInfo,

@@ -2,7 +2,7 @@ use prjcombine_re_xilinx_naming_virtex::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
 use prjcombine_virtex::{bels, chip::ChipKind};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     vrf.verify_bel(

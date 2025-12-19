@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
     grid::{BelCoord, WireCoord},
 };
 use prjcombine_types::db::{BondId, ChipId};
-use unnamed_entity::{
+use prjcombine_entity::{
     EntitySet, EntityVec,
     id::{EntityIdU32, EntityTag},
 };

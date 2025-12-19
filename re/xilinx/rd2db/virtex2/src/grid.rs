@@ -6,7 +6,7 @@ use prjcombine_virtex2::{
     bels,
     chip::{Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPad},
 };
-use unnamed_entity::{EntityId, EntityVec};
+use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{
     IntGrid, extract_int, find_column, find_columns, find_row, find_rows, split_num,

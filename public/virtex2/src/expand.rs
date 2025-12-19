@@ -4,7 +4,7 @@ use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect}
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, ColumnIoKind, ColumnKind, DcmPairKind};
 use crate::expanded::ExpandedDevice;

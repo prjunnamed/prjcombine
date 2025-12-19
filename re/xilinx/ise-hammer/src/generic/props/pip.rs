@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_re_xilinx_naming::db::{BelNaming, RawTileId};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::backend::{IseBackend, Key};
 

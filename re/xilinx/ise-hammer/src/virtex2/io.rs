@@ -23,7 +23,7 @@ use prjcombine_virtex2::{
     iob::{IobData, IobDiff, IobKind, get_iob_data},
     tslots,
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, MultiValue, Value},

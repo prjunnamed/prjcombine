@@ -6,7 +6,7 @@ use prjcombine_virtex::{
     expanded::ExpandedDevice,
     tslots,
 };
-use unnamed_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

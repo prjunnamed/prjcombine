@@ -12,7 +12,7 @@ use prjcombine_spartan6::{
 };
 use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use regex::Regex;
-use unnamed_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
     chip: &'a Chip,

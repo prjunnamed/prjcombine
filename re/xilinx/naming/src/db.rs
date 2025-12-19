@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
 use prjcombine_interconnect::db::{BelSlotId, IntDb, TileWireCoord, WireSlotId};
-use unnamed_entity::{
+use prjcombine_entity::{
     EntityId, EntityMap, EntityPartVec,
     id::{EntityIdU16, EntityTag},
 };

@@ -13,7 +13,7 @@ use prjcombine_xc2000::{
     db::{Database, Device},
 };
 use regex::Regex;
-use unnamed_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
     chip: &'a Chip,

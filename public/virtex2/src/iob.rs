@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     dir::Dir,
     grid::TileIobId,
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     bels,

@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
 members = [
+    "entity",
     "types",
     "interconnect",
     "jed",
@@ -27,13 +28,13 @@ repository = "https://github.com/prjunnamed/prjcombine"
 authors = []
 
 [workspace.dependencies]
+prjcombine-entity = { path = "entity", features = ["bitvec", "map", "bincode"] }
 prjcombine-types = { path = "types" }
 prjcombine-interconnect = { path = "interconnect" }
 prjcombine-jed = { path = "jed" }
 prjcombine-xilinx-bitstream = { path = "xilinx-bitstream" }
 jzon = "0.12"
 bincode = "2.0"
-unnamed_entity = { version = "0.1.7", features = ["bitvec", "map", "bincode"] }
 bitvec = "1.0"
 itertools = "0.14"
 arrayvec = "0.7.6"

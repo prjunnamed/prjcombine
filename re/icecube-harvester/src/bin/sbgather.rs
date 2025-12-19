@@ -12,7 +12,7 @@ use prjcombine_types::{
     db::{BondId, ChipId, SpeedId},
     speed::Speed,
 };
-use unnamed_entity::EntityVec;
+use prjcombine_entity::EntityVec;
 
 fn merge_int(dst: &mut IntDb, src: &IntDb, dbname: &str) {
     if dst.wires.is_empty() {

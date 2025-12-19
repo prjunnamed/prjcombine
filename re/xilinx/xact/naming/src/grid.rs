@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
     db::{BelSlotId, TileWireCoord},
     grid::{BelCoord, ExpandedGrid, TileCoord},
 };
-use unnamed_entity::{EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityPartVec, EntityVec};
 
 use crate::db::{IntPipNaming, NamingDb, TileNamingId, TileRawCellId};
 

@@ -10,7 +10,7 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
 };
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::ExpandedNamedDevice;
 

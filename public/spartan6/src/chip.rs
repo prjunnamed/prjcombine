@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use std::collections::BTreeMap;
-use unnamed_entity::{
+use prjcombine_entity::{
     EntityId, EntityIds, EntityVec,
     id::{EntityIdU8, EntityTag, EntityTagArith},
 };

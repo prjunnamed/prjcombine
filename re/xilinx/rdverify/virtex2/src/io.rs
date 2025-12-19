@@ -7,7 +7,7 @@ use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::bels;
 use prjcombine_virtex2::chip::{ChipKind, IoDiffKind};
 use prjcombine_virtex2::iob::IobKind;
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::get_bel_iob;
 

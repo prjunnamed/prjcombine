@@ -14,7 +14,7 @@ use prjcombine_siliconblue::{
     tslots,
 };
 use prjcombine_types::{bittile::BitTile as _, bitvec::BitVec};
-use unnamed_entity::EntityId;
+use prjcombine_entity::EntityId;
 
 use crate::{
     PkgInfo,
