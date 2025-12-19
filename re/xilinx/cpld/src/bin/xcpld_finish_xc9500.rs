@@ -7,6 +7,7 @@ use std::{
 use clap::Parser;
 use enum_map::Enum;
 use jzon::JsonValue;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_re_xilinx_cpld::{
     bits::{BitPos, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
     device::{Device, DeviceKind, JtagPin, PkgPin},
@@ -22,11 +23,10 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{Tile, TileBit, TileItem, TileItemKind},
+    bsdata::{BitRectId, RectBitId, RectFrameId, Tile, TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
 };
 use prjcombine_xc9500 as xc9500;
-use prjcombine_entity::{EntityId, EntityVec};
 
 #[derive(Parser)]
 struct Args {
@@ -48,9 +48,9 @@ fn map_bit_raw(device: &Device, bit: BitPos) -> TileBit {
         let column = col_a * 5 + col_b;
         assert!(bit >= 6);
         TileBit {
-            tile: fb as usize,
-            frame: row as usize,
-            bit: (bit - 6) * 9 + column as usize,
+            rect: BitRectId::from_idx(fb as usize),
+            frame: RectFrameId::from_idx(row as usize),
+            bit: RectBitId::from_idx((bit - 6) * 9 + column as usize),
         }
     } else {
         let fb = bit >> 3;
@@ -62,20 +62,19 @@ fn map_bit_raw(device: &Device, bit: BitPos) -> TileBit {
         let column = col_a * 5 + col_b;
         assert!(bit >= 6);
         TileBit {
-            tile: fb as usize,
-            frame: row as usize,
-            bit: (bit - 6) * 9 + column as usize,
+            rect: BitRectId::from_idx(fb as usize),
+            frame: RectFrameId::from_idx(row as usize),
+            bit: RectBitId::from_idx((bit - 6) * 9 + column as usize),
         }
     }
 }
 
 fn map_fb_bit_raw(device: &Device, fb: BlockId, bit: BitPos) -> TileBit {
     let glob_bit = map_bit_raw(device, bit);
-    assert_eq!(glob_bit.tile, fb.to_idx());
+    assert_eq!(glob_bit.rect.to_idx(), fb.to_idx());
     TileBit {
-        tile: 0,
-        frame: glob_bit.frame,
-        bit: glob_bit.bit,
+        rect: BitRectId::from_idx(0),
+        ..glob_bit
     }
 }
 
@@ -95,11 +94,10 @@ fn map_mc_bit(
     bit: usize,
 ) -> TileBit {
     let fb_bit = map_fb_bit(device, fpart, fb, bit);
-    assert_eq!(fb_bit.bit, mc.to_idx());
+    assert_eq!(fb_bit.bit.to_idx(), mc.to_idx());
     TileBit {
-        tile: 0,
-        frame: fb_bit.frame,
-        bit: 0,
+        bit: RectBitId::from_idx(0),
+        ..fb_bit
     }
 }
 

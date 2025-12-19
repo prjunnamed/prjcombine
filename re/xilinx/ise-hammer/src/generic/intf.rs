@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, TileWireCoord},
     grid::TileCoord,
@@ -8,7 +9,7 @@ use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, xlat_bit, xlat_enum, xlat_enum
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, RawTileId};
-use prjcombine_entity::EntityId;
+use prjcombine_types::bsdata::BitRectId;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -316,7 +317,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     )
                                     .clone();
                                 for bit in &mut item.bits {
-                                    bit.tile = src.cell.to_idx();
+                                    bit.rect = BitRectId::from_idx(src.cell.to_idx());
                                 }
                                 diff.discard_bits(&item);
                             }

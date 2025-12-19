@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::{DieId, TileCoord},
@@ -9,7 +10,6 @@ use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::bels;
 use prjcombine_virtex4::tslots;
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
@@ -153,7 +153,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.tile_bits(ntcrd),
+                    rects: edev.tile_bits(ntcrd),
                 });
                 sad = false;
             }
@@ -190,7 +190,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
                         attr: self.1.clone(),
                         val: self.2.into(),
                     },
-                    tiles: edev.tile_bits(ntcrd),
+                    rects: edev.tile_bits(ntcrd),
                 });
             }
         }

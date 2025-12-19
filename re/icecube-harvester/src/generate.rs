@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirH, DirV},
@@ -12,7 +13,6 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::bitvec::BitVec;
 use rand::prelude::*;
-use prjcombine_entity::EntityId;
 
 use crate::{
     PkgInfo,

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_re_fpga_hammer::{
     Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
     xlat_enum_ocd,
@@ -6,7 +7,7 @@ use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{TileBit, TileItem},
+    bsdata::{BitRectId, TileBit, TileItem},
 };
 use prjcombine_virtex4::bels;
 
@@ -2016,11 +2017,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         let item = ctx.extract_bit(tile, bel, "DRP_MASK", "1");
         assert_eq!(item.bits.len(), 1);
-        assert_eq!(item.bits[0].tile, 50);
+        assert_eq!(item.bits[0].rect.to_idx(), 50);
         let mut item_l = item.clone();
         let mut item_r = item;
-        item_l.bits[0].tile = 0;
-        item_r.bits[0].tile = 1;
+        item_l.bits[0].rect = BitRectId::from_idx(0);
+        item_r.bits[0].rect = BitRectId::from_idx(1);
         if bel == "PLL" {
             ctx.tiledb
                 .insert("HCLK", "HCLK", "DRP_MASK_ABOVE_L", item_l);
@@ -2082,8 +2083,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diff = ctx
                 .state
                 .get_diff(tile, bel, format!("ENABLE.FREQ_BB{i}"), "1");
-            let diff_bot = diff.split_bits_by(|bit| bit.tile < 24);
-            let diff_top = diff.split_bits_by(|bit| bit.tile > 25 && bit.tile != 50);
+            let diff_bot = diff.split_bits_by(|bit| bit.rect.to_idx() < 24);
+            let diff_top =
+                diff.split_bits_by(|bit| bit.rect.to_idx() > 25 && bit.rect.to_idx() != 50);
             ctx.tiledb.insert(
                 tile,
                 "CMT_BOT",

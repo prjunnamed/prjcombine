@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
-use prjcombine_interconnect::grid::{CellCoord, ColId, ExpandedGrid, Rect, RowId};
 use prjcombine_entity::{EntityPartVec, EntityVec};
+use prjcombine_interconnect::grid::{CellCoord, ColId, ExpandedGrid, Rect, RowId};
 
 use crate::{bels, chip::Chip};
 

@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
-use prjcombine_types::cpld::{ClusterId, IoCoord, MacrocellCoord};
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_types::cpld::{ClusterId, IoCoord, MacrocellCoord};
 
 use crate::db::Part;
 use crate::device::{Device, DeviceKind, JtagPin, Package, PkgPin};

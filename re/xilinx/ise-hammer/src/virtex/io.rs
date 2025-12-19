@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{CellCoord, DieId, TileCoord},
@@ -14,7 +15,6 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex::{bels, chip::ChipKind, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -629,8 +629,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let init = ctx.tiledb.item(tile, bel, &format!("{iot}FF_INIT"));
                 let init_bit = init.bits[0];
                 let item = xlat_bitvec(vec![diff.split_bits_by(|bit| {
-                    bit.tile == init_bit.tile
-                        && bit.frame.abs_diff(init_bit.frame) == 1
+                    bit.rect == init_bit.rect
+                        && bit.frame.to_idx().abs_diff(init_bit.frame.to_idx()) == 1
                         && bit.bit == init_bit.bit
                 })]);
                 ctx.tiledb
@@ -716,7 +716,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             ctx.state.get_diff(tile, bel, "TSEL", "1").assert_empty();
             let mut diff = ctx.state.get_diff(tile, bel, "TSEL", "0");
-            let diff_ioi = diff.split_bits_by(|bit| bit.frame < 48 && bit.bit == 16);
+            let diff_ioi =
+                diff.split_bits_by(|bit| bit.frame.to_idx() < 48 && bit.bit.to_idx() == 16);
             ctx.tiledb.insert(
                 tile,
                 bel,
@@ -733,7 +734,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .state
                 .get_diff(tile, bel, "OUTMUX", "0")
                 .combine(&!ctx.state.get_diff(tile, bel, "OUTMUX", "1"));
-            let diff_ioi = diff.split_bits_by(|bit| bit.frame < 48 && bit.bit == 16);
+            let diff_ioi =
+                diff.split_bits_by(|bit| bit.frame.to_idx() < 48 && bit.bit.to_idx() == 16);
             ctx.tiledb.insert(
                 tile,
                 bel,

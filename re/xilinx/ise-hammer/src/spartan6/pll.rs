@@ -433,11 +433,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
             6..0x1c => 36 + (addr - 6),
             0x1c.. => 59 + (addr - 0x1c),
         };
-        TileBit {
-            tile: slot / 4,
-            frame: 30,
-            bit: (slot % 4) * 16 + bit,
-        }
+        TileBit::new(slot / 4, 30, (slot % 4) * 16 + bit)
     }
 
     for addr in 0..0x20 {

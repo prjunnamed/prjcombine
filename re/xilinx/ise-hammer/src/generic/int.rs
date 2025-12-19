@@ -1,5 +1,6 @@
 use std::collections::BTreeSet;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
@@ -8,7 +9,6 @@ use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_o
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::RawTileId;
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, Value},

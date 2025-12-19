@@ -2,12 +2,12 @@ use prjcombine_ecp::{
     bels,
     chip::{ChipKind, PllLoc, PllPad, SpecialIoKey, SpecialLocKey},
 };
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::Bel,
     dir::{Dir, DirH, DirV},
     grid::{CellCoord, DieId},
 };
-use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

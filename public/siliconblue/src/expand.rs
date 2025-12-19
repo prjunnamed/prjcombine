@@ -1,9 +1,9 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::IntDb,
     dir::Dir,
     grid::{CellCoord, ExpandedGrid},
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{
     chip::{Chip, SpecialTileKey},

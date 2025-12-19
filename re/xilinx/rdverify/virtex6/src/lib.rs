@@ -1,5 +1,6 @@
 #![recursion_limit = "1024"]
 
+use prjcombine_entity::EntityId;
 use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
@@ -7,7 +8,6 @@ use prjcombine_virtex4::{
     bels,
     chip::{DisabledPart, GtKind},
 };
-use prjcombine_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.info.pins.contains_key("WE") {

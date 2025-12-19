@@ -1,6 +1,6 @@
+use prjcombine_entity::{EntityMap, EntityPartVec, EntitySet, EntityVec};
 use prjcombine_re_xilinx_rawdump::*;
 use std::collections::{HashMap, HashSet};
-use prjcombine_entity::{EntityMap, EntityPartVec, EntitySet, EntityVec};
 
 pub struct PartBuilder {
     pub part: Part,

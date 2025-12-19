@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord},
     grid::{TileCoord, WireCoord},
@@ -7,7 +8,6 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{Key, Value, XactBackend},
@@ -291,7 +291,7 @@ fn apply_imux_finish<'a>(
                     attr: format!("INV.{wn}"),
                     val: if inv { "1" } else { "0" }.into(),
                 },
-                tiles: vec![backend.edev.btile_main(col, row)],
+                rects: EntityVec::from_iter([backend.edev.btile_main(col, row)]),
             });
         }
         return fuzzer

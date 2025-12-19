@@ -116,7 +116,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for NullBits {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        fuzzer.info.features[0].tiles.clear();
+        fuzzer.info.features[0].rects.clear();
         Some((fuzzer, false))
     }
 }

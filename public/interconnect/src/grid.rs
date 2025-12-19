@@ -3,11 +3,11 @@
 use crate::{db::*, dir::Dir};
 use bimap::BiHashMap;
 use bincode::{Decode, Encode};
-use std::collections::{HashMap, HashSet};
 use prjcombine_entity::{
     EntityId, EntityIds, EntityPartVec, EntityVec,
     id::{EntityIdU8, EntityIdU16, EntityTag, EntityTagArith},
 };
+use std::collections::{HashMap, HashSet};
 
 pub struct DieTag;
 pub struct ColTag;

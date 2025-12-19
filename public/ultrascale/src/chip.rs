@@ -1,14 +1,14 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag, EntityTagArith},
+};
 use prjcombine_interconnect::{
     dir::DirH,
     grid::{ColId, DieId, RowId, TileIobId},
 };
 use std::collections::BTreeSet;
-use prjcombine_entity::{
-    EntityId, EntityIds, EntityVec,
-    id::{EntityIdU8, EntityTag, EntityTagArith},
-};
 
 pub struct RegTag;
 impl EntityTag for RegTag {

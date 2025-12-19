@@ -1,11 +1,11 @@
 use std::ops::{Deref, DerefMut};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::db::BelInfo;
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
-use prjcombine_types::bsdata::{DbValue, TileItem};
+use prjcombine_types::bsdata::{BitRectId, DbValue, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;
-use prjcombine_entity::EntityId;
 
 pub struct CollectorCtx<'a, 'b>
 where
@@ -87,8 +87,8 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let wire = *pin.wires.first().unwrap();
         assert_eq!(item.bits.len(), 1);
         let bit = &mut item.bits[0];
-        assert_eq!(wire.cell.to_idx(), bit.tile);
-        bit.tile = 0;
+        assert_eq!(wire.cell.to_idx(), bit.rect.to_idx());
+        bit.rect = BitRectId::from_idx(0);
         let wire_name = intdb.wires.key(wire.wire);
         let int_tcname = int_tiles[wire.cell.to_idx()];
         let int_sb = self.int_sb(int_tcname);
@@ -116,7 +116,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
             .clone();
         assert_eq!(item.bits.len(), 1);
         let bit = &mut item.bits[0];
-        bit.tile = wire.cell.to_idx();
+        bit.rect = BitRectId::from_idx(wire.cell.to_idx());
         item
     }
 

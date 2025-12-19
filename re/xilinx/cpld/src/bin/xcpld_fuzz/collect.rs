@@ -6,6 +6,7 @@ use enum_map::Enum;
 use std::collections::{HashMap, hash_map::Entry};
 
 use itertools::Itertools;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_re_xilinx_cpld::{
     bits::{
         BankBits, Bits, EnumData, FbBits, IBufOut, IPadBits, InvBit, McBits, McOut, PlaAndTerm,
@@ -22,7 +23,6 @@ use prjcombine_re_xilinx_cpld::{
 use prjcombine_types::cpld::{
     BlockId, ClusterId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId,
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::backend::{CpldBackend, FuzzerInfo, Iostd, State};
 

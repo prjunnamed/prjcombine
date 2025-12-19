@@ -1,12 +1,12 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::db::CellSlotId;
 use prjcombine_interconnect::dir::{Dir, DirH, DirHV, DirV};
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileCoord, TileIobId,
 };
 use std::collections::BTreeMap;
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::iob::{
     IobKind, IobTileData, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w,

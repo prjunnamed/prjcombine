@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex4::chip::{
@@ -5,7 +6,6 @@ use prjcombine_virtex4::chip::{
     Pcie2, Pcie2Kind, RegId,
 };
 use std::collections::BTreeSet;
-use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{
     ExtraCol, IntGrid, extract_int_slr_column, find_row, find_rows,

@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_re_hammer::{Backend, FuzzerId, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::bits::Bits;
@@ -20,7 +21,6 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::bitvec::BitVec;
 use prjcombine_types::cpld::{BlockId, IoCoord, IpadId, MacrocellCoord, ProductTermId};
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{collect::collect_fuzzers, fuzzers::add_fuzzers};
 

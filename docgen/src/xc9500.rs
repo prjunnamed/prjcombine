@@ -2,8 +2,8 @@ use std::{collections::HashMap, fmt::Write};
 
 use indexmap::IndexSet;
 use itertools::Itertools;
-use prjcombine_xc9500::{BankId, BondPad, ChipKind, Database};
 use prjcombine_entity::{EntityId, EntityPartVec};
+use prjcombine_xc9500::{BankId, BondPad, ChipKind, Database};
 
 use crate::{
     DocgenContext,

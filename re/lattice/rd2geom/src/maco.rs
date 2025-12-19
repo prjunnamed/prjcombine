@@ -5,6 +5,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, RowKind},
     cslots,
 };
+use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, ConnectorWire, Mux, PinDir, SwitchBox, SwitchBoxItem, TileWireCoord,
@@ -12,7 +13,6 @@ use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::DieId,
 };
-use prjcombine_entity::{EntityId, EntityPartVec};
 
 use crate::ChipContext;
 

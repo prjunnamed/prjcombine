@@ -5,13 +5,13 @@ use prjcombine_ecp::{
     chip::{ChipKind, RowKind},
     cslots,
 };
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelPin, TileWireCoord, WireKind},
     dir::Dir,
     grid::{BelCoord, WireCoord},
 };
 use prjcombine_re_lattice_naming::WireName;
-use prjcombine_entity::EntityId;
 
 use crate::{ChipContext, chip::ChipExt};
 

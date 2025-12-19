@@ -1,13 +1,14 @@
 use std::{error::Error, fs::read_to_string, path::PathBuf};
 
 use clap::{Arg, Command, value_parser};
-use prjcombine_jed::JedFile;
-use prjcombine_xc9500::{Chip, ChipKind, Database};
 
+use prjcombine_entity::EntityId;
+use prjcombine_jed::JedFile;
 use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{Tile, TileBit, TileItemKind},
 };
+use prjcombine_xc9500::{Chip, ChipKind, Database};
 
 struct Bitstream {
     fbs: Vec<Vec<[u8; 15]>>,
@@ -94,15 +95,27 @@ impl Bitstream {
     }
 
     fn put_global(&mut self, crd: TileBit, val: bool) {
-        self.put_bit(crd.tile, crd.frame, crd.bit % 9, 6 + crd.bit / 9, val);
+        self.put_bit(
+            crd.rect.to_idx(),
+            crd.frame.to_idx(),
+            crd.bit.to_idx() % 9,
+            6 + crd.bit.to_idx() / 9,
+            val,
+        );
     }
 
     fn put_fb(&mut self, fb: usize, crd: TileBit, val: bool) {
-        self.put_bit(fb, crd.frame, crd.bit % 9, 6 + crd.bit / 9, val);
+        self.put_bit(
+            fb,
+            crd.frame.to_idx(),
+            crd.bit.to_idx() % 9,
+            6 + crd.bit.to_idx() / 9,
+            val,
+        );
     }
 
     fn put_mc(&mut self, fb: usize, mc: usize, crd: TileBit, val: bool) {
-        self.put_bit(fb, crd.frame, mc % 9, 6 + mc / 9, val);
+        self.put_bit(fb, crd.frame.to_idx(), mc % 9, 6 + mc / 9, val);
     }
 
     fn put_pt(&mut self, fb: usize, mc: usize, pt: usize, imux: usize, pol: bool, val: bool) {

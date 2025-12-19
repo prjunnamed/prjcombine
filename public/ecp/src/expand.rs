@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::IntDb,
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId},
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
     bels,

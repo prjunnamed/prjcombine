@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{
     CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId,
@@ -5,7 +6,6 @@ use prjcombine_interconnect::grid::{
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{CfgRowKind, Chip, ColumnKind, DisabledPart};

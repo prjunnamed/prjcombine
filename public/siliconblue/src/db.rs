@@ -2,13 +2,13 @@ use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_types::{
     bsdata::BsData,
     db::{BondId, ChipId, SpeedId},
     speed::Speed,
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{bond::Bond, chip::Chip};
 

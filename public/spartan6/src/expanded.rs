@@ -1,10 +1,11 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     dir::{Dir, DirMap},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord},
 };
-use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
+use prjcombine_types::bsdata::BitRectId;
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 use std::collections::{BTreeSet, HashMap};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, DisabledPart, RegId};
 
@@ -32,11 +33,11 @@ impl ExpandedDevice<'_> {
         false
     }
 
-    pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_main(&self, col: ColId, row: RowId) -> BitRect {
         let reg = self.chip.row_to_reg(row);
         let rd = row - self.chip.row_reg_bot(reg);
         let bit = 64 * (rd as usize) + if rd < 8 { 0 } else { 16 };
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.col_frame[reg][col],
             self.col_width[col],
@@ -46,16 +47,16 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_spine(&self, row: RowId) -> BitTile {
+    pub fn btile_spine(&self, row: RowId) -> BitRect {
         let reg = self.chip.row_to_reg(row);
         let rd = row - self.chip.row_reg_bot(reg);
         let bit = 64 * (rd as usize) + if rd < 8 { 0 } else { 16 };
-        BitTile::Main(DieId::from_idx(0), self.spine_frame[reg], 4, bit, 64, false)
+        BitRect::Main(DieId::from_idx(0), self.spine_frame[reg], 4, bit, 64, false)
     }
 
-    pub fn btile_hclk(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_hclk(&self, col: ColId, row: RowId) -> BitRect {
         let reg = self.chip.row_to_reg(row);
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.col_frame[reg][col],
             self.col_width[col],
@@ -65,49 +66,49 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitRect {
         let reg = self.chip.row_to_reg(row);
         let rd: usize = (row - self.chip.row_reg_bot(reg)).try_into().unwrap();
-        BitTile::Bram(DieId::from_idx(0), self.bram_frame[reg][col] + rd / 4)
+        BitRect::Bram(DieId::from_idx(0), self.bram_frame[reg][col] + rd / 4)
     }
 
-    pub fn btile_reg(&self, dir: Dir) -> BitTile {
-        BitTile::Iob(DieId::from_idx(0), self.reg_frame[dir], 384)
+    pub fn btile_reg(&self, dir: Dir) -> BitRect {
+        BitRect::Iob(DieId::from_idx(0), self.reg_frame[dir], 384)
     }
 
-    pub fn btile_iob(&self, cell: CellCoord) -> BitTile {
-        BitTile::Iob(DieId::from_idx(0), self.iob_frame[&cell], 128)
+    pub fn btile_iob(&self, cell: CellCoord) -> BitRect {
+        BitRect::Iob(DieId::from_idx(0), self.iob_frame[&cell], 128)
     }
 
-    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let tile = &self[tcrd];
         let kind = self.db.tile_classes.key(tile.class).as_str();
         if kind == "BRAM" {
-            vec![
+            EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),
                 self.btile_main(tcrd.col, tcrd.row + 1),
                 self.btile_main(tcrd.col, tcrd.row + 2),
                 self.btile_main(tcrd.col, tcrd.row + 3),
                 self.btile_bram(tcrd.col, tcrd.row),
-            ]
+            ])
         } else if kind == "HCLK" {
-            vec![self.btile_hclk(tcrd.col, tcrd.row)]
+            EntityVec::from_iter([self.btile_hclk(tcrd.col, tcrd.row)])
         } else if kind == "REG_L" {
-            vec![self.btile_reg(Dir::W)]
+            EntityVec::from_iter([self.btile_reg(Dir::W)])
         } else if kind == "REG_R" {
-            vec![self.btile_reg(Dir::E)]
+            EntityVec::from_iter([self.btile_reg(Dir::E)])
         } else if kind == "REG_B" {
-            vec![self.btile_reg(Dir::S)]
+            EntityVec::from_iter([self.btile_reg(Dir::S)])
         } else if kind == "REG_T" {
-            vec![self.btile_reg(Dir::N)]
+            EntityVec::from_iter([self.btile_reg(Dir::N)])
         } else if kind == "HCLK_ROW" {
-            vec![self.btile_spine(tcrd.row - 1)]
+            EntityVec::from_iter([self.btile_spine(tcrd.row - 1)])
         } else if kind.starts_with("PLL_BUFPLL") || kind.starts_with("DCM_BUFPLL") {
-            vec![self.btile_spine(tcrd.row - 7)]
+            EntityVec::from_iter([self.btile_spine(tcrd.row - 7)])
         } else if kind == "IOB" {
-            vec![self.btile_iob(tcrd.cell)]
+            EntityVec::from_iter([self.btile_iob(tcrd.cell)])
         } else if matches!(kind, "CMT_DCM" | "CMT_PLL") {
-            let mut res = vec![];
+            let mut res = EntityVec::new();
             for i in 0..16 {
                 res.push(self.btile_main(tcrd.col, tcrd.row - 8 + i));
             }
@@ -116,7 +117,7 @@ impl ExpandedDevice<'_> {
             }
             res
         } else {
-            Vec::from_iter(
+            EntityVec::from_iter(
                 tile.cells
                     .values()
                     .map(|&cell| self.btile_main(cell.col, cell.row)),

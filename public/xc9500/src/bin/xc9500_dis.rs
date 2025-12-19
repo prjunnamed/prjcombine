@@ -1,6 +1,8 @@
 use std::{error::Error, path::PathBuf};
 
 use clap::{Arg, Command, value_parser};
+
+use prjcombine_entity::EntityId;
 use prjcombine_jed::{JedFile, JedParserOptions};
 use prjcombine_types::{
     bitvec::BitVec,
@@ -83,15 +85,25 @@ impl Bitstream {
     }
 
     fn get_global(&self, crd: TileBit) -> bool {
-        self.get_bit(crd.tile, crd.frame, crd.bit % 9, 6 + crd.bit / 9)
+        self.get_bit(
+            crd.rect.to_idx(),
+            crd.frame.to_idx(),
+            crd.bit.to_idx() % 9,
+            6 + crd.bit.to_idx() / 9,
+        )
     }
 
     fn get_fb(&self, fb: usize, crd: TileBit) -> bool {
-        self.get_bit(fb, crd.frame, crd.bit % 9, 6 + crd.bit / 9)
+        self.get_bit(
+            fb,
+            crd.frame.to_idx(),
+            crd.bit.to_idx() % 9,
+            6 + crd.bit.to_idx() / 9,
+        )
     }
 
     fn get_mc(&self, fb: usize, mc: usize, crd: TileBit) -> bool {
-        self.get_bit(fb, crd.frame, mc % 9, 6 + mc / 9)
+        self.get_bit(fb, crd.frame.to_idx(), mc % 9, 6 + mc / 9)
     }
 
     fn get_pt(&self, fb: usize, mc: usize, pt: usize, imux: usize, pol: bool) -> bool {

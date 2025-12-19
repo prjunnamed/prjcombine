@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum,
@@ -7,7 +8,6 @@ use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::{bels, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
@@ -355,7 +355,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeaterMgt {
                         attr: self.1.clone(),
                         val: self.2.clone(),
                     },
-                    tiles: edev.tile_bits(ntcrd),
+                    rects: edev.tile_bits(ntcrd),
                 });
             }
         }

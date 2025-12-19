@@ -2,6 +2,7 @@
 
 use std::cmp::Ordering;
 
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
@@ -13,7 +14,6 @@ use prjcombine_spartan6::{
     expanded::ExpandedDevice,
     tslots,
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

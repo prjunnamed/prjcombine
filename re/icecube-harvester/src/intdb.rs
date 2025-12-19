@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorWire, IntDb,
@@ -13,7 +14,6 @@ use prjcombine_siliconblue::{
     chip::{Chip, ChipKind, SpecialIoKey, SpecialTile},
     cslots, regions, tslots,
 };
-use prjcombine_entity::EntityVec;
 
 use crate::sites::BelPins;
 

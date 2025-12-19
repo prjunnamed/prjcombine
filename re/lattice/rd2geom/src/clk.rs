@@ -3,11 +3,11 @@ use prjcombine_ecp::{
     chip::{ChipKind, RowKind},
     tslots,
 };
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::CellSlotId,
     grid::{CellCoord, DieId},
 };
-use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

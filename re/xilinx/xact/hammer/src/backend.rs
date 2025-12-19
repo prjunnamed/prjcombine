@@ -6,14 +6,15 @@ use std::{
     process::Command,
 };
 
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::grid::{BelCoord, ExpandedGrid, TileCoord, WireCoord};
 use prjcombine_re_fpga_hammer::{FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_re_xilinx_xact_naming::grid::{ExpandedGridNaming, PipCoords};
-use prjcombine_types::bitvec::BitVec;
+use prjcombine_types::{bitvec::BitVec, bsdata::BitRectId};
 use prjcombine_xc2000::expanded::ExpandedDevice;
-use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom, KeyData, parse};
+use prjcombine_xilinx_bitstream::{BitPos, BitRect, Bitstream, BitstreamGeom, KeyData, parse};
 
 use crate::lca::{Block, Design, Net};
 
@@ -105,7 +106,7 @@ impl<'a> Backend for XactBackend<'a> {
     type Value = Value<'a>;
     type MultiValue = MultiValue;
     type Bitstream = Bitstream;
-    type FuzzerInfo = FuzzerInfo<BitTile>;
+    type FuzzerInfo = FuzzerInfo<BitRect>;
     type PostProc = PostProc;
     type BitPos = BitPos;
     type State = State;
@@ -372,9 +373,9 @@ impl<'a> Backend for XactBackend<'a> {
 }
 
 impl FpgaBackend for XactBackend<'_> {
-    type BitTile = BitTile;
+    type BitRect = BitRect;
 
-    fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+    fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         self.edev.tile_bits(tcrd)
     }
 

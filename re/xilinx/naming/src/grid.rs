@@ -1,12 +1,12 @@
 use std::collections::{BTreeSet, HashMap, hash_map};
 
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{BelSlotId, ConnectorWire, TileClass, TileClassId, WireKind},
     grid::{
         BelCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, TileCoord, TilePip, WireCoord,
     },
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::db::{
     ConnectorClassNamingId, ConnectorWireInFarNaming, ConnectorWireOutNaming, NamingDb, RawTileId,

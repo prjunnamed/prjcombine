@@ -600,7 +600,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
                 attr: self.attr.clone(),
                 val: self.val.clone(),
             },
-            tiles: backend.edev.tile_bits(self.tcrd),
+            rects: backend.edev.tile_bits(self.tcrd),
         });
         Some((fuzzer, false))
     }

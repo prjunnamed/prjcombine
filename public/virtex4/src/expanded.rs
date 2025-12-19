@@ -3,13 +3,14 @@ use crate::chip::{Chip, ChipKind, DisabledPart, GtKind, Interposer, IoKind, RegI
 use crate::gtz::{GtzBelId, GtzDb, GtzIntColId, GtzIntRowId};
 use crate::tslots;
 use bimap::BiHashMap;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     dir::{DirH, DirPartMap},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord, TileIobId},
 };
-use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
+use prjcombine_types::bsdata::BitRectId;
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 use std::collections::{BTreeSet, HashSet};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 #[derive(Clone, Debug)]
 pub struct DieFrameGeom {
@@ -810,7 +811,7 @@ impl ExpandedDevice<'_> {
         res
     }
 
-    pub fn btile_main(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_main(&self, die: DieId, col: ColId, row: RowId) -> BitRect {
         let reg = self.chips[die].row_to_reg(row);
         let rd = (row - self.chips[die].row_reg_bot(reg)) as usize;
         let (height, bit, flip) = if self.kind == ChipKind::Virtex4 {
@@ -829,7 +830,7 @@ impl ExpandedDevice<'_> {
                 false,
             )
         };
-        BitTile::Main(
+        BitRect::Main(
             die,
             self.frames[die].col_frame[reg][col],
             self.frames[die].col_width[reg][col],
@@ -839,14 +840,14 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_hclk(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_hclk(&self, die: DieId, col: ColId, row: RowId) -> BitRect {
         let reg = self.chips[die].row_to_reg(row);
         let bit = if self.kind == ChipKind::Virtex4 {
             80 * self.chips[die].rows_per_reg() / 2
         } else {
             64 * self.chips[die].rows_per_reg() / 2
         };
-        BitTile::Main(
+        BitRect::Main(
             die,
             self.frames[die].col_frame[reg][col],
             self.frames[die].col_width[reg][col],
@@ -856,7 +857,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_spine(&self, die: DieId, row: RowId) -> BitTile {
+    pub fn btile_spine(&self, die: DieId, row: RowId) -> BitRect {
         let reg = self.chips[die].row_to_reg(row);
         let rd = (row - self.chips[die].row_reg_bot(reg)) as usize;
         let (height, bit, flip) = if self.kind == ChipKind::Virtex4 {
@@ -875,7 +876,7 @@ impl ExpandedDevice<'_> {
                 false,
             )
         };
-        BitTile::Main(
+        BitRect::Main(
             die,
             self.frames[die].spine_frame[reg],
             match self.kind {
@@ -889,14 +890,14 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_spine_hclk(&self, die: DieId, row: RowId) -> BitTile {
+    pub fn btile_spine_hclk(&self, die: DieId, row: RowId) -> BitRect {
         let reg = self.chips[die].row_to_reg(row);
         let bit = if self.kind == ChipKind::Virtex4 {
             80 * self.chips[die].rows_per_reg() / 2
         } else {
             64 * self.chips[die].rows_per_reg() / 2
         };
-        BitTile::Main(
+        BitRect::Main(
             die,
             self.frames[die].spine_frame[reg],
             match self.kind {
@@ -910,7 +911,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_bram(&self, die: DieId, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_bram(&self, die: DieId, col: ColId, row: RowId) -> BitRect {
         let reg = self.chips[die].row_to_reg(row);
         let rd = (row - self.chips[die].row_reg_bot(reg)) as usize;
         let (width, bit, flip) = if self.kind == ChipKind::Virtex4 {
@@ -929,7 +930,7 @@ impl ExpandedDevice<'_> {
                 false,
             )
         };
-        BitTile::Main(
+        BitRect::Main(
             die,
             self.frames[die].bram_frame[reg][col],
             width,
@@ -939,51 +940,51 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let CellCoord { die, col, row } = tcrd.cell;
         let tile = &self[tcrd];
         let kind = self.db.tile_classes.key(tile.class).as_str();
         if kind == "BRAM" {
             if self.kind == ChipKind::Virtex4 {
-                vec![
+                EntityVec::from_iter([
                     self.btile_main(die, col, row),
                     self.btile_main(die, col, row + 1),
                     self.btile_main(die, col, row + 2),
                     self.btile_main(die, col, row + 3),
                     self.btile_bram(die, col, row),
-                ]
+                ])
             } else {
-                vec![
+                EntityVec::from_iter([
                     self.btile_main(die, col, row),
                     self.btile_main(die, col, row + 1),
                     self.btile_main(die, col, row + 2),
                     self.btile_main(die, col, row + 3),
                     self.btile_main(die, col, row + 4),
                     self.btile_bram(die, col, row),
-                ]
+                ])
             }
         } else if self.kind == ChipKind::Virtex7 && kind == "HCLK" {
             assert_eq!(col.to_idx() % 2, 0);
-            vec![
+            EntityVec::from_iter([
                 self.btile_hclk(die, col, row),
                 self.btile_hclk(die, col + 1, row),
-            ]
+            ])
         } else if kind.starts_with("HCLK") {
-            vec![self.btile_hclk(die, col, row)]
+            EntityVec::from_iter([self.btile_hclk(die, col, row)])
         } else if self.kind == ChipKind::Virtex4 && kind.starts_with("CLK_DCM") {
-            Vec::from_iter((0..8).map(|idx| self.btile_spine(die, row + idx)))
+            EntityVec::from_iter((0..8).map(|idx| self.btile_spine(die, row + idx)))
         } else if self.kind == ChipKind::Virtex4 && kind.starts_with("CLK_IOB") {
-            Vec::from_iter((0..16).map(|idx| self.btile_spine(die, row + idx)))
+            EntityVec::from_iter((0..16).map(|idx| self.btile_spine(die, row + idx)))
         } else if kind == "CLK_TERM" {
-            vec![self.btile_spine(die, row)]
+            EntityVec::from_iter([self.btile_spine(die, row)])
         } else if self.kind == ChipKind::Virtex5
             && (kind.starts_with("CLK_CMT")
                 || kind.starts_with("CLK_IOB")
                 || kind.starts_with("CLK_MGT"))
         {
-            Vec::from_iter((0..10).map(|idx| self.btile_spine(die, row + idx)))
+            EntityVec::from_iter((0..10).map(|idx| self.btile_spine(die, row + idx)))
         } else if self.kind == ChipKind::Virtex4 && kind == "CFG" {
-            let mut res = vec![];
+            let mut res = EntityVec::new();
             for i in 0..16 {
                 res.push(self.btile_main(die, col, row + i));
             }
@@ -992,7 +993,7 @@ impl ExpandedDevice<'_> {
             }
             res
         } else if self.kind == ChipKind::Virtex5 && kind == "CFG" {
-            let mut res = vec![];
+            let mut res = EntityVec::new();
             for i in 0..20 {
                 res.push(self.btile_main(die, col, row + i));
             }
@@ -1002,16 +1003,14 @@ impl ExpandedDevice<'_> {
             res
         } else if kind == "CLK_HROW" {
             match self.kind {
-                ChipKind::Virtex4 | ChipKind::Virtex5 => {
-                    vec![
-                        self.btile_spine(die, row - 1),
-                        self.btile_spine(die, row),
-                        self.btile_spine_hclk(die, row),
-                    ]
-                }
+                ChipKind::Virtex4 | ChipKind::Virtex5 => EntityVec::from_iter([
+                    self.btile_spine(die, row - 1),
+                    self.btile_spine(die, row),
+                    self.btile_spine_hclk(die, row),
+                ]),
                 ChipKind::Virtex6 => unreachable!(),
                 ChipKind::Virtex7 => {
-                    let mut res = vec![];
+                    let mut res = EntityVec::new();
                     for i in 0..8 {
                         res.push(self.btile_main(die, col, row - 4 + i));
                     }
@@ -1020,11 +1019,11 @@ impl ExpandedDevice<'_> {
                 }
             }
         } else if self.kind == ChipKind::Virtex6 && kind == "PCIE" {
-            Vec::from_iter((0..20).map(|idx| self.btile_main(die, col + 3, row + idx)))
+            EntityVec::from_iter((0..20).map(|idx| self.btile_main(die, col + 3, row + idx)))
         } else if kind == "PCIE3" {
-            Vec::from_iter((0..50).map(|idx| self.btile_main(die, col + 4, row + idx)))
+            EntityVec::from_iter((0..50).map(|idx| self.btile_main(die, col + 4, row + idx)))
         } else if matches!(self.kind, ChipKind::Virtex6 | ChipKind::Virtex7) && kind == "CMT" {
-            let mut res = vec![];
+            let mut res = EntityVec::new();
             for i in 0..self.chips[die].rows_per_reg() {
                 res.push(self.btile_main(
                     die,
@@ -1035,7 +1034,7 @@ impl ExpandedDevice<'_> {
             res.push(self.btile_hclk(die, col, row));
             res
         } else if self.kind == ChipKind::Virtex5 && matches!(kind, "GTP" | "GTX") {
-            let mut res = vec![];
+            let mut res = EntityVec::new();
             for i in 0..20 {
                 res.push(self.btile_main(die, col, row + i));
             }
@@ -1047,7 +1046,7 @@ impl ExpandedDevice<'_> {
             } else {
                 col + 1
             };
-            vec![
+            EntityVec::from_iter([
                 self.btile_main(die, col, row - 3),
                 self.btile_main(die, col, row - 2),
                 self.btile_main(die, col, row - 1),
@@ -1055,21 +1054,21 @@ impl ExpandedDevice<'_> {
                 self.btile_main(die, col, row + 1),
                 self.btile_main(die, col, row + 2),
                 self.btile_hclk(die, col, row),
-            ]
+            ])
         } else if kind == "GTP_CHANNEL_MID" {
             let col = if self.col_side(col) == DirH::W {
                 col - 1
             } else {
                 col + 1
             };
-            Vec::from_iter((0..11).map(|i| self.btile_main(die, col, row + i)))
+            EntityVec::from_iter((0..11).map(|i| self.btile_main(die, col, row + i)))
         } else if kind == "CMT_BUFG_BOT" || kind == "CMT_BUFG_TOP" {
-            vec![
+            EntityVec::from_iter([
                 self.btile_main(die, col, row),
                 self.btile_main(die, col, row + 1),
-            ]
+            ])
         } else {
-            Vec::from_iter(
+            EntityVec::from_iter(
                 tile.cells
                     .values()
                     .map(|&cell| self.btile_main(cell.die, cell.col, cell.row)),

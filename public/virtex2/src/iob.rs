@@ -1,9 +1,9 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelSlotId, CellSlotId},
     dir::Dir,
     grid::TileIobId,
 };
-use prjcombine_entity::EntityId;
 
 use crate::{
     bels,

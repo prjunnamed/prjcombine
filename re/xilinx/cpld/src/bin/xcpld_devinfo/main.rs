@@ -2,6 +2,7 @@ mod devinfo;
 mod imux;
 
 use clap::Parser;
+use prjcombine_entity::EntityVec;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::device::{Device, DeviceKind, Package};
 use prjcombine_re_xilinx_cpld::{
@@ -12,7 +13,6 @@ use rayon::prelude::*;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::{error::Error, path::PathBuf};
-use prjcombine_entity::EntityVec;
 
 use crate::imux::gather_imux;
 

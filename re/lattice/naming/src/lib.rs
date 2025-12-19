@@ -2,15 +2,15 @@ use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
 use prjcombine_ecp::{bond::Bond, chip::Chip, db::Device};
+use prjcombine_entity::{
+    EntitySet, EntityVec,
+    id::{EntityIdU32, EntityTag},
+};
 use prjcombine_interconnect::{
     db::IntDb,
     grid::{BelCoord, WireCoord},
 };
 use prjcombine_types::db::{BondId, ChipId};
-use prjcombine_entity::{
-    EntitySet, EntityVec,
-    id::{EntityIdU32, EntityTag},
-};
 
 pub struct StringTag;
 

@@ -1,5 +1,5 @@
-use prjcombine_types::cpld::{BlockId, ProductTermId};
 use prjcombine_entity::EntityId;
+use prjcombine_types::cpld::{BlockId, ProductTermId};
 
 use prjcombine_re_xilinx_cpld::types::FbnId;
 use prjcombine_re_xilinx_cpld::vm6::{

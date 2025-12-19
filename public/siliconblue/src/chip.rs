@@ -2,12 +2,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{EntityId, EntityIds, EntityVec};
 use prjcombine_interconnect::{
     db::CellSlotId,
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
-use prjcombine_entity::{EntityId, EntityIds, EntityVec};
 
 use crate::bels;
 

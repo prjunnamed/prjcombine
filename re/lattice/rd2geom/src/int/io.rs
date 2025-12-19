@@ -1,12 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_ecp::{bels, chip::RowKind, cslots, tslots};
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{BelInfo, ConnectorWire, Mux, SwitchBox, SwitchBoxItem, TileWireCoord},
     dir::DirH,
     grid::{CellCoord, DieId},
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{ChipContext, chip::ChipExt};
 

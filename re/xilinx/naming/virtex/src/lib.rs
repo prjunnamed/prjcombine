@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex::{
@@ -6,7 +7,6 @@ use prjcombine_virtex::{
     expanded::ExpandedDevice,
     tslots,
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

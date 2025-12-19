@@ -2,12 +2,12 @@ use std::{collections::HashMap, fmt::Write};
 
 use indexmap::IndexSet;
 use itertools::Itertools;
+use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_types::{
     bsdata::{Tile, TileItemKind},
     cpld::{ClusterId, MacrocellCoord},
 };
 use prjcombine_xpla3::{BondPad, Database};
-use prjcombine_entity::{EntityId, EntityPartVec};
 
 use crate::{
     DocgenContext,

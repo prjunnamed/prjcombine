@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::IntDb,
     grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId},
@@ -5,7 +6,6 @@ use prjcombine_interconnect::{
 use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::{
     chip::{Chip, ChipKind},

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ExpandedGrid, RowId, TileCoord, WireCoord,
 };
@@ -13,7 +14,8 @@ use prjcombine_re_xilinx_xdl::{
     Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement, run_bitgen,
 };
 use prjcombine_types::bitvec::BitVec;
-use prjcombine_xilinx_bitstream::{BitPos, BitTile, Bitstream, BitstreamGeom};
+use prjcombine_types::bsdata::BitRectId;
+use prjcombine_xilinx_bitstream::{BitPos, BitRect, Bitstream, BitstreamGeom};
 use prjcombine_xilinx_bitstream::{KeyData, KeyDataAes, KeyDataDes, KeySeq, parse};
 use rand::prelude::*;
 use std::collections::{HashMap, hash_map};
@@ -188,7 +190,7 @@ impl<'a> Backend for IseBackend<'a> {
     type Value = Value<'a>;
     type MultiValue = MultiValue;
     type Bitstream = Bitstream;
-    type FuzzerInfo = FuzzerInfo<BitTile>;
+    type FuzzerInfo = FuzzerInfo<BitRect>;
     type PostProc = PostProc;
     type BitPos = BitPos;
     type State = State;
@@ -668,7 +670,7 @@ impl<'a> Backend for IseBackend<'a> {
     fn return_fuzzer(
         &self,
         state: &mut State,
-        f: &FuzzerInfo<BitTile>,
+        f: &FuzzerInfo<BitRect>,
         fid: FuzzerId,
         bits: Vec<HashMap<BitPos, bool>>,
     ) -> Option<Vec<FuzzerId>> {
@@ -776,9 +778,9 @@ impl<'a> Backend for IseBackend<'a> {
 }
 
 impl FpgaBackend for IseBackend<'_> {
-    type BitTile = BitTile;
+    type BitRect = BitRect;
 
-    fn tile_bits(&self, tcrd: TileCoord) -> Vec<Self::BitTile> {
+    fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, Self::BitRect> {
         self.edev.tile_bits(tcrd)
     }
 

@@ -1,8 +1,9 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::grid::{
     CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileCoord,
 };
-use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_types::bsdata::BitRectId;
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 
 use crate::chip::{Chip, ChipKind};
 
@@ -29,14 +30,14 @@ impl ExpandedDevice<'_> {
         false
     }
 
-    pub fn btile_main(&self, cell: CellCoord) -> BitTile {
+    pub fn btile_main(&self, cell: CellCoord) -> BitRect {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (22, 80)
         } else {
             (19, 64)
         };
         let bit = 16 + height * cell.row.to_idx();
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.col_frame[cell.col],
             width,
@@ -46,14 +47,14 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_bram(&self, cell: CellCoord) -> BitTile {
+    pub fn btile_bram(&self, cell: CellCoord) -> BitRect {
         let (width, height, height_single) = if self.chip.kind.is_virtex2() {
             (64, 80 * 4, 80)
         } else {
             (19 * 4, 64 * 4, 64)
         };
         let bit = 16 + height_single * cell.row.to_idx();
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.bram_frame[cell.col],
             width,
@@ -63,7 +64,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_lrterm(&self, cell: CellCoord) -> BitTile {
+    pub fn btile_lrterm(&self, cell: CellCoord) -> BitRect {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (4, 80)
         } else {
@@ -77,10 +78,10 @@ impl ExpandedDevice<'_> {
         } else {
             unreachable!()
         };
-        BitTile::Main(DieId::from_idx(0), frame, width, bit, height, false)
+        BitRect::Main(DieId::from_idx(0), frame, width, bit, height, false)
     }
 
-    pub fn btile_btterm(&self, cell: CellCoord) -> BitTile {
+    pub fn btile_btterm(&self, cell: CellCoord) -> BitRect {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (22, 80)
         } else {
@@ -99,7 +100,7 @@ impl ExpandedDevice<'_> {
         } else {
             unreachable!()
         };
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.col_frame[cell.col],
             width,
@@ -115,7 +116,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_spine(&self, row: RowId) -> BitTile {
+    pub fn btile_spine(&self, row: RowId) -> BitRect {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (4, 80)
         } else if self.chip.has_ll || self.chip.kind.is_spartan3a() {
@@ -124,7 +125,7 @@ impl ExpandedDevice<'_> {
             (1, 64)
         };
         let bit = 16 + height * row.to_idx();
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.spine_frame,
             width,
@@ -134,10 +135,10 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_clkv(&self, cell: CellCoord) -> BitTile {
+    pub fn btile_clkv(&self, cell: CellCoord) -> BitRect {
         assert!(!self.chip.kind.is_virtex2());
         let bit = 16 + 64 * cell.row.to_idx();
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.clkv_frame + if cell.col < self.chip.col_clk { 0 } else { 1 },
             1,
@@ -147,7 +148,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_btspine(&self, row: RowId) -> BitTile {
+    pub fn btile_btspine(&self, row: RowId) -> BitRect {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (4, 80)
         } else if self.chip.has_ll || self.chip.kind.is_spartan3a() {
@@ -162,31 +163,31 @@ impl ExpandedDevice<'_> {
         } else {
             unreachable!()
         };
-        BitTile::Main(DieId::from_idx(0), self.spine_frame, width, bit, 16, false)
+        BitRect::Main(DieId::from_idx(0), self.spine_frame, width, bit, 16, false)
     }
 
-    pub fn btile_llv_b(&self, col: ColId) -> BitTile {
+    pub fn btile_llv_b(&self, col: ColId) -> BitRect {
         assert_eq!(self.chip.kind, ChipKind::Spartan3E);
         assert!(self.chip.has_ll);
         let bit = self.chip.rows_hclk.len() / 2;
-        BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 1, false)
+        BitRect::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 1, false)
     }
 
-    pub fn btile_llv_t(&self, col: ColId) -> BitTile {
+    pub fn btile_llv_t(&self, col: ColId) -> BitRect {
         assert_eq!(self.chip.kind, ChipKind::Spartan3E);
         assert!(self.chip.has_ll);
         let bit = 16 + self.chip.rows.len() * 64 + 11 + self.chip.rows_hclk.len() / 2;
-        BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 2, false)
+        BitRect::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 2, false)
     }
 
-    pub fn btile_llv(&self, col: ColId) -> BitTile {
+    pub fn btile_llv(&self, col: ColId) -> BitRect {
         assert!(self.chip.kind.is_spartan3a());
         assert!(self.chip.has_ll);
         let bit = 16 + self.chip.rows.len() * 64 + 8;
-        BitTile::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 3, false)
+        BitRect::Main(DieId::from_idx(0), self.col_frame[col], 19, bit, 3, false)
     }
 
-    pub fn btile_hclk(&self, cell: CellCoord) -> BitTile {
+    pub fn btile_hclk(&self, cell: CellCoord) -> BitRect {
         let (width, height) = if self.chip.kind.is_virtex2() {
             (22, 80)
         } else {
@@ -212,7 +213,7 @@ impl ExpandedDevice<'_> {
                 16 + height * self.chip.rows.len() + 12 + hclk_idx
             }
         };
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.col_frame[cell.col],
             width,
@@ -222,86 +223,86 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let col = tcrd.col;
         let row = tcrd.row;
         let tile = &self[tcrd];
         let kind = self.db.tile_classes.key(tile.class).as_str();
         if kind.starts_with("BRAM") {
-            vec![
+            EntityVec::from_iter([
                 self.btile_main(tcrd.delta(0, 0)),
                 self.btile_main(tcrd.delta(0, 1)),
                 self.btile_main(tcrd.delta(0, 2)),
                 self.btile_main(tcrd.delta(0, 3)),
                 self.btile_bram(tcrd.cell),
-            ]
+            ])
         } else if kind.starts_with("CLKB") || kind.starts_with("CLKT") {
-            vec![self.btile_spine(row), self.btile_btspine(row)]
+            EntityVec::from_iter([self.btile_spine(row), self.btile_btspine(row)])
         } else if kind.starts_with("CLKL") || kind.starts_with("CLKR") {
-            vec![
+            EntityVec::from_iter([
                 self.btile_main(tcrd.delta(0, -1)),
                 self.btile_main(tcrd.delta(0, 0)),
                 self.btile_lrterm(tcrd.delta(0, -2)),
                 self.btile_lrterm(tcrd.delta(0, -1)),
                 self.btile_lrterm(tcrd.delta(0, 0)),
                 self.btile_lrterm(tcrd.delta(0, 1)),
-            ]
+            ])
         } else if kind == "CLKC_50A" {
-            vec![self.btile_spine(row - 1)]
+            EntityVec::from_iter([self.btile_spine(row - 1)])
         } else if kind.starts_with("GCLKVM") {
-            vec![
+            EntityVec::from_iter([
                 self.btile_clkv(tcrd.delta(0, -1)),
                 self.btile_clkv(tcrd.delta(0, 0)),
-            ]
+            ])
         } else if kind.starts_with("GCLKC") {
             if row == self.chip.row_s() + 1 {
-                vec![
+                EntityVec::from_iter([
                     self.btile_btspine(row - 1),
                     self.btile_spine(row - 1),
                     self.btile_spine(row),
                     self.btile_spine(row + 1),
-                ]
+                ])
             } else if row == self.chip.row_n() {
-                vec![
+                EntityVec::from_iter([
                     self.btile_spine(row - 2),
                     self.btile_spine(row - 1),
                     self.btile_spine(row),
                     self.btile_btspine(row),
-                ]
+                ])
             } else {
-                vec![
+                EntityVec::from_iter([
                     self.btile_spine(row - 2),
                     self.btile_spine(row - 1),
                     self.btile_spine(row),
                     self.btile_spine(row + 1),
-                ]
+                ])
             }
         } else if kind.starts_with("GCLKH") {
-            vec![self.btile_hclk(tcrd.cell)]
+            EntityVec::from_iter([self.btile_hclk(tcrd.cell)])
         } else if kind.starts_with("IOBS") {
             if col == self.chip.col_w() || col == self.chip.col_e() {
-                Vec::from_iter(
+                EntityVec::from_iter(
                     self.tile_cells(tcrd)
                         .map(|(_, cell)| self.btile_lrterm(cell)),
                 )
             } else {
-                Vec::from_iter(
+                EntityVec::from_iter(
                     self.tile_cells(tcrd)
                         .map(|(_, cell)| self.btile_btterm(cell)),
                 )
             }
         } else if matches!(kind, "TERM.W" | "TERM.E") {
-            vec![self.btile_lrterm(tcrd.cell)]
+            EntityVec::from_iter([self.btile_lrterm(tcrd.cell)])
         } else if kind.starts_with("DCMCONN") || matches!(kind, "TERM.S" | "TERM.N") {
-            vec![self.btile_btterm(tcrd.cell)]
+            EntityVec::from_iter([self.btile_btterm(tcrd.cell)])
         } else if kind.starts_with("DCM") {
             if self.chip.kind.is_virtex2() {
-                vec![self.btile_main(tcrd.cell), self.btile_btterm(tcrd.cell)]
+                EntityVec::from_iter([self.btile_main(tcrd.cell), self.btile_btterm(tcrd.cell)])
             } else if self.chip.kind == ChipKind::Spartan3 {
-                vec![self.btile_main(tcrd.cell)]
+                EntityVec::from_iter([self.btile_main(tcrd.cell)])
             } else {
                 match kind {
-                    "DCM.S3E.BL" | "DCM.S3E.RT" => vec![
+                    "DCM.S3E.BL" | "DCM.S3E.RT" => EntityVec::from_iter([
                         self.btile_main(tcrd.delta(0, 0)),
                         self.btile_main(tcrd.delta(0, 1)),
                         self.btile_main(tcrd.delta(0, 2)),
@@ -310,8 +311,8 @@ impl ExpandedDevice<'_> {
                         self.btile_main(tcrd.delta(-3, 1)),
                         self.btile_main(tcrd.delta(-3, 2)),
                         self.btile_main(tcrd.delta(-3, 3)),
-                    ],
-                    "DCM.S3E.BR" | "DCM.S3E.LT" => vec![
+                    ]),
+                    "DCM.S3E.BR" | "DCM.S3E.LT" => EntityVec::from_iter([
                         self.btile_main(tcrd.delta(0, 0)),
                         self.btile_main(tcrd.delta(0, 1)),
                         self.btile_main(tcrd.delta(0, 2)),
@@ -320,8 +321,8 @@ impl ExpandedDevice<'_> {
                         self.btile_main(tcrd.delta(3, 1)),
                         self.btile_main(tcrd.delta(3, 2)),
                         self.btile_main(tcrd.delta(3, 3)),
-                    ],
-                    "DCM.S3E.TL" | "DCM.S3E.RB" => vec![
+                    ]),
+                    "DCM.S3E.TL" | "DCM.S3E.RB" => EntityVec::from_iter([
                         self.btile_main(tcrd.delta(0, 0)),
                         self.btile_main(tcrd.delta(0, -3)),
                         self.btile_main(tcrd.delta(0, -2)),
@@ -330,8 +331,8 @@ impl ExpandedDevice<'_> {
                         self.btile_main(tcrd.delta(-3, -2)),
                         self.btile_main(tcrd.delta(-3, -1)),
                         self.btile_main(tcrd.delta(-3, 0)),
-                    ],
-                    "DCM.S3E.TR" | "DCM.S3E.LB" => vec![
+                    ]),
+                    "DCM.S3E.TR" | "DCM.S3E.LB" => EntityVec::from_iter([
                         self.btile_main(tcrd.delta(0, 0)),
                         self.btile_main(tcrd.delta(0, -3)),
                         self.btile_main(tcrd.delta(0, -2)),
@@ -340,7 +341,7 @@ impl ExpandedDevice<'_> {
                         self.btile_main(tcrd.delta(3, -2)),
                         self.btile_main(tcrd.delta(3, -1)),
                         self.btile_main(tcrd.delta(3, 0)),
-                    ],
+                    ]),
                     _ => unreachable!(),
                 }
             }
@@ -349,26 +350,26 @@ impl ExpandedDevice<'_> {
             || kind.starts_with("UL.") | kind.starts_with("UR.")
         {
             if self.chip.kind.is_virtex2() {
-                vec![self.btile_lrterm(tcrd.cell), self.btile_btterm(tcrd.cell)]
+                EntityVec::from_iter([self.btile_lrterm(tcrd.cell), self.btile_btterm(tcrd.cell)])
             } else {
-                vec![self.btile_lrterm(tcrd.cell)]
+                EntityVec::from_iter([self.btile_lrterm(tcrd.cell)])
             }
         } else if matches!(kind, "RANDOR" | "RANDOR_INIT") {
-            vec![self.btile_main(tcrd.cell)]
+            EntityVec::from_iter([self.btile_main(tcrd.cell)])
         } else if kind == "PPC.N" {
-            vec![self.btile_main(tcrd.delta(0, 1))]
+            EntityVec::from_iter([self.btile_main(tcrd.delta(0, 1))])
         } else if kind == "PPC.S" {
-            vec![self.btile_main(tcrd.delta(0, -1))]
+            EntityVec::from_iter([self.btile_main(tcrd.delta(0, -1))])
         } else if kind.starts_with("LLV") {
             if self.chip.kind == ChipKind::Spartan3E {
-                vec![self.btile_llv_b(col), self.btile_llv_t(col)]
+                EntityVec::from_iter([self.btile_llv_b(col), self.btile_llv_t(col)])
             } else {
-                vec![self.btile_llv(col)]
+                EntityVec::from_iter([self.btile_llv(col)])
             }
         } else if kind.starts_with("LLH") {
-            vec![self.btile_spine(row)]
+            EntityVec::from_iter([self.btile_spine(row)])
         } else {
-            Vec::from_iter(self.tile_cells(tcrd).map(|(_, cell)| self.btile_main(cell)))
+            EntityVec::from_iter(self.tile_cells(tcrd).map(|(_, cell)| self.btile_main(cell)))
         }
     }
 }

@@ -1,9 +1,9 @@
 #![allow(clippy::too_many_arguments)]
 
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::grid::{ColId, RowId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use std::collections::BTreeSet;
-use prjcombine_entity::EntityVec;
 
 pub fn split_num(s: &str) -> Option<(&str, u32)> {
     let mut pos = None;

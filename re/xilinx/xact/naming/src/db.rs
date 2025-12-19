@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
-use prjcombine_interconnect::db::{BelSlotId, IntDb, TileWireCoord};
 use prjcombine_entity::{
     EntityMap,
     id::{EntityIdU16, EntityTag},
 };
+use prjcombine_interconnect::db::{BelSlotId, IntDb, TileWireCoord};
 
 pub struct TileRawCellTag;
 impl EntityTag for TileRawCellTag {

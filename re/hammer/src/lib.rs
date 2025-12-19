@@ -1,9 +1,9 @@
 use core::fmt::Debug;
 use core::hash::Hash;
 use derive_where::derive_where;
+use prjcombine_entity::{EntityVec, entity_id};
 use prjcombine_types::bitvec::BitVec;
 use std::collections::{HashMap, HashSet, hash_map::Entry};
-use prjcombine_entity::{EntityVec, entity_id};
 
 entity_id! {
     pub id BatchFuzzerId u32;

@@ -1,6 +1,7 @@
 use std::collections::btree_map;
 
 use jzon::JsonValue;
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_siliconblue::{
     bond::Bond,
@@ -12,7 +13,6 @@ use prjcombine_types::{
     db::{BondId, ChipId, SpeedId},
     speed::Speed,
 };
-use prjcombine_entity::EntityVec;
 
 fn merge_int(dst: &mut IntDb, src: &IntDb, dbname: &str) {
     if dst.wires.is_empty() {

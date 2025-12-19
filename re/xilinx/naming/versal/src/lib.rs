@@ -1,6 +1,7 @@
 #![allow(clippy::too_many_arguments)]
 
 use bincode::{Decode, Encode};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 use prjcombine_interconnect::{
     db::{TileClass, TileClassId},
     dir::DirH,
@@ -13,7 +14,6 @@ use prjcombine_versal::{
     expanded::ExpandedDevice,
 };
 use std::{cmp::max, collections::BTreeMap};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec, entity_id};
 
 #[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 pub struct DeviceNaming {

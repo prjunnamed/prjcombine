@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_re_xilinx_naming_spartan6::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
@@ -6,7 +7,6 @@ use prjcombine_spartan6::{
     chip::{ColumnKind, DisabledPart, Gts},
 };
 use std::collections::HashSet;
-use prjcombine_entity::EntityId;
 
 fn verify_sliceml(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.info.pins.contains_key("WE") {

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::BelSlotId,
     dir::DirV,
@@ -13,9 +14,8 @@ use prjcombine_spartan6::{bels, tslots};
 use prjcombine_types::{
     bits,
     bitvec::BitVec,
-    bsdata::{TileBit, TileItem, TileItemKind},
+    bsdata::{RectBitId, TileBit, TileItem, TileItemKind},
 };
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -191,7 +191,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
                         attr: self.1.into(),
                         val: self.2.into(),
                     },
-                    tiles: edev.tile_bits(ntcrd),
+                    rects: edev.tile_bits(ntcrd),
                 })
             }
         }
@@ -1619,9 +1619,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff.bits.len(), 1);
             let mut diff2 = Diff::default();
             for (&k, &v) in &diff.bits {
-                diff2
-                    .bits
-                    .insert(TileBit::new(k.tile, k.frame, k.bit ^ 1), v);
+                diff2.bits.insert(
+                    TileBit {
+                        bit: RectBitId::from_idx(k.bit.to_idx() ^ 1),
+                        ..k
+                    },
+                    v,
+                );
             }
             ctx.tiledb.insert(
                 tile,
@@ -1648,7 +1652,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .get_diff(tile, bel, "SRINIT_Q", "0")
                 .assert_empty();
             let mut diff = ctx.state.get_diff(tile, bel, "SRINIT_Q", "1");
-            let diff_init = diff.split_bits_by(|bit| matches!(bit.bit, 38 | 41));
+            let diff_init = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 38 | 41));
             ctx.tiledb.insert(tile, bel, "IFF_SRVAL", xlat_bit(diff));
             ctx.tiledb
                 .insert(tile, bel, "IFF_INIT", xlat_bit(diff_init));
@@ -1702,15 +1706,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ("SHIFT_REGISTER", Diff::default()),
                         (
                             "NETWORKING",
-                            diff_n.split_bits_by(|bit| range.contains(&bit.bit)),
+                            diff_n.split_bits_by(|bit| range.contains(&bit.bit.to_idx())),
                         ),
                         (
                             "NETWORKING_PIPELINED",
-                            diff_np.split_bits_by(|bit| range.contains(&bit.bit)),
+                            diff_np.split_bits_by(|bit| range.contains(&bit.bit.to_idx())),
                         ),
                         (
                             "RETIMED",
-                            diff_r.split_bits_by(|bit| range.contains(&bit.bit)),
+                            diff_r.split_bits_by(|bit| range.contains(&bit.bit.to_idx())),
                         ),
                     ]),
                 );
@@ -1774,14 +1778,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             serdes.assert_empty();
 
-            let diff_1_a = diff_1.split_bits_by(|bit| bit.frame == 27);
-            let diff_2_a = diff_2.split_bits_by(|bit| bit.frame == 27);
-            let diff_3_a = diff_3.split_bits_by(|bit| bit.frame == 27);
-            let diff_4_a = diff_4.split_bits_by(|bit| bit.frame == 27);
-            let diff_5_a = diff_5.split_bits_by(|bit| bit.frame == 27);
-            let diff_6_a = diff_6.split_bits_by(|bit| bit.frame == 27);
-            let diff_7_a = diff_7.split_bits_by(|bit| bit.frame == 27);
-            let diff_8_a = diff_8.split_bits_by(|bit| bit.frame == 27);
+            let diff_1_a = diff_1.split_bits_by(|bit| bit.frame.to_idx() == 27);
+            let diff_2_a = diff_2.split_bits_by(|bit| bit.frame.to_idx() == 27);
+            let diff_3_a = diff_3.split_bits_by(|bit| bit.frame.to_idx() == 27);
+            let diff_4_a = diff_4.split_bits_by(|bit| bit.frame.to_idx() == 27);
+            let diff_5_a = diff_5.split_bits_by(|bit| bit.frame.to_idx() == 27);
+            let diff_6_a = diff_6.split_bits_by(|bit| bit.frame.to_idx() == 27);
+            let diff_7_a = diff_7.split_bits_by(|bit| bit.frame.to_idx() == 27);
+            let diff_8_a = diff_8.split_bits_by(|bit| bit.frame.to_idx() == 27);
 
             assert_eq!(diff_1, diff_2);
             if i == 1 {
@@ -1863,9 +1867,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff.bits.len(), 1);
             let mut diff2 = Diff::default();
             for (&k, &v) in &diff.bits {
-                diff2
-                    .bits
-                    .insert(TileBit::new(k.tile, k.frame, k.bit ^ 1), v);
+                diff2.bits.insert(
+                    TileBit {
+                        bit: RectBitId::from_idx(k.bit.to_idx() ^ 1),
+                        ..k
+                    },
+                    v,
+                );
             }
             ctx.tiledb.insert(
                 tile,
@@ -1944,13 +1952,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb
                 .insert(tile, bel, "TFF_SRVAL", xlat_bit(diff_srval));
             let mut diff = ctx.state.get_diff(tile, bel, "SRINIT_OQ", "1");
-            let diff_srval = diff.split_bits_by(|bit| matches!(bit.bit, 8 | 24));
+            let diff_srval = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 8 | 24));
             ctx.tiledb.insert(tile, bel, "OFF_INIT", xlat_bit(diff));
             ctx.tiledb
                 .insert(tile, bel, "OFF_SRVAL", xlat_bit(diff_srval));
 
             let mut diff = ctx.state.get_diff(tile, bel, "MUX.D", "MCB");
-            let diff_t = diff.split_bits_by(|bit| matches!(bit.bit, 2 | 28));
+            let diff_t = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 2 | 28));
             ctx.tiledb.insert(
                 tile,
                 bel,
@@ -1984,7 +1992,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb.insert(tile, bel, "TFF_RANK2_CLK_ENABLE", item);
 
             let mut diff = ctx.state.get_diff(tile, bel, "BYPASS_GCLK_FF", "FALSE");
-            let diff_t = diff.split_bits_by(|bit| matches!(bit.bit, 6 | 22));
+            let diff_t = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 6 | 22));
             ctx.tiledb
                 .insert(tile, bel, "OFF_RANK1_CLK_ENABLE", xlat_bit(diff));
             ctx.tiledb
@@ -2090,7 +2098,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut diffs_p = vec![];
             let mut diffs_n = vec![];
             for mut diff in diffs {
-                let diff_p = diff.split_bits_by(|bit| (16..48).contains(&bit.bit));
+                let diff_p = diff.split_bits_by(|bit| (16..48).contains(&bit.bit.to_idx()));
                 diffs_p.push(diff_p);
                 diffs_n.push(diff);
             }

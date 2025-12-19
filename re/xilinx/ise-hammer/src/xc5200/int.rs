@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     grid::TileCoord,
@@ -8,7 +9,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;
-use prjcombine_xilinx_bitstream::BitTile;
+use prjcombine_xilinx_bitstream::BitRect;
 
 use crate::{
     backend::IseBackend,
@@ -50,7 +51,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
             }
             fuzzer.info.features.push(FuzzerFeature {
                 id: id.clone(),
-                tiles: vec![BitTile::Null, edev.btile_main(tcrd.col, row)],
+                rects: EntityVec::from_iter([BitRect::Null, edev.btile_main(tcrd.col, row)]),
             });
         }
         Some((fuzzer, false))

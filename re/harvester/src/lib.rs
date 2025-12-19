@@ -3,22 +3,22 @@ use std::{
     fmt::Debug,
 };
 
-use prjcombine_types::bsdata::TileBit;
 use prjcombine_entity::{EntityVec, entity_id};
+use prjcombine_types::bsdata::{BitRectId, RectBitId, RectFrameId, TileBit};
 
 #[derive(Debug, Clone)]
-pub struct Sample<BitTile: Copy + Eq + Ord + Debug> {
-    pub diff: BTreeMap<(BitTile, usize, usize), bool>,
-    pub patterns: BTreeSet<SamplePattern<BitTile>>,
+pub struct Sample<BitRect: Copy + Eq + Ord + Debug> {
+    pub diff: BTreeMap<(BitRect, RectFrameId, RectBitId), bool>,
+    pub patterns: BTreeSet<SamplePattern<BitRect>>,
 }
 
-impl<BitTile: Copy + Eq + Ord + Debug> Default for Sample<BitTile> {
+impl<BitRect: Copy + Eq + Ord + Debug> Default for Sample<BitRect> {
     fn default() -> Self {
         Sample::new()
     }
 }
 
-impl<BitTile: Copy + Eq + Ord + Debug> Sample<BitTile> {
+impl<BitRect: Copy + Eq + Ord + Debug> Sample<BitRect> {
     pub fn new() -> Self {
         Self {
             diff: Default::default(),
@@ -26,17 +26,17 @@ impl<BitTile: Copy + Eq + Ord + Debug> Sample<BitTile> {
         }
     }
 
-    pub fn add_tiled_pattern(&mut self, bittiles: &[BitTile], name: impl Into<String>) {
+    pub fn add_tiled_pattern(&mut self, rects: &[BitRect], name: impl Into<String>) {
         self.patterns.insert(SamplePattern {
-            tiles: Some(bittiles.to_vec()),
+            rects: Some(EntityVec::from_iter(rects.iter().copied())),
             name: name.into(),
             single: false,
         });
     }
 
-    pub fn add_tiled_pattern_single(&mut self, bittiles: &[BitTile], name: impl Into<String>) {
+    pub fn add_tiled_pattern_single(&mut self, rects: &[BitRect], name: impl Into<String>) {
         self.patterns.insert(SamplePattern {
-            tiles: Some(bittiles.to_vec()),
+            rects: Some(EntityVec::from_iter(rects.iter().copied())),
             name: name.into(),
             single: true,
         });
@@ -44,7 +44,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Sample<BitTile> {
 
     pub fn add_global_pattern(&mut self, name: impl Into<String>) {
         self.patterns.insert(SamplePattern {
-            tiles: None,
+            rects: None,
             name: name.into(),
             single: false,
         });
@@ -52,7 +52,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Sample<BitTile> {
 
     pub fn add_global_pattern_single(&mut self, name: impl Into<String>) {
         self.patterns.insert(SamplePattern {
-            tiles: None,
+            rects: None,
             name: name.into(),
             single: true,
         });
@@ -60,20 +60,20 @@ impl<BitTile: Copy + Eq + Ord + Debug> Sample<BitTile> {
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
-pub struct SamplePattern<BitTile: Copy + Eq + Ord + Debug> {
-    pub tiles: Option<Vec<BitTile>>,
+pub struct SamplePattern<BitRect: Copy + Eq + Ord + Debug> {
+    pub rects: Option<EntityVec<BitRectId, BitRect>>,
     pub name: String,
     pub single: bool,
 }
 
 #[derive(Debug)]
-pub struct Harvester<BitTile: Copy + Eq + Ord + Debug> {
-    pub samples: EntityVec<WorkSampleId, WorkSample<BitTile>>,
+pub struct Harvester<BitRect: Copy + Eq + Ord + Debug> {
+    pub samples: EntityVec<WorkSampleId, WorkSample<BitRect>>,
     pub pending_samples: BTreeSet<WorkSampleId>,
     pub work_tiled: BTreeMap<String, WorkPatternTiled>,
-    pub work_global: BTreeMap<String, WorkPatternGlobal<BitTile>>,
+    pub work_global: BTreeMap<String, WorkPatternGlobal<BitRect>>,
     pub known_tiled: BTreeMap<String, BTreeMap<TileBit, bool>>,
-    pub known_global: BTreeMap<String, BTreeMap<(BitTile, usize, usize), bool>>,
+    pub known_global: BTreeMap<String, BTreeMap<(BitRect, RectFrameId, RectBitId), bool>>,
     pub debug: u8,
 }
 
@@ -83,23 +83,23 @@ entity_id! {
 }
 
 #[derive(Debug)]
-pub struct WorkSample<BitTile: Copy + Eq + Ord + Debug> {
-    pub orig_diff: BTreeMap<(BitTile, usize, usize), bool>,
-    pub diff: BTreeMap<BitTile, BTreeMap<(usize, usize), bool>>,
-    pub patterns: EntityVec<WorkSamplePatternId, SamplePattern<BitTile>>,
+pub struct WorkSample<BitRect: Copy + Eq + Ord + Debug> {
+    pub orig_diff: BTreeMap<(BitRect, RectFrameId, RectBitId), bool>,
+    pub diff: BTreeMap<BitRect, BTreeMap<(RectFrameId, RectBitId), bool>>,
+    pub patterns: EntityVec<WorkSamplePatternId, SamplePattern<BitRect>>,
     pub global_patterns: BTreeSet<WorkSamplePatternId>,
-    pub tiled_patterns: BTreeMap<BitTile, BTreeSet<(WorkSamplePatternId, usize)>>,
+    pub tiled_patterns: BTreeMap<BitRect, BTreeSet<(WorkSamplePatternId, BitRectId)>>,
 }
 
-impl<BitTile: Copy + Eq + Ord + Debug> WorkSample<BitTile> {
-    fn contains_bit(&self, bit: (BitTile, usize, usize), val: bool) -> bool {
+impl<BitRect: Copy + Eq + Ord + Debug> WorkSample<BitRect> {
+    fn contains_bit(&self, bit: (BitRect, RectFrameId, RectBitId), val: bool) -> bool {
         let Some(tile_bits) = self.diff.get(&bit.0) else {
             return false;
         };
         tile_bits.get(&(bit.1, bit.2)) == Some(&val)
     }
 
-    fn remove_bit(&mut self, bit: (BitTile, usize, usize), val: bool) -> bool {
+    fn remove_bit(&mut self, bit: (BitRect, RectFrameId, RectBitId), val: bool) -> bool {
         let Some(tile_bits) = self.diff.get_mut(&bit.0) else {
             return false;
         };
@@ -121,13 +121,13 @@ pub struct WorkPatternTiled {
 }
 
 #[derive(Debug)]
-pub struct WorkPatternGlobal<BitTile: Copy + Eq + Ord + Debug> {
+pub struct WorkPatternGlobal<BitRect: Copy + Eq + Ord + Debug> {
     pub locs: BTreeSet<(WorkSampleId, WorkSamplePatternId)>,
-    pub known_bits: BTreeMap<(BitTile, usize, usize), bool>,
+    pub known_bits: BTreeMap<(BitRect, RectFrameId, RectBitId), bool>,
     pub single: bool,
 }
 
-impl<BitTile: Copy + Eq + Ord + Debug> Default for WorkPatternGlobal<BitTile> {
+impl<BitRect: Copy + Eq + Ord + Debug> Default for WorkPatternGlobal<BitRect> {
     fn default() -> Self {
         Self {
             locs: Default::default(),
@@ -137,7 +137,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Default for WorkPatternGlobal<BitTile> {
     }
 }
 
-impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
+impl<BitRect: Copy + Eq + Ord + Debug> Harvester<BitRect> {
     pub fn new() -> Self {
         Self {
             samples: Default::default(),
@@ -183,7 +183,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
     pub fn force_global(
         &mut self,
         key: impl Into<String>,
-        bits: BTreeMap<(BitTile, usize, usize), bool>,
+        bits: BTreeMap<(BitRect, RectFrameId, RectBitId), bool>,
     ) {
         let key = key.into();
         if let Some(thing) = self.known_global.get(&key) {
@@ -198,13 +198,13 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
         }
     }
 
-    pub fn add_sample(&mut self, sample: Sample<BitTile>) -> Option<WorkSampleId> {
+    pub fn add_sample(&mut self, sample: Sample<BitRect>) -> Option<WorkSampleId> {
         let sample_id = self.samples.next_id();
         let mut diff: BTreeMap<_, BTreeMap<_, _>> = BTreeMap::new();
         for (&(tile, frame, bit), &value) in &sample.diff {
             diff.entry(tile).or_default().insert((frame, bit), value);
         }
-        let mut remove_bit = |harvester: &Harvester<BitTile>, (tile, frame, bit), val| {
+        let mut remove_bit = |harvester: &Harvester<BitRect>, (tile, frame, bit), val| {
             let Some(tile_bits) = diff.get_mut(&tile) else {
                 harvester.fail(sample_id, (tile, frame, bit));
             };
@@ -219,7 +219,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
         let mut global_patterns = BTreeSet::new();
         let mut tiled_patterns: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
         for (pattern_id, pattern) in &patterns {
-            match pattern.tiles {
+            match pattern.rects {
                 None => {
                     if let Some(bits) = self.known_global.get(&pattern.name) {
                         for (&bit, &val) in bits {
@@ -237,10 +237,10 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                         global_patterns.insert(pattern_id);
                     }
                 }
-                Some(ref tiles) => {
+                Some(ref rects) => {
                     if let Some(bits) = self.known_tiled.get(&pattern.name) {
                         for (&bit, &val) in bits {
-                            let xbit = (tiles[bit.tile], bit.frame, bit.bit);
+                            let xbit = (rects[bit.rect], bit.frame, bit.bit);
                             remove_bit(self, xbit, val);
                         }
                     } else {
@@ -250,13 +250,13 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                         }
                         work.locs.insert((sample_id, pattern_id));
                         for (bit, val) in work.known_bits.clone() {
-                            let xbit = (tiles[bit.tile], bit.frame, bit.bit);
+                            let xbit = (rects[bit.rect], bit.frame, bit.bit);
                             remove_bit(self, xbit, val);
                         }
 
-                        for (tile_idx, &tile) in tiles.iter().enumerate() {
+                        for (tile_idx, &rect) in rects {
                             tiled_patterns
-                                .entry(tile)
+                                .entry(rect)
                                 .or_default()
                                 .insert((pattern_id, tile_idx));
                         }
@@ -303,15 +303,20 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
         work.known_bits.insert(bit, val);
         for &(sample_id, pattern_id) in &work.locs {
             let sample = &mut self.samples[sample_id];
-            let tiles = sample.patterns[pattern_id].tiles.as_ref().unwrap();
-            let xbit = (tiles[bit.tile], bit.frame, bit.bit);
+            let rects = sample.patterns[pattern_id].rects.as_ref().unwrap();
+            let xbit = (rects[bit.rect], bit.frame, bit.bit);
             if !sample.remove_bit(xbit, val) {
                 self.fail(sample_id, xbit);
             }
         }
     }
 
-    fn add_known_bit_global(&mut self, name: &str, bit: (BitTile, usize, usize), val: bool) {
+    fn add_known_bit_global(
+        &mut self,
+        name: &str,
+        bit: (BitRect, RectFrameId, RectBitId),
+        val: bool,
+    ) {
         if let Some(bits) = self.known_global.get(name) {
             assert_eq!(bits.get(&bit), Some(&val));
             return;
@@ -337,8 +342,8 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
         let work = &self.work_tiled[name];
         for &(sample_id, pattern_id) in &work.locs {
             let sample = &self.samples[sample_id];
-            let tiles = sample.patterns[pattern_id].tiles.as_ref().unwrap();
-            let xbit = (tiles[bit.tile], bit.frame, bit.bit);
+            let tiles = sample.patterns[pattern_id].rects.as_ref().unwrap();
+            let xbit = (tiles[bit.rect], bit.frame, bit.bit);
             if !sample.contains_bit(xbit, val) {
                 return false;
             }
@@ -346,7 +351,12 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
         true
     }
 
-    fn global_bit_possible(&self, name: &str, bit: (BitTile, usize, usize), val: bool) -> bool {
+    fn global_bit_possible(
+        &self,
+        name: &str,
+        bit: (BitRect, RectFrameId, RectBitId),
+        val: bool,
+    ) -> bool {
         let work = &self.work_global[name];
         for &(sample_id, _) in &work.locs {
             let sample = &self.samples[sample_id];
@@ -371,17 +381,11 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
         self.known_tiled.insert(name, work.known_bits);
         for (sample_id, pattern_id) in work.locs {
             let sample = &mut self.samples[sample_id];
-            for (tile_idx, &tile) in sample.patterns[pattern_id]
-                .tiles
-                .as_ref()
-                .unwrap()
-                .iter()
-                .enumerate()
-            {
-                let patterns = sample.tiled_patterns.get_mut(&tile).unwrap();
-                assert!(patterns.remove(&(pattern_id, tile_idx)));
+            for (rect_id, &rect) in sample.patterns[pattern_id].rects.as_ref().unwrap() {
+                let patterns = sample.tiled_patterns.get_mut(&rect).unwrap();
+                assert!(patterns.remove(&(pattern_id, rect_id)));
                 if patterns.is_empty() {
-                    sample.tiled_patterns.remove(&tile);
+                    sample.tiled_patterns.remove(&rect);
                 }
             }
         }
@@ -469,7 +473,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                         #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
                         enum CandidateOwner {
                             Global(WorkSamplePatternId),
-                            Tiled(WorkSamplePatternId, usize),
+                            Tiled(WorkSamplePatternId, BitRectId),
                         }
                         let mut cands = vec![];
                         for &pattern_id in &sample.global_patterns {
@@ -482,9 +486,9 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                             }
                         }
                         if let Some(tiled_patterns) = sample.tiled_patterns.get(&bit.0) {
-                            for &(pattern_id, tile_idx) in tiled_patterns {
+                            for &(pattern_id, rect_idx) in tiled_patterns {
                                 let tbit = TileBit {
-                                    tile: tile_idx,
+                                    rect: rect_idx,
                                     frame: bit.1,
                                     bit: bit.2,
                                 };
@@ -493,7 +497,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                                     tbit,
                                     value,
                                 ) {
-                                    cands.push(CandidateOwner::Tiled(pattern_id, tile_idx));
+                                    cands.push(CandidateOwner::Tiled(pattern_id, rect_idx));
                                 }
                             }
                         }
@@ -505,11 +509,11 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                             cands.sort();
                             match cands[..] {
                                 [
-                                    CandidateOwner::Tiled(pattern_id_a, tile_idx_a),
-                                    CandidateOwner::Tiled(pattern_id_b, tile_idx_b),
-                                ] if tile_idx_a == tile_idx_b => {
+                                    CandidateOwner::Tiled(pattern_id_a, rect_idx_a),
+                                    CandidateOwner::Tiled(pattern_id_b, rect_idx_b),
+                                ] if rect_idx_a == rect_idx_b => {
                                     let tbit = TileBit {
-                                        tile: tile_idx_a,
+                                        rect: rect_idx_a,
                                         frame: bit.1,
                                         bit: bit.2,
                                     };
@@ -521,12 +525,12 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                                     ));
                                 }
                                 [
-                                    CandidateOwner::Tiled(pattern_id_a, tile_idx_a),
-                                    CandidateOwner::Tiled(pattern_id_b, tile_idx_b),
-                                    CandidateOwner::Tiled(pattern_id_c, tile_idx_c),
-                                ] if tile_idx_a == tile_idx_b && tile_idx_a == tile_idx_c => {
+                                    CandidateOwner::Tiled(pattern_id_a, rect_idx_a),
+                                    CandidateOwner::Tiled(pattern_id_b, rect_idx_b),
+                                    CandidateOwner::Tiled(pattern_id_c, rect_idx_c),
+                                ] if rect_idx_a == rect_idx_b && rect_idx_a == rect_idx_c => {
                                     let tbit = TileBit {
-                                        tile: tile_idx_a,
+                                        rect: rect_idx_a,
                                         frame: bit.1,
                                         bit: bit.2,
                                     };
@@ -547,10 +551,10 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                                 let pattern = &sample.patterns[pattern_id];
                                 self.add_known_bit_global(&pattern.name.clone(), bit, value);
                             }
-                            CandidateOwner::Tiled(pattern_id, tile_idx) => {
+                            CandidateOwner::Tiled(pattern_id, rect_idx) => {
                                 let pattern = &sample.patterns[pattern_id];
                                 let tbit = TileBit {
-                                    tile: tile_idx,
+                                    rect: rect_idx,
                                     frame: bit.1,
                                     bit: bit.2,
                                 };
@@ -586,7 +590,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                 for tiled_patterns in sample.tiled_patterns.values() {
                     for &(pattern_id, _) in tiled_patterns {
                         let mut is_empty = true;
-                        for &tile in sample.patterns[pattern_id].tiles.as_ref().unwrap() {
+                        for &tile in sample.patterns[pattern_id].rects.as_ref().unwrap().values() {
                             if sample.diff.contains_key(&tile) {
                                 is_empty = false;
                                 break;
@@ -705,7 +709,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
             || !self.work_tiled.is_empty()
     }
 
-    fn fail(&self, sample_id: WorkSampleId, bit: (BitTile, usize, usize)) -> ! {
+    fn fail(&self, sample_id: WorkSampleId, bit: (BitRect, RectFrameId, RectBitId)) -> ! {
         println!("FAIL AT SAMPLE {sample_id} {bit:?}");
         for (sample_id, sample) in &self.samples {
             println!("SAMPLE {sample_id}:");
@@ -714,7 +718,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
                     println!("    {tile:?} {frame}.{bit}: {value}");
                 }
                 for (pattern_id, pattern) in &sample.patterns {
-                    if let Some(ref tiles) = pattern.tiles {
+                    if let Some(ref tiles) = pattern.rects {
                         println!(
                             "    PATTERN {pattern_id}: {name} at {tiles:?}",
                             name = pattern.name
@@ -761,7 +765,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
             println!("    BIT {bit:?} {val}");
         }
         for (pattern_id, pattern) in &sample.patterns {
-            if let Some(ref tiles) = pattern.tiles {
+            if let Some(ref tiles) = pattern.rects {
                 println!(
                     "    PATTERN {pattern_id}: {name} at {tiles:?}",
                     name = pattern.name
@@ -777,7 +781,7 @@ impl<BitTile: Copy + Eq + Ord + Debug> Harvester<BitTile> {
     }
 }
 
-impl<BitTile: Copy + Eq + Ord + Debug> Default for Harvester<BitTile> {
+impl<BitRect: Copy + Eq + Ord + Debug> Default for Harvester<BitRect> {
     fn default() -> Self {
         Self::new()
     }

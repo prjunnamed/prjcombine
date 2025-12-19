@@ -1,6 +1,7 @@
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId, TileCoord};
-use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId, TileCoord};
+use prjcombine_types::bsdata::BitRectId;
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 
 use crate::chip::{Chip, ChipKind};
 
@@ -15,17 +16,19 @@ pub struct ExpandedDevice<'a> {
 }
 
 impl ExpandedDevice<'_> {
-    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let col = tcrd.col;
         let row = tcrd.row;
         let tile = &self[tcrd];
         let kind = self.db.tile_classes.key(tile.class);
         match self.chip.kind {
             ChipKind::Xc2000 => {
-                if kind.starts_with("BIDI") {
-                    todo!()
+                if kind.starts_with("BIDIV") {
+                    EntityVec::from_iter([self.btile_llv(col, row)])
+                } else if kind.starts_with("BIDIH") {
+                    EntityVec::from_iter([self.btile_llh(col, row)])
                 } else {
-                    let mut res = vec![self.btile_main(col, row)];
+                    let mut res = EntityVec::from_iter([self.btile_main(col, row)]);
                     if col != self.chip.col_e()
                         && (row == self.chip.row_s() || row == self.chip.row_n())
                     {
@@ -36,11 +39,11 @@ impl ExpandedDevice<'_> {
             }
             ChipKind::Xc3000 | ChipKind::Xc3000A => {
                 if kind.starts_with("LLH") || (kind.starts_with("LLV") && kind.ends_with('S')) {
-                    vec![self.btile_main(col, row)]
+                    EntityVec::from_iter([self.btile_main(col, row)])
                 } else if kind.starts_with("LLV") {
-                    vec![self.btile_llv(col, row), self.btile_main(col, row)]
+                    EntityVec::from_iter([self.btile_llv(col, row), self.btile_main(col, row)])
                 } else {
-                    let mut res = vec![self.btile_main(col, row)];
+                    let mut res = EntityVec::from_iter([self.btile_main(col, row)]);
                     if row != self.chip.row_n() {
                         res.push(self.btile_main(col, row + 1));
                     }
@@ -57,98 +60,113 @@ impl ExpandedDevice<'_> {
             | ChipKind::SpartanXl => {
                 if kind.starts_with("LLH") {
                     if row == self.chip.row_s() {
-                        vec![self.btile_llh(col, row), self.btile_main(col - 1, row)]
+                        EntityVec::from_iter([
+                            self.btile_llh(col, row),
+                            self.btile_main(col - 1, row),
+                        ])
                     } else if row == self.chip.row_n() {
-                        vec![
+                        EntityVec::from_iter([
                             self.btile_llh(col, row),
                             self.btile_llh(col, row - 1),
                             self.btile_main(col - 1, row),
-                        ]
+                        ])
                     } else if row == self.chip.row_s() + 1 {
-                        vec![
+                        EntityVec::from_iter([
                             self.btile_llh(col, row),
                             self.btile_llh(col, row - 1),
                             self.btile_main(col - 1, row - 1),
-                        ]
+                        ])
                     } else {
-                        vec![self.btile_llh(col, row), self.btile_llh(col, row - 1)]
+                        EntityVec::from_iter([
+                            self.btile_llh(col, row),
+                            self.btile_llh(col, row - 1),
+                        ])
                     }
                 } else if kind.starts_with("LLV") {
                     if col == self.chip.col_w() {
-                        vec![self.btile_llv(col, row), self.btile_llv(col + 1, row)]
+                        EntityVec::from_iter([
+                            self.btile_llv(col, row),
+                            self.btile_llv(col + 1, row),
+                        ])
                     } else {
-                        vec![self.btile_llv(col, row)]
+                        EntityVec::from_iter([self.btile_llv(col, row)])
                     }
                 } else {
                     if col == self.chip.col_w() {
                         if row == self.chip.row_s() {
                             // LL
-                            vec![self.btile_main(col, row)]
+                            EntityVec::from_iter([self.btile_main(col, row)])
                         } else if row == self.chip.row_n() {
                             // UL
-                            vec![self.btile_main(col, row)]
+                            EntityVec::from_iter([self.btile_main(col, row)])
                         } else {
                             // LEFT
-                            vec![self.btile_main(col, row), self.btile_main(col, row - 1)]
+                            EntityVec::from_iter([
+                                self.btile_main(col, row),
+                                self.btile_main(col, row - 1),
+                            ])
                         }
                     } else if col == self.chip.col_e() {
                         if row == self.chip.row_s() {
                             // LR
-                            vec![self.btile_main(col, row)]
+                            EntityVec::from_iter([self.btile_main(col, row)])
                         } else if row == self.chip.row_n() {
                             // UR
-                            vec![
+                            EntityVec::from_iter([
                                 self.btile_main(col, row),
                                 self.btile_main(col, row - 1),
                                 self.btile_main(col - 1, row),
-                            ]
+                            ])
                         } else {
                             // RT
-                            vec![
+                            EntityVec::from_iter([
                                 self.btile_main(col, row),
                                 self.btile_main(col, row - 1),
                                 self.btile_main(col - 1, row),
-                            ]
+                            ])
                         }
                     } else {
                         if row == self.chip.row_s() {
                             // BOT
-                            vec![self.btile_main(col, row), self.btile_main(col + 1, row)]
+                            EntityVec::from_iter([
+                                self.btile_main(col, row),
+                                self.btile_main(col + 1, row),
+                            ])
                         } else if row == self.chip.row_n() {
                             // TOP
-                            vec![
+                            EntityVec::from_iter([
                                 self.btile_main(col, row),
                                 self.btile_main(col, row - 1),
                                 self.btile_main(col + 1, row),
                                 self.btile_main(col - 1, row),
-                            ]
+                            ])
                         } else {
                             // CLB
-                            vec![
+                            EntityVec::from_iter([
                                 self.btile_main(col, row),
                                 self.btile_main(col, row - 1),
                                 self.btile_main(col - 1, row),
                                 self.btile_main(col, row + 1),
                                 self.btile_main(col + 1, row),
-                            ]
+                            ])
                         }
                     }
                 }
             }
             ChipKind::Xc5200 => {
                 if matches!(&kind[..], "CLKL" | "CLKR" | "CLKH") {
-                    vec![self.btile_llv(col, row)]
+                    EntityVec::from_iter([self.btile_llv(col, row)])
                 } else if matches!(&kind[..], "CLKB" | "CLKT" | "CLKV") {
-                    vec![self.btile_llh(col, row)]
+                    EntityVec::from_iter([self.btile_llh(col, row)])
                 } else {
-                    vec![self.btile_main(col, row)]
+                    EntityVec::from_iter([self.btile_main(col, row)])
                 }
             }
         }
     }
 
-    pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
-        BitTile::Main(
+    pub fn btile_main(&self, col: ColId, row: RowId) -> BitRect {
+        BitRect::Main(
             DieId::from_idx(0),
             self.col_frame[col],
             self.chip.btile_width_main(col),
@@ -158,7 +176,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_llv(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_llv(&self, col: ColId, row: RowId) -> BitRect {
         let bit = self.llv_framebit[row];
         let height = if self.chip.kind == ChipKind::Xc2000 {
             self.chip.btile_height_brk()
@@ -169,7 +187,7 @@ impl ExpandedDevice<'_> {
         } else {
             unreachable!()
         };
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             self.col_frame[col],
             self.chip.btile_width_main(col),
@@ -179,7 +197,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_llh(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_llh(&self, col: ColId, row: RowId) -> BitRect {
         let frame = self.llh_frame[col];
         let width = if self.chip.kind == ChipKind::Xc2000 {
             self.chip.btile_width_brk()
@@ -190,7 +208,7 @@ impl ExpandedDevice<'_> {
         } else {
             unreachable!()
         };
-        BitTile::Main(
+        BitRect::Main(
             DieId::from_idx(0),
             frame,
             width,

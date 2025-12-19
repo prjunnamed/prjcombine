@@ -14,6 +14,7 @@ use prjcombine_ecp::{
     db::Device,
     expanded::ExpandedDevice,
 };
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{Bel, BelInfo, BelSlotId, IntDb, TileClassId},
     grid::{BelCoord, CellCoord, ColId, WireCoord},
@@ -22,7 +23,6 @@ use prjcombine_re_lattice_naming::{BelNaming, ChipNaming, Database, WireName};
 use prjcombine_re_lattice_rawdump::{Grid, GridId, NodeId};
 use prjcombine_types::db::DeviceCombo;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::{
     chip::{ChipExt, make_chip},

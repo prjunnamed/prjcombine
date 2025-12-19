@@ -66,7 +66,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
                     attr: "DCM_ENABLE".into(),
                     val: "1".into(),
                 },
-                tiles: edev.tile_bits(tcrd),
+                rects: edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))
         } else if required {

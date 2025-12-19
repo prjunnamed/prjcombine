@@ -3,8 +3,8 @@ use std::{collections::HashMap, fmt::Write};
 use indexmap::IndexSet;
 use itertools::Itertools;
 use prjcombine_coolrunner2::{BankId, BondPad, BsLayout, Database};
-use prjcombine_types::cpld::IoCoord;
 use prjcombine_entity::{EntityId, EntityPartVec};
+use prjcombine_types::cpld::IoCoord;
 
 use crate::{
     DocgenContext,

@@ -1,5 +1,6 @@
 use std::fmt::Write;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, ColId, RowId};
 use prjcombine_re_xilinx_naming::{
     db::{NamingDb, RawTileId},
@@ -10,7 +11,6 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
 };
-use prjcombine_entity::EntityId;
 
 use crate::ExpandedNamedDevice;
 

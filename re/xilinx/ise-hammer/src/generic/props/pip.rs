@@ -1,5 +1,6 @@
 use core::fmt::Debug;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelSlotId, TileWireCoord},
     grid::TileCoord,
@@ -7,7 +8,6 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_re_xilinx_naming::db::{BelNaming, RawTileId};
-use prjcombine_entity::EntityId;
 
 use crate::backend::{IseBackend, Key};
 

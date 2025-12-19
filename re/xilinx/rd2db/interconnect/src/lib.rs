@@ -2,6 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
@@ -16,7 +17,6 @@ use prjcombine_re_xilinx_naming::db::{
     TileClassNaming, TileClassNamingId,
 };
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use assert_matches::assert_matches;
 

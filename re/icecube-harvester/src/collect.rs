@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{SwitchBox, SwitchBoxItem, TileClassId},
     dir::{Dir, DirV},
@@ -16,9 +17,8 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::{
     bits,
-    bsdata::{BsData, TileBit, TileItem},
+    bsdata::{BitRectId, BsData, TileBit, TileItem},
 };
-use prjcombine_entity::EntityId;
 
 pub fn collect_iob(
     edev: &ExpandedDevice,
@@ -43,7 +43,7 @@ pub fn collect_iob(
                     assert_eq!(bit_owner, owner);
                     (
                         TileBit {
-                            tile: 0,
+                            rect: BitRectId::from_idx(0),
                             frame,
                             bit,
                         },
@@ -70,7 +70,7 @@ pub fn collect_iob(
                     assert_eq!(bit_owner, owner);
                     (
                         TileBit {
-                            tile: 0,
+                            rect: BitRectId::from_idx(0),
                             frame,
                             bit,
                         },
@@ -298,8 +298,8 @@ pub fn collect(
         let bel = "BRAM";
         let mut item = collector.extract_bitvec("BRAM_DATA", "BRAM", "INIT", "");
         for bit in &mut item.bits {
-            assert_eq!(bit.tile, 0);
-            bit.tile = 2;
+            assert_eq!(bit.rect.to_idx(), 0);
+            bit.rect = BitRectId::from_idx(2);
         }
         collector.tiledb.insert(tile, bel, "INIT", item);
         if edev.chip.kind.is_ice40() {
@@ -638,7 +638,7 @@ pub fn collect(
             let tile = "IR_DRV";
             let bel = "IR_DRV";
             let mut diffs = collector.state.get_diffs(tile, bel, "IR_CURRENT", "");
-            let en = diffs[0].split_bits_by(|bit| bit.frame == 5);
+            let en = diffs[0].split_bits_by(|bit| bit.frame.to_idx() == 5);
             collector
                 .tiledb
                 .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));

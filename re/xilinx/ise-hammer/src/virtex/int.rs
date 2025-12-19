@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord},
     grid::{ColId, RowId, TileCoord},
@@ -7,9 +8,8 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bittile::BitTile as _;
+use prjcombine_types::bitrect::BitRect as _;
 use prjcombine_virtex::{bels, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -1206,7 +1206,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     // corners with easier-to-disambiguate muxes, and correlating with
                                     // bitstream geometry in right-hand corners. also confirmed by some
                                     // manual bitgen tests.
-                                    drive_bits.retain(|bit| matches!(bit.frame % 6, 0 | 5));
+                                    drive_bits
+                                        .retain(|bit| matches!(bit.frame.to_idx() % 6, 0 | 5));
                                 } else {
                                     let btile = match &tcname[..] {
                                         "IO.L" => {

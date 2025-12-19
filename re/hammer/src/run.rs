@@ -3,12 +3,12 @@ use crate::*;
 use bimap::BiHashMap;
 use indicatif::ProgressBar;
 use itertools::Itertools;
+use prjcombine_entity::EntityId;
 use rand::seq::{IteratorRandom, SliceRandom};
 use std::collections::hash_map::Entry;
 use std::sync::Condvar;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use prjcombine_entity::EntityId;
 
 struct BatchState<B: Backend> {
     base_bs: Option<(B::Bitstream, HashMap<B::Key, B::Value>)>,

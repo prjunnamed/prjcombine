@@ -1,17 +1,18 @@
 use bincode::{Decode, Encode};
+use prjcombine_entity::EntityVec;
+use prjcombine_entity::id::{EntityIdU16, EntityTag};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{DieId, ExpandedGrid, TileCoord};
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
+use prjcombine_types::bsdata::BitRectId;
 use prjcombine_types::db::{BondId, ChipId, DevBondId, DevSpeedId, InterposerId};
 use prjcombine_virtex4::gtz::GtzDb;
-use prjcombine_xilinx_bitstream::{BitTile, BitstreamGeom};
+use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 use std::collections::{BTreeMap, BTreeSet};
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use prjcombine_entity::EntityVec;
-use prjcombine_entity::id::{EntityIdU16, EntityTag};
 
 impl EntityTag for DeviceNaming {
     const PREFIX: &'static str = "DEVNAMING";
@@ -200,7 +201,7 @@ impl<'a> ExpandedDevice<'a> {
         }
     }
 
-    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         match self {
             ExpandedDevice::Xc2000(edev) => edev.tile_bits(tcrd),
             ExpandedDevice::Virtex(edev) => edev.tile_bits(tcrd),

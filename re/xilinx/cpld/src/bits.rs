@@ -10,12 +10,12 @@ use crate::types::{
 use bincode::{Decode, Encode};
 use enum_map::Enum;
 use itertools::Itertools;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IpadId, MacrocellId, ProductTermId},
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub type BitPos = (u32, usize);
 

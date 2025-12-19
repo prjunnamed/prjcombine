@@ -1,6 +1,6 @@
+use prjcombine_entity::{EntityBitVec, EntityVec, entity_id};
 use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId};
 use std::collections::{BTreeSet, HashMap};
-use prjcombine_entity::{EntityBitVec, EntityVec, entity_id};
 
 use crate::chip::{Chip, DisabledPart, Interposer};
 

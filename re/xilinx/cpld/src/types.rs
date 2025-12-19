@@ -1,7 +1,7 @@
 use bincode::{Decode, Encode};
 use enum_map::Enum;
-use prjcombine_types::cpld::{IoCoord, MacrocellCoord, MacrocellId, ProductTermId};
 use prjcombine_entity::id::{EntityIdU8, EntityTag};
+use prjcombine_types::cpld::{IoCoord, MacrocellCoord, MacrocellId, ProductTermId};
 
 macro_rules! entity_id_u8 {
     ($ty:ident, $tag:ident, $prefix:literal) => {

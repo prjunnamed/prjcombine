@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::TileIobId;
 use prjcombine_re_xilinx_naming_ultrascale::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::{Part, PkgPin};
@@ -9,7 +10,6 @@ use prjcombine_ultrascale::chip::{Chip, ChipKind, DisabledPart, IoRowKind};
 use prjcombine_ultrascale::expanded::{IoCoord, IoDiffKind, IoKind};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Write;
-use prjcombine_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::split_num;
 

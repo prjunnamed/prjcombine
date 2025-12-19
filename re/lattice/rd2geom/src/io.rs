@@ -1,7 +1,7 @@
 use prjcombine_ecp::chip::{ChipKind, SpecialIoKey};
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{dir::Dir, grid::EdgeIoCoord};
 use prjcombine_re_lattice_naming::WireName;
-use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{Bel, BelInfo, BelPin, IntDb, TileWireCoord, WireKind},
     dir::Dir,
@@ -8,7 +9,6 @@ use prjcombine_re_xilinx_naming::db::{
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex::{bels, cslots, regions, tslots};
 use std::collections::BTreeMap;
-use prjcombine_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::find_columns;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};

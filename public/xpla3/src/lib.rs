@@ -7,15 +7,15 @@ use std::{
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag},
+};
 use prjcombine_types::{
     bsdata::Tile,
     cpld::{BlockId, MacrocellCoord, MacrocellId},
     db::{BondId, ChipId, SpeedId},
     speed::Speed,
-};
-use prjcombine_entity::{
-    EntityId, EntityIds, EntityVec,
-    id::{EntityIdU8, EntityTag},
 };
 
 pub struct GclkTag;

@@ -1,8 +1,8 @@
+use prjcombine_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId};
 use std::collections::{BTreeSet, HashMap};
-use prjcombine_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
 
 use crate::chip::{
     Chip, CleKind, ColumnKind, DisabledPart, GtRowKind, HardRowKind, Interposer, RightKind,

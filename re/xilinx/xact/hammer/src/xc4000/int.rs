@@ -1,14 +1,14 @@
 use std::collections::{BTreeMap, HashSet, btree_map};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord},
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
-use prjcombine_types::bsdata::TileBit;
+use prjcombine_types::bsdata::{BitRectId, TileBit};
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{Key, Value, XactBackend},
@@ -815,18 +815,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             && tcname.starts_with("IO")
                         {
                             iob_o = if out_name == "IMUX.IOB0.O1" {
-                                Some((&tcname[..], "IO0", "O1", 0))
+                                Some((&tcname[..], "IO0", "O1", BitRectId::from_idx(0)))
                             } else {
-                                Some((&tcname[..], "IO1", "O1", 0))
+                                Some((&tcname[..], "IO1", "O1", BitRectId::from_idx(0)))
                             };
                         }
                         if (out_name == "IMUX.CLB.F4" || out_name == "IMUX.CLB.G4")
                             && tcname.starts_with("IO.B")
                         {
                             iob_o = if out_name == "IMUX.CLB.F4" {
-                                Some((&tcname[..], "IO0", "O2", 0))
+                                Some((&tcname[..], "IO0", "O2", BitRectId::from_idx(0)))
                             } else {
-                                Some((&tcname[..], "IO1", "O2", 0))
+                                Some((&tcname[..], "IO1", "O2", BitRectId::from_idx(0)))
                             };
                         }
                         if (out_name == "IMUX.CLB.F2" || out_name == "IMUX.CLB.G2")
@@ -834,30 +834,30 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             && tcname.ends_with('T')
                         {
                             iob_o = if out_name == "IMUX.CLB.F2" {
-                                Some(("IO.T", "IO0", "O2", 3))
+                                Some(("IO.T", "IO0", "O2", BitRectId::from_idx(3)))
                             } else {
-                                Some(("IO.T", "IO1", "O2", 3))
+                                Some(("IO.T", "IO1", "O2", BitRectId::from_idx(3)))
                             };
                         }
                         if (out_name == "IMUX.CLB.F3" || out_name == "IMUX.CLB.G3")
                             && tcname.starts_with("CLB.L")
                         {
                             iob_o = if out_name == "IMUX.CLB.G3" {
-                                Some(("IO.L", "IO0", "O2", 2))
+                                Some(("IO.L", "IO0", "O2", BitRectId::from_idx(2)))
                             } else {
-                                Some(("IO.L", "IO1", "O2", 2))
+                                Some(("IO.L", "IO1", "O2", BitRectId::from_idx(2)))
                             };
                         }
                         if (out_name == "IMUX.CLB.F1" || out_name == "IMUX.CLB.G1")
                             && tcname.starts_with("IO.R")
                         {
                             iob_o = if out_name == "IMUX.CLB.G1" {
-                                Some((&tcname[..], "IO0", "O2", 0))
+                                Some((&tcname[..], "IO0", "O2", BitRectId::from_idx(0)))
                             } else {
-                                Some((&tcname[..], "IO1", "O2", 0))
+                                Some((&tcname[..], "IO1", "O2", BitRectId::from_idx(0)))
                             };
                         }
-                        if let Some((prefix, bel, pin, bt)) = iob_o {
+                        if let Some((prefix, bel, pin, rect_idx)) = iob_o {
                             if ctx.edev.chip.kind == ChipKind::Xc4000H {
                                 let mut inps = vec![];
                                 let mut got_empty = false;
@@ -884,15 +884,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         got_empty = true;
                                     }
                                     inps.push((in_name.to_string(), diff));
-                                    if bt != 0 {
+                                    if rect_idx.to_idx() != 0 {
                                         for diff in [&mut diff0, &mut diff1] {
                                             *diff = Diff {
                                                 bits: diff
                                                     .bits
                                                     .iter()
                                                     .map(|(&bit, &val)| {
-                                                        assert_eq!(bit.tile, bt);
-                                                        (TileBit { tile: 0, ..bit }, val)
+                                                        assert_eq!(bit.rect, rect_idx);
+                                                        (
+                                                            TileBit {
+                                                                rect: BitRectId::from_idx(0),
+                                                                ..bit
+                                                            },
+                                                            val,
+                                                        )
                                                     })
                                                     .collect(),
                                             };
@@ -968,14 +974,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         println!("UMMM MUX {tcname} {mux_name} is empty");
                                     }
                                     ctx.tiledb.insert(tcname, "INT", &mux_name, item);
-                                    if bt != 0 {
+                                    if rect_idx.to_idx() != 0 {
                                         common = Diff {
                                             bits: common
                                                 .bits
                                                 .iter()
                                                 .map(|(&bit, &val)| {
-                                                    assert_eq!(bit.tile, bt);
-                                                    (TileBit { tile: 0, ..bit }, val)
+                                                    assert_eq!(bit.rect, rect_idx);
+                                                    (
+                                                        TileBit {
+                                                            rect: BitRectId::from_idx(0),
+                                                            ..bit
+                                                        },
+                                                        val,
+                                                    )
                                                 })
                                                 .collect(),
                                         };

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::{CellCoord, DieId, TileCoord},
@@ -13,7 +14,6 @@ use prjcombine_types::{
 };
 use prjcombine_virtex4::{bels, tslots};
 use prjcombine_xilinx_bitstream::Reg;
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -76,7 +76,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
                         attr: self.2.clone(),
                         val: self.3.into(),
                     },
-                    tiles: edev.tile_bits(ntcrd),
+                    rects: edev.tile_bits(ntcrd),
                 });
             }
         }

@@ -1,6 +1,6 @@
 use crate::db::{BelInfo, ConnectorWire, IntDb, PinDir, TileClass};
-use std::collections::BTreeMap;
 use prjcombine_entity::EntityId;
+use std::collections::BTreeMap;
 
 impl TileClass {
     pub fn print(&self, db: &IntDb, o: &mut dyn std::io::Write) -> std::io::Result<()> {

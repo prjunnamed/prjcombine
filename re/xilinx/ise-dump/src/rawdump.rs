@@ -1,12 +1,12 @@
 use super::partgen::PartgenPkg;
 use super::xdlrc::{Options, Parser, PipKind, Tile, Wire};
+use prjcombine_entity::{EntitySet, entity_id};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_rawdump::{Coord, Part, Source, TkPipDirection, TkPipInversion};
 use prjcombine_re_xilinx_rdbuild::{PartBuilder, PbPip, PbSitePin};
 use std::collections::{HashMap, HashSet};
 use std::convert::TryInto;
 use std::error::Error;
-use prjcombine_entity::{EntitySet, entity_id};
 
 entity_id! {
     id StringId u32;

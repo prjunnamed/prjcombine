@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet, btree_map};
 
+use prjcombine_entity::EntityId;
 use prjcombine_re_sdf::{Cell, Edge, IoPath};
 use prjcombine_siliconblue::chip::ChipKind;
 use prjcombine_types::{
@@ -9,7 +10,6 @@ use prjcombine_types::{
     },
     units::{Resistance, Scalar, Time, Voltage},
 };
-use prjcombine_entity::EntityId;
 
 use crate::run::{Design, InstId, Instance, RunResult};
 

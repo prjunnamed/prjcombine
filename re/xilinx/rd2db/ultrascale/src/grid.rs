@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     dir::Dir,
     grid::{ColId, DieId, RowId, TileIobId},
@@ -10,7 +11,6 @@ use prjcombine_ultrascale::chip::{
     RegId,
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int_slr_column, find_rows};
 

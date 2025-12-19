@@ -2,13 +2,13 @@ use prjcombine_ecp::{
     bels,
     chip::{ChipKind, MachXo2Kind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::Bel,
     dir::{DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
 use prjcombine_re_lattice_naming::WireName;
-use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

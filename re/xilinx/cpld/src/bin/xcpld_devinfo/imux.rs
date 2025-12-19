@@ -4,6 +4,7 @@ use std::fmt::Write;
 use std::thread::available_parallelism;
 
 use itertools::Itertools;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::device::{Device, DeviceKind, Package, PkgPin};
 use prjcombine_re_xilinx_cpld::types::ImuxInput;
@@ -15,7 +16,6 @@ use prjcombine_re_xilinx_cpld::{
 use prjcombine_types::cpld::{ClusterId, IoCoord, MacrocellCoord};
 use rand::prelude::*;
 use rayon::prelude::*;
-use prjcombine_entity::{EntityId, EntityVec};
 
 fn gather_imux_once(
     tc: &Toolchain,

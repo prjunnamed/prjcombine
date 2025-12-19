@@ -2,13 +2,13 @@ use std::{collections::BTreeMap, error::Error, fs::read_to_string, path::PathBuf
 
 use clap::{Arg, Command, value_parser};
 use prjcombine_coolrunner2::{Chip, Database};
+use prjcombine_entity::EntityId;
 use prjcombine_jed::JedFile;
 use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{Tile, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
 };
-use prjcombine_entity::EntityId;
 
 struct Bitstream {
     fbs: Vec<FbData>,

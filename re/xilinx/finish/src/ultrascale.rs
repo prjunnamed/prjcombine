@@ -4,6 +4,7 @@ use std::{
 };
 
 use itertools::Itertools;
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_interconnect::grid::DieId;
 use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
@@ -13,7 +14,6 @@ use prjcombine_ultrascale::{
     db::{Database, Device},
 };
 use regex::Regex;
-use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
     chips: EntityVec<DieId, &'a Chip>,

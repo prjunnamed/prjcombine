@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::WireSlotId,
     dir::Dir,
@@ -9,7 +10,6 @@ use prjcombine_siliconblue::{
     chip::{ChipKind, SpecialIoKey, SpecialTileKey},
     expanded::ExpandedDevice,
 };
-use prjcombine_entity::EntityId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum GenericNet {

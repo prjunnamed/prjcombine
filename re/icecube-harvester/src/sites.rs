@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirPartMap},
@@ -8,12 +9,11 @@ use prjcombine_interconnect::{
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
 use prjcombine_types::{
+    bitrect::BitRect as _,
     bits,
-    bittile::BitTile as _,
     bitvec::BitVec,
     bsdata::{BsData, TileItemKind},
 };
-use prjcombine_entity::{EntityId, EntityPartVec};
 
 use crate::{
     parts::Part,

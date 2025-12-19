@@ -3,8 +3,11 @@ use std::fmt::Write;
 
 use indexmap::IndexMap;
 use itertools::Itertools;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_types::bitvec::BitVec;
-use prjcombine_types::bsdata::{BsData, DbValue, Tile, TileBit, TileItemKind};
+use prjcombine_types::bsdata::{
+    BsData, DbValue, RectBitId, RectFrameId, Tile, TileBit, TileItemKind,
+};
 
 use crate::DocgenContext;
 
@@ -28,17 +31,17 @@ pub fn gen_tile(
     tile: &Tile,
     orientation: TileOrientation,
 ) {
-    let mut dims: Vec<(usize, usize)> = vec![];
+    let mut dims: EntityVec<_, (usize, usize)> = EntityVec::new();
     let mut reverse: HashMap<_, Vec<_>> = HashMap::new();
     let mut buf = String::new();
     let mut item_data: IndexMap<_, Vec<_>> = IndexMap::new();
     for (iname, item) in &tile.items {
         for (bidx, &bit) in item.bits.iter().enumerate() {
-            while bit.tile >= dims.len() {
+            while bit.rect.to_idx() >= dims.len() {
                 dims.push((0, 0));
             }
-            dims[bit.tile].0 = std::cmp::max(dims[bit.tile].0, bit.frame + 1);
-            dims[bit.tile].1 = std::cmp::max(dims[bit.tile].1, bit.bit + 1);
+            dims[bit.rect].0 = std::cmp::max(dims[bit.rect].0, bit.frame.to_idx() + 1);
+            dims[bit.rect].1 = std::cmp::max(dims[bit.rect].1, bit.bit.to_idx() + 1);
             let (bidx, invert) = if let TileItemKind::BitVec { ref invert } = item.kind {
                 (
                     if invert.len() == 1 { None } else { Some(bidx) },
@@ -54,19 +57,19 @@ pub fn gen_tile(
             .or_default()
             .push((iname, &item.bits));
     }
-    for (tidx, &(num_frames, num_bits)) in dims.iter().enumerate() {
+    for (rect, &(num_frames, num_bits)) in &dims {
         let frames = if orientation.flip_frame {
-            Vec::from_iter((0..num_frames).rev())
+            Vec::from_iter((0..num_frames).map(RectFrameId::from_idx).rev())
         } else {
-            Vec::from_iter(0..num_frames)
+            Vec::from_iter((0..num_frames).map(RectFrameId::from_idx))
         };
         let bits = if orientation.flip_bit {
-            Vec::from_iter((0..num_bits).rev())
+            Vec::from_iter((0..num_bits).map(RectBitId::from_idx).rev())
         } else {
-            Vec::from_iter(0..num_bits)
+            Vec::from_iter((0..num_bits).map(RectBitId::from_idx))
         };
         writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
-        writeln!(buf, r#"<caption>{dbname} {tname} bittile {tidx}</caption>"#).unwrap();
+        writeln!(buf, r#"<caption>{dbname} {tname} rect {rect}</caption>"#).unwrap();
         writeln!(buf, r#"<thead>"#).unwrap();
         match orientation.frame_direction {
             FrameDirection::Horizontal => {
@@ -97,9 +100,9 @@ pub fn gen_tile(
         writeln!(buf, r#"</thead>"#).unwrap();
         writeln!(buf, r#"<tbody>"#).unwrap();
         let emit_bit = |buf: &mut String, tbit: TileBit| {
-            let TileBit { tile, frame, bit } = tbit;
+            let TileBit { rect, frame, bit } = tbit;
             if let Some(items) = reverse.get(&tbit) {
-                writeln!(buf, r#"<td title="{tile}.{frame}.{bit}">"#).unwrap();
+                writeln!(buf, r#"<td title="{rect}.{frame}.{bit}">"#).unwrap();
                 for &(iname, bidx, invert) in items {
                     let inv = if invert { "~" } else { "" };
                     let bidx = if let Some(bidx) = bidx {
@@ -123,14 +126,7 @@ pub fn gen_tile(
                 for &frame in &frames {
                     writeln!(buf, r#"<tr><td>{frame}</td>"#).unwrap();
                     for &bit in &bits {
-                        emit_bit(
-                            &mut buf,
-                            TileBit {
-                                tile: tidx,
-                                frame,
-                                bit,
-                            },
-                        );
+                        emit_bit(&mut buf, TileBit { rect, frame, bit });
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
                 }
@@ -139,14 +135,7 @@ pub fn gen_tile(
                 for &bit in &bits {
                     writeln!(buf, r#"<tr><td>{bit}</td>"#).unwrap();
                     for &frame in &frames {
-                        emit_bit(
-                            &mut buf,
-                            TileBit {
-                                tile: tidx,
-                                frame,
-                                bit,
-                            },
-                        );
+                        emit_bit(&mut buf, TileBit { rect, frame, bit });
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
                 }
@@ -168,7 +157,7 @@ pub fn gen_tile(
                 writeln!(
                     buf,
                     "<th>{tile}.{frame}.{bit}</th>",
-                    tile = bit.tile,
+                    tile = bit.rect.to_idx(),
                     frame = bit.frame,
                     bit = bit.bit
                 )

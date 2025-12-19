@@ -1,6 +1,7 @@
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use clap::{Arg, Command, value_parser};
+use prjcombine_entity::EntityId;
 use prjcombine_jed::{JedFile, JedParserOptions};
 use prjcombine_types::{
     bitvec::BitVec,
@@ -8,7 +9,6 @@ use prjcombine_types::{
     cpld::MacrocellId,
 };
 use prjcombine_xpla3::{Chip, Database};
-use prjcombine_entity::EntityId;
 
 struct Bitstream {
     fbs: Vec<FbData>,

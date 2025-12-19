@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{DirH, DirV};
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, WireCoord};
@@ -5,7 +6,6 @@ use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo,
 };
 use std::collections::{BTreeSet, HashSet};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{Chip, ChipKind, DisabledPart};
 use crate::expanded::ExpandedDevice;

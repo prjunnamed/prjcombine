@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{BelInfo, CellSlotId, ConnectorWire, SwitchBoxItem, TileWireCoord, WireSlotId},
     dir::Dir,
@@ -7,8 +8,8 @@ use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
+use prjcombine_types::bsdata::BitRectId;
 use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{Key, Value, XactBackend},
@@ -303,7 +304,8 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
         };
         match self.dir {
             Dir::W => {
-                if !backend.edev.chip.cols_bidi.contains(&tcrd.col) {
+                let bidi_tcrd = tcrd.tile(tslots::EXTRA_COL);
+                if !backend.edev.chip.cols_bidi.contains(&bidi_tcrd.col) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -313,12 +315,13 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "W".into(),
                     },
-                    tiles: vec![backend.edev.btile_llh(tcrd.col, tcrd.row)],
+                    rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))
             }
             Dir::E => {
-                if !backend.edev.chip.cols_bidi.contains(&(tcrd.col + 1)) {
+                let bidi_tcrd = tcrd.delta(1, 0).tile(tslots::EXTRA_COL);
+                if !backend.edev.chip.cols_bidi.contains(&bidi_tcrd.col) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -328,12 +331,13 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "E".into(),
                     },
-                    tiles: vec![backend.edev.btile_llh(tcrd.col + 1, tcrd.row)],
+                    rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))
             }
             Dir::S => {
-                if !backend.edev.chip.rows_bidi.contains(&tcrd.row) {
+                let bidi_tcrd = tcrd.tile(tslots::EXTRA_ROW);
+                if !backend.edev.chip.rows_bidi.contains(&bidi_tcrd.row) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -343,12 +347,13 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "S".into(),
                     },
-                    tiles: vec![backend.edev.btile_llv(tcrd.col, tcrd.row)],
+                    rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))
             }
             Dir::N => {
-                if !backend.edev.chip.rows_bidi.contains(&(tcrd.row + 1)) {
+                let bidi_tcrd = tcrd.delta(0, 1).tile(tslots::EXTRA_ROW);
+                if !backend.edev.chip.rows_bidi.contains(&bidi_tcrd.row) {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
@@ -358,7 +363,7 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                         attr: format!("BIDI.{wn}"),
                         val: "N".into(),
                     },
-                    tiles: vec![backend.edev.btile_llv(tcrd.col, tcrd.row + 1)],
+                    rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))
             }
@@ -501,7 +506,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             assert_eq!(diff_s, Some(diff));
                         }
                     }
-                    let diff_s = diff_s.unwrap().filter_tiles(&[1, 0]);
+                    let diff_s = diff_s.unwrap().filter_rects(&EntityVec::from_iter([
+                        BitRectId::from_idx(1),
+                        BitRectId::from_idx(0),
+                    ]));
                     let item = xlat_enum(vec![
                         ("S", diff_s),
                         ("N", ctx.state.get_diff(tile, bel, attr, "N")),

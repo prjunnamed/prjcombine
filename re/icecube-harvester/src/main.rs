@@ -14,6 +14,7 @@ use intdb::{MiscTileBuilder, make_intdb};
 use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, Buf, IntDb, Mux, ProgInv, SwitchBox, SwitchBoxItem, TileClass,
@@ -33,7 +34,7 @@ use prjcombine_siliconblue::{
     tslots,
 };
 use prjcombine_types::{
-    bsdata::{BsData, TileBit, TileItemKind},
+    bsdata::{BitRectId, BsData, TileBit, TileItemKind},
     speed::Speed,
 };
 use rand::Rng;
@@ -45,7 +46,6 @@ use sites::{
     find_sites_plb,
 };
 use speed::{SpeedCollector, finish_speed, get_speed_data, init_speed_data};
-use prjcombine_entity::{EntityId, EntityVec};
 
 mod collect;
 mod generate;
@@ -160,7 +160,7 @@ impl HarvestContext<'_> {
             let (&bit, &val) = bits.iter().next().unwrap();
             plb_bits[idx] = Some(BTreeMap::from_iter([(
                 TileBit {
-                    tile: 0,
+                    rect: BitRectId::from_idx(0),
                     frame: bit.1,
                     bit: bit.2,
                 },
@@ -1859,14 +1859,7 @@ impl PartContext<'_> {
         let tcls = self.chip.kind.tile_class_plb();
         harvester.force_tiled(
             format!("{tcls}:LC0:MUX.I2:LTIN"),
-            BTreeMap::from_iter([(
-                TileBit {
-                    tile: 0,
-                    frame: 0,
-                    bit: 50,
-                },
-                true,
-            )]),
+            BTreeMap::from_iter([(TileBit::new(0, 0, 50), true)]),
         );
     }
 
@@ -1875,74 +1868,42 @@ impl PartContext<'_> {
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
                 "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 9,
-                    bit: 4,
-                },
+                TileBit::new(0, 9, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
                 "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 15,
-                    bit: 4,
-                },
+                TileBit::new(0, 15, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
                 "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 9,
-                    bit: 13,
-                },
+                TileBit::new(0, 9, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
                 "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 15,
-                    bit: 13,
-                },
+                TileBit::new(0, 15, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
                 "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 6,
-                    bit: 35,
-                },
+                TileBit::new(0, 6, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
                 "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 1,
-                    bit: 35,
-                },
+                TileBit::new(0, 1, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
                 "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 9,
-                    bit: 35,
-                },
+                TileBit::new(0, 9, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
                 "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
-                TileBit {
-                    tile: 0,
-                    frame: 14,
-                    bit: 35,
-                },
+                TileBit::new(0, 14, 35),
             ),
         ] {
             let Some(tile) = tile else { continue };

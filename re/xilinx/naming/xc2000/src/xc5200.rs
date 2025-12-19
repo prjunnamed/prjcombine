@@ -1,7 +1,7 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::CellCoord;
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{bels::xc5200 as bels, expanded::ExpandedDevice};
-use prjcombine_entity::EntityId;
 
 use crate::ExpandedNamedDevice;
 

@@ -1,6 +1,7 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_xact_naming::db::NamingDb;
 use prjcombine_re_xilinx_xact_xc2000::ExpandedNamedDevice;
@@ -10,7 +11,6 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
 };
-use prjcombine_entity::EntityVec;
 
 #[derive(Clone, Debug, Encode, Decode)]
 pub struct DeviceBond {

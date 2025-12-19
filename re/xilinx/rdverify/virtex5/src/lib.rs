@@ -1,12 +1,12 @@
 #![recursion_limit = "1024"]
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId, RowId};
 use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier, verify};
 use prjcombine_virtex4::{bels, tslots};
-use prjcombine_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.info.pins.contains_key("WE") {

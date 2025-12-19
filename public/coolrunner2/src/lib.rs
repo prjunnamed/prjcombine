@@ -2,15 +2,15 @@ use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag},
+};
 use prjcombine_types::{
     bsdata::Tile,
     cpld::{BlockId, IoCoord, IpadId, MacrocellCoord},
     db::{BondId, ChipId, SpeedId},
     speed::Speed,
-};
-use prjcombine_entity::{
-    EntityId, EntityIds, EntityVec,
-    id::{EntityIdU8, EntityTag},
 };
 
 pub struct BankTag;

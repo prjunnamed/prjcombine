@@ -1,4 +1,5 @@
 use bimap::BiHashMap;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::{Dir, DirPartMap};
 use prjcombine_interconnect::grid::{
@@ -8,7 +9,6 @@ use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
 use std::collections::BTreeSet;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{Chip, ColumnKind, DisabledPart, GtKind, Interposer, IoKind, Pcie2Kind};

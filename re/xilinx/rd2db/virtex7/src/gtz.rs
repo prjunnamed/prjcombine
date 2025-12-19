@@ -1,9 +1,9 @@
 use std::collections::{BTreeMap, HashMap};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{db::PinDir, dir::DirV};
 use prjcombine_re_xilinx_rawdump::{Part, TkSitePinDir, TkSiteSlot};
 use prjcombine_virtex4::gtz::{GtzBel, GtzClkPin, GtzDb, GtzIntColId, GtzIntPin, GtzIntRowId};
-use prjcombine_entity::EntityId;
 
 pub fn extract_gtz(rd: &Part) -> GtzDb {
     let mut gdb = GtzDb::default();

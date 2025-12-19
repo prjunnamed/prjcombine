@@ -1,4 +1,4 @@
-pub mod bittile;
+pub mod bitrect;
 pub mod bitvec;
 pub mod bscan;
 pub mod bsdata;

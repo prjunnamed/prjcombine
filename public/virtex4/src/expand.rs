@@ -1,10 +1,10 @@
 use crate::chip::{Chip, ChipKind, DisabledPart, Interposer};
 use crate::expanded::ExpandedDevice;
 use crate::gtz::GtzDb;
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::DieId;
 use std::collections::BTreeSet;
-use prjcombine_entity::EntityVec;
 
 mod virtex4;
 mod virtex5;

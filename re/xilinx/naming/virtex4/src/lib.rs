@@ -1,5 +1,6 @@
 #![recursion_limit = "1024"]
 
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     dir::DirPartMap,
     grid::{CellCoord, DieId},
@@ -12,7 +13,6 @@ use prjcombine_virtex4::{
     expanded::{ExpandedDevice, IoCoord},
     gtz::GtzIntColId,
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 mod virtex4;
 mod virtex5;

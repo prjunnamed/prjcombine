@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     dir::DirHV,
     grid::{CellCoord, DieId, TileCoord},
@@ -11,10 +12,10 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
 use prjcombine_types::{
+    bitrect::BitRect as _,
     bits,
-    bittile::BitTile as _,
     bitvec::BitVec,
-    bsdata::{TileBit, TileItem, TileItemKind},
+    bsdata::{BitRectId, RectBitId, RectFrameId, TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex2::{
     bels,
@@ -22,8 +23,7 @@ use prjcombine_virtex2::{
     iob::IobKind,
     tslots,
 };
-use prjcombine_xilinx_bitstream::{BitTile, Reg};
-use prjcombine_entity::EntityId;
+use prjcombine_xilinx_bitstream::{BitRect, Reg};
 
 use crate::{
     backend::{IseBackend, Key, MultiValue},
@@ -46,7 +46,7 @@ impl TileRelation for IntRelation {
 }
 
 #[derive(Clone, Debug)]
-struct ForceBits(Vec<BitTile>);
+struct ForceBits(EntityVec<BitRectId, BitRect>);
 
 impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBits {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
@@ -59,7 +59,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBits {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        fuzzer.info.features[0].tiles = self.0.clone();
+        fuzzer.info.features[0].rects = self.0.clone();
         Some((fuzzer, false))
     }
 }
@@ -86,16 +86,16 @@ pub fn add_fuzzers<'a>(
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => ("LL.S3A", "UL.S3A", "LR.S3A", "UR.S3A"),
     };
 
-    let freeze_dci_btiles = vec![
+    let freeze_dci_btiles = EntityVec::from_iter([
         edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell),
         edev.btile_btterm(edev.chip.corner(DirHV::SW).cell),
         edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell)
             .to_fixup(),
         edev.btile_btterm(edev.chip.corner(DirHV::SW).cell)
             .to_fixup(),
-        BitTile::Reg(DieId::from_idx(0), Reg::FakeFreezeDciNops),
-        BitTile::RegPresent(DieId::from_idx(0), Reg::FakeFreezeDciNops),
-    ];
+        BitRect::Reg(DieId::from_idx(0), Reg::FakeFreezeDciNops),
+        BitRect::RegPresent(DieId::from_idx(0), Reg::FakeFreezeDciNops),
+    ]);
 
     if devdata_only {
         let mut ctx = FuzzCtx::new(session, backend, ll);
@@ -546,7 +546,8 @@ pub fn add_fuzzers<'a>(
                 let mut bctx = ctx.bel([bels::DCI0, bels::DCI1][bel]);
 
                 let bel_name = ["DCI0", "DCI1"][bel];
-                let mut btiles = vec![edev.btile_lrterm(edev.chip.corner(dir).cell)];
+                let mut btiles =
+                    EntityVec::from_iter([edev.btile_lrterm(edev.chip.corner(dir).cell)]);
                 if edev.chip.kind.is_virtex2() {
                     btiles.push(edev.btile_btterm(edev.chip.corner(dir).cell));
                 }
@@ -776,7 +777,7 @@ pub fn add_fuzzers<'a>(
                 && !backend.device.name.ends_with("2vp7")
             {
                 let mut ctx = FuzzCtx::new(session, backend, ll);
-                let btiles = vec![
+                let btiles = EntityVec::from_iter([
                     edev.btile_btterm(edev.chip.corner(DirHV::NW).cell),
                     edev.btile_btterm(edev.chip.corner(DirHV::NE).cell),
                     edev.btile_lrterm(edev.chip.corner(DirHV::NE).cell),
@@ -785,7 +786,7 @@ pub fn add_fuzzers<'a>(
                     edev.btile_btterm(edev.chip.corner(DirHV::SW).cell),
                     edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell),
                     edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell),
-                ];
+                ]);
                 for val in ["ASREQUIRED", "CONTINUOUS", "QUIET"] {
                     ctx.build()
                         .global_mutex("DCI", "GLOBAL_MODE")
@@ -811,7 +812,7 @@ pub fn add_fuzzers<'a>(
             };
             for &(tile_name, btile, bank) in banks {
                 let mut ctx = FuzzCtx::new(session, backend, tile_name);
-                let mut btiles = vec![btile];
+                let mut btiles = EntityVec::from_iter([btile]);
                 match bank {
                     0 => {
                         let row = edev.chip.row_n();
@@ -1372,11 +1373,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         }
         if edev.chip.kind.is_virtex2() {
             let diff = ctx.state.get_diff(tile, bel, "FREEZE_DCI", "1");
-            let diff = diff.filter_tiles(&[4]);
+            let diff = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(4)]));
             let mut freeze_dci_nops = 0;
             for (bit, val) in diff.bits {
                 assert!(val);
-                freeze_dci_nops |= 1 << bit.bit;
+                freeze_dci_nops |= 1 << bit.bit.to_idx();
             }
             ctx.insert_device_data("FREEZE_DCI_NOPS", freeze_dci_nops);
 
@@ -1493,11 +1494,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
     if edev.chip.kind.is_virtex2() {
         let diff = ctx.state.get_diff(tile, bel, "FREEZE_DCI", "1");
-        let diff = diff.filter_tiles(&[4]);
+        let diff = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(4)]));
         let mut freeze_dci_nops = 0;
         for (bit, val) in diff.bits {
             assert!(val);
-            freeze_dci_nops |= 1 << bit.bit;
+            freeze_dci_nops |= 1 << bit.bit.to_idx();
         }
         ctx.insert_device_data("FREEZE_DCI_NOPS", freeze_dci_nops);
     }
@@ -1695,10 +1696,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     let diff = ctx.state.get_diff(tile, bel, "LVDSBIAS", std.name);
                     vals.push((
                         std.name,
-                        diff.filter_tiles(if edev.chip.kind.is_virtex2() {
-                            &[0, 1][..]
+                        diff.filter_rects(&if edev.chip.kind.is_virtex2() {
+                            EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
                         } else {
-                            &[0][..]
+                            EntityVec::from_iter([BitRectId::from_idx(0)])
                         }),
                     ));
                 }
@@ -1760,10 +1761,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 // DCI
                 let diff_fdh = !ctx.state.get_diff(tile, bel, "FORCE_DONE_HIGH", "#OFF");
                 if edev.chip.kind.is_virtex2() {
-                    let diff = ctx
-                        .state
-                        .get_diff(tile, bel, "DCI_OUT", "1")
-                        .filter_tiles(&[0, 1]);
+                    let diff = ctx.state.get_diff(tile, bel, "DCI_OUT", "1").filter_rects(
+                        &EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)]),
+                    );
                     let diff_p = ctx.state.get_diff(tile, bel, "PRESENT", "1");
                     let diff_t = ctx.state.get_diff(tile, bel, "PRESENT", "TEST");
                     assert_eq!(diff_p, diff.combine(&diff_fdh));
@@ -1775,15 +1775,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     let diff_ar = ctx
                         .state
                         .get_diff(tile, bel, "DCI_OUT", "ASREQUIRED")
-                        .filter_tiles(&[0]);
+                        .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let diff_c = ctx
                         .state
                         .get_diff(tile, bel, "DCI_OUT", "CONTINUOUS")
-                        .filter_tiles(&[0]);
+                        .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let diff_q = ctx
                         .state
                         .get_diff(tile, bel, "DCI_OUT", "QUIET")
-                        .filter_tiles(&[0]);
+                        .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let diff_p = ctx.state.get_diff(tile, bel, "PRESENT", "1");
                     assert_eq!(diff_c, diff_ar);
                     let diff_q = diff_q.combine(&!&diff_c);
@@ -1922,10 +1922,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                             let mut diff = ctx
                                 .state
                                 .get_diff(tile, bel, "DCI_TERM", std.name)
-                                .filter_tiles(if edev.chip.kind.is_virtex2() {
-                                    &[0, 1][..]
+                                .filter_rects(&if edev.chip.kind.is_virtex2() {
+                                    EntityVec::from_iter([
+                                        BitRectId::from_idx(0),
+                                        BitRectId::from_idx(1),
+                                    ])
                                 } else {
-                                    &[0][..]
+                                    EntityVec::from_iter([BitRectId::from_idx(0)])
                                 });
                             diff.apply_bit_diff(&item_en, true, false);
                             let val = extract_bitvec_val_part(
@@ -1959,10 +1962,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                                 let mut diff = ctx
                                     .state
                                     .get_diff(tile, bel, "DCI_TERM", std.name)
-                                    .filter_tiles(if edev.chip.kind.is_virtex2() {
-                                        &[0, 1][..]
+                                    .filter_rects(&if edev.chip.kind.is_virtex2() {
+                                        EntityVec::from_iter([
+                                            BitRectId::from_idx(0),
+                                            BitRectId::from_idx(1),
+                                        ])
                                     } else {
-                                        &[0][..]
+                                        EntityVec::from_iter([BitRectId::from_idx(0)])
                                     });
                                 diff.apply_bit_diff(&item_en, true, false);
                                 let val = extract_bitvec_val_part(
@@ -2036,14 +2042,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     .get_diff(ll, "MISC", "DCIUPDATEMODE", "CONTINUOUS")
                     .assert_empty();
                 let diff = ctx.state.get_diff(ll, "MISC", "DCIUPDATEMODE", "QUIET");
-                let diff0 = diff.filter_tiles(&[8, 0]);
-                let diff1 = diff.filter_tiles(&[8, 1]);
-                let diff2 = diff.filter_tiles(&[2]);
-                let diff3 = diff.filter_tiles(&[3]);
-                let diff4 = diff.filter_tiles(&[8, 4]);
-                let diff5 = diff.filter_tiles(&[8, 5]);
-                let diff6 = diff.filter_tiles(&[6]);
-                let diff7 = diff.filter_tiles(&[7]);
+                let diff0 = diff.filter_rects(&EntityVec::from_iter([
+                    BitRectId::from_idx(8),
+                    BitRectId::from_idx(0),
+                ]));
+                let diff1 = diff.filter_rects(&EntityVec::from_iter([
+                    BitRectId::from_idx(8),
+                    BitRectId::from_idx(1),
+                ]));
+                let diff2 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(2)]));
+                let diff3 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(3)]));
+                let diff4 = diff.filter_rects(&EntityVec::from_iter([
+                    BitRectId::from_idx(8),
+                    BitRectId::from_idx(4),
+                ]));
+                let diff5 = diff.filter_rects(&EntityVec::from_iter([
+                    BitRectId::from_idx(8),
+                    BitRectId::from_idx(5),
+                ]));
+                let diff6 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(6)]));
+                let diff7 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(7)]));
                 ctx.tiledb.insert(ul, "DCI1", "QUIET", xlat_bit(diff0));
                 ctx.tiledb.insert(ur, "DCI1", "QUIET", xlat_bit(diff1));
                 ctx.tiledb.insert(ur, "DCI0", "QUIET", xlat_bit(diff2));
@@ -2059,10 +2077,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             let mut diff = ctx
                 .state
                 .get_diff(tile, bel, "DCI_OUT_ALONE", "1")
-                .filter_tiles(if edev.chip.kind.is_virtex2() {
-                    &[0, 1][..]
+                .filter_rects(&if edev.chip.kind.is_virtex2() {
+                    EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
                 } else {
-                    &[0][..]
+                    EntityVec::from_iter([BitRectId::from_idx(0)])
                 });
             diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE"), true, false);
             if edev.chip.dci_io_alt.contains_key(&5) {
@@ -2070,10 +2088,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 let mut alt_diff = ctx
                     .state
                     .get_diff(tile, bel, "DCI_OUT_ALONE", "1")
-                    .filter_tiles(if edev.chip.kind.is_virtex2() {
-                        &[0, 1][..]
+                    .filter_rects(&if edev.chip.kind.is_virtex2() {
+                        EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
                     } else {
-                        &[0][..]
+                        EntityVec::from_iter([BitRectId::from_idx(0)])
                     });
                 alt_diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE"), true, false);
                 alt_diff = alt_diff.combine(&!&diff);
@@ -2338,7 +2356,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         let diff_0 = ctx
                             .state
                             .get_diff(tile, bel, "LVDSBIAS_0", std.name)
-                            .filter_tiles(&[0]);
+                            .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                         let val_0 = extract_bitvec_val(&lvdsbias_0, &base, diff_0);
                         ctx.tiledb
                             .insert_misc_data(format!("{prefix}:{sn}", sn = std.name), val_0)
@@ -2346,7 +2364,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     let diff_1 = ctx
                         .state
                         .get_diff(tile, bel, "LVDSBIAS_1", std.name)
-                        .filter_tiles(&[0]);
+                        .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let val_1 = extract_bitvec_val(&lvdsbias_1, &base, diff_1);
                     ctx.tiledb
                         .insert_misc_data(format!("{prefix}:{sn}", sn = std.name), val_1)
@@ -2366,18 +2384,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             ] {
                 let bel = "MISC";
                 let mut diff = Diff::default();
-                let BitTile::Main(_, _, width, _, height, _) = btile else {
+                let BitRect::Main(_, _, width, _, height, _) = btile else {
                     unreachable!()
                 };
-                for tframe in 0..width {
-                    for tbit in 0..height {
-                        let bit = btile.xlat_pos_fwd((tframe, tbit));
+                for rframe in 0..width {
+                    let rframe = RectFrameId::from_idx(rframe);
+                    for rbit in 0..height {
+                        let rbit = RectBitId::from_idx(rbit);
+                        let bit = btile.xlat_pos_fwd((rframe, rbit));
                         if ctx.empty_bs.get_bit(bit) {
                             diff.bits.insert(
                                 TileBit {
-                                    tile: 0,
-                                    frame: tframe,
-                                    bit: tbit,
+                                    rect: BitRectId::from_idx(0),
+                                    frame: rframe,
+                                    bit: rbit,
                                 },
                                 true,
                             );

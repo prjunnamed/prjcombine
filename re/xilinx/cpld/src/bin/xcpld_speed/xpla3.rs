@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_re_sdf::Sdf;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_cpld::{
@@ -13,7 +14,6 @@ use prjcombine_types::{
     speed::{RecRem, SetupHold, Speed, SpeedVal},
     units::Time,
 };
-use prjcombine_entity::EntityId;
 
 use crate::{
     extract::{

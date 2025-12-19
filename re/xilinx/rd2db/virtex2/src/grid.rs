@@ -1,12 +1,12 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex2::{
     bels,
     chip::{Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPad},
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 use prjcombine_re_xilinx_rd2db_grid::{
     IntGrid, extract_int, find_column, find_columns, find_row, find_rows, split_num,

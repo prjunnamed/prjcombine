@@ -4,6 +4,7 @@ use clap::Parser;
 use coolrunner2::BsLayout;
 use jzon::JsonValue;
 use prjcombine_coolrunner2 as coolrunner2;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_re_xilinx_cpld::{
     bits::{IBufOut, McOut, extract_bool, extract_bool_to_enum, extract_enum},
     device::{Device, JtagPin, PkgPin},
@@ -19,10 +20,9 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{Tile, TileBit, TileItem, TileItemKind},
+    bsdata::{BitRectId, RectBitId, RectFrameId, Tile, TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId},
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 const JED_MC_BITS_SMALL: &[(&str, usize)] = &[
     ("CLK_MUX", 0),
@@ -136,9 +136,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
                     - (column - dd.fb_cols[fbc])
             };
             TileBit {
-                tile: 0,
-                frame: row,
-                bit: column,
+                rect: BitRectId::from_idx(0),
+                frame: RectFrameId::from_idx(row),
+                bit: RectBitId::from_idx(column),
             }
         };
         dd.mc_bits.insert(
@@ -372,18 +372,18 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
         let row = row as usize;
         let column = dd.bs_cols - 1 - column;
         TileBit {
-            tile: 0,
-            frame: row,
-            bit: column,
+            rect: BitRectId::from_idx(0),
+            frame: RectFrameId::from_idx(row),
+            bit: RectBitId::from_idx(column),
         }
     };
     let xlat_bit_raw = |(row, column)| {
         let row = row as usize;
         let column = dd.bs_cols - 1 - column;
         TileBit {
-            tile: 0,
-            frame: row,
-            bit: column,
+            rect: BitRectId::from_idx(0),
+            frame: RectFrameId::from_idx(row),
+            bit: RectBitId::from_idx(column),
         }
     };
     for (fclk, bit) in &fpart.bits.fclk_en {
@@ -614,22 +614,22 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &mut DevData) {
                 let done = xlat_bit_raw(fpart.map.done.unwrap());
                 vec![
                     TileBit {
-                        tile: 0,
+                        rect: BitRectId::from_idx(0),
                         frame: done.frame,
                         bit: done.bit - 2,
                     },
                     TileBit {
-                        tile: 0,
+                        rect: BitRectId::from_idx(0),
                         frame: done.frame,
                         bit: done.bit - 4,
                     },
                     TileBit {
-                        tile: 0,
+                        rect: BitRectId::from_idx(0),
                         frame: done.frame,
                         bit: done.bit - 6,
                     },
                     TileBit {
-                        tile: 0,
+                        rect: BitRectId::from_idx(0),
                         frame: done.frame,
                         bit: done.bit - 8,
                     },
@@ -714,13 +714,15 @@ fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> T
         let item = TileItem {
             bits: (0..dd.imux_width)
                 .map(|j| TileBit {
-                    tile: 0,
-                    frame: if i < 20 || dd.bs_layout == coolrunner2::BsLayout::Narrow {
-                        i
-                    } else {
-                        8 + i
-                    },
-                    bit: (dd.imux_width - 1 - j) * 2,
+                    rect: BitRectId::from_idx(0),
+                    frame: RectFrameId::from_idx(
+                        if i < 20 || dd.bs_layout == coolrunner2::BsLayout::Narrow {
+                            i
+                        } else {
+                            8 + i
+                        },
+                    ),
+                    bit: RectBitId::from_idx((dd.imux_width - 1 - j) * 2),
                 })
                 .collect(),
             kind: TileItemKind::Enum { values },
@@ -860,14 +862,14 @@ fn verify_jed(device: &Device, fpart: &FuzzDbPart, dd: &DevData) {
                 let item = &dd.mc_bits.items[name];
                 let coord = item.bits[bit];
                 let exp_col = if fb_odd {
-                    mc_b_col + dd.mc_width - 1 - coord.bit
+                    mc_b_col + dd.mc_width - 1 - coord.bit.to_idx()
                 } else {
-                    mc_a_col + coord.bit
+                    mc_a_col + coord.bit.to_idx()
                 };
                 let exp_row = match dd.bs_layout {
                     BsLayout::Narrow => fbr * 40 + mc.to_idx() / 2 * 5 + mc.to_idx() % 2 * 3,
                     BsLayout::Wide => fbr * 48 + mc.to_idx() * 3,
-                } + coord.frame;
+                } + coord.frame.to_idx();
                 check_bit(&mut pos, exp_col, exp_row);
             }
         }
@@ -875,7 +877,7 @@ fn verify_jed(device: &Device, fpart: &FuzzDbPart, dd: &DevData) {
     for (name, bit) in &dd.jed_global_bits {
         let item = &dd.global_bits.items[name];
         let coord = item.bits[*bit];
-        check_bit(&mut pos, coord.bit, coord.frame);
+        check_bit(&mut pos, coord.bit.to_idx(), coord.frame.to_idx());
     }
     assert_eq!(pos, fpart.map.main.len());
 }

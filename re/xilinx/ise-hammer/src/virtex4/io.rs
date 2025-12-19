@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{CellCoord, DieId, RowId, TileCoord, TileIobId},
@@ -15,7 +16,6 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex4::{bels, expanded::IoCoord, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -207,7 +207,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                     attr: "PRESENT".into(),
                     val: "VREF".into(),
                 },
-                tiles: backend.edev.tile_bits(tcrd_vref),
+                rects: backend.edev.tile_bits(tcrd_vref),
             });
         }
         Some((fuzzer, false))
@@ -256,7 +256,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                 attr: "PRESENT".into(),
                 val: "VR".into(),
             },
-            tiles: edev.tile_bits(tile_vr),
+            rects: edev.tile_bits(tile_vr),
         });
         // Take exclusive mutex on bank DCI.
         let hclk_iois_dci = cell_vr.delta(0, -1).tile(tslots::HCLK_BEL);
@@ -273,7 +273,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                 attr: "STD".into(),
                 val: self.0.into(),
             },
-            tiles: edev.tile_bits(hclk_iois_dci),
+            rects: edev.tile_bits(hclk_iois_dci),
         });
         // Take shared mutex on global DCI.
         fuzzer = fuzzer.base(Key::GlobalMutex("GLOBAL_DCI".into()), "SHARED");
@@ -341,7 +341,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
                     attr: "STD".into(),
                     val: std.into(),
                 },
-                tiles: edev.tile_bits(hclk_iois_lvds),
+                rects: edev.tile_bits(hclk_iois_lvds),
             });
         }
         Some((fuzzer, false))
@@ -2200,7 +2200,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         present.assert_empty();
     }
-    let diff1 = present_vr.split_bits_by(|bit| bit.bit >= 40);
+    let diff1 = present_vr.split_bits_by(|bit| bit.bit.to_idx() >= 40);
     ctx.tiledb.insert(tile, "IOB0", "VR", xlat_bit(present_vr));
     ctx.tiledb.insert(tile, "IOB1", "VR", xlat_bit(diff1));
 

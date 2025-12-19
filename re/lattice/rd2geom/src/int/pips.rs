@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_ecp::{bels, chip::ChipKind, cslots, regions, tslots};
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
         BelInfo, Buf, ConnectorWire, Mux, ProgDelay, SwitchBox, SwitchBoxItem, TileClassId,
@@ -9,7 +10,6 @@ use prjcombine_interconnect::{
     grid::CellCoord,
 };
 use prjcombine_re_lattice_naming::WireName;
-use prjcombine_entity::EntityId;
 
 use crate::ChipContext;
 

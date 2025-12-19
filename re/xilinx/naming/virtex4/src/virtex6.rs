@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
 use prjcombine_re_xilinx_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_virtex4::{
@@ -5,7 +6,6 @@ use prjcombine_virtex4::{
     chip::{Chip, ColumnKind, DisabledPart},
     expanded::ExpandedDevice,
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;
 

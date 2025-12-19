@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_xilinx_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc2000::{
@@ -5,7 +6,6 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind, SharedCfgPad},
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use prjcombine_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int};
 

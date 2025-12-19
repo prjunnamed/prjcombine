@@ -1,10 +1,10 @@
 use prjcombine_ecp::{bels, chip::IoGroupKind};
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::Bel,
     dir::Dir,
     grid::{BelCoord, CellCoord, DieId},
 };
-use prjcombine_entity::EntityId;
 
 use crate::{ChipContext, chip::ChipExt};
 

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_re_fpga_hammer::{
     Diff, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bitvec, xlat_enum,
 };
@@ -322,7 +323,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 bits: diff
                     .bits
                     .iter()
-                    .filter(|&(&a, _)| a.tile < 2)
+                    .filter(|&(&a, _)| a.rect.to_idx() < 2)
                     .map(|(&a, &b)| (a, b))
                     .collect(),
             },
@@ -330,7 +331,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 bits: diff
                     .bits
                     .iter()
-                    .filter(|&(&a, _)| a.tile >= 2)
+                    .filter(|&(&a, _)| a.rect.to_idx() >= 2)
                     .map(|(&a, &b)| (a, b))
                     .collect(),
             },

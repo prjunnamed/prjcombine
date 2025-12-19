@@ -7,36 +7,36 @@ use std::{
 };
 
 use itertools::Itertools;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{TileClassId, TileSlotId},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileCoord},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
-use prjcombine_types::bsdata::{BsData, TileBit, TileItem, TileItemKind};
-use prjcombine_types::{bittile::BitTile, bitvec::BitVec};
+use prjcombine_types::bsdata::{BitRectId, BsData, TileBit, TileItem, TileItemKind};
+use prjcombine_types::{bitrect::BitRect, bitvec::BitVec};
 use rand::seq::IndexedRandom;
-use prjcombine_entity::EntityId;
 
-pub trait FpgaBackend: Backend<State = State, FuzzerInfo = FuzzerInfo<Self::BitTile>> {
-    type BitTile: BitTile<BitPos = Self::BitPos>;
+pub trait FpgaBackend: Backend<State = State, FuzzerInfo = FuzzerInfo<Self::BitRect>> {
+    type BitRect: BitRect<BitPos = Self::BitPos>;
 
-    fn tile_bits(&self, tcrd: TileCoord) -> Vec<Self::BitTile>;
+    fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, Self::BitRect>;
 
     fn egrid(&self) -> &ExpandedGrid<'_>;
 }
 
 #[derive(Clone, Debug)]
-pub struct FuzzerFeature<BitTile> {
+pub struct FuzzerFeature<BitRect> {
     pub id: FeatureId,
-    pub tiles: Vec<BitTile>,
+    pub rects: EntityVec<BitRectId, BitRect>,
 }
 
 #[derive(Clone)]
-pub struct FuzzerInfo<BitTile> {
-    pub features: Vec<FuzzerFeature<BitTile>>,
+pub struct FuzzerInfo<BitRect> {
+    pub features: Vec<FuzzerFeature<BitRect>>,
 }
 
-impl<BitTile> std::fmt::Debug for FuzzerInfo<BitTile> {
+impl<BitRect> std::fmt::Debug for FuzzerInfo<BitRect> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.features[0].id)
     }
@@ -78,14 +78,14 @@ impl<B: FpgaBackend> FpgaFuzzerGen<'_, B> {
         kv: &HashMap<B::Key, BatchValue<B>>,
         tcrd: TileCoord,
     ) -> Option<(Fuzzer<B>, BTreeSet<usize>)> {
-        let tiles = if self.tile_class.is_some() {
+        let rects = if self.tile_class.is_some() {
             backend.tile_bits(tcrd)
         } else {
-            vec![]
+            EntityVec::new()
         };
         let mut fuzzer = Fuzzer::new(FuzzerInfo {
             features: vec![FuzzerFeature {
-                tiles,
+                rects,
                 id: self.feature.clone(),
             }],
         });
@@ -340,46 +340,40 @@ impl Diff {
         }
     }
 
-    pub fn split_tiles(&self, split: &[&[usize]]) -> Vec<Diff> {
+    pub fn split_rects(&self, split: &[&EntityVec<BitRectId, BitRectId>]) -> Vec<Diff> {
         let mut res = vec![];
-        let mut xlat = vec![];
-        for (dstidx, &dst) in split.iter().enumerate() {
+        let mut xlat = EntityPartVec::new();
+        for (dst_idx, &dst) in split.iter().enumerate() {
             res.push(Diff::default());
-            for (tileidx, &srcidx) in dst.iter().enumerate() {
-                while srcidx >= xlat.len() {
-                    xlat.push(None);
-                }
-                assert!(xlat[srcidx].is_none());
-                xlat[srcidx] = Some((dstidx, tileidx))
+            for (dst_rect, &src_rect) in dst {
+                assert!(!xlat.contains_id(src_rect));
+                xlat.insert(src_rect, (dst_idx, dst_rect));
             }
         }
         for (&bit, &val) in &self.bits {
-            let (dstidx, tileidx) = xlat[bit.tile].unwrap();
+            let (dst_idx, dst_rect) = xlat[bit.rect];
             let newbit = TileBit {
-                tile: tileidx,
+                rect: dst_rect,
                 ..bit
             };
-            res[dstidx].bits.insert(newbit, val);
+            res[dst_idx].bits.insert(newbit, val);
         }
         res
     }
 
-    pub fn filter_tiles(&self, filter: &[usize]) -> Diff {
+    pub fn filter_rects(&self, filter: &EntityVec<BitRectId, BitRectId>) -> Diff {
         let mut res = Diff::default();
-        let mut xlat = vec![];
-        for (tileidx, &srcidx) in filter.iter().enumerate() {
-            while srcidx >= xlat.len() {
-                xlat.push(None);
-            }
-            assert!(xlat[srcidx].is_none());
-            xlat[srcidx] = Some(tileidx)
+        let mut xlat = EntityPartVec::new();
+        for (dst_rect, &src_rect) in filter {
+            assert!(!xlat.contains_id(src_rect));
+            xlat.insert(src_rect, dst_rect);
         }
         for (&bit, &val) in &self.bits {
-            let Some(&Some(tileidx)) = xlat.get(bit.tile) else {
+            let Some(&dst_rect) = xlat.get(bit.rect) else {
                 continue;
             };
             let newbit = TileBit {
-                tile: tileidx,
+                rect: dst_rect,
                 ..bit
             };
             res.bits.insert(newbit, val);
@@ -428,13 +422,13 @@ pub fn enum_ocd_swap_bits(item: &mut TileItem, a: usize, b: usize) {
     }
 }
 
-pub fn xlat_item_tile_fwd(item: TileItem, xlat: &[usize]) -> TileItem {
+pub fn xlat_item_tile_fwd(item: TileItem, xlat: &EntityVec<BitRectId, BitRectId>) -> TileItem {
     TileItem {
         bits: item
             .bits
             .into_iter()
             .map(|bit| TileBit {
-                tile: xlat[bit.tile],
+                rect: xlat[bit.rect],
                 ..bit
             })
             .collect(),
@@ -442,21 +436,18 @@ pub fn xlat_item_tile_fwd(item: TileItem, xlat: &[usize]) -> TileItem {
     }
 }
 
-pub fn xlat_item_tile(item: TileItem, xlat: &[usize]) -> TileItem {
-    let mut rxlat = vec![];
-    for (idx, &tile) in xlat.iter().enumerate() {
-        while tile >= rxlat.len() {
-            rxlat.push(None);
-        }
-        assert!(rxlat[tile].is_none());
-        rxlat[tile] = Some(idx);
+pub fn xlat_item_tile(item: TileItem, xlat: &EntityVec<BitRectId, BitRectId>) -> TileItem {
+    let mut rxlat = EntityPartVec::new();
+    for (dst_rect, &src_rect) in xlat {
+        assert!(!rxlat.contains_id(src_rect));
+        rxlat.insert(src_rect, dst_rect);
     }
     TileItem {
         bits: item
             .bits
             .into_iter()
             .map(|bit| TileBit {
-                tile: rxlat[bit.tile].unwrap(),
+                rect: rxlat[bit.rect],
                 ..bit
             })
             .collect(),
@@ -558,8 +549,8 @@ pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> Til
     }
     if ocd == OcdMode::BitOrderDrpV6 {
         bits_vec.sort_by(|a, b| {
-            if a.tile != b.tile {
-                a.tile.cmp(&b.tile)
+            if a.rect != b.rect {
+                a.rect.cmp(&b.rect)
             } else if a.bit != b.bit {
                 a.bit.cmp(&b.bit)
             } else {
@@ -878,7 +869,7 @@ impl State {
         &res[0]
     }
 
-    pub fn return_fuzzer<P: Copy + Debug, T: BitTile<BitPos = P>>(
+    pub fn return_fuzzer<P: Copy + Debug, T: BitRect<BitPos = P>>(
         &mut self,
         f: &FuzzerInfo<T>,
         fid: FuzzerId,
@@ -892,11 +883,11 @@ impl State {
         for (bitidx, bbits) in bits.iter().enumerate() {
             'bits: for (&k, &v) in bbits {
                 for (fidx, feat) in f.features.iter().enumerate() {
-                    for (i, t) in feat.tiles.iter().enumerate() {
-                        if let Some(xk) = t.xlat_pos_rev(k) {
+                    for (rid, rect) in &feat.rects {
+                        if let Some(xk) = rect.xlat_pos_rev(k) {
                             fdiffs[fidx][bitidx].bits.insert(
                                 TileBit {
-                                    tile: i,
+                                    rect: rid,
                                     frame: xk.0,
                                     bit: xk.1,
                                 },
@@ -908,7 +899,7 @@ impl State {
                 }
                 eprintln!("failed to xlat bit {k:?} [bits {bbits:?}] for {f:?}, candidates:");
                 for feat in &f.features {
-                    println!("{:?}: {:?}", feat.id, feat.tiles);
+                    println!("{:?}: {:?}", feat.id, feat.rects);
                 }
                 return Some(vec![]);
             }
@@ -917,7 +908,7 @@ impl State {
             // if self.debug >= 3 {
             //     eprintln!("RETURN {feat:?} {xdiffs:?}");
             // }
-            if feat.tiles.is_empty() {
+            if feat.rects.is_empty() {
                 for diff in &xdiffs {
                     if !diff.bits.is_empty() {
                         eprintln!("null fuzzer {f:?} with bits: {xdiffs:?}");

@@ -8,6 +8,7 @@ use std::{
 use clap::Parser;
 use enum_map::Enum;
 use jzon::JsonValue;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_re_xilinx_cpld::{
     bits::{IBufOut, McOut, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
     db::Database,
@@ -18,11 +19,10 @@ use prjcombine_re_xilinx_cpld::{
 };
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{Tile, TileBit, TileItem, TileItemKind},
+    bsdata::{BitRectId, RectBitId, RectFrameId, Tile, TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId},
 };
 use prjcombine_xpla3 as xpla3;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use xpla3::FbColumn;
 
 const JED_MC_BITS_IOB: &[(&str, usize)] = &[
@@ -145,9 +145,9 @@ fn extract_mc_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Tile {
                 9 - (column - dd.fb_cols[fbc].mc_col)
             };
             TileBit {
-                tile: plane,
-                frame: row,
-                bit: column,
+                rect: BitRectId::from_idx(plane),
+                frame: RectFrameId::from_idx(row),
+                bit: RectBitId::from_idx(column),
             }
         };
         tile.insert(
@@ -363,9 +363,9 @@ fn extract_fb_bits(fpart: &FuzzDbPart, dd: &DevData) -> Tile {
                 9 - (column - dd.fb_cols[fbc].mc_col)
             };
             TileBit {
-                tile: plane,
-                frame: row,
-                bit: column,
+                rect: BitRectId::from_idx(plane),
+                frame: RectFrameId::from_idx(row),
+                bit: RectBitId::from_idx(column),
             }
         };
         tile.insert(
@@ -408,9 +408,9 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
         let row = row & row_mask;
         let column = dd.bs_cols - 1 - column;
         TileBit {
-            tile: plane,
-            frame: row,
-            bit: column,
+            rect: BitRectId::from_idx(plane),
+            frame: RectFrameId::from_idx(row),
+            bit: RectBitId::from_idx(column),
         }
     };
     let xlat_bit_raw = |(row, column)| {
@@ -419,9 +419,9 @@ fn extract_global_bits(device: &Device, fpart: &FuzzDbPart, dd: &DevData) -> Til
         let row = row & row_mask;
         let column = dd.bs_cols - 1 - column;
         TileBit {
-            tile: plane,
-            frame: row,
-            bit: column,
+            rect: BitRectId::from_idx(plane),
+            frame: RectFrameId::from_idx(row),
+            bit: RectBitId::from_idx(column),
         }
     };
     let mut tile = Tile::new();
@@ -588,9 +588,9 @@ fn prep_imux_bits(imux_bits: &[BTreeMap<String, BitVec>; 40], dd: &DevData) -> T
         let item = TileItem {
             bits: (0..dd.imux_width)
                 .map(|j| TileBit {
-                    tile: 0,
-                    frame: if i < 20 { 2 + i } else { 10 + i },
-                    bit: dd.imux_width - 1 - j,
+                    rect: BitRectId::from_idx(0),
+                    frame: RectFrameId::from_idx(if i < 20 { 2 + i } else { 10 + i }),
+                    bit: RectBitId::from_idx(dd.imux_width - 1 - j),
                 })
                 .collect(),
             kind: TileItemKind::Enum { values },
@@ -688,9 +688,14 @@ fn verify_jed(
         for &(name, bit) in JED_FB_BITS {
             let item = &fb_bits.items[name];
             let coord = item.bits[bit];
-            let exp_col = dd.fb_cols[fbc].mc_col + if fb_odd { 9 - coord.bit } else { coord.bit };
-            let exp_row = fbr * 52 + 24 + coord.frame;
-            let exp_plane = coord.tile;
+            let exp_col = dd.fb_cols[fbc].mc_col
+                + if fb_odd {
+                    9 - coord.bit.to_idx()
+                } else {
+                    coord.bit.to_idx()
+                };
+            let exp_row = fbr * 52 + 24 + coord.frame.to_idx();
+            let exp_plane = coord.rect.to_idx();
             check_bit(&mut pos, exp_col, exp_row, exp_plane);
         }
         for mc in device.fb_mcs() {
@@ -700,16 +705,20 @@ fn verify_jed(
             for &(name, bit) in JED_MC_BITS_IOB {
                 let item = &mc_bits.items[name];
                 let coord = item.bits[bit];
-                let exp_col =
-                    dd.fb_cols[fbc].mc_col + if fb_odd { 9 - coord.bit } else { coord.bit };
+                let exp_col = dd.fb_cols[fbc].mc_col
+                    + if fb_odd {
+                        9 - coord.bit.to_idx()
+                    } else {
+                        coord.bit.to_idx()
+                    };
                 let exp_row = fbr * 52
                     + if mc.to_idx() < 8 {
                         mc.to_idx() * 3
                     } else {
                         4 + mc.to_idx() * 3
                     }
-                    + coord.frame;
-                let exp_plane = coord.tile;
+                    + coord.frame.to_idx();
+                let exp_plane = coord.rect.to_idx();
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
             }
         }
@@ -720,16 +729,20 @@ fn verify_jed(
             for &(name, bit) in JED_MC_BITS_BURIED {
                 let item = &mc_bits.items[name];
                 let coord = item.bits[bit];
-                let exp_col =
-                    dd.fb_cols[fbc].mc_col + if fb_odd { 9 - coord.bit } else { coord.bit };
+                let exp_col = dd.fb_cols[fbc].mc_col
+                    + if fb_odd {
+                        9 - coord.bit.to_idx()
+                    } else {
+                        coord.bit.to_idx()
+                    };
                 let exp_row = fbr * 52
                     + if mc.to_idx() < 8 {
                         mc.to_idx() * 3
                     } else {
                         4 + mc.to_idx() * 3
                     }
-                    + coord.frame;
-                let exp_plane = coord.tile;
+                    + coord.frame.to_idx();
+                let exp_plane = coord.rect.to_idx();
                 check_bit(&mut pos, exp_col, exp_row, exp_plane);
             }
         }
@@ -737,7 +750,12 @@ fn verify_jed(
     for (name, bit) in jed_global_bits {
         let item = &global_bits.items[name];
         let coord = item.bits[*bit];
-        check_bit(&mut pos, coord.bit, coord.frame, coord.tile);
+        check_bit(
+            &mut pos,
+            coord.bit.to_idx(),
+            coord.frame.to_idx(),
+            coord.rect.to_idx(),
+        );
     }
     assert_eq!(pos, fpart.map.main.len());
 }

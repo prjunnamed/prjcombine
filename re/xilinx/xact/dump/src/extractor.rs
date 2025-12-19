@@ -4,6 +4,7 @@ use std::{
 };
 
 use ndarray::Array2;
+use prjcombine_entity::{EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 use prjcombine_interconnect::{
     db::{
         BelInfo, BelSlotId, BiPass, Buf, IntDb, Mux, Pass, SwitchBoxItem, TileClassId, TileSlotId,
@@ -17,7 +18,6 @@ use prjcombine_re_xilinx_xact_naming::{
     db::{IntPipNaming, NamingDb, PipNaming, TileNamingId, TileRawCellId},
     grid::ExpandedGridNaming,
 };
-use prjcombine_entity::{EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 
 entity_id! {
     pub id NetId u32, reserve 1;

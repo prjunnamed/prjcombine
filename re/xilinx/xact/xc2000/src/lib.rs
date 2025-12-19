@@ -1,12 +1,12 @@
 use std::ops::Range;
 
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::grid::{ColId, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
 };
-use prjcombine_entity::EntityVec;
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

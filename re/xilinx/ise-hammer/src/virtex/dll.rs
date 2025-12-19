@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, BelSlotId},
     dir::DirH,
@@ -15,7 +16,6 @@ use prjcombine_types::{
 };
 use prjcombine_virtex::{bels, tslots};
 use prjcombine_xilinx_bitstream::Reg;
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},

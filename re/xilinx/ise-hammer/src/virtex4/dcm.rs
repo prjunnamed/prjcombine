@@ -470,11 +470,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
 
     fn reg_bit(addr: usize, bit: usize) -> TileBit {
-        TileBit {
-            tile: (addr >> 2) & 3,
-            frame: 20 - (addr >> 4 & 1),
-            bit: bit + 1 + (addr & 3) * 20,
-        }
+        TileBit::new(
+            (addr >> 2) & 3,
+            20 - (addr >> 4 & 1),
+            bit + 1 + (addr & 3) * 20,
+        )
     }
 
     for addr in 0x40..0x60 {

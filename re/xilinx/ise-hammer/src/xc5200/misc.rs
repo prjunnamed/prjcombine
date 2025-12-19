@@ -1,10 +1,10 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{bits, bsdata::TileItemKind};
 use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,

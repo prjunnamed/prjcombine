@@ -9,11 +9,11 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 
+use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_re_xilinx_naming::db::{BelNaming, NamingDb};
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
 use prjcombine_ultrascale::{bels, cslots, regions, tslots};
-use prjcombine_entity::{EntityId, EntityPartVec};
 
 const XLAT24: [usize; 24] = [
     0, 11, 16, 17, 18, 19, 20, 21, 22, 23, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15,

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord, TileIobId};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
@@ -12,7 +13,6 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex4::{bels, chip::RegId, expanded::IoCoord, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -224,7 +224,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                         attr: "PRESENT".into(),
                         val: "VREF".into(),
                     },
-                    tiles: backend.edev.tile_bits(vref),
+                    rects: backend.edev.tile_bits(vref),
                 });
             }
         }
@@ -276,7 +276,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                         attr: "PRESENT".into(),
                         val: "VR".into(),
                     },
-                    tiles: edev.tile_bits(vr_tile),
+                    rects: edev.tile_bits(vr_tile),
                 });
             }
         }
@@ -300,7 +300,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "STD".into(),
                     val: std.into(),
                 },
-                tiles: edev.tile_bits(hclk_ioi),
+                rects: edev.tile_bits(hclk_ioi),
             });
         }
 
@@ -2674,7 +2674,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let mut diff = ctx.state.get_diff(tile, "OLOGIC_COMMON", "MISR_RESET", "1");
-        let diff1 = diff.split_bits_by(|bit| bit.tile > 0);
+        let diff1 = diff.split_bits_by(|bit| bit.rect.to_idx() > 0);
         ctx.tiledb
             .insert(tile, "OLOGIC0", "MISR_RESET", xlat_bit(diff));
         ctx.tiledb
@@ -2983,9 +2983,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ];
         if tile == "IO_HP_PAIR" {
             let mut diff_diff_lp = ctx.state.peek_diff(tile, bel, "ISTD", "LVDS.LP").clone();
-            let diff_diff_lp = diff_diff_lp.split_bits_by(|bit| bit.tile == tidx);
+            let diff_diff_lp = diff_diff_lp.split_bits_by(|bit| bit.rect.to_idx() == tidx);
             let mut diff_diff_hp = ctx.state.peek_diff(tile, bel, "ISTD", "LVDS.HP").clone();
-            let diff_diff_hp = diff_diff_hp.split_bits_by(|bit| bit.tile == tidx);
+            let diff_diff_hp = diff_diff_hp.split_bits_by(|bit| bit.rect.to_idx() == tidx);
             diffs.extend([("DIFF_LP", diff_diff_lp), ("DIFF_HP", diff_diff_hp)]);
         }
         ctx.tiledb.insert(tile, bel, "IBUF_MODE", xlat_enum(diffs));
@@ -3353,7 +3353,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             _ => unreachable!(),
                         }
                     }
-                    let diff_t = diff.split_bits_by(|bit| bit.bit == 17);
+                    let diff_t = diff.split_bits_by(|bit| bit.bit.to_idx() == 17);
                     assert_eq!(diff.bits.len(), 1);
                     assert_eq!(diff_t.bits.len(), 1);
                     ctx.tiledb.insert(
@@ -3629,13 +3629,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ];
         if tile == "IO_HR_PAIR" {
             let mut diff_diff_lp = ctx.state.peek_diff(tile, bel, "ISTD", "LVDS_25.LP").clone();
-            let diff_diff_lp = diff_diff_lp.split_bits_by(|bit| bit.tile == tidx);
+            let diff_diff_lp = diff_diff_lp.split_bits_by(|bit| bit.rect.to_idx() == tidx);
             let mut diff_diff_hp = ctx.state.peek_diff(tile, bel, "ISTD", "LVDS_25.HP").clone();
-            let diff_diff_hp = diff_diff_hp.split_bits_by(|bit| bit.tile == tidx);
+            let diff_diff_hp = diff_diff_hp.split_bits_by(|bit| bit.rect.to_idx() == tidx);
             let mut diff_tmds_lp = ctx.state.peek_diff(tile, bel, "ISTD", "TMDS_33.LP").clone();
-            let diff_tmds_lp = diff_tmds_lp.split_bits_by(|bit| bit.tile == tidx);
+            let diff_tmds_lp = diff_tmds_lp.split_bits_by(|bit| bit.rect.to_idx() == tidx);
             let mut diff_tmds_hp = ctx.state.peek_diff(tile, bel, "ISTD", "TMDS_33.HP").clone();
-            let diff_tmds_hp = diff_tmds_hp.split_bits_by(|bit| bit.tile == tidx);
+            let diff_tmds_hp = diff_tmds_hp.split_bits_by(|bit| bit.rect.to_idx() == tidx);
             diffs.extend([
                 ("DIFF_LP", diff_diff_lp),
                 ("DIFF_HP", diff_diff_hp),
@@ -3987,7 +3987,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         .state
                         .get_diff(tile, "IOB1", "OSTD", format!("{}.ALT", std.name))
                         .combine(&!&diff);
-                    let diff1 = altdiff.split_bits_by(|bit| bit.tile == 1);
+                    let diff1 = altdiff.split_bits_by(|bit| bit.rect.to_idx() == 1);
                     ctx.tiledb
                         .insert(tile, "IOB0", "LVDS_GROUP", xlat_bit(altdiff));
                     ctx.tiledb

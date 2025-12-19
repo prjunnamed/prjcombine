@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
@@ -489,7 +490,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diff_l = Diff::default();
         let mut diff_u = Diff::default();
         for (k, v) in diff.bits {
-            if k.tile < 2 {
+            if k.rect.to_idx() < 2 {
                 diff_l.bits.insert(k, v);
             } else {
                 diff_u.bits.insert(k, v);

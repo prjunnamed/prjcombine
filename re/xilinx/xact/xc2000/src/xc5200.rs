@@ -1,7 +1,7 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{bels::xc5200 as bels, chip::Chip, expanded::ExpandedDevice};
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::ExpandedNamedDevice;
 

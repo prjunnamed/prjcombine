@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_cpld::device::DeviceKind;
 use prjcombine_re_xilinx_cpld::types::{
@@ -8,7 +9,6 @@ use prjcombine_re_xilinx_cpld::vm6::{InputNodeKind, NodeKind};
 use prjcombine_types::cpld::{
     BlockId, ClusterId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId,
 };
-use prjcombine_entity::EntityId;
 
 use crate::backend::{CpldBackend, FuzzerInfo, Iostd, Key, Value, Voltage};
 

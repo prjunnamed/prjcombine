@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     dir::DirH,
     grid::{CellCoord, ColId, DieId, RowId},
@@ -16,7 +17,6 @@ use prjcombine_ultrascale::{
     },
     expanded::{ExpandedDevice, IoCoord},
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct DeviceNaming {

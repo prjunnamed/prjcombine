@@ -1,5 +1,6 @@
 #![recursion_limit = "1024"]
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::db::BelInfo;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{CellCoord, DieId, RowId, TileIobId};
@@ -12,7 +13,6 @@ use prjcombine_ultrascale::chip::{
     Chip, ChipKind, CleMKind, ColumnKind, ConfigKind, DisabledPart, IoRowKind,
 };
 use prjcombine_ultrascale::expanded::{ClkSrc, HdioCoord, HpioCoord, IoCoord};
-use prjcombine_entity::EntityId;
 
 mod xp5io;
 

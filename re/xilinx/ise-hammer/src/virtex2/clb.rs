@@ -51,7 +51,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
                     bel: "RANDOR_INIT".into(),
                     ..first_feature_id
                 },
-                tiles: backend.edev.tile_bits(tcrd),
+                rects: backend.edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))
         } else {

@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, PinDir, TileClassId, WireSlotId},
     dir::{Dir, DirH, DirV},
@@ -13,8 +14,7 @@ use prjcombine_siliconblue::{
     expanded::{BitOwner, ExpandedDevice},
     tslots,
 };
-use prjcombine_types::{bittile::BitTile as _, bitvec::BitVec};
-use prjcombine_entity::EntityId;
+use prjcombine_types::{bitrect::BitRect as _, bitvec::BitVec};
 
 use crate::{
     PkgInfo,

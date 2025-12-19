@@ -10,6 +10,7 @@ use prjcombine_ecp::{
         SpecialLocKey,
     },
 };
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     dir::{DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
@@ -17,7 +18,6 @@ use prjcombine_interconnect::{
 use prjcombine_re_lattice_naming::ChipNaming;
 use prjcombine_re_lattice_rawdump::Part;
 use prjcombine_types::bscan::BScanPad;
-use prjcombine_entity::EntityId;
 
 use crate::{
     archive::{Archive, Reader, read_archive},

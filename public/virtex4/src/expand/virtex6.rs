@@ -1,5 +1,6 @@
 #![allow(clippy::comparison_chain)]
 
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::grid::{
     CellCoord, ColId, DieId, ExpandedGrid, Rect, RowId, TileIobId,
@@ -8,7 +9,6 @@ use prjcombine_xilinx_bitstream::{
     BitstreamGeom, DeviceKind, DieBitstreamGeom, FrameAddr, FrameInfo, FrameMaskMode,
 };
 use std::collections::{BTreeSet, HashSet};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::bond::SharedCfgPad;
 use crate::chip::{Chip, ColumnKind, DisabledPart, GtKind};

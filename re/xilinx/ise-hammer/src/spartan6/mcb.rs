@@ -1,7 +1,8 @@
+use prjcombine_entity::EntityId;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_spartan6::bels;
-use prjcombine_types::bsdata::{TileBit, TileItem};
+use prjcombine_types::bsdata::{BitRectId, TileBit, TileItem};
 
 use crate::{
     backend::IseBackend,
@@ -314,7 +315,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for &val in vals {
             let mut diff = ctx.state.get_diff(tile, bel, attr, val);
             for i in 0..8 {
-                diffs[i + 1].push((val, diff.split_bits_by(|bit| bit.tile == 13 + i * 2)));
+                diffs[i + 1].push((
+                    val,
+                    diff.split_bits_by(|bit| bit.rect.to_idx() == 13 + i * 2),
+                ));
             }
             diffs[0].push((val, diff));
         }
@@ -398,8 +402,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for (i, mui) in ["MUI0R", "MUI0W", "MUI1R", "MUI1W"].into_iter().enumerate() {
         let mut item = ctx.tiledb.item(tile, bel, "MUI2_PORT_CONFIG").clone();
         for bit in &mut item.bits {
-            bit.tile -= 4 * 2;
-            bit.tile += i * 2;
+            bit.rect = BitRectId::from_idx(bit.rect.to_idx() - 4 * 2 + i * 2);
         }
         ctx.tiledb
             .insert(tile, bel, format!("{mui}_PORT_CONFIG"), item);

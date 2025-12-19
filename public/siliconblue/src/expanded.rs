@@ -1,8 +1,9 @@
-use prjcombine_interconnect::grid::{ColId, ExpandedGrid, RowId, TileCoord};
 use prjcombine_entity::{EntityId, EntityVec};
+use prjcombine_interconnect::grid::{ColId, ExpandedGrid, RowId, TileCoord};
+use prjcombine_types::bsdata::BitRectId;
 
 use crate::{
-    bitstream::{BitPos, BitTile},
+    bitstream::{BitPos, BitRect},
     chip::Chip,
 };
 
@@ -24,7 +25,7 @@ pub enum BitOwner {
 }
 
 impl ExpandedDevice<'_> {
-    pub fn btile_main(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_main(&self, col: ColId, row: RowId) -> BitRect {
         let mut bank = 0;
         if col >= self.chip.col_mid() {
             bank |= 2;
@@ -36,7 +37,7 @@ impl ExpandedDevice<'_> {
             frame = (self.chip.rows - 1 - row.to_idx()) * 16;
             bank |= 1;
         }
-        BitTile::Main(
+        BitRect::Main(
             bank,
             frame,
             16,
@@ -45,7 +46,7 @@ impl ExpandedDevice<'_> {
         )
     }
 
-    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitTile {
+    pub fn btile_bram(&self, col: ColId, row: RowId) -> BitRect {
         let mut bank = 0;
         if col >= self.chip.col_mid() {
             bank |= 2;
@@ -57,26 +58,26 @@ impl ExpandedDevice<'_> {
             bit = (row.to_idx() - self.chip.row_mid.to_idx()) / 2 * 16;
             bank |= 1;
         }
-        BitTile::Bram(bank, bit)
+        BitRect::Bram(bank, bit)
     }
 
-    pub fn btile_pll(&self) -> [BitTile; 2] {
+    pub fn btile_pll(&self) -> [BitRect; 2] {
         [
-            BitTile::Main(0, 0, 16, self.frame_width - 2, 2),
-            BitTile::Main(2, 0, 16, self.frame_width - 2, 2),
+            BitRect::Main(0, 0, 16, self.frame_width - 2, 2),
+            BitRect::Main(2, 0, 16, self.frame_width - 2, 2),
         ]
     }
 
-    pub fn btile_clock(&self) -> [BitTile; 2] {
+    pub fn btile_clock(&self) -> [BitRect; 2] {
         [
-            BitTile::Main(
+            BitRect::Main(
                 0,
                 self.chip.row_mid.to_idx() * 16 - 16,
                 16,
                 self.frame_width - 2,
                 2,
             ),
-            BitTile::Main(
+            BitRect::Main(
                 1,
                 (self.chip.rows - self.chip.row_mid.to_idx()) * 16 - 16,
                 16,
@@ -86,7 +87,7 @@ impl ExpandedDevice<'_> {
         ]
     }
 
-    pub fn classify_bit(&self, bit: BitPos) -> Option<(BitTile, BitOwner)> {
+    pub fn classify_bit(&self, bit: BitPos) -> Option<(BitRect, BitOwner)> {
         match bit {
             BitPos::Main(bank, frame, bit) => {
                 let row = frame / 0x10;
@@ -145,26 +146,26 @@ impl ExpandedDevice<'_> {
                 };
                 Some((self.btile_bram(col, row), BitOwner::Bram(col, row)))
             }
-            BitPos::Speed(_) => Some((BitTile::Speed, BitOwner::Speed)),
-            BitPos::CReg(_) => Some((BitTile::CReg, BitOwner::CReg)),
+            BitPos::Speed(_) => Some((BitRect::Speed, BitOwner::Speed)),
+            BitPos::CReg(_) => Some((BitRect::CReg, BitOwner::CReg)),
         }
     }
 
-    pub fn tile_bits(&self, tcrd: TileCoord) -> Vec<BitTile> {
+    pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let tile = &self[tcrd];
         let kind = self.db.tile_classes.key(tile.class).as_str();
         if kind.starts_with("BRAM_") {
-            vec![
+            EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),
                 self.btile_main(tcrd.col, tcrd.row + 1),
                 self.btile_bram(tcrd.col, tcrd.row),
-            ]
+            ])
         } else if kind.starts_with("GB_ROOT_") {
-            self.btile_clock().to_vec()
+            EntityVec::from_iter(self.btile_clock())
         } else if kind == "PLL_S_P04" {
-            self.btile_pll().to_vec()
+            EntityVec::from_iter(self.btile_pll())
         } else {
-            Vec::from_iter(
+            EntityVec::from_iter(
                 tile.cells
                     .values()
                     .map(|&cell| self.btile_main(cell.col, cell.row)),

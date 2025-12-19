@@ -1,5 +1,6 @@
 use std::fmt::Write;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireKind, WireSlotId},
     dir::{Dir, DirMap},
@@ -7,7 +8,6 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_naming::db::{NamingDb, TileClassNamingId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_xc2000::{bels::xc4000 as bels, cslots, regions, tslots};
-use prjcombine_entity::EntityId;
 
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, PipMode};
 

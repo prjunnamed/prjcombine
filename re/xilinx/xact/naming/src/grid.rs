@@ -3,11 +3,11 @@ use std::{
     ops::Range,
 };
 
+use prjcombine_entity::{EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{BelSlotId, TileWireCoord},
     grid::{BelCoord, ExpandedGrid, TileCoord},
 };
-use prjcombine_entity::{EntityPartVec, EntityVec};
 
 use crate::db::{IntPipNaming, NamingDb, TileNamingId, TileRawCellId};
 

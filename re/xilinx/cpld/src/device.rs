@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use bincode::{Decode, Encode};
+use prjcombine_entity::{EntityId, EntityIds, EntityVec};
 use prjcombine_types::cpld::{
     BlockId, ClusterId, IoCoord, IpadId, MacrocellCoord, MacrocellId, ProductTermId,
 };
-use prjcombine_entity::{EntityId, EntityIds, EntityVec};
 
 use crate::types::{BankId, ClkPadId, ExportDir, FbGroupId, FbnId, ImuxId, OePadId};
 

@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::CellCoord;
 use prjcombine_re_xilinx_naming_versal::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -7,7 +8,6 @@ use prjcombine_versal::{
     chip::{Chip, DisabledPart},
     expanded::UbumpId,
 };
-use prjcombine_entity::EntityId;
 
 fn verify_iri(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if matches!(bel.slot, bels::IRI0 | bels::IRI2) {

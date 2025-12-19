@@ -1,5 +1,6 @@
 #![recursion_limit = "1024"]
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{DirH, DirV},
@@ -15,7 +16,6 @@ use prjcombine_virtex4::{
     gtz::{GtzIntColId, GtzIntRowId},
 };
 use std::collections::{HashMap, HashSet};
-use prjcombine_entity::EntityId;
 
 fn verify_slice(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let kind = if bel.info.pins.contains_key("WE") {

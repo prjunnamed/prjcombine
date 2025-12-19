@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
@@ -21,7 +22,6 @@ use prjcombine_xc2000::{
     chip::{Chip, ChipKind},
     cslots,
 };
-use prjcombine_entity::EntityId;
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
 

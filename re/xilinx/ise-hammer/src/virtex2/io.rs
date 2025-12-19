@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet, hash_map};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelSlotId, CellSlotId},
     grid::TileCoord,
@@ -23,7 +24,6 @@ use prjcombine_virtex2::{
     iob::{IobData, IobDiff, IobKind, get_iob_data},
     tslots,
 };
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, MultiValue, Value},
@@ -2720,11 +2720,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     bel,
                     "MISR_RESET",
                     TileItem {
-                        bits: vec![TileBit {
-                            tile: 0,
-                            frame: 0,
-                            bit: [7, 32, 47][idx],
-                        }],
+                        bits: vec![TileBit::new(0, 0, [7, 32, 47][idx])],
                         kind: TileItemKind::BitVec {
                             invert: BitVec::from_iter([false]),
                         },

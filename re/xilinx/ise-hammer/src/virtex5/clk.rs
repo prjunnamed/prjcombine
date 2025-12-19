@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum_ocd,
@@ -5,7 +6,6 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::{bels, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -81,7 +81,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
                     attr: self.0.clone(),
                     val: self.1.into(),
                 },
-                tiles: edev.tile_bits(ntcrd),
+                rects: edev.tile_bits(ntcrd),
             });
             sad = false;
         }
@@ -119,7 +119,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
                     attr: self.2.clone(),
                     val: self.3.into(),
                 },
-                tiles: edev.tile_bits(ntcrd),
+                rects: edev.tile_bits(ntcrd),
             });
             sad = false;
         }
@@ -164,7 +164,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
                     attr: "IDELAYCTRL_MODE".into(),
                     val: self.1.into(),
                 },
-                tiles: edev.tile_bits(ntcrd),
+                rects: edev.tile_bits(ntcrd),
             });
         }
         Some((fuzzer, false))

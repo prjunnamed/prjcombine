@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_interconnect::db::{
     CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireKind,
     WireSlotId,
@@ -11,7 +12,6 @@ use prjcombine_re_xilinx_naming_versal::{
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot, TkWire};
 use prjcombine_versal::{bels, cslots, regions, tslots};
 use std::collections::{BTreeMap, HashMap};
-use prjcombine_entity::{EntityId, EntityPartVec};
 
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
 

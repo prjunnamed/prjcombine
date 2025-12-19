@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{EdgeIoCoord, TileIobId};
 use prjcombine_types::bscan::{BScanBuilder, BScanPad};
-use prjcombine_entity::EntityId;
 
 use crate::{bond::CfgPad, chip::Chip};
 

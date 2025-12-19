@@ -671,11 +671,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             bel,
             attr,
             TileItem {
-                bits: vec![TileBit {
-                    tile: 0,
-                    frame: 0,
-                    bit,
-                }],
+                bits: vec![TileBit::new(0, 0, bit)],
                 kind: TileItemKind::BitVec { invert: bits![0] },
             },
         );
@@ -685,11 +681,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         bel,
         "ICAP_SELECT",
         TileItem {
-            bits: vec![TileBit {
-                tile: 0,
-                frame: 0,
-                bit: 30,
-            }],
+            bits: vec![TileBit::new(0, 0, 30)],
             kind: TileItemKind::Enum {
                 values: [
                     ("TOP".to_string(), bits![0]),

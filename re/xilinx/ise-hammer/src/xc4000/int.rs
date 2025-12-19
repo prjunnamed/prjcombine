@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, HashSet, btree_map};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, BelSlotId, CellSlotId, SwitchBoxItem, TileWireCoord},
     dir::DirH,
@@ -9,9 +10,8 @@ use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, 
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::BelNaming;
-use prjcombine_types::bsdata::TileBit;
+use prjcombine_types::bsdata::{BitRectId, TileBit};
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -1692,8 +1692,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 assert!(got_empty);
                                 if tcname.starts_with("CLB") {
                                     let (mut bit, val) = common.bits.into_iter().next().unwrap();
-                                    assert_ne!(bit.tile, 0);
-                                    bit.tile = 0;
+                                    assert_ne!(bit.rect.to_idx(), 0);
+                                    bit.rect = BitRectId::from_idx(0);
                                     let common = Diff {
                                         bits: [(bit, val)].into_iter().collect(),
                                     };

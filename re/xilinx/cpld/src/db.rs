@@ -3,8 +3,8 @@ use std::{collections::HashMap, error::Error, fs::File, path::Path};
 use crate::device::{Device, Package};
 use crate::types::{ImuxId, ImuxInput};
 use bincode::{Decode, Encode};
-use prjcombine_types::db::{BondId, ChipId};
 use prjcombine_entity::EntityVec;
+use prjcombine_types::db::{BondId, ChipId};
 
 pub type ImuxData = EntityVec<ImuxId, HashMap<ImuxInput, u32>>;
 

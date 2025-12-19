@@ -1,5 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet};
 
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId};
 use prjcombine_re_xilinx_naming::{
     db::NamingDb,
@@ -12,7 +13,6 @@ use prjcombine_virtex2::{
     iob::{IobKind, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w},
     tslots,
 };
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 pub struct ExpandedNamedDevice<'a> {
     pub edev: &'a ExpandedDevice<'a>,

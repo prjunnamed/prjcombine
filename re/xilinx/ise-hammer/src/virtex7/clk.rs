@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::{RowId, TileCoord},
@@ -6,7 +7,6 @@ use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_o
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::bels;
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,

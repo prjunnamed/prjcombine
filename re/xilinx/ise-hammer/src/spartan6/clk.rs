@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{dir::DirV, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{
     FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum,
@@ -12,7 +13,6 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
@@ -112,7 +112,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
                         attr: self.3.clone(),
                         val: self.4.clone(),
                     },
-                    tiles: edev.tile_bits(ntcrd),
+                    rects: edev.tile_bits(ntcrd),
                 });
                 return Some((fuzzer, false));
             }

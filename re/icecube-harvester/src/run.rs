@@ -9,6 +9,8 @@ use std::path::PathBuf;
 use std::process::Stdio;
 
 use bincode::{Decode, Encode};
+use prjcombine_entity::id::{EntityIdU32, EntityTag};
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::PinDir;
 use prjcombine_re_sdf::Sdf;
 use prjcombine_re_toolchain::Toolchain;
@@ -16,8 +18,6 @@ use prjcombine_siliconblue::bitstream::Bitstream;
 use prjcombine_siliconblue::chip::ChipKind;
 use prjcombine_types::bitvec::BitVec;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use prjcombine_entity::id::{EntityIdU32, EntityTag};
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use walkdir::WalkDir;
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};

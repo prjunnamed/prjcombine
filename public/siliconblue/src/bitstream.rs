@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
 use bitvec::prelude::*;
+use prjcombine_entity::EntityId;
+use prjcombine_types::bsdata::{RectBitId, RectFrameId};
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
 pub enum BitPos {
@@ -13,7 +15,7 @@ pub enum BitPos {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub enum BitTile {
+pub enum BitRect {
     Speed,
     CReg,
     // bank, frame, height, bit, width
@@ -22,21 +24,21 @@ pub enum BitTile {
     Bram(usize, usize),
 }
 
-impl prjcombine_types::bittile::BitTile for BitTile {
+impl prjcombine_types::bitrect::BitRect for BitRect {
     type BitPos = BitPos;
 
-    fn xlat_pos_rev(&self, bit: BitPos) -> Option<(usize, usize)> {
-        match (*self, bit) {
-            (BitTile::Speed, BitPos::Speed(pos)) => Some((0, pos)),
-            (BitTile::CReg, BitPos::CReg(pos)) => Some((0, pos)),
-            (BitTile::Main(bank, frame, height, bit, width), BitPos::Main(bbank, bframe, bbit))
+    fn xlat_pos_rev(&self, bit: BitPos) -> Option<(RectFrameId, RectBitId)> {
+        let (rframe, rbit) = match (*self, bit) {
+            (BitRect::Speed, BitPos::Speed(pos)) => (0, pos),
+            (BitRect::CReg, BitPos::CReg(pos)) => (0, pos),
+            (BitRect::Main(bank, frame, height, bit, width), BitPos::Main(bbank, bframe, bbit))
                 if bank == bbank
                     && bframe >= frame
                     && bframe < frame + height
                     && bbit >= bit
                     && bbit < bit + width =>
             {
-                Some((
+                (
                     if (bank & 1) != 0 {
                         height - 1 - (bframe - frame)
                     } else {
@@ -47,47 +49,50 @@ impl prjcombine_types::bittile::BitTile for BitTile {
                     } else {
                         bbit - bit
                     },
-                ))
+                )
             }
-            (BitTile::Bram(bank, bit), BitPos::Bram(bbank, bframe, bbit))
+            (BitRect::Bram(bank, bit), BitPos::Bram(bbank, bframe, bbit))
                 if bank == bbank && bbit >= bit && bbit < bit + 0x10 =>
             {
-                Some((bframe, bbit - bit))
+                (bframe, bbit - bit)
             }
-            _ => None,
-        }
+            _ => return None,
+        };
+        Some((RectFrameId::from_idx(rframe), RectBitId::from_idx(rbit)))
     }
 
-    fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
-        let (tframe, tbit) = bit;
+    fn xlat_pos_fwd(&self, bit: (RectFrameId, RectBitId)) -> BitPos {
+        let (rframe, rbit) = bit;
+        let rframe = rframe.to_idx();
+        let rbit = rbit.to_idx();
         match *self {
-            BitTile::Speed => {
-                assert_eq!(tframe, 0);
-                BitPos::Speed(tbit)
+            BitRect::Speed => {
+                assert_eq!(rframe, 0);
+                BitPos::Speed(rbit)
             }
-            BitTile::CReg => {
-                assert_eq!(tframe, 0);
-                BitPos::CReg(tbit)
+            BitRect::CReg => {
+                assert_eq!(rframe, 0);
+                BitPos::CReg(rbit)
             }
-            BitTile::Main(bank, frame, height, bit, width) => {
-                assert!(tframe < height);
-                assert!(tbit < width);
+            BitRect::Main(bank, frame, height, bit, width) => {
+                assert!(rframe < height);
+                assert!(rbit < width);
                 BitPos::Main(
                     bank,
                     frame
                         + if (bank & 1) != 0 {
-                            height - 1 - tframe
+                            height - 1 - rframe
                         } else {
-                            tframe
+                            rframe
                         },
                     bit + if (bank & 2) != 0 {
-                        width - 1 - tbit
+                        width - 1 - rbit
                     } else {
-                        tbit
+                        rbit
                     },
                 )
             }
-            BitTile::Bram(bank, bit) => BitPos::Bram(bank, tframe, tbit + bit),
+            BitRect::Bram(bank, bit) => BitPos::Bram(bank, rframe, rbit + bit),
         }
     }
 }

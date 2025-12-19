@@ -34,9 +34,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraBramFixup {
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let mut feature = fuzzer.info.features[0].clone();
         feature.id.attr.push_str(".FIXUP");
-        feature.tiles = feature.tiles[0..4]
-            .iter()
-            .map(|&tile| tile.to_fixup())
+        feature.rects = feature
+            .rects
+            .values()
+            .take(4)
+            .map(|&rect| rect.to_fixup())
             .collect();
         fuzzer.info.features.push(feature);
         Some((fuzzer, false))

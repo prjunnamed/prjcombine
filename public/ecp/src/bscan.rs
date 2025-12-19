@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     dir::DirV,
     grid::{EdgeIoCoord, TileIobId},
 };
 use prjcombine_types::bscan::{BScanBuilder, BScanPad};
-use prjcombine_entity::EntityId;
 
 use crate::{
     bond::{BondPad, CfgPad, SerdesPad},

@@ -9,25 +9,54 @@ use std::{
 use bincode::{Decode, Encode};
 use itertools::*;
 use jzon::JsonValue;
+use prjcombine_entity::{
+    EntityId,
+    id::{EntityIdU16, EntityTag, EntityTagArith},
+};
 
 use crate::bitvec::BitVec;
 
+pub struct BitRectTag;
+impl EntityTag for BitRectTag {
+    const PREFIX: &'static str = "R";
+}
+
+pub struct RectFrameTag;
+impl EntityTag for RectFrameTag {
+    const PREFIX: &'static str = "F";
+}
+impl EntityTagArith for RectFrameTag {}
+
+pub struct RectBitTag;
+impl EntityTag for RectBitTag {
+    const PREFIX: &'static str = "B";
+}
+impl EntityTagArith for RectBitTag {}
+
+pub type BitRectId = EntityIdU16<BitRectTag>;
+pub type RectFrameId = EntityIdU16<RectFrameTag>;
+pub type RectBitId = EntityIdU16<RectBitTag>;
+
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub struct TileBit {
-    pub tile: usize,
-    pub frame: usize,
-    pub bit: usize,
+    pub rect: BitRectId,
+    pub frame: RectFrameId,
+    pub bit: RectBitId,
 }
 
 impl TileBit {
-    pub fn new(tile: usize, frame: usize, bit: usize) -> Self {
-        Self { tile, frame, bit }
+    pub fn new(rect: usize, frame: usize, bit: usize) -> Self {
+        Self {
+            rect: BitRectId::from_idx(rect),
+            frame: RectFrameId::from_idx(frame),
+            bit: RectBitId::from_idx(bit),
+        }
     }
 }
 
 impl core::fmt::Debug for TileBit {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}.{}.{}", self.tile, self.frame, self.bit)
+        write!(f, "{}.{}.{}", self.rect, self.frame, self.bit)
     }
 }
 
@@ -291,7 +320,7 @@ impl BsData {
 
 impl From<TileBit> for JsonValue {
     fn from(crd: TileBit) -> Self {
-        jzon::array![crd.tile, crd.frame, crd.bit]
+        jzon::array![crd.rect.to_idx(), crd.frame.to_idx(), crd.bit.to_idx()]
     }
 }
 

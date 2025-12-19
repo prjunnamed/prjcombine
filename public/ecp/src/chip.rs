@@ -2,11 +2,11 @@ use std::{collections::BTreeMap, fmt::Display};
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     dir::{Dir, DirH, DirHV, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
-use prjcombine_entity::{EntityId, EntityVec};
 
 use crate::bels;
 

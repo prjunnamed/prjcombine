@@ -1,9 +1,9 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::IseBackend,
@@ -42,7 +42,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
                         tile: tile.into(),
                         ..fuzzer_id
                     },
-                    tiles: vec![backend.edev.tile_bits(tcrd)[0]],
+                    rects: EntityVec::from_iter(backend.edev.tile_bits(tcrd).into_values().take(1)),
                 });
             }
         }
@@ -78,7 +78,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
                         tile: tile.into(),
                         ..fuzzer_id
                     },
-                    tiles: vec![backend.edev.tile_bits(tcrd)[0]],
+                    rects: EntityVec::from_iter(backend.edev.tile_bits(tcrd).into_values().take(1)),
                 });
             }
         }
@@ -119,7 +119,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileSingle {
                 tile: tile.into(),
                 ..fuzzer_id
             },
-            tiles: vec![backend.edev.tile_bits(self.tcrd)[0]],
+            rects: EntityVec::from_iter(backend.edev.tile_bits(self.tcrd).into_values().take(1)),
         });
         Some((fuzzer, false))
     }
@@ -505,9 +505,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, "MD2", "PULL", &["PULLUP", "PULLDOWN", "PULLNONE"]);
         if edev.chip.kind == ChipKind::SpartanXl {
             let mut diff = ctx.state.get_diff(tile, bel, "5V_TOLERANT_IO", "OFF");
-            let diff_m0 = diff.split_bits_by(|bit| bit.frame == 21);
-            let diff_m1 = diff.split_bits_by(|bit| bit.frame == 22);
-            let diff_m2 = diff.split_bits_by(|bit| bit.frame == 20);
+            let diff_m0 = diff.split_bits_by(|bit| bit.frame.to_idx() == 21);
+            let diff_m1 = diff.split_bits_by(|bit| bit.frame.to_idx() == 22);
+            let diff_m2 = diff.split_bits_by(|bit| bit.frame.to_idx() == 20);
             diff.assert_empty();
             ctx.tiledb
                 .insert(tile, "MD0", "5V_TOLERANT_IO", xlat_bit(!diff_m0));
@@ -550,8 +550,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         if edev.chip.kind == ChipKind::SpartanXl {
             let mut diff = ctx.state.get_diff(tile, bel, "5V_TOLERANT_IO", "OFF");
-            let diff_prog = diff.split_bits_by(|bit| bit.frame == 8);
-            let diff_done = diff.split_bits_by(|bit| bit.frame == 3);
+            let diff_prog = diff.split_bits_by(|bit| bit.frame.to_idx() == 8);
+            let diff_done = diff.split_bits_by(|bit| bit.frame.to_idx() == 3);
             diff.assert_empty();
             ctx.tiledb
                 .insert(tile, "PROG", "5V_TOLERANT_IO", xlat_bit(!diff_prog));
@@ -620,8 +620,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         if edev.chip.kind == ChipKind::SpartanXl {
             let mut diff = ctx.state.get_diff(tile, bel, "5V_TOLERANT_IO", "OFF");
-            let diff_tdo = diff.split_bits_by(|bit| bit.frame == 12);
-            let diff_cclk = diff.split_bits_by(|bit| bit.frame == 13);
+            let diff_tdo = diff.split_bits_by(|bit| bit.frame.to_idx() == 12);
+            let diff_cclk = diff.split_bits_by(|bit| bit.frame.to_idx() == 13);
             diff.assert_empty();
             ctx.tiledb
                 .insert(tile, "TDO", "5V_TOLERANT_IO", xlat_bit(!diff_tdo));
@@ -666,8 +666,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             } else {
                 unreachable!()
             };
-            let diff_iob0 = diff.split_bits_by(|bit| bit.frame == f0);
-            let diff_iob1 = diff.split_bits_by(|bit| bit.frame == f1);
+            let diff_iob0 = diff.split_bits_by(|bit| bit.frame.to_idx() == f0);
+            let diff_iob1 = diff.split_bits_by(|bit| bit.frame.to_idx() == f1);
             diff.assert_empty();
             ctx.tiledb
                 .insert(tile, "IO0", "5V_TOLERANT_IO", xlat_bit(!diff_iob0));

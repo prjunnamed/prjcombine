@@ -1,11 +1,11 @@
 #![allow(clippy::type_complexity)]
 
 use bimap::BiHashMap;
+use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileIobId};
 use std::collections::BTreeSet;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 
 use crate::chip::{
     Chip, ChipKind, CleMKind, Column, ColumnKind, ConfigKind, DisabledPart, DspKind, HardKind,

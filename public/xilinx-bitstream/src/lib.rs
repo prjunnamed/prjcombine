@@ -1,8 +1,9 @@
 use arrayvec::ArrayVec;
 use bitvec::prelude::*;
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{dir::DirV, grid::DieId};
+use prjcombine_types::bsdata::{RectBitId, RectFrameId};
 use std::collections::{BTreeMap, HashMap};
-use prjcombine_entity::EntityVec;
 
 mod packet;
 mod parse;
@@ -362,7 +363,7 @@ pub enum BitPos {
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub enum BitTile {
+pub enum BitRect {
     Null,
     Reg(DieId, Reg),
     RegPresent(DieId, Reg),
@@ -376,23 +377,23 @@ pub enum BitTile {
     Gtz(DirV),
 }
 
-impl prjcombine_types::bittile::BitTile for BitTile {
+impl prjcombine_types::bitrect::BitRect for BitRect {
     type BitPos = BitPos;
 
-    fn xlat_pos_rev(&self, bit: BitPos) -> Option<(usize, usize)> {
-        match (*self, bit) {
-            (BitTile::Reg(die, reg), BitPos::Reg(bdie, breg, pos))
+    fn xlat_pos_rev(&self, bit: BitPos) -> Option<(RectFrameId, RectBitId)> {
+        let (rframe, rbit) = match (*self, bit) {
+            (BitRect::Reg(die, reg), BitPos::Reg(bdie, breg, pos))
                 if bdie == die && breg == reg =>
             {
-                Some((0, pos))
+                (0, pos)
             }
-            (BitTile::RegPresent(die, reg), BitPos::RegPresent(bdie, breg))
+            (BitRect::RegPresent(die, reg), BitPos::RegPresent(bdie, breg))
                 if bdie == die && breg == reg =>
             {
-                Some((0, 0))
+                (0, 0)
             }
             (
-                BitTile::Main(die, frame, width, bit, height, flip),
+                BitRect::Main(die, frame, width, bit, height, flip),
                 BitPos::Main(bdie, bframe, bbit),
             ) if die == bdie
                 && bframe >= frame
@@ -400,17 +401,17 @@ impl prjcombine_types::bittile::BitTile for BitTile {
                 && bbit >= bit
                 && bbit < bit + height =>
             {
-                Some((
+                (
                     bframe - frame,
                     if flip {
                         height - 1 - (bbit - bit)
                     } else {
                         bbit - bit
                     },
-                ))
+                )
             }
             (
-                BitTile::Fixup(die, frame, width, bit, height, flip),
+                BitRect::Fixup(die, frame, width, bit, height, flip),
                 BitPos::Fixup(bdie, bframe, bbit),
             ) if die == bdie
                 && bframe >= frame
@@ -418,87 +419,90 @@ impl prjcombine_types::bittile::BitTile for BitTile {
                 && bbit >= bit
                 && bbit < bit + height =>
             {
-                Some((
+                (
                     bframe - frame,
                     if flip {
                         height - 1 - (bbit - bit)
                     } else {
                         bbit - bit
                     },
-                ))
+                )
             }
-            (BitTile::Bram(die, frame), BitPos::Bram(bdie, bframe, pos))
+            (BitRect::Bram(die, frame), BitPos::Bram(bdie, bframe, pos))
                 if bdie == die && bframe == frame =>
             {
-                Some((0, pos))
+                (0, pos)
             }
-            (BitTile::Iob(die, bit, height), BitPos::Iob(bdie, bbit))
+            (BitRect::Iob(die, bit, height), BitPos::Iob(bdie, bbit))
                 if die == bdie && bbit >= bit && bbit < bit + height =>
             {
-                Some((0, bbit - bit))
+                (0, bbit - bit)
             }
-            (BitTile::Gtz(dir), BitPos::Gtz(bdir, frame, bit)) if dir == bdir => Some((frame, bit)),
-            _ => None,
-        }
+            (BitRect::Gtz(dir), BitPos::Gtz(bdir, frame, bit)) if dir == bdir => (frame, bit),
+            _ => return None,
+        };
+        Some((RectFrameId::from_idx(rframe), RectBitId::from_idx(rbit)))
     }
 
-    fn xlat_pos_fwd(&self, bit: (usize, usize)) -> BitPos {
-        let (tframe, tbit) = bit;
+    fn xlat_pos_fwd(&self, bit: (RectFrameId, RectBitId)) -> BitPos {
+        let (rframe, rbit) = bit;
+        let rframe = rframe.to_idx();
+        let rbit = rbit.to_idx();
         match *self {
-            BitTile::Null => unreachable!(),
-            BitTile::Reg(die, reg) => {
-                assert_eq!(tframe, 0);
-                BitPos::Reg(die, reg, tbit)
+            BitRect::Null => unreachable!(),
+            BitRect::Reg(die, reg) => {
+                assert_eq!(rframe, 0);
+                BitPos::Reg(die, reg, rbit)
             }
-            BitTile::RegPresent(die, reg) => {
-                assert_eq!(tframe, 0);
-                assert_eq!(tbit, 0);
+            BitRect::RegPresent(die, reg) => {
+                assert_eq!(rframe, 0);
+                assert_eq!(rbit, 0);
                 BitPos::RegPresent(die, reg)
             }
-            BitTile::Main(die, frame, width, bit, height, flip) => {
-                assert!(tframe < width);
-                assert!(tbit < height);
+            BitRect::Main(die, frame, width, bit, height, flip) => {
+                assert!(rframe < width);
+                assert!(rbit < height);
                 BitPos::Main(
                     die,
-                    frame + tframe,
+                    frame + rframe,
                     if flip {
-                        bit + height - 1 - tbit
+                        bit + height - 1 - rbit
                     } else {
-                        bit + tbit
+                        bit + rbit
                     },
                 )
             }
-            BitTile::Fixup(die, frame, width, bit, height, flip) => {
-                assert!(tframe < width);
-                assert!(tbit < height);
+            BitRect::Fixup(die, frame, width, bit, height, flip) => {
+                assert!(rframe < width);
+                assert!(rbit < height);
                 BitPos::Fixup(
                     die,
-                    frame + tframe,
+                    frame + rframe,
                     if flip {
-                        bit + height - 1 - tbit
+                        bit + height - 1 - rbit
                     } else {
-                        bit + tbit
+                        bit + rbit
                     },
                 )
             }
-            BitTile::Bram(die, frame) => {
-                assert_eq!(tframe, 0);
-                BitPos::Bram(die, frame, tbit)
+            BitRect::Bram(die, frame) => {
+                assert_eq!(rframe, 0);
+                BitPos::Bram(die, frame, rbit)
             }
-            BitTile::Iob(die, bit, height) => {
-                assert!(tbit < height);
-                BitPos::Iob(die, bit + tbit)
+            BitRect::Iob(die, bit, height) => {
+                assert!(rbit < height);
+                BitPos::Iob(die, bit + rbit)
             }
-            BitTile::Gtz(dir) => BitPos::Gtz(dir, tframe, tbit),
+            BitRect::Gtz(dir) => BitPos::Gtz(dir, rframe, rbit),
         }
     }
 }
 
-impl BitTile {
-    pub fn to_fixup(self) -> BitTile {
+impl BitRect {
+    pub fn to_fixup(self) -> BitRect {
         match self {
-            BitTile::Main(die, frame, width, bit, height, flip) => {
-                BitTile::Fixup(die, frame, width, bit, height, flip)
+            BitRect::Main(die, frame, width, bit, height, flip) => {
+                BitRect::Fixup(die, frame, width, bit, height, flip)
             }
             _ => unreachable!(),
         }

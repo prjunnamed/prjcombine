@@ -7,6 +7,7 @@ use prjcombine_ecp::{
         SpecialIoKey, SpecialLocKey,
     },
 };
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirH, DirHV, DirV},
@@ -14,7 +15,6 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_lattice_naming::{ChipNaming, WireName};
 use prjcombine_re_lattice_rawdump::{Grid, NodeId};
-use prjcombine_entity::{EntityId, EntityVec};
 
 pub trait ChipExt {
     fn xlat_row(&self, r: u8) -> RowId;

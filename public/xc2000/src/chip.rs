@@ -5,10 +5,10 @@ use std::{
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{EntityId, EntityIds};
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
 };
-use prjcombine_entity::{EntityId, EntityIds};
 
 use crate::bels;
 

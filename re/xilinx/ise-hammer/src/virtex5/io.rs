@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId, RowId, TileCoord, TileIobId};
 use prjcombine_re_fpga_hammer::{
     Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
@@ -11,7 +12,6 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex4::{bels, chip::ChipKind, expanded::IoCoord, tslots};
-use prjcombine_entity::EntityId;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -185,7 +185,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                     attr: "PRESENT".into(),
                     val: "VREF".into(),
                 },
-                tiles: backend.edev.tile_bits(vref),
+                rects: backend.edev.tile_bits(vref),
             });
         }
         Some((fuzzer, false))
@@ -230,7 +230,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
                 attr: "VREF".into(),
                 val: self.1.to_string(),
             },
-            tiles: edev.tile_bits(hclk_ioi),
+            rects: edev.tile_bits(hclk_ioi),
         });
         Some((fuzzer, false))
     }
@@ -279,7 +279,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "PRESENT".into(),
                     val: "VR".into(),
                 },
-                tiles: edev.tile_bits(tile_vr),
+                rects: edev.tile_bits(tile_vr),
             });
         }
         // Take exclusive mutex on bank DCI.
@@ -301,7 +301,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
                     attr: "STD".into(),
                     val: std.into(),
                 },
-                tiles: edev.tile_bits(hclk_ioi),
+                rects: edev.tile_bits(hclk_ioi),
             });
         }
         // Take shared mutex on global DCI.
@@ -368,7 +368,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
                 attr: self.0.into(),
                 val: self.1.into(),
             },
-            tiles: edev.tile_bits(hclk_ioi),
+            rects: edev.tile_bits(hclk_ioi),
         });
         Some((fuzzer, false))
     }
@@ -1754,7 +1754,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         );
     }
     let mut diff = ctx.state.get_diff(tile, "OLOGIC_COMMON", "MISR_RESET", "1");
-    let diff1 = diff.split_bits_by(|bit| bit.bit >= 32);
+    let diff1 = diff.split_bits_by(|bit| bit.bit.to_idx() >= 32);
     ctx.tiledb
         .insert(tile, "OLOGIC0", "MISR_RESET", xlat_bit(diff));
     ctx.tiledb
@@ -2137,7 +2137,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
         present.assert_empty();
     }
-    let diff1 = present_vr.split_bits_by(|bit| bit.bit >= 32);
+    let diff1 = present_vr.split_bits_by(|bit| bit.bit.to_idx() >= 32);
     ctx.tiledb.insert(tile, "IOB0", "VR", xlat_bit(present_vr));
     ctx.tiledb.insert(tile, "IOB1", "VR", xlat_bit(diff1));
     for i in 0..2 {

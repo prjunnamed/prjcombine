@@ -4,6 +4,7 @@ use std::{
 };
 
 use itertools::Itertools;
+use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use prjcombine_virtex::{
@@ -12,7 +13,6 @@ use prjcombine_virtex::{
     db::{Database, Device},
 };
 use regex::Regex;
-use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 
 struct TmpPart<'a> {
     chip: &'a Chip,

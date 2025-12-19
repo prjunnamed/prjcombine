@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
     db::{BelSlotId, TileClassId},
     dir::DirV,
@@ -5,7 +6,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
-use prjcombine_xilinx_bitstream::{BitTile, Reg};
+use prjcombine_xilinx_bitstream::{BitRect, Reg};
 
 use crate::backend::IseBackend;
 
@@ -57,7 +58,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
         };
         fuzzer.info.features.push(FuzzerFeature {
             id,
-            tiles: backend.edev.tile_bits(tcrd),
+            rects: backend.edev.tile_bits(tcrd),
         });
         Some((fuzzer, false))
     }
@@ -111,7 +112,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
         };
         fuzzer.info.features.push(FuzzerFeature {
             id,
-            tiles: backend.edev.tile_bits(tcrd),
+            rects: backend.edev.tile_bits(tcrd),
         });
         Some((fuzzer, false))
     }
@@ -164,7 +165,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
                 };
                 fuzzer.info.features.push(FuzzerFeature {
                     id,
-                    tiles: backend.edev.tile_bits(tcrd),
+                    rects: backend.edev.tile_bits(tcrd),
                 });
             }
         }
@@ -223,7 +224,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
                 };
                 fuzzer.info.features.push(FuzzerFeature {
                     id,
-                    tiles: backend.edev.tile_bits(tcrd),
+                    rects: backend.edev.tile_bits(tcrd),
                 });
             }
         }
@@ -280,11 +281,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
                 attr: self.attr.as_ref().unwrap_or(&main_id.attr).clone(),
                 val: self.val.as_ref().unwrap_or(&main_id.val).clone(),
             };
-            let mut tiles = Vec::from_iter(self.regs.iter().map(|&reg| BitTile::Reg(die, reg)));
+            let mut rects =
+                EntityVec::from_iter(self.regs.iter().map(|&reg| BitRect::Reg(die, reg)));
             if self.present {
-                tiles.extend(self.regs.iter().map(|&reg| BitTile::RegPresent(die, reg)));
+                rects.extend(self.regs.iter().map(|&reg| BitRect::RegPresent(die, reg)));
             }
-            fuzzer.info.features.push(FuzzerFeature { id, tiles });
+            fuzzer.info.features.push(FuzzerFeature { id, rects });
         }
         Some((fuzzer, false))
     }
@@ -313,7 +315,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraGtz {
         };
         fuzzer.info.features.push(FuzzerFeature {
             id,
-            tiles: vec![BitTile::Gtz(self.0)],
+            rects: EntityVec::from_iter([BitRect::Gtz(self.0)]),
         });
         Some((fuzzer, false))
     }

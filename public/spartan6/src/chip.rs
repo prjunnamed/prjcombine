@@ -1,14 +1,14 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
+use prjcombine_entity::{
+    EntityId, EntityIds, EntityVec,
+    id::{EntityIdU8, EntityTag, EntityTagArith},
+};
 use prjcombine_interconnect::{
     dir::{DirH, DirHV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 use std::collections::BTreeMap;
-use prjcombine_entity::{
-    EntityId, EntityIds, EntityVec,
-    id::{EntityIdU8, EntityTag, EntityTagArith},
-};
 
 use crate::bels;
 

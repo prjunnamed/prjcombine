@@ -1,3 +1,4 @@
+use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
@@ -5,7 +6,7 @@ use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
     bits,
     bitvec::BitVec,
-    bsdata::{TileBit, TileItem},
+    bsdata::{BitRectId, TileBit, TileItem},
 };
 use prjcombine_virtex4::{bels, tslots};
 
@@ -1079,7 +1080,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "CLKOUT6_HT"), 1, 0);
         enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "CLKOUT6_LT"), 0x3f, 0);
         assert_eq!(enable.bits.len(), 1);
-        let drp_mask = enable.filter_tiles(&[40]);
+        let drp_mask = enable.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(40)]));
         assert_eq!(drp_mask.bits.len(), 1);
         ctx.tiledb.insert(
             "HCLK",
@@ -1350,7 +1351,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             match i {
                 6 | 14 => {
                     assert_eq!(diff.bits.len(), 2);
-                    let diff_n = diff.split_bits_by(|bit| bit.frame == 31);
+                    let diff_n = diff.split_bits_by(|bit| bit.frame.to_idx() == 31);
                     ctx.tiledb
                         .insert(tile, bel, format!("INV.GCLK{i}_TEST"), xlat_bit(diff));
                     ctx.tiledb.insert(

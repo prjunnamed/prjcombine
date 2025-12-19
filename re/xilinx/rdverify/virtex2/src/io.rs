@@ -1,3 +1,4 @@
+use prjcombine_entity::EntityId;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::CellCoord;
 use prjcombine_re_xilinx_naming::db::RawTileId;
@@ -7,7 +8,6 @@ use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::bels;
 use prjcombine_virtex2::chip::{ChipKind, IoDiffKind};
 use prjcombine_virtex2::iob::IobKind;
-use prjcombine_entity::EntityId;
 
 use crate::get_bel_iob;
 
