@@ -212,14 +212,14 @@ pub fn collect(
                         diffs.push(("CI", collector.state.get_diff(tile, bel, &mux_name, "CI")));
                     }
                     diffs.push(("NONE", Diff::default()));
-                    for &wf in &mux.src {
+                    for &wf in mux.src.keys() {
                         if !gout_mux.contains_key(&wf) {
                             let wfn = edev.db.wires.key(wf.wire);
                             values.push(wfn);
                             diffs.push((wfn, collector.state.get_diff(tile, bel, &mux_name, wfn)));
                         }
                     }
-                    for &wg in &mux.src {
+                    for &wg in mux.src.keys() {
                         if let Some(gmux) = gout_mux.get(&wg) {
                             let wgn = edev.db.wires.key(gmux.dst.wire);
                             let mut bits_nog2l = HashSet::new();
@@ -229,7 +229,7 @@ pub fn collect(
                                 }
                             }
                             let mut diffs_gout = vec![];
-                            for &wf in &gmux.src {
+                            for &wf in gmux.src.keys() {
                                 let wfn = edev.db.wires.key(wf.wire).as_str();
                                 let mut diff_gout =
                                     collector.state.get_diff(tile, bel, &mux_name, wfn);

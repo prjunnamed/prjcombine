@@ -5458,7 +5458,7 @@ fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
 
 fn verify_pre(vrf: &mut Verifier) {
     if let Some((tcid, tcls)) = vrf.db.tile_classes.get("XP5IO") {
-        let BelInfo::Bel(bel) = &tcls.bels[bels::LPDDRMC] else {
+        let BelInfo::Legacy(bel) = &tcls.bels[bels::LPDDRMC] else {
             unreachable!()
         };
         for &tcrd in &vrf.grid.tile_index[tcid] {

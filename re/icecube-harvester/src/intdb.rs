@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorWire, IntDb,
+        LegacyBel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorWire, IntDb,
         TileClass, TileSlotId, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -17,14 +17,14 @@ use prjcombine_siliconblue::{
 
 use crate::sites::BelPins;
 
-fn add_input(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wire: &str) {
+fn add_input(db: &IntDb, bel: &mut LegacyBel, name: &str, cell: usize, wire: &str) {
     bel.pins.insert(
         name.into(),
         BelPin::new_in(TileWireCoord::new_idx(cell, db.get_wire(wire))),
     );
 }
 
-fn add_output(db: &IntDb, bel: &mut Bel, name: &str, cell: usize, wires: &[&str]) {
+fn add_output(db: &IntDb, bel: &mut LegacyBel, name: &str, cell: usize, wires: &[&str]) {
     bel.pins.insert(
         name.into(),
         BelPin::new_out_multi(
@@ -194,7 +194,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     {
         let mut tcls = TileClass::new(tslots::MAIN, 1);
         for i in 0..8 {
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             for j in 0..4 {
                 add_input(
                     &db,
@@ -208,7 +208,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             add_input(&db, &mut bel, "RST", 0, "IMUX.RST");
             add_input(&db, &mut bel, "CE", 0, "IMUX.CE");
             add_output(&db, &mut bel, "O", 0, &[&format!("OUT.LC{i}")]);
-            tcls.bels.insert(bels::LC[i], BelInfo::Bel(bel));
+            tcls.bels.insert(bels::LC[i], BelInfo::Legacy(bel));
         }
         db.tile_classes.insert(kind.tile_class_plb().into(), tcls);
     }
@@ -222,7 +222,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         };
         let mut tcls = TileClass::new(tslots::MAIN, 1);
         for i in 0..2 {
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             for pin in ["DOUT0", "DOUT1", "OE"] {
                 add_input(&db, &mut bel, pin, 0, &format!("IMUX.IO{i}.{pin}"));
             }
@@ -250,7 +250,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     &format!("OUT.LC{}", 2 * i + 5)[..],
                 ],
             );
-            tcls.bels.insert(bels::IO[i], BelInfo::Bel(bel));
+            tcls.bels.insert(bels::IO[i], BelInfo::Legacy(bel));
         }
         db.tile_classes.insert(tile.into(), tcls);
         let Some(tile) = kind.tile_class_iob(dir) else {
@@ -263,7 +263,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     if kind != ChipKind::Ice40P03 {
         let ice40_bramv2 = kind.has_ice40_bramv2();
         let mut tcls = TileClass::new(tslots::BEL, 2);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         let (tile_w, tile_r) = if ice40_bramv2 { (1, 0) } else { (0, 1) };
         add_input(&db, &mut bel, "WCLK", tile_w, "IMUX.CLK.OPTINV");
         add_input(&db, &mut bel, "WE", tile_w, "IMUX.RST");
@@ -317,7 +317,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("OUT.LC{lc}")],
             );
         }
-        tcls.bels.insert(bels::BRAM, BelInfo::Bel(bel));
+        tcls.bels.insert(bels::BRAM, BelInfo::Legacy(bel));
         db.tile_classes.insert(kind.tile_class_bram().into(), tcls);
     }
 
@@ -330,23 +330,23 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
 
     {
         let mut tcls = TileClass::new(tslots::BEL, 1);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         add_input(&db, &mut bel, "LATCH", 0, "IMUX.IO.EXTRA");
-        tcls.bels.insert(bels::IO_LATCH, BelInfo::Bel(bel));
+        tcls.bels.insert(bels::IO_LATCH, BelInfo::Legacy(bel));
         db.tile_classes.insert("IO_LATCH".into(), tcls);
     }
 
     {
         let mut tcls = TileClass::new(tslots::BEL, 1);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         add_input(&db, &mut bel, "I", 0, "IMUX.IO.EXTRA");
-        tcls.bels.insert(bels::GB_FABRIC, BelInfo::Bel(bel));
+        tcls.bels.insert(bels::GB_FABRIC, BelInfo::Legacy(bel));
         db.tile_classes.insert("GB_FABRIC".into(), tcls);
     }
 
     {
         let mut tcls = TileClass::new(tslots::GB_ROOT, 1);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         for i in 0..8 {
             add_output(
                 &db,
@@ -356,7 +356,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                 &[&format!("GLOBAL.{i}")],
             );
         }
-        tcls.bels.insert(bels::GB_ROOT, BelInfo::Bel(bel));
+        tcls.bels.insert(bels::GB_ROOT, BelInfo::Legacy(bel));
         db.tile_classes
             .insert(kind.tile_class_gb_root().into(), tcls);
     }
@@ -395,7 +395,7 @@ impl<'a> MiscTileBuilder<'a> {
         match self.cells_map.entry(crd) {
             hash_map::Entry::Occupied(entry) => *entry.get(),
             hash_map::Entry::Vacant(entry) => {
-                let cell = self.tcls.cells.push(());
+                let cell = self.tcls.cells.push(self.tcls.cells.next_id().to_string());
                 self.cells.push(crd);
                 entry.insert(cell);
                 cell
@@ -404,7 +404,7 @@ impl<'a> MiscTileBuilder<'a> {
     }
 
     pub fn add_bel(&mut self, slot: BelSlotId, pins: &BelPins) {
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         for (pin, &wire) in &pins.ins {
             let cell = self.get_cell(wire.cell);
             bel.pins.insert(
@@ -426,7 +426,7 @@ impl<'a> MiscTileBuilder<'a> {
             }
             bel.pins.insert(pin.clone(), BelPin::new_out_multi(wires));
         }
-        self.tcls.bels.insert(slot, BelInfo::Bel(bel));
+        self.tcls.bels.insert(slot, BelInfo::Legacy(bel));
     }
 
     pub fn finish(mut self) -> (TileClass, SpecialTile) {
@@ -460,7 +460,7 @@ impl<'a> MiscTileBuilder<'a> {
             }
         }
         for bel in self.tcls.bels.values_mut() {
-            let BelInfo::Bel(bel) = bel else {
+            let BelInfo::Legacy(bel) = bel else {
                 unreachable!()
             };
             for pin in bel.pins.values_mut() {

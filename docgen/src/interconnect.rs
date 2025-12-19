@@ -226,14 +226,14 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                     Pass,
                     BiPass,
                     ProgInv,
-                    ProgDelay(bool, u8),
+                    ProgDelay(bool, usize),
                 }
                 let mut pips: BTreeMap<TileWireCoord, BTreeSet<(PipKind, TileWireCoord)>> =
                     BTreeMap::new();
                 for item in &sb.items {
                     match item {
                         SwitchBoxItem::Mux(mux) => {
-                            for &src in &mux.src {
+                            for &src in mux.src.keys() {
                                 pips.entry(mux.dst)
                                     .or_default()
                                     .insert((PipKind::Mux(src.inv), src.tw));
@@ -269,7 +269,7 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                         }
                         SwitchBoxItem::ProgDelay(delay) => {
                             pips.entry(delay.dst).or_default().insert((
-                                PipKind::ProgDelay(delay.src.inv, delay.num_steps),
+                                PipKind::ProgDelay(delay.src.inv, delay.steps.len()),
                                 delay.src.tw,
                             ));
                         }
@@ -331,7 +331,10 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 writeln!(buf, r#"</table></div>"#).unwrap();
                 writeln!(buf).unwrap();
             }
-            BelInfo::Bel(bel) => {
+            BelInfo::Bel(_bel) => {
+                todo!();
+            }
+            BelInfo::Legacy(bel) => {
                 writeln!(buf, r#"### Bel {bname}"#).unwrap();
                 writeln!(buf).unwrap();
                 writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();

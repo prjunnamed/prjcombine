@@ -350,7 +350,12 @@ impl ChipContext<'_> {
             for (dst, src) in sb_pips {
                 let mux = Mux {
                     dst,
-                    src: src.into_iter().map(|w| w.pos()).collect(),
+                    bits: vec![],
+                    src: src
+                        .into_iter()
+                        .map(|w| (w.pos(), Default::default()))
+                        .collect(),
+                    bits_off: None,
                 };
                 sb.items.push(SwitchBoxItem::Mux(mux));
             }

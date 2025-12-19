@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::Bel,
+    db::LegacyBel,
     dir::{Dir, DirH, DirHV, DirV},
     grid::{BelCoord, EdgeIoCoord, TileIobId},
 };
@@ -93,7 +93,7 @@ impl ChipContext<'_> {
             IoKind::SDqs => ("SDQSIOL", "SDQSIOL"),
         };
 
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
 
         let paddi = self.rc_io_wire(cell, &format!("JPADDI{abcd}_PIO"));
         self.add_bel_wire(bcrd, "PADDI", paddi);
@@ -416,7 +416,7 @@ impl ChipContext<'_> {
                 let bcrd = self.chip.bel_eclksync(edge, idx);
                 let cell = bcrd.cell;
                 self.name_bel(bcrd, [format!("{lrt}ECLKSYNC{idxp1}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let stop = self.rc_wire(cell, &format!("JSTOP{idxp1}_ECLKSYNC"));
                 self.add_bel_wire(bcrd, "STOP", stop);

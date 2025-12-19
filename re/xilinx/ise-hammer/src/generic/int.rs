@@ -119,7 +119,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                     {
                         let mut found = false;
                         for bel in bram_tcls.bels.values() {
-                            let BelInfo::Bel(bel) = bel else {
+                            let BelInfo::Legacy(bel) = bel else {
                                 unreachable!()
                             };
                             for pin in bel.pins.values() {
@@ -616,7 +616,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
 fn resolve_intf_delay<'a>(
     backend: &IseBackend<'a>,
     tcrd: TileCoord,
-    delay: ProgDelay,
+    delay: &ProgDelay,
 ) -> Option<(&'a str, &'a str, &'a str, &'a str)> {
     let ntile = &backend.ngrid.tiles[&tcrd];
     let ndb = backend.ngrid.db;
@@ -661,7 +661,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfDelay {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let (tile, wa, wb, wc) = resolve_intf_delay(backend, tcrd, self.delay)?;
+        let (tile, wa, wb, wc) = resolve_intf_delay(backend, tcrd, &self.delay)?;
         let fuzzer = if self.state {
             fuzzer
                 .fuzz(Key::Pip(tile, wa, wb), None, true)
@@ -686,7 +686,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             };
             let mut bctx = ctx.bel(bslot);
             for item in &sb.items {
-                let SwitchBoxItem::ProgDelay(delay) = *item else {
+                let SwitchBoxItem::ProgDelay(delay) = item else {
                     continue;
                 };
                 skip_pips.insert((delay.dst, delay.src.tw));
@@ -699,7 +699,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .prop(TileMutexExclusive::new("INTF".into()))
                         .prop(WireMutexExclusive::new(delay.dst))
                         .prop(WireMutexExclusive::new(delay.src.tw))
-                        .prop(FuzzIntfDelay::new(delay, val == "1"))
+                        .prop(FuzzIntfDelay::new(delay.clone(), val == "1"))
                         .commit();
                 }
             }
@@ -794,7 +794,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         };
                         let mut inps = vec![];
                         let mut got_empty = false;
-                        for &wire_from in &mux.src {
+                        for &wire_from in mux.src.keys() {
                             let wire_from = wire_from.tw;
                             let in_name = if tcls.cells.len() == 1 {
                                 intdb.wires.key(wire_from.wire).to_string()

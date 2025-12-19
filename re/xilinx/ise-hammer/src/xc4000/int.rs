@@ -746,7 +746,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000TbufSplitter {
         let ntile = &backend.ngrid.tiles[&tcrd];
         let tcls = &backend.edev.db[tile.class];
         let bel_data = &tcls.bels[self.slot];
-        let BelInfo::Bel(bel_data) = bel_data else {
+        let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
         let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
@@ -1401,12 +1401,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
                         if out_name.starts_with("QBUF") {
                             let wire_mid = mux.dst;
-                            for &wire_to in &mux.src {
+                            for &wire_to in mux.src.keys() {
                                 let wire_to = wire_to.tw;
                                 let wtname =
                                     format!("{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire));
                                 let mut diffs = vec![];
-                                for &wire_from in &mux.src {
+                                for &wire_from in mux.src.keys() {
                                     let wire_from = wire_from.tw;
                                     if wire_to == wire_from {
                                         continue;
@@ -1453,14 +1453,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             continue;
                         }
                         if out_name.ends_with("EXCL") {
-                            for &wire_to in &mux.src {
+                            for &wire_to in mux.src.keys() {
                                 let wire_to = wire_to.tw;
                                 let wtname =
                                     format!("{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire));
                                 if wtname.contains("CLK") {
                                     continue;
                                 }
-                                for &wire_from in &mux.src {
+                                for &wire_from in mux.src.keys() {
                                     let wire_from = wire_from.tw;
                                     if wire_to == wire_from {
                                         continue;
@@ -1494,7 +1494,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             && !out_name.starts_with("GCLK")
                             && !out_name.starts_with("IO.DBUF")
                         {
-                            for &wire_from in &mux.src {
+                            for &wire_from in mux.src.keys() {
                                 let wire_from = wire_from.tw;
                                 let wfname = intdb.wires.key(wire_from.wire);
                                 if wfname.ends_with("EXCL") {
@@ -1540,7 +1540,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         let mut inps = vec![];
                         let mut got_empty = false;
-                        for &wire_from in &mux.src {
+                        for &wire_from in mux.src.keys() {
                             let wire_from = wire_from.tw;
                             let in_name =
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));

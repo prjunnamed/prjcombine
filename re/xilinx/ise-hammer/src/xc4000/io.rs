@@ -45,7 +45,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         let tile = &backend.edev[tcrd];
         let tcls = &backend.edev.db[tile.class];
         let bel_data = &tcls.bels[self.slot];
-        let BelInfo::Bel(bel_data) = bel_data else {
+        let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
         let wire = *bel_data.pins[self.pin].wires.iter().next().unwrap();

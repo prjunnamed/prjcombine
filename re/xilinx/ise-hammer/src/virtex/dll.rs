@@ -76,7 +76,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for PinWireMutexShared {
         let tile = &backend.edev[tcrd];
         let tcls = &backend.edev.db[tile.class];
         let bel_data = &tcls.bels[self.0];
-        let BelInfo::Bel(bel_data) = bel_data else {
+        let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
         let pin_data = &bel_data.pins[self.1];

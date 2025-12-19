@@ -803,8 +803,8 @@ impl IntMaker<'_> {
         self.builder
             .int_type(tslots::INT, bels::INT, "INT", "INT", "INT");
         let nk = self.builder.db.get_tile_class("INT");
-        let node = &mut self.builder.db.tile_classes[nk];
-        node.cells.push(());
+        let tcls = &mut self.builder.db.tile_classes[nk];
+        tcls.cells.push(tcls.cells.next_id().to_string());
         let pips = self.builder.pips.get_mut(&(nk, bels::INT)).unwrap();
         pips.pips = pips
             .pips

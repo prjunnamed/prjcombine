@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, GroupTestMux, GroupTestMuxWire, IntDb, TileWireCoord, WireKind},
+    db::{LegacyBel, BelInfo, BelPin, GroupTestMux, GroupTestMuxWire, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -2326,13 +2326,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
         for tile in ["LL.FC", "UL.FC", "LR.FC", "UR.FC"] {
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             bel.pins.insert(
                 "CLK".into(),
                 BelPin::new_in(TileWireCoord::new_idx(0, builder.db.get_wire("IMUX.CLK3"))),
             );
             let tcls = builder.db.tile_classes.get_mut(tile).unwrap().1;
-            tcls.bels.insert(bels::MISR, BelInfo::Bel(bel));
+            tcls.bels.insert(bels::MISR, BelInfo::Legacy(bel));
             let pin_naming = BelPinNaming {
                 name: "CNR_CLK3".into(),
                 name_far: "CNR_CLK3".into(),
@@ -3509,7 +3509,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         let mut wires_c = BTreeSet::new();
         let tcls = builder.db.tile_classes.get("DSP").unwrap().1;
-        let BelInfo::Bel(ref bel) = tcls.bels[bels::DSP] else {
+        let BelInfo::Legacy(ref bel) = tcls.bels[bels::DSP] else {
             unreachable!()
         };
         for i in 0..48 {

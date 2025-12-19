@@ -1,11 +1,13 @@
 use prjcombine_ecp::{bels, chip::ChipKind, cslots, regions, tslots};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, BelSlotId, Buf, ConnectorClass, ConnectorSlotId, ConnectorWire,
-        IntDb, SwitchBox, SwitchBoxItem, TileClass, TileSlotId, TileWireCoord, WireKind,
+        BelInfo, BelPin, BelSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb,
+        LegacyBel, PermaBuf, ProgBuf, SwitchBox, SwitchBoxItem, TileClass, TileSlotId,
+        TileWireCoord, WireKind,
     },
     dir::{Dir, DirH, DirMap},
 };
+use prjcombine_types::bsdata::PolTileBit;
 
 struct TileClassBuilder<'db> {
     db: &'db mut IntDbBuilder,
@@ -18,7 +20,7 @@ impl<'db> TileClassBuilder<'db> {
         BelBuilder {
             tcls: self,
             slot,
-            bel: Bel::default(),
+            bel: LegacyBel::default(),
         }
     }
 }
@@ -35,7 +37,7 @@ impl Drop for TileClassBuilder<'_> {
 struct BelBuilder<'db, 'tcls> {
     tcls: &'tcls mut TileClassBuilder<'db>,
     slot: BelSlotId,
-    bel: Bel,
+    bel: LegacyBel,
 }
 
 impl BelBuilder<'_, '_> {
@@ -59,7 +61,7 @@ impl Drop for BelBuilder<'_, '_> {
         self.tcls
             .class
             .bels
-            .insert(self.slot, BelInfo::Bel(std::mem::take(&mut self.bel)));
+            .insert(self.slot, BelInfo::Legacy(std::mem::take(&mut self.bel)));
     }
 }
 
@@ -883,7 +885,7 @@ impl IntDbBuilder {
             for (name, clocks) in tiles {
                 let mut sb = SwitchBox::default();
                 for (si, vsdi) in clocks {
-                    sb.items.push(SwitchBoxItem::PermaBuf(Buf {
+                    sb.items.push(SwitchBoxItem::PermaBuf(PermaBuf {
                         dst: TileWireCoord::new_idx(0, self.db.get_wire(&format!("SCLK{si}"))),
                         src: TileWireCoord::new_idx(0, self.db.get_wire(&format!("VSDCLK{vsdi}")))
                             .pos(),
@@ -904,13 +906,15 @@ impl IntDbBuilder {
             for i in 0..2 {
                 let wire = self.db.get_wire(&format!("HSDCLK{ii}", ii = i * 4));
                 for j in 0..4 {
-                    sb.items.push(SwitchBoxItem::ProgBuf(Buf {
+                    sb.items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                         dst: TileWireCoord::new_idx(j, wire),
                         src: TileWireCoord::new_idx(4 + j, wire).pos(),
+                        bit: PolTileBit::DUMMY,
                     }));
-                    sb.items.push(SwitchBoxItem::ProgBuf(Buf {
+                    sb.items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                         dst: TileWireCoord::new_idx(4 + j, wire),
                         src: TileWireCoord::new_idx(j, wire).pos(),
+                        bit: PolTileBit::DUMMY,
                     }));
                 }
             }

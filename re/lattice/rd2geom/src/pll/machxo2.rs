@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::Bel,
+    db::LegacyBel,
     dir::{Dir, DirHV},
 };
 
@@ -22,7 +22,7 @@ impl ChipContext<'_> {
 
             let bcrd_pllrefcs = cell.bel(bels::PLLREFCS0);
             self.name_bel(bcrd_pllrefcs, [format!("{lr}PLLREFCS")]);
-            let mut bel_pllrefcs = Bel::default();
+            let mut bel_pllrefcs = LegacyBel::default();
 
             let sel = self.rc_wire(cell, "JSEL_PLLREFCS");
             self.add_bel_wire(bcrd_pllrefcs, "SEL", sel);

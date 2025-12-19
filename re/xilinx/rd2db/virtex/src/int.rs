@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, IntDb, TileWireCoord, WireKind},
+    db::{LegacyBel, BelInfo, BelPin, IntDb, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -1047,9 +1047,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ("DLLS.TOP", 'S'),
     ] {
         if let Some((tcid, tcls)) = builder.db.tile_classes.get_mut(tcname) {
-            tcls.cells.push(());
+            tcls.cells.push(tcls.cells.next_id().to_string());
             if mode == 'P' {
-                tcls.cells.push(());
+                tcls.cells.push(tcls.cells.next_id().to_string());
             }
             let pips = builder.pips.get_mut(&(tcid, bels::DLL_INT)).unwrap();
             for i in 0..2 {
@@ -1105,7 +1105,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             tcls.bels.insert(
                 bels::DLL,
-                BelInfo::Bel(Bel {
+                BelInfo::Legacy(LegacyBel {
                     pins: dll_pins.clone(),
                 }),
             );

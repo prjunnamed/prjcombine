@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
-use prjcombine_interconnect::db::{Bel, BelInfo, SwitchBoxItem, TileWireCoord};
+use prjcombine_interconnect::db::{LegacyBel, BelInfo, SwitchBoxItem, TileWireCoord};
 use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
 use prjcombine_xc2000::{
     bels,
@@ -260,7 +260,7 @@ pub fn finish(
             let io_b = int_i.get_tile_class("IO.B");
             let io_b = &mut int_i.tile_classes[io_b];
             io_b.bels
-                .insert(bels::xc5200::SCANTEST, BelInfo::Bel(Bel::default()));
+                .insert(bels::xc5200::SCANTEST, BelInfo::Legacy(LegacyBel::default()));
             let key = TileWireCoord::new_idx(0, int_i.get_wire("IMUX.BYPOSC.PUMP"));
             let BelInfo::SwitchBox(ref src_cnr_tr) =
                 int_i.tile_classes.get("CNR.TR").unwrap().1.bels[bels::xc5200::INT]

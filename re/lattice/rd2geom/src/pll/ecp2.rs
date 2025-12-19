@@ -3,7 +3,7 @@ use prjcombine_ecp::{
     chip::{PllPad, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::Bel,
+    db::LegacyBel,
     dir::{Dir, DirH, DirV},
 };
 
@@ -41,7 +41,7 @@ impl ChipContext<'_> {
                 let mut bel_dll = self.extract_simple_bel(bcrd_dll, cell, "DLL");
                 self.insert_simple_bel(bcrd_dlldel, cell, "DLLDEL");
                 self.insert_simple_bel(bcrd_clkdiv, cell, "CLKDIV");
-                let mut bel_eclk = Bel::default();
+                let mut bel_eclk = LegacyBel::default();
 
                 let io_pll_in0 =
                     self.get_special_io_wire_in(SpecialIoKey::Pll(PllPad::PllIn0, loc));

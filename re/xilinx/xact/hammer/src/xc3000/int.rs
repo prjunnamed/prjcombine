@@ -276,7 +276,7 @@ fn apply_imux_finish<'a>(
         let ntile = &backend.ngrid.tiles[&tcrd];
         let block = &ntile.bels[slot][0];
         let bel_data = &tcls.bels[slot];
-        let BelInfo::Bel(bel_data) = bel_data else {
+        let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
         let wire_pin = bel_data.pins[pin].wires.iter().copied().next().unwrap();
@@ -594,7 +594,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         };
                         let mut inps = vec![];
                         let mut got_empty = false;
-                        for &wire_from in &mux.src {
+                        for &wire_from in mux.src.keys() {
                             let in_name =
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
                             let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);

@@ -79,7 +79,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let slot = intdb.bel_slots.get(bel).unwrap().0;
         let tcls = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &tcls.bels[slot];
-        let BelInfo::Bel(bel) = bel else {
+        let BelInfo::Legacy(bel) = bel else {
             unreachable!()
         };
         let pin = &bel.pins[pin];
@@ -101,7 +101,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let slot = intdb.bel_slots.get(bel).unwrap().0;
         let tcls = intdb.tile_classes.get(tile).unwrap().1;
         let bel = &tcls.bels[slot];
-        let BelInfo::Bel(bel) = bel else {
+        let BelInfo::Legacy(bel) = bel else {
             unreachable!()
         };
         let pin = &bel.pins[pin];

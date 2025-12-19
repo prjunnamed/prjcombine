@@ -6,7 +6,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirHV},
     grid::{CellCoord, DieId},
 };
@@ -20,7 +20,7 @@ impl ChipContext<'_> {
         let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_clk);
         self.name_bel_null(bcrd);
 
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
 
         let mut pclk_in = BTreeMap::new();
         let mut sclk_in = BTreeMap::new();
@@ -166,7 +166,7 @@ impl ChipContext<'_> {
             let i = bidx % 2;
             let bcrd = tcrd.bel(slot);
             self.name_bel(bcrd, [format!("{ll}DCS{i}")]);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
 
             let sel = self.rc_wire(cell, &format!("J{ll}SEL{i}_DCS"));
             self.add_bel_wire(bcrd, "SEL", sel);

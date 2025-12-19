@@ -1,7 +1,7 @@
 use jzon::JsonValue;
 
 use crate::db::{
-    Bel, BelInfo, BelPin, BelSlot, ConnectorClass, ConnectorSlot, ConnectorWire, GroupTestMux,
+    LegacyBel, BelInfo, BelPin, BelSlot, ConnectorClass, ConnectorSlot, ConnectorWire, GroupTestMux,
     GroupTestMuxWire, IntDb, PinDir, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass,
 };
 
@@ -22,7 +22,8 @@ impl BelInfo {
     pub fn to_json(&self, db: &IntDb, tcls: &TileClass) -> JsonValue {
         match self {
             BelInfo::SwitchBox(sb) => sb.to_json(db, tcls),
-            BelInfo::Bel(bel) => bel.to_json(db, tcls),
+            BelInfo::Bel(_bel) => todo!(),
+            BelInfo::Legacy(bel) => bel.to_json(db, tcls),
             BelInfo::TestMux(tmux) => tmux.to_json(db, tcls),
             BelInfo::GroupTestMux(tmux) => tmux.to_json(db, tcls),
         }
@@ -44,7 +45,7 @@ impl SwitchBoxItem {
             SwitchBoxItem::Mux(mux) => jzon::object! {
                 kind: "mux",
                 dst: mux.dst.to_string(db, tcls),
-                src: Vec::from_iter(mux.src.iter().map(|w| w.to_string(db, tcls))),
+                src: Vec::from_iter(mux.src.keys().map(|w| w.to_string(db, tcls))),
             },
             SwitchBoxItem::ProgBuf(buf) => jzon::object! {
                 kind: "progbuf",
@@ -77,13 +78,13 @@ impl SwitchBoxItem {
                 kind: "progdelay",
                 dst: delay.dst.to_string(db, tcls),
                 src: delay.src.to_string(db, tcls),
-                num_steps: delay.num_steps,
+                num_steps: delay.steps.len(),
             },
         }
     }
 }
 
-impl Bel {
+impl LegacyBel {
     pub fn to_json(&self, db: &IntDb, tcls: &TileClass) -> JsonValue {
         jzon::object! {
             kind: "bel",

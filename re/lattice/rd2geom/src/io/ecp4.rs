@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, CellSlotId},
+    db::{LegacyBel, CellSlotId},
     dir::{Dir, DirHV, DirV},
     grid::{BelCoord, CellCoord, DieId, EdgeIoCoord},
 };
@@ -47,7 +47,7 @@ impl ChipContext<'_> {
                     self.rc_io_wire(cell, &format!("J{pin_in}_{name}_{suffix}"))
                 };
                 self.add_bel_wire(bcrd, pin_in, wire_in);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
                 bel.pins
                     .insert(pin_in.into(), self.xlat_int_wire(bcrd, wire_in));
                 self.insert_bel(bcrd, bel);
@@ -66,7 +66,7 @@ impl ChipContext<'_> {
             {
                 let bcrd = cell_loc.bel(bels::BREFTEST);
                 self.name_bel(bcrd, [format!("BREFTEST{bank}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 for pin in [
                     "TESTIN0", "TESTIN1", "TESTIN2", "TESTIN3", "TESTIN4", "TESTIN5", "TESTOUT0",
@@ -128,7 +128,7 @@ impl ChipContext<'_> {
                     continue;
                 }
                 self.name_bel(bcrd, [format!("ECLKSYNC{eclk_idx}_BK{bank}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let stop = self.rc_io_wire(cell, &format!("JSTOP_ECLKSYNC{eclk_idx}"));
                 self.add_bel_wire(bcrd, "STOP", stop);
@@ -286,7 +286,7 @@ impl ChipContext<'_> {
         ] {
             let bcrd = cell_tile.bel(bels::CLKTEST_ECLK);
             self.name_bel(bcrd, [format!("CLKTEST_{lrt}ECLK")]);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
 
             for i in 0..24 {
                 let wire = self.rc_io_wire(cell, &format!("JTESTIN{i}_CLKTEST"));
@@ -305,7 +305,7 @@ impl ChipContext<'_> {
                 let eclk_idx = base + i;
                 let bcrd_cs = cell.bel(bels::ECLKBRIDGECS[i]);
                 self.name_bel(bcrd_cs, [format!("ECLKBRIDGECS{eclk_idx}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let sel = self.rc_io_wire(cell, &format!("JSEL_ECLKBRIDGECS{eclk_idx}"));
                 self.add_bel_wire(bcrd_cs, "SEL", sel);
@@ -330,7 +330,7 @@ impl ChipContext<'_> {
 
                 let bcrd_brg = cell.bel(bels::BRGECLKSYNC[i]);
                 self.name_bel(bcrd_brg, [format!("BRGECLKSYNC{eclk_idx}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let stop = self.rc_io_wire(cell, &format!("JSTOP_BRGECLKSYNC{eclk_idx}"));
                 self.add_bel_wire(bcrd_brg, "STOP", stop);
@@ -428,7 +428,7 @@ impl ChipContext<'_> {
             let bcrd = CellCoord::new(DieId::from_idx(0), col, row).bel(bels::DDRDLL);
             let cell = CellCoord::new(DieId::from_idx(0), ncol, row);
             self.name_bel(bcrd, [name]);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             for pin in [
                 "RST", "FREEZE", "UDDCNTLN", "DIVOSC", "DCNTL0", "DCNTL1", "DCNTL2", "DCNTL3",
                 "DCNTL4", "DCNTL5", "DCNTL6", "DCNTL7", "LOCK",
@@ -724,7 +724,7 @@ impl ChipContext<'_> {
             }
             Dir::S => unreachable!(),
         }
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
 
         for pin in [
             "CLK",
@@ -963,7 +963,7 @@ impl ChipContext<'_> {
             for i in 0..4 {
                 let bcrd = cell_tile.bel(bels::CLKDIV[i]);
                 self.name_bel(bcrd, [format!("CLKDIV_{lrt}{i}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 for pin in ["ALIGNWD", "RST", "CDIVX"] {
                     let wire = self.rc_io_wire(cell, &format!("J{pin}_CLKDIV{i}"));
@@ -1024,7 +1024,7 @@ impl ChipContext<'_> {
             self.add_bel_wire(bcrd, "CLKI_IN", clki_in);
 
             if i < num_quads {
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
                 for pin in ["RST", "SEL0", "SEL1", "SEL2"] {
                     let wire = self.rc_wire(cell, &format!("J{pin}_PCSCLKDIV{i}"));
                     self.add_bel_wire(bcrd, pin, wire);

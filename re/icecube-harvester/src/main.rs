@@ -17,8 +17,8 @@ use prims::{Primitive, get_prims};
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, Buf, IntDb, Mux, ProgInv, SwitchBox, SwitchBoxItem, TileClass,
-        TileClassId, TileWireCoord,
+        BelInfo, BelPin, IntDb, LegacyBel, Mux, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem,
+        TileClass, TileClassId, TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
@@ -34,7 +34,7 @@ use prjcombine_siliconblue::{
     tslots,
 };
 use prjcombine_types::{
-    bsdata::{BitRectId, BsData, TileBit, TileItemKind},
+    bsdata::{BitRectId, BsData, PolTileBit, TileBit, TileItemKind},
     speed::Speed,
 };
 use rand::Rng;
@@ -1837,12 +1837,12 @@ impl PartContext<'_> {
         };
         let wire = self.intdb.get_wire(wire);
         let mut tcls = TileClass::new(tslots::SMCCLK, 1);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         bel.pins.insert(
             "CLK".into(),
             BelPin::new_out(TileWireCoord::new_idx(0, wire)),
         );
-        tcls.bels.insert(bels::SMCCLK, BelInfo::Bel(bel));
+        tcls.bels.insert(bels::SMCCLK, BelInfo::Legacy(bel));
         self.intdb
             .tile_classes
             .insert(SpecialTileKey::SmcClk.tile_class(self.chip.kind), tcls);
@@ -1942,7 +1942,7 @@ impl PartContext<'_> {
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
-                        for src in &mux.src {
+                        for src in mux.src.keys() {
                             tcls_pips.insert((mux.dst, src.tw));
                         }
                     }
@@ -2034,9 +2034,10 @@ impl PartContext<'_> {
             if ((wtn.starts_with("LONG") || wtn.starts_with("QUAD")) && wfn.starts_with("OUT"))
                 || (wtn.starts_with("QUAD") && wfn.starts_with("LONG"))
             {
-                items.push(SwitchBoxItem::ProgBuf(Buf {
+                items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                     dst: wt,
                     src: wf.pos(),
+                    bit: PolTileBit::DUMMY,
                 }));
             } else if wtn.starts_with("LOCAL") && wfn.starts_with("GLOBAL") {
                 let wgo = g2l[&wt];
@@ -2046,12 +2047,21 @@ impl PartContext<'_> {
             }
         }
         for (wt, wf) in muxes {
-            items.push(SwitchBoxItem::Mux(Mux { dst: wt, src: wf }));
+            items.push(SwitchBoxItem::Mux(Mux {
+                dst: wt,
+                bits: vec![],
+                src: wf.into_iter().map(|k| (k, Default::default())).collect(),
+                bits_off: None,
+            }));
 
             let wtn = self.intdb.wires.key(wt.wire);
             if wtn.ends_with("CLK") {
                 let wi = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("{wtn}.OPTINV")));
-                items.push(SwitchBoxItem::ProgInv(ProgInv { dst: wi, src: wt }));
+                items.push(SwitchBoxItem::ProgInv(ProgInv {
+                    dst: wi,
+                    src: wt,
+                    bit: PolTileBit::DUMMY,
+                }));
             }
         }
         items.sort();

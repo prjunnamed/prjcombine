@@ -3,7 +3,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, RowKind},
     tslots,
 };
-use prjcombine_interconnect::db::Bel;
+use prjcombine_interconnect::db::LegacyBel;
 
 use super::ChipContext;
 
@@ -61,7 +61,7 @@ impl ChipContext<'_> {
                         self.claim_pip_int_out(wt, wf);
                     }
                     let bcrd = self.chip.bel_cibtest_sel();
-                    let mut bel = Bel {
+                    let mut bel = LegacyBel {
                         pins: Default::default(),
                     };
                     for pin in ["TSEL0", "TSEL1"] {

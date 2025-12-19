@@ -45,19 +45,70 @@ pub struct TileBit {
 }
 
 impl TileBit {
-    pub fn new(rect: usize, frame: usize, bit: usize) -> Self {
+    pub const DUMMY: TileBit = TileBit::new(0xdead, 0xdead, 0xdead);
+
+    pub const fn new(rect: usize, frame: usize, bit: usize) -> Self {
         Self {
-            rect: BitRectId::from_idx(rect),
-            frame: RectFrameId::from_idx(frame),
-            bit: RectBitId::from_idx(bit),
+            rect: BitRectId::from_idx_const(rect),
+            frame: RectFrameId::from_idx_const(frame),
+            bit: RectBitId::from_idx_const(bit),
         }
     }
+
+    pub const fn pos(self) -> PolTileBit {
+        PolTileBit {
+            bit: self,
+            inv: false,
+        }
+    }
+
+    pub const fn neg(self) -> PolTileBit {
+        PolTileBit {
+            bit: self,
+            inv: true,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
+pub struct PolTileBit {
+    pub bit: TileBit,
+    pub inv: bool,
+}
+
+impl PolTileBit {
+    pub const DUMMY: PolTileBit = TileBit::DUMMY.pos();
 }
 
 impl core::fmt::Debug for TileBit {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}.{}.{}", self.rect, self.frame, self.bit)
     }
+}
+
+impl core::fmt::Debug for PolTileBit {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        if self.inv {
+            write!(f, "~{:?}", self.bit)
+        } else {
+            write!(f, "{:?}", self.bit)
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Encode, Decode)]
+pub struct BitRectGeometry {
+    pub frames: usize,
+    pub bits: usize,
+    pub orientation: FrameOrientation,
+    pub rev_frames: bool,
+    pub rev_bits: bool,
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Encode, Decode)]
+pub enum FrameOrientation {
+    Horizontal,
+    Vertical,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Default)]

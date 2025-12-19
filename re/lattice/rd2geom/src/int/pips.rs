@@ -4,12 +4,13 @@ use prjcombine_ecp::{bels, chip::ChipKind, cslots, regions, tslots};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
-        BelInfo, Buf, ConnectorWire, Mux, ProgDelay, SwitchBox, SwitchBoxItem, TileClassId,
-        TileWireCoord, WireKind, WireSlotId,
+        BelInfo, ConnectorWire, Mux, PermaBuf, ProgBuf, ProgDelay, SwitchBox, SwitchBoxItem,
+        TileClassId, TileWireCoord, WireKind, WireSlotId,
     },
     grid::CellCoord,
 };
 use prjcombine_re_lattice_naming::WireName;
+use prjcombine_types::bsdata::PolTileBit;
 
 use crate::ChipContext;
 
@@ -450,10 +451,12 @@ impl ChipContext<'_> {
                     .entry(wt)
                     .or_insert_with(|| Mux {
                         dst: wt,
-                        src: BTreeSet::new(),
+                        bits: vec![],
+                        src: BTreeMap::new(),
+                        bits_off: None,
                     })
                     .src
-                    .insert(wf.pos());
+                    .insert(wf.pos(), Default::default());
                 if (self.intdb.wires.key(wt.wire).starts_with("VSDCLK")
                     && self.intdb.wires.key(wf.wire).starts_with("VSDCLK"))
                     || (self.intdb.wires.key(wt.wire).starts_with("HSDCLK")
@@ -463,21 +466,28 @@ impl ChipContext<'_> {
                         .entry(wf)
                         .or_insert_with(|| Mux {
                             dst: wf,
-                            src: BTreeSet::new(),
+                            bits: vec![],
+                            src: BTreeMap::new(),
+                            bits_off: None,
                         })
                         .src
-                        .insert(wt.pos());
+                        .insert(wt.pos(), Default::default());
                 }
             }
             let mut sb = SwitchBox::default();
             for mux in muxes.into_values() {
                 if mux.src.len() == 1 {
-                    let src = mux.src.into_iter().next().unwrap();
+                    let src = mux.src.into_keys().next().unwrap();
                     let wtn = self.intdb.wires.key(mux.dst.wire).as_str();
-                    let buf = Buf { dst: mux.dst, src };
                     if wtn.starts_with("X1") || wtn.starts_with("IMUX_M") {
+                        let buf = PermaBuf { dst: mux.dst, src };
                         sb.items.push(SwitchBoxItem::PermaBuf(buf));
                     } else {
+                        let buf = ProgBuf {
+                            dst: mux.dst,
+                            src,
+                            bit: PolTileBit::DUMMY,
+                        };
                         sb.items.push(SwitchBoxItem::ProgBuf(buf));
                     }
                 } else {
@@ -492,13 +502,15 @@ impl ChipContext<'_> {
                         TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("VSDCLK{i}")));
                     let vsdclk_n =
                         TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("VSDCLK{i}_N")));
-                    sb.items.push(SwitchBoxItem::ProgBuf(Buf {
+                    sb.items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                         dst: vsdclk,
                         src: vsdclk_n.pos(),
+                        bit: PolTileBit::DUMMY,
                     }));
-                    sb.items.push(SwitchBoxItem::ProgBuf(Buf {
+                    sb.items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                         dst: vsdclk_n,
                         src: vsdclk.pos(),
+                        bit: PolTileBit::DUMMY,
                     }));
                 }
             }
@@ -513,7 +525,8 @@ impl ChipContext<'_> {
                     sb.items.push(SwitchBoxItem::ProgDelay(ProgDelay {
                         dst: clk_delay,
                         src: clk.pos(),
-                        num_steps: 4,
+                        bits: vec![],
+                        steps: vec![Default::default(); 4],
                     }));
                 }
             }

@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet, btree_map};
 
 use prjcombine_ecp::{bels, chip::ChipKind};
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelPin, Mux, PinDir, SwitchBox, SwitchBoxItem, TileWireCoord},
+    db::{BelInfo, BelPin, LegacyBel, Mux, PinDir, SwitchBox, SwitchBoxItem, TileWireCoord},
     dir::DirH,
 };
 
@@ -70,7 +70,7 @@ impl ChipContext<'_> {
                 self.name_bel(bcrd, [format!("EBR_R{r}C{c}")]);
                 self.name_bel_null(bcrd_int);
 
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let mut x10_out_wires = BTreeMap::new();
                 let mut cur_x10_out = BTreeMap::new();
@@ -245,7 +245,12 @@ impl ChipContext<'_> {
                 }
             }
             for (dst, src) in muxes {
-                let mux = Mux { dst, src };
+                let mux = Mux {
+                    dst,
+                    bits: vec![],
+                    src: src.into_iter().map(|k| (k, Default::default())).collect(),
+                    bits_off: None,
+                };
                 sb.items.push(SwitchBoxItem::Mux(mux));
             }
             self.bels

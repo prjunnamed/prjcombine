@@ -6,7 +6,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirMap, DirV},
     grid::{CellCoord, DieId},
 };
@@ -116,7 +116,7 @@ impl ChipContext<'_> {
             {
                 let bcrd = cell_tile.bel(bels::CLKTEST);
                 self.name_bel(bcrd, [format!("CLKTEST_{lrbt}MID")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
                 for i in 0..24 {
                     let wire = self.rc_wire(cell, &format!("JTESTIN{i}_CLKTEST"));
                     self.add_bel_wire(bcrd, format!("TESTIN{i}"), wire);
@@ -259,7 +259,7 @@ impl ChipContext<'_> {
                 self.claim_pip(pclk, wire_dlldel);
             }
 
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             let int_names = match edge {
                 Dir::W => [
                     ("JLLQPCLKCIB0", 1),
@@ -394,7 +394,7 @@ impl ChipContext<'_> {
             for i in 0..num_dcc {
                 let bcrd_dcc = cell_tile.bel(bels::DCC[i]);
                 self.name_bel(bcrd_dcc, [format!("DCC_{lrbt}{i}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let ce = self.rc_wire(cell, &format!("JCE_{lrbt}DCC{i}"));
                 self.add_bel_wire(bcrd_dcc, "CE", ce);
@@ -893,7 +893,7 @@ impl ChipContext<'_> {
         {
             let bcrd = cell_tile.bel(bels::CLKTEST);
             self.name_bel(bcrd, ["CLKTEST_CEN"]);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             for i in 0..24 {
                 let wire = self.rc_wire(cell, &format!("JTESTIN{i}_CLKTEST"));
                 self.add_bel_wire(bcrd, format!("TESTIN{i}"), wire);
@@ -912,7 +912,7 @@ impl ChipContext<'_> {
         ] {
             let bcrd = cell_tile.bel(slot);
             self.name_bel(bcrd, [format!("DCC_{quad}")]);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
 
             let ce = self.rc_wire(cell, &format!("JCE_DCC{quad}"));
             self.add_bel_wire(bcrd, "CE", ce);
@@ -938,7 +938,7 @@ impl ChipContext<'_> {
         for i in 0..2 {
             let bcrd = cell_tile.bel(bels::DCS[i]);
             self.name_bel(bcrd, [format!("DCS{i}")]);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
 
             for pin in ["SEL0", "SEL1", "SEL2", "SEL3", "MODESEL"] {
                 let wire = self.rc_wire(cell, &format!("J{pin}_DCS{i}"));
@@ -986,7 +986,7 @@ impl ChipContext<'_> {
 
         let bcrd = self.chip.bel_clk_root();
         self.name_bel_null(bcrd);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         for (tcid, hv) in [DirHV::SW, DirHV::SE, DirHV::NW, DirHV::NE]
             .into_iter()
             .enumerate()

@@ -1,7 +1,7 @@
 use prjcombine_ecp::{bels, chip::IoGroupKind};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::Bel,
+    db::LegacyBel,
     dir::Dir,
     grid::{BelCoord, CellCoord, DieId},
 };
@@ -23,7 +23,7 @@ impl ChipContext<'_> {
         };
         self.name_bel(bcrd, [name]);
 
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
 
         let ddtd0 = self.rc_io_wire(cell, &format!("JDDTD0{abcd}"));
         let ddtd1 = self.rc_io_wire(cell, &format!("JDDTD1{abcd}"));
@@ -81,7 +81,7 @@ impl ChipContext<'_> {
         self.name_bel(bcrd2, [format!("{lr}PICTEST{r}")]);
         self.name_bel_null(bcrd3);
 
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         let ddtd0 = self.rc_io_wire(cell, "JC0_PICTEST");
         let ddtd1 = self.rc_io_wire(cell, "JC1_PICTEST");
         self.add_bel_wire(bcrd2, "DDTD0", ddtd0);
@@ -96,7 +96,7 @@ impl ChipContext<'_> {
             .insert("PADDI".into(), self.xlat_int_wire(bcrd2, paddi_pio));
         self.insert_bel(bcrd2, bel);
 
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         let ddtd0 = self.rc_io_wire(cell, "JD0_PICTEST");
         let ddtd1 = self.rc_io_wire(cell, "JD1_PICTEST");
         self.add_bel_wire(bcrd3, "DDTD0", ddtd0);

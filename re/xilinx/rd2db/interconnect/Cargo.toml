@@ -4,8 +4,9 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-prjcombine-entity.workspace = true
 assert_matches.workspace = true
+prjcombine-entity.workspace = true
+prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-re-xilinx-naming.workspace = true
 prjcombine-re-xilinx-rawdump.workspace = true

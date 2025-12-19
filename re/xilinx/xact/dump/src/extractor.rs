@@ -7,8 +7,8 @@ use ndarray::Array2;
 use prjcombine_entity::{EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelSlotId, BiPass, Buf, IntDb, Mux, Pass, SwitchBoxItem, TileClassId, TileSlotId,
-        TileWireCoord, WireSlotId,
+        BelInfo, BelSlotId, BiPass, IntDb, Mux, Pass, PermaBuf, ProgBuf, SwitchBoxItem,
+        TileClassId, TileSlotId, TileWireCoord, WireSlotId,
     },
     dir::Dir,
     grid::{BelCoord, CellCoord, ExpandedGrid, TileCoord, WireCoord},
@@ -18,6 +18,7 @@ use prjcombine_re_xilinx_xact_naming::{
     db::{IntPipNaming, NamingDb, PipNaming, TileNamingId, TileRawCellId},
     grid::ExpandedGridNaming,
 };
+use prjcombine_types::bsdata::PolTileBit;
 
 entity_id! {
     pub id NetId u32, reserve 1;
@@ -729,15 +730,16 @@ impl Finisher {
                             muxes.entry(wt).or_default().insert(wf.pos());
                         }
                         PipMode::PermaBuf => {
-                            items.push(SwitchBoxItem::PermaBuf(Buf {
+                            items.push(SwitchBoxItem::PermaBuf(PermaBuf {
                                 dst: wt,
                                 src: wf.pos(),
                             }));
                         }
                         PipMode::Buf => {
-                            items.push(SwitchBoxItem::ProgBuf(Buf {
+                            items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                                 dst: wt,
                                 src: wf.pos(),
+                                bit: PolTileBit::DUMMY,
                             }));
                         }
                         PipMode::Pass => {
@@ -748,14 +750,27 @@ impl Finisher {
                 for &(wt, wf) in &passes {
                     if passes.contains(&(wf, wt)) {
                         if wt < wf {
-                            items.push(SwitchBoxItem::BiPass(BiPass { a: wt, b: wf }));
+                            items.push(SwitchBoxItem::BiPass(BiPass {
+                                a: wt,
+                                b: wf,
+                                bit: PolTileBit::DUMMY,
+                            }));
                         }
                     } else {
-                        items.push(SwitchBoxItem::Pass(Pass { dst: wt, src: wf }));
+                        items.push(SwitchBoxItem::Pass(Pass {
+                            dst: wt,
+                            src: wf,
+                            bit: PolTileBit::DUMMY,
+                        }));
                     }
                 }
                 for (wt, wf) in muxes {
-                    items.push(SwitchBoxItem::Mux(Mux { dst: wt, src: wf }));
+                    items.push(SwitchBoxItem::Mux(Mux {
+                        dst: wt,
+                        bits: vec![],
+                        src: wf.into_iter().map(|k| (k, Default::default())).collect(),
+                        bits_off: None,
+                    }));
                 }
                 items.sort();
                 let mut found = false;

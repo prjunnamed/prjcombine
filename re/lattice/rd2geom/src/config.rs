@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::Bel,
+    db::LegacyBel,
     dir::{DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
@@ -28,7 +28,7 @@ impl ChipContext<'_> {
         {
             let bcrd = cell.bel(bels::RDBK);
             self.name_bel(bcrd, ["RDBK"]);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             for pin in ["FFRDCFG", "FFRDCFGCLK", "RDDATA"] {
                 let wire = self.rc_wire(cell, &format!("J{pin}_RDBK"));
                 self.add_bel_wire(bcrd, pin, wire);

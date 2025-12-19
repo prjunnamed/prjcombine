@@ -11,6 +11,7 @@ path = "src/main.rs"
 ndarray.workspace = true
 clap.workspace = true
 prjcombine-entity.workspace = true
+prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-xc2000.workspace = true
 prjcombine-re-xilinx-xact-naming.workspace = true

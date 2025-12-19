@@ -3,7 +3,7 @@ use prjcombine_ecp::{
     chip::{PllLoc, PllPad, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::Bel,
+    db::LegacyBel,
     dir::{Dir, DirH, DirHV, DirV},
 };
 
@@ -29,7 +29,7 @@ impl ChipContext<'_> {
             let bcrd_pllrefcs = cell.bel(bels::PLLREFCS0);
 
             self.name_bel(bcrd_pllrefcs, [format!("PLLREFCS_{corner}0")]);
-            let mut bel_pllrefcs = Bel::default();
+            let mut bel_pllrefcs = LegacyBel::default();
 
             let sel = self.rc_wire(cell, "JSEL_PLLREFCS");
             self.add_bel_wire(bcrd_pllrefcs, "SEL", sel);

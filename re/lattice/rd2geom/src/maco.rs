@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, btree_map};
+use std::collections::{BTreeMap, BTreeSet, btree_map};
 
 use prjcombine_ecp::{
     bels,
@@ -8,7 +8,8 @@ use prjcombine_ecp::{
 use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, ConnectorWire, Mux, PinDir, SwitchBox, SwitchBoxItem, TileWireCoord,
+        BelInfo, BelPin, ConnectorWire, LegacyBel, Mux, PinDir, SwitchBox, SwitchBoxItem,
+        TileWireCoord,
     },
     dir::{DirH, DirV},
     grid::DieId,
@@ -175,7 +176,7 @@ impl ChipContext<'_> {
                 let (ul, idx) = maco_rows[bcrd.row];
                 self.name_bel(bcrd, [format!("{lr}{ul}MACO{idx}")]);
                 self.name_bel_null(bcrd_int);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
                 let mut sb = SwitchBox::default();
 
                 for i in 0..3 {
@@ -344,7 +345,13 @@ impl ChipContext<'_> {
                             }
                             sb.items.push(SwitchBoxItem::Mux(Mux {
                                 dst: twire_out,
-                                src: BTreeSet::from_iter([twire_in.pos(), twire_ipo.pos()]),
+                                bits: vec![],
+                                src: BTreeMap::from_iter(
+                                    [twire_in.pos(), twire_ipo.pos()]
+                                        .into_iter()
+                                        .map(|k| (k, Default::default())),
+                                ),
+                                bits_off: None,
                             }));
 
                             let wire_ipi =
@@ -441,7 +448,9 @@ impl ChipContext<'_> {
 
                     sb.items.push(SwitchBoxItem::Mux(Mux {
                         dst: twire_out,
-                        src,
+                        bits: vec![],
+                        src: src.into_iter().map(|k| (k, Default::default())).collect(),
+                        bits_off: None,
                     }));
                 }
 

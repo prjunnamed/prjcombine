@@ -94,7 +94,7 @@ pub fn make_sample(
             let tile = &edev[crd.tile(tslots::OSC)];
             let tcls = &edev.db[tile.class];
             for (bslot, bel) in &tcls.bels {
-                let BelInfo::Bel(bel) = bel else {
+                let BelInfo::Legacy(bel) = bel else {
                     unreachable!()
                 };
                 for (pin, pin_info) in &bel.pins {
@@ -1437,7 +1437,7 @@ pub fn make_sample(
                                     SpecialTileKey::I2cFifo(_) => bels::I2C_FIFO,
                                     _ => unreachable!(),
                                 };
-                                let BelInfo::Bel(bel) = &tcls.bels[bslot] else {
+                                let BelInfo::Legacy(bel) = &tcls.bels[bslot] else {
                                     unreachable!()
                                 };
                                 for (pin, pin_info) in &bel.pins {

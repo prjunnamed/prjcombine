@@ -458,7 +458,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let mut omux = vec![("INT", Diff::default())];
                             let mut got_empty = false;
                             let mut got_omux = false;
-                            for &wire_from in &mux.src {
+                            for &wire_from in mux.src.keys() {
                                 let in_name = if tcls.cells.len() == 1 {
                                     intdb.wires.key(wire_from.wire).to_string()
                                 } else {
@@ -506,7 +506,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             let mut inps = vec![];
                             let mut got_empty = false;
-                            for &wire_from in &mux.src {
+                            for &wire_from in mux.src.keys() {
                                 let in_name = if tcls.cells.len() == 1 {
                                     intdb.wires.key(wire_from.wire).to_string()
                                 } else {

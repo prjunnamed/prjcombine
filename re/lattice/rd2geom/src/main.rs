@@ -16,7 +16,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
-    db::{Bel, BelInfo, BelSlotId, IntDb, TileClassId},
+    db::{LegacyBel, BelInfo, BelSlotId, IntDb, TileClassId},
     grid::{BelCoord, CellCoord, ColId, WireCoord},
 };
 use prjcombine_re_lattice_naming::{BelNaming, ChipNaming, Database, WireName};
@@ -410,13 +410,13 @@ impl ChipContext<'_> {
         }
     }
 
-    fn insert_bel(&mut self, bcrd: BelCoord, bel: Bel) {
-        self.insert_bel_generic(bcrd, BelInfo::Bel(bel));
+    fn insert_bel(&mut self, bcrd: BelCoord, bel: LegacyBel) {
+        self.insert_bel_generic(bcrd, BelInfo::Legacy(bel));
     }
 
-    fn extract_simple_bel(&mut self, bcrd: BelCoord, cell: CellCoord, suffix: &'static str) -> Bel {
+    fn extract_simple_bel(&mut self, bcrd: BelCoord, cell: CellCoord, suffix: &'static str) -> LegacyBel {
         let wires = self.sorted_wires[&(cell, suffix)].clone();
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         for (pin, wire) in wires {
             let Some(bpin) = self.try_xlat_int_wire(bcrd, wire) else {
                 continue;
@@ -579,7 +579,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut missing_bels = BTreeSet::new();
     for (tcid, _, tcls) in &int.tile_classes {
         for (bid, bel) in &tcls.bels {
-            if let BelInfo::Bel(bel) = bel
+            if let BelInfo::Legacy(bel) = bel
                 && !bel.pins.is_empty()
             {
                 continue;

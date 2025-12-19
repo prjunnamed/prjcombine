@@ -1128,7 +1128,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
                         let mut inps = vec![];
                         let mut got_empty = false;
-                        for &wire_from in &mux.src {
+                        for &wire_from in mux.src.keys() {
                             let wire_from = wire_from.tw;
                             let in_name = if tcls.cells.len() == 1 {
                                 intdb.wires.key(wire_from.wire).to_string()

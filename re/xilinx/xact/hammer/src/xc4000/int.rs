@@ -504,7 +504,7 @@ fn apply_imux_finish<'a>(
     }
     if bels::IO.contains(&slot) && (pin == "O2" || pin == "O1") {
         let opin = if pin == "O1" { "O2" } else { "O1" };
-        let BelInfo::Bel(ref bel_data) = tcls.bels[slot] else {
+        let BelInfo::Legacy(ref bel_data) = tcls.bels[slot] else {
             unreachable!()
         };
         let opin = bel_data.pins[opin].wires.iter().copied().next().unwrap();
@@ -861,7 +861,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if ctx.edev.chip.kind == ChipKind::Xc4000H {
                                 let mut inps = vec![];
                                 let mut got_empty = false;
-                                for &wire_from in &mux.src {
+                                for &wire_from in mux.src.keys() {
                                     let in_name = format!(
                                         "{:#}.{}",
                                         wire_from.cell,
@@ -938,7 +938,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 for suffix in ["O", "OQ", "O.NOT", "OQ.NOT"] {
                                     let mut inps = vec![];
-                                    for &wire_from in &mux.src {
+                                    for &wire_from in mux.src.keys() {
                                         let in_name = format!(
                                             "{:#}.{}",
                                             wire_from.cell,
@@ -1018,7 +1018,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 unreachable!()
                             };
                             let mut t_inps = vec![];
-                            for &wire_from in &mux.src {
+                            for &wire_from in mux.src.keys() {
                                 let in_name = format!(
                                     "{:#}.{}",
                                     wire_from.cell,
@@ -1047,7 +1047,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 .find(|mux| mux.dst == imux_i)
                                 .unwrap();
                             let mut i_inps = vec![];
-                            for &wire_from in &mux_i.src {
+                            for &wire_from in mux_i.src.keys() {
                                 let in_name = format!(
                                     "{:#}.{}",
                                     wire_from.cell,
@@ -1102,7 +1102,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             let mut inps = vec![];
                             let mut got_empty = false;
-                            for &wire_from in &mux.src {
+                            for &wire_from in mux.src.keys() {
                                 let in_name = format!(
                                     "{:#}.{}",
                                     wire_from.cell,

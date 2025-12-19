@@ -6,7 +6,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, ColId, DieId},
 };
@@ -131,7 +131,7 @@ impl ChipContext<'_> {
                 "LLGND", "LRGND", "ULGND", "URGND", "LLVCC", "LRVCC", "ULVCC", "URVCC",
             ],
         );
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
 
         let mut pclk_in = BTreeMap::new();
         let mut sclk_in = BTreeMap::new();
@@ -313,7 +313,7 @@ impl ChipContext<'_> {
                 let wire_out = if i < 6 {
                     let bcrd_dcc = bcrd.bel(dcc[i]);
                     self.name_bel(bcrd_dcc, [format!("{ll}DCC{i}")]);
-                    let mut bel = Bel::default();
+                    let mut bel = LegacyBel::default();
 
                     let clki = self.rc_wire(cell, &format!("{ll}CLKI{i}_DCC"));
                     self.add_bel_wire(bcrd_dcc, "CLKI", clki);
@@ -367,7 +367,7 @@ impl ChipContext<'_> {
                     let dcsi = i - 6;
                     let bcrd_dcs = bcrd.bel(dcs[dcsi]);
                     self.name_bel(bcrd_dcs, [format!("{ll}DCS{dcsi}")]);
-                    let mut bel = Bel::default();
+                    let mut bel = LegacyBel::default();
 
                     let clka = self.rc_wire(cell, &format!("{ll}CLK{dcsi}A_DCS"));
                     let clkb = self.rc_wire(cell, &format!("{ll}CLK{dcsi}B_DCS"));
@@ -749,7 +749,7 @@ impl ChipContext<'_> {
                             [format!("DCC_R{r}C{c}_{i}B"), format!("DCC_R{r}C{c}_{i}T")],
                         );
                     }
-                    let mut bel = Bel::default();
+                    let mut bel = LegacyBel::default();
 
                     let pclk = self.intdb.get_wire(&format!("PCLK{pclk_i}"));
                     bel.pins.insert(
@@ -858,7 +858,7 @@ impl ChipContext<'_> {
                     continue;
                 };
                 self.name_bel_null(bcrd);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
                 for i in pclk_idx {
                     let pclk = self.intdb.get_wire(&format!("PCLK{i}"));
                     bel.pins.insert(

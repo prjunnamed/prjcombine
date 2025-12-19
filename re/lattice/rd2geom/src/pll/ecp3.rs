@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::Bel,
+    db::LegacyBel,
     dir::{Dir, DirH, DirV},
     grid::{CellCoord, DieId},
 };
@@ -270,7 +270,7 @@ impl ChipContext<'_> {
             self.insert_bel(bcrd_dll, bel_dll);
 
             let bcrd = bcrd_dll.bel(bels::ECLK_ALT_ROOT);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             self.name_bel_null(bcrd);
 
             for ei in 0..2 {

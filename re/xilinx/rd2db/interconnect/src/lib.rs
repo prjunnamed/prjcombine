@@ -5,9 +5,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, BelSlotId, BiPass, Buf, CellSlotId, ConnectorClass, ConnectorSlotId,
-        ConnectorWire, IntDb, Mux, Pass, PinDir, ProgDelay, SwitchBox, SwitchBoxItem, TestMux,
-        TestMuxWire, TileClass, TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
+        BelInfo, BelPin, BelSlotId, BiPass, CellSlotId, ConnectorClass, ConnectorSlotId,
+        ConnectorWire, IntDb, LegacyBel, Mux, Pass, PermaBuf, PinDir, ProgBuf, ProgDelay,
+        SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass, TileClassId, TileSlotId,
+        TileWireCoord, WireKind, WireSlotId,
     },
     dir::{Dir, DirMap},
 };
@@ -20,6 +21,7 @@ use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 
 use assert_matches::assert_matches;
 
+use prjcombine_types::bsdata::PolTileBit;
 use rawdump::TileKindId;
 
 #[derive(Clone, Debug)]
@@ -1018,7 +1020,9 @@ impl XTileExtractor<'_, '_, '_> {
                 _ => (),
             }
         }
-        self.tcls.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
+        self.tcls
+            .bels
+            .insert(bel.bel, BelInfo::Legacy(LegacyBel { pins }));
         self.tcls_naming.bels.insert(
             bel.bel,
             BelNaming::Bel(ProperBelNaming {
@@ -1158,7 +1162,8 @@ impl XTileExtractor<'_, '_, '_> {
                     items.push(SwitchBoxItem::ProgDelay(ProgDelay {
                         dst: wt,
                         src: wf.pos(),
-                        num_steps: 2,
+                        bits: vec![],
+                        steps: vec![Default::default(), Default::default()],
                     }));
                 }
             }
@@ -2064,7 +2069,8 @@ impl<'a> IntBuilder<'a> {
                     _ => (),
                 }
             }
-            tcls.bels.insert(bel.bel, BelInfo::Bel(Bel { pins }));
+            tcls.bels
+                .insert(bel.bel, BelInfo::Legacy(LegacyBel { pins }));
             naming.bels.insert(
                 bel.bel,
                 BelNaming::Bel(ProperBelNaming {
@@ -3473,7 +3479,7 @@ impl<'a> IntBuilder<'a> {
         let mut bels = EntityPartVec::new();
         bels.insert(
             bel,
-            BelInfo::Bel(Bel {
+            BelInfo::Legacy(LegacyBel {
                 pins: Default::default(),
             }),
         );
@@ -3549,15 +3555,16 @@ impl<'a> IntBuilder<'a> {
                         muxes.entry(wt).or_default().insert(wf.pos());
                     }
                     PipMode::PermaBuf => {
-                        items.push(SwitchBoxItem::PermaBuf(Buf {
+                        items.push(SwitchBoxItem::PermaBuf(PermaBuf {
                             dst: wt,
                             src: wf.pos(),
                         }));
                     }
                     PipMode::Buf => {
-                        items.push(SwitchBoxItem::ProgBuf(Buf {
+                        items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                             dst: wt,
                             src: wf.pos(),
+                            bit: PolTileBit::DUMMY,
                         }));
                     }
                     PipMode::Pass => {
@@ -3568,14 +3575,27 @@ impl<'a> IntBuilder<'a> {
             for &(wt, wf) in &passes {
                 if passes.contains(&(wf, wt)) {
                     if wt < wf {
-                        items.push(SwitchBoxItem::BiPass(BiPass { a: wt, b: wf }));
+                        items.push(SwitchBoxItem::BiPass(BiPass {
+                            a: wt,
+                            b: wf,
+                            bit: PolTileBit::DUMMY,
+                        }));
                     }
                 } else {
-                    items.push(SwitchBoxItem::Pass(Pass { dst: wt, src: wf }));
+                    items.push(SwitchBoxItem::Pass(Pass {
+                        dst: wt,
+                        src: wf,
+                        bit: PolTileBit::DUMMY,
+                    }));
                 }
             }
             for (wt, wf) in muxes {
-                items.push(SwitchBoxItem::Mux(Mux { dst: wt, src: wf }));
+                items.push(SwitchBoxItem::Mux(Mux {
+                    dst: wt,
+                    bits: vec![],
+                    src: wf.into_iter().map(|k| (k, Default::default())).collect(),
+                    bits_off: None,
+                }));
             }
             items.sort();
             self.db.tile_classes[tcls]

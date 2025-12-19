@@ -3,8 +3,18 @@ use prjcombine_entity::{
     EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec,
     id::{EntityIdU8, EntityIdU16, EntityTag},
 };
+use prjcombine_types::{
+    bitvec::BitVec,
+    bsdata::{BitRectGeometry, BitRectId, PolTileBit, TileBit},
+};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
+impl EntityTag for EnumClass {
+    const PREFIX: &'static str = "ECLS";
+}
+impl EntityTag for BelClass {
+    const PREFIX: &'static str = "BCLS";
+}
 impl EntityTag for WireKind {
     const PREFIX: &'static str = "WIRE";
 }
@@ -25,6 +35,13 @@ pub struct CellSlotTag;
 impl EntityTag for CellSlotTag {
     const PREFIX: &'static str = "TCELL";
 }
+pub struct EnumValueTag;
+impl EntityTag for EnumValueTag {
+    const PREFIX: &'static str = "EV";
+}
+pub type EnumClassId = EntityIdU16<EnumClass>;
+pub type EnumValueId = EntityIdU16<EnumValueTag>;
+pub type BelClassId = EntityIdU16<BelClass>;
 pub type WireSlotId = EntityIdU16<WireKind>;
 pub type TileClassId = EntityIdU16<TileClass>;
 pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
@@ -114,6 +131,8 @@ impl std::fmt::Display for TileSlotId {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Encode, Decode)]
 pub struct IntDb {
+    pub enum_classes: EntityMap<EnumClassId, String, EnumClass>,
+    pub bel_classes: EntityMap<BelClassId, String, BelClass>,
     pub wires: EntityMap<WireSlotId, String, WireKind>,
     pub tile_slots: EntitySet<TileSlotId, String>,
     pub bel_slots: EntityMap<BelSlotId, String, BelSlot>,
@@ -172,9 +191,13 @@ impl IntDb {
         }
         for &(id, name, tslot) in bslots {
             assert_eq!(
-                result
-                    .bel_slots
-                    .insert(name.into(), BelSlot { tile_slot: tslot }),
+                result.bel_slots.insert(
+                    name.into(),
+                    BelSlot {
+                        tile_slot: tslot,
+                        kind: BelKind::Legacy
+                    }
+                ),
                 (id, None)
             );
         }
@@ -209,6 +232,22 @@ impl IntDb {
     }
 }
 
+impl std::ops::Index<EnumClassId> for IntDb {
+    type Output = EnumClass;
+
+    fn index(&self, index: EnumClassId) -> &Self::Output {
+        &self.enum_classes[index]
+    }
+}
+
+impl std::ops::Index<BelClassId> for IntDb {
+    type Output = BelClass;
+
+    fn index(&self, index: BelClassId) -> &Self::Output {
+        &self.bel_classes[index]
+    }
+}
+
 impl std::ops::Index<WireSlotId> for IntDb {
     type Output = WireKind;
 
@@ -233,9 +272,34 @@ impl std::ops::Index<ConnectorClassId> for IntDb {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct EnumClass {
+    pub values: EntitySet<EnumValueId, String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BelClass {
+    // TODO
+    // pub attributes: EntityMap<BelAttrId, String, BelAttr>,
+    // pub inputs: EntityMap<BelInputId, (String, usize), BelInput>,
+    // pub outputs: EntityMap<BelOutputId, (String, usize), BelOutput>,
+    // pub bidirs: EntityMap<BelBidirId, (String, usize), BelBidir>,
+    // pub pads: EntityMap<BelPadId, (String, usize), BelPad>,
+    // pub relations: EntityMap<BelRelationId, String, BelRelation>,
+    // pub capabilities: EntitySet<BelCapabilityId, String>,
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct BelSlot {
     pub tile_slot: TileSlotId,
+    pub kind: BelKind,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub enum BelKind {
+    Routing,
+    Class(BelClassId),
+    Legacy,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -280,7 +344,8 @@ impl WireKind {
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct TileClass {
     pub slot: TileSlotId,
-    pub cells: EntityVec<CellSlotId, ()>,
+    pub cells: EntityVec<CellSlotId, String>,
+    pub bitrects: EntityVec<BitRectId, BitRectInfo>,
     pub bels: EntityPartVec<BelSlotId, BelInfo>,
 }
 
@@ -288,10 +353,17 @@ impl TileClass {
     pub fn new(slot: TileSlotId, num_cells: usize) -> Self {
         TileClass {
             slot,
-            cells: EntityVec::from_iter(std::iter::repeat_n((), num_cells)),
+            cells: EntityVec::from_iter((0..num_cells).map(|i| format!("CELL{i}"))),
+            bitrects: EntityVec::new(),
             bels: Default::default(),
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BitRectInfo {
+    pub name: String,
+    pub geometry: BitRectGeometry,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
@@ -372,10 +444,20 @@ pub enum BelInfo {
     Bel(Bel),
     TestMux(TestMux),
     GroupTestMux(GroupTestMux),
+    Legacy(LegacyBel),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct Bel {
+    // TODO: inputs
+    // TODO: outputs
+    // TODO: inouts
+    // TODO: attrs
+    // TODO: caps
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
-pub struct Bel {
+pub struct LegacyBel {
     pub pins: BTreeMap<String, BelPin>,
 }
 
@@ -387,8 +469,8 @@ pub struct SwitchBox {
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub enum SwitchBoxItem {
     Mux(Mux),
-    ProgBuf(Buf),
-    PermaBuf(Buf),
+    ProgBuf(ProgBuf),
+    PermaBuf(PermaBuf),
     Pass(Pass),
     BiPass(BiPass),
     ProgInv(ProgInv),
@@ -398,11 +480,20 @@ pub enum SwitchBoxItem {
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Mux {
     pub dst: TileWireCoord,
-    pub src: BTreeSet<PolTileWireCoord>,
+    pub bits: Vec<TileBit>,
+    pub src: BTreeMap<PolTileWireCoord, BitVec>,
+    pub bits_off: Option<BitVec>,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
-pub struct Buf {
+pub struct ProgBuf {
+    pub dst: TileWireCoord,
+    pub src: PolTileWireCoord,
+    pub bit: PolTileBit,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub struct PermaBuf {
     pub dst: TileWireCoord,
     pub src: PolTileWireCoord,
 }
@@ -411,25 +502,29 @@ pub struct Buf {
 pub struct Pass {
     pub dst: TileWireCoord,
     pub src: TileWireCoord,
+    pub bit: PolTileBit,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct BiPass {
     pub a: TileWireCoord,
     pub b: TileWireCoord,
+    pub bit: PolTileBit,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct ProgInv {
     pub dst: TileWireCoord,
     pub src: TileWireCoord,
+    pub bit: PolTileBit,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct ProgDelay {
     pub dst: TileWireCoord,
     pub src: PolTileWireCoord,
-    pub num_steps: u8,
+    pub bits: Vec<TileBit>,
+    pub steps: Vec<BitVec>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
@@ -574,7 +669,7 @@ impl TileClassIndex {
                 for item in &sb.items {
                     match *item {
                         SwitchBoxItem::Mux(ref mux) => {
-                            for &src in &mux.src {
+                            for &src in mux.src.keys() {
                                 pips_fwd
                                     .entry(src.tw)
                                     .or_default()
@@ -621,7 +716,7 @@ impl TileClassIndex {
                             pips_bwd.entry(inv.dst).or_default().insert(inv.src.pos());
                             pips_bwd.entry(inv.dst).or_default().insert(!inv.src.pos());
                         }
-                        SwitchBoxItem::ProgDelay(delay) => {
+                        SwitchBoxItem::ProgDelay(ref delay) => {
                             pips_fwd
                                 .entry(delay.src.tw)
                                 .or_default()

@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, TileWireCoord},
+    db::{LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
     grid::{BelCoord, CellCoord, EdgeIoCoord},
 };
@@ -126,7 +126,7 @@ impl ChipContext<'_> {
                 let bcrd = cell_tile.bel(bels::CLKDIV[i]);
                 let abcd = ['A', 'B', 'C', 'D'][i];
                 self.name_bel(bcrd, [format!("CLKDIV{bank}{abcd}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let wire = self.rc_io_wire(cell, &format!("JLSR{abcd}_CLKDIV"));
                 self.add_bel_wire(bcrd, "LSR", wire);
@@ -169,7 +169,7 @@ impl ChipContext<'_> {
             {
                 let bcrd = cell_tile.bel(bels::ECLK_ROOT);
                 self.name_bel_null(bcrd);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let mut cibs = vec![];
                 for i in 0..2 {
@@ -254,7 +254,7 @@ impl ChipContext<'_> {
             {
                 let bcrd = cell_tile.bel(bels::PLL_SMI);
                 self.name_bel_null(bcrd);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
                 for pin in [
                     "SMIRD", "SMIWR", "SMICLK", "SMIRSTN", "SMIWDATA", "SMIADDR0", "SMIADDR1",
                     "SMIADDR2", "SMIADDR3", "SMIADDR4", "SMIADDR5", "SMIADDR6", "SMIADDR7",
@@ -302,7 +302,7 @@ impl ChipContext<'_> {
                 let abcd = ['A', 'B', 'C', 'D', 'E', 'F'][idx];
                 let kind = if idx < 2 { "PLL" } else { "DLL" };
                 self.name_bel(bcrd, [format!("{kind}_{corner}C{abcd}",)]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 for pin in [
                     "SMIRD", "SMIWR", "SMICLK", "SMIRSTN", "SMIWDATA", "SMIADDR0", "SMIADDR1",
@@ -456,7 +456,7 @@ impl ChipContext<'_> {
             for i in 0..2 {
                 let bcrd = cell_tile.bel(bels::DLL_DCNTL[i]);
                 self.name_bel_null(bcrd);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 for j in 0..9 {
                     let wire_in = self.rc_corner_wire(cell, &format!("JDCNTL{i}_IN_{j}"));
@@ -528,7 +528,7 @@ impl ChipContext<'_> {
                 {
                     let bcrd = cell_tile.bel(bels::RDCFGN);
                     self.name_bel(bcrd, ["RDCFGN"]);
-                    let mut bel = Bel::default();
+                    let mut bel = LegacyBel::default();
 
                     let rdcfgn = self.rc_corner_wire(cell, "RDCFGN_RDCFGN");
                     self.add_bel_wire(bcrd, "RDCFGN", rdcfgn);
@@ -562,7 +562,7 @@ impl ChipContext<'_> {
                     self.name_bel(bcrd, [name]);
                     let wire = self.rc_corner_wire(cell, &format!("J{name}_{name}"));
                     self.add_bel_wire(bcrd, name, wire);
-                    let mut bel = Bel::default();
+                    let mut bel = LegacyBel::default();
                     bel.pins
                         .insert(name.into(), self.xlat_int_wire_filter(bcrd, wire));
                     self.insert_bel(bcrd, bel);
@@ -605,7 +605,7 @@ impl ChipContext<'_> {
         } else {
             "IOLOGIC"
         };
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         let mut pins = vec![
             "LSR", "CE", "CLK", "OPOS0", "OPOS1", "OPOS2", "OPOS3", "ONEG0", "ONEG1", "ONEG2",
             "ONEG3", "IPOS0", "IPOS1", "IPOS2", "IPOS3", "INEG0", "INEG1", "INEG2", "INEG3",

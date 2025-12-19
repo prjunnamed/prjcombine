@@ -1,7 +1,7 @@
 use prjcombine_ecp::chip::{PllLoc, SpecialIoKey, SpecialLocKey};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirHV},
     grid::{CellCoord, DieId},
 };
@@ -21,7 +21,7 @@ impl ChipContext<'_> {
             CellCoord::new(DieId::from_idx(0), self.chip.col_clk - 1, self.chip.row_clk)
         };
         self.name_bel_null(bcrd);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
 
         let mut inputs_pclk = vec![];
         let mut inputs_sclk = vec![];

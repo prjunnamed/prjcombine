@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        LegacyBel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
         TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -22,7 +22,7 @@ use prjcombine_xc2000::{
 use crate::extractor::{Extractor, NetBinding, PipMode};
 
 fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
-    let mut bel = Bel::default();
+    let mut bel = LegacyBel::default();
     let mut has_dec = false;
     for &(name, ref wire) in pins {
         let wire = wire.as_ref();
@@ -44,7 +44,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
     if has_dec && let Some(pin) = bel.pins.get_mut("I") {
         pin.dir = PinDir::Input;
     }
-    BelInfo::Bel(bel)
+    BelInfo::Legacy(bel)
 }
 
 pub fn make_intdb(kind: ChipKind) -> IntDb {
@@ -617,7 +617,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         match name {
             "CNR.BR" => {
                 tcls.bels
-                    .insert(bels::COUT, BelInfo::Bel(Default::default()));
+                    .insert(bels::COUT, BelInfo::Legacy(Default::default()));
                 tcls.bels.insert(
                     bels::STARTUP,
                     bel_from_pins(
@@ -640,7 +640,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             }
             "CNR.TR" => {
                 tcls.bels
-                    .insert(bels::COUT, BelInfo::Bel(Default::default()));
+                    .insert(bels::COUT, BelInfo::Legacy(Default::default()));
                 tcls.bels
                     .insert(bels::UPDATE, bel_from_pins(&db, &[("O", "OUT.UPDATE.O")]));
                 tcls.bels.insert(
@@ -661,7 +661,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             }
             "CNR.BL" => {
                 tcls.bels
-                    .insert(bels::CIN, BelInfo::Bel(Default::default()));
+                    .insert(bels::CIN, BelInfo::Legacy(Default::default()));
                 tcls.bels
                     .insert(bels::MD0, bel_from_pins(&db, &[("I", "OUT.MD0.I")]));
                 tcls.bels.insert(
@@ -684,7 +684,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             }
             "CNR.TL" => {
                 tcls.bels
-                    .insert(bels::CIN, BelInfo::Bel(Default::default()));
+                    .insert(bels::CIN, BelInfo::Legacy(Default::default()));
                 tcls.bels.insert(
                     bels::BSCAN,
                     bel_from_pins(
@@ -792,7 +792,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
             }
         }
         for (slot, bel_info) in &tcls.bels {
-            let BelInfo::Bel(bel_info) = bel_info else {
+            let BelInfo::Legacy(bel_info) = bel_info else {
                 continue;
             };
             let bel = cell.bel(slot);
@@ -1501,7 +1501,7 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         let ntile = &endev.ngrid.tiles[&tcrd];
         let tcls = &intdb[tile.class];
         for (slot, bel_info) in &tcls.bels {
-            let BelInfo::Bel(bel_info) = bel_info else {
+            let BelInfo::Legacy(bel_info) = bel_info else {
                 continue;
             };
             let bel = cell.bel(slot);

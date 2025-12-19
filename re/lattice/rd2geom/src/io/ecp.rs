@@ -6,7 +6,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, CellCoord, DieId},
 };
@@ -50,7 +50,7 @@ impl ChipContext<'_> {
             && self.chip.rows.len() == 44
             && (cell.col == self.chip.col_w() + 1 || cell.col == self.chip.col_e() - 1);
 
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         let td_iologic = self.rc_io_wire(cell, &format!("JTD{ab}_IOLOGIC"));
         let opos0_iologic = self.rc_io_wire(cell, &format!("JOPOS0{ab}_IOLOGIC"));
         let opos1_iologic = self.rc_io_wire(cell, &format!("JOPOS1{ab}_IOLOGIC"));
@@ -480,7 +480,7 @@ impl ChipContext<'_> {
             let eclks = self.pips_bwd[&eclki].clone();
             let bcrd = self.chip.bel_eclk_root(edge);
             let tcrd = self.edev.get_tile_by_bel(bcrd);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             self.name_bel_null(bcrd);
             for i in 0..2 {
                 let eclk = eclks
@@ -555,7 +555,7 @@ impl ChipContext<'_> {
                 Dir::H(_) => bcrd.cell,
                 Dir::V(_) => bcrd.cell.delta(-1, 0),
             };
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             self.name_bel_null(bcrd);
 
             let mut wires_pllpio = vec![];

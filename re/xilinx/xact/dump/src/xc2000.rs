@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
-        Bel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        LegacyBel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
         TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -22,7 +22,7 @@ use prjcombine_xc2000::{
 use crate::extractor::{Extractor, NetBinding, PipMode};
 
 fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
-    let mut bel = Bel::default();
+    let mut bel = LegacyBel::default();
     for &(name, ref wire) in pins {
         let wire = wire.as_ref();
         bel.pins.insert(
@@ -37,7 +37,7 @@ fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
             },
         );
     }
-    BelInfo::Bel(bel)
+    BelInfo::Legacy(bel)
 }
 
 pub fn make_intdb() -> IntDb {
@@ -407,7 +407,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         let tcls = &intdb[tile.class];
         let ntile = &endev.ngrid.tiles[&tcrd];
         for (slot, bel_info) in &tcls.bels {
-            let BelInfo::Bel(bel_info) = bel_info else {
+            let BelInfo::Legacy(bel_info) = bel_info else {
                 continue;
             };
             let bel = tcrd.bel(slot);

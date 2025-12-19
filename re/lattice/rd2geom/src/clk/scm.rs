@@ -6,7 +6,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
     grid::{CellCoord, DieId},
 };
@@ -109,7 +109,7 @@ impl ChipContext<'_> {
                 let bcrd = cell_tile.bel(bels::DCS[i]);
                 let ab = ['A', 'B'][i];
                 self.name_bel(bcrd, [format!("DCS{lrbt}{ab}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let dcs = self.rc_io_wire(cell, &format!("DCS{ab}_DCS"));
                 self.add_bel_wire(bcrd, "DCS", dcs);
@@ -128,7 +128,7 @@ impl ChipContext<'_> {
             {
                 let bcrd = cell_tile.bel(bels::CLK_EDGE);
                 self.name_bel_null(bcrd);
-                self.insert_bel(bcrd, Bel::default());
+                self.insert_bel(bcrd, LegacyBel::default());
 
                 for i in 0..2 {
                     let ab = ['A', 'B'][i];
@@ -343,7 +343,7 @@ impl ChipContext<'_> {
         let bcrd = self.chip.bel_clk_root();
         self.name_bel_null(bcrd);
         let cell = bcrd.cell.delta(-1, 0);
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
         let mut inps = vec![];
         for edge in Dir::DIRS {
             let (col, row) = match edge {

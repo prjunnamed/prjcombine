@@ -3,7 +3,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, IoGroupKind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
 };
 
@@ -80,7 +80,7 @@ impl ChipContext<'_> {
                         format!("PT{c_apio1}J"),
                     ],
                 );
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let wires = self.sorted_wires[&(cell, "PCS")].clone();
                 for (pin, wire) in wires {
@@ -223,7 +223,7 @@ impl ChipContext<'_> {
                 {
                     let bcrd_center =
                         self.chip.special_loc[&SpecialLocKey::Config].bel(bels::SERDES_CENTER);
-                    let mut bel_center = Bel::default();
+                    let mut bel_center = LegacyBel::default();
                     let wire = self.rc_wire(cell, "JFFC_CK_CORE_TX_PCS");
                     self.add_bel_wire(bcrd, "FFC_CK_CORE_TX", wire);
                     bel_center.pins.insert(
@@ -243,7 +243,7 @@ impl ChipContext<'_> {
             let dir_s = !hv.h;
             let dir_n = hv.h;
             self.name_bel_null(bcrd);
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
 
             let mut cells_serdes = vec![];
             match hv.h {
@@ -1368,7 +1368,7 @@ impl ChipContext<'_> {
 
                 let bcrd = bcrd.bel(bels::CLKTEST_MIPI);
                 self.name_bel(bcrd, [format!("CLKTEST_MIPIDPHY{idx}")]);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 for i in 0..2 {
                     let wire = self.rc_io_wire(cell, &format!("JTESTIN{i}_CLKTEST"));

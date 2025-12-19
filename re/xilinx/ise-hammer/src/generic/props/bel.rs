@@ -311,7 +311,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
         let ntile = &backend.ngrid.tiles[&tcrd];
         let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
         let bel_data = &tcls.bels[self.bel];
-        let BelInfo::Bel(bel_data) = bel_data else {
+        let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
         let pin_data = &bel_data.pins[&self.pin];

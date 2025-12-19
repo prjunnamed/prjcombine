@@ -2,7 +2,7 @@
 
 use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{
-    Bel, BelInfo, BelSlotId, ConnectorWire, IntDb, PinDir, SwitchBoxItem, TileClassId,
+    LegacyBel, BelInfo, BelSlotId, ConnectorWire, IntDb, PinDir, SwitchBoxItem, TileClassId,
     TileWireCoord, WireKind, WireSlotId,
 };
 use prjcombine_interconnect::grid::{
@@ -28,7 +28,7 @@ pub struct BelContext<'a> {
     pub tile: &'a Tile,
     pub ntile: &'a TileNaming,
     pub tcls: &'a str,
-    pub info: &'a Bel,
+    pub info: &'a LegacyBel,
     pub naming: &'a ProperBelNaming,
     pub name: Option<&'a str>,
     pub crds: EntityPartVec<RawTileId, Coord>,
@@ -147,7 +147,7 @@ fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo
                     match item {
                         SwitchBoxItem::Mux(mux) => {
                             used_o.insert(mux.dst);
-                            for &w in &mux.src {
+                            for &w in mux.src.keys() {
                                 if !db[w.wire].is_tie() {
                                     used_i.insert(w.tw);
                                 }
@@ -184,7 +184,10 @@ fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo
                     }
                 }
             }
-            BelInfo::Bel(bel) => {
+            BelInfo::Bel(_bel) => {
+                todo!();
+            }
+            BelInfo::Legacy(bel) => {
                 for pin in bel.pins.values() {
                     for &w in &pin.wires {
                         match pin.dir {
@@ -755,7 +758,7 @@ impl<'a> Verifier<'a> {
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
-                        for src in &mux.src {
+                        for src in mux.src.keys() {
                             pips.push((mux.dst, src.tw));
                         }
                     }
@@ -956,7 +959,8 @@ impl<'a> Verifier<'a> {
         for (slot, bel) in &tcls.bels {
             match bel {
                 BelInfo::SwitchBox(_) => (),
-                BelInfo::Bel(bel) => {
+                BelInfo::Bel(_bel) => todo!(),
+                BelInfo::Legacy(bel) => {
                     let BelNaming::Bel(bn) = &naming.bels[slot] else {
                         unreachable!()
                     };
@@ -1442,7 +1446,7 @@ impl<'a> Verifier<'a> {
         let nk = &self.db[tile.class];
         let ntile = &self.ngrid.tiles[&tcrd];
         let nn = &self.ndb.tile_class_namings[ntile.naming];
-        let BelInfo::Bel(info) = &nk.bels[bel.slot] else {
+        let BelInfo::Legacy(info) = &nk.bels[bel.slot] else {
             unreachable!()
         };
         let BelNaming::Bel(naming) = &nn.bels[bel.slot] else {
@@ -1703,7 +1707,7 @@ pub fn verify(
     for (tcrd, tile) in grid.egrid.tiles() {
         let nk = &grid.egrid.db[tile.class];
         for (slot, bel) in &nk.bels {
-            if matches!(bel, BelInfo::Bel(_)) {
+            if matches!(bel, BelInfo::Legacy(_)) {
                 let ctx = vrf.get_bel(tcrd.bel(slot));
                 bel_handler(&mut vrf, &ctx);
             }

@@ -542,7 +542,7 @@ impl<'a> ExpandedGrid<'a> {
     pub fn get_bel_pin(&self, bel: BelCoord, pin: &str) -> Vec<WireCoord> {
         let tcrd = self.get_tile_by_bel(bel);
         let tile = &self[tcrd];
-        let BelInfo::Bel(ref bel) = self.db[tile.class].bels[bel.slot] else {
+        let BelInfo::Legacy(ref bel) = self.db[tile.class].bels[bel.slot] else {
             unreachable!()
         };
         let pin_info = &bel.pins[pin];

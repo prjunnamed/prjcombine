@@ -1,5 +1,5 @@
 use prjcombine_ecp::bels;
-use prjcombine_interconnect::db::Bel;
+use prjcombine_interconnect::db::LegacyBel;
 
 use crate::ChipContext;
 
@@ -26,7 +26,7 @@ impl ChipContext<'_> {
                 let cell_mult = [cell_base, cell_base.delta(1, 0)];
                 let cell_alu24 = cell_base.delta(2, 0);
                 let cell_alu54 = cell_base.delta(3, 0);
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 for pin in [
                     "CLK0", "CLK1", "CLK2", "CLK3", "CE0", "CE1", "CE2", "CE3", "RST0", "RST1",

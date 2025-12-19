@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{Bel, BelPin, TileWireCoord},
+    db::{LegacyBel, BelPin, TileWireCoord},
     dir::{Dir, DirHV, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
@@ -82,7 +82,7 @@ impl ChipContext<'_> {
                         }
                     )],
                 );
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
 
                 let eclki = self.rc_wire(cell, &format!("ECLKI{idx}_ECLKSYNC"));
                 self.add_bel_wire(bcrd, "ECLKI", eclki);
@@ -159,7 +159,7 @@ impl ChipContext<'_> {
                 if edge == DirV::S {
                     let bcrd = bcrd.bel(bels::CLKFBBUF[idx]);
                     self.name_bel(bcrd, [format!("CLKFBBUF{idx}")]);
-                    self.insert_bel(bcrd, Bel::default());
+                    self.insert_bel(bcrd, LegacyBel::default());
 
                     let a = self.rc_wire(cell, &format!("JA{idx}_CLKFBBUF"));
                     self.add_bel_wire(bcrd, "A", a);
@@ -271,7 +271,7 @@ impl ChipContext<'_> {
             } else {
                 self.name_bel_null(bcrd);
             }
-            let mut bel = Bel::default();
+            let mut bel = LegacyBel::default();
             for pin in ["DDRCLKPOL", "DQSR90", "DQSW90"] {
                 let cell_io = [cell.delta(0, 2), cell.delta(0, -2)][i];
                 let wire_io = self.rc_io_wire(cell_io, &format!("{pin}A_RIOLOGIC"));
@@ -408,7 +408,7 @@ impl ChipContext<'_> {
                 _ => "IOLOGIC",
             }
         };
-        let mut bel = Bel::default();
+        let mut bel = LegacyBel::default();
 
         let mut pins = vec!["CLK", "LSR", "CE", "TS", "OPOS", "ONEG", "IP", "IN"];
         match iol {
@@ -647,7 +647,7 @@ impl ChipContext<'_> {
                         }
                     )],
                 );
-                let mut bel = Bel::default();
+                let mut bel = LegacyBel::default();
                 for pin in ["ALIGNWD", "RST", "CDIV1", "CDIVX"] {
                     let wire = self.rc_wire(cell, &format!("J{pin}{idx}_CLKDIV"));
                     self.add_bel_wire(bcrd, pin, wire);

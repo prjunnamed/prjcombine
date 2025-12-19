@@ -17,7 +17,7 @@ impl TileClass {
                                     "\t\t\tMUX      {dst:20} <- ",
                                     dst = mux.dst.to_string(db, self)
                                 )?;
-                                for src in &mux.src {
+                                for src in mux.src.keys() {
                                     write!(o, " {src:20}", src = src.to_string(db, self))?;
                                 }
                                 writeln!(o)?;
@@ -55,15 +55,18 @@ impl TileClass {
                             crate::db::SwitchBoxItem::ProgDelay(delay) => writeln!(
                                 o,
                                 "\t\t\tDELAY #{n} {dst:20} <-  {src:20}",
-                                n = delay.num_steps,
+                                n = delay.steps.len(),
                                 dst = delay.dst.to_string(db, self),
                                 src = delay.src.to_string(db, self),
                             )?,
                         }
                     }
                 }
-                BelInfo::Bel(bel) => {
-                    writeln!(o, "\t\t{slot}: BEL", slot = db.bel_slots.key(slot))?;
+                BelInfo::Bel(_bel) => {
+                    todo!();
+                }
+                BelInfo::Legacy(bel) => {
+                    writeln!(o, "\t\t{slot}: LEGACY BEL", slot = db.bel_slots.key(slot))?;
                     for (pn, pin) in &bel.pins {
                         write!(
                             o,

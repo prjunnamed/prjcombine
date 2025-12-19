@@ -1016,7 +1016,7 @@ impl IntMaker<'_> {
             .int_type(tslots::INT, bels::INT, "INT", "INT", "INT");
         let tcid = self.builder.db.get_tile_class("INT");
         let tcls = &mut self.builder.db.tile_classes[tcid];
-        tcls.cells.push(());
+        tcls.cells.push(tcls.cells.next_id().to_string());
         let pips = self.builder.pips.get_mut(&(tcid, bels::INT)).unwrap();
         pips.pips = pips
             .pips

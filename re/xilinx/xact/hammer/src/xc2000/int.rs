@@ -544,7 +544,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         let mux_name = format!("MUX.{out_name}");
                         let mut inps = vec![];
                         let mut got_empty = false;
-                        for &wire_from in &mux.src {
+                        for &wire_from in mux.src.keys() {
                             let in_name =
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
                             let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
