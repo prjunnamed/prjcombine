@@ -35,6 +35,13 @@ pub struct CellSlotTag;
 impl EntityTag for CellSlotTag {
     const PREFIX: &'static str = "TCELL";
 }
+impl EntityTag for BelSlot {
+    const PREFIX: &'static str = "BEL";
+}
+pub struct TileSlotTag;
+impl EntityTag for TileSlotTag {
+    const PREFIX: &'static str = "TSLOT";
+}
 pub struct EnumValueTag;
 impl EntityTag for EnumValueTag {
     const PREFIX: &'static str = "EV";
@@ -48,86 +55,8 @@ pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
 pub type ConnectorSlotId = EntityIdU8<ConnectorSlot>;
 pub type ConnectorClassId = EntityIdU16<ConnectorClass>;
 pub type CellSlotId = EntityIdU16<CellSlotTag>;
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
-pub struct BelSlotId(u16);
-
-impl BelSlotId {
-    pub const fn from_idx_const(idx: usize) -> Self {
-        assert!(idx <= 0xffff);
-        Self(idx as u16)
-    }
-
-    pub const fn to_idx_const(self) -> usize {
-        self.0 as usize
-    }
-}
-
-impl EntityId for BelSlotId {
-    fn from_idx(idx: usize) -> Self {
-        Self(idx.try_into().unwrap())
-    }
-
-    fn to_idx(self) -> usize {
-        self.0.into()
-    }
-}
-
-impl std::fmt::Debug for BelSlotId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BEL{}", self.0)
-    }
-}
-
-impl std::fmt::Display for BelSlotId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if f.alternate() {
-            write!(f, "{}", self.0)
-        } else {
-            write!(f, "BEL{}", self.0)
-        }
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
-pub struct TileSlotId(u8);
-
-impl TileSlotId {
-    pub const fn from_idx_const(idx: usize) -> Self {
-        assert!(idx <= 0xff);
-        Self(idx as u8)
-    }
-
-    pub const fn to_idx_const(self) -> usize {
-        self.0 as usize
-    }
-}
-
-impl EntityId for TileSlotId {
-    fn from_idx(idx: usize) -> Self {
-        Self(idx.try_into().unwrap())
-    }
-
-    fn to_idx(self) -> usize {
-        self.0.into()
-    }
-}
-
-impl std::fmt::Debug for TileSlotId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "TSLOT{}", self.0)
-    }
-}
-
-impl std::fmt::Display for TileSlotId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if f.alternate() {
-            write!(f, "{}", self.0)
-        } else {
-            write!(f, "TSLOT{}", self.0)
-        }
-    }
-}
+pub type BelSlotId = EntityIdU16<BelSlot>;
+pub type TileSlotId = EntityIdU8<TileSlotTag>;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Encode, Decode)]
 pub struct IntDb {
