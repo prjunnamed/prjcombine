@@ -7,12 +7,17 @@ pub use part::EntityPartVec;
 pub use vec::EntityVec;
 
 #[cfg(feature = "map")]
+pub mod bundle_map;
+#[cfg(feature = "map")]
 pub mod map;
 #[cfg(feature = "map")]
 pub mod set;
 
 #[cfg(feature = "map")]
-pub use {map::EntityMap, set::EntitySet};
+pub use {
+    bundle_map::EntityBundleIndex, bundle_map::EntityBundleItemIndex, bundle_map::EntityBundleMap,
+    map::EntityMap, set::EntitySet,
+};
 
 #[cfg(feature = "bitvec")]
 pub mod bitvec;
