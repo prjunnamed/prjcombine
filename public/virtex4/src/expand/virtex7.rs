@@ -63,8 +63,8 @@ impl DieExpander<'_, '_, '_> {
             self.site_holes.push(cell.rect(6, 100));
         }
         if self.chip.has_ps {
-            let col_l = self.egrid.cols(self.die).next().unwrap();
-            let row_t = self.egrid.rows(self.die).next_back().unwrap();
+            let col_l = self.egrid.cols(self.die).first().unwrap();
+            let row_t = self.egrid.rows(self.die).last().unwrap();
             let cell = CellCoord::new(self.die, col_l, row_t - 99);
             self.int_holes.push(cell.rect(18, 100));
             self.site_holes.push(cell.rect(19, 100));
@@ -156,8 +156,8 @@ impl DieExpander<'_, '_, '_> {
 
     fn fill_ps(&mut self) {
         if self.chip.has_ps {
-            let col_l = self.egrid.cols(self.die).next().unwrap();
-            let row_t = self.egrid.rows(self.die).next_back().unwrap();
+            let col_l = self.egrid.cols(self.die).first().unwrap();
+            let row_t = self.egrid.rows(self.die).last().unwrap();
             let cell = CellCoord::new(self.die, col_l + 18, row_t - 99);
             if self.chip.regs != 2 {
                 for dx in 0..18 {
@@ -306,7 +306,7 @@ impl DieExpander<'_, '_, '_> {
     fn fill_terms(&mut self) {
         for cell in self
             .egrid
-            .row(self.die, self.egrid.rows(self.die).next().unwrap())
+            .row(self.die, self.egrid.rows(self.die).first().unwrap())
         {
             if !self.is_int_hole(cell) {
                 if self.chip.has_no_tbuturn {
@@ -318,7 +318,7 @@ impl DieExpander<'_, '_, '_> {
         }
         for cell in self
             .egrid
-            .row(self.die, self.egrid.rows(self.die).next_back().unwrap())
+            .row(self.die, self.egrid.rows(self.die).last().unwrap())
         {
             if !self.is_int_hole(cell) {
                 if self.chip.has_no_tbuturn {
@@ -330,7 +330,7 @@ impl DieExpander<'_, '_, '_> {
         }
         for cell in self
             .egrid
-            .column(self.die, self.egrid.cols(self.die).next().unwrap())
+            .column(self.die, self.egrid.cols(self.die).first().unwrap())
         {
             if !self.is_int_hole(cell) {
                 self.egrid.fill_conn_term(cell, "TERM.W");
@@ -338,7 +338,7 @@ impl DieExpander<'_, '_, '_> {
         }
         for cell in self
             .egrid
-            .column(self.die, self.egrid.cols(self.die).next_back().unwrap())
+            .column(self.die, self.egrid.cols(self.die).last().unwrap())
         {
             if !self.is_int_hole(cell) {
                 self.egrid.fill_conn_term(cell, "TERM.E");
@@ -374,8 +374,8 @@ impl DieExpander<'_, '_, '_> {
     fn fill_bram_dsp(&mut self) {
         let col = self.chip.columns.first_id().unwrap();
         if self.chip.columns[col] == ColumnKind::Bram {
-            let cell_s = CellCoord::new(self.die, col, self.chip.rows().next().unwrap());
-            let cell_n = CellCoord::new(self.die, col, self.chip.rows().next_back().unwrap() - 4);
+            let cell_s = CellCoord::new(self.die, col, self.chip.rows().first().unwrap());
+            let cell_n = CellCoord::new(self.die, col, self.chip.rows().last().unwrap() - 4);
             self.site_holes
                 .extend([cell_s.rect(1, 5), cell_n.rect(1, 5)]);
         }
@@ -581,7 +581,7 @@ impl DieExpander<'_, '_, '_> {
     }
 
     fn fill_frame_info(&mut self) {
-        let mut regs: Vec<_> = self.chip.regs().collect();
+        let mut regs = Vec::from_iter(self.chip.regs());
         regs.sort_by_key(|&reg| {
             let rreg = reg - self.chip.reg_cfg;
             (rreg < 0, rreg.abs())
@@ -940,8 +940,8 @@ pub fn expand_grid<'a>(
         let die_n = DieId::from_idx(i);
         for col in egrid.cols(die_s) {
             for dy in 0..49 {
-                let row_s = egrid.rows(die_s).next_back().unwrap() - 49 + dy;
-                let row_n = egrid.rows(die_n).next().unwrap() + 1 + dy;
+                let row_s = egrid.rows(die_s).last().unwrap() - 49 + dy;
+                let row_n = egrid.rows(die_n).first().unwrap() + 1 + dy;
                 let cell_s = CellCoord::new(die_s, col, row_s);
                 let cell_n = CellCoord::new(die_n, col, row_n);
                 if egrid[cell_s].tiles.contains_id(tslots::INT)

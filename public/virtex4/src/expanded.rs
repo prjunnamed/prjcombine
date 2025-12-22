@@ -117,8 +117,8 @@ impl ExpandedDevice<'_> {
                 let die_s = DieId::from_idx(i - 1);
                 let die_n = DieId::from_idx(i);
                 for col in self.cols(die_s) {
-                    let row_s = self.rows(die_s).next_back().unwrap() - 49;
-                    let row_n = self.rows(die_n).next().unwrap() + 1;
+                    let row_s = self.rows(die_s).last().unwrap() - 49;
+                    let row_n = self.rows(die_n).first().unwrap() + 1;
                     let cell_s = CellCoord::new(die_s, col, row_s);
                     let cell_n = CellCoord::new(die_n, col, row_n);
                     if self[cell_s].tiles.contains_id(tslots::INT)

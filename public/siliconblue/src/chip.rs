@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_entity::{EntityId, EntityIds, EntityVec};
+use prjcombine_entity::{EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::{
     db::CellSlotId,
     dir::{Dir, DirH, DirV},
@@ -540,12 +540,12 @@ impl Chip {
         ColId::from_idx(self.columns / 2)
     }
 
-    pub fn columns(&self) -> EntityIds<ColId> {
-        EntityIds::new(self.columns)
+    pub fn columns(&self) -> EntityRange<ColId> {
+        EntityRange::new(0, self.columns)
     }
 
-    pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.rows)
+    pub fn rows(&self) -> EntityRange<RowId> {
+        EntityRange::new(0, self.rows)
     }
 
     pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {

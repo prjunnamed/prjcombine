@@ -3,7 +3,7 @@ use prjcombine_ecp::{
     chip::{ChipKind, IoGroupKind, PllLoc, SpecialIoKey, SpecialLocKey},
 };
 use prjcombine_interconnect::{
-    db::{LegacyBel, BelPin, TileWireCoord},
+    db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirHV, DirV},
 };
 
@@ -44,6 +44,7 @@ impl ChipContext<'_> {
                     .chip
                     .columns
                     .ids()
+                    .into_iter()
                     .find(|&col| self.chip.columns[col].bank_n == Some(bank + 2))
                     .map(|col| match edge {
                         DirH::W => bcrd.with_col(col).delta(6, 1),

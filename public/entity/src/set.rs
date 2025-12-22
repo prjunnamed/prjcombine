@@ -8,7 +8,7 @@ use std::fmt;
 use indexmap::Equivalent;
 use indexmap::set::IndexSet;
 
-use crate::id::EntityIds;
+use crate::id::EntityRange;
 use crate::{EntityId, EntityVec};
 
 #[derive(Clone)]
@@ -75,8 +75,8 @@ where
         self.set.contains(key)
     }
 
-    pub fn ids(&self) -> EntityIds<I> {
-        EntityIds::new(self.len())
+    pub fn ids(&self) -> EntityRange<I> {
+        EntityRange::new(0, self.len())
     }
 
     pub fn iter(&self) -> Iter<'_, I, V> {

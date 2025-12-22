@@ -592,6 +592,7 @@ impl ChipBuilder<'_> {
             .chip
             .rows
             .ids()
+            .into_iter()
             .find(|&row| self.chip.rows[row].kind == RowKind::Dsp)
             .unwrap();
         self.chip.special_loc.insert(

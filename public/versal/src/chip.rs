@@ -1,6 +1,6 @@
 use bincode::{Decode, Encode};
 use prjcombine_entity::{
-    EntityId, EntityIds, EntityVec,
+    EntityId, EntityRange, EntityVec,
     id::{EntityIdU8, EntityTag, EntityTagArith},
 };
 use prjcombine_interconnect::{
@@ -230,12 +230,12 @@ impl Chip {
         reg.to_idx().is_multiple_of(2) && reg.to_idx() == self.regs - 1
     }
 
-    pub fn regs(&self) -> EntityIds<RegId> {
-        EntityIds::new(self.regs)
+    pub fn regs(&self) -> EntityRange<RegId> {
+        EntityRange::new(0, self.regs)
     }
 
-    pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.regs * Self::ROWS_PER_REG)
+    pub fn rows(&self) -> EntityRange<RowId> {
+        EntityRange::new(0, self.regs * Self::ROWS_PER_REG)
     }
 
     pub fn get_col_hard(&self, col: ColId) -> Option<&HardColumn> {

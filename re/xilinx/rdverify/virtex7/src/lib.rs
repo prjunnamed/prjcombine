@@ -544,7 +544,7 @@ fn verify_clk_rebuf(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel = vrf.find_bel_walk(bel, 0, -1, bels::CLK_REBUF).or_else(|| {
         if bel.die.to_idx() != 0 {
             let odie = bel.die - 1;
-            let srow = vrf.grid.rows(odie).next_back().unwrap() - 19;
+            let srow = vrf.grid.rows(odie).last().unwrap() - 19;
             vrf.find_bel(CellCoord::new(odie, bel.col, srow).bel(bels::CLK_REBUF))
         } else {
             None
@@ -2226,7 +2226,7 @@ fn verify_cmt_a(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_s = vrf.find_bel_walk(bel, 0, -50, bels::CMT_D).or_else(|| {
         if bel.die.to_idx() != 0 {
             let odie = bel.die - 1;
-            let srow = vrf.grid.rows(odie).next_back().unwrap() - 24;
+            let srow = vrf.grid.rows(odie).last().unwrap() - 24;
             vrf.find_bel(CellCoord::new(odie, bel.col, srow).bel(bels::CMT_D))
         } else {
             None
@@ -2622,7 +2622,7 @@ fn verify_cmt_d(vrf: &mut Verifier, bel: &BelContext<'_>) {
     let obel_n = vrf.find_bel_walk(bel, 0, 50, bels::CMT_A).or_else(|| {
         if bel.die.to_idx() != vrf.grid.die.len() - 1 {
             let odie = bel.die + 1;
-            let srow = vrf.grid.rows(odie).next().unwrap() + 25;
+            let srow = vrf.grid.rows(odie).first().unwrap() + 25;
             vrf.find_bel(CellCoord::new(odie, bel.col, srow).bel(bels::CMT_A))
         } else {
             None
@@ -3718,7 +3718,7 @@ fn verify_gtz(
         (DieId::from_idx(0), RowId::from_idx(4))
     } else {
         let sdie = endev.edev.chips.last_id().unwrap();
-        (sdie, vrf.grid.rows(sdie).next_back().unwrap() - 19)
+        (sdie, vrf.grid.rows(sdie).last().unwrap() - 19)
     };
     let obel_rebuf =
         vrf.get_bel(CellCoord::new(sdie, endev.edev.col_clk, srow).bel(bels::CLK_REBUF));

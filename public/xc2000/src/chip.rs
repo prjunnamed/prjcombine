@@ -5,7 +5,7 @@ use std::{
 
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_entity::{EntityId, EntityIds};
+use prjcombine_entity::{EntityId, EntityRange};
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
 };
@@ -181,12 +181,12 @@ impl Chip {
         RowId::from_idx(3 * self.rows / 4)
     }
 
-    pub fn columns(&self) -> EntityIds<ColId> {
-        EntityIds::new(self.columns)
+    pub fn columns(&self) -> EntityRange<ColId> {
+        EntityRange::new(0, self.columns)
     }
 
-    pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.rows)
+    pub fn rows(&self) -> EntityRange<RowId> {
+        EntityRange::new(0, self.rows)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {

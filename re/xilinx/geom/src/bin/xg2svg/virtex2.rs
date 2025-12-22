@@ -118,7 +118,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         } else {
             (edev.chip.row_s() + 1, edev.chip.row_n())
         };
-        for row in row_b.range(row_t).step_by(4) {
+        for row in row_b.range(row_t).into_iter().step_by(4) {
             if edev.chip.kind != ChipKind::Spartan3E
                 && edev.is_in_hole(CellCoord::new(DieId::from_idx(0), col, row))
             {

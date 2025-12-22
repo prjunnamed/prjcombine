@@ -402,7 +402,11 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem {
     }
     assert_eq!(pullup_disable_bits.len(), device.fbs);
     let mut res = None;
-    for (fb, bit) in device.fbs().zip(pullup_disable_bits.iter().copied()) {
+    for (fb, bit) in device
+        .fbs()
+        .into_iter()
+        .zip(pullup_disable_bits.iter().copied())
+    {
         let crd = map_fb_bit(device, fpart, fb, bit);
         if res.is_none() {
             res = Some(crd);
@@ -421,7 +425,7 @@ fn extract_fb_pullup_disable(device: &Device, fpart: &FuzzDbPart) -> TileItem {
 fn extract_fb_prot(device: &Device, bits: &[BitPos]) -> TileItem {
     assert_eq!(device.fbs, bits.len());
     let mut res = None;
-    for (fb, &bit) in device.fbs().zip(bits.iter()) {
+    for (fb, &bit) in device.fbs().into_iter().zip(bits.iter()) {
         let crd = map_fb_bit_raw(device, fb, bit);
         if res.is_none() {
             res = Some(crd);

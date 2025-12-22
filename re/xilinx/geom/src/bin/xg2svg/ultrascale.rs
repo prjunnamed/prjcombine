@@ -138,7 +138,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     }
                 }
                 ColumnKind::Bram(_) => {
-                    for row in grid.rows().step_by(5) {
+                    for row in grid.rows().into_iter().step_by(5) {
                         if edev.in_site_hole(die, col, row) {
                             continue;
                         }
@@ -152,7 +152,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     }
                 }
                 ColumnKind::Dsp(_) => {
-                    for row in grid.rows().step_by(5) {
+                    for row in grid.rows().into_iter().step_by(5) {
                         if edev.in_site_hole(die, col, row) {
                             continue;
                         }
@@ -166,7 +166,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     }
                 }
                 ColumnKind::Uram => {
-                    for row in grid.rows().step_by(15) {
+                    for row in grid.rows().into_iter().step_by(15) {
                         if edev.in_site_hole(die, col, row) {
                             continue;
                         }

@@ -96,7 +96,7 @@ impl ExpandedDevice<'_> {
                 } else {
                     self.chip.row_n() - row
                 };
-                if let Some(col) = self.chip.columns().find(|&col| {
+                if let Some(col) = self.chip.columns().into_iter().find(|&col| {
                     bit >= self.col_bit[col]
                         && bit < self.col_bit[col] + self.chip.btile_width(col)
                         && if (bank & 2) == 0 {

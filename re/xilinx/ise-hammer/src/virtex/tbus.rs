@@ -22,7 +22,7 @@ impl TileRelation for ClbTbusRight {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let mut cell = tcrd.cell;
         loop {
-            if cell.col == backend.edev.cols(cell.die).next_back().unwrap() {
+            if cell.col == backend.edev.cols(cell.die).last().unwrap() {
                 return None;
             }
             cell.col += 1;

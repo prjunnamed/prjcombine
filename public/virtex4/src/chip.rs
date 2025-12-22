@@ -1,7 +1,7 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_entity::{
-    EntityId, EntityIds, EntityVec,
+    EntityId, EntityRange, EntityVec,
     id::{EntityIdU8, EntityTag, EntityTagArith},
 };
 use prjcombine_interconnect::{
@@ -243,8 +243,8 @@ impl Chip {
         self.row_reg_hclk(self.row_to_reg(row))
     }
 
-    pub fn regs(&self) -> EntityIds<RegId> {
-        EntityIds::new(self.regs)
+    pub fn regs(&self) -> EntityRange<RegId> {
+        EntityRange::new(0, self.regs)
     }
 
     pub fn row_bufg(&self) -> RowId {
@@ -264,8 +264,8 @@ impl Chip {
         ColId::from_idx(18)
     }
 
-    pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.regs * self.rows_per_reg())
+    pub fn rows(&self) -> EntityRange<RowId> {
+        EntityRange::new(0, self.regs * self.rows_per_reg())
     }
 
     pub fn col_side(&self, col: ColId) -> DirH {

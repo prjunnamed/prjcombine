@@ -33,9 +33,9 @@ impl TileRelation for ClkTerm {
         };
         let chip = edev.chips[tcrd.die];
         let row = if tcrd.row < chip.row_bufg() {
-            chip.rows().next().unwrap()
+            chip.rows().first().unwrap()
         } else {
-            chip.rows().next_back().unwrap()
+            chip.rows().last().unwrap()
         };
         Some(tcrd.with_row(row).tile(tslots::HROW))
     }

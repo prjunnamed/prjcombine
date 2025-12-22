@@ -5,7 +5,7 @@ use core::ops::{Index, IndexMut};
 use std::fmt;
 
 use crate::EntityId;
-use crate::id::EntityIds;
+use crate::id::EntityRange;
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 #[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
@@ -73,8 +73,8 @@ impl<I: EntityId, V> EntityVec<I, V> {
         self.vals.clear()
     }
 
-    pub fn ids(&self) -> EntityIds<I> {
-        EntityIds::new(self.vals.len())
+    pub fn ids(&self) -> EntityRange<I> {
+        EntityRange::new(0, self.vals.len())
     }
 
     pub fn values(&self) -> core::slice::Iter<'_, V> {

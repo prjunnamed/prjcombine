@@ -152,7 +152,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                 } else {
                     "dsp"
                 };
-                for row in edev.chip.rows.ids().step_by(4) {
+                for row in edev.chip.rows.ids().into_iter().step_by(4) {
                     if edev.in_site_hole(CellCoord::new(die, col, row)) {
                         continue;
                     }

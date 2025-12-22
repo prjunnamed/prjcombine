@@ -134,7 +134,7 @@ impl DieExpander<'_, '_, '_> {
     fn fill_term(&mut self) {
         for cell in self
             .egrid
-            .row(self.die, self.egrid.rows(self.die).next().unwrap())
+            .row(self.die, self.egrid.rows(self.die).first().unwrap())
         {
             let side = cell.col.to_idx() % 2;
             if !self.in_int_hole(cell)
@@ -148,7 +148,7 @@ impl DieExpander<'_, '_, '_> {
         }
         for cell in self
             .egrid
-            .row(self.die, self.egrid.rows(self.die).next_back().unwrap())
+            .row(self.die, self.egrid.rows(self.die).last().unwrap())
         {
             let side = cell.col.to_idx() % 2;
             if !self.in_int_hole(cell)
@@ -162,7 +162,7 @@ impl DieExpander<'_, '_, '_> {
         }
         for cell in self
             .egrid
-            .column(self.die, self.egrid.cols(self.die).next().unwrap())
+            .column(self.die, self.egrid.cols(self.die).first().unwrap())
         {
             if !self.in_int_hole(cell) {
                 self.egrid.fill_conn_term(cell, "TERM.W");
@@ -171,7 +171,7 @@ impl DieExpander<'_, '_, '_> {
         }
         for cell in self
             .egrid
-            .column(self.die, self.egrid.cols(self.die).next_back().unwrap())
+            .column(self.die, self.egrid.cols(self.die).last().unwrap())
         {
             if !self.in_int_hole(cell) {
                 self.egrid.fill_conn_term(cell, "TERM.E");
@@ -214,7 +214,7 @@ impl DieExpander<'_, '_, '_> {
             }
         }
         for row in self.egrid.rows(self.die) {
-            if row == self.chip.rows().next_back().unwrap() {
+            if row == self.chip.rows().last().unwrap() {
                 continue;
             }
             if self

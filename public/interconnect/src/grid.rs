@@ -4,8 +4,8 @@ use crate::{db::*, dir::Dir};
 use bimap::BiHashMap;
 use bincode::{Decode, Encode};
 use prjcombine_entity::{
-    EntityId, EntityIds, EntityPartVec, EntityVec,
-    id::{EntityIdU8, EntityIdU16, EntityTag, EntityTagArith},
+    EntityId, EntityPartVec, EntityVec,
+    id::{EntityIdU8, EntityIdU16, EntityRange, EntityTag, EntityTagArith},
 };
 use std::collections::{HashMap, HashSet};
 
@@ -376,16 +376,16 @@ impl<'a> ExpandedGrid<'a> {
         die
     }
 
-    pub fn die(&self) -> impl Iterator<Item = DieId> {
+    pub fn die(&self) -> EntityRange<DieId> {
         self.die.ids()
     }
 
-    pub fn rows(&self, die: DieId) -> EntityIds<RowId> {
-        EntityIds::new(self.die[die].height)
+    pub fn rows(&self, die: DieId) -> EntityRange<RowId> {
+        EntityRange::new(0, self.die[die].height)
     }
 
-    pub fn cols(&self, die: DieId) -> EntityIds<ColId> {
-        EntityIds::new(self.die[die].width)
+    pub fn cols(&self, die: DieId) -> EntityRange<ColId> {
+        EntityRange::new(0, self.die[die].width)
     }
 
     pub fn column(
@@ -406,8 +406,8 @@ impl<'a> ExpandedGrid<'a> {
 
     pub fn die_cells(&self, die: DieId) -> impl DoubleEndedIterator<Item = CellCoord> + 'static {
         let num_rows = self.rows(die).len();
-        self.cols(die).flat_map(move |col| {
-            EntityIds::new(num_rows).map(move |row| CellCoord::new(die, col, row))
+        self.cols(die).into_iter().flat_map(move |col| {
+            EntityRange::new(0, num_rows).map(move |row| CellCoord::new(die, col, row))
         })
     }
 
@@ -423,8 +423,8 @@ impl<'a> ExpandedGrid<'a> {
     }
 
     pub fn cells(&self) -> impl Iterator<Item = (CellCoord, &Cell)> + '_ {
-        self.die().flat_map(move |die| {
-            self.cols(die).flat_map(move |col| {
+        self.die().into_iter().flat_map(move |die| {
+            self.cols(die).into_iter().flat_map(move |col| {
                 self.rows(die).map(move |row| {
                     let crd = CellCoord::new(die, col, row);
                     let cell = &self[crd];

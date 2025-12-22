@@ -5,7 +5,7 @@ use core::ops::Index;
 use std::fmt;
 
 use crate::EntityId;
-use crate::id::EntityIds;
+use crate::id::EntityRange;
 
 use bitvec::order::Lsb0;
 use bitvec::vec::BitVec;
@@ -56,8 +56,8 @@ impl<I: EntityId> EntityBitVec<I> {
         self.vals.clear()
     }
 
-    pub fn ids(&self) -> EntityIds<I> {
-        EntityIds::new(self.vals.len())
+    pub fn ids(&self) -> EntityRange<I> {
+        EntityRange::new(0, self.vals.len())
     }
 
     pub fn values(&self) -> bitvec::slice::Iter<'_, usize, Lsb0> {

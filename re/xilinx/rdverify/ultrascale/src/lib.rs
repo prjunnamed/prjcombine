@@ -1083,7 +1083,7 @@ fn verify_bufce_row(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
                     CellCoord::new(
                         odie,
                         bel.col,
-                        ogrid.row_reg_rclk(ogrid.regs().next_back().unwrap()),
+                        ogrid.row_reg_rclk(ogrid.regs().last().unwrap()),
                     )
                     .bel(bel.slot),
                 )

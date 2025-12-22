@@ -1,8 +1,9 @@
 use jzon::JsonValue;
 
 use crate::db::{
-    LegacyBel, BelInfo, BelPin, BelSlot, ConnectorClass, ConnectorSlot, ConnectorWire, GroupTestMux,
-    GroupTestMuxWire, IntDb, PinDir, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass,
+    BelInfo, BelPin, BelSlot, ConnectorClass, ConnectorSlot, ConnectorWire, GroupTestMux,
+    GroupTestMuxWire, IntDb, LegacyBel, PinDir, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire,
+    TileClass,
 };
 
 impl BelPin {

@@ -127,7 +127,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     } else {
                         "dsp"
                     };
-                    for row in grid.rows().step_by(bram_rows) {
+                    for row in grid.rows().into_iter().step_by(bram_rows) {
                         if edev.in_site_hole(CellCoord::new(die, col, row)) {
                             continue;
                         }

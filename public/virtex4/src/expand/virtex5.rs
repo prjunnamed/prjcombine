@@ -112,21 +112,21 @@ impl Expander<'_, '_> {
     }
 
     fn fill_terms(&mut self) {
-        let row_b = self.chip.rows().next().unwrap();
+        let row_b = self.chip.rows().first().unwrap();
         for cell in self.egrid.row(self.die, row_b) {
             self.egrid.fill_conn_term(cell, "TERM.S.HOLE");
         }
-        let row_t = self.chip.rows().next_back().unwrap();
+        let row_t = self.chip.rows().last().unwrap();
         for cell in self.egrid.row(self.die, row_t) {
             self.egrid.fill_conn_term(cell, "TERM.N.HOLE");
             self.egrid
                 .fill_conn_pair(cell.delta(0, -1), cell, "MAIN.NHOLE.N", "MAIN.NHOLE.S");
         }
-        let col_l = self.chip.columns.ids().next().unwrap();
+        let col_l = self.chip.columns.ids().first().unwrap();
         for cell in self.egrid.column(self.die, col_l) {
             self.egrid.fill_conn_term(cell, "TERM.W");
         }
-        let col_r = self.chip.columns.ids().next_back().unwrap();
+        let col_r = self.chip.columns.ids().last().unwrap();
         for cell in self.egrid.column(self.die, col_r) {
             if self.chip.columns[col_r] == ColumnKind::Gt {
                 self.egrid.fill_conn_term(cell, "TERM.E");
@@ -137,8 +137,8 @@ impl Expander<'_, '_> {
     }
 
     fn fill_int_bufs(&mut self) {
-        let col_l = self.chip.columns.ids().next().unwrap();
-        let col_r = self.chip.columns.ids().next_back().unwrap();
+        let col_l = self.chip.columns.ids().first().unwrap();
+        let col_r = self.chip.columns.ids().last().unwrap();
         for (col, &cd) in &self.chip.columns {
             if !matches!(cd, ColumnKind::Io | ColumnKind::Cfg) || col == col_l || col == col_r {
                 continue;
@@ -352,7 +352,7 @@ impl Expander<'_, '_> {
     }
 
     fn fill_frame_info(&mut self) {
-        let mut regs: Vec<_> = self.chip.regs().collect();
+        let mut regs = Vec::from_iter(self.chip.regs());
         regs.sort_by_key(|&reg| {
             let rreg = reg - self.chip.reg_cfg;
             (rreg < 0, rreg.abs())

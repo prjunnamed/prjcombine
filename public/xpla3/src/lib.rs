@@ -8,7 +8,7 @@ use std::{
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_entity::{
-    EntityId, EntityIds, EntityVec,
+    EntityId, EntityRange, EntityVec,
     id::{EntityIdU8, EntityTag},
 };
 use prjcombine_types::{
@@ -39,8 +39,8 @@ pub struct Chip {
 }
 
 impl Chip {
-    pub fn blocks(&self) -> EntityIds<BlockId> {
-        EntityIds::new(self.block_rows * self.block_cols.len() * 2)
+    pub fn blocks(&self) -> EntityRange<BlockId> {
+        EntityRange::new(0, self.block_rows * self.block_cols.len() * 2)
     }
 }
 

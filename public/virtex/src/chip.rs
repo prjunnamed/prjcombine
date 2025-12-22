@@ -1,6 +1,6 @@
 use bincode::{Decode, Encode};
 use jzon::JsonValue;
-use prjcombine_entity::{EntityId, EntityIds};
+use prjcombine_entity::{EntityId, EntityRange};
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
@@ -118,12 +118,12 @@ impl Chip {
         row == self.row_s() || row == self.row_n()
     }
 
-    pub fn columns(&self) -> EntityIds<ColId> {
-        EntityIds::new(self.columns)
+    pub fn columns(&self) -> EntityRange<ColId> {
+        EntityRange::new(0, self.columns)
     }
 
-    pub fn rows(&self) -> EntityIds<RowId> {
-        EntityIds::new(self.rows)
+    pub fn rows(&self) -> EntityRange<RowId> {
+        EntityRange::new(0, self.rows)
     }
 
     pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {

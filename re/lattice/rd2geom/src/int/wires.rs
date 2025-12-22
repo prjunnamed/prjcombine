@@ -374,6 +374,7 @@ impl ChipContext<'_> {
                         self.chip
                             .row_s()
                             .range(self.chip.row_s() + 10)
+                            .into_iter()
                             .flat_map(|row| self.edev.row(cell.die, row))
                             .filter(|cell| cell.col < self.chip.col_clk)
                             .map(|cell| cell.wire(w)),
@@ -383,6 +384,7 @@ impl ChipContext<'_> {
                         self.chip
                             .row_s()
                             .range(self.chip.row_s() + 10)
+                            .into_iter()
                             .flat_map(|row| self.edev.row(cell.die, row))
                             .filter(|cell| cell.col >= self.chip.col_clk)
                             .map(|cell| cell.wire(w)),

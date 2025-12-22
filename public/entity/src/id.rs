@@ -240,9 +240,9 @@ macro_rules! __impl_entity_id_delta {
         }
 
         impl $id {
-            pub fn range(self, other: $id) -> $crate::id::EntityIds<$id> {
+            pub fn range(self, other: $id) -> $crate::id::EntityRange<$id> {
                 use $crate::EntityId;
-                $crate::id::EntityIds::new_range(self.to_idx(), other.to_idx())
+                $crate::id::EntityRange::new(self.to_idx(), other.to_idx())
             }
         }
     };
@@ -313,6 +313,7 @@ pub trait EntityTagArith: EntityTag {}
 
 macro_rules! make_id {
     ($ty:ident, $nzty:ident, $intty:ident, $max:literal) => {
+        #[doc(hidden)]
         #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub struct $ty<Tag>($nzty, PhantomData<fn(Tag) -> Tag>);
 
@@ -501,9 +502,9 @@ macro_rules! make_id {
         }
 
         impl<Tag: EntityTagArith> $ty<PhantomData<Tag>> {
-            pub fn range(self, other: Self) -> $crate::id::EntityIds<Self> {
+            pub fn range(self, other: Self) -> $crate::id::EntityRange<Self> {
                 use $crate::EntityId;
-                $crate::id::EntityIds::new_range(self.to_idx(), other.to_idx())
+                $crate::id::EntityRange::new(self.to_idx(), other.to_idx())
             }
         }
     };
@@ -517,25 +518,17 @@ pub type EntityIdU8<T> = EntityIdU8Inner<PhantomData<T>>;
 pub type EntityIdU16<T> = EntityIdU16Inner<PhantomData<T>>;
 pub type EntityIdU32<T> = EntityIdU32Inner<PhantomData<T>>;
 
-// iterator
+// range
 
-#[derive(Clone, Debug)]
-pub struct EntityIds<I: EntityId> {
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct EntityRange<I: EntityId> {
     start: usize,
     end: usize,
     ids: PhantomData<I>,
 }
 
-impl<I: EntityId> EntityIds<I> {
-    pub fn new(num: usize) -> Self {
-        Self {
-            start: 0,
-            end: num,
-            ids: PhantomData,
-        }
-    }
-
-    pub fn new_range(start: usize, end: usize) -> Self {
+impl<I: EntityId> EntityRange<I> {
+    pub fn new(start: usize, end: usize) -> Self {
         assert!(start <= end);
         Self {
             start,
@@ -543,9 +536,88 @@ impl<I: EntityId> EntityIds<I> {
             ids: PhantomData,
         }
     }
+
+    pub fn len(self) -> usize {
+        self.end - self.start
+    }
+
+    pub fn map<T>(
+        self,
+        f: impl FnMut(I) -> T,
+    ) -> impl DoubleEndedIterator<Item = T> + ExactSizeIterator<Item = T> {
+        self.into_iter().map(f)
+    }
+
+    pub fn rev(self) -> impl DoubleEndedIterator<Item = I> + ExactSizeIterator<Item = I> {
+        self.into_iter().rev()
+    }
+
+    pub fn filter(self, f: impl FnMut(&I) -> bool) -> impl DoubleEndedIterator<Item = I> {
+        self.into_iter().filter(f)
+    }
+
+    pub fn start(self) -> I {
+        I::from_idx(self.start)
+    }
+
+    pub fn end(self) -> I {
+        I::from_idx(self.end)
+    }
+
+    pub fn first(self) -> Option<I> {
+        if self.start == self.end {
+            None
+        } else {
+            Some(I::from_idx(self.start))
+        }
+    }
+
+    pub fn last(self) -> Option<I> {
+        if self.start == self.end {
+            None
+        } else {
+            Some(I::from_idx(self.end - 1))
+        }
+    }
+
+    pub fn index(self, idx: usize) -> I {
+        assert!(idx < self.len());
+        I::from_idx(self.start + idx)
+    }
+
+    pub fn index_of(&self, id: I) -> Option<usize> {
+        if id.to_idx() < self.start || id.to_idx() >= self.end {
+            None
+        } else {
+            Some(id.to_idx() - self.start)
+        }
+    }
 }
 
-impl<I: EntityId> Iterator for EntityIds<I> {
+impl<I: EntityId> IntoIterator for EntityRange<I> {
+    type Item = I;
+
+    type IntoIter = EntityRangeIter<I>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        EntityRangeIter {
+            start: self.start,
+            end: self.end,
+            ids: PhantomData,
+        }
+    }
+}
+
+// iterator
+
+#[derive(Clone, Debug)]
+pub struct EntityRangeIter<I: EntityId> {
+    start: usize,
+    end: usize,
+    ids: PhantomData<I>,
+}
+
+impl<I: EntityId> Iterator for EntityRangeIter<I> {
     type Item = I;
     fn next(&mut self) -> Option<I> {
         if self.start == self.end {
@@ -558,7 +630,7 @@ impl<I: EntityId> Iterator for EntityIds<I> {
     }
 }
 
-impl<I: EntityId> DoubleEndedIterator for EntityIds<I> {
+impl<I: EntityId> DoubleEndedIterator for EntityRangeIter<I> {
     fn next_back(&mut self) -> Option<I> {
         if self.start == self.end {
             None
@@ -569,8 +641,63 @@ impl<I: EntityId> DoubleEndedIterator for EntityIds<I> {
     }
 }
 
-impl<I: EntityId> ExactSizeIterator for EntityIds<I> {
+impl<I: EntityId> ExactSizeIterator for EntityRangeIter<I> {
     fn len(&self) -> usize {
         self.end - self.start
+    }
+}
+
+// static range
+
+#[derive(Copy, Clone, Debug)]
+pub struct EntityStaticRange<I: EntityId, const N: usize> {
+    data: [I; N],
+}
+
+macro_rules! impl_static_range {
+    ($ty:ident) => {
+        impl<T: EntityTag, const N: usize> EntityStaticRange<$ty<T>, N> {
+            pub const fn new_const(base: usize) -> Self {
+                let mut data = [$ty::from_idx_const(0); N];
+                let mut i = 0;
+                while i < N {
+                    data[i] = $ty::from_idx_const(base + i);
+                    i += 1;
+                }
+                Self { data }
+            }
+        }
+    };
+}
+
+impl_static_range!(EntityIdU8);
+impl_static_range!(EntityIdU16);
+impl_static_range!(EntityIdU32);
+
+impl<I: EntityId, const N: usize> EntityStaticRange<I, N> {
+    pub const fn index_const(&self, idx: usize) -> I {
+        self.data[idx]
+    }
+
+    pub fn index_of(&self, id: I) -> Option<usize> {
+        let base = self.data.get(0)?;
+        if id.to_idx() < base.to_idx() {
+            None
+        } else {
+            let res = id.to_idx() - base.to_idx();
+            if res >= N { None } else { Some(res) }
+        }
+    }
+
+    pub fn contains(&self, id: I) -> bool {
+        self.index_of(id).is_some()
+    }
+}
+
+impl<I: EntityId, const N: usize> core::ops::Deref for EntityStaticRange<I, N> {
+    type Target = [I; N];
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
     }
 }

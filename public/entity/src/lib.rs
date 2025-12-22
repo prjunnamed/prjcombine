@@ -2,7 +2,7 @@ pub mod id;
 pub mod part;
 pub mod vec;
 
-pub use id::{EntityId, EntityIds};
+pub use id::{EntityId, EntityRange};
 pub use part::EntityPartVec;
 pub use vec::EntityVec;
 

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use bincode::{Decode, Encode};
-use prjcombine_entity::{EntityId, EntityIds, EntityVec};
+use prjcombine_entity::{EntityId, EntityRange, EntityVec};
 use prjcombine_types::cpld::{
     BlockId, ClusterId, IoCoord, IpadId, MacrocellCoord, MacrocellId, ProductTermId,
 };
@@ -70,37 +70,37 @@ pub enum JtagPin {
 }
 
 impl Device {
-    pub fn fbs(&self) -> EntityIds<BlockId> {
-        EntityIds::new(self.fbs)
+    pub fn fbs(&self) -> EntityRange<BlockId> {
+        EntityRange::new(0, self.fbs)
     }
 
-    pub fn ipads(&self) -> EntityIds<IpadId> {
-        EntityIds::new(self.ipads)
+    pub fn ipads(&self) -> EntityRange<IpadId> {
+        EntityRange::new(0, self.ipads)
     }
 
-    pub fn banks(&self) -> EntityIds<BankId> {
-        EntityIds::new(self.banks)
+    pub fn banks(&self) -> EntityRange<BankId> {
+        EntityRange::new(0, self.banks)
     }
 
-    pub fn fb_mcs(&self) -> EntityIds<MacrocellId> {
-        EntityIds::new(self.kind.mcs_per_fb())
+    pub fn fb_mcs(&self) -> EntityRange<MacrocellId> {
+        EntityRange::new(0, self.kind.mcs_per_fb())
     }
 
-    pub fn fb_imuxes(&self) -> EntityIds<ImuxId> {
-        EntityIds::new(self.kind.imux_per_fb())
+    pub fn fb_imuxes(&self) -> EntityRange<ImuxId> {
+        EntityRange::new(0, self.kind.imux_per_fb())
     }
 
-    pub fn fb_pterms(&self) -> EntityIds<ProductTermId> {
-        EntityIds::new(self.kind.pterms_per_fb())
+    pub fn fb_pterms(&self) -> EntityRange<ProductTermId> {
+        EntityRange::new(0, self.kind.pterms_per_fb())
     }
 
-    pub fn fb_fbns(&self) -> EntityIds<FbnId> {
+    pub fn fb_fbns(&self) -> EntityRange<FbnId> {
         assert_eq!(self.kind, DeviceKind::Xpla3);
-        EntityIds::new(8)
+        EntityRange::new(0, 8)
     }
 
     pub fn mcs(&self) -> impl Iterator<Item = MacrocellCoord> + '_ {
-        self.fbs().flat_map(|fb| {
+        self.fbs().into_iter().flat_map(|fb| {
             self.fb_mcs().map(move |mc| MacrocellCoord {
                 cluster: ClusterId::from_idx(0),
                 block: fb,

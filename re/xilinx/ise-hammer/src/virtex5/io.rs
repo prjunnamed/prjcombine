@@ -1156,7 +1156,7 @@ pub fn add_fuzzers<'a>(
     for bank in [3, 4] {
         let die = DieId::from_idx(0);
         let chip = edev.chips[die];
-        if bank == 3 && chip.row_bufg() + 30 > chip.rows().next_back().unwrap() {
+        if bank == 3 && chip.row_bufg() + 30 > chip.rows().last().unwrap() {
             continue;
         }
         let mut builder = ctx
@@ -1211,7 +1211,7 @@ pub fn add_fuzzers<'a>(
     for (bank_from, bank_to) in [(3, 1), (4, 2)] {
         let die = DieId::from_idx(0);
         let chip = edev.chips[die];
-        if bank_from == 3 && chip.row_bufg() + 30 > chip.rows().next_back().unwrap() {
+        if bank_from == 3 && chip.row_bufg() + 30 > chip.rows().last().unwrap() {
             continue;
         }
         let mut builder = ctx.build().raw(Key::Package, &package.name);

@@ -1,4 +1,4 @@
-use prjcombine_entity::{EntityBitVec, EntityId, EntityIds, EntityVec};
+use prjcombine_entity::{EntityBitVec, EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_interconnect::dir::DirH;
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId};
@@ -42,10 +42,10 @@ impl Expander<'_> {
         for (die, chip) in &self.chips {
             let di = &self.die[die];
 
-            let col_l = self.egrid.cols(die).next().unwrap();
-            let col_r = self.egrid.cols(die).next_back().unwrap();
-            let row_b = self.egrid.rows(die).next().unwrap();
-            let row_t = self.egrid.rows(die).next_back().unwrap();
+            let col_l = self.egrid.cols(die).first().unwrap();
+            let col_r = self.egrid.cols(die).last().unwrap();
+            let row_b = self.egrid.rows(die).first().unwrap();
+            let row_t = self.egrid.rows(die).last().unwrap();
             let ps_width = di.col_cfrm.to_idx();
             for col in self.egrid.cols(die) {
                 if self.disabled.contains(&DisabledPart::Column(die, col)) {
@@ -89,7 +89,7 @@ impl Expander<'_> {
             }
 
             for cell in self.egrid.die_cells(die) {
-                if cell.row == chip.rows().next_back().unwrap() {
+                if cell.row == chip.rows().last().unwrap() {
                     continue;
                 }
                 if self.in_int_hole(cell) || self.in_int_hole(cell.delta(0, 1)) {
@@ -135,8 +135,8 @@ impl Expander<'_> {
 
     fn fill_cle_bc(&mut self) {
         for (die, chip) in &self.chips {
-            let row_b = self.egrid.rows(die).next().unwrap();
-            let row_t = self.egrid.rows(die).next_back().unwrap();
+            let row_b = self.egrid.rows(die).first().unwrap();
+            let row_t = self.egrid.rows(die).last().unwrap();
             for (col, &cd) in &chip.columns {
                 if matches!(cd.kind, ColumnKind::Cle(_)) && chip.col_side(col) == DirH::E {
                     for cell in self.egrid.column(die, col) {
@@ -196,8 +196,8 @@ impl Expander<'_> {
         for (die, chip) in &self.chips {
             let di = &self.die[die];
 
-            let row_b = self.egrid.rows(die).next().unwrap();
-            let row_t = self.egrid.rows(die).next_back().unwrap();
+            let row_b = self.egrid.rows(die).first().unwrap();
+            let row_t = self.egrid.rows(die).last().unwrap();
             for (col, &cd) in &chip.columns {
                 for cell in self.egrid.column(die, col) {
                     if self.in_int_hole(cell) {
@@ -515,7 +515,7 @@ impl Expander<'_> {
 
     fn fill_lgt(&mut self) {
         for (die, chip) in &self.chips {
-            let col = self.egrid.cols(die).next().unwrap();
+            let col = self.egrid.cols(die).first().unwrap();
             let ps_height = chip.get_ps_height();
             for reg in chip.regs() {
                 let cell = CellCoord::new(die, col, chip.row_reg_bot(reg));
@@ -532,7 +532,7 @@ impl Expander<'_> {
 
     fn fill_rgt(&mut self) {
         for (die, chip) in &self.chips {
-            let col = self.egrid.cols(die).next_back().unwrap();
+            let col = self.egrid.cols(die).last().unwrap();
             match chip.right {
                 RightKind::Gt(ref regs) => {
                     for (reg, &kind) in regs {
@@ -676,7 +676,7 @@ fn fill_sll_column(
             } else {
                 all_rows.len()
             };
-            let rows: EntityIds<RowId> = EntityIds::new_range(start, end);
+            let rows: EntityRange<RowId> = EntityRange::new(start, end);
             for row in rows {
                 let mut conns = SllConns {
                     conns: (0..6).map(|_| None).collect(),
@@ -810,8 +810,8 @@ fn fill_sll_mirror_square(
                 0
             };
             let end = all_rows.len();
-            let rows: EntityIds<RowId> = EntityIds::new_range(start, end);
-            for row in rows.clone() {
+            let rows: EntityRange<RowId> = EntityRange::new(start, end);
+            for row in rows {
                 let cidx_l = if row.to_idx() < ps_height { cidx_ps } else { 0 };
                 let mut conns = SllConns {
                     conns: (0..6).map(|_| None).collect(),
