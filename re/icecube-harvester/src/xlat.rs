@@ -8,6 +8,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     chip::{ChipKind, SpecialIoKey, SpecialTileKey},
+    defs,
     expanded::ExpandedDevice,
 };
 
@@ -28,29 +29,43 @@ pub enum GenericNet {
 }
 
 pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNet {
-    fn wire_sp4_h(n: &str, is_l: bool) -> String {
-        let n: u32 = n.parse().unwrap();
+    fn wire_sp4_h(n: &str, is_l: bool) -> WireSlotId {
+        let n: usize = n.parse().unwrap();
         let mut seg = n / 12;
         let mut which = n % 12;
         which ^= seg & 1;
         if is_l {
             seg += 1;
         }
-        format!("QUAD.H{which}.{seg}")
+        match seg {
+            0 => defs::wires::QUAD_H0[which],
+            1 => defs::wires::QUAD_H1[which],
+            2 => defs::wires::QUAD_H2[which],
+            3 => defs::wires::QUAD_H3[which],
+            4 => defs::wires::QUAD_H4[which],
+            _ => unreachable!(),
+        }
     }
 
-    fn wire_sp4_io_h(n: &str, is_l: bool) -> String {
-        let n: u32 = n.parse().unwrap();
+    fn wire_sp4_io_h(n: &str, is_l: bool) -> WireSlotId {
+        let n: usize = n.parse().unwrap();
         let mut seg = n / 4;
         let which = n % 4;
         if is_l {
             seg += 1;
         }
-        format!("QUAD.H{which}.{seg}")
+        match seg {
+            0 => defs::wires::QUAD_H0[which],
+            1 => defs::wires::QUAD_H1[which],
+            2 => defs::wires::QUAD_H2[which],
+            3 => defs::wires::QUAD_H3[which],
+            4 => defs::wires::QUAD_H4[which],
+            _ => unreachable!(),
+        }
     }
 
-    fn wire_sp4_v(n: &str, is_b: bool, is_r: bool) -> String {
-        let n: u32 = n.parse().unwrap();
+    fn wire_sp4_v(n: &str, is_b: bool, is_r: bool) -> WireSlotId {
+        let n: usize = n.parse().unwrap();
         let mut seg = 3 - n / 12;
         let mut which = n % 12;
         which ^= seg & 1;
@@ -58,42 +73,92 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             seg += 1;
         }
         if is_r {
-            format!("QUAD.V{which}.{seg}.W")
+            match seg {
+                1 => defs::wires::QUAD_V1_W[which],
+                2 => defs::wires::QUAD_V2_W[which],
+                3 => defs::wires::QUAD_V3_W[which],
+                4 => defs::wires::QUAD_V4_W[which],
+                _ => unreachable!(),
+            }
         } else {
-            format!("QUAD.V{which}.{seg}")
+            match seg {
+                0 => defs::wires::QUAD_V0[which],
+                1 => defs::wires::QUAD_V1[which],
+                2 => defs::wires::QUAD_V2[which],
+                3 => defs::wires::QUAD_V3[which],
+                4 => defs::wires::QUAD_V4[which],
+                _ => unreachable!(),
+            }
         }
     }
 
-    fn wire_sp4_io_v(n: &str, is_b: bool) -> String {
-        let n: u32 = n.parse().unwrap();
+    fn wire_sp4_io_v(n: &str, is_b: bool) -> WireSlotId {
+        let n: usize = n.parse().unwrap();
         let mut seg = 3 - n / 4;
         let which = n % 4;
         if is_b {
             seg += 1;
         }
-        format!("QUAD.V{which}.{seg}")
+        match seg {
+            0 => defs::wires::QUAD_V0[which],
+            1 => defs::wires::QUAD_V1[which],
+            2 => defs::wires::QUAD_V2[which],
+            3 => defs::wires::QUAD_V3[which],
+            4 => defs::wires::QUAD_V4[which],
+            _ => unreachable!(),
+        }
     }
 
-    fn wire_sp12_h(n: &str, is_l: bool) -> String {
-        let n: u32 = n.parse().unwrap();
+    fn wire_sp12_h(n: &str, is_l: bool) -> WireSlotId {
+        let n: usize = n.parse().unwrap();
         let mut seg = n / 2;
         let mut which = n % 2;
         which ^= seg & 1;
         if is_l {
             seg += 1;
         }
-        format!("LONG.H{which}.{seg}")
+        match seg {
+            0 => defs::wires::LONG_H0[which],
+            1 => defs::wires::LONG_H1[which],
+            2 => defs::wires::LONG_H2[which],
+            3 => defs::wires::LONG_H3[which],
+            4 => defs::wires::LONG_H4[which],
+            5 => defs::wires::LONG_H5[which],
+            6 => defs::wires::LONG_H6[which],
+            7 => defs::wires::LONG_H7[which],
+            8 => defs::wires::LONG_H8[which],
+            9 => defs::wires::LONG_H9[which],
+            10 => defs::wires::LONG_H10[which],
+            11 => defs::wires::LONG_H11[which],
+            12 => defs::wires::LONG_H12[which],
+            _ => unreachable!(),
+        }
     }
 
-    fn wire_sp12_v(n: &str, is_b: bool) -> String {
-        let n: u32 = n.parse().unwrap();
+    fn wire_sp12_v(n: &str, is_b: bool) -> WireSlotId {
+        let n: usize = n.parse().unwrap();
         let mut seg = 11 - n / 2;
         let mut which = n % 2;
         which ^= seg & 1;
         if is_b {
             seg += 1;
         }
-        format!("LONG.V{which}.{seg}")
+        match seg {
+            0 => defs::wires::LONG_V0[which],
+            1 => defs::wires::LONG_V1[which],
+            2 => defs::wires::LONG_V2[which],
+            3 => defs::wires::LONG_V3[which],
+            4 => defs::wires::LONG_V4[which],
+            5 => defs::wires::LONG_V5[which],
+            6 => defs::wires::LONG_V6[which],
+            7 => defs::wires::LONG_V7[which],
+            8 => defs::wires::LONG_V8[which],
+            9 => defs::wires::LONG_V9[which],
+            10 => defs::wires::LONG_V10[which],
+            11 => defs::wires::LONG_V11[which],
+            12 => defs::wires::LONG_V12[which],
+            _ => unreachable!(),
+        }
     }
 
     let mut cell = CellCoord::new(
@@ -101,27 +166,31 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         ColId::from_idx(x as usize),
         RowId::from_idx(y as usize),
     );
-    let wname: String;
+    let wire: WireSlotId;
     match name {
         "wire_io_cluster/io_0/gbout" | "gbout_0" => return GenericNet::Gbout(cell, 0),
         "wire_io_cluster/io_1/gbout" | "gbout_1" => return GenericNet::Gbout(cell, 1),
-        "wire_io_cluster/io_0/D_IN_0" => wname = "OUT.LC0".into(),
-        "wire_io_cluster/io_0/D_IN_1" => wname = "OUT.LC1".into(),
-        "wire_io_cluster/io_1/D_IN_0" => wname = "OUT.LC2".into(),
-        "wire_io_cluster/io_1/D_IN_1" => wname = "OUT.LC3".into(),
-        "wire_io_cluster/io_0/D_OUT_0" | "dout_0" | "pad_out_0" => wname = "IMUX.IO0.DOUT0".into(),
-        "wire_io_cluster/io_0/D_OUT_1" | "dout_1" => wname = "IMUX.IO0.DOUT1".into(),
-        "wire_io_cluster/io_0/OUT_ENB" => wname = "IMUX.IO0.OE".into(),
-        "wire_io_cluster/io_1/D_OUT_0" | "dout_2" | "pad_out_1" => wname = "IMUX.IO1.DOUT0".into(),
-        "wire_io_cluster/io_1/D_OUT_1" | "dout_3" => wname = "IMUX.IO1.DOUT1".into(),
-        "pad_in_0" => wname = "OUT.LC0".into(),
-        "pad_in_1" => wname = "OUT.LC2".into(),
-        "wire_io_cluster/io_1/OUT_ENB" => wname = "IMUX.IO1.OE".into(),
+        "wire_io_cluster/io_0/D_IN_0" => wire = defs::wires::OUT_LC[0],
+        "wire_io_cluster/io_0/D_IN_1" => wire = defs::wires::OUT_LC[1],
+        "wire_io_cluster/io_1/D_IN_0" => wire = defs::wires::OUT_LC[2],
+        "wire_io_cluster/io_1/D_IN_1" => wire = defs::wires::OUT_LC[3],
+        "wire_io_cluster/io_0/D_OUT_0" | "dout_0" | "pad_out_0" => {
+            wire = defs::wires::IMUX_IO_DOUT0[0]
+        }
+        "wire_io_cluster/io_0/D_OUT_1" | "dout_1" => wire = defs::wires::IMUX_IO_DOUT1[0],
+        "wire_io_cluster/io_0/OUT_ENB" => wire = defs::wires::IMUX_IO_OE[0],
+        "wire_io_cluster/io_1/D_OUT_0" | "dout_2" | "pad_out_1" => {
+            wire = defs::wires::IMUX_IO_DOUT0[1]
+        }
+        "wire_io_cluster/io_1/D_OUT_1" | "dout_3" => wire = defs::wires::IMUX_IO_DOUT1[1],
+        "wire_io_cluster/io_1/OUT_ENB" => wire = defs::wires::IMUX_IO_OE[1],
+        "pad_in_0" => wire = defs::wires::OUT_LC[0],
+        "pad_in_1" => wire = defs::wires::OUT_LC[2],
         "inclk" | "wire_io_cluster/io_0/inclk" | "wire_io_cluster/io_1/inclk" => {
-            wname = "IMUX.IO.ICLK".into()
+            wire = defs::wires::IMUX_IO_ICLK
         }
         "outclk" | "wire_io_cluster/io_0/outclk" | "wire_io_cluster/io_1/outclk" => {
-            wname = "IMUX.IO.OCLK".into()
+            wire = defs::wires::IMUX_IO_OCLK
         }
         "cen"
         | "wire_logic_cluster/ram/RCLKE"
@@ -129,18 +198,18 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         | "wire_bram/ram/RCLKE"
         | "wire_bram/ram/WCLKE"
         | "wire_io_cluster/io_0/cen"
-        | "wire_io_cluster/io_1/cen" => wname = "IMUX.CE".into(),
+        | "wire_io_cluster/io_1/cen" => wire = defs::wires::IMUX_CE,
         "clk"
         | "wire_logic_cluster/ram/RCLK"
         | "wire_logic_cluster/ram/WCLK"
         | "wire_bram/ram/RCLK"
-        | "wire_bram/ram/WCLK" => wname = "IMUX.CLK".into(),
+        | "wire_bram/ram/WCLK" => wire = defs::wires::IMUX_CLK,
         "s_r"
         | "wire_logic_cluster/ram/RE"
         | "wire_logic_cluster/ram/WE"
         | "wire_bram/ram/RE"
-        | "wire_bram/ram/WE" => wname = "IMUX.RST".into(),
-        "fabout" | "wire_gbuf/in" | "wire_gbuf/out" => wname = "IMUX.IO.EXTRA".into(),
+        | "wire_bram/ram/WE" => wire = defs::wires::IMUX_RST,
+        "fabout" | "wire_gbuf/in" | "wire_gbuf/out" => wire = defs::wires::IMUX_IO_EXTRA,
         "padin" | "wire_pll/outglobal" => return GenericNet::GlobalPadIn(cell),
         "clklf" => {
             assert_eq!(edev.chip.kind, ChipKind::Ice40T01);
@@ -152,7 +221,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         }
         "wire_pll/outglobalb" => return GenericNet::GlobalPadIn(cell.delta(1, 0)),
         "hold" | "wire_io_cluster/io_0/hold" | "wire_io_cluster/io_1/hold" => {
-            let wire = edev.db.get_wire("IMUX.IO.EXTRA");
+            let wire = defs::wires::IMUX_IO_EXTRA;
             let edge = if cell.col == edev.chip.col_w() {
                 Dir::W
             } else if cell.col == edev.chip.col_e() {
@@ -187,10 +256,10 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
         | "wire_con_box/carry_in_mux/cout" => return GenericNet::Cmux(cell),
         "wire_pll/outcoreb" | "outcoreb" => {
             cell.col += 1;
-            wname = "OUT.LC0".into();
+            wire = defs::wires::OUT_LC[0];
         }
         "wire_pll/outcore" => {
-            wname = "OUT.LC2".into();
+            wire = defs::wires::OUT_LC[2];
         }
         _ => {
             if let Some(suf) = name.strip_prefix("wire_logic_cluster/lc_") {
@@ -199,14 +268,14 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 match suf {
                     "ltout" => return GenericNet::Ltout(cell, lc),
                     "cout" => return GenericNet::Cout(cell, lc),
-                    "out" => wname = format!("OUT.LC{lc}"),
-                    "clk" => wname = "IMUX.CLK".into(),
-                    "s_r" => wname = "IMUX.RST".into(),
-                    "cen" => wname = "IMUX.CE".into(),
-                    "in_0" => wname = format!("IMUX.LC{lc}.I0"),
-                    "in_1" => wname = format!("IMUX.LC{lc}.I1"),
-                    "in_2" => wname = format!("IMUX.LC{lc}.I2"),
-                    "in_3" => wname = format!("IMUX.LC{lc}.I3"),
+                    "out" => wire = defs::wires::OUT_LC[lc],
+                    "clk" => wire = defs::wires::IMUX_CLK,
+                    "s_r" => wire = defs::wires::IMUX_RST,
+                    "cen" => wire = defs::wires::IMUX_CE,
+                    "in_0" => wire = defs::wires::IMUX_LC_I0[lc],
+                    "in_1" => wire = defs::wires::IMUX_LC_I1[lc],
+                    "in_2" => wire = defs::wires::IMUX_LC_I2[lc],
+                    "in_3" => wire = defs::wires::IMUX_LC_I3[lc],
                     _ => return GenericNet::Unknown,
                 }
             } else if let Some(suf) = name.strip_prefix("wire_mult/lc_") {
@@ -214,14 +283,14 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 let lc: usize = lc.parse().unwrap();
                 match suf {
                     "cout" => return GenericNet::Cout(cell, lc),
-                    "out" => wname = format!("OUT.LC{lc}"),
-                    "clk" => wname = "IMUX.CLK".into(),
-                    "s_r" => wname = "IMUX.RST".into(),
-                    "cen" => wname = "IMUX.CE".into(),
-                    "in_0" => wname = format!("IMUX.LC{lc}.I0"),
-                    "in_1" => wname = format!("IMUX.LC{lc}.I1"),
-                    "in_2" => wname = format!("IMUX.LC{lc}.I2"),
-                    "in_3" => wname = format!("IMUX.LC{lc}.I3"),
+                    "out" => wire = defs::wires::OUT_LC[lc],
+                    "clk" => wire = defs::wires::IMUX_CLK,
+                    "s_r" => wire = defs::wires::IMUX_RST,
+                    "cen" => wire = defs::wires::IMUX_CE,
+                    "in_0" => wire = defs::wires::IMUX_LC_I0[lc],
+                    "in_1" => wire = defs::wires::IMUX_LC_I1[lc],
+                    "in_2" => wire = defs::wires::IMUX_LC_I2[lc],
+                    "in_3" => wire = defs::wires::IMUX_LC_I3[lc],
                     _ => return GenericNet::Unknown,
                 }
             } else if let Some(suf) = name.strip_prefix("wire_con_box/lc_") {
@@ -229,21 +298,33 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 let lc: usize = lc.parse().unwrap();
                 match suf {
                     "cout" => return GenericNet::Cout(cell, lc),
-                    "in_0" => wname = format!("IMUX.LC{lc}.I0"),
-                    "in_1" => wname = format!("IMUX.LC{lc}.I1"),
-                    "in_3" => wname = format!("IMUX.LC{lc}.I3"),
+                    "in_0" => wire = defs::wires::IMUX_LC_I0[lc],
+                    "in_1" => wire = defs::wires::IMUX_LC_I1[lc],
+                    "in_3" => wire = defs::wires::IMUX_LC_I3[lc],
                     _ => return GenericNet::Unknown,
                 }
             } else if let Some(suf) = name.strip_prefix("lc_trk_g") {
                 let (a, b) = suf.split_once('_').unwrap();
                 let a: usize = a.parse().unwrap();
                 let b: usize = b.parse().unwrap();
-                wname = format!("LOCAL.{a}.{b}");
+                wire = match a {
+                    0 => defs::wires::LOCAL_0[b],
+                    1 => defs::wires::LOCAL_1[b],
+                    2 => defs::wires::LOCAL_2[b],
+                    3 => defs::wires::LOCAL_3[b],
+                    _ => unreachable!(),
+                };
             } else if let Some(suf) = name.strip_prefix("input_") {
                 let (a, b) = suf.split_once('_').unwrap();
                 let a: usize = a.parse().unwrap();
                 let b: usize = b.parse().unwrap();
-                wname = format!("IMUX.LC{b}.I{a}");
+                wire = match a {
+                    0 => defs::wires::IMUX_LC_I0[b],
+                    1 => defs::wires::IMUX_LC_I1[b],
+                    2 => defs::wires::IMUX_LC_I2[b],
+                    3 => defs::wires::IMUX_LC_I3[b],
+                    _ => unreachable!(),
+                };
             } else if let Some(suf) = name.strip_prefix("input") {
                 let (a, b) = suf.split_once('_').unwrap();
                 let a: usize = a.parse().unwrap();
@@ -253,32 +334,35 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     || cell.row == edev.chip.row_s()
                     || cell.row == edev.chip.row_n()
                 {
-                    wname = match (a, b) {
-                        (0, 1) => "IMUX.IO0.DOUT0",
-                        (0, 2) => "IMUX.IO0.DOUT1",
-                        (1, 1) => "IMUX.IO1.DOUT0",
-                        (1, 2) => "IMUX.IO1.DOUT1",
+                    wire = match b {
+                        1 => defs::wires::IMUX_IO_DOUT0[a],
+                        2 => defs::wires::IMUX_IO_DOUT1[a],
                         _ => unreachable!(),
-                    }
-                    .into();
+                    };
                 } else {
-                    wname = format!("IMUX.LC{b}.I{a}");
+                    wire = match a {
+                        0 => defs::wires::IMUX_LC_I0[b],
+                        1 => defs::wires::IMUX_LC_I1[b],
+                        2 => defs::wires::IMUX_LC_I2[b],
+                        3 => defs::wires::IMUX_LC_I3[b],
+                        _ => unreachable!(),
+                    };
                 }
             } else if let Some(idx) = name.strip_prefix("IPinput_") {
                 let idx: usize = idx.parse().unwrap();
                 let lc = idx % 8;
-                wname = match idx {
-                    0..8 => format!("IMUX.LC{lc}.I3"),
-                    8..16 => format!("IMUX.LC{lc}.I1"),
-                    16..24 => format!("IMUX.LC{lc}.I0"),
+                wire = match idx {
+                    0..8 => defs::wires::IMUX_LC_I3[lc],
+                    8..16 => defs::wires::IMUX_LC_I1[lc],
+                    16..24 => defs::wires::IMUX_LC_I0[lc],
                     _ => unreachable!(),
                 };
             } else if let Some(idx) = name.strip_prefix("glb_netwk_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("GLOBAL.{idx}");
+                wire = defs::wires::GLOBAL[idx];
             } else if let Some(idx) = name.strip_prefix("fabout_") {
                 let idx: usize = idx.parse().unwrap();
-                let wire = edev.db.get_wire("IMUX.IO.EXTRA");
+                let wire = defs::wires::IMUX_IO_EXTRA;
                 let special = &edev.chip.special_tiles[&SpecialTileKey::GbFabric(idx)];
                 return GenericNet::Int(special.cells.first().unwrap().wire(wire));
             } else if let Some(idx) = name.strip_prefix("padin_") {
@@ -295,25 +379,23 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 }
             } else if let Some(idx) = name.strip_prefix("glb2local_") {
                 let idx: usize = idx.parse().unwrap();
-                let idx = idx + 4;
-                wname = format!("LOCAL.0.{idx}");
+                wire = defs::wires::LOCAL_0[idx + 4];
             } else if let Some(idx) = name.strip_prefix("out_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}");
+                wire = defs::wires::OUT_LC[idx];
             } else if let Some(idx) = name.strip_prefix("slf_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}");
+                wire = defs::wires::OUT_LC[idx];
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/RDATA_") {
                 let idx: usize = idx.parse().unwrap();
-                let idx = idx % 8;
-                wname = format!("OUT.LC{idx}");
+                wire = defs::wires::OUT_LC[idx % 8];
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/RDATA_") {
                 let mut idx: usize = idx.parse().unwrap();
                 idx %= 8;
                 if edev.chip.kind.has_ice40_bramv2() {
                     idx ^= 7;
                 }
-                wname = format!("OUT.LC{idx}");
+                wire = defs::wires::OUT_LC[idx];
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/WDATA_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
@@ -322,7 +404,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 } else {
                     idx
                 };
-                wname = format!("IMUX.LC{xi}.I1");
+                wire = defs::wires::IMUX_LC_I1[xi];
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/WDATA_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
@@ -331,7 +413,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 } else {
                     idx
                 };
-                wname = format!("IMUX.LC{xi}.I1");
+                wire = defs::wires::IMUX_LC_I1[xi];
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/MASK_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
@@ -340,7 +422,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 } else {
                     idx
                 };
-                wname = format!("IMUX.LC{xi}.I3");
+                wire = defs::wires::IMUX_LC_I3[xi];
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/MASK_") {
                 let idx: usize = idx.parse().unwrap();
                 let idx = idx % 8;
@@ -349,7 +431,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 } else {
                     idx
                 };
-                wname = format!("IMUX.LC{xi}.I3");
+                wire = defs::wires::IMUX_LC_I3[xi];
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/RADDR_") {
                 let idx: usize = idx.parse().unwrap();
                 let xi = if edev.chip.kind.has_ice40_bramv2() {
@@ -358,8 +440,11 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     idx
                 };
                 let lc = xi % 8;
-                let ii = if xi >= 8 { 2 } else { 0 };
-                wname = format!("IMUX.LC{lc}.I{ii}");
+                wire = if xi >= 8 {
+                    defs::wires::IMUX_LC_I2[lc]
+                } else {
+                    defs::wires::IMUX_LC_I0[lc]
+                };
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/RADDR_") {
                 let idx: usize = idx.parse().unwrap();
                 let xi = if edev.chip.kind.has_ice40_bramv2() {
@@ -368,8 +453,11 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     idx
                 };
                 let lc = xi % 8;
-                let ii = if xi >= 8 { 2 } else { 0 };
-                wname = format!("IMUX.LC{lc}.I{ii}");
+                wire = if xi >= 8 {
+                    defs::wires::IMUX_LC_I2[lc]
+                } else {
+                    defs::wires::IMUX_LC_I0[lc]
+                };
             } else if let Some(idx) = name.strip_prefix("wire_bram/ram/WADDR_") {
                 let idx: usize = idx.parse().unwrap();
                 let xi = if edev.chip.kind.has_ice40_bramv2() {
@@ -378,8 +466,11 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     idx
                 };
                 let lc = xi % 8;
-                let ii = if xi >= 8 { 2 } else { 0 };
-                wname = format!("IMUX.LC{lc}.I{ii}");
+                wire = if xi >= 8 {
+                    defs::wires::IMUX_LC_I2[lc]
+                } else {
+                    defs::wires::IMUX_LC_I0[lc]
+                };
             } else if let Some(idx) = name.strip_prefix("wire_logic_cluster/ram/WADDR_") {
                 let idx: usize = idx.parse().unwrap();
                 let xi = if edev.chip.kind.has_ice40_bramv2() {
@@ -388,8 +479,11 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     idx
                 };
                 let lc = xi % 8;
-                let ii = if xi >= 8 { 2 } else { 0 };
-                wname = format!("IMUX.LC{lc}.I{ii}");
+                wire = if xi >= 8 {
+                    defs::wires::IMUX_LC_I2[lc]
+                } else {
+                    defs::wires::IMUX_LC_I0[lc]
+                };
             } else if let Some(idx) = name.strip_prefix("RADDR_") {
                 let idx: usize = idx.parse().unwrap();
                 let xi = if edev.chip.kind.has_ice40_bramv2() {
@@ -398,8 +492,11 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     idx
                 };
                 let lc = xi % 8;
-                let ii = if xi >= 8 { 2 } else { 0 };
-                wname = format!("IMUX.LC{lc}.I{ii}");
+                wire = if xi >= 8 {
+                    defs::wires::IMUX_LC_I2[lc]
+                } else {
+                    defs::wires::IMUX_LC_I0[lc]
+                };
             } else if let Some(idx) = name.strip_prefix("WADDR_") {
                 let idx: usize = idx.parse().unwrap();
                 let xi = if edev.chip.kind.has_ice40_bramv2() {
@@ -408,8 +505,11 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     idx
                 };
                 let lc = xi % 8;
-                let ii = if xi >= 8 { 2 } else { 0 };
-                wname = format!("IMUX.LC{lc}.I{ii}");
+                wire = if xi >= 8 {
+                    defs::wires::IMUX_LC_I2[lc]
+                } else {
+                    defs::wires::IMUX_LC_I0[lc]
+                };
             } else if let Some(idx) = name.strip_prefix("downADDR_") {
                 let idx: usize = idx.parse().unwrap();
                 return GenericNet::CascAddr(cell, idx);
@@ -418,52 +518,52 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 return GenericNet::CascAddr(cell.delta(0, 2), idx);
             } else if let Some(idx) = name.strip_prefix("lft_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.E");
+                wire = defs::wires::OUT_LC_E[idx];
             } else if let Some(idx) = name.strip_prefix("rgt_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.W");
+                wire = defs::wires::OUT_LC_W[idx];
             } else if let Some(idx) = name.strip_prefix("bot_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.N");
+                wire = defs::wires::OUT_LC_N[idx];
             } else if let Some(idx) = name.strip_prefix("top_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.S");
+                wire = defs::wires::OUT_LC_S[idx];
             } else if let Some(idx) = name.strip_prefix("bnl_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.EN");
+                wire = defs::wires::OUT_LC_EN[idx];
             } else if let Some(idx) = name.strip_prefix("bnr_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.WN");
+                wire = defs::wires::OUT_LC_WN[idx];
             } else if let Some(idx) = name.strip_prefix("tnl_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.ES");
+                wire = defs::wires::OUT_LC_ES[idx];
             } else if let Some(idx) = name.strip_prefix("tnr_op_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.WS");
+                wire = defs::wires::OUT_LC_WS[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_lft_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.E");
+                wire = defs::wires::OUT_LC_E[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_rgt_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.W");
+                wire = defs::wires::OUT_LC_W[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_bot_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.N");
+                wire = defs::wires::OUT_LC_N[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_top_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.S");
+                wire = defs::wires::OUT_LC_S[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_bnl_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.EN");
+                wire = defs::wires::OUT_LC_EN[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_bnr_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.WN");
+                wire = defs::wires::OUT_LC_WN[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_tnl_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.ES");
+                wire = defs::wires::OUT_LC_ES[idx];
             } else if let Some(idx) = name.strip_prefix("logic_op_tnr_") {
                 let idx: usize = idx.parse().unwrap();
-                wname = format!("OUT.LC{idx}.WS");
+                wire = defs::wires::OUT_LC_WS[idx];
             } else if let Some(lc) = name.strip_prefix("carry_") {
                 let lc: usize = lc.parse().unwrap();
                 if lc == 0 {
@@ -486,60 +586,60 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                     return GenericNet::Ltout(cell, lc - 1);
                 }
             } else if let Some(n) = name.strip_prefix("sp4_h_r_") {
-                wname = wire_sp4_h(n, false);
+                wire = wire_sp4_h(n, false);
             } else if let Some(n) = name.strip_prefix("sp4_h_l_") {
-                wname = wire_sp4_h(n, true);
+                wire = wire_sp4_h(n, true);
             } else if let Some(n) = name.strip_prefix("span4_horz_r_") {
-                wname = wire_sp4_io_h(n, false);
+                wire = wire_sp4_io_h(n, false);
             } else if let Some(n) = name.strip_prefix("span4_horz_l_") {
-                wname = wire_sp4_io_h(n, true);
+                wire = wire_sp4_io_h(n, true);
             } else if let Some(n) = name.strip_prefix("span4_horz_") {
                 if cell.col == edev.chip.col_w() {
-                    wname = wire_sp4_h(n, false);
+                    wire = wire_sp4_h(n, false);
                 } else if cell.col == edev.chip.col_e() {
-                    wname = wire_sp4_h(n, true);
+                    wire = wire_sp4_h(n, true);
                 } else {
                     return GenericNet::Unknown;
                 }
             } else if let Some(n) = name.strip_prefix("sp4_v_b_") {
-                wname = wire_sp4_v(n, true, false);
+                wire = wire_sp4_v(n, true, false);
             } else if let Some(n) = name.strip_prefix("sp4_v_t_") {
-                wname = wire_sp4_v(n, false, false);
+                wire = wire_sp4_v(n, false, false);
             } else if let Some(n) = name.strip_prefix("sp4_r_v_b_") {
-                wname = wire_sp4_v(n, true, true);
+                wire = wire_sp4_v(n, true, true);
             } else if let Some(n) = name.strip_prefix("span4_vert_b_") {
-                wname = wire_sp4_io_v(n, true);
+                wire = wire_sp4_io_v(n, true);
             } else if let Some(n) = name.strip_prefix("span4_vert_t_") {
-                wname = wire_sp4_io_v(n, false);
+                wire = wire_sp4_io_v(n, false);
             } else if let Some(n) = name.strip_prefix("span4_vert_") {
                 if cell.row == edev.chip.row_s() {
-                    wname = wire_sp4_v(n, false, false);
+                    wire = wire_sp4_v(n, false, false);
                 } else if cell.row == edev.chip.row_n() {
-                    wname = wire_sp4_v(n, true, false);
+                    wire = wire_sp4_v(n, true, false);
                 } else {
                     return GenericNet::Unknown;
                 }
             } else if let Some(n) = name.strip_prefix("sp12_h_r_") {
-                wname = wire_sp12_h(n, false);
+                wire = wire_sp12_h(n, false);
             } else if let Some(n) = name.strip_prefix("sp12_h_l_") {
-                wname = wire_sp12_h(n, true);
+                wire = wire_sp12_h(n, true);
             } else if let Some(n) = name.strip_prefix("span12_horz_") {
                 if cell.col == edev.chip.col_w() {
-                    wname = wire_sp12_h(n, false);
+                    wire = wire_sp12_h(n, false);
                 } else if cell.col == edev.chip.col_e() {
-                    wname = wire_sp12_h(n, true);
+                    wire = wire_sp12_h(n, true);
                 } else {
                     return GenericNet::Unknown;
                 }
             } else if let Some(n) = name.strip_prefix("sp12_v_b_") {
-                wname = wire_sp12_v(n, true);
+                wire = wire_sp12_v(n, true);
             } else if let Some(n) = name.strip_prefix("sp12_v_t_") {
-                wname = wire_sp12_v(n, false);
+                wire = wire_sp12_v(n, false);
             } else if let Some(n) = name.strip_prefix("span12_vert_") {
                 if cell.row == edev.chip.row_s() {
-                    wname = wire_sp12_v(n, false);
+                    wire = wire_sp12_v(n, false);
                 } else if cell.row == edev.chip.row_n() {
-                    wname = wire_sp12_v(n, true);
+                    wire = wire_sp12_v(n, true);
                 } else {
                     return GenericNet::Unknown;
                 }
@@ -548,27 +648,136 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             }
         }
     };
-    let wire = edev.db.get_wire(&wname);
     let mut wire = edev.resolve_wire(cell.wire(wire)).unwrap();
-    let wname = edev.db.wires.key(wire.slot);
-    if let Some(suf) = wname.strip_prefix("OUT.LC")
-        && !suf.contains('.')
-    {
-        let mut idx: u32 = suf.parse().unwrap();
+    if let Some(idx) = defs::wires::OUT_LC.index_of(wire.slot) {
         if (wire.cell.col == edev.chip.col_w() || wire.cell.col == edev.chip.col_e())
             && (wire.cell.row == edev.chip.row_s() || wire.cell.row == edev.chip.row_n())
         {
-            wire.slot = edev.db.get_wire("OUT.LC0");
+            wire.slot = defs::wires::OUT_LC[0];
         } else if wire.cell.row == edev.chip.row_s()
             || wire.cell.row == edev.chip.row_n()
             || (wire.cell.col == edev.chip.col_w() && edev.chip.kind.has_ioi_we())
             || (wire.cell.col == edev.chip.col_e() && edev.chip.kind.has_ioi_we())
         {
-            idx %= 4;
-            wire.slot = edev.db.get_wire(&format!("OUT.LC{idx}"));
+            wire.slot = defs::wires::OUT_LC[idx % 4];
         }
     }
     GenericNet::Int(wire)
+}
+
+pub fn parse_local(slot: WireSlotId) -> Option<(usize, usize)> {
+    for (group, wires) in [
+        &defs::wires::LOCAL_0,
+        &defs::wires::LOCAL_1,
+        &defs::wires::LOCAL_2,
+        &defs::wires::LOCAL_3,
+    ]
+    .iter()
+    .enumerate()
+    {
+        if let Some(idx) = wires.index_of(slot) {
+            return Some((group, idx));
+        }
+    }
+    None
+}
+
+pub fn is_quad_h(slot: WireSlotId) -> bool {
+    for wires in [
+        &defs::wires::QUAD_H0,
+        &defs::wires::QUAD_H1,
+        &defs::wires::QUAD_H2,
+        &defs::wires::QUAD_H3,
+        &defs::wires::QUAD_H4,
+    ] {
+        if wires.contains(slot) {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn is_quad_v(slot: WireSlotId) -> bool {
+    for wires in [
+        &defs::wires::QUAD_V0,
+        &defs::wires::QUAD_V1,
+        &defs::wires::QUAD_V2,
+        &defs::wires::QUAD_V3,
+        &defs::wires::QUAD_V4,
+    ] {
+        if wires.contains(slot) {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn is_quad_v_w(slot: WireSlotId) -> bool {
+    for wires in [
+        &defs::wires::QUAD_V1_W,
+        &defs::wires::QUAD_V2_W,
+        &defs::wires::QUAD_V3_W,
+        &defs::wires::QUAD_V4_W,
+    ] {
+        if wires.contains(slot) {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn is_quad(slot: WireSlotId) -> bool {
+    is_quad_h(slot) || is_quad_v(slot) || is_quad_v_w(slot)
+}
+
+pub fn is_long_h(slot: WireSlotId) -> bool {
+    for wires in [
+        &defs::wires::LONG_H0,
+        &defs::wires::LONG_H1,
+        &defs::wires::LONG_H2,
+        &defs::wires::LONG_H3,
+        &defs::wires::LONG_H4,
+        &defs::wires::LONG_H5,
+        &defs::wires::LONG_H6,
+        &defs::wires::LONG_H7,
+        &defs::wires::LONG_H8,
+        &defs::wires::LONG_H9,
+        &defs::wires::LONG_H10,
+        &defs::wires::LONG_H11,
+        &defs::wires::LONG_H12,
+    ] {
+        if wires.contains(slot) {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn is_long_v(slot: WireSlotId) -> bool {
+    for wires in [
+        &defs::wires::LONG_V0,
+        &defs::wires::LONG_V1,
+        &defs::wires::LONG_V2,
+        &defs::wires::LONG_V3,
+        &defs::wires::LONG_V4,
+        &defs::wires::LONG_V5,
+        &defs::wires::LONG_V6,
+        &defs::wires::LONG_V7,
+        &defs::wires::LONG_V8,
+        &defs::wires::LONG_V9,
+        &defs::wires::LONG_V10,
+        &defs::wires::LONG_V11,
+        &defs::wires::LONG_V12,
+    ] {
+        if wires.contains(slot) {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn is_long(slot: WireSlotId) -> bool {
+    is_long_h(slot) || is_long_v(slot)
 }
 
 pub fn xlat_mux_in(
@@ -578,14 +787,12 @@ pub fn xlat_mux_in(
     na: (u32, u32, &str),
     nb: (u32, u32, &str),
 ) -> (CellCoord, WireSlotId, WireSlotId) {
-    let wna = edev.db.wires.key(wa.slot);
-    let wnb = edev.db.wires.key(wb.slot);
-    if wna.starts_with("GLOBAL") {
+    if defs::wires::GLOBAL.contains(wa.slot) {
         return (wb.cell, wa.slot, wb.slot);
     }
-    if wna.starts_with("OUT.LC") && wnb.starts_with("LOCAL") {
-        let out_idx: usize = wna[6..].parse().unwrap();
-        let local_idx: usize = wnb[8..].parse().unwrap();
+    if let Some(out_idx) = defs::wires::OUT_LC.index_of(wa.slot)
+        && let Some((_, local_idx)) = parse_local(wb.slot)
+    {
         let is_lr = wa.cell.col == edev.chip.col_w() || wa.cell.col == edev.chip.col_e();
         let is_bt = wa.cell.row == edev.chip.row_s() || wa.cell.row == edev.chip.row_n();
         if is_lr && is_bt {
@@ -595,9 +802,8 @@ pub fn xlat_mux_in(
         } else {
             assert_eq!(out_idx, local_idx);
         }
-        wa.slot = edev.db.get_wire(&format!("OUT.LC{local_idx}"));
+        wa.slot = defs::wires::OUT_LC[local_idx];
     }
-    let wna = edev.db.wires.key(wa.slot);
     let mut locs_a: HashMap<_, HashSet<_>> = HashMap::new();
     for wire in edev.wire_tree(wa) {
         locs_a.entry(wire.cell).or_default().insert(wire.slot);
@@ -614,10 +820,7 @@ pub fn xlat_mux_in(
         });
         for wires in locs.values_mut() {
             if wires.len() > 1 {
-                wires.retain(|&wire| {
-                    let wn = edev.db.wires.key(wire);
-                    !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
-                });
+                wires.retain(|&wire| !is_quad_v_w(wire));
             }
             assert_eq!(wires.len(), 1);
         }
@@ -635,37 +838,25 @@ pub fn xlat_mux_in(
     let mut locs: HashSet<_> = HashSet::from_iter(locs_a.keys().copied());
     locs.retain(|&loc| locs_b.contains_key(&loc));
     if locs.len() > 1 {
-        if wna.starts_with("OUT.LC") {
+        if defs::wires::OUT_LC.contains(wa.slot) {
             locs = HashSet::from_iter([wa.cell]);
-        } else if wna.starts_with("LONG.H") && wnb.starts_with("QUAD.H") {
-            locs_b.retain(|_, &mut wire| edev.db.wires.key(wire).ends_with(".1"));
+        } else if is_long_h(wa.slot) && is_quad_h(wb.slot) {
+            locs_b.retain(|_, &mut wire| defs::wires::QUAD_H1.contains(wire));
             locs.retain(|&loc| locs_b.contains_key(&loc));
-        } else if wna.starts_with("LONG.V") && wnb.starts_with("QUAD.V") {
-            locs_b.retain(|_, &mut wire| edev.db.wires.key(wire).ends_with(".3"));
+        } else if is_long_v(wa.slot) && is_quad_v(wb.slot) {
+            locs_b.retain(|_, &mut wire| defs::wires::QUAD_V3.contains(wire));
             locs.retain(|&loc| locs_b.contains_key(&loc));
-        } else if wna.starts_with("QUAD.H") && wnb.starts_with("QUAD.H") {
+        } else if is_quad_h(wa.slot) && is_quad_h(wb.slot) {
             locs.retain(|&cell| cell.col == edev.chip.col_w() || cell.col == edev.chip.col_e());
-        } else if wna.starts_with("QUAD.V") && wnb.starts_with("QUAD.V") {
-            locs_a.retain(|_, &mut wire| {
-                let wn = edev.db.wires.key(wire);
-                !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
-            });
-            locs_b.retain(|_, &mut wire| {
-                let wn = edev.db.wires.key(wire);
-                !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
-            });
+        } else if is_quad_v(wa.slot) && is_quad_v(wb.slot) {
+            locs_a.retain(|_, &mut wire| !is_quad_v_w(wire));
+            locs_b.retain(|_, &mut wire| !is_quad_v_w(wire));
             locs.retain(|&loc| locs_a.contains_key(&loc));
             locs.retain(|&loc| locs_b.contains_key(&loc));
             locs.retain(|&cell| cell.row == edev.chip.row_s() || cell.row == edev.chip.row_n());
         } else {
-            locs_a.retain(|_, &mut wire| {
-                let wn = edev.db.wires.key(wire);
-                !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
-            });
-            locs_b.retain(|_, &mut wire| {
-                let wn = edev.db.wires.key(wire);
-                !(wn.starts_with("QUAD.V") && wn.ends_with(".W"))
-            });
+            locs_a.retain(|_, &mut wire| !is_quad_v_w(wire));
+            locs_b.retain(|_, &mut wire| !is_quad_v_w(wire));
             locs.retain(|&loc| locs_a.contains_key(&loc));
             locs.retain(|&loc| locs_b.contains_key(&loc));
         }
@@ -673,11 +864,11 @@ pub fn xlat_mux_in(
             let (ax, ay, aw) = na;
             let (bx, by, bw) = nb;
             println!("UHHHHHHHHHHH MANY POSSIBILITIES HERE {ax}:{ay}:{aw} vs {bx}:{by}:{bw}");
-            println!("{wa:?} ({wna}):");
+            println!("{wa:?} ({wna}):", wna = wa.to_string(edev.db));
             for (&cell, &wire) in &locs_a {
                 println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
             }
-            println!("{wb:?} ({wnb}):");
+            println!("{wb:?} ({wnb}):", wnb = wb.to_string(edev.db));
             for (&cell, &wire) in &locs_b {
                 println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
             }
@@ -689,11 +880,11 @@ pub fn xlat_mux_in(
         let (ax, ay, aw) = na;
         let (bx, by, bw) = nb;
         println!("NO SPEAKA ENGLISH {ax}:{ay}:{aw} vs {bx}:{by}:{bw}");
-        println!("{wa:?} ({wna}):");
+        println!("{wa:?} ({wna}):", wna = wa.to_string(edev.db));
         for (&cell, &wire) in &locs_a {
             println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
         }
-        println!("{wb:?} ({wnb}):");
+        println!("{wb:?} ({wnb}):", wnb = wb.to_string(edev.db));
         for (&cell, &wire) in &locs_b {
             println!("  {wire}", wire = cell.wire(wire).to_string(edev.db));
         }

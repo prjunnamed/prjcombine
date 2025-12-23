@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_re_toolchain::Toolchain;
-use prjcombine_siliconblue::{chip::ChipKind, expanded::ExpandedDevice};
+use prjcombine_siliconblue::{chip::ChipKind, defs, expanded::ExpandedDevice};
 use prjcombine_types::{
     bitrect::BitRect as _,
     bits,
@@ -693,7 +693,7 @@ pub fn find_bel_pins(
                 ColId::from_idx(v.0 as usize),
                 RowId::from_idx(v.1 as usize),
             )
-            .wire(edev.db.get_wire("IMUX.IO.EXTRA"));
+            .wire(defs::wires::IMUX_IO_EXTRA);
             match k {
                 InstPin::Simple(pin) => {
                     if pin == "LATCHINPUTVALUE" {
@@ -715,8 +715,7 @@ pub fn find_bel_pins(
             };
             for (pin, col) in [("LOCK", edev.chip.col_w()), ("SDO", edev.chip.col_e())] {
                 let iws = Vec::from_iter((0..8).map(|idx| {
-                    CellCoord::new(DieId::from_idx(0), col, row)
-                        .wire(edev.db.get_wire(&format!("OUT.LC{idx}")))
+                    CellCoord::new(DieId::from_idx(0), col, row).wire(defs::wires::OUT_LC[idx])
                 }));
                 result
                     .wire_names
@@ -1050,7 +1049,7 @@ pub fn find_bel_pins(
                         let TileItemKind::BitVec { invert } = &item.kind else {
                             unreachable!()
                         };
-                        let Some((wtn, _)) = rest.split_once(".OUT.LC") else {
+                        let Some((wtn, _)) = rest.split_once(".OUT_LC") else {
                             continue;
                         };
                         let wfn = rest.strip_prefix(wtn).unwrap().strip_prefix('.').unwrap();
@@ -1079,8 +1078,8 @@ pub fn find_bel_pins(
                                 InstPin::Indexed(pin, index) => format!("{pin}_{index}"),
                             };
                             let mut wt = wt;
-                            if edev.db.wires.key(wt.slot) == "IMUX.CLK" {
-                                wt.slot = edev.db.get_wire("IMUX.CLK.OPTINV");
+                            if wt.slot == defs::wires::IMUX_CLK {
+                                wt.slot = defs::wires::IMUX_CLK_OPTINV;
                             }
                             result.ins.insert(pin, wt);
                         }
@@ -1096,17 +1095,16 @@ pub fn find_bel_pins(
                             let is_bt = wf.cell.row == edev.chip.row_s()
                                 || wf.cell.row == edev.chip.row_n();
                             let wfs = if is_lr && is_bt {
-                                Vec::from_iter((0..8).map(|idx| {
-                                    wf.cell.wire(edev.db.get_wire(&format!("OUT.LC{idx}")))
-                                }))
+                                Vec::from_iter(
+                                    (0..8).map(|idx| wf.cell.wire(defs::wires::OUT_LC[idx])),
+                                )
                             } else if (is_lr && edev.chip.kind.has_ioi_we()) || is_bt {
-                                let wfn = edev.db.wires.key(wf.slot);
-                                let idx: usize =
-                                    wfn.strip_prefix("OUT.LC").unwrap().parse().unwrap();
+                                let idx = defs::wires::OUT_LC.index_of(wf.slot).unwrap();
                                 let idx = idx & 3;
-                                Vec::from_iter([idx, idx + 4].map(|idx| {
-                                    wf.cell.wire(edev.db.get_wire(&format!("OUT.LC{idx}")))
-                                }))
+                                Vec::from_iter(
+                                    [idx, idx + 4]
+                                        .map(|idx| wf.cell.wire(defs::wires::OUT_LC[idx])),
+                                )
                             } else {
                                 vec![wf]
                             };

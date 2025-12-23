@@ -1,5 +1,6 @@
 use clap::{Arg, ArgAction, Command, value_parser};
 use prjcombine_siliconblue::db::Database;
+use prjcombine_types::bsdata::TileItemKind;
 use std::{error::Error, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -39,6 +40,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .long("speed")
                 .action(ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("tiledb")
+                .short('t')
+                .long("tiledb")
+                .action(ArgAction::SetTrue),
+        )
         .get_matches();
     let arg_db = m.get_one::<PathBuf>("db").unwrap();
     let flag_intdb = m.get_flag("intdb");
@@ -46,6 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let flag_chips = m.get_flag("chips");
     let flag_packages = m.get_flag("packages");
     let flag_speed = m.get_flag("speed");
+    let flag_tiledb = m.get_flag("tiledb");
 
     let db = Database::from_file(arg_db)?;
     if flag_intdb {
@@ -109,6 +117,36 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             for temp in &dev.temps {
                 println!("\tTEMP {temp}");
+            }
+        }
+    }
+    if flag_tiledb {
+        for (tname, tile) in &db.bsdata.tiles {
+            println!("tile {tname}:");
+            for (key, item) in &tile.items {
+                print!("\t{key}:");
+                for bit in item.bits.iter().rev() {
+                    print!(" {bit:?}");
+                }
+                match item.kind {
+                    TileItemKind::Enum { ref values } => {
+                        println!();
+                        for (key, val) in values {
+                            print!("\t\t");
+                            for bit in val.iter().rev() {
+                                print!("{}", usize::from(bit));
+                            }
+                            println!(": {key}");
+                        }
+                    }
+                    TileItemKind::BitVec { ref invert } => {
+                        print!(" inv ");
+                        for bit in invert.iter().rev() {
+                            print!("{}", usize::from(bit));
+                        }
+                        println!();
+                    }
+                }
             }
         }
     }

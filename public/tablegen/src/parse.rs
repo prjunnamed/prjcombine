@@ -449,10 +449,7 @@ impl Item for ast::BelClassItem {
                     _ => ast::AttributeType::Enum(typ_raw),
                 };
                 tokenizer.finish()?;
-                ast::BelClassItem::Attribute(ast::BelClassAttribute {
-                    names,
-                    typ,
-                })
+                ast::BelClassItem::Attribute(ast::BelClassAttribute { names, typ })
             }
             _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
         })

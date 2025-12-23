@@ -891,7 +891,7 @@ pub fn init_speed_data(kind: ChipKind, part: &str, grade: &str) -> SpeedCollecto
     collector.want("INT:IMUX_CE");
     collector.want("INT:IMUX_RST");
     collector.want("INT:LOCAL");
-    collector.want("INT:GOUT");
+    collector.want("INT:GLOBAL_OUT");
     collector.want("INT:GLOBAL");
     // TODO: wtf?
     collector.want("INT:QUAD");
@@ -1424,7 +1424,7 @@ pub fn get_speed_data(design: &Design, run: &RunResult) -> SpeedCollector {
             "CEMux" => collect_int(&mut res, "INT:IMUX_CE", cell),
             "SRMux" => collect_int(&mut res, "INT:IMUX_RST", cell),
             "LocalMux" => collect_int(&mut res, "INT:LOCAL", cell),
-            "Glb2LocalMux" => collect_int(&mut res, "INT:GOUT", cell),
+            "Glb2LocalMux" => collect_int(&mut res, "INT:GLOBAL_OUT", cell),
             "GlobalMux" => collect_int(&mut res, "INT:GLOBAL", cell),
             "Span12Mux_s0_v" => collect_int(&mut res, "INT:LONG_V_0", cell),
             "Span12Mux_s1_v" => collect_int(&mut res, "INT:LONG_V_1", cell),

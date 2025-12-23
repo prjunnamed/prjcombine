@@ -10,7 +10,7 @@ use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bitstream::Bitstream,
     chip::{ChipKind, SpecialIoKey, SpecialTileKey},
-    defs::{bslots as bels, tslots},
+    defs::{self, bslots as bels, tslots},
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{bitrect::BitRect as _, bitvec::BitVec};
@@ -106,12 +106,11 @@ pub fn make_sample(
             }
         }
     }
-    let mut unoptinv = HashMap::new();
-    for w in ["IMUX.CLK", "IMUX.IO.ICLK", "IMUX.IO.OCLK"] {
-        let wo = edev.db.get_wire(&format!("{w}.OPTINV"));
-        let wi = edev.db.get_wire(w);
-        unoptinv.insert(wo, wi);
-    }
+    let unoptinv: HashMap<_, _> = HashMap::from_iter([
+        (defs::wires::IMUX_CLK_OPTINV, defs::wires::IMUX_CLK),
+        (defs::wires::IMUX_IO_ICLK_OPTINV, defs::wires::IMUX_IO_ICLK),
+        (defs::wires::IMUX_IO_OCLK_OPTINV, defs::wires::IMUX_IO_OCLK),
+    ]);
     let mut int_source: HashMap<WireCoord, (InstId, InstPin)> = HashMap::new();
     let mut ibuf_used = HashSet::new();
     let mut gb_io_used = HashSet::new();
@@ -143,12 +142,11 @@ pub fn make_sample(
                         let tile = &edev[cell.tile(tslots::MAIN)];
                         let wan = edev.db.wires.key(wa);
                         let wbn = edev.db.wires.key(wb);
-                        if let Some(idx) = wbn.strip_prefix("GLOBAL.") {
-                            if wan != "IMUX.IO.EXTRA" {
+                        if let Some(idx) = defs::wires::GLOBAL.index_of(wb) {
+                            if wa != defs::wires::IMUX_IO_EXTRA {
                                 let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
                                 // SB_*OSC
-                                assert!(wan.starts_with("OUT"));
-                                let idx: usize = idx.parse().unwrap();
+                                assert!(defs::wires::OUT_LC.contains(wa));
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Clock(0), BitOwner::Clock(1)],
                                     format!("{tcls_gb_root}:GB_ROOT:MUX.GLOBAL.{idx}:IO"),
@@ -168,9 +166,9 @@ pub fn make_sample(
                         } else {
                             sample.add_tiled_pattern(&[BitOwner::Main(cell.col, cell.row)], key);
                         }
-                        if wan.starts_with("GLOBAL") && edev.chip.kind.tile_class_colbuf().is_some()
+                        if let Some(idx) = defs::wires::GLOBAL.index_of(wa)
+                            && edev.chip.kind.tile_class_colbuf().is_some()
                         {
-                            let idx: usize = wan.strip_prefix("GLOBAL.").unwrap().parse().unwrap();
                             if !rows_colbuf.is_empty() {
                                 let (row_colbuf, _, _) = rows_colbuf
                                     .iter()
@@ -205,10 +203,9 @@ pub fn make_sample(
                         }
                         if io_hardip_outs.contains(&iwa) {
                             let crd = iwa.cell;
-                            let wn = edev.db.wires.key(iwa.slot).as_str();
-                            let io = match wn {
-                                "OUT.LC0" | "OUT.LC4" => 0,
-                                "OUT.LC2" | "OUT.LC6" => 1,
+                            let io = match defs::wires::OUT_LC.index_of(iwa.slot).unwrap() {
+                                0 | 4 => 0,
+                                2 | 6 => 1,
                                 _ => unreachable!(),
                             };
                             let tile_name = get_main_tile_kind(edev, crd.col, crd.row);
@@ -222,14 +219,11 @@ pub fn make_sample(
                         let dst_lc = if lc == 7 {
                             println!("long ltout edge {ax}:{ay}:{aw} -> {bx}:{by}:{bw}");
                             assert_eq!(cell.delta(0, 1), iwb.cell);
-                            assert_eq!(iwb.slot, edev.db.get_wire("IMUX.LC0.I2"));
+                            assert_eq!(iwb.slot, defs::wires::IMUX_LC_I2[0]);
                             0
                         } else {
                             assert_eq!(cell, iwb.cell);
-                            assert_eq!(
-                                iwb.slot,
-                                edev.db.get_wire(&format!("IMUX.LC{i}.I2", i = lc + 1))
-                            );
+                            assert_eq!(iwb.slot, defs::wires::IMUX_LC_I2[lc + 1]);
                             lc + 1
                         };
                         let tcls = edev.chip.kind.tile_class_plb();
@@ -243,11 +237,11 @@ pub fn make_sample(
                         assert_ne!(lc, 7);
                         assert_eq!(cell, iwb.cell);
                         let dst_lc = lc + 1;
-                        assert_eq!(iwb.slot, edev.db.get_wire(&format!("IMUX.LC{dst_lc}.I3")));
+                        assert_eq!(iwb.slot, defs::wires::IMUX_LC_I3[dst_lc]);
                         let tcls = edev.chip.kind.tile_class_plb();
                         sample.add_tiled_pattern(
                             &[BitOwner::Main(iwb.cell.col, iwb.cell.row)],
-                            format!("{tcls}:INT:MUX.IMUX.LC{dst_lc}.I3:CI"),
+                            format!("{tcls}:INT:MUX.{wbn}:CI", wbn = edev.db.wires.key(iwb.slot)),
                         );
                         int_source.insert(iwb, (src_inst, src_pin.clone()));
                     }
@@ -259,8 +253,12 @@ pub fn make_sample(
                             idx
                         };
                         let lc = xi % 8;
-                        let ii = if xi >= 8 { 2 } else { 0 };
-                        assert_eq!(*edev.db.wires.key(iwa.slot), format!("IMUX.LC{lc}.I{ii}"));
+                        let wires = if xi >= 8 {
+                            &defs::wires::IMUX_LC_I2
+                        } else {
+                            &defs::wires::IMUX_LC_I0
+                        };
+                        assert_eq!(iwa.slot, wires[lc]);
                         let (row, which) = if cell.row.to_idx() % 2 == 1 {
                             (
                                 cell.row,
@@ -298,8 +296,12 @@ pub fn make_sample(
                             idx
                         };
                         let lc = xi % 8;
-                        let ii = if xi >= 8 { 2 } else { 0 };
-                        assert_eq!(*edev.db.wires.key(iwb.slot), format!("IMUX.LC{lc}.I{ii}"));
+                        let wires = if xi >= 8 {
+                            &defs::wires::IMUX_LC_I2
+                        } else {
+                            &defs::wires::IMUX_LC_I0
+                        };
+                        assert_eq!(iwb.slot, wires[lc]);
                         let (row, which) = if cell.row.to_idx() % 2 == 1 {
                             (
                                 cell.row - 2,
@@ -341,8 +343,7 @@ pub fn make_sample(
                         | GenericNet::GlobalClkh,
                         GenericNet::Int(iw),
                     ) => {
-                        let idx = edev.db.wires.key(iw.slot).strip_prefix("GLOBAL.").unwrap();
-                        let idx: usize = idx.parse().unwrap();
+                        let idx = defs::wires::GLOBAL.index_of(iw.slot).unwrap();
                         let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
                         sample.add_tiled_pattern(
                             &[BitOwner::Clock(0), BitOwner::Clock(1)],
@@ -379,7 +380,7 @@ pub fn make_sample(
                         pkg_info.xlat_row[loc.loc.y as usize],
                     );
                     let btile = BitOwner::Main(crd.col, crd.row);
-                    let lc = loc.loc.bel;
+                    let lc = loc.loc.bel as usize;
                     if let Some(lut_init) = inst.props.get("LUT_INIT")
                         && lut_init != "16'h0000"
                     {
@@ -397,9 +398,14 @@ pub fn make_sample(
                             })
                             .collect();
                         let swz_to_orig = Vec::from_iter((0..4).map(|idx| {
-                            if let Some(src) = int_source
-                                .get(&crd.wire(edev.db.get_wire(&format!("IMUX.LC{lc}.I{idx}"))))
-                            {
+                            if let Some(src) = int_source.get(&crd.wire(
+                                [
+                                    &defs::wires::IMUX_LC_I0,
+                                    &defs::wires::IMUX_LC_I1,
+                                    &defs::wires::IMUX_LC_I2,
+                                    &defs::wires::IMUX_LC_I3,
+                                ][idx][lc],
+                            )) {
                                 pin_to_orig[src]
                             } else if idx == 3 {
                                 let InstPinSource::FromInst(_cid, cpin) =
@@ -410,7 +416,7 @@ pub fn make_sample(
                                 assert_eq!(*cpin, InstPin::Simple("CO".into()));
                                 sample.add_tiled_pattern(
                                     &[btile],
-                                    format!("{tcls}:INT:MUX.IMUX.LC{lc}.I3:CI"),
+                                    format!("{tcls}:INT:MUX.IMUX_LC_I3[{lc}]:CI"),
                                 );
                                 if lc == 0 {
                                     sample.add_tiled_pattern(
@@ -578,11 +584,11 @@ pub fn make_sample(
                     {
                         sample.add_tiled_pattern(
                             &[btile],
-                            format!("{tcls_ioi}:INT:INV.IMUX.IO.ICLK.OPTINV:BIT0"),
+                            format!("{tcls_ioi}:INT:INV.IMUX_IO_ICLK_OPTINV:BIT0"),
                         );
                         sample.add_tiled_pattern(
                             &[btile],
-                            format!("{tcls_ioi}:INT:INV.IMUX.IO.OCLK.OPTINV:BIT0"),
+                            format!("{tcls_ioi}:INT:INV.IMUX_IO_OCLK_OPTINV:BIT0"),
                         );
                     }
 
@@ -706,7 +712,7 @@ pub fn make_sample(
                     if let Some(rest) = kind.strip_prefix('N') {
                         sample.add_tiled_pattern_single(
                             &[BitOwner::Main(col, row)],
-                            format!("{tcls}:INT:INV.IMUX.CLK.OPTINV:BIT0"),
+                            format!("{tcls}:INT:INV.IMUX_CLK_OPTINV:BIT0"),
                         );
                         kind = rest;
                     }
@@ -763,7 +769,7 @@ pub fn make_sample(
                             }
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(wire.cell.col, wire.cell.row)],
-                                "INT_BRAM:INT:INV.IMUX.CLK.OPTINV:BIT0",
+                                "INT_BRAM:INT:INV.IMUX_CLK_OPTINV:BIT0",
                             );
                         } else {
                             let pin = InstPin::Simple(pin.into());
@@ -1047,7 +1053,7 @@ pub fn make_sample(
                                 if prop == "NEG_TRIGGER" {
                                     sample.add_tiled_pattern_single(
                                         &tiles[2..3],
-                                        format!("{tcls_plb}:INT:INV.IMUX.CLK.OPTINV:BIT0"),
+                                        format!("{tcls_plb}:INT:INV.IMUX_CLK_OPTINV:BIT0"),
                                     );
                                 } else {
                                     sample.add_tiled_pattern_single(
@@ -1473,11 +1479,9 @@ pub fn make_sample(
                                         continue;
                                     }
                                     if pin_info.dir == PinDir::Input {
-                                        let iob = match edev.db.wires.key(pin_wire.wire).as_str() {
-                                            "IMUX.IO0.DOUT0" => 0,
-                                            "IMUX.IO1.DOUT0" => 1,
-                                            _ => unreachable!(),
-                                        };
+                                        let iob = defs::wires::IMUX_IO_DOUT0
+                                            .index_of(pin_wire.wire)
+                                            .unwrap();
                                         let io_tile_kind =
                                             get_main_tile_kind(edev, pin_crd.col, pin_crd.row);
                                         sample.add_tiled_pattern_single(
@@ -1489,9 +1493,12 @@ pub fn make_sample(
                                             format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT4"),
                                         );
                                     } else {
-                                        let iob = match edev.db.wires.key(pin_wire.wire).as_str() {
-                                            "OUT.LC0" | "OUT.LC4" => 0,
-                                            "OUT.LC2" | "OUT.LC6" => 1,
+                                        let iob = match defs::wires::OUT_LC
+                                            .index_of(pin_wire.wire)
+                                            .unwrap()
+                                        {
+                                            0 | 4 => 0,
+                                            2 | 6 => 1,
                                             _ => unreachable!(),
                                         };
                                         let io_tile_kind =
@@ -1576,7 +1583,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         if edev.chip.kind.is_ice40() {
             result.push(format!("{tile}:LC{lc}:MUX.I2:LTIN"));
         }
-        result.push(format!("{tile}:INT:MUX.IMUX.LC{lc}.I3:CI"));
+        result.push(format!("{tile}:INT:MUX.IMUX_LC_I3[{lc}]:CI"));
         for i in 0..16 {
             result.push(format!("{tile}:LC{lc}:LUT_INIT:BIT{i}"));
         }
@@ -1588,7 +1595,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     result.push(format!("{tile}:LC0:MUX.CI:0"));
     result.push(format!("{tile}:LC0:MUX.CI:1"));
     result.push(format!("{tile}:LC0:MUX.CI:CHAIN"));
-    result.push(format!("{tile}:INT:INV.IMUX.CLK.OPTINV:BIT0"));
+    result.push(format!("{tile}:INT:INV.IMUX_CLK_OPTINV:BIT0"));
     if let Some(tile) = edev.chip.kind.tile_class_colbuf() {
         for i in 0..8 {
             result.push(format!("{tile}:COLBUF:GLOBAL.{i}:BIT0"));
@@ -1616,7 +1623,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             result.push(format!("{tile}:BRAM:WRITE_MODE:2"));
             result.push(format!("{tile}:BRAM:WRITE_MODE:3"));
         }
-        result.push("INT_BRAM:INT:INV.IMUX.CLK.OPTINV:BIT0".into());
+        result.push("INT_BRAM:INT:INV.IMUX_CLK_OPTINV:BIT0".into());
         for i in 0..4096 {
             result.push(format!("BRAM_DATA:BRAM:INIT:BIT{i}"));
         }
@@ -1626,8 +1633,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         let Some(tile) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
         };
-        result.push(format!("{tile}:INT:INV.IMUX.IO.ICLK.OPTINV:BIT0"));
-        result.push(format!("{tile}:INT:INV.IMUX.IO.OCLK.OPTINV:BIT0"));
+        result.push(format!("{tile}:INT:INV.IMUX_IO_ICLK_OPTINV:BIT0"));
+        result.push(format!("{tile}:INT:INV.IMUX_IO_OCLK_OPTINV:BIT0"));
         for io in 0..2 {
             for i in 0..6 {
                 result.push(format!("{tile}:IO{io}:PIN_TYPE:BIT{i}"));
@@ -1955,9 +1962,9 @@ pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
 pub fn get_golden_mux_stats(kind: ChipKind, nkn: &str) -> BTreeMap<String, usize> {
     let mut golden_stats = BTreeMap::new();
     if !nkn.starts_with("IOI") {
-        golden_stats.insert("IMUX.CLK".to_string(), 12);
-        golden_stats.insert("IMUX.CE".to_string(), 8);
-        golden_stats.insert("IMUX.RST".to_string(), 8);
+        golden_stats.insert("IMUX_CLK".to_string(), 12);
+        golden_stats.insert("IMUX_CE".to_string(), 8);
+        golden_stats.insert("IMUX_RST".to_string(), 8);
         for lc in 0..8 {
             for i in 0..4 {
                 if i == 2 && nkn == "INT_BRAM" {
@@ -1973,13 +1980,13 @@ pub fn get_golden_mux_stats(kind: ChipKind, nkn: &str) -> BTreeMap<String, usize
                         }
                     }
                 }
-                golden_stats.insert(format!("IMUX.LC{lc}.I{i}"), if i == 3 { 15 } else { 16 });
+                golden_stats.insert(format!("IMUX_LC_I{i}[{lc}]"), if i == 3 { 15 } else { 16 });
             }
         }
         for g in 0..4 {
             for i in 0..8 {
                 golden_stats.insert(
-                    format!("LOCAL.{g}.{i}"),
+                    format!("LOCAL_{g}[{i}]"),
                     if g == 0 && i >= 4 { 23 } else { 16 },
                 );
             }
@@ -2000,22 +2007,22 @@ pub fn get_golden_mux_stats(kind: ChipKind, nkn: &str) -> BTreeMap<String, usize
         }
     } else {
         for (k, v) in [
-            ("IMUX.IO.ICLK", 12),
-            ("IMUX.IO.OCLK", 12),
-            ("IMUX.CE", 8),
-            ("IMUX.IO.EXTRA", 8),
-            ("IMUX.IO0.DOUT0", 8),
-            ("IMUX.IO0.DOUT1", 8),
-            ("IMUX.IO0.OE", 8),
-            ("IMUX.IO1.DOUT0", 8),
-            ("IMUX.IO1.DOUT1", 8),
-            ("IMUX.IO1.OE", 8),
+            ("IMUX_IO_ICLK", 12),
+            ("IMUX_IO_OCLK", 12),
+            ("IMUX_CE", 8),
+            ("IMUX_IO_EXTRA", 8),
+            ("IMUX_IO_DOUT0[0]", 8),
+            ("IMUX_IO_DOUT1[0]", 8),
+            ("IMUX_IO_OE[0]", 8),
+            ("IMUX_IO_DOUT0[1]", 8),
+            ("IMUX_IO_DOUT1[1]", 8),
+            ("IMUX_IO_OE[1]", 8),
         ] {
             golden_stats.insert(k.into(), v);
         }
         for g in 0..2 {
             for i in 0..8 {
-                golden_stats.insert(format!("LOCAL.{g}.{i}"), 14);
+                golden_stats.insert(format!("LOCAL_{g}[{i}]"), 14);
             }
         }
         if nkn.starts_with("IOI_S") | nkn.starts_with("IOI_N") {

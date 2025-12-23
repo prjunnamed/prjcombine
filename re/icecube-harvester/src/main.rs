@@ -29,7 +29,7 @@ use prjcombine_siliconblue::{
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad, SpecialIoKey, SpecialTile, SpecialTileKey},
     db::Database,
-    defs::{bslots as bels, tslots},
+    defs::{self, bslots as bels, tslots},
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{
@@ -45,6 +45,8 @@ use sites::{
     find_sites_plb,
 };
 use speed::{SpeedCollector, finish_speed, get_speed_data, init_speed_data};
+
+use crate::xlat::{is_long, is_long_h, is_long_v, is_quad, is_quad_h, is_quad_v, is_quad_v_w};
 
 mod collect;
 mod generate;
@@ -243,30 +245,30 @@ impl HarvestContext<'_> {
             let mut stats: BTreeMap<String, usize> = BTreeMap::new();
             let tcid = self.edev.db.tile_classes.key(tcname);
             for &(wt, wf) in pips {
-                let wtn = self.edev.db.wires.key(wt.wire);
-                let wfn = self.edev.db.wires.key(wf.wire);
-                let bucket = if wtn.starts_with("QUAD.V") && wfn.starts_with("QUAD") {
+                let bucket = if is_quad_v(wt.wire) && is_quad(wf.wire) {
                     "QUAD-QUAD.V"
-                } else if wtn.starts_with("QUAD.H") && wfn.starts_with("QUAD") {
+                } else if is_quad_h(wt.wire) && is_quad(wf.wire) {
                     "QUAD-QUAD.H"
-                } else if wtn.starts_with("QUAD.V") && wfn.starts_with("LONG") {
+                } else if is_quad_v(wt.wire) && is_long(wf.wire) {
                     "LONG-QUAD.V"
-                } else if wtn.starts_with("QUAD.H") && wfn.starts_with("LONG") {
+                } else if is_quad_h(wt.wire) && is_long(wf.wire) {
                     "LONG-QUAD.H"
-                } else if wtn.starts_with("QUAD.V") && wfn.starts_with("OUT") {
+                } else if (is_quad_v(wt.wire) || is_quad_v_w(wt.wire))
+                    && defs::wires::OUT_LC.contains(wf.wire)
+                {
                     "OUT-QUAD.V"
-                } else if wtn.starts_with("QUAD.H") && wfn.starts_with("OUT") {
+                } else if is_quad_h(wt.wire) && defs::wires::OUT_LC.contains(wf.wire) {
                     "OUT-QUAD.H"
-                } else if wtn.starts_with("LONG.V") && wfn.starts_with("LONG") {
+                } else if is_long_v(wt.wire) && is_long(wf.wire) {
                     "LONG-LONG.V"
-                } else if wtn.starts_with("LONG.H") && wfn.starts_with("LONG") {
+                } else if is_long_h(wt.wire) && is_long(wf.wire) {
                     "LONG-LONG.H"
-                } else if wtn.starts_with("LONG.V") && wfn.starts_with("OUT") {
+                } else if is_long_v(wt.wire) && defs::wires::OUT_LC.contains(wf.wire) {
                     "OUT-LONG.V"
-                } else if wtn.starts_with("LONG.H") && wfn.starts_with("OUT") {
+                } else if is_long_h(wt.wire) && defs::wires::OUT_LC.contains(wf.wire) {
                     "OUT-LONG.H"
                 } else {
-                    wtn
+                    self.edev.db.wires.key(wt.wire)
                 };
                 *stats.entry(bucket.to_string()).or_default() += 1;
             }
@@ -468,6 +470,15 @@ impl HarvestContext<'_> {
             self.harvester.get_mut().unwrap().process();
         }
         println!("DONE with {}!", self.ctx.chip.kind);
+    }
+}
+
+fn insert_tile_class(intdb: &mut IntDb, name: impl Into<String>, tcls: TileClass) {
+    let name = name.into();
+    if let Some((_, cur_tcls)) = intdb.tile_classes.get(&name) {
+        assert_eq!(*cur_tcls, tcls);
+    } else {
+        intdb.tile_classes.insert(name, tcls);
     }
 }
 
@@ -1262,9 +1273,7 @@ impl PartContext<'_> {
         };
         let builder = MiscTileBuilder::new(&self.chip, tslots::TRIM, &[crd]);
         let (tcls, special) = builder.finish();
-        self.intdb
-            .tile_classes
-            .insert(key.tile_class(self.chip.kind), tcls);
+        insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
         self.chip.special_tiles.insert(key, special);
     }
 
@@ -1423,9 +1432,7 @@ impl PartContext<'_> {
                     let io = pkg_info.xlat_io[&xy];
                     special.io.insert(slot, io);
                 }
-                self.intdb
-                    .tile_classes
-                    .insert(key.tile_class(self.chip.kind), tcls);
+                insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
                 self.chip.special_tiles.insert(key, special);
                 self.special_tiles.insert(key, vec![site.loc]);
             }
@@ -1482,9 +1489,7 @@ impl PartContext<'_> {
                 match self.chip.special_tiles.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(special);
-                        self.intdb
-                            .tile_classes
-                            .insert(loc.tile_class(self.chip.kind), tcls);
+                        insert_tile_class(&mut self.intdb, loc.tile_class(self.chip.kind), tcls);
                         self.special_tiles.insert(loc, vec![site.loc]);
                     }
                     btree_map::Entry::Occupied(entry) => {
@@ -1514,9 +1519,7 @@ impl PartContext<'_> {
             let key = SpecialTileKey::PllStub(DirV::S);
             self.chip.special_tiles.insert(key, special);
             let tcls = TileClass::new(tslots::PLL_STUB, 1);
-            self.intdb
-                .tile_classes
-                .insert(key.tile_class(self.chip.kind), tcls);
+            insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
         }
     }
 
@@ -1570,9 +1573,7 @@ impl PartContext<'_> {
         }
 
         let (tcls, special) = builder.finish();
-        self.intdb
-            .tile_classes
-            .insert(key.tile_class(self.chip.kind), tcls);
+        insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
         self.chip.special_tiles.insert(key, special);
         self.special_tiles.insert(
             key,
@@ -1753,10 +1754,8 @@ impl PartContext<'_> {
                 match self.chip.special_tiles.entry(key) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(special);
-                        self.intdb
-                            .tile_classes
-                            .insert(key.tile_class(self.chip.kind), tcls);
                         self.special_tiles.insert(key, site_locs);
+                        insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
                     }
                     btree_map::Entry::Occupied(entry) => {
                         assert_eq!(*entry.get(), special);
@@ -1775,9 +1774,11 @@ impl PartContext<'_> {
                     match self.chip.special_tiles.entry(key) {
                         btree_map::Entry::Vacant(entry) => {
                             entry.insert(special);
-                            self.intdb
-                                .tile_classes
-                                .insert(key.tile_class(self.chip.kind), tcls);
+                            insert_tile_class(
+                                &mut self.intdb,
+                                key.tile_class(self.chip.kind),
+                                tcls,
+                            );
                         }
                         btree_map::Entry::Occupied(entry) => {
                             assert_eq!(*entry.get(), special);
@@ -1818,9 +1819,7 @@ impl PartContext<'_> {
                 builder.add_bel(bels::SPRAM[i], bel_pins);
             }
             let (tcls, special) = builder.finish();
-            self.intdb
-                .tile_classes
-                .insert(key.tile_class(self.chip.kind), tcls);
+            insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
             self.chip.special_tiles.insert(key, special);
             self.special_tiles
                 .insert(key, vec![edge_sites[0].loc, edge_sites[1].loc]);
@@ -1829,12 +1828,23 @@ impl PartContext<'_> {
 
     fn fill_smcclk(&mut self) {
         let (col, row, wire) = match self.chip.kind {
-            ChipKind::Ice40T04 => (ColId::from_idx(25), RowId::from_idx(3), "OUT.LC5"),
-            ChipKind::Ice40T05 => (ColId::from_idx(25), RowId::from_idx(9), "OUT.LC1"),
-            ChipKind::Ice40T01 => (ColId::from_idx(13), RowId::from_idx(12), "OUT.LC2"),
+            ChipKind::Ice40T04 => (
+                ColId::from_idx(25),
+                RowId::from_idx(3),
+                defs::wires::OUT_LC[5],
+            ),
+            ChipKind::Ice40T05 => (
+                ColId::from_idx(25),
+                RowId::from_idx(9),
+                defs::wires::OUT_LC[1],
+            ),
+            ChipKind::Ice40T01 => (
+                ColId::from_idx(13),
+                RowId::from_idx(12),
+                defs::wires::OUT_LC[2],
+            ),
             _ => return,
         };
-        let wire = self.intdb.get_wire(wire);
         let mut tcls = TileClass::new(tslots::SMCCLK, 1);
         let mut bel = LegacyBel::default();
         bel.pins.insert(
@@ -1842,9 +1852,11 @@ impl PartContext<'_> {
             BelPin::new_out(TileWireCoord::new_idx(0, wire)),
         );
         tcls.bels.insert(bels::SMCCLK, BelInfo::Legacy(bel));
-        self.intdb
-            .tile_classes
-            .insert(SpecialTileKey::SmcClk.tile_class(self.chip.kind), tcls);
+        insert_tile_class(
+            &mut self.intdb,
+            SpecialTileKey::SmcClk.tile_class(self.chip.kind),
+            tcls,
+        );
         self.chip.special_tiles.insert(
             SpecialTileKey::SmcClk,
             SpecialTile {
@@ -1866,42 +1878,42 @@ impl PartContext<'_> {
         for (tile, key, bit) in [
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
                 TileBit::new(0, 9, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
                 TileBit::new(0, 15, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
                 TileBit::new(0, 9, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
                 TileBit::new(0, 15, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
                 TileBit::new(0, 6, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
                 TileBit::new(0, 1, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INT:INV.IMUX.IO.ICLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
                 TileBit::new(0, 9, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INT:INV.IMUX.IO.OCLK.OPTINV:BIT0",
+                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
                 TileBit::new(0, 14, 35),
             ),
         ] {
@@ -1984,13 +1996,13 @@ impl PartContext<'_> {
                         );
                     }
                 } else if let Some(suf) = name.strip_prefix("INT:BUF.") {
-                    let (wt, b) = suf.split_once(".OUT.").unwrap();
+                    let (wt, b) = suf.split_once(".OUT_").unwrap();
                     let TileItemKind::BitVec { ref invert } = item.kind else {
                         unreachable!()
                     };
                     assert_eq!(item.bits.len(), 1);
                     harvester.force_tiled(
-                        format!("{tile}:INT:MUX.{wt}:OUT.{b}"),
+                        format!("{tile}:INT:MUX.{wt}:OUT_{b}"),
                         BTreeMap::from_iter(
                             item.bits
                                 .iter()
@@ -2018,11 +2030,8 @@ impl PartContext<'_> {
         }
         if has_g2l {
             for i in 0..4 {
-                let wt = TileWireCoord::new_idx(
-                    0,
-                    self.intdb.get_wire(&format!("LOCAL.0.{ii}", ii = i + 4)),
-                );
-                let wf = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("GOUT.{i}")));
+                let wt = TileWireCoord::new_idx(0, defs::wires::LOCAL_0[i + 4]);
+                let wf = TileWireCoord::new_idx(0, defs::wires::GLOBAL_OUT[i]);
                 g2l.insert(wt, wf);
                 muxes.entry(wt).or_default().insert(wf.pos());
             }
@@ -2055,7 +2064,7 @@ impl PartContext<'_> {
 
             let wtn = self.intdb.wires.key(wt.wire);
             if wtn.ends_with("CLK") {
-                let wi = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("{wtn}.OPTINV")));
+                let wi = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("{wtn}_OPTINV")));
                 items.push(SwitchBoxItem::ProgInv(ProgInv {
                     dst: wi,
                     src: wt,
@@ -2139,8 +2148,10 @@ impl PartContext<'_> {
             let bsdata_int_bram = bsdata.tiles.get_mut("INT_BRAM").unwrap();
             let mut copy_imuxes = BTreeSet::new();
             for (wt, wf) in pips_plb {
-                let wtn = self.intdb.wires.key(wt.wire);
-                if wtn.starts_with("IMUX") && !wtn.ends_with("I3") {
+                if defs::wires::IMUX_LC_I0.contains(wt.wire)
+                    || defs::wires::IMUX_LC_I1.contains(wt.wire)
+                    || defs::wires::IMUX_LC_I2.contains(wt.wire)
+                {
                     pips_int_bram.insert((wt, wf));
                     copy_imuxes.insert(wt);
                 } else {

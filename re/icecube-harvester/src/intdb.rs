@@ -3,34 +3,30 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorWire, IntDb, LegacyBel,
-        TileClass, TileSlotId, TileWireCoord, WireKind,
+        BelInfo, BelPin, BelSlotId, CellSlotId, IntDb, LegacyBel, TileClass, TileSlotId,
+        TileWireCoord, WireSlotId,
     },
-    dir::{Dir, DirMap},
+    dir::Dir,
     grid::{CellCoord, EdgeIoCoord},
 };
 use prjcombine_siliconblue::{
     chip::{Chip, ChipKind, SpecialIoKey, SpecialTile},
-    defs::{bslots as bels, cslots, rslots as regions, tslots},
+    defs::{self, bslots as bels, tslots},
 };
 
 use crate::sites::BelPins;
 
-fn add_input(db: &IntDb, bel: &mut LegacyBel, name: &str, cell: usize, wire: &str) {
+fn add_input(bel: &mut LegacyBel, name: &str, cell: usize, wire: WireSlotId) {
     bel.pins.insert(
         name.into(),
-        BelPin::new_in(TileWireCoord::new_idx(cell, db.get_wire(wire))),
+        BelPin::new_in(TileWireCoord::new_idx(cell, wire)),
     );
 }
 
-fn add_output(db: &IntDb, bel: &mut LegacyBel, name: &str, cell: usize, wires: &[&str]) {
+fn add_output(bel: &mut LegacyBel, name: &str, cell: usize, wires: &[WireSlotId]) {
     bel.pins.insert(
         name.into(),
-        BelPin::new_out_multi(
-            wires
-                .iter()
-                .map(|wire| TileWireCoord::new_idx(cell, db.get_wire(wire))),
-        ),
+        BelPin::new_out_multi(wires.iter().map(|&wire| TileWireCoord::new_idx(cell, wire))),
     );
 }
 
@@ -42,176 +38,22 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     .unwrap()
     .0;
 
-    let term_slots = DirMap::from_fn(|dir| match dir {
-        Dir::W => cslots::W,
-        Dir::E => cslots::E,
-        Dir::S => cslots::S,
-        Dir::N => cslots::N,
-    });
-
-    let mut passes = DirMap::from_fn(|dir| ConnectorClass::new(term_slots[dir]));
-
-    for i in 0..8 {
-        db.wires
-            .insert(format!("GLOBAL.{i}"), WireKind::Regional(regions::GLOBAL));
-    }
-
-    for i in 0..4 {
-        db.wires.insert(format!("GOUT.{i}"), WireKind::MuxOut);
-    }
-
-    for i in 0..12 {
-        let mut w = db
-            .wires
-            .insert(format!("QUAD.H{i}.0"), WireKind::MultiOut)
-            .0;
-        for j in 1..5 {
-            let ww = db
-                .wires
-                .insert(format!("QUAD.H{i}.{j}"), WireKind::MultiBranch(cslots::W))
-                .0;
-            passes[Dir::W].wires.insert(ww, ConnectorWire::Pass(w));
-            w = ww;
-        }
-    }
-
-    for i in 0..12 {
-        let mut w = db
-            .wires
-            .insert(format!("QUAD.V{i}.0"), WireKind::MultiOut)
-            .0;
-        for j in 1..5 {
-            let ww = db
-                .wires
-                .insert(format!("QUAD.V{i}.{j}"), WireKind::MultiBranch(cslots::S))
-                .0;
-            passes[Dir::S].wires.insert(ww, ConnectorWire::Pass(w));
-            w = ww;
-            let ww = db
-                .wires
-                .insert(format!("QUAD.V{i}.{j}.W"), WireKind::MultiBranch(cslots::E))
-                .0;
-            passes[Dir::E].wires.insert(ww, ConnectorWire::Pass(w));
-        }
-    }
-
-    for i in 0..2 {
-        let mut w = db
-            .wires
-            .insert(format!("LONG.H{i}.0"), WireKind::MultiOut)
-            .0;
-        for j in 1..13 {
-            let ww = db
-                .wires
-                .insert(format!("LONG.H{i}.{j}"), WireKind::MultiBranch(cslots::W))
-                .0;
-            passes[Dir::W].wires.insert(ww, ConnectorWire::Pass(w));
-            w = ww;
-        }
-    }
-    for i in 0..2 {
-        let mut w = db
-            .wires
-            .insert(format!("LONG.V{i}.0"), WireKind::MultiOut)
-            .0;
-        for j in 1..13 {
-            let ww = db
-                .wires
-                .insert(format!("LONG.V{i}.{j}"), WireKind::MultiBranch(cslots::S))
-                .0;
-            passes[Dir::S].wires.insert(ww, ConnectorWire::Pass(w));
-            w = ww;
-        }
-    }
-
-    for i in 0..4 {
-        for j in 0..8 {
-            db.wires.insert(format!("LOCAL.{i}.{j}"), WireKind::MuxOut);
-        }
-    }
-
-    for i in 0..8 {
-        for j in 0..4 {
-            db.wires
-                .insert(format!("IMUX.LC{i}.I{j}"), WireKind::MuxOut);
-        }
-    }
-
-    for name in [
-        "IMUX.CLK",
-        "IMUX.CLK.OPTINV",
-        "IMUX.RST",
-        "IMUX.CE",
-        "IMUX.IO0.DOUT0",
-        "IMUX.IO0.DOUT1",
-        "IMUX.IO0.OE",
-        "IMUX.IO1.DOUT0",
-        "IMUX.IO1.DOUT1",
-        "IMUX.IO1.OE",
-        "IMUX.IO.ICLK",
-        "IMUX.IO.ICLK.OPTINV",
-        "IMUX.IO.OCLK",
-        "IMUX.IO.OCLK.OPTINV",
-        "IMUX.IO.EXTRA",
-    ] {
-        db.wires.insert(name.into(), WireKind::MuxOut);
-    }
-
-    for i in 0..8 {
-        let w = db.wires.insert(format!("OUT.LC{i}"), WireKind::LogicOut).0;
-        for dir in [Dir::N, Dir::S] {
-            let wo = db
-                .wires
-                .insert(
-                    format!("OUT.LC{i}.{dir}"),
-                    WireKind::Branch(term_slots[!dir]),
-                )
-                .0;
-            passes[!dir].wires.insert(wo, ConnectorWire::Pass(w));
-        }
-        for dir in [Dir::E, Dir::W] {
-            let wo = db
-                .wires
-                .insert(
-                    format!("OUT.LC{i}.{dir}"),
-                    WireKind::Branch(term_slots[!dir]),
-                )
-                .0;
-            passes[!dir].wires.insert(wo, ConnectorWire::Pass(w));
-            for dir2 in [Dir::N, Dir::S] {
-                let woo = db
-                    .wires
-                    .insert(
-                        format!("OUT.LC{i}.{dir}{dir2}"),
-                        WireKind::Branch(term_slots[!dir2]),
-                    )
-                    .0;
-                passes[!dir2].wires.insert(woo, ConnectorWire::Pass(wo));
-            }
-        }
-    }
-
-    for (dir, pass) in passes {
-        db.conn_classes.insert(format!("PASS_{dir}"), pass);
-    }
-
     {
         let mut tcls = TileClass::new(tslots::MAIN, 1);
         for i in 0..8 {
             let mut bel = LegacyBel::default();
-            for j in 0..4 {
-                add_input(
-                    &db,
-                    &mut bel,
-                    &format!("I{j}"),
-                    0,
-                    &format!("IMUX.LC{i}.I{j}"),
-                );
+            for (pin, wire) in [
+                ("I0", defs::wires::IMUX_LC_I0[i]),
+                ("I1", defs::wires::IMUX_LC_I1[i]),
+                ("I2", defs::wires::IMUX_LC_I2[i]),
+                ("I3", defs::wires::IMUX_LC_I3[i]),
+                ("CLK", defs::wires::IMUX_CLK_OPTINV),
+                ("RST", defs::wires::IMUX_RST),
+                ("CE", defs::wires::IMUX_CE),
+            ] {
+                add_input(&mut bel, pin, 0, wire);
             }
-            add_input(&db, &mut bel, "CLK", 0, "IMUX.CLK.OPTINV");
-            add_input(&db, &mut bel, "RST", 0, "IMUX.RST");
-            add_input(&db, &mut bel, "CE", 0, "IMUX.CE");
-            add_output(&db, &mut bel, "O", 0, &[&format!("OUT.LC{i}")]);
+            add_output(&mut bel, "O", 0, &[defs::wires::OUT_LC[i]]);
             tcls.bels.insert(bels::LC[i], BelInfo::Legacy(bel));
         }
         db.tile_classes.insert(kind.tile_class_plb().into(), tcls);
@@ -227,31 +69,29 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut tcls = TileClass::new(tslots::MAIN, 1);
         for i in 0..2 {
             let mut bel = LegacyBel::default();
-            for pin in ["DOUT0", "DOUT1", "OE"] {
-                add_input(&db, &mut bel, pin, 0, &format!("IMUX.IO{i}.{pin}"));
+            for (pin, wire) in [
+                ("DOUT0", defs::wires::IMUX_IO_DOUT0[i]),
+                ("DOUT1", defs::wires::IMUX_IO_DOUT1[i]),
+                ("OE", defs::wires::IMUX_IO_OE[i]),
+                ("ICLK", defs::wires::IMUX_IO_ICLK_OPTINV),
+                ("OCLK", defs::wires::IMUX_IO_OCLK_OPTINV),
+                ("CE", defs::wires::IMUX_CE),
+            ] {
+                add_input(&mut bel, pin, 0, wire);
             }
-            for pin in ["ICLK", "OCLK"] {
-                add_input(&db, &mut bel, pin, 0, &format!("IMUX.IO.{pin}.OPTINV"));
-            }
-            add_input(&db, &mut bel, "CE", 0, "IMUX.CE");
             add_output(
-                &db,
                 &mut bel,
                 "DIN0",
                 0,
-                &[
-                    &format!("OUT.LC{}", 2 * i)[..],
-                    &format!("OUT.LC{}", 2 * i + 4)[..],
-                ],
+                &[defs::wires::OUT_LC[i * 2], defs::wires::OUT_LC[i * 2 + 4]],
             );
             add_output(
-                &db,
                 &mut bel,
                 "DIN1",
                 0,
                 &[
-                    &format!("OUT.LC{}", 2 * i + 1)[..],
-                    &format!("OUT.LC{}", 2 * i + 5)[..],
+                    defs::wires::OUT_LC[i * 2 + 1],
+                    defs::wires::OUT_LC[i * 2 + 5],
                 ],
             );
             tcls.bels.insert(bels::IO[i], BelInfo::Legacy(bel));
@@ -269,56 +109,45 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut tcls = TileClass::new(tslots::BEL, 2);
         let mut bel = LegacyBel::default();
         let (tile_w, tile_r) = if ice40_bramv2 { (1, 0) } else { (0, 1) };
-        add_input(&db, &mut bel, "WCLK", tile_w, "IMUX.CLK.OPTINV");
-        add_input(&db, &mut bel, "WE", tile_w, "IMUX.RST");
-        add_input(&db, &mut bel, "WCLKE", tile_w, "IMUX.CE");
-        add_input(&db, &mut bel, "RCLK", tile_r, "IMUX.CLK.OPTINV");
-        add_input(&db, &mut bel, "RE", tile_r, "IMUX.RST");
-        add_input(&db, &mut bel, "RCLKE", tile_r, "IMUX.CE");
+        add_input(&mut bel, "WCLK", tile_w, defs::wires::IMUX_CLK_OPTINV);
+        add_input(&mut bel, "WE", tile_w, defs::wires::IMUX_RST);
+        add_input(&mut bel, "WCLKE", tile_w, defs::wires::IMUX_CE);
+        add_input(&mut bel, "RCLK", tile_r, defs::wires::IMUX_CLK_OPTINV);
+        add_input(&mut bel, "RE", tile_r, defs::wires::IMUX_RST);
+        add_input(&mut bel, "RCLKE", tile_r, defs::wires::IMUX_CE);
         let addr_bits = if kind.is_ice40() { 11 } else { 8 };
         for i in 0..addr_bits {
             let xi = if ice40_bramv2 { i ^ 7 } else { i };
             let lc = xi % 8;
-            let ii = if xi >= 8 { 2 } else { 0 };
-            add_input(
-                &db,
-                &mut bel,
-                &format!("WADDR{i}"),
-                tile_w,
-                &format!("IMUX.LC{lc}.I{ii}"),
-            );
-            add_input(
-                &db,
-                &mut bel,
-                &format!("RADDR{i}"),
-                tile_r,
-                &format!("IMUX.LC{lc}.I{ii}"),
-            );
+            let wires = if xi >= 8 {
+                &defs::wires::IMUX_LC_I2
+            } else {
+                &defs::wires::IMUX_LC_I0
+            };
+            add_input(&mut bel, &format!("WADDR{i}"), tile_w, wires[lc]);
+            add_input(&mut bel, &format!("RADDR{i}"), tile_r, wires[lc]);
         }
         for i in 0..16 {
             let xi = if ice40_bramv2 { i ^ 15 } else { i };
             let tile = xi / 8;
             let lc = xi % 8;
             add_input(
-                &db,
                 &mut bel,
                 &format!("WDATA{i}"),
                 tile,
-                &format!("IMUX.LC{lc}.I1"),
+                defs::wires::IMUX_LC_I1[lc],
             );
             add_input(
-                &db,
                 &mut bel,
                 &format!("MASK{i}"),
                 tile,
-                &format!("IMUX.LC{lc}.I3"),
+                defs::wires::IMUX_LC_I3[lc],
             );
             add_output(
-                &db,
                 &mut bel,
                 &format!("RDATA{i}"),
                 tile,
-                &[&format!("OUT.LC{lc}")],
+                &[defs::wires::OUT_LC[lc]],
             );
         }
         tcls.bels.insert(bels::BRAM, BelInfo::Legacy(bel));
@@ -335,7 +164,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     {
         let mut tcls = TileClass::new(tslots::BEL, 1);
         let mut bel = LegacyBel::default();
-        add_input(&db, &mut bel, "LATCH", 0, "IMUX.IO.EXTRA");
+        add_input(&mut bel, "LATCH", 0, defs::wires::IMUX_IO_EXTRA);
         tcls.bels.insert(bels::IO_LATCH, BelInfo::Legacy(bel));
         db.tile_classes.insert("IO_LATCH".into(), tcls);
     }
@@ -343,7 +172,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     {
         let mut tcls = TileClass::new(tslots::BEL, 1);
         let mut bel = LegacyBel::default();
-        add_input(&db, &mut bel, "I", 0, "IMUX.IO.EXTRA");
+        add_input(&mut bel, "I", 0, defs::wires::IMUX_IO_EXTRA);
         tcls.bels.insert(bels::GB_FABRIC, BelInfo::Legacy(bel));
         db.tile_classes.insert("GB_FABRIC".into(), tcls);
     }
@@ -352,13 +181,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         let mut tcls = TileClass::new(tslots::GB_ROOT, 1);
         let mut bel = LegacyBel::default();
         for i in 0..8 {
-            add_output(
-                &db,
-                &mut bel,
-                &format!("O{i}"),
-                0,
-                &[&format!("GLOBAL.{i}")],
-            );
+            add_output(&mut bel, &format!("O{i}"), 0, &[defs::wires::GLOBAL[i]]);
         }
         tcls.bels.insert(bels::GB_ROOT, BelInfo::Legacy(bel));
         db.tile_classes

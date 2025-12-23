@@ -13,6 +13,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
     chip::{ChipKind, SpecialTileKey},
+    defs,
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{
@@ -183,15 +184,14 @@ pub fn collect(
         let tile = edev.db.tile_classes.key(tcid);
         let bel = "INT";
         if !tile.starts_with("IO") {
-            collector.collect_bit(tile, bel, "INV.IMUX.CLK.OPTINV", "");
+            collector.collect_bit(tile, bel, "INV.IMUX_CLK_OPTINV", "");
         }
         let mut gout_mux = BTreeMap::new();
         for item in &tile_sb.items {
-            if let SwitchBoxItem::Mux(mux) = item {
-                let wtn = edev.db.wires.key(mux.dst.wire);
-                if wtn.starts_with("GOUT") {
-                    gout_mux.insert(mux.dst, mux);
-                }
+            if let SwitchBoxItem::Mux(mux) = item
+                && defs::wires::GLOBAL_OUT.contains(mux.dst.wire)
+            {
+                gout_mux.insert(mux.dst, mux);
             }
         }
         for item in &tile_sb.items {
@@ -205,8 +205,7 @@ pub fn collect(
                     let mut values = vec![];
                     let mut diffs = vec![];
                     if tile == edev.chip.kind.tile_class_plb()
-                        && wtn.starts_with("IMUX.LC")
-                        && wtn.ends_with(".I3")
+                        && defs::wires::IMUX_LC_I3.contains(mux.dst.wire)
                     {
                         values.push("CI");
                         diffs.push(("CI", collector.state.get_diff(tile, bel, &mux_name, "CI")));
@@ -316,8 +315,8 @@ pub fn collect(
         let Some(tile) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
         };
-        collector.collect_bit(tile, "INT", "INV.IMUX.IO.ICLK.OPTINV", "");
-        collector.collect_bit(tile, "INT", "INV.IMUX.IO.OCLK.OPTINV", "");
+        collector.collect_bit(tile, "INT", "INV.IMUX_IO_ICLK_OPTINV", "");
+        collector.collect_bit(tile, "INT", "INV.IMUX_IO_OCLK_OPTINV", "");
         for io in 0..2 {
             let bel = &format!("IO{io}");
             collector.collect_bitvec(tile, bel, "PIN_TYPE", "");
