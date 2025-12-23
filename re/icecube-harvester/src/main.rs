@@ -26,12 +26,11 @@ use prjcombine_interconnect::{
 use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{
-    bels,
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad, SpecialIoKey, SpecialTile, SpecialTileKey},
     db::Database,
+    defs::{bslots as bels, tslots},
     expanded::{BitOwner, ExpandedDevice},
-    tslots,
 };
 use prjcombine_types::{
     bsdata::{BitRectId, BsData, PolTileBit, TileBit, TileItemKind},
@@ -1563,7 +1562,7 @@ impl PartContext<'_> {
         for &(site_loc, crd) in &io_sites {
             let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site_loc)].clone();
             bel_pins.outs.clear();
-            builder.add_bel(bels::IO_I3C[crd.iob().to_idx()], &bel_pins);
+            builder.add_bel(bels::IOB_I3C[crd.iob().to_idx()], &bel_pins);
             builder.io.insert(
                 [SpecialIoKey::I3c0, SpecialIoKey::I3c1][crd.iob().to_idx()],
                 crd,

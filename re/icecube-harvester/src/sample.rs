@@ -8,11 +8,10 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
-    bels,
     bitstream::Bitstream,
     chip::{ChipKind, SpecialIoKey, SpecialTileKey},
+    defs::{bslots as bels, tslots},
     expanded::{BitOwner, ExpandedDevice},
-    tslots,
 };
 use prjcombine_types::{bitrect::BitRect as _, bitvec::BitVec};
 
@@ -480,7 +479,7 @@ pub fn make_sample(
                     let bel = edev.chip.get_io_loc(io);
                     let btile = BitOwner::Main(bel.col, bel.row);
                     let iob = io.iob();
-                    let slot_name = edev.db.bel_slots.key(bel.slot).as_str();
+                    let slot_idx = bels::IO.index_of(bel.slot).unwrap();
                     let tcls_ioi = edev.chip.kind.tile_class_ioi(io.edge()).unwrap();
                     let tcls_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
                     let mut global_idx = None;
@@ -506,7 +505,7 @@ pub fn make_sample(
                             if c == '1' {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_ioi}:{slot_name}:PIN_TYPE:BIT{i}"),
+                                    format!("{tcls_ioi}:IO{slot_idx}:PIN_TYPE:BIT{i}"),
                                 );
                             }
                         }
@@ -518,7 +517,7 @@ pub fn make_sample(
                         {
                             sample.add_tiled_pattern(
                                 &[btile],
-                                format!("{tcls_ioi}:{slot_name}:OUTPUT_ENABLE:BIT0"),
+                                format!("{tcls_ioi}:IO{slot_idx}:OUTPUT_ENABLE:BIT0"),
                             );
                             if is_lvds {
                                 let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);

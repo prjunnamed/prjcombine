@@ -7,8 +7,8 @@ use prjcombine_interconnect::{
 
 use crate::{
     chip::{Chip, SpecialTileKey},
+    defs::rslots as regions,
     expanded::ExpandedDevice,
-    regions,
 };
 
 impl Chip {

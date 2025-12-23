@@ -3,16 +3,15 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, hash_map};
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
     db::{
-        LegacyBel, BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorWire, IntDb,
+        BelInfo, BelPin, BelSlotId, CellSlotId, ConnectorClass, ConnectorWire, IntDb, LegacyBel,
         TileClass, TileSlotId, TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
     grid::{CellCoord, EdgeIoCoord},
 };
 use prjcombine_siliconblue::{
-    bels,
     chip::{Chip, ChipKind, SpecialIoKey, SpecialTile},
-    cslots, regions, tslots,
+    defs::{bslots as bels, cslots, rslots as regions, tslots},
 };
 
 use crate::sites::BelPins;
@@ -36,7 +35,12 @@ fn add_output(db: &IntDb, bel: &mut LegacyBel, name: &str, cell: usize, wires: &
 }
 
 pub fn make_intdb(kind: ChipKind) -> IntDb {
-    let mut db = IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS);
+    let mut db: IntDb = bincode::decode_from_slice(
+        prjcombine_siliconblue::defs::INIT,
+        bincode::config::standard(),
+    )
+    .unwrap()
+    .0;
 
     let term_slots = DirMap::from_fn(|dir| match dir {
         Dir::W => cslots::W,

@@ -9,7 +9,7 @@ use prjcombine_interconnect::{
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 
-use crate::bels;
+use crate::defs::bslots as bels;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub enum ChipKind {

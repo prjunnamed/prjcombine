@@ -13,6 +13,7 @@ jzon.workspace = true
 prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
+prjcombine-tablegen.workspace = true
 
 [lints]
 workspace = true
