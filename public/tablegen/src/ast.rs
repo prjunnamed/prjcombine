@@ -269,7 +269,7 @@ impl ArrayIdRef {
 
 #[derive(Debug)]
 pub enum Index {
-    Ident(Ident),
+    Ident(Ident, usize),
     Literal(usize),
 }
 

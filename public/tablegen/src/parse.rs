@@ -139,7 +139,12 @@ impl Tokenizer {
             {
                 let mut tokenizer = Tokenizer::new(g.span(), Vec::from_iter(g.stream()));
                 let idx = if let Some(id) = tokenizer.try_ident() {
-                    ast::Index::Ident(id)
+                    if tokenizer.try_punct('+') {
+                        let offset = tokenizer.usize()?;
+                        ast::Index::Ident(id, offset)
+                    } else {
+                        ast::Index::Ident(id, 0)
+                    }
                 } else {
                     let n = tokenizer.usize()?;
                     ast::Index::Literal(n)

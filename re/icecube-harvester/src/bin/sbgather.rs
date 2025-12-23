@@ -14,32 +14,29 @@ use prjcombine_types::{
     speed::Speed,
 };
 
-fn merge_int(dst: &mut IntDb, src: &IntDb, dbname: &str) {
-    if dst.wires.is_empty() {
-        dst.wires = src.wires.clone();
-        dst.tile_slots = src.tile_slots.clone();
-        dst.bel_slots = src.bel_slots.clone();
-        dst.region_slots = src.region_slots.clone();
-        dst.conn_slots = src.conn_slots.clone();
-    } else {
-        assert_eq!(dst.wires, src.wires);
-        assert_eq!(dst.tile_slots, src.tile_slots);
-        assert_eq!(dst.bel_slots, src.bel_slots);
-        assert_eq!(dst.region_slots, src.region_slots);
-        assert_eq!(dst.conn_slots, src.conn_slots);
-    }
-    for (_, name, ccls) in &src.conn_classes {
-        if let Some((_, dst_ccls)) = dst.conn_classes.get(name) {
-            assert_eq!(dst_ccls, ccls);
-        } else {
-            dst.conn_classes.insert(name.clone(), ccls.clone());
+fn merge_int(dst: &mut IntDb, src: &IntDb, init: &IntDb, dbname: &str) {
+    assert_eq!(dst.enum_classes, src.enum_classes);
+    assert_eq!(dst.bel_classes, src.bel_classes);
+    assert_eq!(dst.wires, src.wires);
+    assert_eq!(dst.tile_slots, src.tile_slots);
+    assert_eq!(dst.bel_slots, src.bel_slots);
+    assert_eq!(dst.region_slots, src.region_slots);
+    assert_eq!(dst.conn_slots, src.conn_slots);
+    assert_eq!(dst.conn_classes, src.conn_classes);
+    assert_eq!(dst.tile_classes.len(), src.tile_classes.len());
+    for ((dtcls, stcls), (_tcid, name, itcls)) in dst
+        .tile_classes
+        .values_mut()
+        .zip(src.tile_classes.values())
+        .zip(&init.tile_classes)
+    {
+        if *stcls == *itcls {
+            continue;
         }
-    }
-    for (_, name, tcls) in &src.tile_classes {
-        if let Some((_, dst_tcls)) = dst.tile_classes.get(name) {
-            assert_eq!(dst_tcls, tcls, "FAIL when merging {dbname} TCLS {name}");
+        if *dtcls == *itcls {
+            *dtcls = stcls.clone();
         } else {
-            dst.tile_classes.insert(name.clone(), tcls.clone());
+            assert_eq!(*dtcls, *stcls, "FAIL when merging {dbname} TCLS {name}");
         }
     }
 }
@@ -103,12 +100,18 @@ fn merge_chips(
 }
 
 fn main() {
+    let init: IntDb = bincode::decode_from_slice(
+        prjcombine_siliconblue::defs::INIT,
+        bincode::config::standard(),
+    )
+    .unwrap()
+    .0;
     let mut dst = Database {
         chips: Default::default(),
         bonds: Default::default(),
         speeds: Default::default(),
         devices: Default::default(),
-        int: Default::default(),
+        int: init.clone(),
         bsdata: Default::default(),
     };
     for fname in [
@@ -125,7 +128,7 @@ fn main() {
         "db/icecube/ice40t01.zstd",
     ] {
         let src = Database::from_file(fname).unwrap();
-        merge_int(&mut dst.int, &src.int, fname);
+        merge_int(&mut dst.int, &src.int, &init, fname);
         merge_bsdata(&mut dst.bsdata, &src.bsdata, fname);
         let bonds = merge_bonds(&mut dst.bonds, &src.bonds);
         let speeds = merge_speeds(&mut dst.speeds, &src.speeds);

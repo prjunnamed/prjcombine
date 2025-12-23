@@ -11,7 +11,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_siliconblue::{
     chip::{Chip, ChipKind, SpecialIoKey, SpecialTile},
-    defs::{self, bslots as bels, tslots},
+    defs::{self, bslots as bels},
 };
 
 use crate::sites::BelPins;
@@ -39,7 +39,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
     .0;
 
     {
-        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        let tcls = &mut db.tile_classes[kind.tile_class_plb()];
         for i in 0..8 {
             let mut bel = LegacyBel::default();
             for (pin, wire) in [
@@ -56,17 +56,12 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             add_output(&mut bel, "O", 0, &[defs::wires::OUT_LC[i]]);
             tcls.bels.insert(bels::LC[i], BelInfo::Legacy(bel));
         }
-        db.tile_classes.insert(kind.tile_class_plb().into(), tcls);
-    }
-    if kind != ChipKind::Ice40P03 {
-        let tcls = TileClass::new(tslots::MAIN, 1);
-        db.tile_classes.insert("INT_BRAM".into(), tcls);
     }
     for dir in Dir::DIRS {
-        let Some(tile) = kind.tile_class_ioi(dir) else {
+        let Some(tcid) = kind.tile_class_ioi(dir) else {
             continue;
         };
-        let mut tcls = TileClass::new(tslots::MAIN, 1);
+        let tcls = &mut db.tile_classes[tcid];
         for i in 0..2 {
             let mut bel = LegacyBel::default();
             for (pin, wire) in [
@@ -94,19 +89,13 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
                     defs::wires::OUT_LC[i * 2 + 5],
                 ],
             );
-            tcls.bels.insert(bels::IO[i], BelInfo::Legacy(bel));
+            tcls.bels.insert(bels::IOI[i], BelInfo::Legacy(bel));
         }
-        db.tile_classes.insert(tile.into(), tcls);
-        let Some(tile) = kind.tile_class_iob(dir) else {
-            continue;
-        };
-        let tcls = TileClass::new(tslots::IOB, 1);
-        db.tile_classes.insert(tile.into(), tcls);
     }
 
     if kind != ChipKind::Ice40P03 {
         let ice40_bramv2 = kind.has_ice40_bramv2();
-        let mut tcls = TileClass::new(tslots::BEL, 2);
+        let tcls = &mut db.tile_classes[kind.tile_class_bram()];
         let mut bel = LegacyBel::default();
         let (tile_w, tile_r) = if ice40_bramv2 { (1, 0) } else { (0, 1) };
         add_input(&mut bel, "WCLK", tile_w, defs::wires::IMUX_CLK_OPTINV);
@@ -151,41 +140,29 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
             );
         }
         tcls.bels.insert(bels::BRAM, BelInfo::Legacy(bel));
-        db.tile_classes.insert(kind.tile_class_bram().into(), tcls);
-    }
-
-    if let Some(tcname) = kind.tile_class_colbuf() {
-        for tcname in [tcname, "COLBUF_IO_W", "COLBUF_IO_E"] {
-            let tcls = TileClass::new(tslots::COLBUF, 1);
-            db.tile_classes.insert(tcname.into(), tcls);
-        }
     }
 
     {
-        let mut tcls = TileClass::new(tslots::BEL, 1);
+        let tcls = &mut db.tile_classes[defs::tcls::IO_LATCH];
         let mut bel = LegacyBel::default();
         add_input(&mut bel, "LATCH", 0, defs::wires::IMUX_IO_EXTRA);
         tcls.bels.insert(bels::IO_LATCH, BelInfo::Legacy(bel));
-        db.tile_classes.insert("IO_LATCH".into(), tcls);
     }
 
     {
-        let mut tcls = TileClass::new(tslots::BEL, 1);
+        let tcls = &mut db.tile_classes[defs::tcls::GB_FABRIC];
         let mut bel = LegacyBel::default();
         add_input(&mut bel, "I", 0, defs::wires::IMUX_IO_EXTRA);
         tcls.bels.insert(bels::GB_FABRIC, BelInfo::Legacy(bel));
-        db.tile_classes.insert("GB_FABRIC".into(), tcls);
     }
 
     {
-        let mut tcls = TileClass::new(tslots::GB_ROOT, 1);
+        let tcls = &mut db.tile_classes[kind.tile_class_gb_root()];
         let mut bel = LegacyBel::default();
         for i in 0..8 {
             add_output(&mut bel, &format!("O{i}"), 0, &[defs::wires::GLOBAL[i]]);
         }
         tcls.bels.insert(bels::GB_ROOT, BelInfo::Legacy(bel));
-        db.tile_classes
-            .insert(kind.tile_class_gb_root().into(), tcls);
     }
 
     db

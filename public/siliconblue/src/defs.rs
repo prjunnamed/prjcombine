@@ -85,88 +85,221 @@ target_defs! {
     wire OUT_LC_WN[8]: branch S;
     wire OUT_LC_WS[8]: branch N;
 
+    bitrect PLB = horizontal (16, 54);
+    bitrect BRAM = horizontal (16, 42);
+    bitrect IOI_WE = horizontal (16, 18);
+    bitrect CLK = horizontal (16, 2);
+    bitrect BRAM_DATA = horizontal (256, 16);
+
     // Main interconnect, LCs, IOIs.
     tile_slot MAIN {
         // The main interconnect switchbox.
         bel_slot INT: routing;
 
         bel_slot LC[8]: legacy;
+        tile_class PLB_L04, PLB_L08, PLB_P01 {
+            cell CELL;
+            bitrect MAIN: PLB;
 
-        bel_slot IO[2]: legacy;
+            switchbox INT {
+                // filled by harvester
+            }
+        }
+
+        // Two `INT_BRAM` tiles for every `BRAM` tile.
+        tile_class INT_BRAM {
+            cell CELL;
+            bitrect MAIN: BRAM;
+
+            switchbox INT {
+                // filled by harvester
+            }
+        }
+
+        bel_slot IOI[2]: legacy;
+        tile_class IOI_W_L04, IOI_E_L04, IOI_W_L08, IOI_E_L08, IOI_S_L04, IOI_N_L04, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04 {
+            cell CELL;
+            if tile_class [IOI_W_L04, IOI_E_L04, IOI_W_L08, IOI_E_L08] {
+                bitrect MAIN: IOI_WE;
+            } else {
+                bitrect MAIN: BRAM;
+            }
+
+            switchbox INT {
+                // filled by harvester
+            }
+        }
     }
 
     // Global wire column buffers.
     tile_slot COLBUF {
         bel_slot COLBUF: routing;
+        tile_class COLBUF_L01, COLBUF_P08, COLBUF_IO_W, COLBUF_IO_E {
+            cell CELL;
+            if tile_class [COLBUF_IO_W, COLBUF_IO_E] {
+                bitrect MAIN: IOI_WE;
+            } else {
+                bitrect MAIN: BRAM;
+            }
+        }
     }
 
     // Global wire root muxes.
     tile_slot GB_ROOT {
         bel_slot GB_ROOT: routing;
+        tile_class GB_ROOT_L04, GB_ROOT_L08 {
+            cell CELL;
+            bitrect CLK[2]: CLK;
+        }
     }
 
     // Used for most bels.
     tile_slot BEL {
-        bel_slot IO_LATCH: legacy;
+        bel_slot IO_LATCH: routing;
+        tile_class IO_LATCH {
+            cell CELL;
+        }
+
         bel_slot GB_FABRIC: legacy;
+        tile_class GB_FABRIC {
+            cell CELL;
+        }
 
         bel_slot BRAM: legacy;
+        tile_class BRAM_L04, BRAM_P01, BRAM_P08 {
+            cell CELL[2];
+            bitrect MAIN[2]: BRAM;
+            bitrect DATA: BRAM_DATA;
+        }
 
         bel_slot MAC16: legacy;
+        tile_class MAC16, MAC16_TRIM {
+            cell CELL[5];
+            bitrect MAIN[5]: PLB;
+        }
 
         bel_slot SPRAM[2]: legacy;
+        tile_class SPRAM {
+            cell CELL[4];
+            bitrect MAIN[4]: PLB;
+        }
 
         bel_slot PLL: legacy;
+        tile_class PLL_S_P04 {
+            // cells filled by harvester
+            bitrect CLK[2]: CLK;
+        }
+        tile_class
+            PLL_S_P01,
+            PLL_S_P08, PLL_N_P08,
+            PLL_S_R04, PLL_N_R04,
+            PLL_S_T01
+        {
+            // filled by harvester
+        }
 
         bel_slot SPI: legacy;
+        tile_class SPI_R04, SPI_T04, SPI_T05 {
+            // filled by harvester
+        }
 
         bel_slot I2C: legacy;
+        tile_class I2C_R04, I2C_T04 {
+            // filled by harvester
+        }
 
         bel_slot I2C_FIFO: legacy;
+        tile_class I2C_FIFO {
+            // filled by harvester
+        }
 
         bel_slot IOB_I3C[2]: legacy;
         bel_slot FILTER[2]: legacy;
+        tile_class I3C {
+            // fileld by harvester
+        }
     }
 
     tile_slot WARMBOOT {
         bel_slot WARMBOOT: legacy;
+        tile_class WARMBOOT, WARMBOOT_T01;
     }
 
     tile_slot OSC {
         bel_slot LSOSC: legacy;
+        tile_class LSOSC;
+
         bel_slot HSOSC: legacy;
+        tile_class HSOSC;
+
         bel_slot HFOSC: legacy;
+        tile_class HFOSC_T04, HFOSC_T01;
+
         bel_slot LFOSC: legacy;
+        tile_class LFOSC_T04, LFOSC_T01;
     }
 
     tile_slot LED_IP {
         bel_slot LEDD_IP: legacy;
+        tile_class LEDD_IP_T04, LEDD_IP_T01, LEDD_IP_T05;
+
         bel_slot IR_IP: legacy;
+        tile_class IR_IP;
     }
 
     tile_slot LED_DRV {
         bel_slot RGB_DRV: legacy;
+        tile_class RGB_DRV_T04, RGB_DRV_T01, RGB_DRV_T05;
+
         bel_slot IR_DRV: legacy;
+        tile_class IR_DRV;
+
         bel_slot IR400_DRV: legacy;
         bel_slot BARCODE_DRV: legacy;
+        tile_class IR500_DRV;
     }
 
     tile_slot LED_DRV_CUR {
         bel_slot LED_DRV_CUR: legacy;
+        tile_class LED_DRV_CUR_T04, LED_DRV_CUR_T05, LED_DRV_CUR_T01;
     }
 
     tile_slot SMCCLK {
         bel_slot SMCCLK: legacy;
+        tile_class SMCCLK_T04, SMCCLK_T05, SMCCLK_T01;
     }
 
     tile_slot PLL_STUB {
+        tile_class PLL_STUB_S;
     }
 
     tile_slot TRIM {
+        tile_class TRIM_T04, TRIM_T01 {
+            // filled by harvester
+        }
     }
 
     // The I/O buffers.
     tile_slot IOB {
+        tile_class
+            IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04,
+            IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04,
+            IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08,
+            IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01,
+            IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01,
+            IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08,
+            IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03,
+            IOB_S_R04, IOB_N_R04,
+            IOB_S_T04, IOB_N_T04,
+            IOB_S_T05, IOB_N_T05,
+            IOB_S_T01, IOB_N_T01 {
+            cell CELL;
+            if tile_class ["IOB_W_*", "IOB_E_*"] {
+                bitrect MAIN: IOI_WE;
+            } else {
+                bitrect MAIN: BRAM;
+            }
+        }
     }
 
     connector_slot W {

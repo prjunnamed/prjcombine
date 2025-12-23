@@ -4,12 +4,12 @@ use bincode::{Decode, Encode};
 use jzon::JsonValue;
 use prjcombine_entity::{EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::{
-    db::CellSlotId,
+    db::{CellSlotId, TileClassId},
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 
-use crate::defs::bslots as bels;
+use crate::defs::{self, bslots as bels};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub enum ChipKind {
@@ -103,11 +103,11 @@ impl ChipKind {
         matches!(self, Self::Ice65L04 | Self::Ice65P04 | Self::Ice65L08)
     }
 
-    pub fn tile_class_colbuf(self) -> Option<&'static str> {
+    pub fn tile_class_colbuf(self) -> Option<TileClassId> {
         match self {
             Self::Ice65L04 | Self::Ice65P04 | Self::Ice65L08 | Self::Ice40P03 => None,
-            Self::Ice65L01 | Self::Ice40P01 => Some("COLBUF_L01"),
-            _ => Some("COLBUF_P08"),
+            Self::Ice65L01 | Self::Ice40P01 => Some(defs::tcls::COLBUF_L01),
+            _ => Some(defs::tcls::COLBUF_P08),
         }
     }
 
@@ -119,10 +119,10 @@ impl ChipKind {
         matches!(self, Self::Ice40T01 | Self::Ice40T05)
     }
 
-    pub fn tile_class_plb(self) -> &'static str {
+    pub fn tile_class_plb(self) -> TileClassId {
         match self {
-            ChipKind::Ice65L04 | ChipKind::Ice65P04 => "PLB_L04",
-            ChipKind::Ice65L08 | ChipKind::Ice65L01 => "PLB_L08",
+            ChipKind::Ice65L04 | ChipKind::Ice65P04 => defs::tcls::PLB_L04,
+            ChipKind::Ice65L08 | ChipKind::Ice65L01 => defs::tcls::PLB_L08,
             ChipKind::Ice40P01
             | ChipKind::Ice40P08
             | ChipKind::Ice40P03
@@ -131,23 +131,23 @@ impl ChipKind {
             | ChipKind::Ice40R04
             | ChipKind::Ice40T04
             | ChipKind::Ice40T05
-            | ChipKind::Ice40T01 => "PLB_P01",
+            | ChipKind::Ice40T01 => defs::tcls::PLB_P01,
         }
     }
 
-    pub fn tile_class_gb_root(self) -> &'static str {
+    pub fn tile_class_gb_root(self) -> TileClassId {
         match self {
-            ChipKind::Ice65L04 | ChipKind::Ice65P04 => "GB_ROOT_L04",
-            _ => "GB_ROOT_L08",
+            ChipKind::Ice65L04 | ChipKind::Ice65P04 => defs::tcls::GB_ROOT_L04,
+            _ => defs::tcls::GB_ROOT_L08,
         }
     }
 
-    pub fn tile_class_bram(self) -> &'static str {
+    pub fn tile_class_bram(self) -> TileClassId {
         match self {
             ChipKind::Ice65L04 | ChipKind::Ice65P04 | ChipKind::Ice65L08 | ChipKind::Ice65L01 => {
-                "BRAM_L04"
+                defs::tcls::BRAM_L04
             }
-            ChipKind::Ice40P01 => "BRAM_P01",
+            ChipKind::Ice40P01 => defs::tcls::BRAM_P01,
             ChipKind::Ice40P08
             | ChipKind::Ice40P03
             | ChipKind::Ice40M08
@@ -155,17 +155,17 @@ impl ChipKind {
             | ChipKind::Ice40R04
             | ChipKind::Ice40T04
             | ChipKind::Ice40T05
-            | ChipKind::Ice40T01 => "BRAM_P08",
+            | ChipKind::Ice40T01 => defs::tcls::BRAM_P08,
         }
     }
 
-    pub fn tile_class_ioi(self, dir: Dir) -> Option<&'static str> {
+    pub fn tile_class_ioi(self, dir: Dir) -> Option<TileClassId> {
         match self {
             ChipKind::Ice65L04 | ChipKind::Ice65P04 => match dir {
-                Dir::W => Some("IOI_W_L04"),
-                Dir::E => Some("IOI_E_L04"),
-                Dir::S => Some("IOI_S_L04"),
-                Dir::N => Some("IOI_N_L04"),
+                Dir::W => Some(defs::tcls::IOI_W_L04),
+                Dir::E => Some(defs::tcls::IOI_E_L04),
+                Dir::S => Some(defs::tcls::IOI_S_L04),
+                Dir::N => Some(defs::tcls::IOI_N_L04),
             },
             ChipKind::Ice65L08
             | ChipKind::Ice65L01
@@ -175,81 +175,81 @@ impl ChipKind {
             | ChipKind::Ice40M08
             | ChipKind::Ice40M16
             | ChipKind::Ice40R04 => match dir {
-                Dir::W => Some("IOI_W_L08"),
-                Dir::E => Some("IOI_E_L08"),
-                Dir::S => Some("IOI_S_L08"),
-                Dir::N => Some("IOI_N_L08"),
+                Dir::W => Some(defs::tcls::IOI_W_L08),
+                Dir::E => Some(defs::tcls::IOI_E_L08),
+                Dir::S => Some(defs::tcls::IOI_S_L08),
+                Dir::N => Some(defs::tcls::IOI_N_L08),
             },
             ChipKind::Ice40T04 | ChipKind::Ice40T05 | ChipKind::Ice40T01 => match dir {
-                Dir::S => Some("IOI_S_T04"),
-                Dir::N => Some("IOI_N_T04"),
+                Dir::S => Some(defs::tcls::IOI_S_T04),
+                Dir::N => Some(defs::tcls::IOI_N_T04),
                 _ => None,
             },
         }
     }
 
-    pub fn tile_class_iob(self, dir: Dir) -> Option<&'static str> {
+    pub fn tile_class_iob(self, dir: Dir) -> Option<TileClassId> {
         match self {
             ChipKind::Ice65L04 => match dir {
-                Dir::W => Some("IOB_W_L04"),
-                Dir::E => Some("IOB_E_L04"),
-                Dir::S => Some("IOB_S_L04"),
-                Dir::N => Some("IOB_N_L04"),
+                Dir::W => Some(defs::tcls::IOB_W_L04),
+                Dir::E => Some(defs::tcls::IOB_E_L04),
+                Dir::S => Some(defs::tcls::IOB_S_L04),
+                Dir::N => Some(defs::tcls::IOB_N_L04),
             },
             ChipKind::Ice65P04 => match dir {
-                Dir::W => Some("IOB_W_P04"),
-                Dir::E => Some("IOB_E_P04"),
-                Dir::S => Some("IOB_S_P04"),
-                Dir::N => Some("IOB_N_P04"),
+                Dir::W => Some(defs::tcls::IOB_W_P04),
+                Dir::E => Some(defs::tcls::IOB_E_P04),
+                Dir::S => Some(defs::tcls::IOB_S_P04),
+                Dir::N => Some(defs::tcls::IOB_N_P04),
             },
             ChipKind::Ice65L08 => match dir {
-                Dir::W => Some("IOB_W_L08"),
-                Dir::E => Some("IOB_E_L08"),
-                Dir::S => Some("IOB_S_L08"),
-                Dir::N => Some("IOB_N_L08"),
+                Dir::W => Some(defs::tcls::IOB_W_L08),
+                Dir::E => Some(defs::tcls::IOB_E_L08),
+                Dir::S => Some(defs::tcls::IOB_S_L08),
+                Dir::N => Some(defs::tcls::IOB_N_L08),
             },
             ChipKind::Ice65L01 => match dir {
-                Dir::W => Some("IOB_W_L01"),
-                Dir::E => Some("IOB_E_L01"),
-                Dir::S => Some("IOB_S_L01"),
-                Dir::N => Some("IOB_N_L01"),
+                Dir::W => Some(defs::tcls::IOB_W_L01),
+                Dir::E => Some(defs::tcls::IOB_E_L01),
+                Dir::S => Some(defs::tcls::IOB_S_L01),
+                Dir::N => Some(defs::tcls::IOB_N_L01),
             },
             ChipKind::Ice40P01 => match dir {
-                Dir::W => Some("IOB_W_P01"),
-                Dir::E => Some("IOB_E_P01"),
-                Dir::S => Some("IOB_S_P01"),
-                Dir::N => Some("IOB_N_P01"),
+                Dir::W => Some(defs::tcls::IOB_W_P01),
+                Dir::E => Some(defs::tcls::IOB_E_P01),
+                Dir::S => Some(defs::tcls::IOB_S_P01),
+                Dir::N => Some(defs::tcls::IOB_N_P01),
             },
             ChipKind::Ice40P08 | ChipKind::Ice40M08 | ChipKind::Ice40M16 => match dir {
-                Dir::W => Some("IOB_W_P08"),
-                Dir::E => Some("IOB_E_P08"),
-                Dir::S => Some("IOB_S_P08"),
-                Dir::N => Some("IOB_N_P08"),
+                Dir::W => Some(defs::tcls::IOB_W_P08),
+                Dir::E => Some(defs::tcls::IOB_E_P08),
+                Dir::S => Some(defs::tcls::IOB_S_P08),
+                Dir::N => Some(defs::tcls::IOB_N_P08),
             },
             ChipKind::Ice40P03 => match dir {
-                Dir::W => Some("IOB_W_P03"),
-                Dir::E => Some("IOB_E_P03"),
-                Dir::S => Some("IOB_S_P03"),
-                Dir::N => Some("IOB_N_P03"),
+                Dir::W => Some(defs::tcls::IOB_W_P03),
+                Dir::E => Some(defs::tcls::IOB_E_P03),
+                Dir::S => Some(defs::tcls::IOB_S_P03),
+                Dir::N => Some(defs::tcls::IOB_N_P03),
             },
             ChipKind::Ice40R04 => match dir {
-                Dir::S => Some("IOB_S_R04"),
-                Dir::N => Some("IOB_N_R04"),
+                Dir::S => Some(defs::tcls::IOB_S_R04),
+                Dir::N => Some(defs::tcls::IOB_N_R04),
                 _ => None,
             },
             ChipKind::Ice40T04 => match dir {
-                Dir::S => Some("IOB_S_T04"),
-                Dir::N => Some("IOB_N_T04"),
+                Dir::S => Some(defs::tcls::IOB_S_T04),
+                Dir::N => Some(defs::tcls::IOB_N_T04),
                 _ => None,
             },
             ChipKind::Ice40T05 => match dir {
-                Dir::S => Some("IOB_S_T05"),
-                Dir::N => Some("IOB_N_T05"),
+                Dir::S => Some(defs::tcls::IOB_S_T05),
+                Dir::N => Some(defs::tcls::IOB_N_T05),
                 _ => None,
             },
             ChipKind::Ice40T01 => match dir {
-                Dir::S => Some("IOB_S_T01"),
-                Dir::N => Some("IOB_N_T01"),
+                Dir::S => Some(defs::tcls::IOB_S_T01),
+                Dir::N => Some(defs::tcls::IOB_N_T01),
                 _ => None,
             },
         }
@@ -335,93 +335,89 @@ pub enum SpecialTileKey {
 }
 
 impl SpecialTileKey {
-    pub fn tile_class(self, kind: ChipKind) -> String {
+    pub fn tile_class(self, kind: ChipKind) -> TileClassId {
         match self {
-            SpecialTileKey::GbFabric(_) => "GB_FABRIC".to_string(),
-            SpecialTileKey::LatchIo(_) => "IO_LATCH".to_string(),
-            SpecialTileKey::I3c => "I3C".to_string(),
+            SpecialTileKey::GbFabric(_) => defs::tcls::GB_FABRIC,
+            SpecialTileKey::LatchIo(_) => defs::tcls::IO_LATCH,
+            SpecialTileKey::I3c => defs::tcls::I3C,
             SpecialTileKey::Pll(dir) => match (dir, kind) {
-                (DirV::S, ChipKind::Ice65P04) => "PLL_S_P04",
-                (DirV::S, ChipKind::Ice40P01) => "PLL_S_P01",
-                (DirV::S, ChipKind::Ice40P08) => "PLL_S_P08",
-                (DirV::N, ChipKind::Ice40P08) => "PLL_N_P08",
-                (DirV::S, ChipKind::Ice40R04) => "PLL_S_R04",
+                (DirV::S, ChipKind::Ice65P04) => defs::tcls::PLL_S_P04,
+                (DirV::S, ChipKind::Ice40P01) => defs::tcls::PLL_S_P01,
+                (DirV::S, ChipKind::Ice40P08) => defs::tcls::PLL_S_P08,
+                (DirV::N, ChipKind::Ice40P08) => defs::tcls::PLL_N_P08,
+                (DirV::S, ChipKind::Ice40R04) => defs::tcls::PLL_S_R04,
                 (DirV::N, ChipKind::Ice40R04 | ChipKind::Ice40T04 | ChipKind::Ice40T05) => {
-                    "PLL_N_R04"
+                    defs::tcls::PLL_N_R04
                 }
-                (DirV::S, ChipKind::Ice40T01) => "PLL_S_T01",
+                (DirV::S, ChipKind::Ice40T01) => defs::tcls::PLL_S_T01,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::Spi(..) => match kind {
-                ChipKind::Ice40R04 => "SPI_R04",
-                ChipKind::Ice40T04 => "SPI_T04",
-                ChipKind::Ice40T05 => "SPI_T05",
+                ChipKind::Ice40R04 => defs::tcls::SPI_R04,
+                ChipKind::Ice40T04 => defs::tcls::SPI_T04,
+                ChipKind::Ice40T05 => defs::tcls::SPI_T05,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::I2c(..) => match kind {
-                ChipKind::Ice40R04 => "I2C_R04",
-                ChipKind::Ice40T04 | ChipKind::Ice40T05 => "I2C_T04",
+                ChipKind::Ice40R04 => defs::tcls::I2C_R04,
+                ChipKind::Ice40T04 | ChipKind::Ice40T05 => defs::tcls::I2C_T04,
                 _ => unreachable!(),
-            }
-            .into(),
-            SpecialTileKey::I2cFifo(..) => "I2C_FIFO".into(),
-            SpecialTileKey::Mac16(..) => "MAC16".to_string(),
-            SpecialTileKey::Mac16Trim(..) => "MAC16_TRIM".to_string(),
-            SpecialTileKey::SpramPair(_) => "SPRAM".to_string(),
+            },
+            SpecialTileKey::I2cFifo(..) => defs::tcls::I2C_FIFO,
+            SpecialTileKey::Mac16(..) => defs::tcls::MAC16,
+            SpecialTileKey::Mac16Trim(..) => defs::tcls::MAC16_TRIM,
+            SpecialTileKey::SpramPair(_) => defs::tcls::SPRAM,
             SpecialTileKey::Warmboot => match kind {
-                ChipKind::Ice40T01 => "WARMBOOT_T01",
-                _ => "WARMBOOT",
-            }
-            .into(),
+                ChipKind::Ice40T01 => defs::tcls::WARMBOOT_T01,
+                _ => defs::tcls::WARMBOOT,
+            },
             SpecialTileKey::SmcClk => match kind {
-                ChipKind::Ice40T04 => "SMCCLK_T04",
-                ChipKind::Ice40T05 => "SMCCLK_T05",
-                ChipKind::Ice40T01 => "SMCCLK_T01",
+                ChipKind::Ice40T04 => defs::tcls::SMCCLK_T04,
+                ChipKind::Ice40T05 => defs::tcls::SMCCLK_T05,
+                ChipKind::Ice40T01 => defs::tcls::SMCCLK_T01,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::LeddIp => match kind {
-                ChipKind::Ice40T04 => "LEDD_IP_T04",
-                ChipKind::Ice40T05 => "LEDD_IP_T05",
-                ChipKind::Ice40T01 => "LEDD_IP_T01",
+                ChipKind::Ice40T04 => defs::tcls::LEDD_IP_T04,
+                ChipKind::Ice40T05 => defs::tcls::LEDD_IP_T05,
+                ChipKind::Ice40T01 => defs::tcls::LEDD_IP_T01,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::LfOsc => match kind {
-                ChipKind::Ice40T04 | ChipKind::Ice40T05 => "LFOSC_T04",
-                ChipKind::Ice40T01 => "LFOSC_T01",
+                ChipKind::Ice40T04 | ChipKind::Ice40T05 => defs::tcls::LFOSC_T04,
+                ChipKind::Ice40T01 => defs::tcls::LFOSC_T01,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::HfOsc => match kind {
-                ChipKind::Ice40T04 | ChipKind::Ice40T05 => "HFOSC_T04",
-                ChipKind::Ice40T01 => "HFOSC_T01",
+                ChipKind::Ice40T04 | ChipKind::Ice40T05 => defs::tcls::HFOSC_T04,
+                ChipKind::Ice40T01 => defs::tcls::HFOSC_T01,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::Trim => match kind {
-                ChipKind::Ice40T04 | ChipKind::Ice40T05 => "TRIM_T04",
-                ChipKind::Ice40T01 => "TRIM_T01",
+                ChipKind::Ice40T04 | ChipKind::Ice40T05 => defs::tcls::TRIM_T04,
+                ChipKind::Ice40T01 => defs::tcls::TRIM_T01,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::LedDrvCur => match kind {
-                ChipKind::Ice40T04 => "LED_DRV_CUR_T04",
-                ChipKind::Ice40T05 => "LED_DRV_CUR_T05",
-                ChipKind::Ice40T01 => "LED_DRV_CUR_T01",
+                ChipKind::Ice40T04 => defs::tcls::LED_DRV_CUR_T04,
+                ChipKind::Ice40T05 => defs::tcls::LED_DRV_CUR_T05,
+                ChipKind::Ice40T01 => defs::tcls::LED_DRV_CUR_T01,
                 _ => unreachable!(),
-            }
-            .into(),
+            },
             SpecialTileKey::RgbDrv => match kind {
-                ChipKind::Ice40T04 => "RGB_DRV_T04",
-                ChipKind::Ice40T05 => "RGB_DRV_T05",
-                ChipKind::Ice40T01 => "RGB_DRV_T01",
+                ChipKind::Ice40T04 => defs::tcls::RGB_DRV_T04,
+                ChipKind::Ice40T05 => defs::tcls::RGB_DRV_T05,
+                ChipKind::Ice40T01 => defs::tcls::RGB_DRV_T01,
                 _ => unreachable!(),
-            }
-            .into(),
-            _ => self.to_string(),
+            },
+            SpecialTileKey::GbIo(_) => unreachable!(),
+            SpecialTileKey::PllStub(DirV::S) => defs::tcls::PLL_STUB_S,
+            SpecialTileKey::PllStub(_) => unreachable!(),
+            SpecialTileKey::LsOsc => defs::tcls::LSOSC,
+            SpecialTileKey::HsOsc => defs::tcls::HSOSC,
+            SpecialTileKey::IrDrv => defs::tcls::IR_DRV,
+            SpecialTileKey::Ir500Drv => defs::tcls::IR500_DRV,
+            SpecialTileKey::IrIp => defs::tcls::IR_IP,
         }
     }
 }
@@ -572,12 +568,12 @@ impl Chip {
             EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
             EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
-        let slot = bels::IO[iob.to_idx()];
+        let slot = bels::IOI[iob.to_idx()];
         CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap());
+        let iob = TileIobId::from_idx(bels::IOI.iter().position(|&x| x == bel.slot).unwrap());
         if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, iob)
         } else if bel.col == self.col_e() {

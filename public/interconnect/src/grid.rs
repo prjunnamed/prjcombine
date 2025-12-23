@@ -830,8 +830,12 @@ impl ExpandedGrid<'_> {
         res
     }
 
-    pub fn add_tile(&mut self, anchor: CellCoord, kind: &str, cells: &[CellCoord]) -> &mut Tile {
-        let tcid = self.db.get_tile_class(kind);
+    pub fn add_tile_id(
+        &mut self,
+        anchor: CellCoord,
+        tcid: TileClassId,
+        cells: &[CellCoord],
+    ) -> &mut Tile {
         let tcls = &self.db[tcid];
         let tcrd = anchor.tile(tcls.slot);
         let cells: EntityVec<_, _> = cells.iter().copied().collect();
@@ -851,12 +855,24 @@ impl ExpandedGrid<'_> {
         &mut self[anchor].tiles[slot]
     }
 
+    pub fn add_tile(&mut self, anchor: CellCoord, kind: &str, cells: &[CellCoord]) -> &mut Tile {
+        self.add_tile_id(anchor, self.db.get_tile_class(kind), cells)
+    }
+
+    pub fn add_tile_single_id(&mut self, cell: CellCoord, tcid: TileClassId) -> &mut Tile {
+        self.add_tile_id(cell, tcid, &[cell])
+    }
+
     pub fn add_tile_single(&mut self, cell: CellCoord, kind: &str) -> &mut Tile {
         self.add_tile(cell, kind, &[cell])
     }
 
     pub fn add_tile_e(&mut self, cell: CellCoord, kind: &str, num: usize) -> &mut Tile {
         self.add_tile(cell, kind, &cell.cells_e(num))
+    }
+
+    pub fn add_tile_n_id(&mut self, cell: CellCoord, tcid: TileClassId, num: usize) -> &mut Tile {
+        self.add_tile_id(cell, tcid, &cell.cells_n(num))
     }
 
     pub fn add_tile_n(&mut self, cell: CellCoord, kind: &str, num: usize) -> &mut Tile {
@@ -883,9 +899,13 @@ impl ExpandedGrid<'_> {
         self.add_tile(cell, kind, &cell.delta(0, -(num_s as i32)).cells_n(num))
     }
 
-    pub fn fill_conn_pair(&mut self, a: CellCoord, b: CellCoord, fwd: &str, bwd: &str) {
-        let fwd = self.db.get_conn_class(fwd);
-        let bwd = self.db.get_conn_class(bwd);
+    pub fn fill_conn_pair_id(
+        &mut self,
+        a: CellCoord,
+        b: CellCoord,
+        fwd: ConnectorClassId,
+        bwd: ConnectorClassId,
+    ) {
         let this = &mut *self;
         let fwd = Connector {
             target: Some(b),
@@ -901,6 +921,12 @@ impl ExpandedGrid<'_> {
         let bwd_slot = this.db[bwd.class].slot;
         this[a].conns.insert(fwd_slot, fwd);
         this[b].conns.insert(bwd_slot, bwd);
+    }
+
+    pub fn fill_conn_pair(&mut self, a: CellCoord, b: CellCoord, fwd: &str, bwd: &str) {
+        let fwd = self.db.get_conn_class(fwd);
+        let bwd = self.db.get_conn_class(bwd);
+        self.fill_conn_pair_id(a, b, fwd, bwd);
     }
 
     pub fn fill_conn_term(&mut self, xy: CellCoord, kind: &str) {

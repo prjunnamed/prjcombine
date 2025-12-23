@@ -53,8 +53,9 @@ pub fn collect_iob(
                 }));
                 let edge = anchor.edge();
                 let iob = anchor.iob();
-                let tile = edev.chip.kind.tile_class_iob(edge).unwrap();
-                harvester.force_tiled(format!("{tile}:IOB{iob:#}:{attrval}"), bits);
+                let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
+                let tcls = edev.db.tile_classes.key(tcid);
+                harvester.force_tiled(format!("{tcls}:IOB{iob:#}:{attrval}"), bits);
             }
         }
         let mut res = BTreeMap::new();
@@ -84,8 +85,9 @@ pub fn collect_iob(
                 };
                 for iob in 0..2 {
                     let iob = TileIobId::from_idx(iob);
-                    let tile = edev.chip.kind.tile_class_iob(edge).unwrap();
-                    if harvester.known_tiled[&format!("{tile}:IOB{iob:#}:{attrval}")] == bits {
+                    let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
+                    let tcls = edev.db.tile_classes.key(tcid);
+                    if harvester.known_tiled[&format!("{tcls}:IOB{iob:#}:{attrval}")] == bits {
                         let loc = match edge {
                             Dir::W => {
                                 assert_eq!(col, edev.chip.col_w());
@@ -204,7 +206,7 @@ pub fn collect(
                     let mux_name = format!("MUX.{wtn}");
                     let mut values = vec![];
                     let mut diffs = vec![];
-                    if tile == edev.chip.kind.tile_class_plb()
+                    if tcid == edev.chip.kind.tile_class_plb()
                         && defs::wires::IMUX_LC_I3.contains(mux.dst.wire)
                     {
                         values.push("CI");
@@ -268,9 +270,10 @@ pub fn collect(
             }
         }
     }
-    if let Some(tcls) = edev.chip.kind.tile_class_colbuf() {
+    if let Some(tcid) = edev.chip.kind.tile_class_colbuf() {
+        let tile = edev.db.tile_classes.key(tcid);
         for i in 0..8 {
-            collector.collect_bit(tcls, "COLBUF", &format!("GLOBAL.{i}"), "");
+            collector.collect_bit(tile, "COLBUF", &format!("GLOBAL.{i}"), "");
             if edev.chip.kind.has_ioi_we() {
                 collector.collect_bit("COLBUF_IO_W", "COLBUF", &format!("GLOBAL.{i}"), "");
                 collector.collect_bit("COLBUF_IO_E", "COLBUF", &format!("GLOBAL.{i}"), "");
@@ -278,7 +281,8 @@ pub fn collect(
         }
     }
     for lc in 0..8 {
-        let tile = edev.chip.kind.tile_class_plb();
+        let tcid = edev.chip.kind.tile_class_plb();
+        let tile = edev.db.tile_classes.key(tcid);
         let bel = &format!("LC{lc}");
         if edev.chip.kind.is_ice40() {
             collector.collect_enum_default(tile, bel, "MUX.I2", &["LTIN"], "INT");
@@ -293,7 +297,8 @@ pub fn collect(
         }
     }
     if !edev.chip.cols_bram.is_empty() {
-        let tile = edev.chip.kind.tile_class_bram();
+        let tcid = edev.chip.kind.tile_class_bram();
+        let tile = edev.db.tile_classes.key(tcid);
         let bel = "BRAM";
         let mut item = collector.extract_bitvec("BRAM_DATA", "BRAM", "INIT", "");
         for bit in &mut item.bits {
@@ -312,9 +317,10 @@ pub fn collect(
         }
     }
     for edge in Dir::DIRS {
-        let Some(tile) = edev.chip.kind.tile_class_ioi(edge) else {
+        let Some(tcid) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
         };
+        let tile = edev.db.tile_classes.key(tcid);
         collector.collect_bit(tile, "INT", "INV.IMUX_IO_ICLK_OPTINV", "");
         collector.collect_bit(tile, "INT", "INV.IMUX_IO_OCLK_OPTINV", "");
         for io in 0..2 {
@@ -324,9 +330,10 @@ pub fn collect(
                 collector.collect_bit(tile, bel, "OUTPUT_ENABLE", "");
             }
         }
-        let Some(tile) = edev.chip.kind.tile_class_iob(edge) else {
+        let Some(tcid) = edev.chip.kind.tile_class_iob(edge) else {
             continue;
         };
+        let tile = edev.db.tile_classes.key(tcid);
         for iob in 0..2 {
             let bel = &format!("IOB{iob}");
             if edev.chip.kind.is_ice40() || (edev.chip.kind.has_vref() && edge == Dir::W) {
@@ -496,7 +503,8 @@ pub fn collect(
     for side in [DirV::S, DirV::N] {
         let key = SpecialTileKey::Pll(side);
         if edev.chip.special_tiles.contains_key(&key) {
-            let tile = &key.tile_class(edev.chip.kind);
+            let tcid = key.tile_class(edev.chip.kind);
+            let tile = edev.db.tile_classes.key(tcid);
             let bel = "PLL";
             if edev.chip.kind.is_ice65() {
                 for (attr, vals, default) in [
@@ -606,8 +614,9 @@ pub fn collect(
             }
         }
         let key = SpecialTileKey::PllStub(side);
-        let tile = &key.tile_class(edev.chip.kind);
         if edev.chip.special_tiles.contains_key(&key) {
+            let tcid = key.tile_class(edev.chip.kind);
+            let tile = edev.db.tile_classes.key(tcid);
             let bel = "PLL";
             for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
                 collector.collect_bitvec(tile, bel, attr, "");
@@ -616,7 +625,8 @@ pub fn collect(
     }
 
     if edev.chip.kind.is_ultra() {
-        let tile = &SpecialTileKey::Trim.tile_class(edev.chip.kind);
+        let tcid = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+        let tile = edev.db.tile_classes.key(tcid);
         let bel = "LFOSC";
         collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
         let bel = "HFOSC";
@@ -628,7 +638,8 @@ pub fn collect(
             let tile = "LED_DRV_CUR_T04";
             let bel = "LED_DRV_CUR";
             collector.collect_bit(tile, bel, "ENABLE", "");
-            let tile = &SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+            let tcid = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+            let tile = edev.db.tile_classes.key(tcid);
             let bel = "RGB_DRV";
             collector.collect_bit(tile, bel, "ENABLE", "");
             for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
@@ -643,7 +654,8 @@ pub fn collect(
                 .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
             collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
         } else {
-            let tile = &SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+            let tcid = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+            let tile = edev.db.tile_classes.key(tcid);
             let bel = "RGB_DRV";
             collector.collect_bit(tile, bel, "ENABLE", "");
             collector.collect_bit(tile, bel, "CURRENT_MODE", "");
@@ -709,7 +721,8 @@ pub fn collect(
     }
 
     {
-        let tile = edev.chip.kind.tile_class_gb_root();
+        let tcid = edev.chip.kind.tile_class_gb_root();
+        let tile = edev.db.tile_classes.key(tcid);
         let bel = "GB_ROOT";
         for i in 0..8 {
             collector.collect_enum_default(

@@ -1008,7 +1008,7 @@ pub fn find_bel_pins(
         for col in edev.chip.columns() {
             for row in edev.chip.rows() {
                 let cell = CellCoord::new(DieId::from_idx(0), col, row);
-                let tile_kind = if row == edev.chip.row_s() {
+                let tcid = if row == edev.chip.row_s() {
                     if col == edev.chip.col_w() || col == edev.chip.col_e() {
                         continue;
                     }
@@ -1023,10 +1023,11 @@ pub fn find_bel_pins(
                 } else if col == edev.chip.col_e() && edev.chip.kind.has_ioi_we() {
                     ChipKind::Ice40P01.tile_class_ioi(Dir::E).unwrap()
                 } else if edev.chip.cols_bram.contains(&col) {
-                    "INT_BRAM"
+                    defs::tcls::INT_BRAM
                 } else {
                     ChipKind::Ice40P01.tile_class_plb()
                 };
+                let tile_kind = edev.db.tile_classes.key(tcid);
                 let tile = &tiledb.tiles[tile_kind];
                 let btile = edev.btile_main(col, row);
                 for (name, item) in &tile.items {

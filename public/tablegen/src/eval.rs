@@ -101,8 +101,8 @@ impl Context {
 
     fn eval_index(&self, index: &ast::Index) -> Result<usize> {
         match index {
-            ast::Index::Ident(ident) => match self.for_vars.get(&ident.to_string()) {
-                Some(&n) => Ok(n),
+            ast::Index::Ident(ident, offset) => match self.for_vars.get(&ident.to_string()) {
+                Some(&n) => Ok(n + offset),
                 None => error_at(ident.span(), "undefined variable")?,
             },
             ast::Index::Literal(n) => Ok(*n),

@@ -21,37 +21,11 @@ use crate::{
     xlat::{GenericNet, xlat_mux_in, xlat_wire},
 };
 
-fn get_main_tile_kind(edev: &ExpandedDevice, col: ColId, row: RowId) -> &'static str {
-    if row == edev.chip.row_s() {
-        if col == edev.chip.col_w() || col == edev.chip.col_e() {
-            "CNR"
-        } else {
-            edev.chip.kind.tile_class_ioi(Dir::S).unwrap()
-        }
-    } else if row == edev.chip.row_n() {
-        if col == edev.chip.col_w() || col == edev.chip.col_e() {
-            "CNR"
-        } else {
-            edev.chip.kind.tile_class_ioi(Dir::N).unwrap()
-        }
-    } else {
-        if edev.chip.kind.has_ioi_we() && col == edev.chip.col_w() {
-            edev.chip.kind.tile_class_ioi(Dir::W).unwrap()
-        } else if edev.chip.kind.has_ioi_we() && col == edev.chip.col_e() {
-            edev.chip.kind.tile_class_ioi(Dir::E).unwrap()
-        } else if edev.chip.cols_bram.contains(&col) {
-            "INT_BRAM"
-        } else {
-            edev.chip.kind.tile_class_plb()
-        }
-    }
-}
-
-fn get_colbuf_tile_kind(edev: &ExpandedDevice, col: ColId) -> &'static str {
+fn get_colbuf_tile_kind(edev: &ExpandedDevice, col: ColId) -> TileClassId {
     if edev.chip.kind.has_ioi_we() && col == edev.chip.col_w() {
-        "COLBUF_IO_W"
+        defs::tcls::COLBUF_IO_W
     } else if edev.chip.kind.has_ioi_we() && col == edev.chip.col_e() {
-        "COLBUF_IO_E"
+        defs::tcls::COLBUF_IO_E
     } else {
         edev.chip.kind.tile_class_colbuf().unwrap()
     }
@@ -138,14 +112,14 @@ pub fn make_sample(
                         int_source.insert(iwb, (src_inst, src_pin.clone()));
                         let (cell, wa, wb) =
                             xlat_mux_in(edev, iwa, iwb, (ax, ay, aw), (bx, by, bw));
-                        let tile_name = get_main_tile_kind(edev, cell.col, cell.row);
                         let tile = &edev[cell.tile(tslots::MAIN)];
+                        let tile_name = edev.db.tile_classes.key(tile.class);
                         let wan = edev.db.wires.key(wa);
                         let wbn = edev.db.wires.key(wb);
                         if let Some(idx) = defs::wires::GLOBAL.index_of(wb) {
                             if wa != defs::wires::IMUX_IO_EXTRA {
-                                let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
-                                // SB_*OSC
+                                let tcid_gb_root = edev.chip.kind.tile_class_gb_root();
+                                let tcls_gb_root = edev.db.tile_classes.key(tcid_gb_root); // SB_*OSC
                                 assert!(defs::wires::OUT_LC.contains(wa));
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Clock(0), BitOwner::Clock(1)],
@@ -188,10 +162,11 @@ pub fn make_sample(
                                 } else {
                                     row_colbuf
                                 };
-                                let cb_tile_name = get_colbuf_tile_kind(edev, cell.col);
+                                let tcid = get_colbuf_tile_kind(edev, cell.col);
+                                let tcls = edev.db.tile_classes.key(tcid);
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Main(cell.col, trow)],
-                                    format!("{cb_tile_name}:COLBUF:GLOBAL.{idx}:BIT0"),
+                                    format!("{tcls}:COLBUF:GLOBAL.{idx}:BIT0"),
                                 );
                             } else {
                                 sample.add_global_pattern_single(format!(
@@ -208,7 +183,8 @@ pub fn make_sample(
                                 2 | 6 => 1,
                                 _ => unreachable!(),
                             };
-                            let tile_name = get_main_tile_kind(edev, crd.col, crd.row);
+                            let tile = &edev[iwa.cell.tile(defs::tslots::MAIN)];
+                            let tile_name = edev.db.tile_classes.key(tile.class);
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(crd.col, crd.row)],
                                 format!("{tile_name}:IO{io}:PIN_TYPE:BIT0"),
@@ -226,7 +202,8 @@ pub fn make_sample(
                             assert_eq!(iwb.slot, defs::wires::IMUX_LC_I2[lc + 1]);
                             lc + 1
                         };
-                        let tcls = edev.chip.kind.tile_class_plb();
+                        let tcid = edev.chip.kind.tile_class_plb();
+                        let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &[BitOwner::Main(iwb.cell.col, iwb.cell.row)],
                             format!("{tcls}:LC{dst_lc}:MUX.I2:LTIN"),
@@ -238,7 +215,8 @@ pub fn make_sample(
                         assert_eq!(cell, iwb.cell);
                         let dst_lc = lc + 1;
                         assert_eq!(iwb.slot, defs::wires::IMUX_LC_I3[dst_lc]);
-                        let tcls = edev.chip.kind.tile_class_plb();
+                        let tcid = edev.chip.kind.tile_class_plb();
+                        let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &[BitOwner::Main(iwb.cell.col, iwb.cell.row)],
                             format!("{tcls}:INT:MUX.{wbn}:CI", wbn = edev.db.wires.key(iwb.slot)),
@@ -282,10 +260,11 @@ pub fn make_sample(
                             BitOwner::Main(cell.col, row),
                             BitOwner::Main(cell.col, row + 1),
                         ];
-                        let tile = edev.chip.kind.tile_class_bram();
+                        let tcid = edev.chip.kind.tile_class_bram();
+                        let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &tiles,
-                            format!("{tile}:BRAM:CASCADE_OUT_{which}:BIT0"),
+                            format!("{tcls}:BRAM:CASCADE_OUT_{which}:BIT0"),
                         );
                     }
                     (GenericNet::CascAddr(cell, idx), GenericNet::Int(iwb)) => {
@@ -325,10 +304,11 @@ pub fn make_sample(
                             BitOwner::Main(cell.col, row),
                             BitOwner::Main(cell.col, row + 1),
                         ];
-                        let tile = edev.chip.kind.tile_class_bram();
+                        let tcid = edev.chip.kind.tile_class_bram();
+                        let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &tiles,
-                            format!("{tile}:BRAM:CASCADE_IN_{which}:BIT0"),
+                            format!("{tcls}:BRAM:CASCADE_IN_{which}:BIT0"),
                         );
                     }
                     (GenericNet::Gbout(..), GenericNet::GlobalPadIn(_)) => {
@@ -344,10 +324,11 @@ pub fn make_sample(
                         GenericNet::Int(iw),
                     ) => {
                         let idx = defs::wires::GLOBAL.index_of(iw.slot).unwrap();
-                        let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
+                        let tcid = edev.chip.kind.tile_class_gb_root();
+                        let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &[BitOwner::Clock(0), BitOwner::Clock(1)],
-                            format!("{tcls_gb_root}:GB_ROOT:MUX.GLOBAL.{idx}:IO"),
+                            format!("{tcls}:GB_ROOT:MUX.GLOBAL.{idx}:IO"),
                         );
                     }
                     _ => {
@@ -373,7 +354,8 @@ pub fn make_sample(
         if let Some(loc) = runres.loc_map.get(iid) {
             match &inst.kind[..] {
                 "SB_LUT4" => {
-                    let tcls = edev.chip.kind.tile_class_plb();
+                    let tcid = edev.chip.kind.tile_class_plb();
+                    let tcls = edev.db.tile_classes.key(tcid);
                     let crd = CellCoord::new(
                         DieId::from_idx(0),
                         pkg_info.xlat_col[loc.loc.x as usize],
@@ -452,7 +434,8 @@ pub fn make_sample(
                     }
                 }
                 "SB_CARRY" => {
-                    let tcls = edev.chip.kind.tile_class_plb();
+                    let tcid = edev.chip.kind.tile_class_plb();
+                    let tcls = edev.db.tile_classes.key(tcid);
                     let col = pkg_info.xlat_col[loc.loc.x as usize];
                     let row = pkg_info.xlat_row[loc.loc.y as usize];
                     let lc = loc.loc.bel;
@@ -485,9 +468,11 @@ pub fn make_sample(
                     let bel = edev.chip.get_io_loc(io);
                     let btile = BitOwner::Main(bel.col, bel.row);
                     let iob = io.iob();
-                    let slot_idx = bels::IO.index_of(bel.slot).unwrap();
-                    let tcls_ioi = edev.chip.kind.tile_class_ioi(io.edge()).unwrap();
-                    let tcls_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
+                    let slot_idx = bels::IOI.index_of(bel.slot).unwrap();
+                    let tcid_ioi = edev.chip.kind.tile_class_ioi(io.edge()).unwrap();
+                    let tcls_ioi = edev.db.tile_classes.key(tcid_ioi);
+                    let tcid_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
+                    let tcls_iob = edev.db.tile_classes.key(tcid_iob);
                     let mut global_idx = None;
                     for (&key, special) in &edev.chip.special_tiles {
                         if let SpecialTileKey::GbIo(idx) = key
@@ -553,6 +538,7 @@ pub fn make_sample(
                                 {
                                     if let Some(special) = edev.chip.special_tiles.get(&key) {
                                         let tcid = key.tile_class(edev.chip.kind);
+                                        let tcls = edev.db.tile_classes.key(tcid);
                                         let tiles = if edev.chip.kind.is_ice65() {
                                             vec![BitOwner::Pll(0), BitOwner::Pll(1)]
                                         } else {
@@ -565,7 +551,7 @@ pub fn make_sample(
                                         };
                                         sample.add_tiled_pattern(
                                             &tiles,
-                                            format!("{tcid}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"),
+                                            format!("{tcls}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"),
                                         );
                                         handled = true;
                                     }
@@ -700,7 +686,8 @@ pub fn make_sample(
                     }
                 }
                 kind if kind.starts_with("SB_DFF") => {
-                    let tcls = edev.chip.kind.tile_class_plb();
+                    let tcid = edev.chip.kind.tile_class_plb();
+                    let tcls = edev.db.tile_classes.key(tcid);
                     let col = pkg_info.xlat_col[loc.loc.x as usize];
                     let row = pkg_info.xlat_row[loc.loc.y as usize];
                     let lc = loc.loc.bel;
@@ -817,7 +804,8 @@ pub fn make_sample(
                         }
                     }
 
-                    let tcls = edev.chip.kind.tile_class_bram();
+                    let tcid = edev.chip.kind.tile_class_bram();
+                    let tcls = edev.db.tile_classes.key(tcid);
                     if design.kind.is_ice40() {
                         sample
                             .add_tiled_pattern_single(&btiles, format!("{tcls}:BRAM:ENABLE:BIT0"));
@@ -871,10 +859,13 @@ pub fn make_sample(
                     };
                     let tiles_io_a = [BitOwner::Main(crd_a.col, crd_a.row)];
                     let tiles_io_b = [BitOwner::Main(crd_b.col, crd_b.row)];
-                    let tcls_pll = SpecialTileKey::Pll(side).tile_class(edev.chip.kind);
+                    let tcid_pll = SpecialTileKey::Pll(side).tile_class(edev.chip.kind);
+                    let tcls_pll = edev.db.tile_classes.key(tcid_pll);
                     sample.add_tiled_pattern(&tiles, format!("{tcls_pll}:PLL:MODE:{kind}"));
-                    let tcls_ioi = edev.chip.kind.tile_class_ioi(Dir::V(side)).unwrap();
-                    let tcls_iob = edev.chip.kind.tile_class_iob(Dir::V(side)).unwrap();
+                    let tcid_ioi = edev.chip.kind.tile_class_ioi(Dir::V(side)).unwrap();
+                    let tcls_ioi = edev.db.tile_classes.key(tcid_ioi);
+                    let tcid_iob = edev.chip.kind.tile_class_iob(Dir::V(side)).unwrap();
+                    let tcls_iob = edev.db.tile_classes.key(tcid_iob);
                     sample.add_tiled_pattern(&tiles_io_a, format!("{tcls_ioi}:IO1:PIN_TYPE:BIT0"));
                     if edev.chip.kind == ChipKind::Ice40P01 {
                         if kind.ends_with("_PAD") {
@@ -1017,8 +1008,10 @@ pub fn make_sample(
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let nk = key.tile_class(edev.chip.kind);
-                    let tcls_plb = edev.chip.kind.tile_class_plb();
+                    let tcid = key.tile_class(edev.chip.kind);
+                    let tcls = edev.db.tile_classes.key(tcid);
+                    let tcid_plb = edev.chip.kind.tile_class_plb();
+                    let tcls_plb = edev.db.tile_classes.key(tcid_plb);
                     for i in 0..4 {
                         for j in 0..8 {
                             for k in [4, 5, 6, 7, 12, 13, 14, 15] {
@@ -1058,7 +1051,7 @@ pub fn make_sample(
                                 } else {
                                     sample.add_tiled_pattern_single(
                                         &tiles,
-                                        format!("{nk}:MAC16:{prop}:BIT{i}"),
+                                        format!("{tcls}:MAC16:{prop}:BIT{i}"),
                                     );
                                 }
                             }
@@ -1072,7 +1065,8 @@ pub fn make_sample(
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+                    let tcid_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+                    let tcls_trim = edev.db.tile_classes.key(tcid_trim);
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
                         && val == "1"
                     {
@@ -1102,7 +1096,8 @@ pub fn make_sample(
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+                    let tcid_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+                    let tcls_trim = edev.db.tile_classes.key(tcid_trim);
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
                         && val == "1"
                     {
@@ -1129,7 +1124,8 @@ pub fn make_sample(
                             .values()
                             .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                     );
-                    let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+                    let tcid_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+                    let tcls_trim = edev.db.tile_classes.key(tcid_trim);
                     if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
                         && val == "1"
                     {
@@ -1140,7 +1136,8 @@ pub fn make_sample(
                     }
                 }
                 "SB_RGB_DRV" | "SB_RGBA_DRV" => {
-                    let tcls_rgb_drv = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+                    let tcid_rgb_drv = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+                    let tcls_rgb_drv = edev.db.tile_classes.key(tcid_rgb_drv);
                     let tiles = Vec::from_iter(
                         edev.chip.special_tiles[&SpecialTileKey::RgbDrv]
                             .cells
@@ -1385,7 +1382,8 @@ pub fn make_sample(
                             let mut all_ded_outs = true;
                             for &(xnio, o, _oe, i) in dedio {
                                 let crd = special.io[&xnio];
-                                let tcls_iob = edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
+                                let tcid_iob = edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
+                                let tcls_iob = edev.db.tile_classes.key(tcid_iob);
                                 let iobel = edev.chip.get_io_loc(crd);
                                 let iob = crd.iob();
                                 let btile_io = BitOwner::Main(iobel.col, iobel.row);
@@ -1434,8 +1432,8 @@ pub fn make_sample(
                                 }
                             }
                             if edev.chip.kind == ChipKind::Ice40R04 {
-                                let tcname = key.tile_class(edev.chip.kind);
-                                let tcls = edev.db.tile_classes.get(&tcname).unwrap().1;
+                                let tcid = key.tile_class(edev.chip.kind);
+                                let tcls = &edev.db.tile_classes[tcid];
                                 let bslot = match key {
                                     SpecialTileKey::Spi(_) => bels::SPI,
                                     SpecialTileKey::I2c(_) => bels::I2C,
@@ -1448,6 +1446,7 @@ pub fn make_sample(
                                 for (pin, pin_info) in &bel.pins {
                                     let pin_wire = *pin_info.wires.iter().next().unwrap();
                                     let pin_crd = special.cells[pin_wire.cell];
+                                    let pin_tile = &edev[pin_crd.tile(defs::tslots::MAIN)];
                                     let pin_btile = BitOwner::Main(pin_crd.col, pin_crd.row);
                                     if all_ded_outs
                                         && matches!(
@@ -1478,12 +1477,11 @@ pub fn make_sample(
                                     {
                                         continue;
                                     }
+                                    let io_tile_kind = edev.db.tile_classes.key(pin_tile.class);
                                     if pin_info.dir == PinDir::Input {
                                         let iob = defs::wires::IMUX_IO_DOUT0
                                             .index_of(pin_wire.wire)
                                             .unwrap();
-                                        let io_tile_kind =
-                                            get_main_tile_kind(edev, pin_crd.col, pin_crd.row);
                                         sample.add_tiled_pattern_single(
                                             &[pin_btile],
                                             format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT3"),
@@ -1501,8 +1499,6 @@ pub fn make_sample(
                                             2 | 6 => 1,
                                             _ => unreachable!(),
                                         };
-                                        let io_tile_kind =
-                                            get_main_tile_kind(edev, pin_crd.col, pin_crd.row);
                                         sample.add_tiled_pattern_single(
                                             &[pin_btile],
                                             format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT0"),
@@ -1517,8 +1513,9 @@ pub fn make_sample(
                                     let crd = special.io[&SpecialIoKey::I2cSda];
                                     let iobel = edev.chip.get_io_loc(crd);
                                     let iob = crd.iob();
-                                    let tcls_iob =
+                                    let tcid_iob =
                                         edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
+                                    let tcls_iob = edev.db.tile_classes.key(tcid_iob);
                                     sample.add_tiled_pattern_single(
                                         &[BitOwner::Main(iobel.col, iobel.row)],
                                         format!("{tcls_iob}:IOB{iob:#}:{prop}:BIT0"),
@@ -1542,7 +1539,8 @@ pub fn make_sample(
             );
             sample.add_tiled_pattern(&tiles, "IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0");
         }
-        let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+        let tcid_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+        let tcls_trim = edev.db.tile_classes.key(tcid_trim);
         if let Some(val) = design.props.get("VPP_2V5_TO_1P8V")
             && val == "1"
         {
@@ -1578,7 +1576,8 @@ pub fn make_sample(
 pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     let mut result = vec![];
     // PLB
-    let tile = edev.chip.kind.tile_class_plb();
+    let tcid = edev.chip.kind.tile_class_plb();
+    let tile = edev.db.tile_classes.key(tcid);
     for lc in 0..8 {
         if edev.chip.kind.is_ice40() {
             result.push(format!("{tile}:LC{lc}:MUX.I2:LTIN"));
@@ -1596,7 +1595,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     result.push(format!("{tile}:LC0:MUX.CI:1"));
     result.push(format!("{tile}:LC0:MUX.CI:CHAIN"));
     result.push(format!("{tile}:INT:INV.IMUX_CLK_OPTINV:BIT0"));
-    if let Some(tile) = edev.chip.kind.tile_class_colbuf() {
+    if let Some(tcid) = edev.chip.kind.tile_class_colbuf() {
+        let tile = edev.db.tile_classes.key(tcid);
         for i in 0..8 {
             result.push(format!("{tile}:COLBUF:GLOBAL.{i}:BIT0"));
             if edev.chip.kind.has_ioi_we() {
@@ -1607,7 +1607,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // BRAM
     if !edev.chip.cols_bram.is_empty() {
-        let tile = edev.chip.kind.tile_class_bram();
+        let tcid = edev.chip.kind.tile_class_bram();
+        let tile = edev.db.tile_classes.key(tcid);
         if edev.chip.kind.is_ice40() {
             result.push(format!("{tile}:BRAM:CASCADE_OUT_WADDR:BIT0"));
             result.push(format!("{tile}:BRAM:CASCADE_OUT_RADDR:BIT0"));
@@ -1630,9 +1631,10 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     // IO
     for edge in Dir::DIRS {
-        let Some(tile) = edev.chip.kind.tile_class_ioi(edge) else {
+        let Some(tcid) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
         };
+        let tile = edev.db.tile_classes.key(tcid);
         result.push(format!("{tile}:INT:INV.IMUX_IO_ICLK_OPTINV:BIT0"));
         result.push(format!("{tile}:INT:INV.IMUX_IO_OCLK_OPTINV:BIT0"));
         for io in 0..2 {
@@ -1643,9 +1645,10 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                 result.push(format!("{tile}:IO{io}:OUTPUT_ENABLE:BIT0"));
             }
         }
-        let Some(tile) = edev.chip.kind.tile_class_iob(edge) else {
+        let Some(tcid) = edev.chip.kind.tile_class_iob(edge) else {
             continue;
         };
+        let tile = edev.db.tile_classes.key(tcid);
         let has_lvds = if edev.chip.kind == ChipKind::Ice65L01 {
             false
         } else if edev.chip.kind.has_iob_we() {
@@ -1754,7 +1757,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     for side in [DirV::S, DirV::N] {
         let key = SpecialTileKey::Pll(side);
         if edev.chip.special_tiles.contains_key(&key) {
-            let tile = key.tile_class(edev.chip.kind);
+            let tcid = key.tile_class(edev.chip.kind);
+            let tile = edev.db.tile_classes.key(tcid);
             if edev.chip.kind.is_ice65() {
                 for (attr, vals) in [
                     (
@@ -1850,8 +1854,9 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             }
         }
         let key = SpecialTileKey::PllStub(side);
-        let tile = key.tile_class(edev.chip.kind);
         if edev.chip.special_tiles.contains_key(&key) {
+            let tcid = key.tile_class(edev.chip.kind);
+            let tile = edev.db.tile_classes.key(tcid);
             for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
                 result.push(format!("{tile}:PLL:{attr}:BIT0"));
             }
@@ -1859,18 +1864,20 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
     }
     if edev.chip.kind.is_ultra() {
         // OSC & TRIM
-        let tcls_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+        let tcid_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
+        let tcls_trim = edev.db.tile_classes.key(tcid_trim);
         result.push(format!("{tcls_trim}:HFOSC:CLKHF_DIV:BIT0"));
         result.push(format!("{tcls_trim}:HFOSC:CLKHF_DIV:BIT1"));
         result.push(format!("{tcls_trim}:HFOSC:TRIM_FABRIC:BIT0"));
         result.push(format!("{tcls_trim}:LFOSC:TRIM_FABRIC:BIT0"));
         result.push(format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"));
         // DRV
-        let tcls_rgba_drv = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
-        result.push(format!("{tcls_rgba_drv}:RGB_DRV:ENABLE:BIT0"));
+        let tcid_rgb_drv = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
+        let tile_rgb_drv = edev.db.tile_classes.key(tcid_rgb_drv);
+        result.push(format!("{tile_rgb_drv}:RGB_DRV:ENABLE:BIT0"));
         for i in 0..3 {
             for j in 0..6 {
-                result.push(format!("{tcls_rgba_drv}:RGB_DRV:RGB{i}_CURRENT:BIT{j}"));
+                result.push(format!("{tile_rgb_drv}:RGB_DRV:RGB{i}_CURRENT:BIT{j}"));
             }
         }
         if edev.chip.kind == ChipKind::Ice40T04 {
@@ -1879,7 +1886,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                 result.push(format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{j}"));
             }
         } else {
-            result.push(format!("{tcls_rgba_drv}:RGB_DRV:CURRENT_MODE:BIT0"));
+            result.push(format!("{tile_rgb_drv}:RGB_DRV:CURRENT_MODE:BIT0"));
             if edev.chip.kind == ChipKind::Ice40T01 {
                 result.push("IR500_DRV:RGB_DRV:ENABLE:BIT0".into());
                 result.push("IR500_DRV:IR400_DRV:ENABLE:BIT0".into());
@@ -1936,7 +1943,8 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         result.push("I3C:FILTER1:ENABLE:BIT0".into());
     }
     // misc
-    let tcls_gb_root = edev.chip.kind.tile_class_gb_root();
+    let tcid_gb_root = edev.chip.kind.tile_class_gb_root();
+    let tcls_gb_root = edev.db.tile_classes.key(tcid_gb_root);
     for i in 0..8 {
         result.push(format!("{tcls_gb_root}:GB_ROOT:MUX.GLOBAL.{i}:IO"));
     }

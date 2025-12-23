@@ -91,6 +91,7 @@ struct PartContext<'a> {
     special_tiles: BTreeMap<SpecialTileKey, Vec<RawLoc>>,
     bsdata: BsData,
     speed: BTreeMap<(&'static str, &'static str), Speed>,
+    tcls_filled: BTreeSet<TileClassId>,
     debug: u8,
 }
 
@@ -231,7 +232,8 @@ impl HarvestContext<'_> {
             }
         }
 
-        let tcls = self.edev.chip.kind.tile_class_colbuf().unwrap();
+        let tcid = self.edev.chip.kind.tile_class_colbuf().unwrap();
+        let tcls = self.edev.db.tile_classes.key(tcid);
         for (idx, bits) in plb_bits.into_iter().enumerate() {
             harvester.force_tiled(format!("{tcls}:COLBUF:GLOBAL.{idx}:BIT0"), bits.unwrap());
         }
@@ -473,12 +475,16 @@ impl HarvestContext<'_> {
     }
 }
 
-fn insert_tile_class(intdb: &mut IntDb, name: impl Into<String>, tcls: TileClass) {
-    let name = name.into();
-    if let Some((_, cur_tcls)) = intdb.tile_classes.get(&name) {
-        assert_eq!(*cur_tcls, tcls);
+fn insert_tile_class(
+    filled: &mut BTreeSet<TileClassId>,
+    intdb: &mut IntDb,
+    tcid: TileClassId,
+    tcls: TileClass,
+) {
+    if filled.insert(tcid) {
+        intdb.tile_classes[tcid] = tcls;
     } else {
-        intdb.tile_classes.insert(name, tcls);
+        assert_eq!(intdb.tile_classes[tcid], tcls);
     }
 }
 
@@ -774,7 +780,7 @@ impl PartContext<'_> {
                     ColId::from_idx(col.try_into().unwrap()),
                     RowId::from_idx(row.try_into().unwrap()),
                 );
-                let slot = bels::IO[if wn == "wire_io_cluster/io_0/D_OUT_0" {
+                let slot = bels::IOI[if wn == "wire_io_cluster/io_0/D_OUT_0" {
                     0
                 } else if wn == "wire_io_cluster/io_1/D_OUT_0" {
                     1
@@ -976,7 +982,7 @@ impl PartContext<'_> {
                         ColId::from_idx(r0.x as usize),
                         RowId::from_idx(r0.y as usize),
                     )
-                    .bel(bels::IO[r0.bel as usize]),
+                    .bel(bels::IOI[r0.bel as usize]),
                 );
                 let r1 = info.dedio["REP1"];
                 let ior1 = self.chip.get_io_crd(
@@ -985,7 +991,7 @@ impl PartContext<'_> {
                         ColId::from_idx(r1.x as usize),
                         RowId::from_idx(r1.y as usize),
                     )
-                    .bel(bels::IO[r1.bel as usize]),
+                    .bel(bels::IOI[r1.bel as usize]),
                 );
                 x3.insert(io, (ior0, ior1));
             }
@@ -1273,7 +1279,12 @@ impl PartContext<'_> {
         };
         let builder = MiscTileBuilder::new(&self.chip, tslots::TRIM, &[crd]);
         let (tcls, special) = builder.finish();
-        insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
+        insert_tile_class(
+            &mut self.tcls_filled,
+            &mut self.intdb,
+            key.tile_class(self.chip.kind),
+            tcls,
+        );
         self.chip.special_tiles.insert(key, special);
     }
 
@@ -1432,7 +1443,12 @@ impl PartContext<'_> {
                     let io = pkg_info.xlat_io[&xy];
                     special.io.insert(slot, io);
                 }
-                insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
+                insert_tile_class(
+                    &mut self.tcls_filled,
+                    &mut self.intdb,
+                    key.tile_class(self.chip.kind),
+                    tcls,
+                );
                 self.chip.special_tiles.insert(key, special);
                 self.special_tiles.insert(key, vec![site.loc]);
             }
@@ -1489,7 +1505,12 @@ impl PartContext<'_> {
                 match self.chip.special_tiles.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(special);
-                        insert_tile_class(&mut self.intdb, loc.tile_class(self.chip.kind), tcls);
+                        insert_tile_class(
+                            &mut self.tcls_filled,
+                            &mut self.intdb,
+                            loc.tile_class(self.chip.kind),
+                            tcls,
+                        );
                         self.special_tiles.insert(loc, vec![site.loc]);
                     }
                     btree_map::Entry::Occupied(entry) => {
@@ -1519,7 +1540,12 @@ impl PartContext<'_> {
             let key = SpecialTileKey::PllStub(DirV::S);
             self.chip.special_tiles.insert(key, special);
             let tcls = TileClass::new(tslots::PLL_STUB, 1);
-            insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
+            insert_tile_class(
+                &mut self.tcls_filled,
+                &mut self.intdb,
+                key.tile_class(self.chip.kind),
+                tcls,
+            );
         }
     }
 
@@ -1573,7 +1599,12 @@ impl PartContext<'_> {
         }
 
         let (tcls, special) = builder.finish();
-        insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
+        insert_tile_class(
+            &mut self.tcls_filled,
+            &mut self.intdb,
+            key.tile_class(self.chip.kind),
+            tcls,
+        );
         self.chip.special_tiles.insert(key, special);
         self.special_tiles.insert(
             key,
@@ -1751,46 +1782,34 @@ impl PartContext<'_> {
                     more_tiles.push((loc, tcls, special));
                 }
                 let (tcls, special) = builder.finish();
+                insert_tile_class(
+                    &mut self.tcls_filled,
+                    &mut self.intdb,
+                    key.tile_class(self.chip.kind),
+                    tcls,
+                );
                 match self.chip.special_tiles.entry(key) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(special);
                         self.special_tiles.insert(key, site_locs);
-                        insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
                     }
                     btree_map::Entry::Occupied(entry) => {
                         assert_eq!(*entry.get(), special);
-                        assert_eq!(
-                            *self
-                                .intdb
-                                .tile_classes
-                                .get(&key.tile_class(self.chip.kind))
-                                .unwrap()
-                                .1,
-                            tcls
-                        );
                     }
                 }
                 for (key, tcls, special) in more_tiles {
+                    insert_tile_class(
+                        &mut self.tcls_filled,
+                        &mut self.intdb,
+                        key.tile_class(self.chip.kind),
+                        tcls,
+                    );
                     match self.chip.special_tiles.entry(key) {
                         btree_map::Entry::Vacant(entry) => {
                             entry.insert(special);
-                            insert_tile_class(
-                                &mut self.intdb,
-                                key.tile_class(self.chip.kind),
-                                tcls,
-                            );
                         }
                         btree_map::Entry::Occupied(entry) => {
                             assert_eq!(*entry.get(), special);
-                            assert_eq!(
-                                *self
-                                    .intdb
-                                    .tile_classes
-                                    .get(&key.tile_class(self.chip.kind))
-                                    .unwrap()
-                                    .1,
-                                tcls
-                            );
                         }
                     }
                 }
@@ -1819,7 +1838,12 @@ impl PartContext<'_> {
                 builder.add_bel(bels::SPRAM[i], bel_pins);
             }
             let (tcls, special) = builder.finish();
-            insert_tile_class(&mut self.intdb, key.tile_class(self.chip.kind), tcls);
+            insert_tile_class(
+                &mut self.tcls_filled,
+                &mut self.intdb,
+                key.tile_class(self.chip.kind),
+                tcls,
+            );
             self.chip.special_tiles.insert(key, special);
             self.special_tiles
                 .insert(key, vec![edge_sites[0].loc, edge_sites[1].loc]);
@@ -1853,6 +1877,7 @@ impl PartContext<'_> {
         );
         tcls.bels.insert(bels::SMCCLK, BelInfo::Legacy(bel));
         insert_tile_class(
+            &mut self.tcls_filled,
             &mut self.intdb,
             SpecialTileKey::SmcClk.tile_class(self.chip.kind),
             tcls,
@@ -1867,7 +1892,8 @@ impl PartContext<'_> {
     }
 
     fn inject_lut0_cascade(&mut self, harvester: &mut Harvester<BitOwner>) {
-        let tcls = self.chip.kind.tile_class_plb();
+        let tcid = self.chip.kind.tile_class_plb();
+        let tcls = self.intdb.tile_classes.key(tcid);
         harvester.force_tiled(
             format!("{tcls}:LC0:MUX.I2:LTIN"),
             BTreeMap::from_iter([(TileBit::new(0, 0, 50), true)]),
@@ -1875,7 +1901,7 @@ impl PartContext<'_> {
     }
 
     fn inject_io_inv_clk(&mut self, harvester: &mut Harvester<BitOwner>) {
-        for (tile, key, bit) in [
+        for (tcid, key, bit) in [
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
                 "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
@@ -1917,8 +1943,9 @@ impl PartContext<'_> {
                 TileBit::new(0, 14, 35),
             ),
         ] {
-            let Some(tile) = tile else { continue };
-            harvester.force_tiled(format!("{tile}:{key}"), BTreeMap::from_iter([(bit, true)]));
+            let Some(tcid) = tcid else { continue };
+            let tcls = self.intdb.tile_classes.key(tcid);
+            harvester.force_tiled(format!("{tcls}:{key}"), BTreeMap::from_iter([(bit, true)]));
         }
     }
 
@@ -1943,9 +1970,9 @@ impl PartContext<'_> {
             }
         }
         for dir in [Dir::W, Dir::E] {
-            let tile = self.chip.kind.tile_class_ioi(dir).unwrap();
-            let tcls = db.int.tile_classes.get(tile).unwrap().1;
-            let tcls_dst = self.intdb.tile_classes.get(tile).unwrap().0;
+            let tcid = self.chip.kind.tile_class_ioi(dir).unwrap();
+            let tile = db.int.tile_classes.key(tcid);
+            let tcls = &db.int.tile_classes[tcid];
             let BelInfo::SwitchBox(sb) = &tcls.bels[bels::INT] else {
                 unreachable!()
             };
@@ -1963,7 +1990,7 @@ impl PartContext<'_> {
                     _ => (),
                 }
             }
-            pips.insert(tcls_dst, tcls_pips);
+            pips.insert(tcid, tcls_pips);
             let tile_data = &db.bsdata.tiles[tile];
             for (name, item) in &tile_data.items {
                 if name.ends_with(":PIN_TYPE") || name.starts_with("INT:INV") {
@@ -2140,8 +2167,9 @@ impl PartContext<'_> {
         self.chip.io_iob = io_iob;
 
         if self.chip.kind != ChipKind::Ice40P03 {
-            let tcls_plb = self.intdb.get_tile_class(self.chip.kind.tile_class_plb());
-            let bsdata_plb = bsdata.tiles[self.chip.kind.tile_class_plb()].clone();
+            let tcls_plb = self.chip.kind.tile_class_plb();
+            let tile_plb = self.intdb.tile_classes.key(tcls_plb);
+            let bsdata_plb = bsdata.tiles[tile_plb].clone();
             let tcls_int_bram = self.intdb.get_tile_class("INT_BRAM");
             let pips_plb = pips[&tcls_plb].clone();
             let pips_int_bram = pips.get_mut(&tcls_int_bram).unwrap();
@@ -2303,6 +2331,7 @@ fn main() {
             bsdata: BsData::default(),
             speed: BTreeMap::new(),
             debug: args.debug,
+            tcls_filled: BTreeSet::new(),
         };
 
         println!("{kind}: initializing");
