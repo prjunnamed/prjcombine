@@ -1,14 +1,31 @@
-use crate::db::{BelInfo, ConnectorWire, IntDb, PinDir, TileClass};
-use prjcombine_entity::EntityId;
+use crate::db::{
+    BelAttributeType, BelInfo, BelKind, ConnectorWire, IntDb, PadKind, PinDir, TileClass,
+};
+use prjcombine_entity::{EntityBundleItemIndex, EntityId};
 use std::collections::BTreeMap;
 
 impl TileClass {
     pub fn print(&self, db: &IntDb, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        for name in self.cells.values() {
+            writeln!(o, "\t\tcell {name}")?;
+        }
+        for rect in self.bitrects.values() {
+            writeln!(
+                o,
+                "\t\tbitrect {name}: {orientation:?} ({rf}{frames}, {rb}{bits})",
+                name = rect.name,
+                orientation = rect.geometry.orientation,
+                rf = if rect.geometry.rev_frames { "rev " } else { "" },
+                rb = if rect.geometry.rev_bits { "rev " } else { "" },
+                frames = rect.geometry.frames,
+                bits = rect.geometry.bits,
+            )?;
+        }
         let mut wires: BTreeMap<_, Vec<_>> = BTreeMap::new();
         for (slot, bel) in &self.bels {
             match bel {
                 BelInfo::SwitchBox(sb) => {
-                    writeln!(o, "\t\t{slot}: SWITCHBOX", slot = db.bel_slots.key(slot))?;
+                    writeln!(o, "\t\tswitchbox {slot}", slot = db.bel_slots.key(slot))?;
                     for item in &sb.items {
                         match item {
                             crate::db::SwitchBoxItem::Mux(mux) => {
@@ -62,11 +79,73 @@ impl TileClass {
                         }
                     }
                 }
-                BelInfo::Bel(_bel) => {
-                    todo!();
+                BelInfo::Bel(bel) => {
+                    let BelKind::Class(bcid) = db.bel_slots[slot].kind else {
+                        unreachable!()
+                    };
+                    writeln!(
+                        o,
+                        "\t\tbel {slot}: {bcls}",
+                        slot = db.bel_slots.key(slot),
+                        bcls = db.bel_classes.key(bcid)
+                    )?;
+                    let bcls = &db.bel_classes[bcid];
+                    for (pid, wire) in &bel.inputs {
+                        let (pname, idx) = bcls.inputs.key(pid);
+                        let pname = match idx {
+                            EntityBundleItemIndex::Single => pname.to_string(),
+                            EntityBundleItemIndex::Array { index, .. } => {
+                                format!("{pname}[{index}]")
+                            }
+                        };
+                        write!(o, "\t\t\tinput {pname} = ")?;
+                        match wire {
+                            crate::db::BelInput::Fixed(wire) => {
+                                write!(o, "{wire}", wire = wire.to_string(db, self))?;
+                            }
+                            crate::db::BelInput::Invertible(wire, _) => {
+                                write!(o, "^{wire}", wire = wire.to_string(db, self))?;
+                            }
+                        }
+                        writeln!(o)?;
+                    }
+                    for (pid, pwires) in &bel.outputs {
+                        let (pname, idx) = bcls.outputs.key(pid);
+                        let pname = match idx {
+                            EntityBundleItemIndex::Single => pname.to_string(),
+                            EntityBundleItemIndex::Array { index, .. } => {
+                                format!("{pname}[{index}]")
+                            }
+                        };
+                        write!(o, "\t\t\toutput {pname} = ")?;
+                        let mut first = true;
+                        for &w in pwires {
+                            if !first {
+                                write!(o, ", ")?;
+                            }
+                            first = false;
+                            wires.entry(w).or_default().push((slot, pname.clone()));
+                            write!(o, "{wire}", wire = w.to_string(db, self))?;
+                        }
+                        writeln!(o)?;
+                    }
+                    for (pid, pwire) in &bel.bidirs {
+                        let (pname, idx) = bcls.bidirs.key(pid);
+                        let pname = match idx {
+                            EntityBundleItemIndex::Single => pname.to_string(),
+                            EntityBundleItemIndex::Array { index, .. } => {
+                                format!("{pname}[{index}]")
+                            }
+                        };
+                        write!(o, "\t\t\tbidir {pname} = ")?;
+                        wires.entry(*pwire).or_default().push((slot, pname));
+                        write!(o, "{wire}", wire = pwire.to_string(db, self))?;
+                        writeln!(o)?;
+                    }
+                    // TODO attributes
                 }
                 BelInfo::Legacy(bel) => {
-                    writeln!(o, "\t\t{slot}: LEGACY BEL", slot = db.bel_slots.key(slot))?;
+                    writeln!(o, "\t\tbel {slot}: legacy", slot = db.bel_slots.key(slot))?;
                     for (pn, pin) in &bel.pins {
                         write!(
                             o,
@@ -78,7 +157,7 @@ impl TileClass {
                             },
                         )?;
                         for &wi in &pin.wires {
-                            wires.entry(wi).or_default().push((slot, pn));
+                            wires.entry(wi).or_default().push((slot, pn.to_string()));
                             write!(o, " {wire}", wire = wi.to_string(db, self))?;
                         }
                         writeln!(o)?;
@@ -146,55 +225,122 @@ impl TileClass {
 
 impl IntDb {
     pub fn print(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        for (_, name, ecls) in &self.enum_classes {
+            writeln!(o, "\tenum {name}")?;
+            for val in ecls.values.values() {
+                writeln!(o, "\t\t{val}")?;
+            }
+        }
+        for (_, name, bcls) in &self.bel_classes {
+            writeln!(o, "\tbel_class {name}")?;
+            for (_, pname, pin) in bcls.inputs.bundles() {
+                writeln!(
+                    o,
+                    "\t\t{nr}input {pname}",
+                    nr = if pin.nonroutable { "nonroutable " } else { "" }
+                )?;
+            }
+            for (_, pname, pin) in bcls.outputs.bundles() {
+                writeln!(
+                    o,
+                    "\t\t{nr}output {pname}",
+                    nr = if pin.nonroutable { "nonroutable " } else { "" }
+                )?;
+            }
+            for (_, pname, pin) in bcls.bidirs.bundles() {
+                writeln!(
+                    o,
+                    "\t\t{nr}bidir {pname}",
+                    nr = if pin.nonroutable { "nonroutable " } else { "" }
+                )?;
+            }
+            for (_, pname, pad) in bcls.pads.bundles() {
+                writeln!(
+                    o,
+                    "\t\tpad {pname}: {kind}",
+                    kind = match pad.kind {
+                        PadKind::In => "input",
+                        PadKind::Out => "output",
+                        PadKind::Inout => "inout",
+                        PadKind::Power => "power",
+                        PadKind::Analog => "analog",
+                    }
+                )?;
+            }
+            for (_, aname, attr) in &bcls.attributes {
+                write!(o, "\t\tattribute {aname}: ")?;
+                match attr.typ {
+                    BelAttributeType::Enum(eid) => {
+                        write!(o, "{}", self.enum_classes.key(eid))?;
+                    }
+                    BelAttributeType::Bool => {
+                        write!(o, "bool")?;
+                    }
+                    BelAttributeType::Bitvec(width) => {
+                        write!(o, "bitvec[{width}]")?;
+                    }
+                    BelAttributeType::BitvecArray(width, depth) => {
+                        write!(o, "bitvec[{width}][{depth}]")?;
+                    }
+                }
+                writeln!(o)?;
+            }
+            // TODO
+        }
         for (_, k, &w) in &self.wires {
-            writeln!(o, "\tWIRE {k:14} {w}", w = w.to_string(self))?;
+            writeln!(o, "\twire {k:14} {w}", w = w.to_string(self))?;
         }
         for slot in self.region_slots.values() {
-            writeln!(o, "\tREGION SLOT {slot}")?;
+            writeln!(o, "\tregion_slot {slot}")?;
         }
         for slot in self.tile_slots.values() {
-            writeln!(o, "\tTILE SLOT {slot}")?;
+            writeln!(o, "\ttile_slot {slot}")?;
         }
         for (_, name, bslot) in &self.bel_slots {
-            writeln!(
+            write!(
                 o,
-                "\tBEL SLOT {name}: {tile_slot}",
+                "\tbel_slot {name}: {tile_slot}: ",
                 tile_slot = self.tile_slots[bslot.tile_slot]
             )?;
+            match bslot.kind {
+                BelKind::Routing => write!(o, "routing")?,
+                BelKind::Class(bcls) => write!(o, "{}", self.bel_classes.key(bcls))?,
+                BelKind::Legacy => write!(o, "legacy")?,
+            }
+            writeln!(o)?
         }
         for (_, name, tcls) in &self.tile_classes {
             writeln!(
                 o,
-                "\tTILE CLASS {name} {slot} {nt}",
+                "\ttile_class {name} {slot}",
                 slot = self.tile_slots[tcls.slot],
-                nt = tcls.cells.len()
             )?;
             tcls.print(self, o)?;
         }
         for (_, name, slot) in &self.conn_slots {
             writeln!(
                 o,
-                "\tCONN SLOT {name}: opposite {oname}",
+                "\tconn_slot {name}: opposite {oname}",
                 oname = self.conn_slots.key(slot.opposite)
             )?;
         }
         for (_, name, term) in &self.conn_classes {
             writeln!(
                 o,
-                "\tCONN CLASS {name} {slot}",
+                "\tconn_class {name} {slot}",
                 slot = self.conn_slots.key(term.slot)
             )?;
             for (w, ti) in &term.wires {
                 let wn = &self.wires.key(w);
                 match ti {
                     ConnectorWire::BlackHole => {
-                        writeln!(o, "\t\tBLACKHOLE {wn}")?;
+                        writeln!(o, "\t\tblackhole {wn}")?;
                     }
                     &ConnectorWire::Reflect(ow) => {
-                        writeln!(o, "\t\tPASS NEAR {wn} <- {own}", own = self.wires.key(ow))?;
+                        writeln!(o, "\t\treclect {wn} <- {own}", own = self.wires.key(ow))?;
                     }
                     &ConnectorWire::Pass(ow) => {
-                        writeln!(o, "\t\tPASS FAR {wn} <- {own}", own = self.wires.key(ow))?;
+                        writeln!(o, "\t\tpass {wn} <- {own}", own = self.wires.key(ow))?;
                     }
                 }
             }

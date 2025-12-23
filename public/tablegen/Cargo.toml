@@ -1,0 +1,19 @@
+[package]
+name = "prjcombine-tablegen"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+bincode.workspace = true
+prjcombine-entity.workspace = true
+prjcombine-types.workspace = true
+prjcombine-interconnect.workspace = true
+
+[lints]
+workspace = true

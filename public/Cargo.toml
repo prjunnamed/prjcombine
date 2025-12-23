@@ -4,6 +4,7 @@ members = [
     "entity",
     "types",
     "interconnect",
+    "tablegen",
     "jed",
     "siliconblue",
     "xilinx-bitstream",
@@ -31,6 +32,7 @@ authors = []
 prjcombine-entity = { path = "entity", features = ["bitvec", "map", "bincode"] }
 prjcombine-types = { path = "types" }
 prjcombine-interconnect = { path = "interconnect" }
+prjcombine-tablegen = { path = "tablegen" }
 prjcombine-jed = { path = "jed" }
 prjcombine-xilinx-bitstream = { path = "xilinx-bitstream" }
 jzon = "0.12"

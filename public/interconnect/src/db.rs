@@ -1,6 +1,6 @@
 use bincode::{Decode, Encode};
 use prjcombine_entity::{
-    EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec,
+    EntityBundleMap, EntityId, EntityMap, EntityPartVec, EntitySet, EntityVec,
     id::{EntityIdU8, EntityIdU16, EntityTag},
 };
 use prjcombine_types::{
@@ -15,6 +15,22 @@ impl EntityTag for EnumClass {
 impl EntityTag for BelClass {
     const PREFIX: &'static str = "BCLS";
 }
+impl EntityTag for BelClassInput {
+    const PREFIX: &'static str = "BELIN";
+}
+impl EntityTag for BelClassOutput {
+    const PREFIX: &'static str = "BELOUT";
+}
+impl EntityTag for BelClassBidir {
+    const PREFIX: &'static str = "BELIO";
+}
+impl EntityTag for BelClassPad {
+    const PREFIX: &'static str = "BELPAD";
+}
+impl EntityTag for BelClassAttribute {
+    const PREFIX: &'static str = "BELATTR";
+}
+
 impl EntityTag for WireKind {
     const PREFIX: &'static str = "WIRE";
 }
@@ -49,6 +65,11 @@ impl EntityTag for EnumValueTag {
 pub type EnumClassId = EntityIdU16<EnumClass>;
 pub type EnumValueId = EntityIdU16<EnumValueTag>;
 pub type BelClassId = EntityIdU16<BelClass>;
+pub type BelInputId = EntityIdU16<BelClassInput>;
+pub type BelOutputId = EntityIdU16<BelClassOutput>;
+pub type BelBidirId = EntityIdU16<BelClassBidir>;
+pub type BelPadId = EntityIdU16<BelClassPad>;
+pub type BelAttributeId = EntityIdU16<BelClassAttribute>;
 pub type WireSlotId = EntityIdU16<WireKind>;
 pub type TileClassId = EntityIdU16<TileClass>;
 pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
@@ -206,16 +227,57 @@ pub struct EnumClass {
     pub values: EntitySet<EnumValueId, String>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+#[derive(Default, Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BelClass {
+    pub inputs: EntityBundleMap<BelInputId, BelClassInput>,
+    pub outputs: EntityBundleMap<BelOutputId, BelClassOutput>,
+    pub bidirs: EntityBundleMap<BelBidirId, BelClassBidir>,
+    pub pads: EntityBundleMap<BelPadId, BelClassPad>,
+    pub attributes: EntityMap<BelAttributeId, String, BelClassAttribute>,
     // TODO
-    // pub attributes: EntityMap<BelAttrId, String, BelAttr>,
-    // pub inputs: EntityMap<BelInputId, (String, usize), BelInput>,
-    // pub outputs: EntityMap<BelOutputId, (String, usize), BelOutput>,
-    // pub bidirs: EntityMap<BelBidirId, (String, usize), BelBidir>,
-    // pub pads: EntityMap<BelPadId, (String, usize), BelPad>,
-    // pub relations: EntityMap<BelRelationId, String, BelRelation>,
-    // pub capabilities: EntitySet<BelCapabilityId, String>,
+    // pub relations: EntityMap<BelRelationId, String, BelClassRelation>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BelClassInput {
+    pub nonroutable: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BelClassOutput {
+    pub nonroutable: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BelClassBidir {
+    pub nonroutable: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BelClassPad {
+    pub kind: PadKind,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BelClassAttribute {
+    pub typ: BelAttributeType,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub enum BelAttributeType {
+    Enum(EnumClassId),
+    Bool,
+    Bitvec(usize),
+    BitvecArray(usize, usize),
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub enum PadKind {
+    In,
+    Out,
+    Inout,
+    Power,
+    Analog,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -309,10 +371,17 @@ impl TileWireCoord {
         }
     }
 
-    pub fn pos(self) -> PolTileWireCoord {
+    pub const fn pos(self) -> PolTileWireCoord {
         PolTileWireCoord {
             tw: self,
             inv: false,
+        }
+    }
+
+    pub const fn neg(self) -> PolTileWireCoord {
+        PolTileWireCoord {
+            tw: self,
+            inv: true,
         }
     }
 
@@ -376,13 +445,30 @@ pub enum BelInfo {
     Legacy(LegacyBel),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+#[derive(Default, Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct Bel {
-    // TODO: inputs
-    // TODO: outputs
-    // TODO: inouts
-    // TODO: attrs
-    // TODO: caps
+    pub inputs: EntityPartVec<BelInputId, BelInput>,
+    pub outputs: EntityPartVec<BelOutputId, BTreeSet<TileWireCoord>>,
+    pub bidirs: EntityPartVec<BelBidirId, TileWireCoord>,
+    pub attributes: EntityPartVec<BelAttributeId, BelAttribute>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub enum BelInput {
+    Fixed(PolTileWireCoord),
+    Invertible(TileWireCoord, PolTileBit),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub enum BelAttribute {
+    BitVec(Vec<PolTileBit>),
+    Enum(BelAttributeEnum),
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct BelAttributeEnum {
+    pub bits: Vec<TileBit>,
+    pub values: EntityPartVec<EnumValueId, BitVec>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
