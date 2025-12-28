@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::WireSlotId,
+    db::{CellSlotId, WireSlotId},
     dir::Dir,
     grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
@@ -363,12 +363,13 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
             } else if let Some(idx) = name.strip_prefix("fabout_") {
                 let idx: usize = idx.parse().unwrap();
                 let wire = defs::wires::IMUX_IO_EXTRA;
-                let special = &edev.chip.special_tiles[&SpecialTileKey::GbFabric(idx)];
-                return GenericNet::Int(special.cells.first().unwrap().wire(wire));
+                let special = &edev.chip.special_tiles[&SpecialTileKey::GbRoot];
+                return GenericNet::Int(special.cells[CellSlotId::from_idx(idx)].wire(wire));
             } else if let Some(idx) = name.strip_prefix("padin_") {
                 let idx: usize = idx.parse().unwrap();
-                if let Some(special) = edev.chip.special_tiles.get(&SpecialTileKey::GbIo(idx)) {
-                    let bel = edev.chip.get_io_loc(special.io[&SpecialIoKey::GbIn]);
+                let special = &edev.chip.special_tiles[&SpecialTileKey::GbRoot];
+                if let Some(&io) = special.io.get(&SpecialIoKey::GbIn(idx)) {
+                    let bel = edev.chip.get_io_loc(io);
                     return GenericNet::GlobalPadIn(bel.cell);
                 } else {
                     return match idx {
@@ -789,6 +790,9 @@ pub fn xlat_mux_in(
 ) -> (CellCoord, WireSlotId, WireSlotId) {
     if defs::wires::GLOBAL.contains(wa.slot) {
         return (wb.cell, wa.slot, wb.slot);
+    }
+    if defs::wires::GLOBAL.contains(wb.slot) {
+        return (wa.cell, wa.slot, wb.slot);
     }
     if let Some(out_idx) = defs::wires::OUT_LC.index_of(wa.slot)
         && let Some((_, local_idx)) = parse_local(wb.slot)

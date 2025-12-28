@@ -262,7 +262,7 @@ impl TileClass {
                                 }
                                 writeln!(o, "] {{")?;
                                 for (k, v) in &ebits.values {
-                                    writeln!(o, "\t\t\t\t{k} = {v}", k = ecls.values[k])?;
+                                    writeln!(o, "\t\t\t\t\t{k} = {v},", k = ecls.values[k])?;
                                 }
                                 writeln!(o, "\t\t\t\t}}")?;
                             }

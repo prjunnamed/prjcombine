@@ -418,10 +418,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &R
         device: part,
         edev: &gedev,
         db,
-        collector: Collector {
-            state: &mut state,
-            tiledb,
-        },
+        collector: Collector::new(&mut state, tiledb, gedev.db),
         empty_bs: &empty_bs,
     };
     match gedev {

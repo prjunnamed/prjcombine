@@ -254,6 +254,13 @@ impl WireCoord {
             slot = db.wires.key(self.slot)
         )
     }
+
+    pub fn pos(self) -> PolWireCoord {
+        PolWireCoord {
+            wire: self,
+            inv: false,
+        }
+    }
 }
 
 impl std::ops::Deref for WireCoord {
@@ -267,6 +274,26 @@ impl std::ops::Deref for WireCoord {
 impl std::ops::DerefMut for WireCoord {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.cell
+    }
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
+pub struct PolWireCoord {
+    pub wire: WireCoord,
+    pub inv: bool,
+}
+
+impl std::ops::Deref for PolWireCoord {
+    type Target = WireCoord;
+
+    fn deref(&self) -> &Self::Target {
+        &self.wire
+    }
+}
+
+impl std::ops::DerefMut for PolWireCoord {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.wire
     }
 }
 
@@ -550,6 +577,35 @@ impl<'a> ExpandedGrid<'a> {
             .wires
             .iter()
             .map(|&wire| self.tile_wire(tcrd, wire))
+            .collect()
+    }
+
+    pub fn get_bel_input(&self, bel: BelCoord, pin: BelInputId) -> PolWireCoord {
+        let tcrd = self.get_tile_by_bel(bel);
+        let tile = &self[tcrd];
+        let BelInfo::Bel(ref bel) = self.db[tile.class].bels[bel.slot] else {
+            unreachable!()
+        };
+        let inp = bel.inputs[pin];
+        match inp {
+            BelInput::Fixed(ptwc) => PolWireCoord {
+                wire: self.tile_wire(tcrd, ptwc.tw),
+                inv: ptwc.inv,
+            },
+            BelInput::Invertible(twc, _) => self.tile_wire(tcrd, twc).pos(),
+        }
+    }
+
+    pub fn get_bel_output(&self, bel: BelCoord, pin: BelOutputId) -> Vec<WireCoord> {
+        let tcrd = self.get_tile_by_bel(bel);
+        let tile = &self[tcrd];
+        let BelInfo::Bel(ref bel) = self.db[tile.class].bels[bel.slot] else {
+            unreachable!()
+        };
+        let outp = &bel.outputs[pin];
+        outp.iter()
+            .copied()
+            .map(|twc| self.tile_wire(tcrd, twc))
             .collect()
     }
 

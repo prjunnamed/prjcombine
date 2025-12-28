@@ -2,18 +2,13 @@ use std::collections::BTreeMap;
 
 use prjcombine_entity::{EntityId, EntityPartVec};
 use prjcombine_interconnect::{
-    db::PinDir,
+    db::{BelInfo, IntDb, PinDir, SwitchBoxItem},
     dir::{Dir, DirPartMap},
     grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{chip::ChipKind, defs, expanded::ExpandedDevice};
-use prjcombine_types::{
-    bitrect::BitRect as _,
-    bits,
-    bitvec::BitVec,
-    bsdata::{BsData, TileItemKind},
-};
+use prjcombine_types::{bitrect::BitRect as _, bits, bitvec::BitVec};
 
 use crate::{
     parts::Part,
@@ -669,8 +664,8 @@ pub fn find_io_latch_locs(
 
 #[derive(Debug, Clone, Default)]
 pub struct BelPins {
-    pub ins: BTreeMap<String, WireCoord>,
-    pub outs: BTreeMap<String, Vec<WireCoord>>,
+    pub ins: BTreeMap<InstPin, WireCoord>,
+    pub outs: BTreeMap<InstPin, Vec<WireCoord>>,
     pub wire_names: BTreeMap<(u32, u32, String), WireCoord>,
 }
 
@@ -680,7 +675,7 @@ pub fn find_bel_pins(
     prims: &BTreeMap<&'static str, Primitive>,
     part: &Part,
     edev: &ExpandedDevice,
-    bsdata: Option<&BsData>,
+    p01_db: Option<&IntDb>,
     pkg: &'static str,
     kind: &str,
     site: &SiteInfo,
@@ -694,17 +689,12 @@ pub fn find_bel_pins(
                 RowId::from_idx(v.1 as usize),
             )
             .wire(defs::wires::IMUX_IO_EXTRA);
-            match k {
-                InstPin::Simple(pin) => {
-                    if pin == "LATCHINPUTVALUE" {
-                        continue;
-                    }
-                    result.ins.insert(pin.clone(), iw);
-                }
-                InstPin::Indexed(pin, index) => {
-                    result.ins.insert(format!("{pin}_{index}"), iw);
-                }
+            if let InstPin::Simple(pin) = k
+                && pin == "LATCHINPUTVALUE"
+            {
+                continue;
             }
+            result.ins.insert(k.clone(), iw);
             result.wire_names.insert(site.in_wires[k].clone(), iw);
         }
         if kind.starts_with("SB_PLL") {
@@ -720,7 +710,7 @@ pub fn find_bel_pins(
                 result
                     .wire_names
                     .insert(site.out_wires[&InstPin::Simple(pin.into())].clone(), iws[0]);
-                result.outs.insert(pin.into(), iws);
+                result.outs.insert(InstPin::Simple(pin.into()), iws);
             }
         }
     } else {
@@ -1004,7 +994,7 @@ pub fn find_bel_pins(
             }
         }
 
-        let tiledb = bsdata.unwrap();
+        let p01_db = p01_db.unwrap();
         for col in edev.chip.columns() {
             for row in edev.chip.rows() {
                 let cell = CellCoord::new(DieId::from_idx(0), col, row);
@@ -1027,98 +1017,93 @@ pub fn find_bel_pins(
                 } else {
                     ChipKind::Ice40P01.tile_class_plb()
                 };
-                let tile_kind = edev.db.tile_classes.key(tcid);
-                let tile = &tiledb.tiles[tile_kind];
+                let tcls = &p01_db[tcid];
                 let btile = edev.btile_main(col, row);
-                for (name, item) in &tile.items {
-                    let (wtn, wfn) = if let Some(wtn) = name.strip_prefix("INT:MUX.") {
-                        let TileItemKind::Enum { values } = &item.kind else {
-                            unreachable!()
-                        };
-                        let mut bv = BitVec::new();
-                        for &bit in &item.bits {
-                            let bit = btile.xlat_pos_fwd((bit.frame, bit.bit));
-                            let val = res.bitstream.get(bit);
-                            bv.push(val);
+                let BelInfo::SwitchBox(ref sb) = tcls.bels[defs::bslots::INT] else {
+                    unreachable!()
+                };
+                for item in &sb.items {
+                    let (wt, wf) = match item {
+                        SwitchBoxItem::Mux(mux) => {
+                            let mut bv = BitVec::new();
+                            for &bit in &mux.bits {
+                                let bit = btile.xlat_pos_fwd((bit.frame, bit.bit));
+                                let val = res.bitstream.get(bit);
+                                bv.push(val);
+                            }
+                            let Some((&wf, _)) = mux.src.iter().find(|&(_, val)| *val == bv) else {
+                                continue;
+                            };
+                            (mux.dst, wf)
                         }
-                        let wfn = values.iter().find(|&(_, val)| *val == bv).unwrap().0;
-                        if wfn == "NONE" {
-                            continue;
+                        SwitchBoxItem::ProgBuf(buf) => {
+                            let bit = btile.xlat_pos_fwd((buf.bit.bit.frame, buf.bit.bit.bit));
+                            let bit = res.bitstream.get(bit) ^ buf.bit.inv;
+                            if !bit {
+                                continue;
+                            }
+                            (buf.dst, buf.src)
                         }
-                        (wtn, wfn.as_str())
-                    } else if let Some(rest) = name.strip_prefix("INT:BUF.") {
-                        let TileItemKind::BitVec { invert } = &item.kind else {
-                            unreachable!()
-                        };
-                        let Some((wtn, _)) = rest.split_once(".OUT_LC") else {
-                            continue;
-                        };
-                        let wfn = rest.strip_prefix(wtn).unwrap().strip_prefix('.').unwrap();
-                        let bit = item.bits[0];
-                        let bit = btile.xlat_pos_fwd((bit.frame, bit.bit));
-                        let bit = res.bitstream.get(bit) ^ invert[0];
-                        if !bit {
-                            continue;
-                        }
-                        (wtn, wfn)
-                    } else {
-                        continue;
+                        _ => continue,
                     };
+                    let wtn = p01_db.wires.key(wt.wire);
                     if wtn.starts_with("IMUX") {
-                        let wf = cell.wire(edev.db.get_wire(wfn));
+                        let wf = cell.wire(wf.wire);
                         let wf = edev.resolve_wire(wf).unwrap();
                         if let Some(pin) = iwmap_in.get(&wf) {
-                            let wt = cell.wire(edev.db.get_wire(wtn));
+                            let wt = cell.wire(wt.wire);
                             if let Some(wnames) = wnmap.get(pin) {
                                 for wn in wnames {
                                     result.wire_names.insert(wn.clone(), wt);
                                 }
                             }
-                            let pin = match pin {
-                                InstPin::Simple(pin) => pin.clone(),
-                                InstPin::Indexed(pin, index) => format!("{pin}_{index}"),
-                            };
                             let mut wt = wt;
                             if wt.slot == defs::wires::IMUX_CLK {
                                 wt.slot = defs::wires::IMUX_CLK_OPTINV;
                             }
-                            result.ins.insert(pin, wt);
+                            if let Some(idx) = defs::wires::IMUX_IO_DOUT0.index_of(wt.slot) {
+                                wt.slot = defs::wires::IOB_DOUT[idx];
+                            }
+                            result.ins.insert(pin.clone(), wt);
                         }
                     }
+                    let wfn = p01_db.wires.key(wf.wire);
                     if wfn.starts_with("OUT") {
-                        let wt = cell.wire(edev.db.get_wire(wtn));
+                        let wt = cell.wire(wt.wire);
                         let wt = edev.resolve_wire(wt).unwrap();
                         if let Some(pin) = iwmap_out.get(&wt) {
-                            let wf = cell.wire(edev.db.get_wire(wfn));
+                            let wf = cell.wire(wf.wire);
                             let wf = edev.resolve_wire(wf).unwrap();
                             let is_lr = wf.cell.col == edev.chip.col_w()
                                 || wf.cell.col == edev.chip.col_e();
                             let is_bt = wf.cell.row == edev.chip.row_s()
                                 || wf.cell.row == edev.chip.row_n();
-                            let wfs = if is_lr && is_bt {
-                                Vec::from_iter(
+                            let (wfs, real_wfs) = if is_lr && is_bt {
+                                let wfs = Vec::from_iter(
                                     (0..8).map(|idx| wf.cell.wire(defs::wires::OUT_LC[idx])),
-                                )
+                                );
+                                (wfs.clone(), wfs)
                             } else if (is_lr && edev.chip.kind.has_ioi_we()) || is_bt {
                                 let idx = defs::wires::OUT_LC.index_of(wf.slot).unwrap();
                                 let idx = idx & 3;
-                                Vec::from_iter(
-                                    [idx, idx + 4]
-                                        .map(|idx| wf.cell.wire(defs::wires::OUT_LC[idx])),
+                                assert_eq!(idx & 1, 0);
+                                (
+                                    vec![wf.cell.wire(defs::wires::IOB_DIN[idx >> 1])],
+                                    vec![
+                                        wf.cell.wire(defs::wires::OUT_LC[idx]),
+                                        wf.cell.wire(defs::wires::OUT_LC[idx + 4]),
+                                    ],
                                 )
                             } else {
-                                vec![wf]
+                                let idx = defs::wires::OUT_LC.index_of(wf.slot).unwrap();
+                                (vec![wf.cell.wire(defs::wires::LC_LTIN[idx])], vec![wf])
                             };
                             if let Some(wnames) = wnmap.get(pin) {
                                 for wn in wnames {
-                                    result.wire_names.insert(wn.clone(), wfs[0]);
+                                    result.wire_names.insert(wn.clone(), real_wfs[0]);
                                 }
                             }
-                            let pin = match pin {
-                                InstPin::Simple(pin) => pin.clone(),
-                                InstPin::Indexed(pin, index) => format!("{pin}_{index}"),
-                            };
-                            result.outs.insert(pin, wfs);
+                            result.outs.insert(pin.clone(), wfs);
                         }
                     }
                 }

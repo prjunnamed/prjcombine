@@ -25,6 +25,11 @@ impl Chip {
                 } else {
                     egrid.add_tile_single_id(cell, self.kind.tile_class_ioi(Dir::S).unwrap());
                     egrid.add_tile_single_id(cell, self.kind.tile_class_iob(Dir::S).unwrap());
+                    egrid[cell].region_root[regions::EDGE] = *self.special_tiles
+                        [&SpecialTileKey::LatchIo(Dir::S)]
+                        .cells
+                        .first()
+                        .unwrap();
                 }
             } else if cell.row == self.row_n() {
                 if cell.col == self.col_w() || cell.col == self.col_e() {
@@ -32,6 +37,11 @@ impl Chip {
                 } else {
                     egrid.add_tile_single_id(cell, self.kind.tile_class_ioi(Dir::N).unwrap());
                     egrid.add_tile_single_id(cell, self.kind.tile_class_iob(Dir::N).unwrap());
+                    egrid[cell].region_root[regions::EDGE] = *self.special_tiles
+                        [&SpecialTileKey::LatchIo(Dir::N)]
+                        .cells
+                        .first()
+                        .unwrap();
                 }
             } else {
                 if self.kind.has_ioi_we() && cell.col == self.col_w() {
@@ -39,11 +49,21 @@ impl Chip {
                     if self.kind.has_iob_we() {
                         egrid.add_tile_single_id(cell, self.kind.tile_class_iob(Dir::W).unwrap());
                     }
+                    egrid[cell].region_root[regions::EDGE] = *self.special_tiles
+                        [&SpecialTileKey::LatchIo(Dir::W)]
+                        .cells
+                        .first()
+                        .unwrap();
                 } else if self.kind.has_ioi_we() && cell.col == self.col_e() {
                     egrid.add_tile_single_id(cell, self.kind.tile_class_ioi(Dir::E).unwrap());
                     if self.kind.has_iob_we() {
                         egrid.add_tile_single_id(cell, self.kind.tile_class_iob(Dir::E).unwrap());
                     }
+                    egrid[cell].region_root[regions::EDGE] = *self.special_tiles
+                        [&SpecialTileKey::LatchIo(Dir::E)]
+                        .cells
+                        .first()
+                        .unwrap();
                 } else if self.cols_bram.contains(&cell.col) {
                     egrid.add_tile_single_id(cell, defs::tcls::INT_BRAM);
                     if (cell.row.to_idx() - 1).is_multiple_of(2) {
@@ -55,18 +75,10 @@ impl Chip {
             }
         }
 
-        egrid.add_tile_single_id(
-            CellCoord::new(die, self.col_w(), self.row_s()),
-            self.kind.tile_class_gb_root(),
-        );
-
         for (&key, special) in &self.special_tiles {
-            if matches!(key, SpecialTileKey::GbIo(..)) {
-                continue;
-            }
-            let fcell = *special.cells.first().unwrap();
+            let anchor = self.special_tile(key).cell;
             egrid.add_tile_id(
-                fcell,
+                anchor,
                 key.tile_class(self.kind),
                 &Vec::from_iter(special.cells.values().copied()),
             );
@@ -94,8 +106,7 @@ impl Chip {
         for cell in egrid.die_cells(die) {
             egrid[cell].region_root[regions::GLOBAL] =
                 CellCoord::new(die, self.col_w(), self.row_s());
-            egrid[cell].region_root[regions::COLBUF] =
-                CellCoord::new(die, self.col_w(), self.row_s());
+            egrid[cell].region_root[regions::COLBUF] = cell.with_row(self.row_mid);
         }
 
         for &(row_m, row_b, row_t) in &self.rows_colbuf {
@@ -122,6 +133,11 @@ impl Chip {
                         egrid.add_tile_single_id(cell, tcls);
                     }
                 }
+            }
+        }
+        if self.rows_colbuf.is_empty() {
+            for cell in egrid.row(die, self.row_mid) {
+                egrid.add_tile_single_id(cell, defs::tcls::COLBUF_FIXED);
             }
         }
 

@@ -5,7 +5,8 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_interconnect::db::{
-    BelInfo, ConnectorWire, IntDb, PinDir, SwitchBoxItem, TileClassId, TileWireCoord, WireKind,
+    BelInfo, BelInput, BelKind, ConnectorWire, IntDb, PinDir, SwitchBoxItem, TileClassId,
+    TileWireCoord, WireKind,
 };
 
 use crate::DocgenContext;
@@ -331,8 +332,65 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 writeln!(buf, r#"</table></div>"#).unwrap();
                 writeln!(buf).unwrap();
             }
-            BelInfo::Bel(_bel) => {
-                todo!();
+            BelInfo::Bel(bel) => {
+                let BelKind::Class(bcid) = intdb.bel_slots[slot].kind else {
+                    unreachable!()
+                };
+                let bcls = &intdb.bel_classes[bcid];
+                writeln!(buf, r#"### Bel {bname}"#).unwrap();
+                writeln!(buf).unwrap();
+                writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+                writeln!(buf, r#"<caption>{dbname} {tname} bel {bname}</caption>"#).unwrap();
+                writeln!(buf, r#"<thead>"#).unwrap();
+                writeln!(
+                    buf,
+                    r#"<tr><th>Pin</th><th>Direction</th><th>Wires</th><th>Invert</th></tr>"#
+                )
+                .unwrap();
+                writeln!(buf, r#"</thead>"#).unwrap();
+                writeln!(buf, r#"<tbody>"#).unwrap();
+                for (pid, inp) in &bel.inputs {
+                    let (pname, _) = bcls.inputs.key(pid);
+                    let (wire, inv) = match inp {
+                        BelInput::Fixed(ptwc) => {
+                            wmap.entry(ptwc.tw).or_default().push((slot, pname));
+                            (ptwc.to_string(intdb, tcls), "-".to_string())
+                        }
+                        BelInput::Invertible(twc, bit) => {
+                            wmap.entry(*twc).or_default().push((slot, pname));
+                            (
+                                format!("^{}", twc.to_string(intdb, tcls)),
+                                tcls.dump_polbit(*bit),
+                            )
+                        }
+                    };
+                    writeln!(
+                        buf,
+                        r#"<tr><td>{pname}</td><td>in</td><td>{wire}</td><td>{inv}</td></tr>"#
+                    )
+                    .unwrap();
+                }
+                for (pid, twcs) in &bel.outputs {
+                    let (pname, _) = bcls.outputs.key(pid);
+                    let wires = twcs.iter().map(|twc| twc.to_string(intdb, tcls)).join(", ");
+                    writeln!(
+                        buf,
+                        r#"<tr><td>{pname}</td><td>out</td><td>{wires}</td><td>-</td></tr>"#
+                    )
+                    .unwrap();
+                }
+                for (pid, twc) in &bel.bidirs {
+                    let (pname, _) = bcls.bidirs.key(pid);
+                    let wire = twc.to_string(intdb, tcls);
+                    writeln!(
+                        buf,
+                        r#"<tr><td>{pname}</td><td>bidir</td><td>{wire}</td><td>-</td></tr>"#
+                    )
+                    .unwrap();
+                }
+                writeln!(buf, r#"</tbody>"#).unwrap();
+                writeln!(buf, r#"</table></div>"#).unwrap();
+                writeln!(buf).unwrap();
             }
             BelInfo::Legacy(bel) => {
                 writeln!(buf, r#"### Bel {bname}"#).unwrap();

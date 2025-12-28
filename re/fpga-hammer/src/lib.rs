@@ -13,13 +13,16 @@ use prjcombine_entity::{
 };
 use prjcombine_interconnect::{
     db::{
-        BelAttributeId, BelSlotId, EnumValueId, PolTileWireCoord, TileClassId, TileSlotId,
+        BelAttribute, BelAttributeEnum, BelAttributeId, BelAttributeType, BelInfo, BelKind,
+        BelSlotId, EnumValueId, IntDb, PolTileWireCoord, SwitchBoxItem, TileClassId, TileSlotId,
         TileWireCoord,
     },
-    grid::{BelCoord, CellCoord, ColId, DieId, ExpandedGrid, RowId, TileCoord},
+    grid::{
+        BelCoord, CellCoord, ColId, DieId, ExpandedGrid, PolWireCoord, RowId, TileCoord, WireCoord,
+    },
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
-use prjcombine_types::bsdata::{BitRectId, BsData, TileBit, TileItem, TileItemKind};
+use prjcombine_types::bsdata::{BitRectId, BsData, PolTileBit, TileBit, TileItem, TileItemKind};
 use prjcombine_types::{bitrect::BitRect, bitvec::BitVec};
 use rand::seq::IndexedRandom;
 
@@ -285,6 +288,22 @@ impl Diff {
         }
     }
 
+    pub fn apply_bitvec_diff_raw(&mut self, bits: &[PolTileBit], from: &BitVec, to: &BitVec) {
+        for (idx, &pbit) in bits.iter().enumerate() {
+            if from[idx] != to[idx] {
+                match self.bits.entry(pbit.bit) {
+                    hash_map::Entry::Occupied(e) => {
+                        assert_eq!(*e.get(), from[idx] ^ pbit.inv);
+                        e.remove();
+                    }
+                    hash_map::Entry::Vacant(e) => {
+                        e.insert(to[idx] ^ pbit.inv);
+                    }
+                }
+            }
+        }
+    }
+
     pub fn apply_bitvec_diff(&mut self, item: &TileItem, from: &BitVec, to: &BitVec) {
         let TileItemKind::BitVec { ref invert } = item.kind else {
             unreachable!()
@@ -461,6 +480,16 @@ pub fn xlat_item_tile(item: TileItem, xlat: &EntityVec<BitRectId, BitRectId>) ->
     }
 }
 
+pub fn xlat_bit_raw(diff: Diff) -> PolTileBit {
+    assert_eq!(diff.bits.len(), 1);
+    let (&bit, &val) = diff.bits.iter().next().unwrap();
+    PolTileBit { bit, inv: !val }
+}
+
+pub fn xlat_bitvec_raw(diffs: Vec<Diff>) -> Vec<PolTileBit> {
+    diffs.into_iter().map(xlat_bit_raw).collect()
+}
+
 pub fn xlat_bitvec(diffs: Vec<Diff>) -> TileItem {
     let mut invert = BitVec::new();
     let mut bits = vec![];
@@ -520,7 +549,10 @@ pub enum OcdMode<'a> {
     FixedOrder(&'a [TileBit]),
 }
 
-pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> TileItem {
+pub fn xlat_enum_raw<K: Clone + Debug + Eq + PartialEq + Ord + PartialOrd>(
+    diffs: Vec<(K, Diff)>,
+    ocd: OcdMode,
+) -> EnumData<K> {
     let mut bits = BTreeMap::new();
     for (_, diff) in &diffs {
         for (&bit, &pol) in &diff.bits {
@@ -647,7 +679,6 @@ pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> Til
     }
     let mut values = BTreeMap::new();
     for (name, diff) in diffs {
-        let name = name.into();
         let value: BitVec = bits_vec
             .iter()
             .map(|&bit| bits[&bit] ^ !diff.bits.contains_key(&bit))
@@ -659,7 +690,7 @@ pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> Til
             btree_map::Entry::Occupied(e) => {
                 if *e.get() != value {
                     eprintln!(
-                        "MISMATCH FOR {n}: {cur:?} {value:?}",
+                        "MISMATCH FOR {n:?}: {cur:?} {value:?}",
                         n = e.key(),
                         cur = e.get(),
                     );
@@ -668,8 +699,19 @@ pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> Til
             }
         }
     }
+    (bits_vec, values)
+}
+
+pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> TileItem {
+    let (bits, values) = xlat_enum_raw(
+        diffs
+            .into_iter()
+            .map(|(key, diff)| (key.into(), diff))
+            .collect(),
+        ocd,
+    );
     TileItem {
-        bits: bits_vec,
+        bits,
         kind: TileItemKind::Enum { values },
     }
 }
@@ -786,8 +828,10 @@ pub enum DiffKey {
     BelAttrValue(TileClassId, BelSlotId, BelAttributeId, EnumValueId),
     BelAttrSpecial(TileClassId, BelSlotId, BelAttributeId, SpecialId),
     BelSpecial(TileClassId, BelSlotId, SpecialId),
-    GlobalLegacy(String),
+    BelSpecialString(TileClassId, BelSlotId, SpecialId, String),
     GlobalBelAttrBit(BelCoord, BelAttributeId, usize),
+    GlobalBelAttrSpecial(BelCoord, BelAttributeId, SpecialId),
+    GlobalRouting(WireCoord, PolWireCoord),
     Routing(TileClassId, TileWireCoord, PolTileWireCoord),
     RoutingInv(TileClassId, TileWireCoord),
     RoutingSpecial(TileClassId, TileWireCoord, SpecialId),
@@ -810,6 +854,19 @@ impl State {
         Self::default()
     }
 
+    pub fn get_diffs_raw(&mut self, key: &DiffKey) -> Vec<Diff> {
+        self.features
+            .remove(key)
+            .unwrap_or_else(|| panic!("NO DIFF: {key:?}"))
+            .diffs
+    }
+
+    pub fn get_diff_raw(&mut self, key: &DiffKey) -> Diff {
+        let mut res = self.get_diffs_raw(key);
+        assert_eq!(res.len(), 1);
+        res.pop().unwrap()
+    }
+
     pub fn get_diffs(
         &mut self,
         tile: impl Into<String>,
@@ -827,10 +884,7 @@ impl State {
             attr,
             val,
         });
-        self.features
-            .remove(&key)
-            .unwrap_or_else(|| panic!("NO DIFF: {key:?}"))
-            .diffs
+        self.get_diffs_raw(&key)
     }
 
     pub fn get_diff(
@@ -869,6 +923,14 @@ impl State {
             .diffs
     }
 
+    pub fn peek_diffs_raw(&self, key: &DiffKey) -> &Vec<Diff> {
+        &self
+            .features
+            .get(key)
+            .unwrap_or_else(|| panic!("NO DIFF: {key:?}"))
+            .diffs
+    }
+
     pub fn peek_diff(
         &self,
         tile: impl Into<String>,
@@ -877,6 +939,12 @@ impl State {
         val: impl Into<String>,
     ) -> &Diff {
         let res = self.peek_diffs(tile, bel, attr, val);
+        assert_eq!(res.len(), 1);
+        &res[0]
+    }
+
+    pub fn peek_diff_raw(&self, key: &DiffKey) -> &Diff {
+        let res = self.peek_diffs_raw(key);
         assert_eq!(res.len(), 1);
         &res[0]
     }
@@ -955,13 +1023,328 @@ impl State {
     }
 }
 
-#[derive(Debug)]
-pub struct Collector<'a> {
-    pub state: &'a mut State,
-    pub tiledb: &'a mut BsData,
+pub type EnumData<K> = (Vec<TileBit>, BTreeMap<K, BitVec>);
+
+#[derive(Debug, Default)]
+pub struct CollectorData {
+    pub bel_attrs: HashMap<(TileClassId, BelSlotId, BelAttributeId), BelAttribute>,
+    pub inv: HashMap<(TileClassId, TileWireCoord), PolTileBit>,
+    pub buf: HashMap<(TileClassId, TileWireCoord, PolTileWireCoord), PolTileBit>,
+    pub mux: HashMap<(TileClassId, TileWireCoord), EnumData<Option<PolTileWireCoord>>>,
 }
 
-impl Collector<'_> {
+impl CollectorData {
+    pub fn insert_into(mut self, intdb: &mut IntDb, missing_ok: bool) {
+        for ((tcid, bslot, aid), attr) in self.bel_attrs {
+            let BelInfo::Bel(ref mut bel) = intdb.tile_classes[tcid].bels[bslot] else {
+                unreachable!()
+            };
+            bel.attributes.insert(aid, attr);
+        }
+
+        for (tcid, _, tcls) in &mut intdb.tile_classes {
+            for bel in tcls.bels.values_mut() {
+                let BelInfo::SwitchBox(sbox) = bel else {
+                    continue;
+                };
+                for item in &mut sbox.items {
+                    match item {
+                        SwitchBoxItem::Mux(mux) => {
+                            let Some((bits, values)) = self.mux.remove(&(tcid, mux.dst)) else {
+                                if missing_ok {
+                                    continue;
+                                }
+                                let dst = mux.dst;
+                                panic!(
+                                    "can't find collect enum mux {tcname} {dst}",
+                                    tcname = intdb.tile_classes.key(tcid),
+                                    dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                )
+                            };
+                            mux.bits = bits;
+                            let mut handled = BTreeSet::new();
+                            for (src, val) in values {
+                                if let Some(src) = src {
+                                    *mux.src.get_mut(&src).unwrap() = val;
+                                    handled.insert(src);
+                                } else {
+                                    mux.bits_off = Some(val);
+                                }
+                            }
+                            for src in mux.src.keys() {
+                                let src = *src;
+                                if !handled.contains(&src) {
+                                    let dst = mux.dst;
+                                    panic!(
+                                        "can't find mux input {tcname} {dst} {src}",
+                                        tcname = intdb.tile_classes.key(tcid),
+                                        dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                        src = src.to_string(intdb, &intdb.tile_classes[tcid]),
+                                    );
+                                }
+                            }
+                        }
+                        SwitchBoxItem::ProgBuf(buf) => {
+                            let Some(bit) = self.buf.remove(&(tcid, buf.dst, buf.src)) else {
+                                if missing_ok {
+                                    continue;
+                                }
+                                let dst = buf.dst;
+                                let src = buf.src;
+                                panic!(
+                                    "can't find collect bit progbuf {tcname} {dst} {src}",
+                                    tcname = intdb.tile_classes.key(tcid),
+                                    dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                    src = src.to_string(intdb, &intdb.tile_classes[tcid])
+                                )
+                            };
+                            buf.bit = bit;
+                        }
+                        SwitchBoxItem::PermaBuf(_) => (),
+                        SwitchBoxItem::Pass(_pass) => {
+                            // TODO
+                        }
+                        SwitchBoxItem::BiPass(_pass) => {
+                            // TODO
+                        }
+                        SwitchBoxItem::ProgInv(inv) => {
+                            let Some(bit) = self.inv.remove(&(tcid, inv.dst)) else {
+                                if missing_ok {
+                                    continue;
+                                }
+                                let twc = inv.dst;
+                                panic!(
+                                    "can't find collect bit proginv {tcname} {wire}",
+                                    tcname = intdb.tile_classes.key(tcid),
+                                    wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
+                                )
+                            };
+                            inv.bit = bit;
+                        }
+                        SwitchBoxItem::ProgDelay(_delay) => {
+                            // TODO
+                        }
+                    }
+                }
+            }
+        }
+
+        for ((tcid, dst), data) in self.mux {
+            println!(
+                "uncollected enum: mux {tcls} {dst}: {data:?}",
+                tcls = intdb.tile_classes.key(tcid),
+                dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+            );
+        }
+
+        for ((tcid, dst, src), bit) in self.buf {
+            println!(
+                "uncollected bit: progbuf {tcls} {dst} {src}: {bit}",
+                tcls = intdb.tile_classes.key(tcid),
+                dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                src = src.to_string(intdb, &intdb.tile_classes[tcid]),
+                bit = intdb.tile_classes[tcid].dump_polbit(bit),
+            );
+        }
+
+        for ((tcid, twc), bit) in self.inv {
+            println!(
+                "uncollected bit: proginv {tcls} {wire}: {bit}",
+                tcls = intdb.tile_classes.key(tcid),
+                wire = twc.to_string(intdb, &intdb.tile_classes[tcid]),
+                bit = intdb.tile_classes[tcid].dump_polbit(bit),
+            );
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Collector<'a, 'b> {
+    pub state: &'a mut State,
+    pub tiledb: &'a mut BsData,
+    pub intdb: &'b IntDb,
+    pub data: CollectorData,
+}
+
+impl<'a, 'b> Collector<'a, 'b> {
+    pub fn new(state: &'a mut State, tiledb: &'a mut BsData, intdb: &'b IntDb) -> Self {
+        Self {
+            state,
+            tiledb,
+            intdb,
+            data: Default::default(),
+        }
+    }
+
+    pub fn insert_bel_attr_raw(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        attr: BelAttribute,
+    ) {
+        match self.data.bel_attrs.entry((tcid, bslot, aid)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), attr);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(attr);
+            }
+        }
+    }
+
+    pub fn insert_bel_attr_bool(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        bit: PolTileBit,
+    ) {
+        self.insert_bel_attr_raw(tcid, bslot, aid, BelAttribute::BitVec(vec![bit]));
+    }
+
+    pub fn insert_bel_attr_bitvec(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        bits: Vec<PolTileBit>,
+    ) {
+        self.insert_bel_attr_raw(tcid, bslot, aid, BelAttribute::BitVec(bits));
+    }
+
+    pub fn collect_bel_attr(&mut self, tcid: TileClassId, bslot: BelSlotId, aid: BelAttributeId) {
+        let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
+            unreachable!()
+        };
+        let bcattr = &self.intdb.bel_classes[bcid].attributes[aid];
+        let attr = match bcattr.typ {
+            BelAttributeType::Enum(ecid) => {
+                let ecls = &self.intdb.enum_classes[ecid];
+                let mut diffs = vec![];
+                for vid in ecls.values.ids() {
+                    diffs.push((
+                        vid,
+                        self.state
+                            .get_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, aid, vid)),
+                    ));
+                }
+                let (bits, values) = xlat_enum_raw(diffs, OcdMode::ValueOrder);
+                BelAttribute::Enum(BelAttributeEnum {
+                    bits,
+                    values: values.into_iter().collect(),
+                })
+            }
+            BelAttributeType::Bool => BelAttribute::BitVec(vec![xlat_bit_raw(
+                self.state
+                    .get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, 0)),
+            )]),
+            BelAttributeType::Bitvec(width) => BelAttribute::BitVec(xlat_bitvec_raw(
+                (0..width)
+                    .map(|idx| {
+                        self.state
+                            .get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, idx))
+                    })
+                    .collect(),
+            )),
+            BelAttributeType::BitvecArray(_, _) => todo!(),
+        };
+        match self.data.bel_attrs.entry((tcid, bslot, aid)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), attr);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(attr);
+            }
+        }
+    }
+
+    pub fn collect_bel_attr_default(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        default: EnumValueId,
+    ) {
+        let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
+            unreachable!()
+        };
+        let bcattr = &self.intdb.bel_classes[bcid].attributes[aid];
+        let BelAttributeType::Enum(ecid) = bcattr.typ else {
+            unreachable!()
+        };
+
+        let ecls = &self.intdb.enum_classes[ecid];
+        let mut diffs = vec![(default, Diff::default())];
+        for vid in ecls.values.ids() {
+            if vid == default {
+                continue;
+            }
+            diffs.push((
+                vid,
+                self.state
+                    .get_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, aid, vid)),
+            ));
+        }
+
+        let (bits, values) = xlat_enum_raw(diffs, OcdMode::ValueOrder);
+        let attr = BelAttribute::Enum(BelAttributeEnum {
+            bits,
+            values: values.into_iter().collect(),
+        });
+        match self.data.bel_attrs.entry((tcid, bslot, aid)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), attr);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(attr);
+            }
+        }
+    }
+
+    pub fn bel_attr_bitvec(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+    ) -> &[PolTileBit] {
+        let BelAttribute::BitVec(ref bits) = self.data.bel_attrs[&(tcid, bslot, aid)] else {
+            unreachable!()
+        };
+        bits
+    }
+
+    pub fn collect_progbuf(
+        &mut self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        src: PolTileWireCoord,
+    ) {
+        let diff = self.state.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
+        let bit = xlat_bit_raw(diff);
+        match self.data.buf.entry((tcid, dst, src)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), bit);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(bit);
+            }
+        }
+    }
+
+    pub fn collect_inv(&mut self, tcid: TileClassId, wire: TileWireCoord) {
+        let diff = self.state.get_diff_raw(&DiffKey::RoutingInv(tcid, wire));
+        let bit = xlat_bit_raw(diff);
+        match self.data.inv.entry((tcid, wire)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), bit);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(bit);
+            }
+        }
+    }
+
     #[must_use]
     pub fn extract_bitvec(&mut self, tile: &str, bel: &str, attr: &str, val: &str) -> TileItem {
         xlat_bitvec(self.state.get_diffs(tile, bel, attr, val))
@@ -1288,6 +1671,27 @@ impl Collector<'_> {
     }
 }
 
+pub fn extract_bitvec_val_part_raw(bits: &[PolTileBit], base: &BitVec, diff: &mut Diff) -> BitVec {
+    assert_eq!(bits.len(), base.len());
+    let mut res = base.clone();
+    let rev: HashMap<_, _> = bits
+        .iter()
+        .copied()
+        .enumerate()
+        .map(|(i, v)| (v.bit, i))
+        .collect();
+    diff.bits.retain(|&bit, &mut val| {
+        if let Some(&bitidx) = rev.get(&bit) {
+            assert_eq!(res[bitidx], !(val ^ bits[bitidx].inv));
+            res.set(bitidx, val ^ bits[bitidx].inv);
+            false
+        } else {
+            true
+        }
+    });
+    res
+}
+
 pub fn extract_bitvec_val_part(item: &TileItem, base: &BitVec, diff: &mut Diff) -> BitVec {
     let TileItemKind::BitVec { ref invert } = item.kind else {
         unreachable!()
@@ -1332,4 +1736,16 @@ pub fn extract_bitvec_val(item: &TileItem, base: &BitVec, diff: Diff) -> BitVec 
         res.set(bitidx, val ^ invert[bitidx]);
     }
     res
+}
+
+#[macro_export]
+macro_rules! specials {
+    (@CONSTS@ ($idx:expr) $spec:ident, $($rest:ident,)*) => {
+        pub const $spec: $crate::SpecialId = $crate::SpecialId::from_idx_const($idx);
+        $crate::specials!(@CONSTS@ ($spec.to_idx_const() + 1) $($rest,)*);
+    };
+    (@CONSTS@ ($idx:expr)) => {};
+    ($($spec:ident),* $(,)?) => {
+        $crate::specials!(@CONSTS@ (0) $($spec,)*);
+    };
 }

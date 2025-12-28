@@ -72,16 +72,11 @@ The following devices do not have column buffers:
 On these devices, the global nets are permanently connected to all consumers, and the column buffer enable bits don't have to be set.
 
 {{ tile siliconblue GB_ROOT_L04 }}
-
 {{ tile siliconblue GB_ROOT_L08 }}
-
+{{ tile siliconblue GB_ROOT_R04 }}
 {{ tile siliconblue COLBUF_L01 }}
-
 {{ tile siliconblue COLBUF_P08 }}
-
 {{ tile siliconblue COLBUF_IO_W }}
-
 {{ tile siliconblue COLBUF_IO_E }}
-
-{{ tile siliconblue GB_FABRIC }}
+{{ tile siliconblue COLBUF_FIXED }}
 

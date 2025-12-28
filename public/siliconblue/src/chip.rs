@@ -6,7 +6,7 @@ use prjcombine_entity::{EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::{
     db::{CellSlotId, TileClassId},
     dir::{Dir, DirH, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
+    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileCoord, TileIobId},
 };
 
 use crate::defs::{self, bslots as bels};
@@ -138,6 +138,9 @@ impl ChipKind {
     pub fn tile_class_gb_root(self) -> TileClassId {
         match self {
             ChipKind::Ice65L04 | ChipKind::Ice65P04 => defs::tcls::GB_ROOT_L04,
+            ChipKind::Ice40R04 | ChipKind::Ice40T04 | ChipKind::Ice40T01 | ChipKind::Ice40T05 => {
+                defs::tcls::GB_ROOT_R04
+            }
             _ => defs::tcls::GB_ROOT_L08,
         }
     }
@@ -307,8 +310,8 @@ pub struct SpecialTile {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum SpecialTileKey {
-    GbFabric(usize),
-    GbIo(usize),
+    GbRoot,
+    Misc,
     LatchIo(Dir),
     Warmboot,
     Pll(DirV),
@@ -318,40 +321,36 @@ pub enum SpecialTileKey {
     I2cFifo(DirH),
     LsOsc,
     HsOsc,
-    LfOsc,
-    HfOsc,
-    Trim,
-    I3c,
-    IrDrv,
-    RgbDrv,
-    Ir500Drv,
-    LedDrvCur,
-    LeddIp,
-    IrIp,
     Mac16(ColId, RowId),
     Mac16Trim(ColId, RowId),
     SpramPair(DirH),
-    SmcClk,
 }
 
 impl SpecialTileKey {
     pub fn tile_class(self, kind: ChipKind) -> TileClassId {
         match self {
-            SpecialTileKey::GbFabric(_) => defs::tcls::GB_FABRIC,
-            SpecialTileKey::LatchIo(_) => defs::tcls::IO_LATCH,
-            SpecialTileKey::I3c => defs::tcls::I3C,
-            SpecialTileKey::Pll(dir) => match (dir, kind) {
-                (DirV::S, ChipKind::Ice65P04) => defs::tcls::PLL_S_P04,
-                (DirV::S, ChipKind::Ice40P01) => defs::tcls::PLL_S_P01,
-                (DirV::S, ChipKind::Ice40P08) => defs::tcls::PLL_S_P08,
-                (DirV::N, ChipKind::Ice40P08) => defs::tcls::PLL_N_P08,
-                (DirV::S, ChipKind::Ice40R04) => defs::tcls::PLL_S_R04,
-                (DirV::N, ChipKind::Ice40R04 | ChipKind::Ice40T04 | ChipKind::Ice40T05) => {
-                    defs::tcls::PLL_N_R04
-                }
-                (DirV::S, ChipKind::Ice40T01) => defs::tcls::PLL_S_T01,
+            SpecialTileKey::GbRoot => kind.tile_class_gb_root(),
+            SpecialTileKey::Misc => match kind {
+                ChipKind::Ice40T04 => defs::tcls::MISC_T04,
+                ChipKind::Ice40T01 => defs::tcls::MISC_T01,
+                ChipKind::Ice40T05 => defs::tcls::MISC_T05,
                 _ => unreachable!(),
             },
+            SpecialTileKey::LatchIo(_) => defs::tcls::IO_LATCH,
+            SpecialTileKey::Pll(dir) => match (dir, kind) {
+                (DirV::S, ChipKind::Ice65P04) => defs::tcls::PLL65,
+                (DirV::S, ChipKind::Ice40P01) => defs::tcls::PLL40_S_P01,
+                (DirV::S, ChipKind::Ice40P08) => defs::tcls::PLL40_S_P08,
+                (DirV::N, ChipKind::Ice40P08) => defs::tcls::PLL40_N_P08,
+                (DirV::S, ChipKind::Ice40R04) => defs::tcls::PLL40_S_R04,
+                (DirV::N, ChipKind::Ice40R04 | ChipKind::Ice40T04 | ChipKind::Ice40T05) => {
+                    defs::tcls::PLL40_N_R04
+                }
+                (DirV::S, ChipKind::Ice40T01) => defs::tcls::PLL40_S_T01,
+                _ => unreachable!(),
+            },
+            SpecialTileKey::PllStub(DirV::S) => defs::tcls::PLL40_S_STUB,
+            SpecialTileKey::PllStub(_) => unreachable!(),
             SpecialTileKey::Spi(..) => match kind {
                 ChipKind::Ice40R04 => defs::tcls::SPI_R04,
                 ChipKind::Ice40T04 => defs::tcls::SPI_T04,
@@ -367,57 +366,9 @@ impl SpecialTileKey {
             SpecialTileKey::Mac16(..) => defs::tcls::MAC16,
             SpecialTileKey::Mac16Trim(..) => defs::tcls::MAC16_TRIM,
             SpecialTileKey::SpramPair(_) => defs::tcls::SPRAM,
-            SpecialTileKey::Warmboot => match kind {
-                ChipKind::Ice40T01 => defs::tcls::WARMBOOT_T01,
-                _ => defs::tcls::WARMBOOT,
-            },
-            SpecialTileKey::SmcClk => match kind {
-                ChipKind::Ice40T04 => defs::tcls::SMCCLK_T04,
-                ChipKind::Ice40T05 => defs::tcls::SMCCLK_T05,
-                ChipKind::Ice40T01 => defs::tcls::SMCCLK_T01,
-                _ => unreachable!(),
-            },
-            SpecialTileKey::LeddIp => match kind {
-                ChipKind::Ice40T04 => defs::tcls::LEDD_IP_T04,
-                ChipKind::Ice40T05 => defs::tcls::LEDD_IP_T05,
-                ChipKind::Ice40T01 => defs::tcls::LEDD_IP_T01,
-                _ => unreachable!(),
-            },
-            SpecialTileKey::LfOsc => match kind {
-                ChipKind::Ice40T04 | ChipKind::Ice40T05 => defs::tcls::LFOSC_T04,
-                ChipKind::Ice40T01 => defs::tcls::LFOSC_T01,
-                _ => unreachable!(),
-            },
-            SpecialTileKey::HfOsc => match kind {
-                ChipKind::Ice40T04 | ChipKind::Ice40T05 => defs::tcls::HFOSC_T04,
-                ChipKind::Ice40T01 => defs::tcls::HFOSC_T01,
-                _ => unreachable!(),
-            },
-            SpecialTileKey::Trim => match kind {
-                ChipKind::Ice40T04 | ChipKind::Ice40T05 => defs::tcls::TRIM_T04,
-                ChipKind::Ice40T01 => defs::tcls::TRIM_T01,
-                _ => unreachable!(),
-            },
-            SpecialTileKey::LedDrvCur => match kind {
-                ChipKind::Ice40T04 => defs::tcls::LED_DRV_CUR_T04,
-                ChipKind::Ice40T05 => defs::tcls::LED_DRV_CUR_T05,
-                ChipKind::Ice40T01 => defs::tcls::LED_DRV_CUR_T01,
-                _ => unreachable!(),
-            },
-            SpecialTileKey::RgbDrv => match kind {
-                ChipKind::Ice40T04 => defs::tcls::RGB_DRV_T04,
-                ChipKind::Ice40T05 => defs::tcls::RGB_DRV_T05,
-                ChipKind::Ice40T01 => defs::tcls::RGB_DRV_T01,
-                _ => unreachable!(),
-            },
-            SpecialTileKey::GbIo(_) => unreachable!(),
-            SpecialTileKey::PllStub(DirV::S) => defs::tcls::PLL_STUB_S,
-            SpecialTileKey::PllStub(_) => unreachable!(),
+            SpecialTileKey::Warmboot => defs::tcls::WARMBOOT,
             SpecialTileKey::LsOsc => defs::tcls::LSOSC,
             SpecialTileKey::HsOsc => defs::tcls::HSOSC,
-            SpecialTileKey::IrDrv => defs::tcls::IR_DRV,
-            SpecialTileKey::Ir500Drv => defs::tcls::IR500_DRV,
-            SpecialTileKey::IrIp => defs::tcls::IR_IP,
         }
     }
 }
@@ -425,8 +376,8 @@ impl SpecialTileKey {
 impl std::fmt::Display for SpecialTileKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SpecialTileKey::GbFabric(idx) => write!(f, "GB{idx}_FABRIC"),
-            SpecialTileKey::GbIo(idx) => write!(f, "GB{idx}_IO"),
+            SpecialTileKey::GbRoot => write!(f, "GB_ROOT"),
+            SpecialTileKey::Misc => write!(f, "MISC"),
             SpecialTileKey::LatchIo(edge) => write!(f, "LATCH_IO_{edge}"),
             SpecialTileKey::Warmboot => write!(f, "WARMBOOT"),
             SpecialTileKey::Pll(edge) => write!(f, "PLL_{edge}"),
@@ -436,27 +387,16 @@ impl std::fmt::Display for SpecialTileKey {
             SpecialTileKey::I2cFifo(edge) => write!(f, "I2C_FIFO_{edge}"),
             SpecialTileKey::LsOsc => write!(f, "LSOSC"),
             SpecialTileKey::HsOsc => write!(f, "HSOSC"),
-            SpecialTileKey::LfOsc => write!(f, "LFOSC"),
-            SpecialTileKey::HfOsc => write!(f, "HFOSC"),
-            SpecialTileKey::Trim => write!(f, "TRIM"),
-            SpecialTileKey::I3c => write!(f, "I3C"),
-            SpecialTileKey::IrDrv => write!(f, "IR_DRV"),
-            SpecialTileKey::RgbDrv => write!(f, "RGB_DRV"),
-            SpecialTileKey::Ir500Drv => write!(f, "IR500_DRV"),
-            SpecialTileKey::LedDrvCur => write!(f, "LED_DRV_CUR"),
-            SpecialTileKey::LeddIp => write!(f, "LEDD_IP"),
-            SpecialTileKey::IrIp => write!(f, "IR_IP"),
             SpecialTileKey::Mac16(col, row) => write!(f, "MAC16_{col}{row}"),
             SpecialTileKey::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_{col}{row}"),
             SpecialTileKey::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
-            SpecialTileKey::SmcClk => write!(f, "SMCCLK"),
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SpecialIoKey {
-    GbIn,
+    GbIn(usize),
     PllA,
     PllB,
     SpiCopi,
@@ -478,7 +418,7 @@ pub enum SpecialIoKey {
 impl std::fmt::Display for SpecialIoKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SpecialIoKey::GbIn => write!(f, "GB_IN"),
+            SpecialIoKey::GbIn(idx) => write!(f, "GB_IN{idx}"),
             SpecialIoKey::PllA => write!(f, "PLL_A"),
             SpecialIoKey::PllB => write!(f, "PLL_B"),
             SpecialIoKey::SpiCopi => write!(f, "SPI_COPI"),
@@ -524,12 +464,26 @@ impl Chip {
         ColId::from_idx(self.columns - 1)
     }
 
+    pub fn col_edge(&self, edge: DirH) -> ColId {
+        match edge {
+            DirH::W => self.col_w(),
+            DirH::E => self.col_e(),
+        }
+    }
+
     pub fn row_s(&self) -> RowId {
         RowId::from_idx(0)
     }
 
     pub fn row_n(&self) -> RowId {
         RowId::from_idx(self.rows - 1)
+    }
+
+    pub fn row_edge(&self, edge: DirV) -> RowId {
+        match edge {
+            DirV::S => self.row_s(),
+            DirV::N => self.row_n(),
+        }
     }
 
     pub fn col_mid(&self) -> ColId {
@@ -626,6 +580,35 @@ impl Chip {
             18
         } else {
             54
+        }
+    }
+
+    pub fn special_tile(&self, key: SpecialTileKey) -> TileCoord {
+        let spec = &self.special_tiles[&key];
+        match key {
+            SpecialTileKey::GbRoot => {
+                CellCoord::new(DieId::from_idx(0), self.col_mid(), self.row_mid)
+                    .tile(defs::tslots::GB_ROOT)
+            }
+            SpecialTileKey::Misc => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_s())
+                .tile(defs::tslots::BEL),
+            SpecialTileKey::Warmboot => {
+                CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s())
+                    .tile(defs::tslots::BEL)
+            }
+            SpecialTileKey::Pll(edge) | SpecialTileKey::PllStub(edge) => {
+                CellCoord::new(DieId::from_idx(0), self.col_mid() - 1, self.row_edge(edge))
+                    .tile(defs::tslots::BEL)
+            }
+            SpecialTileKey::LatchIo(_)
+            | SpecialTileKey::Spi(_)
+            | SpecialTileKey::I2c(_)
+            | SpecialTileKey::I2cFifo(_)
+            | SpecialTileKey::LsOsc
+            | SpecialTileKey::HsOsc
+            | SpecialTileKey::Mac16(..)
+            | SpecialTileKey::Mac16Trim(..)
+            | SpecialTileKey::SpramPair(_) => spec.cells.first().unwrap().tile(defs::tslots::BEL),
         }
     }
 }

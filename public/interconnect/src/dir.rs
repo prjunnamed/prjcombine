@@ -6,6 +6,10 @@ pub enum DirH {
     E,
 }
 
+impl DirH {
+    pub const DIRS: [DirH; 2] = [DirH::W, DirH::E];
+}
+
 impl core::ops::Not for DirH {
     type Output = DirH;
     fn not(self) -> DirH {
@@ -33,6 +37,10 @@ impl std::fmt::Display for DirH {
 pub enum DirV {
     S,
     N,
+}
+
+impl DirV {
+    pub const DIRS: [DirV; 2] = [DirV::S, DirV::N];
 }
 
 impl core::ops::Not for DirV {
@@ -97,6 +105,18 @@ impl std::fmt::Display for Dir {
                 Dir::N => "N",
             }
         )
+    }
+}
+
+impl From<DirH> for Dir {
+    fn from(value: DirH) -> Self {
+        Dir::H(value)
+    }
+}
+
+impl From<DirV> for Dir {
+    fn from(value: DirV) -> Self {
+        Dir::V(value)
     }
 }
 

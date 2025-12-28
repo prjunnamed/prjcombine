@@ -123,12 +123,15 @@ impl Generator<'_> {
         let is_od = self.cfg.edev.chip.io_od.contains(&crd);
         let mut global_idx = None;
         let mut pll = None;
-        for (&key, special) in &self.cfg.edev.chip.special_tiles {
-            if let SpecialTileKey::GbIo(idx) = key
-                && special.io[&SpecialIoKey::GbIn] == crd
+        let gb_special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::GbRoot];
+        for (&key, &kio) in &gb_special.io {
+            if let SpecialIoKey::GbIn(idx) = key
+                && kio == crd
             {
                 global_idx = Some(idx);
             }
+        }
+        for (&key, special) in &self.cfg.edev.chip.special_tiles {
             if let SpecialTileKey::Pll(side) = key
                 && special.io[&SpecialIoKey::PllA] == crd
             {
@@ -152,7 +155,7 @@ impl Generator<'_> {
             global_idx = None;
         }
         let is_i3c =
-            if let Some(special) = self.cfg.edev.chip.special_tiles.get(&SpecialTileKey::I3c) {
+            if let Some(special) = self.cfg.edev.chip.special_tiles.get(&SpecialTileKey::Misc) {
                 special.io.values().any(|&x| x == crd)
                     && global_idx.is_none()
                     && self.cfg.allow_global
@@ -971,10 +974,15 @@ impl Generator<'_> {
     }
 
     fn emit_led_drv(&mut self) {
+        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::Misc];
+
         let mut do_rgb: bool = self.rng.random();
-        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::RgbDrv];
-        for io in special.io.values() {
-            if !self.unused_io.contains(io) {
+        for key in [
+            SpecialIoKey::RgbLed0,
+            SpecialIoKey::RgbLed1,
+            SpecialIoKey::RgbLed2,
+        ] {
+            if !self.unused_io.contains(&special.io[&key]) {
                 do_rgb = false;
             }
         }
@@ -986,11 +994,8 @@ impl Generator<'_> {
         }
 
         let mut do_ir: bool = self.rng.random();
-        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::IrDrv];
-        for io in special.io.values() {
-            if !self.unused_io.contains(io) {
-                do_ir = false;
-            }
+        if !self.unused_io.contains(&special.io[&SpecialIoKey::IrLed]) {
+            do_ir = false;
         }
         if do_ir {
             for io in special.io.values() {
@@ -1072,10 +1077,15 @@ impl Generator<'_> {
     }
 
     fn emit_led_drv_v2(&mut self) {
+        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::Misc];
+
         let mut do_rgba: bool = self.rng.random();
-        let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::RgbDrv];
-        for io in special.io.values() {
-            if !self.unused_io.contains(io) {
+        for key in [
+            SpecialIoKey::RgbLed0,
+            SpecialIoKey::RgbLed1,
+            SpecialIoKey::RgbLed2,
+        ] {
+            if !self.unused_io.contains(&special.io[&key]) {
                 do_rgba = false;
             }
         }
@@ -1092,7 +1102,6 @@ impl Generator<'_> {
         let mut do_barcode =
             self.cfg.edev.chip.kind == ChipKind::Ice40T01 && !do_ir500 && self.rng.random();
         if self.cfg.edev.chip.kind == ChipKind::Ice40T01 {
-            let special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::Ir500Drv];
             let io = special.io[&SpecialIoKey::IrLed];
             if !self.unused_io.contains(&io) {
                 do_ir500 = false;
@@ -1709,18 +1718,6 @@ impl Generator<'_> {
                 SpecialTileKey::HsOsc => {
                     things.push(Thing::HsOsc);
                 }
-                SpecialTileKey::LfOsc => {
-                    things.push(Thing::LfOsc);
-                }
-                SpecialTileKey::HfOsc => {
-                    things.push(Thing::HfOsc);
-                }
-                SpecialTileKey::LeddIp => {
-                    things.push(Thing::LeddIp);
-                }
-                SpecialTileKey::IrIp => {
-                    things.push(Thing::IrIp);
-                }
                 SpecialTileKey::Mac16(_, _) => {
                     if dsp_limit > 0 {
                         things.push(Thing::Dsp);
@@ -1730,13 +1727,21 @@ impl Generator<'_> {
                 SpecialTileKey::SpramPair(side) => {
                     things.push(Thing::Spram(side));
                 }
-                SpecialTileKey::I3c => {
-                    let num = self.rng.random_range(0..=2);
-                    for _ in 0..num {
-                        things.push(Thing::Filter);
-                    }
-                }
                 _ => (),
+            }
+        }
+        if self.cfg.edev.chip.kind.is_ultra() {
+            things.push(Thing::LfOsc);
+            things.push(Thing::HfOsc);
+            things.push(Thing::LeddIp);
+        }
+        if self.cfg.edev.chip.kind == ChipKind::Ice40T01 {
+            things.push(Thing::IrIp);
+        }
+        if self.cfg.edev.chip.kind == ChipKind::Ice40T05 {
+            let num = self.rng.random_range(0..=2);
+            for _ in 0..num {
+                things.push(Thing::Filter);
             }
         }
         things.shuffle(&mut self.rng);

@@ -5,6 +5,7 @@ use prjcombine_types::bsdata::BitRectId;
 use crate::{
     bitstream::{BitPos, BitRect},
     chip::Chip,
+    defs,
 };
 
 pub struct ExpandedDevice<'a> {
@@ -16,6 +17,7 @@ pub struct ExpandedDevice<'a> {
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum BitOwner {
+    Null,
     Main(ColId, RowId),
     Bram(ColId, RowId),
     Clock(usize),
@@ -153,17 +155,26 @@ impl ExpandedDevice<'_> {
 
     pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let tile = &self[tcrd];
-        let kind = self.db.tile_classes.key(tile.class).as_str();
-        if kind.starts_with("BRAM_") {
+        let tcls = &self.db.tile_classes[tile.class];
+        if tcls.bitrects.is_empty() {
+            EntityVec::new()
+        } else if tcls.bels.contains_id(defs::bslots::BRAM) {
             EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),
                 self.btile_main(tcrd.col, tcrd.row + 1),
                 self.btile_bram(tcrd.col, tcrd.row),
             ])
-        } else if kind.starts_with("GB_ROOT_") {
+        } else if tcls.bels.contains_id(defs::bslots::GB_ROOT) {
             EntityVec::from_iter(self.btile_clock())
-        } else if kind == "PLL_S_P04" {
+        } else if tcls.bels.contains_id(defs::bslots::PLL65) {
             EntityVec::from_iter(self.btile_pll())
+        } else if tcls.bels.contains_id(defs::bslots::PLL40) {
+            EntityVec::from_iter(
+                tile.cells
+                    .values()
+                    .take(tile.cells.len() - 2)
+                    .map(|&cell| self.btile_main(cell.col, cell.row)),
+            )
         } else {
             EntityVec::from_iter(
                 tile.cells

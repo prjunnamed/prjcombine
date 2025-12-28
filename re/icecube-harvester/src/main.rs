@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, BTreeSet, HashSet, btree_map},
+    collections::{BTreeMap, BTreeSet, btree_map},
     path::PathBuf,
     sync::{
         Mutex,
@@ -10,31 +10,31 @@ use std::{
 use clap::Parser;
 use collect::{collect, collect_iob};
 use generate::{GeneratorConfig, generate};
-use intdb::{MiscTileBuilder, make_intdb};
+use intdb::MiscTileBuilder;
 use parts::Part;
 use pkg::get_pkg_pins;
 use prims::{Primitive, get_prims};
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, IntDb, LegacyBel, Mux, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem,
+        BelAttribute, BelInfo, CellSlotId, IntDb, Mux, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem,
         TileClass, TileClassId, TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
 };
-use prjcombine_re_fpga_hammer::{DiffKey, FeatureId};
+use prjcombine_re_fpga_hammer::DiffKey;
 use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad, SpecialIoKey, SpecialTile, SpecialTileKey},
     db::Database,
-    defs::{self, bslots as bels, tslots},
+    defs::{self, bslots as bels},
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{
-    bsdata::{BitRectId, BsData, PolTileBit, TileBit, TileItemKind},
+    bsdata::{BitRectId, BsData, PolTileBit, TileBit},
     speed::Speed,
 };
 use rand::Rng;
@@ -58,6 +58,7 @@ mod prims;
 mod run;
 mod sample;
 mod sites;
+mod specials;
 mod speed;
 mod xlat;
 
@@ -152,16 +153,12 @@ impl HarvestContext<'_> {
         let mut colbuf_map = BTreeMap::new();
         let harvester = self.harvester.get_mut().unwrap();
         for (key, bits) in &harvester.known_global {
-            let DiffKey::GlobalLegacy(key) = key else {
+            let DiffKey::GlobalRouting(wt, _wf) = key else {
                 continue;
             };
-            let Some(crd) = key.strip_prefix("COLBUF:") else {
+            let Some(idx) = defs::wires::GLOBAL.index_of(wt.slot) else {
                 continue;
             };
-            let (_, crd) = crd.split_once('.').unwrap();
-            let (srow, idx) = crd.split_once('.').unwrap();
-            let srow = RowId::from_idx(srow.parse().unwrap());
-            let idx: usize = idx.parse().unwrap();
             assert_eq!(bits.len(), 1);
             let (&bit, &val) = bits.iter().next().unwrap();
             plb_bits[idx] = Some(BTreeMap::from_iter([(
@@ -175,7 +172,7 @@ impl HarvestContext<'_> {
             let BitOwner::Main(_, row) = bit.0 else {
                 unreachable!()
             };
-            colbuf_map.insert(srow, row);
+            colbuf_map.insert(wt.row, row);
         }
         if self.ctx.debug >= 3 {
             println!("COLBUF ROWS: {colbuf_map:?}");
@@ -200,7 +197,8 @@ impl HarvestContext<'_> {
             if self.edev.chip.cols_bram.contains(&col) {
                 continue;
             }
-            for row in self.edev.chip.rows() {
+            for cell in self.edev.column(DieId::from_idx(0), col) {
+                let row = cell.row;
                 if row == self.edev.chip.row_s() || row == self.edev.chip.row_n() {
                     continue;
                 }
@@ -225,7 +223,10 @@ impl HarvestContext<'_> {
 
                 for (idx, bits) in plb_bits.iter().enumerate() {
                     let bits = bits.as_ref().unwrap();
-                    let key = DiffKey::GlobalLegacy(format!("COLBUF:{col:#}.{row:#}.{idx}"));
+                    let key = DiffKey::GlobalRouting(
+                        cell.wire(defs::wires::GLOBAL[idx]),
+                        cell.wire(defs::wires::GLOBAL_ROOT[idx]).pos(),
+                    );
                     let bits = bits
                         .iter()
                         .map(|(&bit, &val)| ((BitOwner::Main(col, trow), bit.frame, bit.bit), val))
@@ -237,15 +238,13 @@ impl HarvestContext<'_> {
         }
 
         let tcid = self.edev.chip.kind.tile_class_colbuf().unwrap();
-        let tcls = self.edev.db.tile_classes.key(tcid);
         for (idx, bits) in plb_bits.into_iter().enumerate() {
             harvester.force_tiled(
-                DiffKey::Legacy(FeatureId {
-                    tile: tcls.to_string(),
-                    bel: "COLBUF".to_string(),
-                    attr: format!("GLOBAL.{idx}"),
-                    val: "BIT0".to_string(),
-                }),
+                DiffKey::Routing(
+                    tcid,
+                    TileWireCoord::new_idx(0, defs::wires::GLOBAL[idx]),
+                    TileWireCoord::new_idx(0, defs::wires::GLOBAL_ROOT[idx]).pos(),
+                ),
                 bits.unwrap(),
             );
         }
@@ -255,9 +254,8 @@ impl HarvestContext<'_> {
     fn pips_complete(&self) -> bool {
         let mut tiles_complete = 0;
         let pips = self.pips.lock().unwrap();
-        for (&tcname, pips) in &*pips {
+        for (&tcid, pips) in &*pips {
             let mut stats: BTreeMap<String, usize> = BTreeMap::new();
-            let tcid = self.edev.db.tile_classes.key(tcname);
             for &(wt, wf) in pips {
                 let bucket = if is_quad_v(wt.wire) && is_quad(wf.wire) {
                     "QUAD-QUAD.V"
@@ -1069,86 +1067,6 @@ impl PartContext<'_> {
         }
     }
 
-    fn fill_bel_pins(&mut self) {
-        let mut worklist = BTreeMap::new();
-        let defdev = self.parts[0].name;
-        let defpkg = self.parts[0].packages[0];
-        for (&(dev, pkg), pkg_info) in &self.pkgs {
-            for (&kind, sites) in &pkg_info.bel_info {
-                if kind.starts_with("SB_RAM") {
-                    continue;
-                }
-                if matches!(
-                    kind,
-                    "PLB" | "SB_GB" | "SB_IO" | "SB_IO_DS" | "SB_IO_OD" | "SB_GB_IO" | "IOx3"
-                ) {
-                    continue;
-                }
-                if !(kind.contains("PLL") || kind.contains("DRV") || kind.contains("_IO"))
-                    && (dev, pkg) != (defdev, defpkg)
-                {
-                    continue;
-                }
-                for site in sites {
-                    worklist.insert((kind, site.loc), (dev, pkg, site));
-                }
-            }
-        }
-        let edev = self.chip.expand_grid(&self.intdb);
-        let db = if edev.chip.kind.has_iob_we() {
-            None
-        } else {
-            Some(Database::from_file("db/icecube/ice40p01.zstd").unwrap())
-        };
-        let bsdata = db.as_ref().map(|x| &x.bsdata);
-        let extra_wire_names = Mutex::new(BTreeMap::new());
-        let bel_pins = Mutex::new(BTreeMap::new());
-        worklist
-            .into_par_iter()
-            .for_each(|((kind, _), (dev, pkg, site))| {
-                let mut pins = find_bel_pins(
-                    self.toolchain,
-                    &self.prims,
-                    self.pkgs[&(dev, pkg)].part,
-                    &edev,
-                    bsdata,
-                    pkg,
-                    kind,
-                    site,
-                );
-                let mut extra_wire_names = extra_wire_names.lock().unwrap();
-                for (wn, iw) in std::mem::take(&mut pins.wire_names) {
-                    match extra_wire_names.entry(wn) {
-                        btree_map::Entry::Vacant(entry) => {
-                            entry.insert(iw);
-                        }
-                        btree_map::Entry::Occupied(entry) => {
-                            assert_eq!(*entry.get(), iw);
-                        }
-                    }
-                }
-                std::mem::drop(extra_wire_names);
-                let mut bel_pins = bel_pins.lock().unwrap();
-                bel_pins.insert((kind, site.loc), pins);
-            });
-        self.extra_wire_names = extra_wire_names.into_inner().unwrap();
-        if self.chip.kind == ChipKind::Ice40T01 {
-            let wire = self.extra_wire_names[&(13, 15, "wire_ir400_drv/IRLEDEN".into())];
-            self.extra_wire_names
-                .insert((13, 15, "wire_ir500_drv/IRLEDEN".into()), wire);
-            let wire = self.extra_wire_names[&(13, 15, "wire_ir400_drv/IRPWM".into())];
-            self.extra_wire_names
-                .insert((13, 15, "wire_ir500_drv/IRPWM".into()), wire);
-            let wire = self.extra_wire_names[&(13, 15, "wire_bc_drv/BARCODEEN".into())];
-            self.extra_wire_names
-                .insert((13, 15, "wire_ir500_drv/IRLEDEN2".into()), wire);
-            let wire = self.extra_wire_names[&(13, 15, "wire_bc_drv/BARCODEPWM".into())];
-            self.extra_wire_names
-                .insert((13, 15, "wire_ir500_drv/IRPWM2".into()), wire);
-        }
-        self.bel_pins = bel_pins.into_inner().unwrap();
-    }
-
     fn fill_io_latch(&mut self) {
         let (&(_dev, pkg), pkg_info) = self
             .pkgs
@@ -1194,29 +1112,125 @@ impl PartContext<'_> {
                 },
             );
         }
+        if self.chip.kind == ChipKind::Ice40R04 {
+            for edge in DirH::DIRS {
+                self.chip.special_tiles.insert(
+                    SpecialTileKey::LatchIo(edge.into()),
+                    SpecialTile {
+                        io: Default::default(),
+                        cells: EntityVec::from_iter([CellCoord::new(
+                            DieId::from_idx(0),
+                            self.chip.col_edge(edge),
+                            RowId::from_idx(12),
+                        )]),
+                    },
+                );
+            }
+        }
+    }
+
+    fn fill_bel_pins(&mut self) {
+        let mut worklist = BTreeMap::new();
+        let defdev = self.parts[0].name;
+        let defpkg = self.parts[0].packages[0];
+        for (&(dev, pkg), pkg_info) in &self.pkgs {
+            for (&kind, sites) in &pkg_info.bel_info {
+                if kind.starts_with("SB_RAM") {
+                    continue;
+                }
+                if matches!(
+                    kind,
+                    "PLB" | "SB_GB" | "SB_IO" | "SB_IO_DS" | "SB_IO_OD" | "SB_GB_IO" | "IOx3"
+                ) {
+                    continue;
+                }
+                if !(kind.contains("PLL") || kind.contains("DRV") || kind.contains("_IO"))
+                    && (dev, pkg) != (defdev, defpkg)
+                {
+                    continue;
+                }
+                for site in sites {
+                    worklist.insert((kind, site.loc), (dev, pkg, site));
+                }
+            }
+        }
+        let edev = self.chip.expand_grid(&self.intdb);
+        let db = if edev.chip.kind.has_iob_we() {
+            None
+        } else {
+            Some(Database::from_file("db/icecube/ice40p01.zstd").unwrap())
+        };
+        let p01_db = db.as_ref().map(|x| &x.int);
+        let extra_wire_names = Mutex::new(BTreeMap::new());
+        let bel_pins = Mutex::new(BTreeMap::new());
+        worklist
+            .into_par_iter()
+            .for_each(|((kind, _), (dev, pkg, site))| {
+                let mut pins = find_bel_pins(
+                    self.toolchain,
+                    &self.prims,
+                    self.pkgs[&(dev, pkg)].part,
+                    &edev,
+                    p01_db,
+                    pkg,
+                    kind,
+                    site,
+                );
+                let mut extra_wire_names = extra_wire_names.lock().unwrap();
+                for (wn, iw) in std::mem::take(&mut pins.wire_names) {
+                    match extra_wire_names.entry(wn) {
+                        btree_map::Entry::Vacant(entry) => {
+                            entry.insert(iw);
+                        }
+                        btree_map::Entry::Occupied(entry) => {
+                            assert_eq!(*entry.get(), iw);
+                        }
+                    }
+                }
+                std::mem::drop(extra_wire_names);
+                let mut bel_pins = bel_pins.lock().unwrap();
+                bel_pins.insert((kind, site.loc), pins);
+            });
+        self.extra_wire_names = extra_wire_names.into_inner().unwrap();
+        if self.chip.kind == ChipKind::Ice40T01 {
+            let wire = self.extra_wire_names[&(13, 15, "wire_ir400_drv/IRLEDEN".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRLEDEN".into()), wire);
+            let wire = self.extra_wire_names[&(13, 15, "wire_ir400_drv/IRPWM".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRPWM".into()), wire);
+            let wire = self.extra_wire_names[&(13, 15, "wire_bc_drv/BARCODEEN".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRLEDEN2".into()), wire);
+            let wire = self.extra_wire_names[&(13, 15, "wire_bc_drv/BARCODEPWM".into())];
+            self.extra_wire_names
+                .insert((13, 15, "wire_ir500_drv/IRPWM2".into()), wire);
+        }
+        self.bel_pins = bel_pins.into_inner().unwrap();
     }
 
     fn fill_gbin_fabric(&mut self) {
         let sb_gb = &self.pkgs[&self.def_pkg()].bel_info["SB_GB"];
-        let mut found = HashSet::new();
+        let mut cells = [None; 8];
         for site in sb_gb {
             let (x, y) = site.fabout_wires[&InstPin::Simple("USER_SIGNAL_TO_GLOBAL_BUFFER".into())];
-            let crd = CellCoord::new(
+            let cell = CellCoord::new(
                 DieId::from_idx(0),
                 ColId::from_idx(x as usize),
                 RowId::from_idx(y as usize),
             );
-            let index = site.global_nets[&InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())];
-            assert!(found.insert(index));
-            self.chip.special_tiles.insert(
-                SpecialTileKey::GbFabric(index as usize),
-                SpecialTile {
-                    io: Default::default(),
-                    cells: EntityVec::from_iter([crd]),
-                },
-            );
+            let index = site.global_nets[&InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())] as usize;
+            assert_eq!(cells[index], None);
+            cells[index] = Some(cell);
         }
-        assert_eq!(found.len(), 8);
+        let cells = EntityVec::from_iter(cells.into_iter().map(Option::unwrap));
+        self.chip.special_tiles.insert(
+            SpecialTileKey::GbRoot,
+            SpecialTile {
+                io: Default::default(),
+                cells,
+            },
+        );
     }
 
     fn fill_gbin_io(&mut self) {
@@ -1269,90 +1283,87 @@ impl PartContext<'_> {
         }
 
         for (index, io) in gb_io {
-            let special = SpecialTile {
-                io: BTreeMap::from_iter([(SpecialIoKey::GbIn, io)]),
-                cells: Default::default(),
-            };
-            let key = SpecialTileKey::GbIo(index);
-            self.chip.special_tiles.insert(key, special);
+            let special = self
+                .chip
+                .special_tiles
+                .get_mut(&SpecialTileKey::GbRoot)
+                .unwrap();
+            special.io.insert(SpecialIoKey::GbIn(index), io);
         }
     }
 
-    fn fill_trim(&mut self) {
-        let key = SpecialTileKey::Trim;
-        let crd = match self.chip.kind {
-            ChipKind::Ice40T04 | ChipKind::Ice40T05 => {
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(16))
-            }
-            ChipKind::Ice40T01 => {
-                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(13))
-            }
-            _ => return,
+    fn fill_mac16(&mut self) {
+        let pkg_info = &self.pkgs[&self.def_pkg()];
+        let Some(sites) = pkg_info.bel_info.get("SB_MAC16") else {
+            return;
         };
-        let builder = MiscTileBuilder::new(&self.chip, tslots::TRIM, &[crd]);
-        let (tcls, special) = builder.finish();
-        insert_tile_class(
-            &mut self.tcls_filled,
-            &mut self.intdb,
-            key.tile_class(self.chip.kind),
-            tcls,
-        );
-        self.chip.special_tiles.insert(key, special);
+        for site in sites {
+            let col = pkg_info.xlat_col[site.loc.x as usize];
+            let row = pkg_info.xlat_row[site.loc.y as usize];
+            let key = if self.chip.kind == ChipKind::Ice40T05
+                && col.to_idx() == 0
+                && row.to_idx() == 15
+            {
+                SpecialTileKey::Mac16Trim(col, row)
+            } else {
+                SpecialTileKey::Mac16(col, row)
+            };
+            let bel_pins = &self.bel_pins[&("SB_MAC16", site.loc)];
+            let cells: [_; 5] = CellCoord::new(DieId::from_idx(0), col, row).cells_n_const();
+            let tcid = key.tile_class(self.chip.kind);
+            let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
+            builder.add_bel(defs::bslots::MAC16, bel_pins);
+            let (tcls, special) = builder.finish();
+            insert_tile_class(&mut self.tcls_filled, &mut self.intdb, tcid, tcls);
+            self.chip.special_tiles.insert(key, special);
+            self.special_tiles.insert(key, vec![site.loc]);
+        }
     }
 
-    fn fill_extra_misc(&mut self) {
-        for kind in [
-            "SB_MAC16",
-            "SB_WARMBOOT",
-            "SB_SPI",
-            "SB_I2C",
-            "SB_I2C_FIFO",
-            "SB_HSOSC",
-            "SB_LSOSC",
-            "SB_HFOSC",
-            "SB_LFOSC",
-            "SB_LEDD_IP",
-            "SB_LEDDA_IP",
-            "SB_IR_IP",
-        ] {
+    fn fill_hardip(&mut self) {
+        for kind in ["SB_SPI", "SB_I2C", "SB_I2C_FIFO", "SB_LSOSC", "SB_HSOSC"] {
             let pkg_info = &self.pkgs[&self.def_pkg()];
             let Some(sites) = pkg_info.bel_info.get(kind) else {
                 continue;
             };
             for site in sites {
-                let (key, slot, bel, extra_crd, dedio) = match kind {
-                    "SB_MAC16" => {
-                        let col = pkg_info.xlat_col[site.loc.x as usize];
-                        let row = pkg_info.xlat_row[site.loc.y as usize];
-                        (
-                            if self.chip.kind == ChipKind::Ice40T05
-                                && col.to_idx() == 0
-                                && row.to_idx() == 15
-                            {
-                                SpecialTileKey::Mac16Trim(col, row)
-                            } else {
-                                SpecialTileKey::Mac16(col, row)
-                            },
-                            tslots::BEL,
-                            bels::MAC16,
-                            vec![],
-                            [].as_slice(),
-                        )
-                    }
-                    "SB_WARMBOOT" => (
-                        SpecialTileKey::Warmboot,
-                        tslots::WARMBOOT,
-                        bels::WARMBOOT,
-                        vec![],
-                        [].as_slice(),
-                    ),
+                let mut cells = vec![];
+                let (key, bel, dedio) = match kind {
                     "SB_SPI" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
+                        if self.chip.kind == ChipKind::Ice40R04 {
+                            cells = CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_edge(edge),
+                                RowId::from_idx(1),
+                            )
+                            .cells_n(10);
+                            let cols = match edge {
+                                DirH::W => [1, 2, 3, 4, 9],
+                                DirH::E => [15, 16, 17, 18, 20],
+                            };
+                            for c in cols {
+                                cells.push(CellCoord::new(
+                                    DieId::from_idx(0),
+                                    ColId::from_idx(c),
+                                    self.chip.row_s(),
+                                ));
+                            }
+                        } else {
+                            cells = CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_edge(edge),
+                                match self.chip.kind {
+                                    ChipKind::Ice40T04 => RowId::from_idx(1),
+                                    ChipKind::Ice40T05 => RowId::from_idx(19),
+                                    _ => unreachable!(),
+                                },
+                            )
+                            .cells_n(4);
+                        }
                         (
                             SpecialTileKey::Spi(edge),
-                            tslots::BEL,
                             bels::SPI,
-                            vec![],
                             [
                                 (SpecialIoKey::SpiCopi, "MOSI"),
                                 (SpecialIoKey::SpiCipo, "MISO"),
@@ -1365,106 +1376,338 @@ impl PartContext<'_> {
                     }
                     "SB_I2C" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
+                        if self.chip.kind == ChipKind::Ice40R04 {
+                            cells = CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_edge(edge),
+                                RowId::from_idx(11),
+                            )
+                            .cells_n(10);
+                            let cols = match edge {
+                                DirH::W => [2, 3],
+                                DirH::E => [10, 11],
+                            };
+                            for c in cols {
+                                cells.push(CellCoord::new(
+                                    DieId::from_idx(0),
+                                    ColId::from_idx(c),
+                                    self.chip.row_n(),
+                                ));
+                            }
+                        } else {
+                            cells = CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_edge(edge),
+                                match self.chip.kind {
+                                    ChipKind::Ice40T04 => RowId::from_idx(19),
+                                    ChipKind::Ice40T05 => RowId::from_idx(29),
+                                    _ => unreachable!(),
+                                },
+                            )
+                            .cells_n(2);
+                        }
                         (
                             SpecialTileKey::I2c(edge),
-                            tslots::BEL,
                             bels::I2C,
-                            vec![],
                             [(SpecialIoKey::I2cScl, "SCL"), (SpecialIoKey::I2cSda, "SDA")]
                                 .as_slice(),
                         )
                     }
                     "SB_I2C_FIFO" => {
                         let edge = if site.loc.x == 0 { DirH::W } else { DirH::E };
+                        for r in [1, 2, 3, 12] {
+                            cells.push(CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_edge(edge),
+                                RowId::from_idx(r),
+                            ));
+                        }
                         (
                             SpecialTileKey::I2cFifo(edge),
-                            tslots::BEL,
                             bels::I2C_FIFO,
-                            vec![],
                             [(SpecialIoKey::I2cScl, "SCL"), (SpecialIoKey::I2cSda, "SDA")]
                                 .as_slice(),
                         )
                     }
-                    "SB_HSOSC" => (
-                        SpecialTileKey::HsOsc,
-                        tslots::OSC,
-                        bels::HSOSC,
-                        vec![],
-                        [].as_slice(),
-                    ),
-                    "SB_LSOSC" => (
-                        SpecialTileKey::LsOsc,
-                        tslots::OSC,
-                        bels::LSOSC,
-                        vec![],
-                        [].as_slice(),
-                    ),
-                    "SB_HFOSC" => (
-                        SpecialTileKey::HfOsc,
-                        tslots::OSC,
-                        bels::HFOSC,
-                        vec![],
-                        [].as_slice(),
-                    ),
-                    "SB_LFOSC" => (
-                        SpecialTileKey::LfOsc,
-                        tslots::OSC,
-                        bels::LFOSC,
-                        vec![],
-                        [].as_slice(),
-                    ),
-                    "SB_LEDD_IP" => (
-                        SpecialTileKey::LeddIp,
-                        tslots::LED_IP,
-                        bels::LEDD_IP,
-                        vec![],
-                        [].as_slice(),
-                    ),
-                    "SB_LEDDA_IP" => (
-                        SpecialTileKey::LeddIp,
-                        tslots::LED_IP,
-                        bels::LEDD_IP,
-                        vec![],
-                        [].as_slice(),
-                    ),
-                    "SB_IR_IP" => (
-                        SpecialTileKey::IrIp,
-                        tslots::LED_IP,
-                        bels::IR_IP,
-                        vec![],
-                        [].as_slice(),
-                    ),
+                    "SB_LSOSC" => {
+                        cells = vec![
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_e() - 1,
+                                self.chip.row_n(),
+                            ),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_e(),
+                                self.chip.row_n() - 1,
+                            ),
+                        ];
+                        (SpecialTileKey::LsOsc, bels::LSOSC, &[][..])
+                    }
+                    "SB_HSOSC" => {
+                        cells = vec![
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_w() + 1,
+                                self.chip.row_n(),
+                            ),
+                            CellCoord::new(
+                                DieId::from_idx(0),
+                                self.chip.col_w(),
+                                self.chip.row_n() - 1,
+                            ),
+                        ];
+                        (SpecialTileKey::HsOsc, bels::HSOSC, &[][..])
+                    }
                     _ => unreachable!(),
                 };
                 let bel_pins = &self.bel_pins[&(kind, site.loc)];
-                let mut fixed_crd = vec![];
-                if kind == "SB_WARMBOOT" && self.chip.kind != ChipKind::Ice40T01 {
-                    for pin in ["BOOT", "S0", "S1"] {
-                        fixed_crd.push(bel_pins.ins[pin].cell);
-                    }
-                }
-                let mut builder = MiscTileBuilder::new(&self.chip, slot, &fixed_crd);
+                let tcid = key.tile_class(self.chip.kind);
+                let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
                 builder.add_bel(bel, bel_pins);
-                for crd in extra_crd {
-                    builder.get_cell(crd);
-                }
-                let (tcls, mut special) = builder.finish();
                 for &(slot, pin) in dedio {
                     let loc = site.dedio[pin];
                     let xy = (loc.x, loc.y, loc.bel);
                     let io = pkg_info.xlat_io[&xy];
-                    special.io.insert(slot, io);
+                    builder.insert_io(slot, io);
                 }
-                insert_tile_class(
-                    &mut self.tcls_filled,
-                    &mut self.intdb,
-                    key.tile_class(self.chip.kind),
-                    tcls,
-                );
+                let (tcls, special) = builder.finish();
+                insert_tile_class(&mut self.tcls_filled, &mut self.intdb, tcid, tcls);
                 self.chip.special_tiles.insert(key, special);
                 self.special_tiles.insert(key, vec![site.loc]);
             }
         }
+    }
+
+    fn fill_misc(&mut self) {
+        if !self.chip.kind.is_ultra() {
+            return;
+        }
+        let key = SpecialTileKey::Misc;
+        let tcid = key.tile_class(self.chip.kind);
+        let cells = match self.chip.kind {
+            ChipKind::Ice40T04 => vec![
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(18)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(19)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(20)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(17)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(18)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(19)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(20)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(16)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(3)),
+            ],
+            ChipKind::Ice40T01 => vec![
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(1)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(2)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(3)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(12)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(13)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(14)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(1)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(2)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(3)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(12)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(13)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(14)),
+            ],
+            ChipKind::Ice40T05 => vec![
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(28)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(29)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(30)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(27)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(28)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(29)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(30)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), RowId::from_idx(16)),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(9)),
+            ],
+            _ => vec![],
+        };
+        let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
+
+        for (kind, bslot) in [
+            ("SB_HFOSC", defs::bslots::HFOSC),
+            ("SB_LFOSC", defs::bslots::LFOSC),
+            ("SB_LEDD_IP", defs::bslots::LEDD_IP),
+            ("SB_LEDDA_IP", defs::bslots::LEDD_IP),
+            ("SB_IR_IP", defs::bslots::IR_IP),
+            ("SB_WARMBOOT", defs::bslots::WARMBOOT),
+        ] {
+            if bslot == defs::bslots::WARMBOOT && self.chip.kind != ChipKind::Ice40T01 {
+                continue;
+            }
+            let pkg_info = &self.pkgs[&self.def_pkg()];
+            let Some(sites) = pkg_info.bel_info.get(kind) else {
+                continue;
+            };
+            let Some(site) = sites.first() else {
+                continue;
+            };
+            let bel_pins = &self.bel_pins[&(kind, site.loc)];
+            builder.add_bel(bslot, bel_pins);
+        }
+
+        if self.chip.kind == ChipKind::Ice40T05 {
+            // FILTER
+            let mut filter_sites = self.pkgs[&self.def_pkg()].bel_info["SB_FILTER_50NS"].clone();
+            filter_sites.sort_by_key(|site| site.loc);
+            assert_eq!(filter_sites.len(), 2);
+
+            for (i, site) in filter_sites.iter().enumerate() {
+                let bel_pins = &self.bel_pins[&("SB_FILTER_50NS", site.loc)];
+                builder.add_bel(bels::FILTER[i], bel_pins);
+            }
+
+            // IOB_I3C
+            let mut io_sites = None;
+            for pkg_info in self.pkgs.values() {
+                let Some(sites) = pkg_info.bel_info.get("SB_IO_I3C") else {
+                    continue;
+                };
+                let mut sites = sites.clone();
+                sites.sort_by_key(|site| site.loc);
+                let sites = Vec::from_iter(sites.into_iter().map(|site| {
+                    let xy = (site.loc.x, site.loc.y, site.loc.bel);
+                    let crd = pkg_info.xlat_io[&xy];
+                    (site.loc, crd)
+                }));
+                if io_sites.is_none() {
+                    io_sites = Some(sites);
+                } else {
+                    assert_eq!(io_sites, Some(sites));
+                }
+            }
+            let io_sites = io_sites.unwrap();
+            for &(site_loc, crd) in &io_sites {
+                let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site_loc)].clone();
+                bel_pins.outs.clear();
+                builder.add_bel(bels::IOB_I3C[crd.iob().to_idx()], &bel_pins);
+                builder.insert_io(
+                    [SpecialIoKey::I3c0, SpecialIoKey::I3c1][crd.iob().to_idx()],
+                    crd,
+                );
+            }
+
+            self.special_tiles.insert(
+                key,
+                vec![
+                    filter_sites[0].loc,
+                    filter_sites[1].loc,
+                    io_sites[0].0,
+                    io_sites[1].0,
+                ],
+            );
+        }
+
+        for pkg_info in self.pkgs.values() {
+            for (kind, slot, io_pins) in [
+                (
+                    "SB_RGB_DRV",
+                    defs::bslots::RGB_DRV,
+                    [
+                        (SpecialIoKey::RgbLed0, "RGB0"),
+                        (SpecialIoKey::RgbLed1, "RGB1"),
+                        (SpecialIoKey::RgbLed2, "RGB2"),
+                    ]
+                    .as_slice(),
+                ),
+                (
+                    "SB_IR_DRV",
+                    defs::bslots::IR_DRV,
+                    [(SpecialIoKey::IrLed, "IRLED")].as_slice(),
+                ),
+                (
+                    "SB_RGBA_DRV",
+                    defs::bslots::RGB_DRV,
+                    [
+                        (SpecialIoKey::RgbLed0, "RGB0"),
+                        (SpecialIoKey::RgbLed1, "RGB1"),
+                        (SpecialIoKey::RgbLed2, "RGB2"),
+                    ]
+                    .as_slice(),
+                ),
+                (
+                    "SB_IR400_DRV",
+                    defs::bslots::IR500_DRV,
+                    [(SpecialIoKey::IrLed, "IRLED")].as_slice(),
+                ),
+                (
+                    "SB_BARCODE_DRV",
+                    defs::bslots::IR500_DRV,
+                    [(SpecialIoKey::BarcodeLed, "BARCODE")].as_slice(),
+                ),
+            ] {
+                let Some(sites) = pkg_info.bel_info.get(kind) else {
+                    continue;
+                };
+                if sites.is_empty() {
+                    continue;
+                }
+                assert_eq!(sites.len(), 1);
+                let site = &sites[0];
+                let mut bel_pins = self.bel_pins[&(kind, site.loc)].clone();
+                let mut bel_pins_drv = BelPins::default();
+                bel_pins.ins.retain(|pin, &mut iw| {
+                    if let InstPin::Simple(pin) = pin {
+                        if let Some(pin) = pin.strip_prefix("LED_DRV_CUR__") {
+                            bel_pins_drv
+                                .ins
+                                .insert(InstPin::Simple(pin.to_string()), iw);
+                            false
+                        } else if pin == "CURREN" {
+                            bel_pins_drv
+                                .ins
+                                .insert(InstPin::Simple("EN".to_string()), iw);
+                            false
+                        } else if pin.starts_with("TRIM") {
+                            bel_pins_drv.ins.insert(InstPin::Simple(pin.clone()), iw);
+                            false
+                        } else {
+                            true
+                        }
+                    } else {
+                        true
+                    }
+                });
+                for &(slot, pin) in io_pins {
+                    let io = site.pads[pin].0;
+                    let xy = (io.x, io.y, io.bel);
+                    let crd = pkg_info.xlat_io[&xy];
+                    builder.insert_io(slot, crd);
+                }
+                builder.add_bel(slot, &bel_pins);
+                builder.add_bel(defs::bslots::LED_DRV_CUR, &bel_pins_drv);
+            }
+        }
+
+        let (tcls, special) = builder.finish();
+        insert_tile_class(&mut self.tcls_filled, &mut self.intdb, tcid, tcls);
+        self.chip.special_tiles.insert(key, special);
+    }
+
+    fn fill_warmboot(&mut self) {
+        if matches!(self.chip.kind, ChipKind::Ice40T01 | ChipKind::Ice40P03) {
+            return;
+        }
+        let pkg_info = &self.pkgs[&self.def_pkg()];
+        let sites = &pkg_info.bel_info["SB_WARMBOOT"];
+        assert_eq!(sites.len(), 1);
+        let site = &sites[0];
+        let key = SpecialTileKey::Warmboot;
+        let bel = defs::bslots::WARMBOOT;
+        let bel_pins = &self.bel_pins[&("SB_WARMBOOT", site.loc)];
+        let mut cells = vec![];
+        for pin in ["BOOT", "S0", "S1"] {
+            cells.push(bel_pins.ins[&InstPin::Simple(pin.into())].cell);
+        }
+        let tcid = key.tile_class(self.chip.kind);
+        let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
+        builder.add_bel(bel, bel_pins);
+        let (tcls, special) = builder.finish();
+        insert_tile_class(&mut self.tcls_filled, &mut self.intdb, tcid, tcls);
+        self.chip.special_tiles.insert(key, special);
+        self.special_tiles.insert(key, vec![site.loc]);
     }
 
     fn fill_pll(&mut self) {
@@ -1487,9 +1730,50 @@ impl PartContext<'_> {
                 };
                 let bel = self.chip.get_io_loc(io);
                 let mut bel_pins = self.bel_pins[&(kind, site.loc)].clone();
-                bel_pins.ins.remove("LATCHINPUTVALUE");
-                bel_pins.outs.retain(|k, _| !k.starts_with("PLLOUT"));
-                let mut builder = MiscTileBuilder::new(&self.chip, tslots::BEL, &[]);
+                bel_pins
+                    .ins
+                    .remove(&InstPin::Simple("LATCHINPUTVALUE".into()));
+                bel_pins.outs.retain(|k, _| match k {
+                    InstPin::Simple(pin) => !pin.starts_with("PLLOUT"),
+                    InstPin::Indexed(_, _) => true,
+                });
+                let edge = if bel.row == self.chip.row_s() {
+                    DirV::S
+                } else {
+                    DirV::N
+                };
+                let loc = SpecialTileKey::Pll(edge);
+                let tcid = loc.tile_class(self.chip.kind);
+                let (col_first, num, num_side) = match self.chip.kind {
+                    ChipKind::Ice65P04 => (self.chip.col_w() + 6, 13, 0),
+                    ChipKind::Ice40P01 => (self.chip.col_w() + 1, 7, 14),
+                    ChipKind::Ice40P08 => (self.chip.col_w() + 5, 18, 0),
+                    ChipKind::Ice40R04 | ChipKind::Ice40T04 | ChipKind::Ice40T05 => {
+                        (self.chip.col_w() + 1, 18, 0)
+                    }
+                    ChipKind::Ice40T01 => (self.chip.col_w() + 1, 9, 1),
+                    _ => unreachable!(),
+                };
+                let mut cells =
+                    CellCoord::new(DieId::from_idx(0), col_first, self.chip.row_edge(edge))
+                        .cells_e(num);
+                cells.extend(
+                    CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_s() + 1)
+                        .cells_n(num_side),
+                );
+                cells.extend([
+                    CellCoord::new(
+                        DieId::from_idx(0),
+                        self.chip.col_w(),
+                        self.chip.row_edge(edge),
+                    ),
+                    CellCoord::new(
+                        DieId::from_idx(0),
+                        self.chip.col_e(),
+                        self.chip.row_edge(edge),
+                    ),
+                ]);
+                let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
                 if self.chip.kind.is_ice40() {
                     if self.chip.kind == ChipKind::Ice40P01 {
                         for i in 1..=5 {
@@ -1505,24 +1789,18 @@ impl PartContext<'_> {
                         }
                     }
                 }
-                builder.io.insert(SpecialIoKey::PllA, io);
-                builder.io.insert(SpecialIoKey::PllB, io2);
-                builder.add_bel(bels::PLL, &bel_pins);
-                let (tcls, special) = builder.finish();
-                let loc = SpecialTileKey::Pll(if bel.row == self.chip.row_s() {
-                    DirV::S
+                builder.insert_io(SpecialIoKey::PllA, io);
+                builder.insert_io(SpecialIoKey::PllB, io2);
+                if self.chip.kind.is_ice40() {
+                    builder.add_bel(bels::PLL40, &bel_pins);
                 } else {
-                    DirV::N
-                });
+                    builder.add_bel(bels::PLL65, &bel_pins);
+                }
+                let (tcls, special) = builder.finish();
                 match self.chip.special_tiles.entry(loc) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(special);
-                        insert_tile_class(
-                            &mut self.tcls_filled,
-                            &mut self.intdb,
-                            loc.tile_class(self.chip.kind),
-                            tcls,
-                        );
+                        insert_tile_class(&mut self.tcls_filled, &mut self.intdb, tcid, tcls);
                         self.special_tiles.insert(loc, vec![site.loc]);
                     }
                     btree_map::Entry::Occupied(entry) => {
@@ -1532,300 +1810,29 @@ impl PartContext<'_> {
             }
         }
         if matches!(self.chip.kind, ChipKind::Ice40T04 | ChipKind::Ice40T05) {
+            let mut cells =
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w() + 1, self.chip.row_s())
+                    .cells_e(18);
+            cells.extend([
+                CellCoord::new(DieId::from_idx(0), self.chip.col_w(), self.chip.row_s()),
+                CellCoord::new(DieId::from_idx(0), self.chip.col_e(), self.chip.row_s()),
+            ]);
+
             let special = SpecialTile {
                 io: BTreeMap::from_iter([
                     (
                         SpecialIoKey::PllA,
-                        self.chip.special_tiles[&SpecialTileKey::GbIo(6)].io[&SpecialIoKey::GbIn],
+                        self.chip.special_tiles[&SpecialTileKey::GbRoot].io[&SpecialIoKey::GbIn(6)],
                     ),
                     (
                         SpecialIoKey::PllB,
-                        self.chip.special_tiles[&SpecialTileKey::GbIo(3)].io[&SpecialIoKey::GbIn],
+                        self.chip.special_tiles[&SpecialTileKey::GbRoot].io[&SpecialIoKey::GbIn(3)],
                     ),
                 ]),
-                cells: EntityVec::from_iter([CellCoord::new(
-                    DieId::from_idx(0),
-                    self.chip.col_mid() + 1,
-                    self.chip.row_s(),
-                )]),
+                cells: cells.into_iter().collect(),
             };
             let key = SpecialTileKey::PllStub(DirV::S);
             self.chip.special_tiles.insert(key, special);
-            let tcls = TileClass::new(tslots::PLL_STUB, 1);
-            insert_tile_class(
-                &mut self.tcls_filled,
-                &mut self.intdb,
-                key.tile_class(self.chip.kind),
-                tcls,
-            );
-        }
-    }
-
-    fn fill_i3c(&mut self) {
-        let Some(sites) = self.pkgs[&self.def_pkg()].bel_info.get("SB_FILTER_50NS") else {
-            return;
-        };
-        let mut filter_sites = sites.clone();
-        filter_sites.sort_by_key(|site| site.loc);
-        assert_eq!(filter_sites.len(), 2);
-        let key = SpecialTileKey::I3c;
-        let mut builder = MiscTileBuilder::new(&self.chip, tslots::BEL, &[]);
-
-        for (i, site) in filter_sites.iter().enumerate() {
-            let bel_pins = &self.bel_pins[&("SB_FILTER_50NS", site.loc)];
-            builder.add_bel(bels::FILTER[i], bel_pins);
-        }
-        builder.get_cell(CellCoord::new(
-            DieId::from_idx(0),
-            ColId::from_idx(25),
-            RowId::from_idx(30),
-        ));
-
-        let mut io_sites = None;
-        for pkg_info in self.pkgs.values() {
-            let Some(sites) = pkg_info.bel_info.get("SB_IO_I3C") else {
-                continue;
-            };
-            let mut sites = sites.clone();
-            sites.sort_by_key(|site| site.loc);
-            let sites = Vec::from_iter(sites.into_iter().map(|site| {
-                let xy = (site.loc.x, site.loc.y, site.loc.bel);
-                let crd = pkg_info.xlat_io[&xy];
-                (site.loc, crd)
-            }));
-            if io_sites.is_none() {
-                io_sites = Some(sites);
-            } else {
-                assert_eq!(io_sites, Some(sites));
-            }
-        }
-        let io_sites = io_sites.unwrap();
-        for &(site_loc, crd) in &io_sites {
-            let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site_loc)].clone();
-            bel_pins.outs.clear();
-            builder.add_bel(bels::IOB_I3C[crd.iob().to_idx()], &bel_pins);
-            builder.io.insert(
-                [SpecialIoKey::I3c0, SpecialIoKey::I3c1][crd.iob().to_idx()],
-                crd,
-            );
-        }
-
-        let (tcls, special) = builder.finish();
-        insert_tile_class(
-            &mut self.tcls_filled,
-            &mut self.intdb,
-            key.tile_class(self.chip.kind),
-            tcls,
-        );
-        self.chip.special_tiles.insert(key, special);
-        self.special_tiles.insert(
-            key,
-            vec![
-                filter_sites[0].loc,
-                filter_sites[1].loc,
-                io_sites[0].0,
-                io_sites[1].0,
-            ],
-        );
-    }
-
-    fn fill_drv(&mut self) {
-        for pkg_info in self.pkgs.values() {
-            for (key, bels, extra_cells) in [
-                (
-                    SpecialTileKey::RgbDrv,
-                    [(
-                        "SB_RGB_DRV",
-                        bels::RGB_DRV,
-                        [
-                            (SpecialIoKey::RgbLed0, "RGB0"),
-                            (SpecialIoKey::RgbLed1, "RGB1"),
-                            (SpecialIoKey::RgbLed2, "RGB2"),
-                        ]
-                        .as_slice(),
-                    )]
-                    .as_slice(),
-                    vec![
-                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(18)),
-                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(19)),
-                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(0), RowId::from_idx(20)),
-                    ],
-                ),
-                (
-                    SpecialTileKey::IrDrv,
-                    [(
-                        "SB_IR_DRV",
-                        bels::IR_DRV,
-                        [(SpecialIoKey::IrLed, "IRLED")].as_slice(),
-                    )]
-                    .as_slice(),
-                    vec![
-                        CellCoord::new(
-                            DieId::from_idx(0),
-                            ColId::from_idx(25),
-                            RowId::from_idx(19),
-                        ),
-                        CellCoord::new(
-                            DieId::from_idx(0),
-                            ColId::from_idx(25),
-                            RowId::from_idx(20),
-                        ),
-                    ],
-                ),
-                (
-                    SpecialTileKey::RgbDrv,
-                    [(
-                        "SB_RGBA_DRV",
-                        bels::RGB_DRV,
-                        [
-                            (SpecialIoKey::RgbLed0, "RGB0"),
-                            (SpecialIoKey::RgbLed1, "RGB1"),
-                            (SpecialIoKey::RgbLed2, "RGB2"),
-                        ]
-                        .as_slice(),
-                    )]
-                    .as_slice(),
-                    match self.chip.kind {
-                        ChipKind::Ice40T05 => vec![
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                ColId::from_idx(0),
-                                RowId::from_idx(28),
-                            ),
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                ColId::from_idx(0),
-                                RowId::from_idx(29),
-                            ),
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                ColId::from_idx(0),
-                                RowId::from_idx(30),
-                            ),
-                        ],
-                        ChipKind::Ice40T01 => vec![
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                ColId::from_idx(0),
-                                RowId::from_idx(1),
-                            ),
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                ColId::from_idx(0),
-                                RowId::from_idx(2),
-                            ),
-                            CellCoord::new(
-                                DieId::from_idx(0),
-                                ColId::from_idx(0),
-                                RowId::from_idx(3),
-                            ),
-                        ],
-                        _ => vec![],
-                    },
-                ),
-                (
-                    SpecialTileKey::Ir500Drv,
-                    [
-                        (
-                            "SB_IR400_DRV",
-                            bels::IR400_DRV,
-                            [(SpecialIoKey::IrLed, "IRLED")].as_slice(),
-                        ),
-                        (
-                            "SB_BARCODE_DRV",
-                            bels::BARCODE_DRV,
-                            [(SpecialIoKey::BarcodeLed, "BARCODE")].as_slice(),
-                        ),
-                    ]
-                    .as_slice(),
-                    vec![
-                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(13), RowId::from_idx(1)),
-                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(13), RowId::from_idx(2)),
-                        CellCoord::new(DieId::from_idx(0), ColId::from_idx(13), RowId::from_idx(3)),
-                    ],
-                ),
-            ] {
-                let Some(sites) = pkg_info.bel_info.get(&bels[0].0) else {
-                    continue;
-                };
-                if sites.is_empty() {
-                    continue;
-                }
-                let mut builder = MiscTileBuilder::new(&self.chip, tslots::LED_DRV, &[]);
-                for cell in extra_cells {
-                    builder.get_cell(cell);
-                }
-
-                let mut site_locs = vec![];
-                let mut more_tiles = vec![];
-                for &(kind, slot, io_pins) in bels {
-                    let sites = &pkg_info.bel_info[kind];
-                    assert_eq!(sites.len(), 1);
-                    let site = &sites[0];
-                    site_locs.push(site.loc);
-                    let mut bel_pins = self.bel_pins[&(kind, site.loc)].clone();
-                    let mut bel_pins_drv = BelPins::default();
-                    bel_pins.ins.retain(|pin, &mut iw| {
-                        if let Some(pin) = pin.strip_prefix("LED_DRV_CUR__") {
-                            bel_pins_drv.ins.insert(pin.to_string(), iw);
-                            false
-                        } else if pin == "CURREN" {
-                            bel_pins_drv.ins.insert("EN".to_string(), iw);
-                            false
-                        } else if pin.starts_with("TRIM") {
-                            bel_pins_drv.ins.insert(pin.clone(), iw);
-                            false
-                        } else {
-                            true
-                        }
-                    });
-                    for &(slot, pin) in io_pins {
-                        let io = site.pads[pin].0;
-                        let xy = (io.x, io.y, io.bel);
-                        let crd = pkg_info.xlat_io[&xy];
-                        builder.io.insert(slot, crd);
-                    }
-                    builder.add_bel(slot, &bel_pins);
-
-                    let mut nb_drv_cur = MiscTileBuilder::new(&self.chip, tslots::LED_DRV_CUR, &[]);
-                    nb_drv_cur.add_bel(bels::LED_DRV_CUR, &bel_pins_drv);
-                    let (tcls, special) = nb_drv_cur.finish();
-                    let loc = SpecialTileKey::LedDrvCur;
-                    more_tiles.push((loc, tcls, special));
-                }
-                let (tcls, special) = builder.finish();
-                insert_tile_class(
-                    &mut self.tcls_filled,
-                    &mut self.intdb,
-                    key.tile_class(self.chip.kind),
-                    tcls,
-                );
-                match self.chip.special_tiles.entry(key) {
-                    btree_map::Entry::Vacant(entry) => {
-                        entry.insert(special);
-                        self.special_tiles.insert(key, site_locs);
-                    }
-                    btree_map::Entry::Occupied(entry) => {
-                        assert_eq!(*entry.get(), special);
-                    }
-                }
-                for (key, tcls, special) in more_tiles {
-                    insert_tile_class(
-                        &mut self.tcls_filled,
-                        &mut self.intdb,
-                        key.tile_class(self.chip.kind),
-                        tcls,
-                    );
-                    match self.chip.special_tiles.entry(key) {
-                        btree_map::Entry::Vacant(entry) => {
-                            entry.insert(special);
-                        }
-                        btree_map::Entry::Occupied(entry) => {
-                            assert_eq!(*entry.get(), special);
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -1844,131 +1851,86 @@ impl PartContext<'_> {
                 DirH::E
             };
             let key = SpecialTileKey::SpramPair(edge);
-            let mut builder = MiscTileBuilder::new(&self.chip, tslots::BEL, &[]);
+            let tcid = key.tile_class(self.chip.kind);
+            let cells: [_; 4] = CellCoord {
+                die: DieId::from_idx(0),
+                col: self.chip.col_edge(edge),
+                row: RowId::from_idx(1),
+            }
+            .cells_n_const();
+            let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
             for (i, site) in edge_sites.iter().enumerate() {
                 let bel_pins = &self.bel_pins[&("SB_SPRAM256KA", site.loc)];
                 builder.add_bel(bels::SPRAM[i], bel_pins);
             }
             let (tcls, special) = builder.finish();
-            insert_tile_class(
-                &mut self.tcls_filled,
-                &mut self.intdb,
-                key.tile_class(self.chip.kind),
-                tcls,
-            );
+            insert_tile_class(&mut self.tcls_filled, &mut self.intdb, tcid, tcls);
             self.chip.special_tiles.insert(key, special);
             self.special_tiles
                 .insert(key, vec![edge_sites[0].loc, edge_sites[1].loc]);
         }
     }
 
-    fn fill_smcclk(&mut self) {
-        let (col, row, wire) = match self.chip.kind {
-            ChipKind::Ice40T04 => (
-                ColId::from_idx(25),
-                RowId::from_idx(3),
-                defs::wires::OUT_LC[5],
-            ),
-            ChipKind::Ice40T05 => (
-                ColId::from_idx(25),
-                RowId::from_idx(9),
-                defs::wires::OUT_LC[1],
-            ),
-            ChipKind::Ice40T01 => (
-                ColId::from_idx(13),
-                RowId::from_idx(12),
-                defs::wires::OUT_LC[2],
-            ),
-            _ => return,
-        };
-        let mut tcls = TileClass::new(tslots::SMCCLK, 1);
-        let mut bel = LegacyBel::default();
-        bel.pins.insert(
-            "CLK".into(),
-            BelPin::new_out(TileWireCoord::new_idx(0, wire)),
-        );
-        tcls.bels.insert(bels::SMCCLK, BelInfo::Legacy(bel));
-        insert_tile_class(
-            &mut self.tcls_filled,
-            &mut self.intdb,
-            SpecialTileKey::SmcClk.tile_class(self.chip.kind),
-            tcls,
-        );
-        self.chip.special_tiles.insert(
-            SpecialTileKey::SmcClk,
-            SpecialTile {
-                io: Default::default(),
-                cells: EntityVec::from_iter([CellCoord::new(DieId::from_idx(0), col, row)]),
-            },
-        );
-    }
-
     fn inject_lut0_cascade(&mut self, harvester: &mut Harvester<BitOwner>) {
         let tcid = self.chip.kind.tile_class_plb();
-        let tcls = self.intdb.tile_classes.key(tcid);
         harvester.force_tiled(
-            DiffKey::Legacy(FeatureId {
-                tile: tcls.to_string(),
-                bel: "LC0".to_string(),
-                attr: "MUX.I2".to_string(),
-                val: "LTIN".to_string(),
-            }),
+            DiffKey::BelAttrBit(tcid, defs::bslots::LC[0], defs::bcls::LC::LTIN_ENABLE, 0),
             BTreeMap::from_iter([(TileBit::new(0, 0, 50), true)]),
         );
     }
 
     fn inject_io_inv_clk(&mut self, harvester: &mut Harvester<BitOwner>) {
-        for (tcid, attr, bit) in [
+        for (tcid, wire, bit) in [
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INV.IMUX_IO_ICLK_OPTINV",
+                defs::wires::IMUX_IO_ICLK_OPTINV,
                 TileBit::new(0, 9, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INV.IMUX_IO_OCLK_OPTINV",
+                defs::wires::IMUX_IO_OCLK_OPTINV,
                 TileBit::new(0, 15, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INV.IMUX_IO_ICLK_OPTINV",
+                defs::wires::IMUX_IO_ICLK_OPTINV,
                 TileBit::new(0, 9, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INV.IMUX_IO_OCLK_OPTINV",
+                defs::wires::IMUX_IO_OCLK_OPTINV,
                 TileBit::new(0, 15, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INV.IMUX_IO_ICLK_OPTINV",
+                defs::wires::IMUX_IO_ICLK_OPTINV,
                 TileBit::new(0, 6, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INV.IMUX_IO_OCLK_OPTINV",
+                defs::wires::IMUX_IO_OCLK_OPTINV,
                 TileBit::new(0, 1, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INV.IMUX_IO_ICLK_OPTINV",
+                defs::wires::IMUX_IO_ICLK_OPTINV,
                 TileBit::new(0, 9, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INV.IMUX_IO_OCLK_OPTINV",
+                defs::wires::IMUX_IO_OCLK_OPTINV,
                 TileBit::new(0, 14, 35),
             ),
         ] {
             let Some(tcid) = tcid else { continue };
-            let tcls = self.intdb.tile_classes.key(tcid);
             harvester.force_tiled(
-                DiffKey::Legacy(FeatureId {
-                    tile: tcls.to_string(),
-                    bel: "INT".to_string(),
-                    attr: attr.to_string(),
-                    val: "BIT0".to_string(),
-                }),
+                DiffKey::RoutingInv(
+                    tcid,
+                    TileWireCoord {
+                        cell: CellSlotId::from_idx(0),
+                        wire,
+                    },
+                ),
                 BTreeMap::from_iter([(bit, true)]),
             );
         }
@@ -1980,29 +1942,23 @@ impl PartContext<'_> {
         pips: &mut BTreeMap<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
     ) {
         let db = Database::from_file("db/icecube/ice40p01.zstd").unwrap();
-        for tcls in ["COLBUF_IO_W", "COLBUF_IO_E"] {
-            let tile_data = &db.bsdata.tiles[tcls];
-            for (name, item) in &tile_data.items {
-                let TileItemKind::BitVec { ref invert } = item.kind else {
-                    unreachable!()
+        for tcid in [defs::tcls::COLBUF_IO_W, defs::tcls::COLBUF_IO_E] {
+            let BelInfo::SwitchBox(ref sb) = db.int.tile_classes[tcid].bels[defs::bslots::COLBUF]
+            else {
+                unreachable!()
+            };
+            for item in &sb.items {
+                let SwitchBoxItem::ProgBuf(buf) = item else {
+                    unreachable!();
                 };
-                let (bel, attr) = name.split_once(':').unwrap();
-                for (idx, (&bit, inv)) in item.bits.iter().zip(invert.iter()).enumerate() {
-                    harvester.force_tiled(
-                        DiffKey::Legacy(FeatureId {
-                            tile: tcls.to_string(),
-                            bel: bel.to_string(),
-                            attr: attr.to_string(),
-                            val: format!("BIT{idx}"),
-                        }),
-                        BTreeMap::from_iter([(bit, !inv)]),
-                    );
-                }
+                harvester.force_tiled(
+                    DiffKey::Routing(tcid, buf.dst, buf.src),
+                    BTreeMap::from_iter([(buf.bit.bit, !buf.bit.inv)]),
+                );
             }
         }
         for dir in [Dir::W, Dir::E] {
             let tcid = self.chip.kind.tile_class_ioi(dir).unwrap();
-            let tile = db.int.tile_classes.key(tcid);
             let tcls = &db.int.tile_classes[tcid];
             let BelInfo::SwitchBox(sb) = &tcls.bels[bels::INT] else {
                 unreachable!()
@@ -2011,78 +1967,52 @@ impl PartContext<'_> {
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
-                        for src in mux.src.keys() {
+                        for (&src, val) in &mux.src {
+                            if matches!(src.wire, defs::wires::TIE_0 | defs::wires::TIE_1) {
+                                continue;
+                            }
                             tcls_pips.insert((mux.dst, src.tw));
+                            harvester.force_tiled(
+                                DiffKey::Routing(tcid, mux.dst, src),
+                                BTreeMap::from_iter(
+                                    mux.bits
+                                        .iter()
+                                        .zip(val.iter())
+                                        .filter(|&(_, bval)| bval)
+                                        .map(|(&bit, _)| (bit, true)),
+                                ),
+                            );
                         }
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
                         tcls_pips.insert((buf.dst, buf.src.tw));
+                        harvester.force_tiled(
+                            DiffKey::Routing(tcid, buf.dst, buf.src),
+                            BTreeMap::from_iter([(buf.bit.bit, !buf.bit.inv)]),
+                        );
+                    }
+                    SwitchBoxItem::ProgInv(inv) => {
+                        harvester.force_tiled(
+                            DiffKey::RoutingInv(tcid, inv.dst),
+                            BTreeMap::from_iter([(inv.bit.bit, !inv.bit.inv)]),
+                        );
                     }
                     _ => (),
                 }
             }
             pips.insert(tcid, tcls_pips);
-            let tile_data = &db.bsdata.tiles[tile];
-            for (name, item) in &tile_data.items {
-                let (bel, attr) = name.split_once(':').unwrap();
-                if name.ends_with(":PIN_TYPE") || name.starts_with("INT:INV") {
-                    let TileItemKind::BitVec { ref invert } = item.kind else {
-                        unreachable!()
-                    };
-                    for (idx, (&bit, inv)) in item.bits.iter().zip(invert.iter()).enumerate() {
-                        harvester.force_tiled(
-                            DiffKey::Legacy(FeatureId {
-                                tile: tile.to_string(),
-                                bel: bel.to_string(),
-                                attr: attr.to_string(),
-                                val: format!("BIT{idx}"),
-                            }),
-                            BTreeMap::from_iter([(bit, !inv)]),
-                        );
-                    }
-                } else if name.starts_with("INT:MUX") {
-                    let TileItemKind::Enum { ref values } = item.kind else {
-                        unreachable!()
-                    };
-                    for (vname, val) in values {
-                        if vname == "NONE" {
-                            continue;
-                        }
-                        harvester.force_tiled(
-                            DiffKey::Legacy(FeatureId {
-                                tile: tile.to_string(),
-                                bel: bel.to_string(),
-                                attr: attr.to_string(),
-                                val: vname.to_string(),
-                            }),
-                            BTreeMap::from_iter(
-                                item.bits
-                                    .iter()
-                                    .zip(val.iter())
-                                    .filter(|&(_, bval)| bval)
-                                    .map(|(&bit, _)| (bit, true)),
-                            ),
-                        );
-                    }
-                } else if let Some(suf) = name.strip_prefix("INT:BUF.") {
-                    let (wt, b) = suf.split_once(".OUT_").unwrap();
-                    let TileItemKind::BitVec { ref invert } = item.kind else {
-                        unreachable!()
-                    };
-                    assert_eq!(item.bits.len(), 1);
+            for bslot in [defs::bslots::IOI[0], defs::bslots::IOI[1]] {
+                let BelInfo::Bel(ref bel) = tcls.bels[bslot] else {
+                    unreachable!()
+                };
+                let BelAttribute::BitVec(ref bits) = bel.attributes[defs::bcls::IOI::PIN_TYPE]
+                else {
+                    unreachable!()
+                };
+                for (i, &bit) in bits.iter().enumerate() {
                     harvester.force_tiled(
-                        DiffKey::Legacy(FeatureId {
-                            tile: tile.to_string(),
-                            bel: "INT".to_string(),
-                            attr: format!("MUX.{wt}"),
-                            val: format!("OUT_{b}"),
-                        }),
-                        BTreeMap::from_iter(
-                            item.bits
-                                .iter()
-                                .zip(invert.iter())
-                                .map(|(&bit, inv)| (bit, !inv)),
-                        ),
+                        DiffKey::BelAttrBit(tcid, bslot, defs::bcls::IOI::PIN_TYPE, i),
+                        BTreeMap::from_iter([(bit.bit, !bit.inv)]),
                     );
                 }
             }
@@ -2128,14 +2058,23 @@ impl PartContext<'_> {
                 muxes.entry(wt).or_default().insert(wf.pos());
             }
         }
-        for (wt, wf) in muxes {
+        for (wt, mut wf) in muxes {
+            let wtn = self.intdb.wires.key(wt.wire);
+            if wtn.starts_with("IMUX") || wtn.starts_with("LOCAL") || wtn.starts_with("GLOBAL_OUT")
+            {
+                let tie = if wt.wire == defs::wires::IMUX_CE {
+                    defs::wires::TIE_1
+                } else {
+                    defs::wires::TIE_0
+                };
+                wf.insert(TileWireCoord::new_idx(0, tie).pos());
+            }
             items.push(SwitchBoxItem::Mux(Mux {
                 dst: wt,
                 bits: vec![],
                 src: wf.into_iter().map(|k| (k, Default::default())).collect(),
                 bits_off: None,
             }));
-
             let wtn = self.intdb.wires.key(wt.wire);
             if wtn.ends_with("CLK") {
                 let wi = TileWireCoord::new_idx(0, self.intdb.get_wire(&format!("{wtn}_OPTINV")));
@@ -2204,51 +2143,40 @@ impl PartContext<'_> {
         let mut pips = hctx.pips.into_inner().unwrap();
         let mut harvester = hctx.harvester.into_inner().unwrap();
         let io_iob = collect_iob(&edev, &mut harvester);
-        let sbs = BTreeMap::from_iter(
-            pips.iter()
-                .map(|(&tcid, pips)| (tcid, self.make_switchbox(pips))),
-        );
-        let mut bsdata = collect(&edev, &sbs, &harvester);
-        let speed = hctx.speed;
-        self.chip.rows_colbuf = hctx.gencfg.rows_colbuf;
-        self.chip.io_iob = io_iob;
 
         if self.chip.kind != ChipKind::Ice40P03 {
-            let tcls_plb = self.chip.kind.tile_class_plb();
-            let tile_plb = self.intdb.tile_classes.key(tcls_plb);
-            let bsdata_plb = bsdata.tiles[tile_plb].clone();
-            let tcls_int_bram = self.intdb.get_tile_class("INT_BRAM");
-            let pips_plb = pips[&tcls_plb].clone();
-            let pips_int_bram = pips.get_mut(&tcls_int_bram).unwrap();
-            let bsdata_int_bram = bsdata.tiles.get_mut("INT_BRAM").unwrap();
-            let mut copy_imuxes = BTreeSet::new();
+            let tcid_plb = self.chip.kind.tile_class_plb();
+            let pips_plb = pips[&tcid_plb].clone();
+            let pips_int_bram = pips.get_mut(&defs::tcls::INT_BRAM).unwrap();
             for (wt, wf) in pips_plb {
                 if defs::wires::IMUX_LC_I0.contains(wt.wire)
                     || defs::wires::IMUX_LC_I1.contains(wt.wire)
                     || defs::wires::IMUX_LC_I2.contains(wt.wire)
                 {
+                    let diff_plb =
+                        harvester.known_tiled[&DiffKey::Routing(tcid_plb, wt, wf.pos())].clone();
+                    if let Some(diff_bram) = harvester.known_tiled.get(&DiffKey::Routing(
+                        defs::tcls::INT_BRAM,
+                        wt,
+                        wf.pos(),
+                    )) {
+                        assert_eq!(diff_plb, *diff_bram);
+                    } else {
+                        harvester.force_tiled(
+                            DiffKey::Routing(defs::tcls::INT_BRAM, wt, wf.pos()),
+                            diff_plb,
+                        );
+                    }
                     pips_int_bram.insert((wt, wf));
-                    copy_imuxes.insert(wt);
-                } else {
+                } else if !defs::wires::LC_CI_OUT.contains(wf.wire) {
                     assert!(pips_int_bram.contains(&(wt, wf)));
-                }
-            }
-            for wt in copy_imuxes {
-                let wtn = self.intdb.wires.key(wt.wire);
-                let mux_name = format!("INT:MUX.{wtn}");
-                let item = bsdata_plb.items.get(&mux_name).unwrap();
-                match bsdata_int_bram.items.entry(mux_name) {
-                    btree_map::Entry::Vacant(e) => {
-                        e.insert(item.clone());
-                    }
-                    btree_map::Entry::Occupied(e) => {
-                        assert_eq!(e.get(), item);
-                    }
                 }
             }
         }
 
-        self.bsdata = bsdata;
+        let speed = hctx.speed;
+        self.chip.rows_colbuf = hctx.gencfg.rows_colbuf;
+        self.chip.io_iob = io_iob;
 
         for (tcid, tcls_pips) in pips {
             let sb = self.make_switchbox(&tcls_pips);
@@ -2256,6 +2184,14 @@ impl PartContext<'_> {
                 .bels
                 .insert(bels::INT, BelInfo::SwitchBox(sb));
         }
+
+        let edev = self.chip.expand_grid(&self.intdb);
+
+        let (bsdata, cdata) = collect(&edev, &harvester);
+
+        self.bsdata = bsdata;
+
+        cdata.insert_into(&mut self.intdb, true);
 
         for (k, v) in speed {
             self.speed.insert(k, finish_speed(v.into_inner().unwrap()));
@@ -2368,7 +2304,12 @@ fn main() {
                 io_od: BTreeSet::new(),
                 special_tiles: BTreeMap::new(),
             },
-            intdb: make_intdb(kind),
+            intdb: bincode::decode_from_slice(
+                prjcombine_siliconblue::defs::INIT,
+                bincode::config::standard(),
+            )
+            .unwrap()
+            .0,
             toolchain: &toolchain,
             prims: get_prims(kind),
             pkgs: BTreeMap::new(),
@@ -2389,17 +2330,16 @@ fn main() {
         ctx.fill_xlat_rc();
         ctx.fill_bonds();
         ctx.fill_cbsel();
-        ctx.fill_bel_pins();
         ctx.fill_io_latch();
+        ctx.fill_bel_pins();
         ctx.fill_gbin_fabric();
         ctx.fill_gbin_io();
-        ctx.fill_trim();
-        ctx.fill_extra_misc();
+        ctx.fill_mac16();
+        ctx.fill_hardip();
+        ctx.fill_misc();
+        ctx.fill_warmboot();
         ctx.fill_pll();
-        ctx.fill_i3c();
-        ctx.fill_drv();
         ctx.fill_spram();
-        ctx.fill_smcclk();
 
         println!("{kind}: initial geometry done; starting harvest");
 

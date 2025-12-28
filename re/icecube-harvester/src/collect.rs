@@ -2,13 +2,13 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{SwitchBox, SwitchBoxItem, TileClassId},
+    db::{BelInfo, SwitchBoxItem},
     dir::{Dir, DirV},
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_re_fpga_hammer::{
-    Collector, Diff, DiffKey, FeatureData, FeatureId, OcdMode, State, extract_bitvec_val_part,
-    xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd,
+    Collector, CollectorData, Diff, DiffKey, FeatureData, FeatureId, OcdMode, State,
+    extract_bitvec_val_part_raw, xlat_bit_raw, xlat_bitvec_raw, xlat_enum, xlat_enum_raw,
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
@@ -18,13 +18,21 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::{
     bits,
-    bsdata::{BitRectId, BsData, TileBit, TileItem},
+    bsdata::{BitRectId, BsData, PolTileBit, RectBitId, TileBit, TileItem},
 };
+
+use crate::specials;
 
 pub fn collect_iob(
     edev: &ExpandedDevice,
     harvester: &mut Harvester<BitOwner>,
 ) -> BTreeMap<EdgeIoCoord, EdgeIoCoord> {
+    #[derive(Debug)]
+    enum Key {
+        IbufEnable,
+        PullupDisable,
+    }
+
     if edev.chip.kind == ChipKind::Ice40P01 {
         for anchor in [
             EdgeIoCoord::W(RowId::from_idx(2), TileIobId::from_idx(0)),
@@ -36,9 +44,19 @@ pub fn collect_iob(
             EdgeIoCoord::N(ColId::from_idx(1), TileIobId::from_idx(0)),
             EdgeIoCoord::N(ColId::from_idx(1), TileIobId::from_idx(1)),
         ] {
-            for attrval in ["IBUF_ENABLE:BIT0", "PULLUP:DISABLE"] {
-                let bits =
-                    &harvester.known_global[&DiffKey::GlobalLegacy(format!("{anchor}:{attrval}"))];
+            let anchor_bel = edev.chip.get_io_loc(anchor);
+            for attrval in [Key::IbufEnable, Key::PullupDisable] {
+                let key = match attrval {
+                    Key::IbufEnable => {
+                        DiffKey::GlobalBelAttrBit(anchor_bel, defs::bcls::IOB::IBUF_ENABLE, 0)
+                    }
+                    Key::PullupDisable => DiffKey::GlobalBelAttrSpecial(
+                        anchor_bel,
+                        defs::bcls::IOB::PULLUP,
+                        specials::DISABLE,
+                    ),
+                };
+                let bits = &harvester.known_global[&key];
                 let owner = bits.keys().next().unwrap().0;
                 let bits = BTreeMap::from_iter(bits.iter().map(|(&bit, &val)| {
                     let (bit_owner, frame, bit) = bit;
@@ -53,30 +71,40 @@ pub fn collect_iob(
                     )
                 }));
                 let edge = anchor.edge();
-                let iob = anchor.iob();
                 let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
-                let tcls = edev.db.tile_classes.key(tcid);
-                let (attr, val) = attrval.split_once(':').unwrap();
-                harvester.force_tiled(
-                    DiffKey::Legacy(FeatureId {
-                        tile: tcls.to_string(),
-                        bel: format!("IOB{iob:#}"),
-                        attr: attr.to_string(),
-                        val: val.to_string(),
-                    }),
-                    bits,
-                );
+                let key = match attrval {
+                    Key::IbufEnable => DiffKey::BelAttrBit(
+                        tcid,
+                        defs::bslots::IOB[anchor.iob().to_idx()],
+                        defs::bcls::IOB::IBUF_ENABLE,
+                        0,
+                    ),
+                    Key::PullupDisable => DiffKey::BelAttrSpecial(
+                        tcid,
+                        defs::bslots::IOB[anchor.iob().to_idx()],
+                        defs::bcls::IOB::PULLUP,
+                        specials::DISABLE,
+                    ),
+                };
+                harvester.force_tiled(key, bits);
             }
         }
         let mut res = BTreeMap::new();
         for &io in edev.chip.io_iob.keys() {
             let mut iob_loc = None;
-            'attrs: for attrval in ["IBUF_ENABLE:BIT0", "PULLUP:DISABLE"] {
-                let (attr, val) = attrval.split_once(':').unwrap();
-                let bits = &harvester
-                    .known_global
-                    .remove(&DiffKey::GlobalLegacy(format!("{io}:{attrval}")))
-                    .unwrap();
+            'attrs: for attrval in [Key::IbufEnable, Key::PullupDisable] {
+                let bel = edev.chip.get_io_loc(io);
+                let key = match attrval {
+                    Key::IbufEnable => {
+                        DiffKey::GlobalBelAttrBit(bel, defs::bcls::IOB::IBUF_ENABLE, 0)
+                    }
+                    Key::PullupDisable => DiffKey::GlobalBelAttrSpecial(
+                        bel,
+                        defs::bcls::IOB::PULLUP,
+                        specials::DISABLE,
+                    ),
+                };
+                let bits = &harvester.known_global.remove(&key).unwrap();
                 let owner = bits.keys().next().unwrap().0;
                 let bits = BTreeMap::from_iter(bits.iter().map(|(&bit, &val)| {
                     let (bit_owner, frame, bit) = bit;
@@ -97,14 +125,21 @@ pub fn collect_iob(
                 for iob in 0..2 {
                     let iob = TileIobId::from_idx(iob);
                     let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
-                    let tcls = edev.db.tile_classes.key(tcid);
-                    if harvester.known_tiled[&DiffKey::Legacy(FeatureId {
-                        tile: tcls.to_string(),
-                        bel: format!("IOB{iob:#}"),
-                        attr: attr.to_string(),
-                        val: val.to_string(),
-                    })] == bits
-                    {
+                    let key = match attrval {
+                        Key::IbufEnable => DiffKey::BelAttrBit(
+                            tcid,
+                            defs::bslots::IOB[iob.to_idx()],
+                            defs::bcls::IOB::IBUF_ENABLE,
+                            0,
+                        ),
+                        Key::PullupDisable => DiffKey::BelAttrSpecial(
+                            tcid,
+                            defs::bslots::IOB[iob.to_idx()],
+                            defs::bcls::IOB::PULLUP,
+                            specials::DISABLE,
+                        ),
+                    };
+                    if harvester.known_tiled[&key] == bits {
                         let loc = match edge {
                             Dir::W => {
                                 assert_eq!(col, edev.chip.col_w());
@@ -131,7 +166,7 @@ pub fn collect_iob(
                         continue 'attrs;
                     }
                 }
-                panic!("can't deal with {io} {attrval}: {owner:?} {bits:?}");
+                panic!("can't deal with {io} {attrval:?}: {owner:?} {bits:?}");
             }
             res.insert(io, iob_loc.unwrap());
         }
@@ -141,11 +176,7 @@ pub fn collect_iob(
     }
 }
 
-pub fn collect(
-    edev: &ExpandedDevice,
-    sbs: &BTreeMap<TileClassId, SwitchBox>,
-    harvester: &Harvester<BitOwner>,
-) -> BsData {
+pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> (BsData, CollectorData) {
     let mut tiledb = BsData::new();
     let mut state = State::new();
     let mut bitvec_diffs: BTreeMap<DiffKey, BTreeMap<usize, Diff>> = BTreeMap::new();
@@ -185,200 +216,199 @@ pub fn collect(
             },
         );
     }
-    let mut collector = Collector {
-        state: &mut state,
-        tiledb: &mut tiledb,
-    };
+    let mut collector = Collector::new(&mut state, &mut tiledb, edev.db);
 
-    for (&tcid, tile_sb) in sbs {
-        let tile = edev.db.tile_classes.key(tcid);
-        let bel = "INT";
-        if !tile.starts_with("IO") {
-            collector.collect_bit(tile, bel, "INV.IMUX_CLK_OPTINV", "");
+    for (tcid, _, tcls) in &edev.db.tile_classes {
+        if edev.tile_index[tcid].is_empty() {
+            continue;
         }
-        let mut gout_mux = BTreeMap::new();
-        for item in &tile_sb.items {
-            if let SwitchBoxItem::Mux(mux) = item
-                && defs::wires::GLOBAL_OUT.contains(mux.dst.wire)
-            {
-                gout_mux.insert(mux.dst, mux);
+        for (bslot, bel) in &tcls.bels {
+            let BelInfo::SwitchBox(sb) = bel else {
+                continue;
+            };
+            let mut global_out_mux = BTreeMap::new();
+            for item in &sb.items {
+                if let SwitchBoxItem::Mux(mux) = item
+                    && defs::wires::GLOBAL_OUT.contains(mux.dst.wire)
+                {
+                    global_out_mux.insert(mux.dst, mux);
+                }
             }
-        }
-        for item in &tile_sb.items {
-            match item {
-                SwitchBoxItem::Mux(mux) => {
-                    if gout_mux.contains_key(&mux.dst) {
-                        continue;
-                    }
-                    let wtn = edev.db.wires.key(mux.dst.wire);
-                    let mux_name = format!("MUX.{wtn}");
-                    let mut values = vec![];
-                    let mut diffs = vec![];
-                    if tcid == edev.chip.kind.tile_class_plb()
-                        && defs::wires::IMUX_LC_I3.contains(mux.dst.wire)
-                    {
-                        values.push("CI");
-                        diffs.push(("CI", collector.state.get_diff(tile, bel, &mux_name, "CI")));
-                    }
-                    diffs.push(("NONE", Diff::default()));
-                    for &wf in mux.src.keys() {
-                        if !gout_mux.contains_key(&wf) {
-                            let wfn = edev.db.wires.key(wf.wire);
-                            values.push(wfn);
-                            diffs.push((wfn, collector.state.get_diff(tile, bel, &mux_name, wfn)));
+            for item in &sb.items {
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        if global_out_mux.contains_key(&mux.dst) {
+                            continue;
                         }
-                    }
-                    for &wg in mux.src.keys() {
-                        if let Some(gmux) = gout_mux.get(&wg) {
-                            let wgn = edev.db.wires.key(gmux.dst.wire);
-                            let mut bits_nog2l = HashSet::new();
-                            for (_, diff) in &diffs {
-                                for &bit in diff.bits.keys() {
-                                    bits_nog2l.insert(bit);
+                        let mut diffs = vec![];
+                        let mut got_tie = false;
+                        for &wf in mux.src.keys() {
+                            if global_out_mux.contains_key(&wf) {
+                                continue;
+                            }
+                            if matches!(wf.wire, defs::wires::TIE_0 | defs::wires::TIE_1) {
+                                diffs.push((Some(wf), Diff::default()));
+                                got_tie = true;
+                            } else {
+                                diffs.push((
+                                    Some(wf),
+                                    collector
+                                        .state
+                                        .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wf)),
+                                ));
+                            }
+                        }
+                        for &wg in mux.src.keys() {
+                            if let Some(gmux) = global_out_mux.get(&wg) {
+                                let mut bits_nog2l = HashSet::new();
+                                for (_, diff) in &diffs {
+                                    for &bit in diff.bits.keys() {
+                                        bits_nog2l.insert(bit);
+                                    }
+                                }
+                                let mut diffs_global_out = vec![];
+                                for &wf in gmux.src.keys() {
+                                    if wf.wire == defs::wires::TIE_0 {
+                                        diffs_global_out.push((Some(wf), Diff::default()));
+                                        continue;
+                                    }
+                                    let mut diff_global_out = collector
+                                        .state
+                                        .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wf));
+                                    let diff = diff_global_out.split_bits(&bits_nog2l);
+                                    diffs_global_out.push((Some(wf), diff_global_out));
+                                    diffs.push((Some(wg), diff));
+                                }
+                                if !diffs_global_out.is_empty() {
+                                    collector.data.mux.insert(
+                                        (tcid, gmux.dst),
+                                        xlat_enum_raw(diffs_global_out, OcdMode::Mux),
+                                    );
                                 }
                             }
-                            let mut diffs_gout = vec![];
-                            for &wf in gmux.src.keys() {
-                                let wfn = edev.db.wires.key(wf.wire).as_str();
-                                let mut diff_gout =
-                                    collector.state.get_diff(tile, bel, &mux_name, wfn);
-                                let diff = diff_gout.split_bits(&bits_nog2l);
-                                diffs_gout.push((wfn, diff_gout));
-                                diffs.push((wgn, diff));
-                            }
-                            if !diffs_gout.is_empty() {
-                                diffs_gout.push(("NONE", Diff::default()));
-                                collector.tiledb.insert(
-                                    tile,
-                                    bel,
-                                    format!("MUX.{wgn}"),
-                                    xlat_enum_ocd(diffs_gout, OcdMode::Mux),
-                                );
-                            }
                         }
+                        if !got_tie && bslot == defs::bslots::INT {
+                            diffs.push((None, Diff::default()));
+                        }
+                        collector
+                            .data
+                            .mux
+                            .insert((tcid, mux.dst), xlat_enum_raw(diffs, OcdMode::Mux));
                     }
-                    collector.tiledb.insert(
-                        tile,
-                        bel,
-                        &mux_name,
-                        xlat_enum_ocd(diffs, OcdMode::Mux),
-                    );
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        collector.collect_progbuf(tcid, buf.dst, buf.src);
+                    }
+                    SwitchBoxItem::ProgInv(inv) => {
+                        collector.collect_inv(tcid, inv.dst);
+                    }
+                    SwitchBoxItem::PermaBuf(_) => (),
+                    _ => unreachable!(),
                 }
-                SwitchBoxItem::ProgBuf(buf) => {
-                    let wtn = edev.db.wires.key(buf.dst.wire);
-                    let wfn = edev.db.wires.key(buf.src.wire);
-                    let mux_name = format!("MUX.{wtn}");
-                    let item = collector.extract_bit(tile, bel, &mux_name, wfn);
-                    collector
-                        .tiledb
-                        .insert(tile, bel, format!("BUF.{wtn}.{wfn}"), item);
-                }
-                SwitchBoxItem::ProgInv(_) => (),
-                _ => unreachable!(),
-            }
-        }
-    }
-    if let Some(tcid) = edev.chip.kind.tile_class_colbuf() {
-        let tile = edev.db.tile_classes.key(tcid);
-        for i in 0..8 {
-            collector.collect_bit(tile, "COLBUF", &format!("GLOBAL.{i}"), "");
-            if edev.chip.kind.has_ioi_we() {
-                collector.collect_bit("COLBUF_IO_W", "COLBUF", &format!("GLOBAL.{i}"), "");
-                collector.collect_bit("COLBUF_IO_E", "COLBUF", &format!("GLOBAL.{i}"), "");
             }
         }
     }
     for lc in 0..8 {
         let tcid = edev.chip.kind.tile_class_plb();
-        let tile = edev.db.tile_classes.key(tcid);
-        let bel = &format!("LC{lc}");
+        let bel = defs::bslots::LC[lc];
         if edev.chip.kind.is_ice40() {
-            collector.collect_enum_default(tile, bel, "MUX.I2", &["LTIN"], "INT");
+            collector.collect_bel_attr(tcid, bel, defs::bcls::LC::LTIN_ENABLE);
         }
-        collector.collect_bitvec(tile, bel, "LUT_INIT", "");
-        collector.collect_bit(tile, bel, "CARRY_ENABLE", "");
-        collector.collect_bit(tile, bel, "FF_ENABLE", "");
-        collector.collect_bit(tile, bel, "FF_SR_VALUE", "");
-        collector.collect_bit(tile, bel, "FF_SR_ASYNC", "");
+        for attr in [
+            defs::bcls::LC::LUT_INIT,
+            defs::bcls::LC::CARRY_ENABLE,
+            defs::bcls::LC::FF_ENABLE,
+            defs::bcls::LC::FF_SR_VALUE,
+            defs::bcls::LC::FF_SR_ASYNC,
+        ] {
+            collector.collect_bel_attr(tcid, bel, attr);
+        }
         if lc == 0 {
-            collector.collect_enum(tile, bel, "MUX.CI", &["0", "1", "CHAIN"]);
+            collector.collect_bel_attr(tcid, bel, defs::bcls::LC::MUX_CI);
         }
     }
     if !edev.chip.cols_bram.is_empty() {
         let tcid = edev.chip.kind.tile_class_bram();
-        let tile = edev.db.tile_classes.key(tcid);
-        let bel = "BRAM";
-        let mut item = collector.extract_bitvec("BRAM_DATA", "BRAM", "INIT", "");
-        for bit in &mut item.bits {
-            assert_eq!(bit.rect.to_idx(), 0);
-            bit.rect = BitRectId::from_idx(2);
-        }
-        collector.tiledb.insert(tile, bel, "INIT", item);
+        let bel = defs::bslots::BRAM;
+        collector.collect_bel_attr(tcid, bel, defs::bcls::BRAM::INIT);
         if edev.chip.kind.is_ice40() {
-            collector.collect_bit(tile, bel, "ENABLE", "");
-            collector.collect_bit(tile, bel, "CASCADE_IN_WADDR", "");
-            collector.collect_bit(tile, bel, "CASCADE_IN_RADDR", "");
-            collector.collect_bit(tile, bel, "CASCADE_OUT_WADDR", "");
-            collector.collect_bit(tile, bel, "CASCADE_OUT_RADDR", "");
-            collector.collect_enum(tile, bel, "READ_MODE", &["0", "1", "2", "3"]);
-            collector.collect_enum(tile, bel, "WRITE_MODE", &["0", "1", "2", "3"]);
+            for attr in [
+                defs::bcls::BRAM::ENABLE,
+                defs::bcls::BRAM::CASCADE_IN_WADDR,
+                defs::bcls::BRAM::CASCADE_IN_RADDR,
+                defs::bcls::BRAM::CASCADE_OUT_WADDR,
+                defs::bcls::BRAM::CASCADE_OUT_RADDR,
+                defs::bcls::BRAM::READ_MODE,
+                defs::bcls::BRAM::WRITE_MODE,
+            ] {
+                collector.collect_bel_attr(tcid, bel, attr);
+            }
         }
     }
     for edge in Dir::DIRS {
         let Some(tcid) = edev.chip.kind.tile_class_ioi(edge) else {
             continue;
         };
-        let tile = edev.db.tile_classes.key(tcid);
-        collector.collect_bit(tile, "INT", "INV.IMUX_IO_ICLK_OPTINV", "");
-        collector.collect_bit(tile, "INT", "INV.IMUX_IO_OCLK_OPTINV", "");
         for io in 0..2 {
-            let bel = &format!("IO{io}");
-            collector.collect_bitvec(tile, bel, "PIN_TYPE", "");
+            let bel = defs::bslots::IOI[io];
+            collector.collect_bel_attr(tcid, bel, defs::bcls::IOI::PIN_TYPE);
             if edev.chip.kind.is_ultra() {
-                collector.collect_bit(tile, bel, "OUTPUT_ENABLE", "");
+                collector.collect_bel_attr(tcid, bel, defs::bcls::IOI::OUTPUT_ENABLE);
             }
         }
         let Some(tcid) = edev.chip.kind.tile_class_iob(edge) else {
             continue;
         };
-        let tile = edev.db.tile_classes.key(tcid);
         for iob in 0..2 {
-            let bel = &format!("IOB{iob}");
+            let bel = defs::bslots::IOB[iob];
             if edev.chip.kind.is_ice40() || (edev.chip.kind.has_vref() && edge == Dir::W) {
-                collector.collect_bit(tile, bel, "IBUF_ENABLE", "");
+                collector.collect_bel_attr(tcid, bel, defs::bcls::IOB::IBUF_ENABLE);
             }
             if edev.chip.kind.is_ultra()
                 && !(edge == Dir::N && edev.chip.kind == ChipKind::Ice40T01)
             {
-                collector.collect_bit(tile, bel, "HARDIP_FABRIC_IN", "");
-                collector.collect_bit(tile, bel, "HARDIP_DEDICATED_OUT", "");
-                if (edev.chip.kind == ChipKind::Ice40T01 && iob == 0) || edge == Dir::N {
-                    collector.collect_bit(tile, bel, "SDA_INPUT_DELAYED", "");
-                    collector.collect_bit(tile, bel, "SDA_OUTPUT_DELAYED", "");
-                }
+                collector.collect_bel_attr(tcid, bel, defs::bcls::IOB::HARDIP_FABRIC_IN);
+                collector.collect_bel_attr(tcid, bel, defs::bcls::IOB::HARDIP_DEDICATED_OUT);
             }
             if edge == Dir::W && edev.chip.kind.has_vref() {
                 let diff_cmos = collector
                     .state
-                    .peek_diff(tile, bel, "IOSTD", "SB_LVCMOS18_10")
+                    .peek_diff_raw(&DiffKey::BelSpecialString(
+                        tcid,
+                        bel,
+                        specials::IOSTD,
+                        "SB_LVCMOS18_10".to_string(),
+                    ))
                     .clone();
-                let item = xlat_bit(diff_cmos.clone());
-                collector.tiledb.insert(tile, bel, "CMOS_INPUT", item);
-                let diff = collector
-                    .state
-                    .peek_diff(tile, bel, "IOSTD", "SB_SSTL18_FULL");
-                let item = xlat_bit(diff.clone());
-                collector.tiledb.insert(tile, bel, "IOSTD_MISC", item);
+                let bit = xlat_bit_raw(diff_cmos.clone());
+                collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::CMOS_INPUT, bit);
+                let diff = collector.state.peek_diff_raw(&DiffKey::BelSpecialString(
+                    tcid,
+                    bel,
+                    specials::IOSTD,
+                    "SB_SSTL18_FULL".to_string(),
+                ));
+                let bit = xlat_bit_raw(diff.clone());
+                collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::IOSTD_MISC, bit);
                 let diff0 = collector
                     .state
-                    .peek_diff(tile, bel, "IOSTD", "SB_LVCMOS18_8")
+                    .peek_diff_raw(&DiffKey::BelSpecialString(
+                        tcid,
+                        bel,
+                        specials::IOSTD,
+                        "SB_LVCMOS18_8".to_string(),
+                    ))
                     .combine(&!&diff_cmos);
                 let diff1 = collector
                     .state
-                    .peek_diff(tile, bel, "IOSTD", "SB_LVCMOS18_4")
+                    .peek_diff_raw(&DiffKey::BelSpecialString(
+                        tcid,
+                        bel,
+                        specials::IOSTD,
+                        "SB_LVCMOS18_4".to_string(),
+                    ))
                     .combine(&!&diff_cmos);
-                let item = xlat_bitvec(vec![diff0, diff1]);
-                collector.tiledb.insert(tile, bel, "DRIVE", item);
+                let bits = xlat_bitvec_raw(vec![diff0, diff1]);
+                collector.insert_bel_attr_bitvec(tcid, bel, defs::bcls::IOB::DRIVE, bits);
                 for std in [
                     "SB_LVCMOS15_4",
                     "SB_LVCMOS15_2",
@@ -400,20 +430,25 @@ pub fn collect(
                     "SB_SSTL2_CLASS_1",
                     "SB_LVCMOS33_8",
                 ] {
-                    let mut diff = collector.state.get_diff(tile, bel, "IOSTD", std);
+                    let mut diff = collector.state.get_diff_raw(&DiffKey::BelSpecialString(
+                        tcid,
+                        bel,
+                        specials::IOSTD,
+                        std.to_string(),
+                    ));
                     if !std.starts_with("SB_SSTL") {
                         diff = diff.combine(&!&diff_cmos);
                     }
-                    let drive = extract_bitvec_val_part(
-                        collector.tiledb.item(tile, bel, "DRIVE"),
+                    let drive = extract_bitvec_val_part_raw(
+                        collector.bel_attr_bitvec(tcid, bel, defs::bcls::IOB::DRIVE),
                         &bits![0, 0],
                         &mut diff,
                     );
                     collector
                         .tiledb
                         .insert_misc_data(format!("IOSTD:DRIVE:{std}"), drive);
-                    let misc = extract_bitvec_val_part(
-                        collector.tiledb.item(tile, bel, "IOSTD_MISC"),
+                    let misc = extract_bitvec_val_part_raw(
+                        collector.bel_attr_bitvec(tcid, bel, defs::bcls::IOB::IOSTD_MISC),
                         &bits![0],
                         &mut diff,
                     );
@@ -423,20 +458,29 @@ pub fn collect(
                     diff.assert_empty();
                 }
             } else {
-                let diff = collector.state.get_diff(tile, bel, "PULLUP", "DISABLE");
-                let item = xlat_bit(!diff);
-                collector.tiledb.insert(tile, bel, "PULLUP", item);
+                let diff = collector.state.get_diff_raw(&DiffKey::BelAttrSpecial(
+                    tcid,
+                    bel,
+                    defs::bcls::IOB::PULLUP,
+                    specials::DISABLE,
+                ));
+                let bit = xlat_bit_raw(!diff);
+                collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::PULLUP, bit);
                 if edev.chip.kind.has_multi_pullup() {
-                    let diff = collector
-                        .state
-                        .get_diff(tile, bel, "WEAK_PULLUP", "DISABLE");
-                    let item = xlat_bit(!diff);
-                    collector.tiledb.insert(tile, bel, "WEAK_PULLUP", item);
-                    for val in ["3P3K", "6P8K", "10K"] {
-                        let item = collector.extract_bit(tile, bel, "PULLUP", val);
-                        collector
-                            .tiledb
-                            .insert(tile, bel, format!("PULLUP_{val}"), item);
+                    let diff = collector.state.get_diff_raw(&DiffKey::BelAttrSpecial(
+                        tcid,
+                        bel,
+                        defs::bcls::IOB::WEAK_PULLUP,
+                        specials::DISABLE,
+                    ));
+                    let bit = xlat_bit_raw(!diff);
+                    collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::WEAK_PULLUP, bit);
+                    for attr in [
+                        defs::bcls::IOB::PULLUP_3P3K,
+                        defs::bcls::IOB::PULLUP_6P8K,
+                        defs::bcls::IOB::PULLUP_10K,
+                    ] {
+                        collector.collect_bel_attr(tcid, bel, attr);
                     }
                 }
             }
@@ -452,13 +496,22 @@ pub fn collect(
         };
         if has_lvds {
             if !edev.chip.kind.is_ice65() {
-                collector.collect_bit_wide(tile, "IOB0", "LVDS_INPUT", "");
+                collector.collect_bel_attr(
+                    tcid,
+                    defs::bslots::IOB_PAIR,
+                    defs::bcls::IOB_PAIR::LVDS_INPUT,
+                );
             } else {
                 for std in ["SB_LVDS_INPUT", "SB_SUBLVDS_INPUT"] {
-                    let mut diff = collector.state.get_diff(tile, "IOB0", "IOSTD", std);
-                    for bel in ["IOB0", "IOB1"] {
-                        let misc = extract_bitvec_val_part(
-                            collector.tiledb.item(tile, bel, "IOSTD_MISC"),
+                    let mut diff = collector.state.get_diff_raw(&DiffKey::BelSpecialString(
+                        tcid,
+                        defs::bslots::IOB[0],
+                        specials::IOSTD,
+                        std.to_string(),
+                    ));
+                    for bel in defs::bslots::IOB {
+                        let misc = extract_bitvec_val_part_raw(
+                            collector.bel_attr_bitvec(tcid, bel, defs::bcls::IOB::IOSTD_MISC),
                             &bits![0],
                             &mut diff,
                         );
@@ -466,8 +519,13 @@ pub fn collect(
                             .tiledb
                             .insert_misc_data(format!("IOSTD:IOSTD_MISC:{std}"), misc);
                     }
-                    let item = xlat_bit(diff);
-                    collector.tiledb.insert(tile, "IOB0", "LVDS_INPUT", item);
+                    let bit = xlat_bit_raw(diff);
+                    collector.insert_bel_attr_bool(
+                        tcid,
+                        defs::bslots::IOB_PAIR,
+                        defs::bcls::IOB_PAIR::LVDS_INPUT,
+                        bit,
+                    );
                 }
             }
         }
@@ -501,245 +559,256 @@ pub fn collect(
             has_latch_global_out = true;
         }
         if has_latch_global_out {
-            collector.collect_bit(tile, "IOB", "LATCH_GLOBAL_OUT", "");
+            collector.collect_bel_attr(
+                tcid,
+                defs::bslots::IOB_PAIR,
+                defs::bcls::IOB_PAIR::LATCH_GLOBAL_OUT,
+            );
         }
         if edev.chip.kind == ChipKind::Ice40R04 {
-            collector.collect_bit(tile, "IOB", "HARDIP_FABRIC_IN", "");
-            collector.collect_bit(tile, "IOB", "HARDIP_DEDICATED_OUT", "");
+            for attr in [
+                defs::bcls::IOB_PAIR::HARDIP_FABRIC_IN,
+                defs::bcls::IOB_PAIR::HARDIP_DEDICATED_OUT,
+            ] {
+                collector.collect_bel_attr(tcid, defs::bslots::IOB_PAIR, attr);
+            }
+        }
+        if edev.chip.kind.is_ultra() {
+            let i2c_edge = if edev.chip.kind == ChipKind::Ice40T01 {
+                Dir::S
+            } else {
+                Dir::N
+            };
+            if edge == i2c_edge {
+                for attr in [
+                    defs::bcls::IOB_PAIR::SDA_INPUT_DELAYED,
+                    defs::bcls::IOB_PAIR::SDA_OUTPUT_DELAYED,
+                ] {
+                    collector.collect_bel_attr(tcid, defs::bslots::IOB_PAIR, attr);
+                }
+            }
         }
     }
     for side in [DirV::S, DirV::N] {
         let key = SpecialTileKey::Pll(side);
         if edev.chip.special_tiles.contains_key(&key) {
             let tcid = key.tile_class(edev.chip.kind);
-            let tile = edev.db.tile_classes.key(tcid);
-            let bel = "PLL";
             if edev.chip.kind.is_ice65() {
-                for (attr, vals, default) in [
-                    (
-                        "MODE",
-                        ["SB_PLL_CORE", "SB_PLL_PAD", "SB_PLL_2_PAD"].as_slice(),
-                        Some("NONE"),
-                    ),
-                    (
-                        "FEEDBACK_PATH",
-                        ["SIMPLE", "DELAY", "PHASE_AND_DELAY", "EXTERNAL"].as_slice(),
-                        None,
-                    ),
-                    (
-                        "DELAY_ADJUSTMENT_MODE",
-                        ["DYNAMIC", "FIXED"].as_slice(),
-                        None,
-                    ),
-                    (
-                        "PLLOUT_PHASE",
-                        ["NONE", "0deg", "90deg", "180deg", "270deg"].as_slice(),
-                        None,
-                    ),
-                ] {
-                    if let Some(default) = default {
-                        collector.collect_enum_default(tile, bel, attr, vals, default);
-                    } else {
-                        collector.collect_enum(tile, bel, attr, vals);
-                    }
-                }
+                let bslot = defs::bslots::PLL65;
+                collector.collect_bel_attr_default(
+                    tcid,
+                    bslot,
+                    defs::bcls::PLL65::MODE,
+                    defs::enums::PLL65_MODE::NONE,
+                );
                 for attr in [
-                    "FIXED_DELAY_ADJUSTMENT",
-                    "DIVR",
-                    "DIVF",
-                    "DIVQ",
-                    "FILTER_RANGE",
-                    "TEST_MODE",
-                    "LATCH_GLOBAL_OUT_A",
-                    "LATCH_GLOBAL_OUT_B",
+                    defs::bcls::PLL65::FIXED_DELAY_ADJUSTMENT,
+                    defs::bcls::PLL65::DIVR,
+                    defs::bcls::PLL65::DIVF,
+                    defs::bcls::PLL65::DIVQ,
+                    defs::bcls::PLL65::FILTER_RANGE,
+                    defs::bcls::PLL65::TEST_MODE,
+                    defs::bcls::PLL65::LATCH_GLOBAL_OUT_A,
+                    defs::bcls::PLL65::LATCH_GLOBAL_OUT_B,
+                    defs::bcls::PLL65::FEEDBACK_PATH,
+                    defs::bcls::PLL65::PLLOUT_PHASE,
                 ] {
-                    collector.collect_bitvec(tile, bel, attr, "");
+                    collector.collect_bel_attr(tcid, bslot, attr);
                 }
+                let attr = defs::bcls::PLL65::DELAY_ADJUSTMENT_MODE_DYNAMIC;
+                let mut diff = collector
+                    .state
+                    .get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, 0));
+                let fda = collector.bel_attr_bitvec(
+                    tcid,
+                    bslot,
+                    defs::bcls::PLL65::FIXED_DELAY_ADJUSTMENT,
+                );
+                let damd = Vec::from_iter(fda.iter().map(|&bit| PolTileBit {
+                    bit: TileBit {
+                        bit: RectBitId::from_idx(bit.bit.bit.to_idx() ^ 1),
+                        ..bit.bit
+                    },
+                    inv: bit.inv,
+                }));
+                diff.apply_bitvec_diff_raw(&damd, &bits![1; 4], &bits![0; 4]);
+                diff.assert_empty();
+                collector.insert_bel_attr_bitvec(tcid, bslot, attr, damd);
             } else {
-                for (attr, vals, default) in [
-                    (
-                        "MODE",
-                        [
-                            "SB_PLL40_CORE",
-                            "SB_PLL40_PAD",
-                            "SB_PLL40_2_PAD",
-                            "SB_PLL40_2F_CORE",
-                            "SB_PLL40_2F_PAD",
-                        ]
-                        .as_slice(),
-                        Some("NONE"),
-                    ),
-                    (
-                        "FEEDBACK_PATH",
-                        ["SIMPLE", "DELAY", "PHASE_AND_DELAY", "EXTERNAL"].as_slice(),
-                        None,
-                    ),
-                    (
-                        "DELAY_ADJUSTMENT_MODE_FEEDBACK",
-                        ["DYNAMIC", "FIXED"].as_slice(),
-                        None,
-                    ),
-                    (
-                        "DELAY_ADJUSTMENT_MODE_RELATIVE",
-                        ["DYNAMIC", "FIXED"].as_slice(),
-                        None,
-                    ),
-                    (
-                        "PLLOUT_SELECT_PORTA",
-                        ["GENCLK_HALF", "SHIFTREG_0deg", "SHIFTREG_90deg"].as_slice(),
-                        Some("GENCLK"),
-                    ),
-                    (
-                        "PLLOUT_SELECT_PORTB",
-                        ["GENCLK_HALF", "SHIFTREG_0deg", "SHIFTREG_90deg"].as_slice(),
-                        Some("GENCLK"),
-                    ),
+                let bslot = defs::bslots::PLL40;
+                collector.collect_bel_attr_default(
+                    tcid,
+                    bslot,
+                    defs::bcls::PLL40::MODE,
+                    defs::enums::PLL40_MODE::NONE,
+                );
+                for attr in [
+                    defs::bcls::PLL40::PLLOUT_SELECT_PORTA,
+                    defs::bcls::PLL40::PLLOUT_SELECT_PORTB,
                 ] {
-                    if let Some(default) = default {
-                        collector.collect_enum_default(tile, bel, attr, vals, default);
-                    } else {
-                        collector.collect_enum(tile, bel, attr, vals);
-                    }
+                    collector.collect_bel_attr_default(
+                        tcid,
+                        bslot,
+                        attr,
+                        defs::enums::PLL40_PLLOUT_SELECT::GENCLK,
+                    );
                 }
                 for attr in [
-                    "SHIFTREG_DIV_MODE",
-                    "FDA_FEEDBACK",
-                    "FDA_RELATIVE",
-                    "DIVR",
-                    "DIVF",
-                    "DIVQ",
-                    "FILTER_RANGE",
-                    "TEST_MODE",
-                    "LATCH_GLOBAL_OUT_A",
-                    "LATCH_GLOBAL_OUT_B",
+                    defs::bcls::PLL40::SHIFTREG_DIV_MODE,
+                    defs::bcls::PLL40::FDA_FEEDBACK,
+                    defs::bcls::PLL40::FDA_RELATIVE,
+                    defs::bcls::PLL40::DIVR,
+                    defs::bcls::PLL40::DIVF,
+                    defs::bcls::PLL40::DIVQ,
+                    defs::bcls::PLL40::FILTER_RANGE,
+                    defs::bcls::PLL40::TEST_MODE,
+                    defs::bcls::PLL40::FEEDBACK_PATH,
+                    defs::bcls::PLL40::DELAY_ADJUSTMENT_MODE_FEEDBACK,
+                    defs::bcls::PLL40::DELAY_ADJUSTMENT_MODE_RELATIVE,
                 ] {
-                    if attr.starts_with("LATCH_GLOBAL_OUT") && edev.chip.kind == ChipKind::Ice40P01
-                    {
-                        continue;
+                    collector.collect_bel_attr(tcid, bslot, attr);
+                }
+                if edev.chip.kind != ChipKind::Ice40P01 {
+                    for attr in [
+                        defs::bcls::PLL40::LATCH_GLOBAL_OUT_A,
+                        defs::bcls::PLL40::LATCH_GLOBAL_OUT_B,
+                    ] {
+                        collector.collect_bel_attr(tcid, bslot, attr);
                     }
-                    collector.collect_bitvec(tile, bel, attr, "");
                 }
             }
         }
         let key = SpecialTileKey::PllStub(side);
         if edev.chip.special_tiles.contains_key(&key) {
             let tcid = key.tile_class(edev.chip.kind);
-            let tile = edev.db.tile_classes.key(tcid);
-            let bel = "PLL";
-            for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
-                collector.collect_bitvec(tile, bel, attr, "");
+            let bslot = defs::bslots::PLL40;
+            for attr in [
+                defs::bcls::PLL40::LATCH_GLOBAL_OUT_A,
+                defs::bcls::PLL40::LATCH_GLOBAL_OUT_B,
+            ] {
+                collector.collect_bel_attr(tcid, bslot, attr);
             }
         }
     }
 
     if edev.chip.kind.is_ultra() {
-        let tcid = SpecialTileKey::Trim.tile_class(edev.chip.kind);
-        let tile = edev.db.tile_classes.key(tcid);
-        let bel = "LFOSC";
-        collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
-        let bel = "HFOSC";
-        collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
-        collector.collect_bitvec(tile, bel, "CLKHF_DIV", "");
-        let bel = "LED_DRV_CUR";
-        collector.collect_bit(tile, bel, "TRIM_FABRIC", "");
+        let tcid = SpecialTileKey::Misc.tile_class(edev.chip.kind);
+        collector.collect_bel_attr(tcid, defs::bslots::LFOSC, defs::bcls::LFOSC::TRIM_FABRIC);
+        collector.collect_bel_attr(tcid, defs::bslots::HFOSC, defs::bcls::HFOSC::TRIM_FABRIC);
+        collector.collect_bel_attr(tcid, defs::bslots::HFOSC, defs::bcls::HFOSC::CLKHF_DIV);
+        collector.collect_bel_attr(
+            tcid,
+            defs::bslots::LED_DRV_CUR,
+            defs::bcls::LED_DRV_CUR::TRIM_FABRIC,
+        );
         if edev.chip.kind == ChipKind::Ice40T04 {
-            let tile = "LED_DRV_CUR_T04";
-            let bel = "LED_DRV_CUR";
-            collector.collect_bit(tile, bel, "ENABLE", "");
-            let tcid = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
-            let tile = edev.db.tile_classes.key(tcid);
-            let bel = "RGB_DRV";
-            collector.collect_bit(tile, bel, "ENABLE", "");
-            for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
-                collector.collect_bitvec(tile, bel, attr, "");
+            collector.collect_bel_attr(
+                tcid,
+                defs::bslots::LED_DRV_CUR,
+                defs::bcls::LED_DRV_CUR::ENABLE,
+            );
+            for attr in [
+                defs::bcls::RGB_DRV::ENABLE,
+                defs::bcls::RGB_DRV::RGB0_CURRENT,
+                defs::bcls::RGB_DRV::RGB1_CURRENT,
+                defs::bcls::RGB_DRV::RGB2_CURRENT,
+            ] {
+                collector.collect_bel_attr(tcid, defs::bslots::RGB_DRV, attr);
             }
-            let tile = "IR_DRV";
-            let bel = "IR_DRV";
-            let mut diffs = collector.state.get_diffs(tile, bel, "IR_CURRENT", "");
+            let mut diffs = Vec::from_iter((0..10).map(|i| {
+                collector.state.get_diff_raw(&DiffKey::BelAttrBit(
+                    tcid,
+                    defs::bslots::IR_DRV,
+                    defs::bcls::IR_DRV::IR_CURRENT,
+                    i,
+                ))
+            }));
             let en = diffs[0].split_bits_by(|bit| bit.frame.to_idx() == 5);
-            collector
-                .tiledb
-                .insert(tile, bel, "IR_CURRENT", xlat_bitvec(diffs));
-            collector.tiledb.insert(tile, bel, "ENABLE", xlat_bit(en));
+            collector.insert_bel_attr_bitvec(
+                tcid,
+                defs::bslots::IR_DRV,
+                defs::bcls::IR_DRV::IR_CURRENT,
+                xlat_bitvec_raw(diffs),
+            );
+            collector.insert_bel_attr_bool(
+                tcid,
+                defs::bslots::IR_DRV,
+                defs::bcls::IR_DRV::ENABLE,
+                xlat_bit_raw(en),
+            );
         } else {
-            let tcid = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
-            let tile = edev.db.tile_classes.key(tcid);
-            let bel = "RGB_DRV";
-            collector.collect_bit(tile, bel, "ENABLE", "");
-            collector.collect_bit(tile, bel, "CURRENT_MODE", "");
-            for attr in ["RGB0_CURRENT", "RGB1_CURRENT", "RGB2_CURRENT"] {
-                collector.collect_bitvec(tile, bel, attr, "");
+            for attr in [
+                defs::bcls::RGB_DRV::ENABLE,
+                defs::bcls::RGB_DRV::RGB0_CURRENT,
+                defs::bcls::RGB_DRV::RGB1_CURRENT,
+                defs::bcls::RGB_DRV::RGB2_CURRENT,
+                defs::bcls::RGB_DRV::CURRENT_MODE,
+            ] {
+                if attr == defs::bcls::RGB_DRV::ENABLE && edev.chip.kind == ChipKind::Ice40T01 {
+                    let mut diff = collector.state.get_diff_raw(&DiffKey::BelAttrBit(
+                        tcid,
+                        defs::bslots::RGB_DRV,
+                        attr,
+                        0,
+                    ));
+                    let led_drv_cur_en = diff.split_bits_by(|bit| bit.rect.to_idx() >= 3);
+                    collector.insert_bel_attr_bool(
+                        tcid,
+                        defs::bslots::RGB_DRV,
+                        attr,
+                        xlat_bit_raw(diff),
+                    );
+                    collector.insert_bel_attr_bool(
+                        tcid,
+                        defs::bslots::LED_DRV_CUR,
+                        defs::bcls::LED_DRV_CUR::RGB_ENABLE,
+                        xlat_bit_raw(led_drv_cur_en),
+                    );
+                } else {
+                    collector.collect_bel_attr(tcid, defs::bslots::RGB_DRV, attr);
+                }
             }
             if edev.chip.kind == ChipKind::Ice40T01 {
-                let tile = "IR500_DRV";
-                let bel = "RGB_DRV";
-                collector.collect_bit(tile, bel, "ENABLE", "");
-                let bel = "IR500_DRV";
-                collector.collect_bit(tile, bel, "ENABLE", "");
-                collector.collect_bit(tile, bel, "CURRENT_MODE", "");
-                let bel = "IR400_DRV";
-                collector.collect_bit(tile, bel, "ENABLE", "");
-                collector.collect_bitvec(tile, bel, "IR400_CURRENT", "");
-                let bel = "BARCODE_DRV";
-                collector.collect_bit(tile, bel, "ENABLE", "");
-                collector.collect_bitvec(tile, bel, "BARCODE_CURRENT", "");
+                for attr in [
+                    defs::bcls::IR500_DRV::BARCODE_ENABLE,
+                    defs::bcls::IR500_DRV::BARCODE_CURRENT,
+                    defs::bcls::IR500_DRV::IR400_ENABLE,
+                    defs::bcls::IR500_DRV::IR400_CURRENT,
+                    defs::bcls::IR500_DRV::IR500_ENABLE,
+                    defs::bcls::IR500_DRV::CURRENT_MODE,
+                ] {
+                    collector.collect_bel_attr(tcid, defs::bslots::IR500_DRV, attr);
+                }
             }
         }
     }
     if matches!(edev.chip.kind, ChipKind::Ice40T04 | ChipKind::Ice40T05) {
-        for tile in ["MAC16", "MAC16_TRIM"] {
-            if tile == "MAC16_TRIM" && edev.chip.kind != ChipKind::Ice40T05 {
+        for tcid in [defs::tcls::MAC16, defs::tcls::MAC16_TRIM] {
+            if tcid == defs::tcls::MAC16_TRIM && edev.chip.kind != ChipKind::Ice40T05 {
                 continue;
             }
-            let bel = "MAC16";
-            for attr in [
-                "A_REG",
-                "B_REG",
-                "C_REG",
-                "D_REG",
-                "TOP_8x8_MULT_REG",
-                "BOT_8x8_MULT_REG",
-                "PIPELINE_16x16_MULT_REG1",
-                "PIPELINE_16x16_MULT_REG2",
-                "TOPOUTPUT_SELECT",
-                "BOTOUTPUT_SELECT",
-                "TOPADDSUB_LOWERINPUT",
-                "BOTADDSUB_LOWERINPUT",
-                "TOPADDSUB_UPPERINPUT",
-                "BOTADDSUB_UPPERINPUT",
-                "TOPADDSUB_CARRYSELECT",
-                "BOTADDSUB_CARRYSELECT",
-                "MODE_8x8",
-                "A_SIGNED",
-                "B_SIGNED",
-            ] {
-                collector.collect_bitvec(tile, bel, attr, "");
+            for attr in edev.db.bel_classes[defs::bcls::MAC16].attributes.ids() {
+                collector.collect_bel_attr(tcid, defs::bslots::MAC16, attr);
             }
         }
     }
     if edev.chip.kind == ChipKind::Ice40T05 {
-        let tile = "SPRAM";
-        for bel in ["SPRAM0", "SPRAM1"] {
-            collector.collect_bit(tile, bel, "ENABLE", "");
+        for bslot in defs::bslots::SPRAM {
+            collector.collect_bel_attr(defs::tcls::SPRAM, bslot, defs::bcls::SPRAM::ENABLE);
         }
-        let tile = "I3C";
-        for bel in ["FILTER0", "FILTER1"] {
-            collector.collect_bit_wide(tile, bel, "ENABLE", "");
-        }
-    }
-
-    {
-        let tcid = edev.chip.kind.tile_class_gb_root();
-        let tile = edev.db.tile_classes.key(tcid);
-        let bel = "GB_ROOT";
-        for i in 0..8 {
-            collector.collect_enum_default(
-                tile,
-                bel,
-                &format!("MUX.GLOBAL.{i}"),
-                &["IO"],
-                "FABRIC",
+        for bslot in defs::bslots::FILTER {
+            let tcid = defs::tcls::MISC_T05;
+            let aid = defs::bcls::FILTER::ENABLE;
+            let diff = collector
+                .state
+                .get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, 0));
+            let mut bits = Vec::from_iter(
+                diff.bits
+                    .into_iter()
+                    .map(|(bit, val)| PolTileBit { bit, inv: !val }),
             );
+            bits.sort_by_key(|bit| bit.bit.frame.to_idx() ^ 1);
+            collector.insert_bel_attr_bitvec(tcid, bslot, aid, bits);
         }
     }
 
@@ -794,9 +863,11 @@ pub fn collect(
         );
     }
 
+    let data = collector.data;
+
     for (key, data) in &state.features {
         println!("uncollected: {key:?}: {diffs:?}", diffs = data.diffs);
     }
 
-    tiledb
+    (tiledb, data)
 }

@@ -705,3 +705,13 @@ impl<I: EntityId, const N: usize> core::ops::Deref for EntityStaticRange<I, N> {
         &self.data
     }
 }
+
+impl<I: EntityId, const N: usize> IntoIterator for EntityStaticRange<I, N> {
+    type Item = I;
+
+    type IntoIter = core::array::IntoIter<I, N>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
+    }
+}

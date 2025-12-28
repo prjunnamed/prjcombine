@@ -80,10 +80,7 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: 
     let mut ctx = CollectorCtx {
         device: part,
         edev: &edev,
-        collector: Collector {
-            state: &mut state,
-            tiledb,
-        },
+        collector: Collector::new(&mut state, tiledb, edev.db),
     };
     match edev.chip.kind {
         ChipKind::Xc2000 => xc2000::collect_fuzzers(&mut ctx),

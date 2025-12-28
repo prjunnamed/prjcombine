@@ -8,13 +8,13 @@ pub struct CollectorCtx<'a, 'b>
 where
     'b: 'a,
 {
-    pub collector: Collector<'b>,
+    pub collector: Collector<'b, 'a>,
     pub device: &'a Device,
     pub edev: &'a ExpandedDevice<'a>,
 }
 
-impl<'b> Deref for CollectorCtx<'_, 'b> {
-    type Target = Collector<'b>;
+impl<'a, 'b> Deref for CollectorCtx<'a, 'b> {
+    type Target = Collector<'b, 'a>;
 
     fn deref(&self) -> &Self::Target {
         &self.collector
