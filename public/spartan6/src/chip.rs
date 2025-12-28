@@ -1,5 +1,5 @@
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
+use itertools::Itertools;
 use prjcombine_entity::{
     EntityId, EntityRange, EntityVec,
     id::{EntityIdU8, EntityTag, EntityTagArith},
@@ -163,6 +163,12 @@ pub enum Gts {
 pub struct McbIo {
     pub row: RowId,
     pub iob: TileIobId,
+}
+
+impl std::fmt::Display for McbIo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{row}.{iob}", row = self.row, iob = self.iob)
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -507,189 +513,120 @@ impl Chip {
     }
 }
 
-impl From<&McbIo> for JsonValue {
-    fn from(io: &McbIo) -> Self {
-        jzon::object! {
-            row: io.row.to_idx(),
-            iob: io.iob.to_idx(),
-        }
-    }
-}
-
-impl From<&Mcb> for JsonValue {
-    fn from(mcb: &Mcb) -> Self {
-        jzon::object! {
-            row_mcb: mcb.row_mcb.to_idx(),
-            row_mui: Vec::from_iter(mcb.row_mui.iter().map(|row| row.to_idx())),
-            iop_dq: Vec::from_iter(mcb.iop_dq.iter().map(|row| row.to_idx())),
-            iop_dqs: Vec::from_iter(mcb.iop_dqs.iter().map(|row| row.to_idx())),
-            io_dm: Vec::from_iter(mcb.io_dm.iter()),
-            iop_clk: mcb.iop_clk.to_idx(),
-            io_addr: Vec::from_iter(mcb.io_addr.iter()),
-            io_ba: Vec::from_iter(mcb.io_ba.iter()),
-            io_ras: &mcb.io_ras,
-            io_cas: &mcb.io_cas,
-            io_we: &mcb.io_we,
-            io_odt: &mcb.io_odt,
-            io_cke: &mcb.io_cke,
-            io_reset: &mcb.io_reset,
-        }
-    }
-}
-
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> Self {
-        jzon::object! {
-            columns: Vec::from_iter(chip.columns.values().map(|column| {
-                jzon::object! {
-                    kind: column.kind.to_string(),
-                    bio: column.bio.to_string(),
-                    tio: column.tio.to_string(),
-                }
-            })),
-            col_clk: chip.col_clk.to_idx(),
-            cols_clk_fold: chip.cols_clk_fold.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
-            cols_reg_buf: jzon::array![chip.cols_reg_buf.0.to_idx(), chip.cols_reg_buf.1.to_idx()],
-            rows: Vec::from_iter(chip.rows.values().map(|row| {
-                jzon::object! {
-                    lio: row.lio,
-                    rio: row.rio,
-                }
-            })),
-            rows_midbuf: jzon::array![chip.rows_midbuf.0.to_idx(), chip.rows_midbuf.1.to_idx()],
-            rows_hclkbuf: jzon::array![chip.rows_hclkbuf.0.to_idx(), chip.rows_hclkbuf.1.to_idx()],
-            rows_pci_ce_split: jzon::array![chip.rows_pci_ce_split.0.to_idx(), chip.rows_pci_ce_split.1.to_idx()],
-            rows_bank_split: chip.rows_bank_split.map(|(row_l, row_r)| jzon::array![row_l.to_idx(), row_r.to_idx()]),
-            row_mcb_split: chip.row_mcb_split.map(|row| row.to_idx()),
-            gts: match chip.gts {
-                Gts::None => JsonValue::Null,
-                Gts::Single(col_l) => jzon::object! {
-                    num: 1,
-                    col_l: col_l.to_idx(),
-                },
-                Gts::Double(col_l, col_r) => jzon::object! {
-                    num: 2,
-                    col_l: col_l.to_idx(),
-                    col_r: col_r.to_idx(),
-                },
-                Gts::Quad(col_l, col_r) => jzon::object! {
-                    num: 4,
-                    col_l: col_l.to_idx(),
-                    col_r: col_r.to_idx(),
-                },
-            },
-            mcbs: Vec::from_iter(chip.mcbs.iter()),
-            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
-                (k.to_string(), io.to_string())
-            })),
-            has_encrypt: chip.has_encrypt,
-        }
-    }
-}
-
-impl std::fmt::Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: Spartan6")?;
-        writeln!(f, "\tCOLS:")?;
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tcolumns {{")?;
         for (col, cd) in &self.columns {
-            write!(f, "\t\t{col}: ")?;
+            write!(o, "\t\t")?;
             match cd.kind {
-                ColumnKind::Io => write!(f, "IO")?,
-                ColumnKind::CleXL => write!(f, "CLEXL")?,
-                ColumnKind::CleXM => write!(f, "CLEXM")?,
-                ColumnKind::CleClk => write!(f, "CLEXL+CLK")?,
-                ColumnKind::Bram => write!(f, "BRAM")?,
-                ColumnKind::Dsp => write!(f, "DSP")?,
-                ColumnKind::DspPlus => write!(f, "DSP*")?,
+                ColumnKind::Io => write!(o, "io")?,
+                ColumnKind::CleXL => write!(o, "clexl")?,
+                ColumnKind::CleXM => write!(o, "clexm")?,
+                ColumnKind::CleClk => write!(o, "clexl_clk")?,
+                ColumnKind::Bram => write!(o, "bram")?,
+                ColumnKind::Dsp => write!(o, "dsp")?,
+                ColumnKind::DspPlus => write!(o, "dsp_gt")?,
             }
             match cd.bio {
                 ColumnIoKind::None => (),
-                ColumnIoKind::Inner => write!(f, " BIO: I-")?,
-                ColumnIoKind::Outer => write!(f, " BIO: -O")?,
-                ColumnIoKind::Both => write!(f, " BIO: IO")?,
+                ColumnIoKind::Inner => write!(o, " + bio_inner")?,
+                ColumnIoKind::Outer => write!(o, " + bio_outer")?,
+                ColumnIoKind::Both => write!(o, " + bio")?,
             }
             match cd.tio {
                 ColumnIoKind::None => (),
-                ColumnIoKind::Inner => write!(f, " TIO: I-")?,
-                ColumnIoKind::Outer => write!(f, " TIO: -O")?,
-                ColumnIoKind::Both => write!(f, " TIO: IO")?,
+                ColumnIoKind::Inner => write!(o, " + tio_inner")?,
+                ColumnIoKind::Outer => write!(o, " + tio_outer")?,
+                ColumnIoKind::Both => write!(o, " + tio")?,
             }
+            write!(o, ", // {col}")?;
             if let Some((cl, cr)) = self.cols_clk_fold
                 && (col == cl || col == cr)
             {
-                write!(f, " FOLD")?;
+                write!(o, " FOLD")?;
             }
             if col == self.cols_reg_buf.0 || col == self.cols_reg_buf.1 {
-                write!(f, " REGBUF")?;
+                write!(o, " REGBUF")?;
             }
             if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = self.gts
                 && col == cl
             {
-                write!(f, " LGT")?;
+                write!(o, " LGT")?;
             }
             if let Gts::Double(_, cr) | Gts::Quad(_, cr) = self.gts
                 && col == cr
             {
-                write!(f, " RGT")?;
+                write!(o, " RGT")?;
             }
-            writeln!(f,)?;
+            writeln!(o)?;
         }
-        writeln!(f, "\tROWS:")?;
+        writeln!(o, "\t}}")?;
+        if let Some((cl, cr)) = self.cols_clk_fold {
+            writeln!(o, "\tcols_clk_fold {cl}, {cr};")?;
+        }
+        writeln!(
+            o,
+            "\tcols_reg_buf {cl}, {cr};",
+            cl = self.cols_reg_buf.0,
+            cr = self.cols_reg_buf.1
+        )?;
+        writeln!(o, "\trows {{")?;
         for (row, rd) in &self.rows {
             if row.to_idx() != 0 && row.to_idx().is_multiple_of(16) {
-                writeln!(f, "\t\t--- clock break")?;
+                writeln!(o, "\t\t// clock break")?;
             }
             if row.to_idx() % 16 == 8 {
-                writeln!(f, "\t\t--- clock row")?;
+                writeln!(o, "\t\t// clock row")?;
             }
             if row == self.row_clk() {
-                writeln!(f, "\t\t--- spine row")?;
+                writeln!(o, "\t\t// spine row")?;
             }
             if let Some((rl, rr)) = self.rows_bank_split {
                 if row == rl {
-                    writeln!(f, "\t\t--- left bank split")?;
+                    writeln!(o, "\t\t// left bank split")?;
                 }
                 if row == rr {
-                    writeln!(f, "\t\t--- right bank split")?;
+                    writeln!(o, "\t\t// right bank split")?;
                 }
             }
             if Some(row) == self.row_mcb_split {
-                writeln!(f, "\t\t--- MCB split")?;
+                writeln!(o, "\t\t// MCB split")?;
             }
-            write!(f, "\t\t{row}: ")?;
-            if rd.lio {
-                write!(f, " LIO")?;
+            write!(o, "\t\t")?;
+            match (rd.lio, rd.rio) {
+                (true, true) => write!(o, "lio + rio")?,
+                (true, false) => write!(o, "lio")?,
+                (false, true) => write!(o, "rio")?,
+                (false, false) => write!(o, "null")?,
             }
-            if rd.rio {
-                write!(f, " RIO")?;
-            }
+            write!(o, ", // {row}")?;
             if row == self.rows_midbuf.0 || row == self.rows_midbuf.1 {
-                write!(f, " MIDBUF")?;
+                write!(o, " MIDBUF")?;
             }
             if row == self.rows_hclkbuf.0 || row == self.rows_hclkbuf.1 {
-                write!(f, " HCLKBUF")?;
+                write!(o, " HCLKBUF")?;
             }
             for (i, mcb) in self.mcbs.iter().enumerate() {
                 if row == mcb.row_mcb {
-                    write!(f, " MCB{i}.MCB")?;
+                    write!(o, " MCB{i}.MCB")?;
                 }
                 for (j, &r) in mcb.row_mui.iter().enumerate() {
                     if row == r {
-                        write!(f, " MCB{i}.MUI{j}")?;
+                        write!(o, " MCB{i}.MUI{j}")?;
                     }
                 }
                 for (j, &r) in mcb.iop_dq.iter().enumerate() {
                     if row == r {
-                        write!(f, " MCB{i}.DQ({jj0},{jj1})", jj0 = j * 2, jj1 = j * 2 + 1)?;
+                        write!(o, " MCB{i}.DQ({jj0},{jj1})", jj0 = j * 2, jj1 = j * 2 + 1)?;
                     }
                 }
                 for (j, &r) in mcb.iop_dqs.iter().enumerate() {
                     if row == r {
-                        write!(f, " MCB{i}.DQS{j}")?;
+                        write!(o, " MCB{i}.DQS{j}")?;
                     }
                 }
                 if row == mcb.iop_clk {
-                    write!(f, " MCB{i}.CLK")?;
+                    write!(o, " MCB{i}.CLK")?;
                 }
                 let mut pins: [Option<&'static str>; 2] = [None, None];
                 for (pin, io) in [
@@ -726,27 +663,95 @@ impl std::fmt::Display for Chip {
                 }
                 if pins.iter().any(|x| x.is_some()) {
                     write!(
-                        f,
+                        o,
                         " MCB{i}.({p0},{p1})",
                         p0 = pins[0].unwrap(),
                         p1 = pins[1].unwrap()
                     )?;
                 }
             }
-            writeln!(f)?;
+            writeln!(o)?;
         }
+        writeln!(o, "\t}}")?;
+        writeln!(
+            o,
+            "\trows_midbuf {rb}, {rt};",
+            rb = self.rows_midbuf.0,
+            rt = self.rows_midbuf.1
+        )?;
+        writeln!(
+            o,
+            "\trows_hclkbuf {rb}, {rt};",
+            rb = self.rows_hclkbuf.0,
+            rt = self.rows_hclkbuf.1
+        )?;
+        writeln!(
+            o,
+            "\trows_pci_ce_split {rb}, {rt};",
+            rb = self.rows_pci_ce_split.0,
+            rt = self.rows_pci_ce_split.1
+        )?;
+        if let Some((rl, rr)) = self.rows_bank_split {
+            writeln!(o, "\trows_bank_split {rl}, {rr};")?;
+        }
+        if let Some(row) = self.row_mcb_split {
+            writeln!(o, "\trow_mcb_split {row};")?;
+        }
+
         match self.gts {
             Gts::None => (),
-            Gts::Single(..) => writeln!(f, "\tGTS: SINGLE")?,
-            Gts::Double(..) => writeln!(f, "\tGTS: DOUBLE")?,
-            Gts::Quad(..) => writeln!(f, "\tGTS: QUAD")?,
+            Gts::Single(cl) => writeln!(o, "\tgts single {cl};")?,
+            Gts::Double(cl, cr) => writeln!(o, "\tgts double {cl}, {cr};")?,
+            Gts::Quad(cl, cr) => writeln!(o, "\tgts quad {cl}, {cr};")?,
         }
-        writeln!(f, "\tCFG PINS:")?;
+
+        for mcb in &self.mcbs {
+            writeln!(o, "\tmcb {} {{", mcb.row_mcb)?;
+            writeln!(
+                o,
+                "\t\tmui {};",
+                mcb.row_mui.iter().map(|x| x.to_string()).join(", ")
+            )?;
+            writeln!(
+                o,
+                "\t\tiop_dq {};",
+                mcb.iop_dq.iter().map(|x| x.to_string()).join(", ")
+            )?;
+            writeln!(
+                o,
+                "\t\tiop_dqs {};",
+                mcb.iop_dqs.iter().map(|x| x.to_string()).join(", ")
+            )?;
+            writeln!(
+                o,
+                "\t\tio_dm {};",
+                mcb.io_dm.iter().map(|x| x.to_string()).join(", ")
+            )?;
+            writeln!(o, "\t\tiop_clk {};", mcb.iop_clk,)?;
+            writeln!(
+                o,
+                "\t\tio_addr {};",
+                mcb.io_addr.iter().map(|x| x.to_string()).join(", ")
+            )?;
+            writeln!(
+                o,
+                "\t\tio_ba {};",
+                mcb.io_ba.iter().map(|x| x.to_string()).join(", ")
+            )?;
+            writeln!(o, "\t\tio_ras {};", mcb.io_ras)?;
+            writeln!(o, "\t\tio_cas {};", mcb.io_cas)?;
+            writeln!(o, "\t\tio_we {};", mcb.io_we)?;
+            writeln!(o, "\t\tio_odt {};", mcb.io_odt)?;
+            writeln!(o, "\t\tio_cke {};", mcb.io_cke)?;
+            writeln!(o, "\t\tio_reset {};", mcb.io_reset)?;
+            writeln!(o, "\t}}")?;
+        }
+
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k:?}: {v}")?;
+            writeln!(o, "\tcfg_io {k} = {v};")?;
         }
         if self.has_encrypt {
-            writeln!(f, "\tHAS ENCRYPT")?;
+            writeln!(o, "\thas_encrypt;")?;
         }
         Ok(())
     }

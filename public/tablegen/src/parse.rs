@@ -778,10 +778,6 @@ impl Item for ast::ConnectorClassItem {
                 tokenizer.finish()?;
                 ast::ConnectorClassItem::Blackhole(dst)
             }
-
-            // "connector_class" => {
-            //     ast::ConnectorSlotItem::ConnectorClass(parse_connector_class(tokenizer, block)?)
-            // }
             _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
         })
     }
@@ -825,9 +821,9 @@ pub fn error_at<T>(span: Span, msg: &str) -> Result<T> {
     group.set_span(span);
     Err(TokenStream::from_iter([
         TokenTree::Ident(Ident::new("compile_error", span)),
-        TokenTree::Punct(Punct::new('!', Spacing::Alone).into()),
+        TokenTree::Punct(Punct::new('!', Spacing::Alone)),
         TokenTree::Group(group),
-        TokenTree::Punct(Punct::new(';', Spacing::Alone).into()),
+        TokenTree::Punct(Punct::new(';', Spacing::Alone)),
     ]))
 }
 

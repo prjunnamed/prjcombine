@@ -7,7 +7,6 @@ use std::{
 
 use clap::Parser;
 use enum_map::Enum;
-use jzon::JsonValue;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_re_xilinx_cpld::{
     bits::{IBufOut, McOut, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
@@ -21,6 +20,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{BitRectId, RectBitId, RectFrameId, Tile, TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId},
+    db::DumpFlags,
 };
 use prjcombine_xpla3 as xpla3;
 use xpla3::FbColumn;
@@ -100,7 +100,7 @@ struct Args {
     fdb: PathBuf,
     sdb: PathBuf,
     out: PathBuf,
-    json: PathBuf,
+    txt: PathBuf,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -973,14 +973,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         for dpart in &mut parts {
             if dpart.name == spart.dev_name {
                 assert_eq!(dpart.chip, chip);
-                dpart.packages.insert(spart.pkg_name.clone(), bond);
+                dpart.bonds.insert(spart.pkg_name.clone(), bond);
                 continue 'parts;
             }
         }
         parts.push(xpla3::Device {
             name: spart.dev_name.clone(),
             chip,
-            packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
+            bonds: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
             speeds: spart
                 .speeds
                 .iter()
@@ -1027,9 +1027,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             .collect(),
     };
     database.to_file(args.out)?;
-
-    let json = JsonValue::from(&database);
-    std::fs::write(args.json, json.to_string())?;
-
+    database
+        .dump(
+            &mut std::fs::File::create(&args.txt).unwrap(),
+            DumpFlags::all(),
+        )
+        .unwrap();
     Ok(())
 }

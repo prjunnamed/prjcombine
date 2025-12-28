@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
-        LegacyBel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, LegacyBel, PinDir, TileClass,
         TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -73,14 +73,14 @@ pub fn make_intdb() -> IntDb {
         ("SINGLE.H.T3", false),
         ("SINGLE.H.T4", true),
     ] {
-        let w0 = db.wires.insert(name.into(), WireKind::MultiOut).0;
+        let w0 = db.wires.insert(name.into(), WireKind::MultiRoot).0;
         let w1 = db
             .wires
             .insert(format!("{name}.E"), WireKind::MultiBranch(cslots::W))
             .0;
         main_terms[Dir::W].wires.insert(w1, ConnectorWire::Pass(w0));
         if stub {
-            db.wires.insert(format!("{name}.STUB"), WireKind::MultiOut);
+            db.wires.insert(format!("{name}.STUB"), WireKind::MultiRoot);
         }
     }
 
@@ -101,16 +101,16 @@ pub fn make_intdb() -> IntDb {
         ("SINGLE.V.R3", false),
         ("SINGLE.V.R4", true),
     ] {
-        let w0 = db.wires.insert(name.into(), WireKind::MultiOut).0;
+        let w0 = db.wires.insert(name.into(), WireKind::MultiRoot).0;
         let w1 = db
             .wires
             .insert(format!("{name}.S"), WireKind::MultiBranch(cslots::N))
             .0;
         main_terms[Dir::N].wires.insert(w1, ConnectorWire::Pass(w0));
         if stub {
-            db.wires.insert(format!("{name}.STUB"), WireKind::MultiOut);
+            db.wires.insert(format!("{name}.STUB"), WireKind::MultiRoot);
             db.wires
-                .insert(format!("{name}.S.STUB"), WireKind::MultiOut);
+                .insert(format!("{name}.S.STUB"), WireKind::MultiRoot);
         }
     }
 
@@ -232,7 +232,7 @@ pub fn make_intdb() -> IntDb {
         ("OUT.CLKIOB", &[][..]),
         ("OUT.OSC", &[][..]),
     ] {
-        let w = db.wires.insert(name.into(), WireKind::LogicOut).0;
+        let w = db.wires.insert(name.into(), WireKind::BelOut).0;
         for &dir in dirs {
             let wo = db
                 .wires

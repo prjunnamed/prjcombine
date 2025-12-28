@@ -4,12 +4,10 @@ edition.workspace = true
 version.workspace = true
 
 [dependencies]
-clap.workspace = true
 bitvec.workspace = true
 itertools.workspace = true
 bincode.workspace = true
 zstd.workspace = true
-jzon.workspace = true
 prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true

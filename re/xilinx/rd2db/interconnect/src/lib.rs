@@ -1065,7 +1065,7 @@ impl XTileExtractor<'_, '_, '_> {
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(wt) = self.get_wire_by_name(i, wti) {
                     let mut pass = rt.extract_muxes
-                        && !matches!(self.db[wt.wire], WireKind::LogicOut)
+                        && !matches!(self.db[wt.wire], WireKind::BelOut)
                         && !self.xtile.skip_muxes.contains(&wt.wire);
                     if self.xtile.optin_muxes.contains(&wt.wire) {
                         pass = true;
@@ -1183,7 +1183,7 @@ impl XTileExtractor<'_, '_, '_> {
         for &(wfi, wti) in tk.pips.keys() {
             let nwt = self.rd.lookup_wire_raw_force(crd, wti);
             if let Some(&(_, wt)) = self.names.get(&nwt) {
-                if !matches!(self.db[wt.wire], WireKind::LogicOut) {
+                if !matches!(self.db[wt.wire], WireKind::BelOut) {
                     continue;
                 }
                 self.tcls_naming
@@ -1207,7 +1207,7 @@ impl XTileExtractor<'_, '_, '_> {
                             name: self.rd.wires[wfi].clone(),
                         },
                     );
-                    if self.db[wf.wire] == WireKind::LogicOut
+                    if self.db[wf.wire] == WireKind::BelOut
                         || self.xtile.builder.test_mux_pass.contains(&wf.wire)
                     {
                         assert!(out_muxes.entry(wt).or_default().1.replace(wf).is_none());
@@ -1587,7 +1587,7 @@ impl<'a> IntBuilder<'a> {
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
     ) -> WireSlotId {
-        self.wire(name, WireKind::LogicOut, raw_names)
+        self.wire(name, WireKind::BelOut, raw_names)
     }
 
     pub fn test_mux_in(&mut self, name: impl Into<String>, wire: WireSlotId) -> WireSlotId {
@@ -1601,7 +1601,7 @@ impl<'a> IntBuilder<'a> {
         name: impl Into<String>,
         raw_names: &[impl AsRef<str>],
     ) -> WireSlotId {
-        self.wire(name, WireKind::MultiOut, raw_names)
+        self.wire(name, WireKind::MultiRoot, raw_names)
     }
 
     pub fn test_out(
@@ -2110,7 +2110,7 @@ impl<'a> IntBuilder<'a> {
             for &(wfi, wti) in tk.pips.keys() {
                 if let Some(&(_, wt)) = names.get(&wti) {
                     match self.db[wt.wire] {
-                        WireKind::MultiBranch(_) | WireKind::MultiOut | WireKind::MuxOut => (),
+                        WireKind::MultiBranch(_) | WireKind::MultiRoot | WireKind::MuxOut => (),
                         WireKind::Branch(_) => {
                             if !self.allow_mux_to_branch {
                                 continue;

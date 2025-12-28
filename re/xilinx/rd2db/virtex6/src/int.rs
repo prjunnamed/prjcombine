@@ -197,7 +197,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     // The long wires.
-    let mid = builder.wire("LH.8", WireKind::MultiOut, &["LH8"]);
+    let mid = builder.wire("LH.8", WireKind::MultiRoot, &["LH8"]);
     let mut prev = mid;
     for i in (0..8).rev() {
         prev = builder.multi_branch(prev, Dir::E, format!("LH.{i}"), &[format!("LH{i}")]);
@@ -206,7 +206,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 9..17 {
         prev = builder.multi_branch(prev, Dir::W, format!("LH.{i}"), &[format!("LH{i}")]);
     }
-    let mid = builder.wire("LV.8", WireKind::MultiOut, &["LV8"]);
+    let mid = builder.wire("LV.8", WireKind::MultiRoot, &["LV8"]);
     let mut prev = mid;
     let mut lv_bh_n = Vec::new();
     for i in (0..8).rev() {

@@ -1,7 +1,6 @@
 use std::{collections::BTreeMap, fmt::Display};
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
     dir::{Dir, DirH, DirHV, DirV},
@@ -150,11 +149,11 @@ pub enum RowKind {
 impl Display for RowKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            RowKind::Plc => write!(f, "PLC"),
-            RowKind::Fplc => write!(f, "FPLC"),
-            RowKind::Io => write!(f, "IO"),
-            RowKind::Ebr => write!(f, "EBR"),
-            RowKind::Dsp => write!(f, "DSP"),
+            RowKind::Plc => write!(f, "plc"),
+            RowKind::Fplc => write!(f, "fplc"),
+            RowKind::Io => write!(f, "io"),
+            RowKind::Ebr => write!(f, "ebr"),
+            RowKind::Dsp => write!(f, "dsp"),
         }
     }
 }
@@ -187,27 +186,27 @@ pub enum IoGroupKind {
 impl Display for IoGroupKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            IoGroupKind::None => write!(f, "NONE"),
-            IoGroupKind::Single => write!(f, "SINGLE"),
-            IoGroupKind::Double => write!(f, "DOUBLE"),
-            IoGroupKind::DoubleA => write!(f, "DOUBLE_A"),
-            IoGroupKind::DoubleB => write!(f, "DOUBLE_B"),
-            IoGroupKind::DoubleDummy => write!(f, "DOUBLE_DUMMY"),
-            IoGroupKind::DoubleDqs => write!(f, "DOUBLE_DQS"),
-            IoGroupKind::Quad => write!(f, "QUAD"),
-            IoGroupKind::QuadReverse => write!(f, "QUAD_REVERSE"),
-            IoGroupKind::QuadDqs => write!(f, "QUAD_DQS"),
-            IoGroupKind::QuadDqsDummy => write!(f, "QUAD_DQS_DUMMY"),
-            IoGroupKind::QuadEbrDqs => write!(f, "QUAD_EBR_DQS"),
-            IoGroupKind::EbrDqs => write!(f, "EBR_DQS"),
-            IoGroupKind::QuadI3c => write!(f, "QUAD_I3C"),
-            IoGroupKind::Hex => write!(f, "HEX"),
-            IoGroupKind::HexReverse => write!(f, "HEX_REVERSE"),
-            IoGroupKind::Octal => write!(f, "OCTAL"),
-            IoGroupKind::Dozen => write!(f, "DOZEN"),
-            IoGroupKind::Serdes => write!(f, "SERDES"),
-            IoGroupKind::Ebr => write!(f, "EBR"),
-            IoGroupKind::Mipi => write!(f, "MIPI"),
+            IoGroupKind::None => write!(f, "none"),
+            IoGroupKind::Single => write!(f, "single"),
+            IoGroupKind::Double => write!(f, "double"),
+            IoGroupKind::DoubleA => write!(f, "double_a"),
+            IoGroupKind::DoubleB => write!(f, "double_b"),
+            IoGroupKind::DoubleDummy => write!(f, "double_dummy"),
+            IoGroupKind::DoubleDqs => write!(f, "double_dqs"),
+            IoGroupKind::Quad => write!(f, "quad"),
+            IoGroupKind::QuadReverse => write!(f, "quad_reverse"),
+            IoGroupKind::QuadDqs => write!(f, "quad_dqs"),
+            IoGroupKind::QuadDqsDummy => write!(f, "quad_dqs_dummy"),
+            IoGroupKind::QuadEbrDqs => write!(f, "quad_ebr_dqs"),
+            IoGroupKind::EbrDqs => write!(f, "ebr_dqs"),
+            IoGroupKind::QuadI3c => write!(f, "quad_i3c"),
+            IoGroupKind::Hex => write!(f, "hex"),
+            IoGroupKind::HexReverse => write!(f, "hex_reverse"),
+            IoGroupKind::Octal => write!(f, "octal"),
+            IoGroupKind::Dozen => write!(f, "dozen"),
+            IoGroupKind::Serdes => write!(f, "serdes"),
+            IoGroupKind::Ebr => write!(f, "ebr"),
+            IoGroupKind::Mipi => write!(f, "mipi"),
         }
     }
 }
@@ -924,156 +923,129 @@ impl Chip {
     }
 }
 
-impl From<&Column> for JsonValue {
-    fn from(value: &Column) -> Self {
-        jzon::object! {
-            io_s: value.io_s.to_string(),
-            io_n: value.io_n.to_string(),
-            bank_s: value.bank_s,
-            bank_n: value.bank_n,
-            eclk_tap_s: value.eclk_tap_s,
-            eclk_tap_n: value.eclk_tap_n,
-            pclk_break: value.pclk_break,
-            pclk_drive: value.pclk_drive,
-            sdclk_break: value.sdclk_break,
-        }
-    }
-}
-
-impl From<&Row> for JsonValue {
-    fn from(value: &Row) -> Self {
-        jzon::object! {
-            kind: value.kind.to_string(),
-            io_w: value.io_w.to_string(),
-            io_e: value.io_e.to_string(),
-            bank_w: value.bank_w,
-            bank_e: value.bank_e,
-            sclk_break: value.sclk_break,
-            pclk_break: value.pclk_break,
-            pclk_drive: value.pclk_drive,
-        }
-    }
-}
-
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> Self {
-        jzon::object! {
-            kind: chip.kind.to_string(),
-            columns: Vec::from_iter(chip.columns.values()),
-            rows: Vec::from_iter(chip.rows.values()),
-            col_clk: chip.col_clk.to_idx(),
-            row_clk: chip.row_clk.to_idx(),
-            special_loc: jzon::object::Object::from_iter(chip.special_loc.iter().map(|(k, v)| (k.to_string(), v.to_string()))),
-            special_io: jzon::object::Object::from_iter(chip.special_io.iter().map(|(k, v)| (k.to_string(), v.to_string()))),
-            io_direct_plc: jzon::object::Object::from_iter(chip.io_direct_plc.iter().map(|(k, (cell, lut))| (k.to_string(), format!("{cell}_{lut}")))),
-            extra_frames_w: chip.extra_frames_w,
-            extra_frames_e: chip.extra_frames_e,
-            double_frames: chip.double_frames,
-        }
-    }
-}
-
-impl std::fmt::Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k}", k = self.kind)?;
-        writeln!(f, "\tCOLS:")?;
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
+        writeln!(o, "\tcolumns {{")?;
         for (col, cd) in &self.columns {
             if self.col_clk == col {
-                writeln!(f, "\t\t--- clock")?;
+                writeln!(o, "\t\t// clock")?;
             }
-            if cd.pclk_break {
-                writeln!(f, "\t\t--- pclk break")?;
-            }
-            if cd.sdclk_break {
-                writeln!(f, "\t\t--- sdclk break")?;
-            }
-            write!(f, "\t\t{col:>3}:", col = col.to_string())?;
-            if cd.io_s == IoGroupKind::None {
-                write!(f, "                  ")?;
-            } else {
+            write!(o, "\t\t")?;
+            let mut first = true;
+            if cd.io_s != IoGroupKind::None {
+                first = false;
                 write!(
-                    f,
-                    " IO_S:{bank_s}:{io_s:10}",
+                    o,
+                    "io_s[{bank_s}, {io_s}]",
                     bank_s = cd.bank_s.unwrap(),
-                    io_s = cd.io_s.to_string()
+                    io_s = cd.io_s
                 )?;
             }
-            if cd.io_n == IoGroupKind::None {
-                write!(f, "                  ")?;
-            } else {
+            if cd.io_n != IoGroupKind::None {
+                if first {
+                    first = false;
+                } else {
+                    write!(o, " + ")?;
+                }
                 write!(
-                    f,
-                    " IO_N:{bank_n}:{io_n:10}",
+                    o,
+                    "io_n[{bank_n}, {io_n}]",
                     bank_n = cd.bank_n.unwrap(),
-                    io_n = cd.io_n.to_string()
+                    io_n = cd.io_n
                 )?;
             }
             if cd.eclk_tap_s {
-                write!(f, " ECLK_TAP_S")?;
+                if first {
+                    first = false;
+                } else {
+                    write!(o, " + ")?;
+                }
+                write!(o, "eclk_tap_s")?;
             }
             if cd.eclk_tap_n {
-                write!(f, " ECLK_TAP_N")?;
+                if first {
+                    first = false;
+                } else {
+                    write!(o, " + ")?;
+                }
+                write!(o, "eclk_tap_n")?;
             }
             if cd.pclk_drive {
-                write!(f, " PCLK_DRIVE")?;
+                if first {
+                    first = false;
+                } else {
+                    write!(o, " + ")?;
+                }
+                write!(o, "pclk_drive")?;
             }
-            writeln!(f)?;
+            if cd.pclk_break {
+                if first {
+                    first = false;
+                } else {
+                    write!(o, " + ")?;
+                }
+                write!(o, "pclk_break")?;
+            }
+            if cd.sdclk_break {
+                if first {
+                    first = false;
+                } else {
+                    write!(o, " + ")?;
+                }
+                write!(o, "sdclk_break")?;
+            }
+            if first {
+                write!(o, "null")?;
+            }
+            writeln!(o, ", // {col}")?;
         }
-        writeln!(f, "\tROWS:")?;
+        writeln!(o, "\t}}")?;
+        writeln!(o, "\tcol_clk {};", self.col_clk)?;
+        writeln!(o, "\trows {{")?;
         for (row, rd) in &self.rows {
-            if rd.pclk_break {
-                writeln!(f, "\t\t--- pclk break")?;
-            }
-            if rd.sclk_break {
-                writeln!(f, "\t\t--- sclk break")?;
-            }
             if self.row_clk == row {
-                writeln!(f, "\t\t--- clock")?;
+                writeln!(o, "\t\t// clock")?;
             }
-            write!(
-                f,
-                "\t\t{row:>3}: {kind:5}",
-                row = row.to_string(),
-                kind = rd.kind.to_string(),
-            )?;
-            if rd.io_w == IoGroupKind::None {
-                write!(f, "                  ")?;
-            } else {
+            write!(o, "\t\t{kind}", kind = rd.kind)?;
+            if rd.io_w != IoGroupKind::None {
                 write!(
-                    f,
-                    " IO_W:{bank_w}:{io_w:10}",
+                    o,
+                    " + io_w[{bank_w}, {io_w}]",
                     bank_w = rd.bank_w.unwrap(),
-                    io_w = rd.io_w.to_string()
+                    io_w = rd.io_w
                 )?;
             }
-            if rd.io_e == IoGroupKind::None {
-                write!(f, "                  ")?;
-            } else {
+            if rd.io_e != IoGroupKind::None {
                 write!(
-                    f,
-                    " IO_E:{bank_e}:{io_e:10}",
+                    o,
+                    " + io_e[{bank_e}, {io_e}]",
                     bank_e = rd.bank_e.unwrap(),
-                    io_e = rd.io_e.to_string()
+                    io_e = rd.io_e
                 )?;
             }
             if rd.pclk_drive {
-                write!(f, " PCLK_DRIVE")?;
+                write!(o, " + pclk_drive")?;
             }
-            writeln!(f)?;
+            if rd.pclk_break {
+                write!(o, " + pclk_break")?;
+            }
+            if rd.sclk_break {
+                write!(o, " + sclk_break")?;
+            }
+            writeln!(o, ", // {row}")?;
         }
-        writeln!(f, "\tSPECIAL LOC:")?;
+        writeln!(o, "\t}}")?;
+        writeln!(o, "\trow_clk {};", self.row_clk)?;
+
         for (k, v) in &self.special_loc {
-            writeln!(f, "\t\t{k}: {v}")?;
+            writeln!(o, "\tspecial_loc {k} = {v};")?;
         }
-        writeln!(f, "\tSPECIAL IO:")?;
         for (k, v) in &self.special_io {
-            writeln!(f, "\t\t{k}: {v}")?;
+            writeln!(o, "\tspecial_io {k} = {v};")?;
         }
-        if self.kind == ChipKind::MachXo {
-            writeln!(f, "\tIO DIRECT:")?;
-            for (k, (cell, lut)) in &self.io_direct_plc {
-                writeln!(f, "\t\t{k}: {cell}_{lut}")?;
-            }
+        for (k, (cell, lut)) in &self.io_direct_plc {
+            writeln!(o, "\tio_direct {k} = {cell}_{lut};")?;
         }
         Ok(())
     }

@@ -2,7 +2,6 @@ use std::{collections::BTreeMap, error::Error, path::PathBuf};
 
 use clap::Parser;
 use coolrunner2::BsLayout;
-use jzon::JsonValue;
 use prjcombine_coolrunner2 as coolrunner2;
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_re_xilinx_cpld::{
@@ -22,6 +21,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{BitRectId, RectBitId, RectFrameId, Tile, TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId, ProductTermId},
+    db::DumpFlags,
 };
 
 const JED_MC_BITS_SMALL: &[(&str, usize)] = &[
@@ -909,7 +909,7 @@ struct Args {
     fdb: PathBuf,
     sdb: PathBuf,
     out: PathBuf,
-    json: PathBuf,
+    txt: PathBuf,
 }
 
 pub fn main() -> Result<(), Box<dyn Error>> {
@@ -1174,14 +1174,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         for dpart in &mut parts {
             if dpart.name == spart.dev_name {
                 assert_eq!(dpart.chip, chip);
-                dpart.packages.insert(spart.pkg_name.clone(), bond);
+                dpart.bonds.insert(spart.pkg_name.clone(), bond);
                 continue 'parts;
             }
         }
         parts.push(coolrunner2::Device {
             name: spart.dev_name.clone(),
             chip,
-            packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
+            bonds: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
             speeds: spart
                 .speeds
                 .iter()
@@ -1226,9 +1226,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
             .collect(),
     };
     database.to_file(args.out)?;
-
-    let json = JsonValue::from(&database);
-    std::fs::write(args.json, json.to_string())?;
-
+    database
+        .dump(
+            &mut std::fs::File::create(&args.txt).unwrap(),
+            DumpFlags::all(),
+        )
+        .unwrap();
     Ok(())
 }

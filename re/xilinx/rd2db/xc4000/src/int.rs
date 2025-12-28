@@ -46,7 +46,7 @@ fn fill_single_wires(builder: &mut IntBuilder) {
         let ii = i + 1;
         let w = builder.wire(
             format!("SINGLE.H{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[format!("CENTER_H{ii}R")],
         );
         for k in BOT_KINDS.into_iter().chain(RT_KINDS).chain(["LR"]) {
@@ -70,7 +70,7 @@ fn fill_single_wires(builder: &mut IntBuilder) {
         let ii = i + 1;
         let w = builder.wire(
             format!("SINGLE.V{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[format!("CENTER_V{ii}")],
         );
         for k in BOT_KINDS
@@ -99,7 +99,7 @@ fn fill_double_wires(builder: &mut IntBuilder) {
             let ii = [2, 3][i];
             let w = builder.wire(
                 format!("DOUBLE.{hv}{i}.0"),
-                WireKind::MultiOut,
+                WireKind::MultiRoot,
                 &[format!("CENTER_D{hv}{ii}{rt0}")],
             );
             for k in BOT_KINDS.into_iter().chain(RT_KINDS).chain(["LR"]) {
@@ -245,7 +245,7 @@ fn fill_quad_wires(builder: &mut IntBuilder) {
             let ii = 4 * i + 4;
             let mut w = builder.wire(
                 format!("QUAD.{hv}{i}.0"),
-                WireKind::MultiOut,
+                WireKind::MultiRoot,
                 &[format!("CENTER_Q{hv}{ii}{rt0}")],
             );
             for k in BOT_KINDS
@@ -310,7 +310,7 @@ fn fill_octal_wires(builder: &mut IntBuilder) {
 
     let mut w = builder.wire(
         "OCTAL.H.0",
-        WireKind::MultiOut,
+        WireKind::MultiRoot,
         &["VHIBRK_OH1R", "LHIBRK_OH8"],
     );
     for j in 1..8 {
@@ -330,7 +330,7 @@ fn fill_octal_wires(builder: &mut IntBuilder) {
 
     let mut w = builder.wire(
         "OCTAL.V.0",
-        WireKind::MultiOut,
+        WireKind::MultiRoot,
         &["VHIBRK_OV8B", "TVIBRK_OV8"],
     );
     for j in 1..8 {
@@ -486,7 +486,7 @@ fn fill_long_wires(builder: &mut IntBuilder) {
             builder.extra_name(format!("{k}_VLL{ii}"), w);
         }
         if matches!(i, 7 | 9) {
-            let w = builder.wire(format!("LONG.V{i}.EXCL"), WireKind::MultiOut, &[""]);
+            let w = builder.wire(format!("LONG.V{i}.EXCL"), WireKind::MultiRoot, &[""]);
             for n in [
                 format!("HVBRK_VLL{ii}_EXCL"),
                 format!("HVBRK_VLL{ii}T_EXCL"),
@@ -514,7 +514,7 @@ fn fill_long_wires(builder: &mut IntBuilder) {
             builder.extra_name(format!("{k}_THLL{ii}"), w);
         }
         if !matches!(&*builder.rd.family, "xc4000e" | "spartanxl") {
-            let w = builder.wire(format!("LONG.IO.H{i}.EXCL"), WireKind::MultiOut, &[""]);
+            let w = builder.wire(format!("LONG.IO.H{i}.EXCL"), WireKind::MultiRoot, &[""]);
             for k in BOT_KINDS.into_iter().chain(["LR"]) {
                 builder.extra_name(format!("{k}_BHLL{ii}_EXCL"), w);
             }

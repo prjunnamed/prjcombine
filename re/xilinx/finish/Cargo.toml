@@ -22,7 +22,6 @@ itertools.workspace = true
 regex.workspace = true
 clap.workspace = true
 prjcombine-entity.workspace = true
-jzon.workspace = true
 
 [lints]
 workspace = true

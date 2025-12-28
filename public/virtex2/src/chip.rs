@@ -1,5 +1,4 @@
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::db::CellSlotId;
 use prjcombine_interconnect::dir::{Dir, DirH, DirHV, DirV};
@@ -854,148 +853,105 @@ impl Chip {
     }
 }
 
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> Self {
-        jzon::object! {
-            kind: chip.kind.to_string(),
-            columns: Vec::from_iter(chip.columns.values().map(|column| {
-                jzon::object! {
-                    kind: column.kind.to_string(),
-                    io: if column.io == ColumnIoKind::None {
-                        JsonValue::Null
-                    } else {
-                        column.io.to_string().into()
-                    },
-                }
-            })),
-            cols_clkv: chip.cols_clkv.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
-            cols_gt: Vec::from_iter(chip.cols_gt.iter().map(|(col, (bank_b, bank_t))| jzon::object! {
-                column: col.to_idx(),
-                bank_b: *bank_b,
-                bank_t: *bank_t,
-            })),
-            rows: Vec::from_iter(chip.rows.values().map(|&io| if io == RowIoKind::None {
-                JsonValue::Null
-            } else {
-                io.to_string().into()
-            })),
-            rows_ram: chip.rows_ram.map(|(row_b, row_t)| jzon::array![row_b.to_idx(), row_t.to_idx()]),
-            rows_hclk: Vec::from_iter(chip.rows_hclk.iter().map(|(row_mid, row_start, row_end)| {
-                jzon::array![row_mid.to_idx(), row_start.to_idx(), row_end.to_idx()]
-            })),
-            row_pci: chip.row_pci.map(|row| row.to_idx()),
-            holes_ppc: Vec::from_iter(chip.holes_ppc.iter().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
-            dcms: match chip.dcms {
-                None => JsonValue::Null,
-                Some(dcms) => match dcms {
-                    Dcms::Two => 2,
-                    Dcms::Four => 4,
-                    Dcms::Eight => 8,
-                }.into()
-            },
-            has_ll: chip.has_ll,
-            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
-                (k.to_string(), io.to_string())
-            })),
-            dci_io: jzon::object::Object::from_iter(chip.dci_io.iter().map(|(k, (io_a, io_b))| {
-                (k.to_string(), jzon::object! {
-                    vrp: io_a.to_string(),
-                    vrn: io_b.to_string(),
-                })
-            })),
-            dci_io_alt: jzon::object::Object::from_iter(chip.dci_io_alt.iter().map(|(k, (io_a, io_b))| {
-                (k.to_string(), jzon::object! {
-                    vrp: io_a.to_string(),
-                    vrn: io_b.to_string(),
-                })
-            })),
-        }
-    }
-}
-
-impl std::fmt::Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k}", k = self.kind)?;
-        writeln!(f, "\tCOLS:")?;
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
+        writeln!(o, "\tcolumns {{")?;
         for (col, cd) in &self.columns {
             if let Some((cl, cr)) = self.cols_clkv {
                 if col == cl {
-                    writeln!(f, "\t\t--- clock left spine")?;
+                    writeln!(o, "\t\t// clock left spine")?;
                 }
                 if col == cr {
-                    writeln!(f, "\t\t--- clock right spine")?;
+                    writeln!(o, "\t\t// clock right spine")?;
                 }
             }
             if col == self.col_clk {
-                writeln!(f, "\t\t--- clock spine")?;
+                writeln!(o, "\t\t// clock spine")?;
             }
-            write!(f, "\t\t{col}: ")?;
+            write!(o, "\t\t")?;
             match cd.kind {
-                ColumnKind::Io => write!(f, "IO")?,
-                ColumnKind::Clb => write!(f, "CLB   ")?,
-                ColumnKind::Bram => write!(f, "BRAM  ")?,
-                ColumnKind::BramCont(i) => write!(f, "BRAM.{i}")?,
-                ColumnKind::Dsp => write!(f, "DSP   ")?,
+                ColumnKind::Io => write!(o, "io")?,
+                ColumnKind::Clb => write!(o, "clb")?,
+                ColumnKind::Bram => write!(o, "bram")?,
+                ColumnKind::BramCont(i) => write!(o, "bram {i}")?,
+                ColumnKind::Dsp => write!(o, "dsp")?,
             }
             match cd.io {
                 ColumnIoKind::None => (),
-                ColumnIoKind::Single => write!(f, " IO: 1")?,
-                ColumnIoKind::Double(i) => write!(f, " IO: 2.{i}")?,
-                ColumnIoKind::Triple(i) => write!(f, " IO: 3.{i}")?,
-                ColumnIoKind::Quad(i) => write!(f, " IO: 4.{i}")?,
-                ColumnIoKind::SingleLeft => write!(f, " IO: 1L")?,
-                ColumnIoKind::SingleRight => write!(f, " IO: 1R")?,
-                ColumnIoKind::SingleLeftAlt => write!(f, " IO: 1LA")?,
-                ColumnIoKind::SingleRightAlt => write!(f, " IO: 1RA")?,
-                ColumnIoKind::DoubleLeft(i) => write!(f, " IO: 2L.{i}")?,
-                ColumnIoKind::DoubleRight(i) => write!(f, " IO: 2R.{i}")?,
-                ColumnIoKind::DoubleRightClk(i) => write!(f, " IO: 2R.CLK.{i}")?,
+                ColumnIoKind::Single => write!(o, " + io single")?,
+                ColumnIoKind::Double(i) => write!(o, " + io double {i}")?,
+                ColumnIoKind::Triple(i) => write!(o, " + io triple {i}")?,
+                ColumnIoKind::Quad(i) => write!(o, " + io quad {i}")?,
+                ColumnIoKind::SingleLeft => write!(o, " + io single left")?,
+                ColumnIoKind::SingleRight => write!(o, " + io single right")?,
+                ColumnIoKind::SingleLeftAlt => write!(o, " + io single left alt")?,
+                ColumnIoKind::SingleRightAlt => write!(o, " + io single right alt")?,
+                ColumnIoKind::DoubleLeft(i) => write!(o, " + io double left {i}")?,
+                ColumnIoKind::DoubleRight(i) => write!(o, " + io double right {i}")?,
+                ColumnIoKind::DoubleRightClk(i) => write!(o, " + io double right clock {i}")?,
             }
             if let Some(&(bb, bt)) = self.cols_gt.get(&col) {
-                write!(f, " GT: BOT {bb} TOP {bt}")?;
+                write!(o, " + gt [{bb}, {bt}]")?;
             }
-            writeln!(f,)?;
+            writeln!(o, ", // {col}")?;
+        }
+        writeln!(o, "\t}}")?;
+        writeln!(o, "\tcol_clk {};", self.col_clk)?;
+        if let Some((cl, cr)) = self.cols_clkv {
+            writeln!(o, "\tcols_clkv {cl}, {cr};")?;
         }
         let mut clkv_idx = 0;
-        writeln!(f, "\tROWS:")?;
+        writeln!(o, "\trows {{")?;
         for (row, rd) in &self.rows {
             if row == self.rows_hclk[clkv_idx].0 {
-                writeln!(f, "\t\t--- clock row")?;
+                writeln!(o, "\t\t// clock row")?;
             }
             if row == self.rows_hclk[clkv_idx].2 {
-                writeln!(f, "\t\t--- clock break")?;
+                writeln!(o, "\t\t// clock break")?;
                 clkv_idx += 1;
             }
             if Some(row) == self.row_pci {
-                writeln!(f, "\t\t--- PCI row")?;
+                writeln!(o, "\t\t// PCI row")?;
             }
             if row == self.row_mid() {
-                writeln!(f, "\t\t--- spine row")?;
+                writeln!(o, "\t\t// spine row")?;
             }
-            write!(f, "\t\t{row}: ")?;
+            write!(o, "\t\t")?;
             match rd {
-                RowIoKind::None => (),
-                RowIoKind::Single => write!(f, " IO: 1")?,
-                RowIoKind::Double(i) => write!(f, " IO: 2.{i}")?,
-                RowIoKind::Triple(i) => write!(f, " IO: 3.{i}")?,
-                RowIoKind::Quad(i) => write!(f, " IO: 4.{i}")?,
-                RowIoKind::DoubleBot(i) => write!(f, " IO: 2B.{i}")?,
-                RowIoKind::DoubleTop(i) => write!(f, " IO: 2T.{i}")?,
+                RowIoKind::None => write!(o, "null")?,
+                RowIoKind::Single => write!(o, "io single")?,
+                RowIoKind::Double(i) => write!(o, "io double {i}")?,
+                RowIoKind::Triple(i) => write!(o, "io triple {i}")?,
+                RowIoKind::Quad(i) => write!(o, "io quad {i}")?,
+                RowIoKind::DoubleBot(i) => write!(o, "io double bottom {i}")?,
+                RowIoKind::DoubleTop(i) => write!(o, "io double top {i}")?,
             }
+            write!(o, ", // {row}")?;
             if let Some((rb, rt)) = self.rows_ram {
                 if row == rb {
-                    write!(f, " BRAM BOT TERM")?;
+                    write!(o, " BRAM BOT TERM")?;
                 }
                 if row == rt {
-                    write!(f, " BRAM TOP TERM")?;
+                    write!(o, " BRAM TOP TERM")?;
                 }
             }
-            writeln!(f,)?;
+            writeln!(o)?;
+        }
+        writeln!(o, "\t}}")?;
+        if let Some(row) = self.row_pci {
+            writeln!(o, "\trow_pci {row};")?;
+        }
+        if let Some((rb, rt)) = self.rows_ram {
+            writeln!(o, "\trows_ram {rb}, {rt};")?;
+        }
+        for &(row_hclk, row_start, row_end) in &self.rows_hclk {
+            writeln!(o, "\trow_hclk {row_hclk} = {row_start}..{row_end};")?;
         }
         for &(col, row) in &self.holes_ppc {
             writeln!(
-                f,
-                "\tPPC: {col_l}:{col_r} {row_b}:{row_t}",
+                o,
+                "\tppc {col_l}:{col_r}, {row_b}:{row_t};",
                 col_l = col,
                 col_r = col + 10,
                 row_b = row,
@@ -1003,28 +959,27 @@ impl std::fmt::Display for Chip {
             )?;
         }
         if let Some(dcms) = self.dcms {
-            writeln!(f, "\tDCMS: {dcms:?}")?;
+            match dcms {
+                Dcms::Two => writeln!(o, "\tdcms 2;")?,
+                Dcms::Four => writeln!(o, "\tdcms 4;")?,
+                Dcms::Eight => writeln!(o, "\tdcms 8;")?,
+            }
         }
         if self.has_ll {
-            writeln!(f, "\tHAS LL SPLITTERS")?;
+            writeln!(o, "\thas_ll;")?;
         }
-        writeln!(f, "\tHAS_SMALL_INT: {v:?}", v = self.has_small_int)?;
-        writeln!(f, "\tCFG PINS:")?;
+        if self.has_small_int {
+            writeln!(o, "\thas_small_int;")?;
+        }
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k:?}: {v}")?;
+            writeln!(o, "\tcfg_io {k} = {v};")?;
         }
-        if !self.dci_io.is_empty() {
-            writeln!(f, "\tDCI:")?;
-            for k in 0..8 {
-                writeln!(f, "\t\t{k}:")?;
-                if let Some(&(vp, vn)) = self.dci_io.get(&k) {
-                    writeln!(f, "\t\t\tVP: {vp}")?;
-                    writeln!(f, "\t\t\tVN: {vn}")?;
-                }
-                if let Some(&(vp, vn)) = self.dci_io_alt.get(&k) {
-                    writeln!(f, "\t\t\tALT VP: {vp}")?;
-                    writeln!(f, "\t\t\tALT VN: {vn}")?;
-                }
+        for k in 0..8 {
+            if let Some(&(vp, vn)) = self.dci_io.get(&k) {
+                writeln!(o, "\tdci {k} = vp {vp}, vn {vn};")?;
+            }
+            if let Some(&(vp, vn)) = self.dci_io_alt.get(&k) {
+                writeln!(o, "\tdci alt {k} = vp {vp}, vn {vn};")?;
             }
         }
         Ok(())

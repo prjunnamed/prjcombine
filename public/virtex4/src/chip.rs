@@ -1,5 +1,5 @@
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
+use itertools::Itertools;
 use prjcombine_entity::{
     EntityId, EntityRange, EntityVec,
     id::{EntityIdU8, EntityTag, EntityTagArith},
@@ -75,15 +75,15 @@ pub enum ColumnKind {
 impl std::fmt::Display for ColumnKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ColumnKind::Io => write!(f, "IO"),
-            ColumnKind::ClbLL => write!(f, "CLBLL"),
-            ColumnKind::ClbLM => write!(f, "CLBLM"),
-            ColumnKind::Bram => write!(f, "BRAM"),
-            ColumnKind::Dsp => write!(f, "DSP"),
-            ColumnKind::Gt => write!(f, "GT"),
-            ColumnKind::Cmt => write!(f, "CMT"),
-            ColumnKind::Clk => write!(f, "CLK"),
-            ColumnKind::Cfg => write!(f, "CFG"),
+            ColumnKind::Io => write!(f, "io"),
+            ColumnKind::ClbLL => write!(f, "clbll"),
+            ColumnKind::ClbLM => write!(f, "clblm"),
+            ColumnKind::Bram => write!(f, "bram"),
+            ColumnKind::Dsp => write!(f, "dsp"),
+            ColumnKind::Gt => write!(f, "gt"),
+            ColumnKind::Cmt => write!(f, "cmt"),
+            ColumnKind::Clk => write!(f, "clk"),
+            ColumnKind::Cfg => write!(f, "cfg"),
         }
     }
 }
@@ -98,9 +98,9 @@ pub enum CfgRowKind {
 impl std::fmt::Display for CfgRowKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CfgRowKind::Dcm => write!(f, "DCM"),
-            CfgRowKind::Ccm => write!(f, "CCM"),
-            CfgRowKind::Sysmon => write!(f, "SYSMON"),
+            CfgRowKind::Dcm => write!(f, "dcm"),
+            CfgRowKind::Ccm => write!(f, "ccm"),
+            CfgRowKind::Sysmon => write!(f, "sysmon"),
         }
     }
 }
@@ -115,9 +115,9 @@ pub enum GtKind {
 impl std::fmt::Display for GtKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GtKind::Gtp => write!(f, "GTP"),
-            GtKind::Gtx => write!(f, "GTX"),
-            GtKind::Gth => write!(f, "GTH"),
+            GtKind::Gtp => write!(f, "gtp"),
+            GtKind::Gtx => write!(f, "gtx"),
+            GtKind::Gth => write!(f, "gth"),
         }
     }
 }
@@ -131,8 +131,8 @@ pub enum IoKind {
 impl std::fmt::Display for IoKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            IoKind::Hpio => write!(f, "HPIO"),
-            IoKind::Hrio => write!(f, "HRIO"),
+            IoKind::Hpio => write!(f, "hpio"),
+            IoKind::Hrio => write!(f, "hrio"),
         }
     }
 }
@@ -308,162 +308,111 @@ impl Chip {
     }
 }
 
-impl From<&HardColumn> for JsonValue {
-    fn from(hc: &HardColumn) -> Self {
-        jzon::object! {
-            col: hc.col.to_idx(),
-            rows_emac: Vec::from_iter(hc.rows_emac.iter().map(|row| row.to_idx())),
-            rows_pcie: Vec::from_iter(hc.rows_pcie.iter().map(|row| row.to_idx())),
-        }
-    }
-}
-
-impl From<&IoColumn> for JsonValue {
-    fn from(ioc: &IoColumn) -> Self {
-        jzon::object! {
-            col: ioc.col.to_idx(),
-            regs: Vec::from_iter(ioc.regs.values().map(|kind| match kind {
-                None => JsonValue::Null,
-                Some(kind) => kind.to_string().into(),
-            }))
-        }
-    }
-}
-
-impl From<&GtColumn> for JsonValue {
-    fn from(gtc: &GtColumn) -> Self {
-        jzon::object! {
-            col: gtc.col.to_idx(),
-            is_middle: gtc.is_middle,
-            regs: Vec::from_iter(gtc.regs.values().map(|kind| match kind {
-                None => JsonValue::Null,
-                Some(kind) => kind.to_string().into(),
-            }))
-        }
-    }
-}
-
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> Self {
-        jzon::object! {
-            kind: chip.kind.to_string(),
-            columns: Vec::from_iter(chip.columns.values().map(|kind| kind.to_string())),
-            cols_vbrk: Vec::from_iter(chip.cols_vbrk.iter().map(|col| col.to_idx())),
-            cols_mgt_buf: Vec::from_iter(chip.cols_mgt_buf.iter().map(|col| col.to_idx())),
-            cols_qbuf: chip.cols_qbuf.map(|(col_l, col_r)| jzon::array![col_l.to_idx(), col_r.to_idx()]),
-            col_hard: chip.col_hard.as_ref(),
-            cols_io: Vec::from_iter(chip.cols_io.iter()),
-            cols_gt: Vec::from_iter(chip.cols_gt.iter()),
-            regs: chip.regs,
-            reg_cfg: chip.reg_cfg.to_idx(),
-            reg_clk: chip.reg_clk.to_idx(),
-            rows_cfg: jzon::object::Object::from_iter(chip.rows_cfg.iter().map(|(row, kind)|
-                (row.to_string(), kind.to_string())
-            )),
-            holes_ppc: Vec::from_iter(chip.holes_ppc.iter().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
-            holes_pcie2: Vec::from_iter(chip.holes_pcie2.iter().map(|hole| jzon::object! {
-                kind: hole.kind.to_string(),
-                col: hole.col.to_idx(),
-                row: hole.row.to_idx(),
-            })),
-            holes_pcie3: Vec::from_iter(chip.holes_pcie3.iter().map(|(col, row)| jzon::array![col.to_idx(), row.to_idx()])),
-            has_ps: chip.has_ps,
-            has_slr: chip.has_slr,
-            has_no_tbuturn: chip.has_no_tbuturn,
-        }
-    }
-}
-
-impl From<&Interposer> for JsonValue {
-    fn from(interp: &Interposer) -> Self {
-        jzon::object! {
-            primary: interp.primary.to_idx(),
-            gtz_bot: interp.gtz_bot,
-            gtz_top: interp.gtz_top,
-        }
-    }
-}
-
-impl std::fmt::Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k}", k = self.kind)?;
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
         if self.has_ps {
-            writeln!(f, "\tHAS PS")?;
+            writeln!(o, "\thas_ps;")?;
         }
         if self.has_slr {
-            writeln!(f, "\tHAS SLR")?;
+            writeln!(o, "\thas_slr;")?;
         }
         if self.has_no_tbuturn {
-            writeln!(f, "\tHAS NO TB UTURN")?;
+            writeln!(o, "\tno_tb_uturn;")?;
         }
-        writeln!(f, "\tCOLS:")?;
+        writeln!(o, "\tcolumns {{")?;
         for (col, &cd) in &self.columns {
             if self.cols_vbrk.contains(&col) {
-                writeln!(f, "\t\t--- break")?;
+                writeln!(o, "\t\t// break")?;
             }
-            write!(f, "\t\t{col}: {cd}")?;
+            write!(o, "\t\t{cd}")?;
             if self.cols_mgt_buf.contains(&col) {
-                write!(f, " MGT_BUF")?;
+                write!(o, " + mgt_buf")?;
             }
             if let Some((cl, cr)) = self.cols_qbuf
                 && (col == cl || col == cr)
             {
-                write!(f, " QBUF")?;
+                write!(o, " + qbuf")?;
             }
-            writeln!(f)?;
             if let Some(ref hard) = self.col_hard
                 && hard.col == col
             {
+                writeln!(o, " + hard {{")?;
                 for &row in &hard.rows_pcie {
-                    writeln!(f, "\t\t\t{row}: PCIE")?;
+                    writeln!(o, "\t\t\tpcie {row};")?;
                 }
                 for &row in &hard.rows_emac {
-                    writeln!(f, "\t\t\t{row}: EMAC")?;
+                    writeln!(o, "\t\t\temac {row};")?;
                 }
+                write!(o, "\t\t}}")?;
             }
             for ioc in &self.cols_io {
                 if ioc.col == col {
+                    writeln!(o, " {{")?;
                     for (reg, kind) in &ioc.regs {
                         if let Some(kind) = kind {
-                            writeln!(f, "\t\t\t{row}: {kind}", row = self.row_reg_bot(reg))?;
+                            writeln!(o, "\t\t\tbank {row} {kind};", row = self.row_reg_bot(reg))?;
                         }
                     }
+                    write!(o, "\t\t}}")?;
                 }
             }
             for gtc in &self.cols_gt {
                 if gtc.col == col {
-                    let mid = if gtc.is_middle { "MID " } else { "" };
+                    if cd == ColumnKind::Gt {
+                        writeln!(o, " {{")?;
+                    } else {
+                        writeln!(o, " + gt {{")?;
+                    }
+                    let mid = if gtc.is_middle { "mid " } else { "" };
                     for (reg, kind) in &gtc.regs {
                         if let Some(kind) = kind {
-                            writeln!(f, "\t\t\t{row}: {mid}{kind}", row = self.row_reg_bot(reg))?;
+                            writeln!(
+                                o,
+                                "\t\t\tgt {row} {mid}{kind};",
+                                row = self.row_reg_bot(reg)
+                            )?;
                         }
                     }
+                    write!(o, "\t\t}}")?;
                 }
             }
-            if cd == ColumnKind::Cfg {
+            if cd == ColumnKind::Cfg && !self.rows_cfg.is_empty() {
+                writeln!(o, " {{")?;
                 for &(row, kind) in &self.rows_cfg {
-                    writeln!(f, "\t\t\t{row}: {kind}")?;
+                    writeln!(o, "\t\t\t{kind} {row};")?;
                 }
+                write!(o, "\t\t}}")?;
             }
+            writeln!(o, ", // {col}")?;
         }
-        writeln!(f, "\tREGS: {r}", r = self.regs)?;
-        writeln!(f, "\tCFG REG: {v:?}", v = self.reg_cfg.to_idx())?;
-        writeln!(f, "\tCLK REG: {v:?}", v = self.reg_clk.to_idx())?;
+        writeln!(o, "\t}}")?;
+        if !self.cols_vbrk.is_empty() {
+            writeln!(
+                o,
+                "\tcols_vbrk {};",
+                self.cols_vbrk.iter().map(|x| x.to_string()).join(", ")
+            )?;
+        }
+
+        writeln!(o, "\tregs {r};", r = self.regs)?;
+        writeln!(o, "\treg_cfg {v}", v = self.reg_cfg)?;
+        writeln!(o, "\treg_clk {v}", v = self.reg_clk)?;
         for &(col, row) in &self.holes_ppc {
             let (col_r, row_t): (ColId, RowId) = match self.kind {
                 ChipKind::Virtex4 => (col + 9, row + 24),
                 ChipKind::Virtex5 => (col + 14, row + 40),
                 _ => unreachable!(),
             };
-            writeln!(f, "\tPPC: {col}:{col_r} {row}:{row_t}")?;
+            writeln!(o, "\tppc {col}:{col_r} {row}:{row_t};")?;
         }
         for pcie in &self.holes_pcie2 {
             writeln!(
-                f,
-                "\tPCIE2.{lr}: {col_l}:{col_r} {row_b}:{row_t}",
+                o,
+                "\tpcie2_{lr} {col_l}:{col_r} {row_b}:{row_t};",
                 lr = match pcie.kind {
-                    Pcie2Kind::Left => 'L',
-                    Pcie2Kind::Right => 'R',
+                    Pcie2Kind::Left => 'l',
+                    Pcie2Kind::Right => 'r',
                 },
                 col_l = pcie.col,
                 col_r = pcie.col + 4,
@@ -473,24 +422,30 @@ impl std::fmt::Display for Chip {
         }
         for &(col, row) in &self.holes_pcie3 {
             writeln!(
-                f,
-                "\tPCIE3: {col_l}:{col_r} {row_b}:{row_t}",
+                o,
+                "\tpcie3 {col_l}:{col_r} {row_b}:{row_t};",
                 col_l = col,
                 col_r = col + 6,
                 row_b = row,
                 row_t = row + 50
             )?;
         }
-        writeln!(f, "\tHAS BRAM_FX: {v:?}", v = self.has_bram_fx)?;
+        if self.has_bram_fx {
+            writeln!(o, "\thas_bram_fx;")?;
+        }
         Ok(())
     }
 }
 
-impl std::fmt::Display for Interposer {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tPRIMARY: D{}", self.primary)?;
-        writeln!(f, "\tGTZ BOT: {}", self.gtz_bot)?;
-        writeln!(f, "\tGTZ TOP: {}", self.gtz_top)?;
+impl Interposer {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tprimary {};", self.primary)?;
+        if self.gtz_bot {
+            writeln!(o, "\tgtz_bot;")?;
+        }
+        if self.gtz_top {
+            writeln!(o, "\tgtz_top;")?;
+        }
         Ok(())
     }
 }

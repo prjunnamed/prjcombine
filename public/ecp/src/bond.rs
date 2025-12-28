@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
 use itertools::Itertools;
-use jzon::JsonValue;
 use prjcombine_interconnect::{
     dir::{DirH, DirHV, DirV},
     grid::{ColId, EdgeIoCoord},
@@ -379,20 +378,6 @@ pub struct Bond {
     pub pfr_io: BTreeMap<PfrPad, EdgeIoCoord>,
 }
 
-impl From<&Bond> for JsonValue {
-    fn from(bond: &Bond) -> Self {
-        jzon::object! {
-            kind: bond.kind.to_string(),
-            pins: jzon::object::Object::from_iter(
-                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
-            ),
-            pfr_io: jzon::object::Object::from_iter(
-                bond.pfr_io.iter().map(|(k, v)| (k.to_string(), v.to_string()))
-            ),
-        }
-    }
-}
-
 fn pad_sort_key(name: &str) -> (usize, &str, u32) {
     if let Some(pos) = name.find(|x: char| x.is_ascii_digit())
         && let Ok(idx) = name[pos..].parse()
@@ -403,18 +388,14 @@ fn pad_sort_key(name: &str) -> (usize, &str, u32) {
     }
 }
 
-impl std::fmt::Display for Bond {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {}", self.kind)?;
-        writeln!(f, "\tPINS:")?;
+impl Bond {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
         for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
-            writeln!(f, "\t\t{pin:4}: {pad}")?;
+            writeln!(o, "\tpin {pin} = {pad};")?;
         }
-        if !self.pfr_io.is_empty() {
-            writeln!(f, "\tPFR IO:")?;
-            for (&pfr, &io) in &self.pfr_io {
-                writeln!(f, "\t\t{pfr}: {io}")?;
-            }
+        for (&pfr, &io) in &self.pfr_io {
+            writeln!(o, "\tpfr {pfr} = {io};")?;
         }
         Ok(())
     }

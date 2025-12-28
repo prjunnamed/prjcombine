@@ -4,7 +4,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{LegacyBel, CellSlotId},
+    db::{CellSlotId, LegacyBel},
     dir::{Dir, DirHV, DirV},
     grid::{BelCoord, CellCoord, DieId, EdgeIoCoord},
 };

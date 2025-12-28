@@ -2,7 +2,7 @@
 
 use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{
-    LegacyBel, BelInfo, BelSlotId, ConnectorWire, IntDb, PinDir, SwitchBoxItem, TileClassId,
+    BelInfo, BelSlotId, ConnectorWire, IntDb, LegacyBel, PinDir, SwitchBoxItem, TileClassId,
     TileWireCoord, WireKind, WireSlotId,
 };
 use prjcombine_interconnect::grid::{

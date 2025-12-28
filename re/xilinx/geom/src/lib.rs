@@ -30,16 +30,16 @@ pub enum Chip {
     Versal(prjcombine_versal::chip::Chip),
 }
 
-impl std::fmt::Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         match self {
-            Chip::Xc2000(chip) => write!(f, "{chip}"),
-            Chip::Virtex(chip) => write!(f, "{chip}"),
-            Chip::Virtex2(chip) => write!(f, "{chip}"),
-            Chip::Spartan6(chip) => write!(f, "{chip}"),
-            Chip::Virtex4(chip) => write!(f, "{chip}"),
-            Chip::Ultrascale(chip) => write!(f, "{chip}"),
-            Chip::Versal(chip) => write!(f, "{chip}"),
+            Chip::Xc2000(chip) => chip.dump(o),
+            Chip::Virtex(chip) => chip.dump(o),
+            Chip::Virtex2(chip) => chip.dump(o),
+            Chip::Spartan6(chip) => chip.dump(o),
+            Chip::Virtex4(chip) => chip.dump(o),
+            Chip::Ultrascale(chip) => chip.dump(o),
+            Chip::Versal(chip) => write!(o, "{chip}"),
         }
     }
 }
@@ -86,13 +86,13 @@ pub enum Interposer {
     Versal(prjcombine_versal::chip::Interposer),
 }
 
-impl std::fmt::Display for Interposer {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Interposer {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         match self {
-            Interposer::None => writeln!(f, "\t[NONE]"),
-            Interposer::Virtex4(ip) => write!(f, "{ip}"),
-            Interposer::Ultrascale(ip) => write!(f, "{ip}"),
-            Interposer::Versal(ip) => write!(f, "{ip}"),
+            Interposer::None => writeln!(o, "\t[NONE]"),
+            Interposer::Virtex4(ip) => ip.dump(o),
+            Interposer::Ultrascale(ip) => ip.dump(o),
+            Interposer::Versal(ip) => write!(o, "{ip}"),
         }
     }
 }
@@ -121,16 +121,16 @@ pub enum Bond {
     Versal(prjcombine_versal::bond::Bond),
 }
 
-impl std::fmt::Display for Bond {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Bond {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         match self {
-            Bond::Xc2000(bond) => write!(f, "{bond}"),
-            Bond::Virtex(bond) => write!(f, "{bond}"),
-            Bond::Virtex2(bond) => write!(f, "{bond}"),
-            Bond::Spartan6(bond) => write!(f, "{bond}"),
-            Bond::Virtex4(bond) => write!(f, "{bond}"),
-            Bond::Ultrascale(bond) => write!(f, "{bond}"),
-            Bond::Versal(bond) => write!(f, "{bond}"),
+            Bond::Xc2000(bond) => bond.dump(o),
+            Bond::Virtex(bond) => bond.dump(o),
+            Bond::Virtex2(bond) => bond.dump(o),
+            Bond::Spartan6(bond) => bond.dump(o),
+            Bond::Virtex4(bond) => bond.dump(o),
+            Bond::Ultrascale(bond) => bond.dump(o),
+            Bond::Versal(bond) => bond.dump(o),
         }
     }
 }

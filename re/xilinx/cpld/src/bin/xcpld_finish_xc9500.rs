@@ -6,7 +6,6 @@ use std::{
 
 use clap::Parser;
 use enum_map::Enum;
-use jzon::JsonValue;
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_re_xilinx_cpld::{
     bits::{BitPos, extract_bitvec, extract_bool, extract_bool_to_enum, extract_enum},
@@ -25,6 +24,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{BitRectId, RectBitId, RectFrameId, Tile, TileBit, TileItem, TileItemKind},
     cpld::{BlockId, IoCoord, MacrocellCoord, MacrocellId},
+    db::DumpFlags,
 };
 use prjcombine_xc9500 as xc9500;
 
@@ -34,7 +34,7 @@ struct Args {
     fdb: PathBuf,
     sdb: PathBuf,
     out: PathBuf,
-    json: PathBuf,
+    txt: PathBuf,
 }
 
 fn map_bit_raw(device: &Device, bit: BitPos) -> TileBit {
@@ -980,14 +980,14 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         for dpart in &mut parts {
             if dpart.name == spart.dev_name {
                 assert_eq!(dpart.chip, chip);
-                dpart.packages.insert(spart.pkg_name.clone(), bond);
+                dpart.bonds.insert(spart.pkg_name.clone(), bond);
                 continue 'parts;
             }
         }
         parts.push(xc9500::Device {
             name: spart.dev_name.clone(),
             chip,
-            packages: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
+            bonds: [(spart.pkg_name.clone(), bond)].into_iter().collect(),
             speeds: spart
                 .speeds
                 .iter()
@@ -1023,9 +1023,11 @@ pub fn main() -> Result<(), Box<dyn Error>> {
         global_bits,
     };
     database.to_file(args.out)?;
-
-    let json = JsonValue::from(&database);
-    std::fs::write(args.json, json.to_string())?;
-
+    database
+        .dump(
+            &mut std::fs::File::create(&args.txt).unwrap(),
+            DumpFlags::all(),
+        )
+        .unwrap();
     Ok(())
 }

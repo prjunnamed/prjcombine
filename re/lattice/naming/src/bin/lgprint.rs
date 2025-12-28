@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let db = Database::from_file(args.file)?;
     if args.intdb {
         println!("INTDB");
-        db.int.print(&mut std::io::stdout())?;
+        db.int.dump(&mut std::io::stdout())?;
     }
     if args.chips || args.devices || args.namings {
         for (cid, (chip, naming)) in &db.chips {
@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.chips {
-                print!("{chip}");
+                chip.dump(&mut std::io::stdout())?;
             }
             if args.namings {
                 for (&wire, &name) in &naming.interconnect {
@@ -74,7 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.pkgs {
-                print!("{bond}");
+                bond.dump(&mut std::io::stdout())?;
             }
         }
     }

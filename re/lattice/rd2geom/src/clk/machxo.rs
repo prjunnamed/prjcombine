@@ -1,7 +1,7 @@
 use prjcombine_ecp::chip::{PllLoc, SpecialIoKey, SpecialLocKey};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{LegacyBel, BelPin, TileWireCoord},
+    db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirHV},
     grid::{CellCoord, DieId},
 };

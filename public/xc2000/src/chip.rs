@@ -1,10 +1,7 @@
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    fmt::Display,
-};
+use std::collections::{BTreeMap, BTreeSet};
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
+use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityRange};
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
@@ -558,49 +555,40 @@ impl Chip {
     }
 }
 
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> Self {
-        jzon::object! {
-            kind: chip.kind.to_string(),
-            columns: chip.columns,
-            rows: chip.rows,
-            is_small: chip.is_small,
-            is_buff_large: chip.is_buff_large,
-            cols_bidi: Vec::from_iter(chip.cols_bidi.iter().map(|col| col.to_idx())),
-            rows_bidi: Vec::from_iter(chip.cols_bidi.iter().map(|row| row.to_idx())),
-            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
-                (k.to_string(), io.to_string())
-            })),
-            unbonded_io: Vec::from_iter(chip.unbonded_io.iter().map(|&io| io.to_string())),
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
+        writeln!(o, "\tcolumns {};", self.columns)?;
+        writeln!(o, "\trows {};", self.rows)?;
+        if self.is_small {
+            writeln!(o, "\tsmall;")?;
         }
-    }
-}
-
-impl Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k}", k = self.kind)?;
-        writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
-        writeln!(f, "\tSMALL: {}", self.is_small)?;
-        writeln!(f, "\tBUFF LARGE: {v}", v = self.is_buff_large)?;
-        write!(f, "\tBIDI COLS:")?;
-        for &col in &self.cols_bidi {
-            write!(f, " {col}")?;
+        if self.is_buff_large {
+            writeln!(o, "\tbuff_large;")?;
         }
-        writeln!(f)?;
-        write!(f, "\tBIDI ROWS:")?;
-        for &row in &self.rows_bidi {
-            write!(f, " {row}")?;
+        if !self.cols_bidi.is_empty() {
+            writeln!(
+                o,
+                "\tcols_bidi {};",
+                self.cols_bidi.iter().map(|x| x.to_string()).join(", ")
+            )?;
         }
-        writeln!(f)?;
-        writeln!(f, "\tCFG PINS:")?;
+        if !self.rows_bidi.is_empty() {
+            writeln!(
+                o,
+                "\trows_bidi {};",
+                self.rows_bidi.iter().map(|x| x.to_string()).join(", ")
+            )?;
+        }
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k}: {v}")?;
+            writeln!(o, "\tcfg_io {k} = {v};")?;
         }
         if !self.unbonded_io.is_empty() {
-            writeln!(f, "\tUNBONDED IO:")?;
-            for &io in &self.unbonded_io {
-                writeln!(f, "\t\t{io}")?;
-            }
+            writeln!(
+                o,
+                "\tunbonded_io {};",
+                self.unbonded_io.iter().map(|x| x.to_string()).join(", ")
+            )?;
         }
         Ok(())
     }

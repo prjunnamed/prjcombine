@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
-        LegacyBel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, LegacyBel, PinDir, TileClass,
         TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -66,7 +66,7 @@ pub fn make_intdb() -> IntDb {
         "SINGLE.H.T2",
         "SINGLE.H.T3",
     ] {
-        let w0 = db.wires.insert(name.into(), WireKind::MultiOut).0;
+        let w0 = db.wires.insert(name.into(), WireKind::MultiRoot).0;
         let w1 = db
             .wires
             .insert(format!("{name}.E"), WireKind::MultiBranch(cslots::W))
@@ -89,7 +89,7 @@ pub fn make_intdb() -> IntDb {
         "SINGLE.V.R2",
         "SINGLE.V.R3",
     ] {
-        let w0 = db.wires.insert(name.into(), WireKind::MultiOut).0;
+        let w0 = db.wires.insert(name.into(), WireKind::MultiRoot).0;
         let w1 = db
             .wires
             .insert(format!("{name}.S"), WireKind::MultiBranch(cslots::N))
@@ -171,7 +171,7 @@ pub fn make_intdb() -> IntDb {
         ("OUT.RIOB1.I", &[Dir::S][..]),
         ("OUT.OSC", &[][..]),
     ] {
-        let w = db.wires.insert(name.into(), WireKind::LogicOut).0;
+        let w = db.wires.insert(name.into(), WireKind::BelOut).0;
         for &dir in dirs {
             let wo = db
                 .wires

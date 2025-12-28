@@ -1,5 +1,4 @@
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
 
 /// A f64 with proper equality and total ordering.
 ///
@@ -103,12 +102,6 @@ impl From<i32> for Scalar {
     }
 }
 
-impl From<Scalar> for JsonValue {
-    fn from(value: Scalar) -> Self {
-        value.0.into()
-    }
-}
-
 /// A time-dimension value for speed data.  The unit is ps.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Time(pub Scalar);
@@ -139,12 +132,6 @@ impl std::fmt::Display for Time {
     }
 }
 
-impl From<Time> for JsonValue {
-    fn from(value: Time) -> Self {
-        value.0.into()
-    }
-}
-
 /// A temperature-dimension value for speed data.  The unit is °C.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Temperature(pub Scalar);
@@ -152,12 +139,6 @@ pub struct Temperature(pub Scalar);
 impl std::fmt::Display for Temperature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}°C", self.0)
-    }
-}
-
-impl From<Temperature> for JsonValue {
-    fn from(value: Temperature) -> Self {
-        value.0.into()
     }
 }
 
@@ -171,12 +152,6 @@ impl std::fmt::Display for Voltage {
     }
 }
 
-impl From<Voltage> for JsonValue {
-    fn from(value: Voltage) -> Self {
-        value.0.into()
-    }
-}
-
 /// A resistance-dimension value for speed data.  The unit is Ω.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Resistance(pub Scalar);
@@ -187,12 +162,6 @@ impl std::fmt::Display for Resistance {
     }
 }
 
-impl From<Resistance> for JsonValue {
-    fn from(value: Resistance) -> Self {
-        value.0.into()
-    }
-}
-
 /// A capacitance-dimension value for speed data.  The unit is pF.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
 pub struct Capacitance(pub Scalar);
@@ -200,11 +169,5 @@ pub struct Capacitance(pub Scalar);
 impl std::fmt::Display for Capacitance {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}pF", self.0)
-    }
-}
-
-impl From<Capacitance> for JsonValue {
-    fn from(value: Capacitance) -> Self {
-        value.0.into()
     }
 }

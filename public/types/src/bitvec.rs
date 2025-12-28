@@ -255,18 +255,6 @@ mod bincode {
     }
 }
 
-mod jzon {
-    use jzon::JsonValue;
-
-    use super::BitVec;
-
-    impl From<&BitVec> for JsonValue {
-        fn from(value: &BitVec) -> Self {
-            jzon::Array::from_iter(value.iter().map(JsonValue::from)).into()
-        }
-    }
-}
-
 #[macro_export]
 macro_rules! __bit_to_bool {
     (0) => {

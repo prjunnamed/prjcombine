@@ -541,6 +541,10 @@ impl<I: EntityId> EntityRange<I> {
         self.end - self.start
     }
 
+    pub fn is_empty(self) -> bool {
+        self.end == self.start
+    }
+
     pub fn map<T>(
         self,
         f: impl FnMut(I) -> T,
@@ -680,7 +684,7 @@ impl<I: EntityId, const N: usize> EntityStaticRange<I, N> {
     }
 
     pub fn index_of(&self, id: I) -> Option<usize> {
-        let base = self.data.get(0)?;
+        let base = *self.data.first()?;
         if id.to_idx() < base.to_idx() {
             None
         } else {

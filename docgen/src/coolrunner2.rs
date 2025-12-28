@@ -59,7 +59,7 @@ fn gen_devpkg(ctx: &mut DocgenContext, db: &Database) {
     let mut buf = String::new();
     let mut packages = IndexSet::new();
     for part in &db.devices {
-        for pkg in part.packages.keys() {
+        for pkg in part.bonds.keys() {
             if !pkg.starts_with("di") {
                 packages.insert(pkg.clone());
             }
@@ -80,14 +80,14 @@ fn gen_devpkg(ctx: &mut DocgenContext, db: &Database) {
         writeln!(buf, r#"<tr>"#).unwrap();
         writeln!(buf, r#"<td>{}</td>"#, part.name).unwrap();
         for pkg in &packages {
-            if part.packages.contains_key(pkg) {
+            if part.bonds.contains_key(pkg) {
                 writeln!(buf, r#"<td>✅</td>"#).unwrap();
             } else {
                 writeln!(buf, r#"<td>❌</td>"#).unwrap();
             }
         }
         let mut bare = None;
-        for key in part.packages.keys() {
+        for key in part.bonds.keys() {
             if key.starts_with("di") {
                 bare = Some(key);
             }
@@ -129,7 +129,7 @@ fn gen_devices(ctx: &mut DocgenContext, db: &Database) {
                 continue;
             }
             parts.push(part);
-            for (pkg, &bondid) in &part.packages {
+            for (pkg, &bondid) in &part.bonds {
                 packages.insert(pkg);
                 let bond = &db.bonds[bondid];
                 if !bonds.contains_id(bondid) {

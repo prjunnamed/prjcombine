@@ -1,6 +1,5 @@
 use bincode::{Decode, Encode};
 use itertools::Itertools;
-use jzon::JsonValue;
 use prjcombine_interconnect::grid::{DieId, TileIobId};
 use std::collections::BTreeMap;
 
@@ -541,26 +540,15 @@ impl Bond {
     }
 }
 
-impl From<&Bond> for JsonValue {
-    fn from(bond: &Bond) -> Self {
-        jzon::object! {
-            pins: jzon::object::Object::from_iter(
-                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
-            ),
-        }
-    }
-}
-
 fn pad_sort_key(name: &str) -> (usize, &str, u32) {
     let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
     (pos, &name[..pos], name[pos..].parse().unwrap())
 }
 
-impl std::fmt::Display for Bond {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tPINS:")?;
+impl Bond {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
-            writeln!(f, "\t\t{pin:4}: {pad}")?;
+            writeln!(o, "\tpin {pin} = {pad};")?;
         }
         Ok(())
     }

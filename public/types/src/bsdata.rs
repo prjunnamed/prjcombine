@@ -8,11 +8,7 @@ use std::{
 
 use bincode::{Decode, Encode};
 use itertools::*;
-use jzon::JsonValue;
-use prjcombine_entity::{
-    EntityId,
-    id::{EntityIdU16, EntityTag, EntityTagArith},
-};
+use prjcombine_entity::id::{EntityIdU16, EntityTag, EntityTagArith};
 
 use crate::bitvec::BitVec;
 
@@ -154,6 +150,35 @@ impl Tile {
             }
         }
     }
+
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        for (key, item) in &self.items {
+            write!(o, "\t{key}:")?;
+            for bit in item.bits.iter().rev() {
+                write!(o, " {bit:?}")?;
+            }
+            match item.kind {
+                TileItemKind::Enum { ref values } => {
+                    writeln!(o,)?;
+                    for (key, val) in values {
+                        write!(o, "\t\t")?;
+                        for bit in val.iter().rev() {
+                            write!(o, "{}", usize::from(bit))?;
+                        }
+                        writeln!(o, ": {key}")?;
+                    }
+                }
+                TileItemKind::BitVec { ref invert } => {
+                    write!(o, " inv ")?;
+                    for bit in invert.iter().rev() {
+                        write!(o, "{}", usize::from(bit))?;
+                    }
+                    writeln!(o)?;
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
@@ -277,16 +302,6 @@ impl From<u32> for DbValue {
     }
 }
 
-impl DbValue {
-    pub fn to_json(&self) -> JsonValue {
-        match self {
-            DbValue::String(s) => s.as_str().into(),
-            DbValue::BitVec(bv) => bv.into(),
-            DbValue::Int(i) => (*i).into(),
-        }
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BsData {
     pub tiles: BTreeMap<String, Tile>,
@@ -367,61 +382,15 @@ impl BsData {
             }
         }
     }
-}
 
-impl From<TileBit> for JsonValue {
-    fn from(crd: TileBit) -> Self {
-        jzon::array![crd.rect.to_idx(), crd.frame.to_idx(), crd.bit.to_idx()]
-    }
-}
-
-impl From<&TileItem> for JsonValue {
-    fn from(item: &TileItem) -> Self {
-        match &item.kind {
-            TileItemKind::Enum { values } => jzon::object! {
-                bits: item.bits.clone(),
-                values: jzon::object::Object::from_iter(
-                    values.iter().map(|(value_name, value_bits)| {
-                        (value_name.clone(), value_bits)
-                    })
-                ),
-            },
-            TileItemKind::BitVec { invert } => jzon::object! {
-                bits: item.bits.clone(),
-                invert: if !invert.any() {
-                    JsonValue::from(false)
-                } else if invert.all() {
-                    JsonValue::from(true)
-                } else {
-                    JsonValue::from(invert)
-                },
-            },
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        for (tname, tile) in &self.tiles {
+            writeln!(o, "bstile {tname} {{")?;
+            tile.dump(o)?;
+            writeln!(o, "}}")?;
+            writeln!(o)?;
         }
-    }
-}
-
-impl From<&Tile> for JsonValue {
-    fn from(tile: &Tile) -> Self {
-        jzon::object::Object::from_iter(tile.items.iter().map(|(name, item)| (name.as_str(), item)))
-            .into()
-    }
-}
-
-impl From<&BsData> for JsonValue {
-    fn from(tiledb: &BsData) -> Self {
-        jzon::object! {
-            tiles: jzon::object::Object::from_iter(tiledb.tiles.iter().map(|(name, tile)| {
-                (name.as_str(), tile)
-            })),
-            misc_data: jzon::object::Object::from_iter(tiledb.misc_data.iter().map(|(k, v)| {
-                (k.as_str(), v.to_json())
-            })),
-            device_data: jzon::object::Object::from_iter(tiledb.device_data.iter().map(|(k, v)| {
-                (k.as_str(), jzon::object::Object::from_iter(v.iter().map(|(kk, vv)| {
-                    (kk.as_str(), vv.to_json())
-                })))
-            })),
-        }
+        Ok(())
     }
 }
 

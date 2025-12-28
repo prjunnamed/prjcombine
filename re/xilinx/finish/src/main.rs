@@ -1,9 +1,8 @@
 use std::{collections::btree_map, path::PathBuf};
 
 use clap::Parser;
-use jzon::JsonValue;
 use prjcombine_re_xilinx_geom::Chip;
-use prjcombine_types::bsdata::BsData;
+use prjcombine_types::{bsdata::BsData, db::DumpFlags};
 
 mod spartan6;
 mod ultrascale;
@@ -15,7 +14,7 @@ mod xc2000;
 #[derive(Debug, Parser)]
 struct Args {
     db: PathBuf,
-    json: PathBuf,
+    txt: PathBuf,
     #[arg(long)]
     xact: Option<PathBuf>,
     #[arg(long)]
@@ -75,38 +74,66 @@ fn main() {
             Chip::Xc2000(_) => {
                 let db = xc2000::finish(xact, Some(geom), tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+                db.dump(
+                    &mut std::fs::File::create(&args.txt).unwrap(),
+                    DumpFlags::all(),
+                )
+                .unwrap();
             }
             Chip::Virtex(_) => {
                 let db = virtex::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+                db.dump(
+                    &mut std::fs::File::create(&args.txt).unwrap(),
+                    DumpFlags::all(),
+                )
+                .unwrap();
             }
             Chip::Virtex2(_) => {
                 let db = virtex2::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+                db.dump(
+                    &mut std::fs::File::create(&args.txt).unwrap(),
+                    DumpFlags::all(),
+                )
+                .unwrap();
             }
             Chip::Spartan6(_) => {
                 let db = spartan6::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+                db.dump(
+                    &mut std::fs::File::create(&args.txt).unwrap(),
+                    DumpFlags::all(),
+                )
+                .unwrap();
             }
             Chip::Virtex4(_) => {
                 let db = virtex4::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+                db.dump(
+                    &mut std::fs::File::create(&args.txt).unwrap(),
+                    DumpFlags::all(),
+                )
+                .unwrap();
             }
             Chip::Ultrascale(_) => {
                 let db = ultrascale::finish(geom, tiledb);
                 db.to_file(&args.db).unwrap();
-                std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+                db.dump(
+                    &mut std::fs::File::create(&args.txt).unwrap(),
+                    DumpFlags::all(),
+                )
+                .unwrap();
             }
             Chip::Versal(_) => todo!(),
         }
     } else {
         let db = xc2000::finish(xact, None, tiledb);
         db.to_file(&args.db).unwrap();
-        std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+        db.dump(
+            &mut std::fs::File::create(&args.txt).unwrap(),
+            DumpFlags::all(),
+        )
+        .unwrap();
     }
 }

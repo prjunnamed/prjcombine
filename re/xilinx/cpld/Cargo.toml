@@ -24,7 +24,6 @@ rayon.workspace = true
 bincode.workspace = true
 zstd.workspace = true
 enum-map.workspace = true
-jzon.workspace = true
 
 
 [lints]

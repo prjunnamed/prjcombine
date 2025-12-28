@@ -1,6 +1,5 @@
-use std::collections::btree_map;
+use std::{collections::btree_map, fs::File};
 
-use jzon::JsonValue;
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_siliconblue::{
@@ -10,7 +9,7 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::{
     bsdata::BsData,
-    db::{BondId, ChipId, SpeedId},
+    db::{BondId, ChipId, DumpFlags, SpeedId},
     speed::Speed,
 };
 
@@ -152,9 +151,9 @@ fn main() {
         }
     }
     dst.to_file("databases/siliconblue.zstd").unwrap();
-    std::fs::write(
-        "databases/siliconblue.json",
-        JsonValue::from(&dst).to_string(),
+    dst.dump(
+        &mut File::create("databases/siliconblue.txt").unwrap(),
+        DumpFlags::all(),
     )
     .unwrap();
 }

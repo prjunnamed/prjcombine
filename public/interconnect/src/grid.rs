@@ -764,7 +764,7 @@ impl ExpandedGrid<'_> {
         let mut wires = vec![wire];
         if matches!(
             self.db[wire.slot],
-            WireKind::MultiOut | WireKind::MultiBranch(_)
+            WireKind::MultiRoot | WireKind::MultiBranch(_)
         ) {
             wires = self.wire_tree(wire);
         }

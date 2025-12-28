@@ -1,12 +1,12 @@
 use std::{collections::BTreeSet, error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
-use prjcombine_entity::{EntityId, EntityMap, EntityVec};
+use itertools::Itertools;
+use prjcombine_entity::{EntityMap, EntityVec};
 use prjcombine_interconnect::{db::IntDb, grid::DieId};
 use prjcombine_types::{
     bsdata::BsData,
-    db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo, InterposerId},
+    db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo, DumpFlags, InterposerId},
 };
 
 use crate::{
@@ -53,32 +53,129 @@ impl Database {
         cf.finish()?;
         Ok(())
     }
-}
 
-impl From<&Device> for JsonValue {
-    fn from(part: &Device) -> Self {
-        jzon::object! {
-            name: part.name.as_str(),
-            chips: Vec::from_iter(part.chips.values().map(|x| x.to_idx())),
-            interposer: part.interposer.map(|interp| interp.to_idx()),
-            bonds: jzon::object::Object::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.as_str(), bond.to_idx()))),
-            speeds: Vec::from_iter(part.speeds.values().map(|x| x.as_str())),
-            combos: Vec::from_iter(part.combos.iter()),
-            disabled: Vec::from_iter(part.disabled.iter().map(|dis| dis.to_string())),
-        }
-    }
-}
+    pub fn dump(&self, o: &mut dyn std::io::Write, flags: DumpFlags) -> std::io::Result<()> {
+        if flags.chip || flags.device {
+            for (cid, chip) in &self.chips {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    for (did, &die) in &dev.chips {
+                        if die == cid {
+                            if dev.chips.len() == 1 {
+                                write!(o, " {dev}", dev = dev.name)?;
+                            } else {
+                                write!(o, " {dev}.{did}", dev = dev.name)?;
+                            }
+                        }
+                    }
+                }
+                writeln!(o)?;
+                if flags.chip {
+                    writeln!(o, "chip {cid} {{")?;
+                    chip.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "chip {cid};")?;
+                }
+            }
 
-impl From<&Database> for JsonValue {
-    fn from(db: &Database) -> Self {
-        jzon::object! {
-            chips: Vec::from_iter(db.chips.values()),
-            interposers: Vec::from_iter(db.interposers.values()),
-            bonds: Vec::from_iter(db.bonds.values()),
-            devices: Vec::from_iter(db.devices.iter()),
-            int: &db.int,
-            bsdata: &db.bsdata,
-            gtz: &db.gtz,
+            for (ipid, ip) in &self.interposers {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    if dev.interposer == Some(ipid) {
+                        write!(o, " {dev}", dev = dev.name)?;
+                    }
+                }
+                writeln!(o)?;
+                if flags.chip {
+                    writeln!(o, "interposer {ipid} {{")?;
+                    ip.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "interposer {ipid};")?;
+                }
+            }
         }
+        if flags.device && !flags.chip {
+            writeln!(o)?;
+        }
+
+        if flags.bond || flags.device {
+            for (bid, bond) in &self.bonds {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    for (_, pkg, &dbond) in &dev.bonds {
+                        if dbond == bid {
+                            write!(o, " {dev}-{pkg}", dev = dev.name)?;
+                        }
+                    }
+                }
+                writeln!(o)?;
+                if flags.bond {
+                    writeln!(o, "bond {bid} {{")?;
+                    bond.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "bond {bid};")?;
+                }
+            }
+        }
+        if flags.device && !flags.bond {
+            writeln!(o)?;
+        }
+
+        if flags.device {
+            for dev in &self.devices {
+                writeln!(o, "device {n} {{", n = dev.name)?;
+                writeln!(
+                    o,
+                    "\tchip {};",
+                    dev.chips.ids().map(|x| x.to_string()).join(", ")
+                )?;
+                if let Some(ipid) = dev.interposer {
+                    writeln!(o, "\tinterposer {ipid};")?;
+                }
+                for (_dpid, pkg, bond) in &dev.bonds {
+                    writeln!(o, "\tbond {pkg} = {bond};")?;
+                }
+                for speed in dev.speeds.values() {
+                    writeln!(o, "\tspeed {speed};")?;
+                }
+                for combo in &dev.combos {
+                    writeln!(
+                        o,
+                        "\tcombo {pkg} {speed};",
+                        pkg = dev.bonds.key(combo.devbond),
+                        speed = dev.speeds[combo.speed]
+                    )?;
+                }
+                for &dis in &dev.disabled {
+                    match dis {
+                        DisabledPart::Emac(reg) => write!(o, "\tdisabled emac {reg};")?,
+                        DisabledPart::GtxRow(reg) => write!(o, "\tdisabled gtx {reg};")?,
+                        DisabledPart::SysMon => write!(o, "\tdisabled sysmon;")?,
+                        DisabledPart::Gtp => write!(o, "\tdisabled gtp;")?,
+                    }
+                }
+                writeln!(o, "}}")?;
+                writeln!(o)?;
+            }
+        }
+
+        if flags.intdb {
+            self.int.dump(o)?;
+            writeln!(o)?;
+
+            self.gtz.dump(o)?;
+            writeln!(o)?;
+        }
+
+        if flags.bsdata {
+            self.bsdata.dump(o)?;
+        }
+        Ok(())
     }
 }

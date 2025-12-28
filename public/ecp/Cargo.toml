@@ -7,7 +7,6 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
-jzon.workspace = true
 zstd.workspace = true
 bincode.workspace = true
 itertools.workspace = true

@@ -23,14 +23,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..6 {
         builder.wire(
             format!("LCLK{i}"),
-            WireKind::LogicOut,
+            WireKind::BelOut,
             &[format!("GCLK_B{i}_EAST"), format!("GCLK_L_B{i}")],
         );
     }
     for i in 6..12 {
         builder.wire(
             format!("LCLK{i}"),
-            WireKind::LogicOut,
+            WireKind::BelOut,
             &[format!("GCLK_B{i}"), format!("GCLK_L_B{i}_WEST")],
         );
     }
@@ -233,7 +233,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     // The long wires.
-    let mid = builder.wire("LH.6", WireKind::MultiOut, &["LH6"]);
+    let mid = builder.wire("LH.6", WireKind::MultiRoot, &["LH6"]);
     let mut prev = mid;
     for i in (0..6).rev() {
         prev = builder.multi_branch(prev, Dir::E, format!("LH.{i}"), &[format!("LH{i}")]);
@@ -246,7 +246,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut lv_bh_n = Vec::new();
     let mut lv_bh_s = Vec::new();
 
-    let mid = builder.wire("LV.9", WireKind::MultiOut, &["LV9", "LV_L9"]);
+    let mid = builder.wire("LV.9", WireKind::MultiRoot, &["LV9", "LV_L9"]);
     let mut prev = mid;
     for i in (0..9).rev() {
         prev = builder.multi_branch(
@@ -269,7 +269,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
     let mid = builder.wire(
         "LVB.6",
-        WireKind::MultiOut,
+        WireKind::MultiRoot,
         &["LVB6", "LVB_L6", "LVB6_SLV", "LVB_L6_SLV"],
     );
     let mut prev = mid;

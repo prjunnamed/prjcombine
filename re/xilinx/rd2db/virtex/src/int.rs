@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{LegacyBel, BelInfo, BelPin, IntDb, TileWireCoord, WireKind},
+    db::{BelInfo, BelPin, IntDb, LegacyBel, TileWireCoord, WireKind},
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{
@@ -77,7 +77,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..24 {
         let w = builder.wire(
             format!("SINGLE.E{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[format!("E{i}"), format!("LEFT_E{i}")],
         );
         builder.permabuf(
@@ -98,7 +98,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..24 {
         let w = builder.wire(
             format!("SINGLE.S{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[format!("S{i}"), format!("TOP_S{i}")],
         );
         builder.permabuf(

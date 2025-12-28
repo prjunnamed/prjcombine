@@ -107,7 +107,6 @@ bimap = "0.6"
 arrayref = "0.3.6"
 assert_matches = "1.5"
 clap = { version = "4.1", features = ["derive"] }
-jzon = "0.12"
 # RE-only crates and their dependencies
 prjcombine-re-toolchain = { path = "re/toolchain" }
 prjcombine-re-hammer = { path = "re/hammer" }

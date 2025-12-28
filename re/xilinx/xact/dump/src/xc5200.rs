@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
-        LegacyBel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, LegacyBel, PinDir, TileClass,
         TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -59,11 +59,11 @@ pub fn make_intdb() -> IntDb {
     db.wires.insert("GND".into(), WireKind::Tie0);
 
     for i in 0..24 {
-        db.wires.insert(format!("CLB.M{i}"), WireKind::MultiOut);
+        db.wires.insert(format!("CLB.M{i}"), WireKind::MultiRoot);
         db.wires.insert(format!("CLB.M{i}.BUF"), WireKind::MuxOut);
     }
     for i in 0..16 {
-        db.wires.insert(format!("IO.M{i}"), WireKind::MultiOut);
+        db.wires.insert(format!("IO.M{i}"), WireKind::MultiRoot);
         db.wires.insert(format!("IO.M{i}.BUF"), WireKind::MuxOut);
     }
 
@@ -73,7 +73,7 @@ pub fn make_intdb() -> IntDb {
         }
         let w0 = db
             .wires
-            .insert(format!("SINGLE.E{i}"), WireKind::MultiOut)
+            .insert(format!("SINGLE.E{i}"), WireKind::MultiRoot)
             .0;
         let w1 = db
             .wires
@@ -87,7 +87,7 @@ pub fn make_intdb() -> IntDb {
         }
         let w0 = db
             .wires
-            .insert(format!("SINGLE.S{i}"), WireKind::MultiOut)
+            .insert(format!("SINGLE.S{i}"), WireKind::MultiRoot)
             .0;
         let w1 = db
             .wires
@@ -172,7 +172,10 @@ pub fn make_intdb() -> IntDb {
     }
 
     for i in [0, 6] {
-        let w = db.wires.insert(format!("DBL.H{i}.M"), WireKind::MultiOut).0;
+        let w = db
+            .wires
+            .insert(format!("DBL.H{i}.M"), WireKind::MultiRoot)
+            .0;
         let ww = db
             .wires
             .insert(format!("DBL.H{i}.W"), WireKind::MultiBranch(cslots::E))
@@ -185,7 +188,10 @@ pub fn make_intdb() -> IntDb {
         main_terms[Dir::W].wires.insert(we, ConnectorWire::Pass(w));
     }
     for i in [0, 6] {
-        let w = db.wires.insert(format!("DBL.V{i}.M"), WireKind::MultiOut).0;
+        let w = db
+            .wires
+            .insert(format!("DBL.V{i}.M"), WireKind::MultiRoot)
+            .0;
         let ws = db
             .wires
             .insert(format!("DBL.V{i}.S"), WireKind::MultiBranch(cslots::N))
@@ -286,39 +292,35 @@ pub fn make_intdb() -> IntDb {
     for i in 0..4 {
         for pin in ["X", "Q", "DO"] {
             db.wires
-                .insert(format!("OUT.LC{i}.{pin}"), WireKind::LogicOut);
+                .insert(format!("OUT.LC{i}.{pin}"), WireKind::BelOut);
         }
     }
     for i in 0..4 {
-        db.wires.insert(format!("OUT.TBUF{i}"), WireKind::LogicOut);
+        db.wires.insert(format!("OUT.TBUF{i}"), WireKind::BelOut);
     }
-    db.wires.insert("OUT.PWRGND".into(), WireKind::LogicOut);
+    db.wires.insert("OUT.PWRGND".into(), WireKind::BelOut);
     for i in 0..4 {
-        db.wires.insert(format!("OUT.IO{i}.I"), WireKind::LogicOut);
+        db.wires.insert(format!("OUT.IO{i}.I"), WireKind::BelOut);
     }
-    db.wires.insert("OUT.CLKIOB".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.RDBK.RIP".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.RDBK.DATA".into(), WireKind::LogicOut);
+    db.wires.insert("OUT.CLKIOB".into(), WireKind::BelOut);
+    db.wires.insert("OUT.RDBK.RIP".into(), WireKind::BelOut);
+    db.wires.insert("OUT.RDBK.DATA".into(), WireKind::BelOut);
     db.wires
-        .insert("OUT.STARTUP.DONEIN".into(), WireKind::LogicOut);
-    db.wires
-        .insert("OUT.STARTUP.Q1Q4".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.STARTUP.Q2".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.STARTUP.Q3".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.BSCAN.DRCK".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.BSCAN.IDLE".into(), WireKind::LogicOut);
-    db.wires
-        .insert("OUT.BSCAN.RESET".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.BSCAN.SEL1".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.BSCAN.SEL2".into(), WireKind::LogicOut);
-    db.wires
-        .insert("OUT.BSCAN.SHIFT".into(), WireKind::LogicOut);
-    db.wires
-        .insert("OUT.BSCAN.UPDATE".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.BSUPD".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.OSC.OSC1".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.OSC.OSC2".into(), WireKind::LogicOut);
-    db.wires.insert("OUT.TOP.COUT".into(), WireKind::LogicOut);
+        .insert("OUT.STARTUP.DONEIN".into(), WireKind::BelOut);
+    db.wires.insert("OUT.STARTUP.Q1Q4".into(), WireKind::BelOut);
+    db.wires.insert("OUT.STARTUP.Q2".into(), WireKind::BelOut);
+    db.wires.insert("OUT.STARTUP.Q3".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSCAN.DRCK".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSCAN.IDLE".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSCAN.RESET".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSCAN.SEL1".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSCAN.SEL2".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSCAN.SHIFT".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSCAN.UPDATE".into(), WireKind::BelOut);
+    db.wires.insert("OUT.BSUPD".into(), WireKind::BelOut);
+    db.wires.insert("OUT.OSC.OSC1".into(), WireKind::BelOut);
+    db.wires.insert("OUT.OSC.OSC2".into(), WireKind::BelOut);
+    db.wires.insert("OUT.TOP.COUT".into(), WireKind::BelOut);
 
     for i in 0..4 {
         for pin in ["F1", "F2", "F3", "F4", "DI"] {

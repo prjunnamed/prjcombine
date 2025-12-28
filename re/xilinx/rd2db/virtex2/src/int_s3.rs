@@ -2,7 +2,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{LegacyBel, BelInfo, BelPin, GroupTestMux, GroupTestMuxWire, IntDb, TileWireCoord, WireKind},
+    db::{
+        BelInfo, BelPin, GroupTestMux, GroupTestMuxWire, IntDb, LegacyBel, TileWireCoord, WireKind,
+    },
     dir::Dir,
 };
 use prjcombine_re_xilinx_naming::db::{

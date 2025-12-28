@@ -234,8 +234,6 @@ pub struct BelClass {
     pub bidirs: EntityBundleMap<BelBidirId, BelClassBidir>,
     pub pads: EntityBundleMap<BelPadId, BelClassPad>,
     pub attributes: EntityMap<BelAttributeId, String, BelClassAttribute>,
-    // TODO
-    // pub relations: EntityMap<BelRelationId, String, BelClassRelation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -300,9 +298,9 @@ pub enum WireKind {
     TiePullup,
     Regional(RegionSlotId),
     MuxOut,
-    LogicOut,
+    BelOut,
     TestOut,
-    MultiOut,
+    MultiRoot,
     MultiBranch(ConnectorSlotId),
     Branch(ConnectorSlotId),
 }
@@ -310,18 +308,18 @@ pub enum WireKind {
 impl WireKind {
     pub fn to_string(&self, db: &IntDb) -> String {
         match self {
-            WireKind::Tie0 => "TIE_0".into(),
-            WireKind::Tie1 => "TIE_1".into(),
-            WireKind::TiePullup => "TIE_PULLUP".into(),
-            WireKind::Regional(slot) => format!("REGIONAL:{}", db.region_slots[*slot]),
-            WireKind::MuxOut => "MUX_OUT".into(),
-            WireKind::LogicOut => "LOGIC_OUT".into(),
-            WireKind::TestOut => "TEST_OUT".into(),
-            WireKind::MultiOut => "MULTI_OUT".into(),
+            WireKind::Tie0 => "tie 0".into(),
+            WireKind::Tie1 => "tie 1".into(),
+            WireKind::TiePullup => "pullup".into(),
+            WireKind::Regional(slot) => format!("regional {}", db.region_slots[*slot]),
+            WireKind::MuxOut => "mux".into(),
+            WireKind::BelOut => "bel".into(),
+            WireKind::TestOut => "test".into(),
+            WireKind::MultiRoot => "multi_root".into(),
             WireKind::MultiBranch(slot) => {
-                format!("MULTI_BRANCH:{slot}", slot = db.conn_slots.key(*slot))
+                format!("multi_branch {slot}", slot = db.conn_slots.key(*slot))
             }
-            WireKind::Branch(slot) => format!("BRANCH:{slot}", slot = db.conn_slots.key(*slot)),
+            WireKind::Branch(slot) => format!("branch {slot}", slot = db.conn_slots.key(*slot)),
         }
     }
 }
@@ -390,8 +388,8 @@ impl TileWireCoord {
             db.wires.key(self.wire).clone()
         } else {
             format!(
-                "{cell}_{wire}",
-                cell = self.cell,
+                "{cell}.{wire}",
+                cell = tcls.cells[self.cell],
                 wire = db.wires.key(self.wire)
             )
         }

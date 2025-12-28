@@ -7,8 +7,8 @@ version.workspace = true
 prjcombine-entity.workspace = true
 zstd.workspace = true
 bincode.workspace = true
+itertools.workspace = true
 clap.workspace = true
-jzon.workspace = true
 prjcombine-types.workspace = true
 prjcombine-jed.workspace = true
 

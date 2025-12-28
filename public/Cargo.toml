@@ -19,6 +19,7 @@ members = [
     "xc9500",
     "xpla3",
     "coolrunner2",
+    "cli",
 ]
 
 [workspace.package]
@@ -35,7 +36,18 @@ prjcombine-interconnect = { path = "interconnect" }
 prjcombine-tablegen = { path = "tablegen" }
 prjcombine-jed = { path = "jed" }
 prjcombine-xilinx-bitstream = { path = "xilinx-bitstream" }
-jzon = "0.12"
+prjcombine-xc2000 = { path = "xc2000" }
+prjcombine-virtex = { path = "virtex" }
+prjcombine-virtex2 = { path = "virtex2" }
+prjcombine-spartan6 = { path = "spartan6" }
+prjcombine-virtex4 = { path = "virtex4" }
+prjcombine-ultrascale = { path = "ultrascale" }
+prjcombine-versal = { path = "versal" }
+prjcombine-siliconblue = { path = "siliconblue" }
+prjcombine-ecp = { path = "ecp" }
+prjcombine-xc9500 = { path = "xc9500" }
+prjcombine-xpla3 = { path = "xpla3" }
+prjcombine-coolrunner2 = { path = "coolrunner2" }
 bincode = "2.0"
 bitvec = "1.0"
 itertools = "0.14"

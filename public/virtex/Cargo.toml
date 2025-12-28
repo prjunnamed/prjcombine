@@ -5,7 +5,6 @@ edition.workspace = true
 
 [dependencies]
 itertools.workspace = true
-jzon.workspace = true
 zstd.workspace = true
 bincode.workspace = true
 prjcombine-entity.workspace = true

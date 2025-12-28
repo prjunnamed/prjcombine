@@ -347,7 +347,11 @@ impl IntDbBuilder {
                 self.passes[!dir].wires.insert(w1, ConnectorWire::Pass(w));
             }
         }
-        let mut w = self.db.wires.insert("VSDCLK0".into(), WireKind::MultiOut).0;
+        let mut w = self
+            .db
+            .wires
+            .insert("VSDCLK0".into(), WireKind::MultiRoot)
+            .0;
         for seg in 1..=6 {
             let nw = self
                 .db
@@ -366,7 +370,7 @@ impl IntDbBuilder {
                         format!("HSDCLK{i}"),
                         match i.cmp(&3) {
                             std::cmp::Ordering::Less => WireKind::MultiBranch(cslots::E),
-                            std::cmp::Ordering::Equal => WireKind::MultiOut,
+                            std::cmp::Ordering::Equal => WireKind::MultiRoot,
                             std::cmp::Ordering::Greater => WireKind::MultiBranch(cslots::W),
                         },
                     )
@@ -452,7 +456,7 @@ impl IntDbBuilder {
                 let w = self
                     .db
                     .wires
-                    .insert(format!("OUT_{l}{i}"), WireKind::LogicOut)
+                    .insert(format!("OUT_{l}{i}"), WireKind::BelOut)
                     .0;
                 if (l == "OFX" && i == 3 && self.kind.has_out_ofx_branch())
                     || (l == "F"
@@ -488,9 +492,7 @@ impl IntDbBuilder {
             }
         }
         for i in 0..12 {
-            self.db
-                .wires
-                .insert(format!("OUT_TI{i}"), WireKind::LogicOut);
+            self.db.wires.insert(format!("OUT_TI{i}"), WireKind::BelOut);
         }
     }
 
@@ -521,13 +523,13 @@ impl IntDbBuilder {
             for i in 0..18 {
                 self.db
                     .wires
-                    .insert(format!("OUT_EBR_{pin}{i}"), WireKind::LogicOut);
+                    .insert(format!("OUT_EBR_{pin}{i}"), WireKind::BelOut);
             }
         }
         for pin in ["AE", "FF", "AF", "EF"] {
             self.db
                 .wires
-                .insert(format!("OUT_EBR_{pin}"), WireKind::LogicOut);
+                .insert(format!("OUT_EBR_{pin}"), WireKind::BelOut);
         }
         for i in 0..64 {
             self.db
@@ -592,16 +594,14 @@ impl IntDbBuilder {
                 .insert(format!("IMUX_IO{i}"), WireKind::MuxOut);
         }
         for i in 0..24 {
-            self.db
-                .wires
-                .insert(format!("OUT_IO{i}"), WireKind::LogicOut);
+            self.db.wires.insert(format!("OUT_IO{i}"), WireKind::BelOut);
         }
         for dir in [Dir::S, Dir::N] {
             for i in 0..8 {
                 for j in 0..32 {
                     self.db
                         .wires
-                        .insert(format!("OUT_MACO_IO_{dir}{i}_{j}"), WireKind::LogicOut);
+                        .insert(format!("OUT_MACO_IO_{dir}{i}_{j}"), WireKind::BelOut);
                 }
             }
         }

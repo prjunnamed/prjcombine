@@ -14,8 +14,8 @@ impl Bond {
     }
 }
 
-impl std::fmt::Display for Bond {
-    fn fmt(&self, _f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Bond {
+    pub fn dump(&self, _o: &mut dyn std::io::Write) -> std::io::Result<()> {
         // well.
         Ok(())
     }

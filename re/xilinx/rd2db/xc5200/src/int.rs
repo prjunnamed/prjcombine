@@ -32,7 +32,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..24 {
         builder.wire(
             format!("CLB.M{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[format!("WIRE_M{i}_CLB")],
         );
         builder.permabuf(format!("CLB.M{i}.BUF"), &[format!("WIRE_BUF{i}_CLB")]);
@@ -40,7 +40,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in 0..16 {
         builder.wire(
             format!("IO.M{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[
                 format!("WIRE_M{i}_LEFT"),
                 format!("WIRE_M{i}_RIGHT"),
@@ -65,7 +65,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         let w = builder.wire(
             format!("SINGLE.E{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[format!("WIRE_E{i}_CLB"), format!("WIRE_E{i}_LEFT")],
         );
         builder.multi_branch(
@@ -81,7 +81,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         let w = builder.wire(
             format!("SINGLE.S{i}"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[format!("WIRE_S{i}_CLB"), format!("WIRE_S{i}_TOP")],
         );
         builder.multi_branch(
@@ -166,7 +166,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in [0, 6] {
         let w = builder.wire(
             format!("DBL.H{i}.M"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[
                 format!("WIRE_DH{i}_CLB"),
                 format!("WIRE_DH{i}_LEFT"),
@@ -189,7 +189,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for i in [0, 6] {
         let w = builder.wire(
             format!("DBL.V{i}.M"),
-            WireKind::MultiOut,
+            WireKind::MultiRoot,
             &[
                 format!("WIRE_DV{i}_CLB"),
                 format!("WIRE_DV{i}_BOT"),

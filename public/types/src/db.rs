@@ -1,9 +1,5 @@
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
-use prjcombine_entity::{
-    EntityId,
-    id::{EntityIdU8, EntityIdU16, EntityTag},
-};
+use prjcombine_entity::id::{EntityIdU8, EntityIdU16, EntityTag};
 
 pub struct ChipTag;
 pub struct SpeedTag;
@@ -44,11 +40,25 @@ pub struct DeviceCombo {
     pub speed: DevSpeedId,
 }
 
-impl From<&DeviceCombo> for JsonValue {
-    fn from(combo: &DeviceCombo) -> Self {
-        jzon::object! {
-            devbond: combo.devbond.to_idx(),
-            speed: combo.speed.to_idx(),
+#[derive(Copy, Clone, Debug)]
+pub struct DumpFlags {
+    pub intdb: bool,
+    pub chip: bool,
+    pub bond: bool,
+    pub speed: bool,
+    pub device: bool,
+    pub bsdata: bool,
+}
+
+impl DumpFlags {
+    pub fn all() -> Self {
+        DumpFlags {
+            intdb: true,
+            chip: true,
+            bond: true,
+            device: true,
+            speed: true,
+            bsdata: true,
         }
     }
 }

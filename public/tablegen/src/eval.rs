@@ -292,7 +292,7 @@ impl Context {
                     };
                     match *name {
                         ast::ArrayIdDef::Plain(ref name) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .inputs
                                 .insert(name.to_string(), inp)
@@ -305,7 +305,7 @@ impl Context {
                                 .insert(name.to_string(), name.clone());
                         }
                         ast::ArrayIdDef::Array(ref name, num) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .inputs
                                 .insert_array(name.to_string(), num, inp)
@@ -329,7 +329,7 @@ impl Context {
                     };
                     match *name {
                         ast::ArrayIdDef::Plain(ref name) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .outputs
                                 .insert(name.to_string(), outp)
@@ -342,7 +342,7 @@ impl Context {
                                 .insert(name.to_string(), name.clone());
                         }
                         ast::ArrayIdDef::Array(ref name, num) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .outputs
                                 .insert_array(name.to_string(), num, outp)
@@ -366,7 +366,7 @@ impl Context {
                     };
                     match *name {
                         ast::ArrayIdDef::Plain(ref name) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .bidirs
                                 .insert(name.to_string(), bidi)
@@ -379,7 +379,7 @@ impl Context {
                                 .insert(name.to_string(), name.clone());
                         }
                         ast::ArrayIdDef::Array(ref name, num) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .bidirs
                                 .insert_array(name.to_string(), num, bidi)
@@ -401,7 +401,7 @@ impl Context {
                     let pad = BelClassPad { kind: pad.kind };
                     match *name {
                         ast::ArrayIdDef::Plain(ref name) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .pads
                                 .insert(name.to_string(), pad)
@@ -414,7 +414,7 @@ impl Context {
                                 .insert(name.to_string(), name.clone());
                         }
                         ast::ArrayIdDef::Array(ref name, num) => {
-                            let name = self.eval_templ_id(&name)?;
+                            let name = self.eval_templ_id(name)?;
                             if self.db.db.bel_classes[bcls]
                                 .pads
                                 .insert_array(name.to_string(), num, pad)
@@ -973,16 +973,16 @@ impl Context {
                     ast::WireKind::Tie1 => WireKind::Tie1,
                     ast::WireKind::TiePullup => WireKind::TiePullup,
                     ast::WireKind::Regional(id) => {
-                        let id = self.eval_templ_id(&id)?;
+                        let id = self.eval_templ_id(id)?;
                         let Some(rslot) = self.db.db.region_slots.get(&id.to_string()) else {
                             error_at(id.span(), "unknown region slot")?
                         };
                         WireKind::Regional(rslot)
                     }
                     ast::WireKind::Mux => WireKind::MuxOut,
-                    ast::WireKind::Bel => WireKind::LogicOut,
+                    ast::WireKind::Bel => WireKind::BelOut,
                     ast::WireKind::Test => WireKind::TestOut,
-                    ast::WireKind::MultiRoot => WireKind::MultiOut,
+                    ast::WireKind::MultiRoot => WireKind::MultiRoot,
                     ast::WireKind::MultiBranch(id) => {
                         defer_branch = Some((id.clone(), BranchKind::MultiBranch));
                         WireKind::Tie0

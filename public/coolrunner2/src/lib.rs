@@ -1,15 +1,15 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
+use itertools::Itertools;
 use prjcombine_entity::{
-    EntityId, EntityRange, EntityVec,
+    EntityRange, EntityVec,
     id::{EntityIdU8, EntityTag},
 };
 use prjcombine_types::{
     bsdata::Tile,
     cpld::{BlockId, IoCoord, IpadId, MacrocellCoord},
-    db::{BondId, ChipId, SpeedId},
+    db::{BondId, ChipId, DumpFlags, SpeedId},
     speed::Speed,
 };
 
@@ -44,12 +44,84 @@ impl Chip {
     pub fn blocks(&self) -> EntityRange<BlockId> {
         EntityRange::new(0, self.block_rows * self.block_cols.len() * 2)
     }
+
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tidcode_part 0x{:04x};", self.idcode_part)?;
+        writeln!(o, "\tipads {};", self.ipads)?;
+        for (k, v) in &self.io {
+            writeln!(
+                o,
+                "\tio {k} = bank {bank} pad {pad};",
+                bank = v.bank,
+                pad = v.pad_distance
+            )?;
+        }
+        writeln!(o, "\tbanks {};", self.banks)?;
+        if self.has_vref {
+            writeln!(o, "\thas_vref;")?;
+        }
+        writeln!(o, "\tbs_layout {};", self.bs_layout)?;
+        writeln!(o, "\tbs_cols {};", self.bs_cols)?;
+        writeln!(o, "\timux_width {};", self.imux_width)?;
+        if !self.xfer_cols.is_empty() {
+            writeln!(
+                o,
+                "\txfer_cols {};",
+                self.xfer_cols.iter().map(|x| x.to_string()).join(", ")
+            )?;
+        }
+        writeln!(o, "\tmc_width {};", self.mc_width)?;
+        writeln!(o, "\tblock_rows {};", self.block_rows)?;
+
+        writeln!(
+            o,
+            "\tblock_cols {};",
+            self.block_cols.iter().map(|x| x.to_string()).join(", ")
+        )?;
+
+        for (k, v) in &self.io_special {
+            writeln!(o, "\tio_special {k} = {v};")?;
+        }
+
+        writeln!(o)?;
+        writeln!(o, "\tbstile MC_BITS {{")?;
+        self.mc_bits.dump(o)?;
+        writeln!(o, "\t}}")?;
+
+        writeln!(o)?;
+        writeln!(o, "\tbstile GLOBAL_BITS {{")?;
+        self.global_bits.dump(o)?;
+        writeln!(o, "\t}}")?;
+
+        writeln!(o)?;
+        writeln!(o, "\tjedtile GLOBAL_BITS {{")?;
+        for (name, idx) in &self.jed_global_bits {
+            writeln!(o, "\t\t{name}[{idx}],")?;
+        }
+        writeln!(o, "\t}}")?;
+
+        writeln!(o)?;
+        writeln!(o, "\tbstile IMUX_BITS {{")?;
+        self.imux_bits.dump(o)?;
+        writeln!(o, "\t}}")?;
+
+        Ok(())
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Encode, Decode)]
 pub enum BsLayout {
     Narrow,
     Wide,
+}
+
+impl std::fmt::Display for BsLayout {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            BsLayout::Narrow => write!(f, "narrow"),
+            BsLayout::Wide => write!(f, "wide"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
@@ -97,11 +169,26 @@ pub struct Bond {
     pub pins: BTreeMap<String, BondPad>,
 }
 
+fn pad_sort_key(name: &str) -> (usize, &str, u32) {
+    let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
+    (pos, &name[..pos], name[pos..].parse().unwrap())
+}
+
+impl Bond {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tidcode_part 0x{:04x};", self.idcode_part)?;
+        for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            writeln!(o, "\tpin {pin} = {pad};")?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Device {
     pub name: String,
     pub chip: ChipId,
-    pub packages: BTreeMap<String, BondId>,
+    pub bonds: BTreeMap<String, BondId>,
     pub speeds: BTreeMap<String, SpeedId>,
 }
 
@@ -132,89 +219,116 @@ impl Database {
         let config = bincode::config::standard();
         Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
-}
 
-fn jed_bits_to_json(jed_bits: &[(String, usize)]) -> JsonValue {
-    Vec::from_iter(
-        jed_bits
-            .iter()
-            .map(|(name, index)| jzon::array![name.as_str(), *index]),
-    )
-    .into()
-}
-
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> JsonValue {
-        jzon::object! {
-            idcode_part: chip.idcode_part,
-            ipads: chip.ipads,
-            banks: chip.banks,
-            has_vref: chip.has_vref,
-            bs_cols: chip.bs_cols,
-            xfer_cols: chip.xfer_cols.clone(),
-            imux_width: chip.imux_width,
-            mc_width: chip.mc_width,
-            bs_layout: match chip.bs_layout {
-                BsLayout::Narrow => "NARROW",
-                BsLayout::Wide => "WIDE",
-            },
-            block_rows: chip.block_rows,
-            block_cols: chip.block_cols.clone(),
-            ios: jzon::object::Object::from_iter(
-                chip.io.iter().map(|(&crd, io_data)| (crd.to_string(), jzon::object! {
-                    bank: io_data.bank.to_idx(),
-                    pad_distance: io_data.pad_distance,
-                }))
-            ),
-            io_special: jzon::object::Object::from_iter(
-                chip.io_special.iter().map(|(key, mc)| {
-                    (key, format!("IOB_{mc}"))
-                })
-            ),
-            mc_bits: &chip.mc_bits,
-            global_bits: &chip.global_bits,
-            jed_global_bits: jed_bits_to_json(&chip.jed_global_bits),
-            imux_bits: &chip.imux_bits,
+    pub fn dump(&self, o: &mut dyn std::io::Write, flags: DumpFlags) -> std::io::Result<()> {
+        if flags.chip || flags.device {
+            for (cid, chip) in &self.chips {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    if cid == dev.chip {
+                        write!(o, " {dev}", dev = dev.name)?;
+                    }
+                }
+                writeln!(o)?;
+                if flags.chip {
+                    writeln!(o, "chip {cid} {{")?;
+                    chip.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "chip {cid};")?;
+                }
+            }
         }
-    }
-}
-
-impl From<&Bond> for JsonValue {
-    fn from(bond: &Bond) -> JsonValue {
-        jzon::object! {
-            idcode_part: bond.idcode_part,
-            pins: jzon::object::Object::from_iter(
-                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
-            ),
+        if flags.device && !flags.chip {
+            writeln!(o)?;
         }
-    }
-}
 
-impl From<&Device> for JsonValue {
-    fn from(device: &Device) -> Self {
-        jzon::object! {
-            name: device.name.as_str(),
-            chip: device.chip.to_idx(),
-            packages: jzon::object::Object::from_iter(
-                device.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
-            ),
-            speeds: jzon::object::Object::from_iter(
-                device.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
-            ),
+        if flags.bond || flags.device {
+            for (bid, bond) in &self.bonds {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    for (pkg, &dbond) in &dev.bonds {
+                        if dbond == bid {
+                            write!(o, " {dev}-{pkg}", dev = dev.name)?;
+                        }
+                    }
+                }
+                writeln!(o)?;
+                if flags.bond {
+                    writeln!(o, "bond {bid} {{")?;
+                    bond.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "bond {bid};")?;
+                }
+            }
         }
-    }
-}
+        if flags.device && !flags.bond {
+            writeln!(o)?;
+        }
 
-impl From<&Database> for JsonValue {
-    fn from(db: &Database) -> Self {
-        jzon::object! {
-            chips: Vec::from_iter(db.chips.values()),
-            bonds: Vec::from_iter(db.bonds.values()),
-            speeds: Vec::from_iter(db.speeds.values()),
-            devices: Vec::from_iter(db.devices.iter()),
-            jed_mc_bits_small: jed_bits_to_json(&db.jed_mc_bits_small),
-            jed_mc_bits_large_iob: jed_bits_to_json(&db.jed_mc_bits_large_iob),
-            jed_mc_bits_large_buried: jed_bits_to_json(&db.jed_mc_bits_large_buried),
+        if flags.speed || flags.device {
+            for (sid, speed) in &self.speeds {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    for (sname, &dspeed) in &dev.speeds {
+                        if dspeed == sid {
+                            write!(o, " {dev}-{sname}", dev = dev.name)?;
+                        }
+                    }
+                }
+                writeln!(o)?;
+                if flags.speed {
+                    writeln!(o, "speed {sid} {{")?;
+                    write!(o, "{speed}")?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "speed {sid};")?;
+                }
+            }
         }
+        if flags.device && !flags.speed {
+            writeln!(o)?;
+        }
+
+        if flags.device {
+            for dev in &self.devices {
+                writeln!(o, "device {n} {{", n = dev.name)?;
+                writeln!(o, "\tchip {cid};", cid = dev.chip)?;
+                for (pkg, bond) in &dev.bonds {
+                    writeln!(o, "\tbond {pkg} = {bond};")?;
+                }
+                for speed in dev.speeds.values() {
+                    writeln!(o, "\tspeed {speed};")?;
+                }
+                writeln!(o, "}}")?;
+                writeln!(o)?;
+            }
+        }
+
+        if flags.bsdata {
+            writeln!(o, "jedtile MC_BITS_SMALL {{")?;
+            for (name, idx) in &self.jed_mc_bits_small {
+                writeln!(o, "\t{name}[{idx}],")?;
+            }
+            writeln!(o, "}}")?;
+            writeln!(o)?;
+            writeln!(o, "jedtile MC_BITS_LARGE_IOB {{")?;
+            for (name, idx) in &self.jed_mc_bits_large_iob {
+                writeln!(o, "\t{name}[{idx}],")?;
+            }
+            writeln!(o, "}}")?;
+            writeln!(o)?;
+            writeln!(o, "jedtile MC_BITS_LARGE_BURIED {{")?;
+            for (name, idx) in &self.jed_mc_bits_large_buried {
+                writeln!(o, "\t{name}[{idx}],")?;
+            }
+            writeln!(o, "}}")?;
+            writeln!(o)?;
+        }
+        Ok(())
     }
 }

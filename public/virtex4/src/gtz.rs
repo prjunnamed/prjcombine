@@ -1,9 +1,8 @@
 use std::collections::BTreeMap;
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
 use prjcombine_entity::{
-    EntityId, EntityMap,
+    EntityMap,
     id::{EntityIdU16, EntityTag, EntityTagArith},
 };
 use prjcombine_interconnect::{db::PinDir, dir::DirV};
@@ -52,65 +51,17 @@ pub struct GtzDb {
     pub gtz: EntityMap<GtzBelId, String, GtzBel>,
 }
 
-impl From<&GtzIntPin> for JsonValue {
-    fn from(pin: &GtzIntPin) -> Self {
-        jzon::object! {
-            dir: match pin.dir {
-                PinDir::Input => "INPUT",
-                PinDir::Output => "OUTPUT",
-                PinDir::Inout => unreachable!(),
-            },
-            col: pin.col.to_idx(),
-            row: pin.row.to_idx(),
-        }
-    }
-}
-
-impl From<&GtzClkPin> for JsonValue {
-    fn from(pin: &GtzClkPin) -> Self {
-        jzon::object! {
-            dir: match pin.dir {
-                PinDir::Input => "INPUT",
-                PinDir::Output => "OUTPUT",
-                PinDir::Inout => unreachable!(),
-            },
-            idx: pin.idx,
-        }
-    }
-}
-
-impl From<&GtzBel> for JsonValue {
-    fn from(gtz: &GtzBel) -> Self {
-        jzon::object! {
-            side: gtz.side.to_string(),
-            pins: jzon::object::Object::from_iter(gtz.pins.iter().map(|(pname, pin)|
-                (pname.as_str(), pin)
-            )),
-            clk_pins: jzon::object::Object::from_iter(gtz.clk_pins.iter().map(|(pname, pin)|
-                (pname.as_str(), pin)
-            )),
-        }
-    }
-}
-
-impl From<&GtzDb> for JsonValue {
-    fn from(db: &GtzDb) -> Self {
-        jzon::object::Object::from_iter(db.gtz.iter().map(|(_, name, gtz)| (name.as_str(), gtz)))
-            .into()
-    }
-}
-
-impl std::fmt::Display for GtzDb {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl GtzDb {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         for (_, name, gtz) in &self.gtz {
-            writeln!(f, "GTZ {name} [{side}]:", side = gtz.side)?;
+            writeln!(o, "gtz {name}: {side} {{", side = gtz.side)?;
             for (pname, pin) in &gtz.pins {
                 writeln!(
-                    f,
-                    "\tPIN {pname:20}: {dir:6} INT {col}.{row}",
+                    o,
+                    "\t{dir} {pname} = INT {col} {row};",
                     dir = match pin.dir {
-                        PinDir::Input => "INPUT",
-                        PinDir::Output => "OUTPUT",
+                        PinDir::Input => "input",
+                        PinDir::Output => "output",
                         PinDir::Inout => unreachable!(),
                     },
                     col = pin.col,
@@ -119,16 +70,18 @@ impl std::fmt::Display for GtzDb {
             }
             for (pname, pin) in &gtz.clk_pins {
                 writeln!(
-                    f,
-                    "\tPIN {pname:20}: {dir:6} GCLK{idx}",
+                    o,
+                    "\t{dir} {pname} = GCLK{idx};",
                     dir = match pin.dir {
-                        PinDir::Input => "INPUT",
-                        PinDir::Output => "OUTPUT",
+                        PinDir::Input => "input",
+                        PinDir::Output => "output",
                         PinDir::Inout => unreachable!(),
                     },
                     idx = pin.idx
                 )?;
             }
+            writeln!(o, "}}")?;
+            writeln!(o)?;
         }
         Ok(())
     }

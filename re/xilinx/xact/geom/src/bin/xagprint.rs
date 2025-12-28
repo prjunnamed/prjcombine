@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.intdb {
         for (name, intdb) in &geom.ints {
             println!("INTDB {name}");
-            intdb.print(&mut std::io::stdout())?;
+            intdb.dump(&mut std::io::stdout())?;
         }
         for (name, ndb) in &geom.namings {
             println!("NAMINGDB {name}");
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.chips {
-                print!("{chip}");
+                chip.dump(&mut std::io::stdout())?;
             }
         }
     }
@@ -55,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             println!();
             if args.pkgs {
-                print!("{bond}");
+                bond.dump(&mut std::io::stdout())?;
             }
         }
     }

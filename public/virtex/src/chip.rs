@@ -1,5 +1,5 @@
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
+use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityRange};
 use prjcombine_interconnect::{
     dir::{DirH, DirV},
@@ -241,54 +241,21 @@ impl Chip {
     }
 }
 
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> Self {
-        jzon::object! {
-            kind: chip.kind.to_string(),
-            columns: chip.columns,
-            cols_bram: Vec::from_iter(chip.cols_bram.iter().map(|x| x.to_idx())),
-            cols_clkv: Vec::from_iter(chip.cols_clkv.iter().map(|(col_mid, col_start, col_end)| {
-                jzon::array![col_mid.to_idx(), col_start.to_idx(), col_end.to_idx()]
-            })),
-            rows: chip.rows,
-            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
-                (k.to_string(), io.to_string())
-            })),
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
+        writeln!(o, "\tcolumns {};", self.columns)?;
+        writeln!(o, "\trows {};", self.rows)?;
+        writeln!(
+            o,
+            "\tcols_bram {};",
+            self.cols_bram.iter().map(|x| x.to_string()).join(", ")
+        )?;
+        for &(col_hclk, col_start, col_end) in &self.cols_clkv {
+            writeln!(o, "\tcol_clkv {col_hclk} = {col_start}..{col_end};")?;
         }
-    }
-}
-
-impl std::fmt::Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k}", k = self.kind)?;
-        writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
-        writeln!(f, "\tCOLS:")?;
-        let mut clkv_idx = 0;
-        for col in self.columns() {
-            if col == self.cols_clkv[clkv_idx].0 {
-                writeln!(f, "\t\t--- clock column")?;
-            }
-            if col == self.cols_clkv[clkv_idx].2 {
-                writeln!(f, "\t\t--- clock break")?;
-                clkv_idx += 1;
-            }
-            writeln!(
-                f,
-                "\t\t{col}: {kind}",
-                kind = if self.cols_bram.contains(&col) {
-                    "BRAM"
-                } else if col == self.col_w() {
-                    "LIO"
-                } else if col == self.col_e() {
-                    "RIO"
-                } else {
-                    "CLB"
-                }
-            )?;
-        }
-        writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k}: {v}",)?;
+            writeln!(o, "\tcfg_io {k} = {v};")?;
         }
         Ok(())
     }

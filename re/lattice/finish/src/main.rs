@@ -1,14 +1,13 @@
 use std::{collections::btree_map, path::PathBuf};
 
 use clap::Parser;
-use jzon::JsonValue;
 use prjcombine_ecp::db::Database;
-use prjcombine_types::bsdata::BsData;
+use prjcombine_types::{bsdata::BsData, db::DumpFlags};
 
 #[derive(Debug, Parser)]
 struct Args {
     db: PathBuf,
-    json: PathBuf,
+    txt: PathBuf,
     geom: PathBuf,
     tiledb: Vec<PathBuf>,
 }
@@ -59,5 +58,9 @@ fn main() {
         bsdata: tiledb,
     };
     db.to_file(&args.db).unwrap();
-    std::fs::write(args.json, JsonValue::from(&db).to_string()).unwrap();
+    db.dump(
+        &mut std::fs::File::create(&args.txt).unwrap(),
+        DumpFlags::all(),
+    )
+    .unwrap();
 }

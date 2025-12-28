@@ -1,15 +1,15 @@
 use std::{collections::BTreeMap, error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
+use itertools::Itertools;
 use prjcombine_entity::{
-    EntityId, EntityVec,
+    EntityVec,
     id::{EntityIdU8, EntityTag},
 };
 use prjcombine_types::{
     bsdata::Tile,
     cpld::MacrocellCoord,
-    db::{BondId, ChipId, SpeedId},
+    db::{BondId, ChipId, DumpFlags, SpeedId},
     speed::Speed,
 };
 
@@ -51,6 +51,35 @@ pub struct Chip {
     pub erase_time: u32,
 }
 
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
+        writeln!(o, "\tidcode 0x{:08x};", self.idcode)?;
+        writeln!(o, "\tblocks {};", self.blocks)?;
+        writeln!(o, "\tbanks {};", self.banks)?;
+        for (k, v) in &self.io {
+            writeln!(o, "\tio {k} = {v};")?;
+        }
+        writeln!(o, "\ttdo_bank {};", self.tdo_bank)?;
+        for (k, v) in &self.io_special {
+            writeln!(o, "\tio_special {k} = {v};")?;
+        }
+        writeln!(o, "\tprogram_time {};", self.program_time)?;
+        writeln!(o, "\terase_time {};", self.erase_time)?;
+        writeln!(o)?;
+        writeln!(o, "\tbstile IMUX_BITS {{")?;
+        self.imux_bits.dump(o)?;
+        writeln!(o, "\t}}")?;
+        if let Some(ref bits) = self.uim_ibuf_bits {
+            writeln!(o)?;
+            writeln!(o, "\tbstile UIM_IBUF_BITS {{")?;
+            bits.dump(o)?;
+            writeln!(o, "\t}}")?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum BondPad {
     Nc,
@@ -86,11 +115,28 @@ pub struct Bond {
     pub pins: BTreeMap<String, BondPad>,
 }
 
+fn pad_sort_key(name: &str) -> (usize, &str, u32) {
+    let pos = name.find(|x: char| x.is_ascii_digit()).unwrap();
+    (pos, &name[..pos], name[pos..].parse().unwrap())
+}
+
+impl Bond {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        for (k, v) in &self.io_special_override {
+            writeln!(o, "\tio_special_override {k} = {v};")?;
+        }
+        for (pin, pad) in self.pins.iter().sorted_by_key(|(k, _)| pad_sort_key(k)) {
+            writeln!(o, "\tpin {pin} = {pad};")?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode)]
 pub struct Device {
     pub name: String,
     pub chip: ChipId,
-    pub packages: BTreeMap<String, BondId>,
+    pub bonds: BTreeMap<String, BondId>,
     pub speeds: BTreeMap<String, SpeedId>,
 }
 
@@ -121,76 +167,110 @@ impl Database {
         let config = bincode::config::standard();
         Ok(bincode::decode_from_std_read(&mut cf, config)?)
     }
-}
 
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> JsonValue {
-        jzon::object! {
-            kind: chip.kind.to_string(),
-            idcode: chip.idcode,
-            blocks: chip.blocks,
-            ios: jzon::object::Object::from_iter(
-                chip.io.iter().map(|(&mc, bank)| (format!("IOB_{mc}"), bank.to_idx()))
-            ),
-            banks: chip.banks,
-            tdo_bank: chip.tdo_bank.to_idx(),
-            io_special: jzon::object::Object::from_iter(
-                chip.io_special.iter().map(|(key, mc)| {
-                    (key, format!("IOB_{mc}"))
-                })
-            ),
-            imux_bits: &chip.imux_bits,
-            uim_ibuf_bits: if let Some(ref bits) = chip.uim_ibuf_bits {
-                bits.into()
-            } else {
-                JsonValue::Null
-            },
-            program_time: chip.program_time,
-            erase_time: chip.erase_time,
+    pub fn dump(&self, o: &mut dyn std::io::Write, flags: DumpFlags) -> std::io::Result<()> {
+        if flags.chip || flags.device {
+            for (cid, chip) in &self.chips {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    if cid == dev.chip {
+                        write!(o, " {dev}", dev = dev.name)?;
+                    }
+                }
+                writeln!(o)?;
+                if flags.chip {
+                    writeln!(o, "chip {cid} {{")?;
+                    chip.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "chip {cid};")?;
+                }
+            }
         }
-    }
-}
+        if flags.device && !flags.chip {
+            writeln!(o)?;
+        }
 
-impl From<&Bond> for JsonValue {
-    fn from(bond: &Bond) -> JsonValue {
-        jzon::object! {
-            io_special_override: jzon::object::Object::from_iter(
-                bond.io_special_override.iter().map(|(key, mc)| {
-                    (key, format!("IOB_{mc}"))
-                })
-            ),
-            pins: jzon::object::Object::from_iter(
-                bond.pins.iter().map(|(k, v)| (k, v.to_string()))
-            ),
+        if flags.bond || flags.device {
+            for (bid, bond) in &self.bonds {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    for (pkg, &dbond) in &dev.bonds {
+                        if dbond == bid {
+                            write!(o, " {dev}-{pkg}", dev = dev.name)?;
+                        }
+                    }
+                }
+                writeln!(o)?;
+                if flags.bond {
+                    writeln!(o, "bond {bid} {{")?;
+                    bond.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "bond {bid};")?;
+                }
+            }
         }
-    }
-}
+        if flags.device && !flags.bond {
+            writeln!(o)?;
+        }
 
-impl From<&Device> for JsonValue {
-    fn from(device: &Device) -> Self {
-        jzon::object! {
-            name: device.name.as_str(),
-            chip: device.chip.to_idx(),
-            packages: jzon::object::Object::from_iter(
-                device.packages.iter().map(|(name, bond)| (name, bond.to_idx()))
-            ),
-            speeds: jzon::object::Object::from_iter(
-                device.speeds.iter().map(|(name, speed)| (name, speed.to_idx()))
-            ),
+        if flags.speed || flags.device {
+            for (sid, speed) in &self.speeds {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    for (sname, &dspeed) in &dev.speeds {
+                        if dspeed == sid {
+                            write!(o, " {dev}-{sname}", dev = dev.name)?;
+                        }
+                    }
+                }
+                writeln!(o)?;
+                if flags.speed {
+                    writeln!(o, "speed {sid} {{")?;
+                    write!(o, "{speed}")?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "speed {sid};")?;
+                }
+            }
         }
-    }
-}
+        if flags.device && !flags.speed {
+            writeln!(o)?;
+        }
 
-impl From<&Database> for JsonValue {
-    fn from(db: &Database) -> Self {
-        jzon::object! {
-            chips: Vec::from_iter(db.chips.values()),
-            bonds: Vec::from_iter(db.bonds.values()),
-            speeds: Vec::from_iter(db.speeds.values()),
-            devices: Vec::from_iter(db.devices.iter()),
-            mc_bits: &db.mc_bits,
-            block_bits: &db.block_bits,
-            global_bits: &db.global_bits,
+        if flags.device {
+            for dev in &self.devices {
+                writeln!(o, "device {n} {{", n = dev.name)?;
+                writeln!(o, "\tchip {cid};", cid = dev.chip)?;
+                for (pkg, bond) in &dev.bonds {
+                    writeln!(o, "\tbond {pkg} = {bond};")?;
+                }
+                for speed in dev.speeds.values() {
+                    writeln!(o, "\tspeed {speed};")?;
+                }
+                writeln!(o, "}}")?;
+                writeln!(o)?;
+            }
         }
+
+        if flags.bsdata {
+            writeln!(o, "bstile MC_BITS {{")?;
+            self.mc_bits.dump(o)?;
+            writeln!(o, "}}")?;
+            writeln!(o)?;
+            writeln!(o, "bstile BLOCK_BITS {{")?;
+            self.block_bits.dump(o)?;
+            writeln!(o, "}}")?;
+            writeln!(o)?;
+            writeln!(o, "bstile GLOBAL_BITS {{")?;
+            self.global_bits.dump(o)?;
+            writeln!(o, "}}")?;
+            writeln!(o)?;
+        }
+        Ok(())
     }
 }

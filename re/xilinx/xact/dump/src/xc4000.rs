@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{
-        LegacyBel, BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, PinDir, TileClass,
+        BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, LegacyBel, PinDir, TileClass,
         TileWireCoord, WireKind,
     },
     dir::{Dir, DirMap},
@@ -70,7 +70,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for i in 0..single_num {
             let w0 = db
                 .wires
-                .insert(format!("SINGLE.{hv}{i}"), WireKind::MultiOut)
+                .insert(format!("SINGLE.{hv}{i}"), WireKind::MultiRoot)
                 .0;
             let w1 = db
                 .wires
@@ -87,7 +87,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         for i in 0..2 {
             let w0 = db
                 .wires
-                .insert(format!("DOUBLE.{hv}{i}.0"), WireKind::MultiOut)
+                .insert(format!("DOUBLE.{hv}{i}.0"), WireKind::MultiRoot)
                 .0;
             let w1 = db
                 .wires
@@ -291,7 +291,7 @@ pub fn make_intdb(kind: ChipKind) -> IntDb {
         if name.starts_with("OUT.HIOB") && kind != ChipKind::Xc4000H {
             continue;
         }
-        let w = db.wires.insert(name.into(), WireKind::LogicOut).0;
+        let w = db.wires.insert(name.into(), WireKind::BelOut).0;
         for &dir in dirs {
             let wo = db
                 .wires

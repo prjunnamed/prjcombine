@@ -12,7 +12,6 @@ tempfile.workspace = true
 clap.workspace = true
 rayon.workspace = true
 rand.workspace = true
-jzon.workspace = true
 bincode.workspace = true
 zip.workspace = true
 walkdir.workspace = true

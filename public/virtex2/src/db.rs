@@ -1,12 +1,11 @@
 use std::{error::Error, fs::File, path::Path};
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
-use prjcombine_entity::{EntityId, EntityMap, EntityVec};
+use prjcombine_entity::{EntityMap, EntityVec};
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_types::{
     bsdata::BsData,
-    db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo},
+    db::{BondId, ChipId, DevBondId, DevSpeedId, DeviceCombo, DumpFlags},
 };
 
 use crate::{bond::Bond, chip::Chip};
@@ -45,28 +44,87 @@ impl Database {
         cf.finish()?;
         Ok(())
     }
-}
 
-impl From<&Device> for JsonValue {
-    fn from(part: &Device) -> Self {
-        jzon::object! {
-            name: part.name.as_str(),
-            chip: part.chip.to_idx(),
-            bonds: jzon::object::Object::from_iter(part.bonds.iter().map(|(_, name, bond)| (name.as_str(), bond.to_idx()))),
-            speeds: Vec::from_iter(part.speeds.values().map(|x| x.as_str())),
-            combos: Vec::from_iter(part.combos.iter()),
+    pub fn dump(&self, o: &mut dyn std::io::Write, flags: DumpFlags) -> std::io::Result<()> {
+        if flags.chip || flags.device {
+            for (cid, chip) in &self.chips {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    if dev.chip == cid {
+                        write!(o, " {dev}", dev = dev.name)?;
+                    }
+                }
+                writeln!(o)?;
+                if flags.chip {
+                    writeln!(o, "chip {cid} {{")?;
+                    chip.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "chip {cid};")?;
+                }
+            }
         }
-    }
-}
+        if flags.device && !flags.chip {
+            writeln!(o)?;
+        }
 
-impl From<&Database> for JsonValue {
-    fn from(db: &Database) -> Self {
-        jzon::object! {
-            chips: Vec::from_iter(db.chips.values()),
-            bonds: Vec::from_iter(db.bonds.values()),
-            devices: Vec::from_iter(db.devices.iter()),
-            int: &db.int,
-            bsdata: &db.bsdata,
+        if flags.bond || flags.device {
+            for (bid, bond) in &self.bonds {
+                write!(o, "//")?;
+                for dev in &self.devices {
+                    for (_, pkg, &dbond) in &dev.bonds {
+                        if dbond == bid {
+                            write!(o, " {dev}-{pkg}", dev = dev.name)?;
+                        }
+                    }
+                }
+                writeln!(o)?;
+                if flags.bond {
+                    writeln!(o, "bond {bid} {{")?;
+                    bond.dump(o)?;
+                    writeln!(o, "}}")?;
+                    writeln!(o)?;
+                } else {
+                    writeln!(o, "bond {bid};")?;
+                }
+            }
         }
+        if flags.device && !flags.bond {
+            writeln!(o)?;
+        }
+
+        if flags.device {
+            for dev in &self.devices {
+                writeln!(o, "device {n} {{", n = dev.name)?;
+                writeln!(o, "\tchip {c};", c = dev.chip)?;
+                for (_dpid, pkg, bond) in &dev.bonds {
+                    writeln!(o, "\tbond {pkg} = {bond};")?;
+                }
+                for speed in dev.speeds.values() {
+                    writeln!(o, "\tspeed {speed};")?;
+                }
+                for combo in &dev.combos {
+                    writeln!(
+                        o,
+                        "\tcombo {pkg} {speed};",
+                        pkg = dev.bonds.key(combo.devbond),
+                        speed = dev.speeds[combo.speed]
+                    )?;
+                }
+                writeln!(o, "}}")?;
+                writeln!(o)?;
+            }
+        }
+
+        if flags.intdb {
+            self.int.dump(o)?;
+            writeln!(o)?;
+        }
+
+        if flags.bsdata {
+            self.bsdata.dump(o)?;
+        }
+        Ok(())
     }
 }

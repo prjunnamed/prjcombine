@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use bincode::{Decode, Encode};
-use jzon::JsonValue;
+use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::{
     db::{CellSlotId, TileClassId},
@@ -630,79 +630,43 @@ impl Chip {
     }
 }
 
-impl From<&SpecialTile> for JsonValue {
-    fn from(special: &SpecialTile) -> Self {
-        jzon::object! {
-            io: jzon::object::Object::from_iter(special.io.iter().map(|(slot, io)| (slot.to_string(), io.to_string()))),
-            cells: Vec::from_iter(special.cells.values().map(|cell| cell.to_string())),
-        }
-    }
-}
-
-impl From<&Chip> for JsonValue {
-    fn from(chip: &Chip) -> Self {
-        jzon::object! {
-            kind: chip.kind.to_string(),
-            columns: chip.columns,
-            col_bio_split: chip.col_bio_split.to_idx(),
-            cols_bram: Vec::from_iter(chip.cols_bram.iter().map(|col| col.to_idx())),
-            rows: chip.rows,
-            row_mid: chip.row_mid.to_idx(),
-            rows_colbuf: Vec::from_iter(chip.rows_colbuf.iter().map(|(row_mid, row_start, row_end)| {
-                jzon::array![row_mid.to_idx(), row_start.to_idx(), row_end.to_idx()]
-            })),
-            cfg_io: jzon::object::Object::from_iter(chip.cfg_io.iter().map(|(k, io)| {
-                (k.to_string(), io.to_string())
-            })),
-            io_iob: jzon::object::Object::from_iter(chip.io_iob.iter().map(|(&k, &v)| (k.to_string(), v.to_string()))),
-            io_od: Vec::from_iter(chip.io_od.iter().map(|crd| crd.to_string())),
-            special_tiles: jzon::object::Object::from_iter(chip.special_tiles.iter().map(|(&k, v)| (k.to_string(), v))),
-        }
-    }
-}
-
-impl std::fmt::Display for Chip {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "\tKIND: {k:?}", k = self.kind)?;
-        writeln!(f, "\tDIMS: {c}×{r}", c = self.columns, r = self.rows)?;
-        writeln!(f, "\tBIO SPLIT COLUMN: {c}", c = self.col_bio_split)?;
+impl Chip {
+    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+        writeln!(o, "\tkind {};", self.kind)?;
+        writeln!(o, "\tcolumns {};", self.columns)?;
+        writeln!(o, "\trows {};", self.rows)?;
+        writeln!(o, "\tcol_bio_split {};", self.col_bio_split)?;
         if !self.cols_bram.is_empty() {
-            write!(f, "\tBRAM COLUMNS:")?;
-            for &col in &self.cols_bram {
-                write!(f, " {col}")?;
-            }
-            writeln!(f)?;
+            writeln!(
+                o,
+                "\tcols_bram {};",
+                self.cols_bram.iter().map(|x| x.to_string()).join(", ")
+            )?;
         }
-        writeln!(f, "\tROW MID: {r}", r = self.row_mid)?;
-        if !self.rows_colbuf.is_empty() {
-            writeln!(f, "\tROWS COLBUF:")?;
-            for &(row_mid, row_bot, row_top) in &self.rows_colbuf {
-                writeln!(f, "\t\t{row_mid}: {row_bot}..{row_top}")?;
-            }
+        writeln!(o, "\trow_mid {};", self.row_mid)?;
+        for &(row_hclk, row_start, row_end) in &self.rows_colbuf {
+            writeln!(o, "\trow_colbuf {row_hclk} = {row_start}..{row_end};")?;
         }
-        for (&key, special) in &self.special_tiles {
-            writeln!(f, "\tSPECIAL {key}:")?;
-            for (slot, io) in &special.io {
-                writeln!(f, "\t\tIO {slot}: {io}")?;
-            }
-            for (idx, cell) in &special.cells {
-                writeln!(f, "\t\t{idx}: {cell}")?;
-            }
-        }
-        writeln!(f, "\tIOB:")?;
-        for (&io, &iob) in &self.io_iob {
-            writeln!(f, "\t\t{io}: {iob}")?;
-        }
-        if !self.io_od.is_empty() {
-            writeln!(f, "\tIO_OD:")?;
-            for &io in &self.io_od {
-                writeln!(f, "\t\t{io}")?;
-            }
-        }
-        writeln!(f, "\tCFG PINS:")?;
         for (k, v) in &self.cfg_io {
-            writeln!(f, "\t\t{k}: {v}",)?;
+            writeln!(o, "\tcfg_io {k} = {v};")?;
         }
+        for (ioi, iob) in &self.io_iob {
+            writeln!(o, "\tiob {ioi} = {iob};")?;
+        }
+        for io in &self.io_od {
+            writeln!(o, "\tio_od {io};")?;
+        }
+        for (key, spec) in &self.special_tiles {
+            writeln!(o, "\tspecial {key} {{")?;
+            for v in spec.cells.values() {
+                writeln!(o, "\t\tcell {v};")?;
+            }
+            for (k, v) in &spec.io {
+                writeln!(o, "\t\tio {k} = {v};")?;
+            }
+            writeln!(o, "\t}}")?;
+        }
+
         Ok(())
     }
 }

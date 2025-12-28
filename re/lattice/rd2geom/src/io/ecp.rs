@@ -6,7 +6,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{LegacyBel, BelPin, TileWireCoord},
+    db::{BelPin, LegacyBel, TileWireCoord},
     dir::{Dir, DirH, DirV},
     grid::{BelCoord, CellCoord, DieId},
 };

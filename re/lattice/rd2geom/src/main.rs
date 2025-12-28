@@ -16,7 +16,7 @@ use prjcombine_ecp::{
 };
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
-    db::{LegacyBel, BelInfo, BelSlotId, IntDb, TileClassId},
+    db::{BelInfo, BelSlotId, IntDb, LegacyBel, TileClassId},
     grid::{BelCoord, CellCoord, ColId, WireCoord},
 };
 use prjcombine_re_lattice_naming::{BelNaming, ChipNaming, Database, WireName};
@@ -414,7 +414,12 @@ impl ChipContext<'_> {
         self.insert_bel_generic(bcrd, BelInfo::Legacy(bel));
     }
 
-    fn extract_simple_bel(&mut self, bcrd: BelCoord, cell: CellCoord, suffix: &'static str) -> LegacyBel {
+    fn extract_simple_bel(
+        &mut self,
+        bcrd: BelCoord,
+        cell: CellCoord,
+        suffix: &'static str,
+    ) -> LegacyBel {
         let wires = self.sorted_wires[&(cell, suffix)].clone();
         let mut bel = LegacyBel::default();
         for (pin, wire) in wires {

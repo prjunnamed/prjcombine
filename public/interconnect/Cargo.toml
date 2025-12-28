@@ -8,7 +8,6 @@ prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 bincode.workspace = true
 bimap.workspace = true
-jzon.workspace = true
 
 [lints]
 workspace = true
