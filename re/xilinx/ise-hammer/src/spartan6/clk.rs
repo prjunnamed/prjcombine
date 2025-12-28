@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{dir::DirV, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{
-    FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum,
+    DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum,
     xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -106,12 +106,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BufpllPll {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: self.1.into(),
                         bel: self.2.into(),
                         attr: self.3.clone(),
                         val: self.4.clone(),
-                    },
+                    }),
                     rects: edev.tile_bits(ntcrd),
                 });
                 return Some((fuzzer, false));

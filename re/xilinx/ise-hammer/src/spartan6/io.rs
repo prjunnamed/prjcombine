@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
     extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
@@ -185,12 +185,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
                 .find_tile_by_class(tcrd.with_row(row), |kind| kind == "IOI.LR")
             {
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: "IOI.LR".to_string(),
                         bel: self.0.into(),
                         attr: self.1.into(),
                         val: self.2.into(),
-                    },
+                    }),
                     rects: edev.tile_bits(ntcrd),
                 })
             }

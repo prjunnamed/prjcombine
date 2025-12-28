@@ -7,10 +7,16 @@ use std::{
 };
 
 use itertools::Itertools;
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{
+    EntityId, EntityPartVec, EntityVec,
+    id::{EntityIdU16, EntityTag},
+};
 use prjcombine_interconnect::{
-    db::{TileClassId, TileSlotId},
-    grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId, TileCoord},
+    db::{
+        BelAttributeId, BelSlotId, EnumValueId, PolTileWireCoord, TileClassId, TileSlotId,
+        TileWireCoord,
+    },
+    grid::{BelCoord, CellCoord, ColId, DieId, ExpandedGrid, RowId, TileCoord},
 };
 use prjcombine_re_hammer::{Backend, BatchValue, Fuzzer, FuzzerGen, FuzzerId};
 use prjcombine_types::bsdata::{BitRectId, BsData, TileBit, TileItem, TileItemKind};
@@ -27,7 +33,7 @@ pub trait FpgaBackend: Backend<State = State, FuzzerInfo = FuzzerInfo<Self::BitR
 
 #[derive(Clone, Debug)]
 pub struct FuzzerFeature<BitRect> {
-    pub id: FeatureId,
+    pub key: DiffKey,
     pub rects: EntityVec<BitRectId, BitRect>,
 }
 
@@ -38,7 +44,7 @@ pub struct FuzzerInfo<BitRect> {
 
 impl<BitRect> std::fmt::Debug for FuzzerInfo<BitRect> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.features[0].id)
+        write!(f, "{:?}", self.features[0].key)
     }
 }
 
@@ -57,7 +63,7 @@ impl<'a, B: FpgaBackend> Clone for Box<dyn FuzzerProp<'a, B> + 'a> {
 #[derive(Debug)]
 pub struct FpgaFuzzerGen<'b, B: FpgaBackend> {
     pub tile_class: Option<TileClassId>,
-    pub feature: FeatureId,
+    pub key: DiffKey,
     pub props: Vec<Box<dyn FuzzerProp<'b, B> + 'b>>,
 }
 
@@ -65,7 +71,7 @@ impl<B: FpgaBackend> Clone for FpgaFuzzerGen<'_, B> {
     fn clone(&self) -> Self {
         Self {
             tile_class: self.tile_class,
-            feature: self.feature.clone(),
+            key: self.key.clone(),
             props: self.props.clone(),
         }
     }
@@ -86,7 +92,7 @@ impl<B: FpgaBackend> FpgaFuzzerGen<'_, B> {
         let mut fuzzer = Fuzzer::new(FuzzerInfo {
             features: vec![FuzzerFeature {
                 rects,
-                id: self.feature.clone(),
+                key: self.key.clone(),
             }],
         });
         let mut sad_props = BTreeSet::new();
@@ -766,6 +772,28 @@ impl std::fmt::Debug for FeatureId {
     }
 }
 
+pub struct SpecialTag;
+impl EntityTag for SpecialTag {
+    const PREFIX: &'static str = "SPEC";
+}
+
+pub type SpecialId = EntityIdU16<SpecialTag>;
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub enum DiffKey {
+    Legacy(FeatureId),
+    BelAttrBit(TileClassId, BelSlotId, BelAttributeId, usize),
+    BelAttrValue(TileClassId, BelSlotId, BelAttributeId, EnumValueId),
+    BelAttrSpecial(TileClassId, BelSlotId, BelAttributeId, SpecialId),
+    BelSpecial(TileClassId, BelSlotId, SpecialId),
+    GlobalLegacy(String),
+    GlobalBelAttrBit(BelCoord, BelAttributeId, usize),
+    Routing(TileClassId, TileWireCoord, PolTileWireCoord),
+    RoutingInv(TileClassId, TileWireCoord),
+    RoutingSpecial(TileClassId, TileWireCoord, SpecialId),
+    RoutingPairSpecial(TileClassId, TileWireCoord, PolTileWireCoord, SpecialId),
+}
+
 #[derive(Clone, Debug)]
 pub struct FeatureData {
     pub diffs: Vec<Diff>,
@@ -774,7 +802,7 @@ pub struct FeatureData {
 
 #[derive(Debug, Default)]
 pub struct State {
-    pub features: BTreeMap<FeatureId, FeatureData>,
+    pub features: BTreeMap<DiffKey, FeatureData>,
 }
 
 impl State {
@@ -793,23 +821,15 @@ impl State {
         let bel = bel.into();
         let attr = attr.into();
         let val = val.into();
-        let id = FeatureId {
+        let key = DiffKey::Legacy(FeatureId {
             tile,
             bel,
             attr,
             val,
-        };
+        });
         self.features
-            .remove(&id)
-            .unwrap_or_else(|| {
-                panic!(
-                    "NO DIFF: {tile} {bel} {attr} {val}",
-                    tile = id.tile,
-                    bel = id.bel,
-                    attr = id.attr,
-                    val = id.val
-                )
-            })
+            .remove(&key)
+            .unwrap_or_else(|| panic!("NO DIFF: {key:?}"))
             .diffs
     }
 
@@ -836,24 +856,16 @@ impl State {
         let bel = bel.into();
         let attr = attr.into();
         let val = val.into();
-        let id = FeatureId {
+        let key = DiffKey::Legacy(FeatureId {
             tile,
             bel,
             attr,
             val,
-        };
+        });
         &self
             .features
-            .get(&id)
-            .unwrap_or_else(|| {
-                panic!(
-                    "NO DIFF: {tile} {bel} {attr} {val}",
-                    tile = id.tile,
-                    bel = id.bel,
-                    attr = id.attr,
-                    val = id.val
-                )
-            })
+            .get(&key)
+            .unwrap_or_else(|| panic!("NO DIFF: {key:?}"))
             .diffs
     }
 
@@ -899,7 +911,7 @@ impl State {
                 }
                 eprintln!("failed to xlat bit {k:?} [bits {bbits:?}] for {f:?}, candidates:");
                 for feat in &f.features {
-                    println!("{:?}: {:?}", feat.id, feat.rects);
+                    println!("{:?}: {:?}", feat.key, feat.rects);
                 }
                 return Some(vec![]);
             }
@@ -916,13 +928,13 @@ impl State {
                     }
                 }
             } else {
-                match self.features.entry(feat.id.clone()) {
+                match self.features.entry(feat.key.clone()) {
                     btree_map::Entry::Occupied(mut e) => {
                         let v = e.get_mut();
                         if v.diffs != xdiffs {
                             eprintln!(
                                 "bits mismatch for {f:?}/{fid:?}: {vbits:?} vs {xdiffs:?}",
-                                fid = feat.id,
+                                fid = feat.key,
                                 vbits = v.diffs
                             );
                             return Some(v.fuzzers.clone());

@@ -1,5 +1,7 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::{Diff, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_enum,
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex2::tslots;
@@ -44,13 +46,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
             let tcrd = tcrd.delta(-1, 0).tile(tslots::RANDOR);
             let tile = &backend.edev[tcrd];
             let tcls = backend.edev.db.tile_classes.key(tile.class);
-            let first_feature_id = fuzzer.info.features.first().unwrap().id.clone();
+            let DiffKey::Legacy(first_feature_id) =
+                fuzzer.info.features.first().unwrap().key.clone()
+            else {
+                unreachable!()
+            };
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: tcls.into(),
                     bel: "RANDOR_INIT".into(),
                     ..first_feature_id
-                },
+                }),
                 rects: backend.edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))

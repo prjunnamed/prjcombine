@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
     dir::DirV,
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp};
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_xilinx_bitstream::{BitRect, Reg};
 
@@ -49,7 +49,9 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let tcrd = self.relation.resolve(backend, tcrd)?;
         let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
-        let main_id = &fuzzer.info.features[0].id;
+        let DiffKey::Legacy(ref main_id) = fuzzer.info.features[0].key else {
+            unreachable!()
+        };
         let id = FeatureId {
             tile: tile.into(),
             bel: self.bel.as_ref().unwrap_or(&main_id.bel).clone(),
@@ -57,7 +59,7 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTile<R> {
             val: self.val.as_ref().unwrap_or(&main_id.val).clone(),
         };
         fuzzer.info.features.push(FuzzerFeature {
-            id,
+            key: DiffKey::Legacy(id),
             rects: backend.edev.tile_bits(tcrd),
         });
         Some((fuzzer, false))
@@ -103,15 +105,17 @@ impl<'b, R: TileRelation + 'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileMaybe
             return Some((fuzzer, true));
         };
         let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
-        let main_id = &fuzzer.info.features[0].id;
-        let id = FeatureId {
+        let DiffKey::Legacy(ref main_id) = fuzzer.info.features[0].key else {
+            unreachable!()
+        };
+        let key = DiffKey::Legacy(FeatureId {
             tile: tile.into(),
             bel: self.bel.as_ref().unwrap_or(&main_id.bel).clone(),
             attr: self.attr.as_ref().unwrap_or(&main_id.attr).clone(),
             val: self.val.as_ref().unwrap_or(&main_id.val).clone(),
-        };
+        });
         fuzzer.info.features.push(FuzzerFeature {
-            id,
+            key,
             rects: backend.edev.tile_bits(tcrd),
         });
         Some((fuzzer, false))
@@ -156,7 +160,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
         if let Some(locs) = backend.edev.tile_index.get(self.kind) {
             for &tcrd in locs {
                 let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
-                let main_id = &fuzzer.info.features[0].id;
+                let DiffKey::Legacy(ref main_id) = fuzzer.info.features[0].key else {
+                    unreachable!()
+                };
                 let id = FeatureId {
                     tile: tile.into(),
                     bel: self.bel.as_ref().unwrap_or(&main_id.bel).clone(),
@@ -164,7 +170,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByKind {
                     val: self.val.as_ref().unwrap_or(&main_id.val).clone(),
                 };
                 fuzzer.info.features.push(FuzzerFeature {
-                    id,
+                    key: DiffKey::Legacy(id),
                     rects: backend.edev.tile_bits(tcrd),
                 });
             }
@@ -215,7 +221,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
             }
             for &tcrd in locs {
                 let tile = backend.edev.db.tile_classes.key(backend.edev[tcrd].class);
-                let main_id = &fuzzer.info.features[0].id;
+                let DiffKey::Legacy(ref main_id) = fuzzer.info.features[0].key else {
+                    unreachable!()
+                };
                 let id = FeatureId {
                     tile: tile.into(),
                     bel: self.bel.as_ref().unwrap_or(&main_id.bel).clone(),
@@ -223,7 +231,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesByBel {
                     val: self.val.as_ref().unwrap_or(&main_id.val).clone(),
                 };
                 fuzzer.info.features.push(FuzzerFeature {
-                    id,
+                    key: DiffKey::Legacy(id),
                     rects: backend.edev.tile_bits(tcrd),
                 });
             }
@@ -274,7 +282,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         for die in backend.edev.die.ids() {
-            let main_id = &fuzzer.info.features[0].id;
+            let DiffKey::Legacy(ref main_id) = fuzzer.info.features[0].key else {
+                unreachable!()
+            };
             let id = FeatureId {
                 tile: self.tile.clone(),
                 bel: self.bel.as_ref().unwrap_or(&main_id.bel).clone(),
@@ -286,7 +296,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraReg {
             if self.present {
                 rects.extend(self.regs.iter().map(|&reg| BitRect::RegPresent(die, reg)));
             }
-            fuzzer.info.features.push(FuzzerFeature { id, rects });
+            fuzzer.info.features.push(FuzzerFeature {
+                key: DiffKey::Legacy(id),
+                rects,
+            });
         }
         Some((fuzzer, false))
     }
@@ -306,7 +319,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraGtz {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let main_id = &fuzzer.info.features[0].id;
+        let DiffKey::Legacy(ref main_id) = fuzzer.info.features[0].key else {
+            unreachable!()
+        };
         let id = FeatureId {
             tile: "GTZ".into(),
             bel: "GTZ".into(),
@@ -314,7 +329,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraGtz {
             val: main_id.val.clone(),
         };
         fuzzer.info.features.push(FuzzerFeature {
-            id,
+            key: DiffKey::Legacy(id),
             rects: EntityVec::from_iter([BitRect::Gtz(self.0)]),
         });
         Some((fuzzer, false))

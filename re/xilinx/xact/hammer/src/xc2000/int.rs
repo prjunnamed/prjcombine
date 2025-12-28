@@ -5,7 +5,8 @@ use prjcombine_interconnect::{
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum,
+    xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_types::bsdata::BitRectId;
@@ -309,12 +310,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: bidi_tile.into(),
                         bel: "INT".into(),
                         attr: format!("BIDI.{wn}"),
                         val: "W".into(),
-                    },
+                    }),
                     rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))
@@ -325,12 +326,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: bidi_tile.into(),
                         bel: "INT".into(),
                         attr: format!("BIDI.{wn}"),
                         val: "E".into(),
-                    },
+                    }),
                     rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))
@@ -341,12 +342,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: bidi_tile.into(),
                         bel: "INT".into(),
                         attr: format!("BIDI.{wn}"),
                         val: "S".into(),
-                    },
+                    }),
                     rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))
@@ -357,12 +358,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for SingleBidi {
                     return Some((fuzzer, true));
                 }
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: bidi_tile.into(),
                         bel: "INT".into(),
                         attr: format!("BIDI.{wn}"),
                         val: "N".into(),
-                    },
+                    }),
                     rects: backend.edev.tile_bits(bidi_tcrd),
                 });
                 Some((fuzzer, false))

@@ -5,8 +5,8 @@ use prjcombine_interconnect::{
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, extract_bitvec_val, extract_bitvec_val_part,
-    xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, extract_bitvec_val,
+    extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -60,12 +60,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
             let col = edev.chip.col_edge(self.0.h);
             let tcrd = tcrd.with_col(col).tile(tslots::BEL);
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: edev.db.tile_classes.key(edev[tcrd].class).clone(),
                     bel: "MISC".into(),
                     attr: "DCM_ENABLE".into(),
                     val: "1".into(),
-                },
+                }),
                 rects: edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))

@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
@@ -283,14 +283,16 @@ fn apply_imux_finish<'a>(
         let crd = backend
             .ngrid
             .int_pip(tcrd, wire_pin, TileWireCoord::new_idx(0, wire.slot));
-        if &fuzzer.info.features[0].id.tile != backend.edev.db.tile_classes.key(tile.class) {
+        if let DiffKey::Legacy(ref id) = fuzzer.info.features[0].key
+            && &id.tile != backend.edev.db.tile_classes.key(tile.class)
+        {
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: backend.edev.db.tile_classes.key(tile.class).clone(),
                     bel: "INT".into(),
                     attr: format!("INV.{wn}"),
                     val: if inv { "1" } else { "0" }.into(),
-                },
+                }),
                 rects: EntityVec::from_iter([backend.edev.btile_main(col, row)]),
             });
         }

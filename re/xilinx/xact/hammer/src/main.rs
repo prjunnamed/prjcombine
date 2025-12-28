@@ -98,11 +98,8 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: 
         | ChipKind::SpartanXl => xc4000::collect_fuzzers(&mut ctx),
         ChipKind::Xc5200 => xc5200::collect_fuzzers(&mut ctx),
     }
-    for (feat, data) in state.features.iter().sorted_by_key(|&(k, _)| k) {
-        println!(
-            "{} {} {} {}: {:?}",
-            feat.tile, feat.bel, feat.attr, feat.val, data.diffs
-        );
+    for (key, data) in state.features.iter().sorted_by_key(|&(k, _)| k) {
+        println!("{key:?}: {diffs:?}", diffs = data.diffs);
     }
 }
 

@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum,
     xlat_enum_default, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -349,12 +349,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeaterMgt {
                 let rcol = if is_w { col } else { col - 1 };
                 let ntcrd = tcrd.with_cr(rcol, row).tile(tslots::CLK);
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
                         bel: "HCLK_MGT_REPEATER".into(),
                         attr: self.1.clone(),
                         val: self.2.clone(),
-                    },
+                    }),
                     rects: edev.tile_bits(ntcrd),
                 });
             }

@@ -6,8 +6,8 @@ use prjcombine_interconnect::{
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FuzzerProp, OcdMode, enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
-    xlat_enum_ocd,
+    Diff, DiffKey, FuzzerProp, OcdMode, enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec,
+    xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{
@@ -425,7 +425,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Iobify {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
-        let id = &mut fuzzer.info.features[0].id;
+        let DiffKey::Legacy(ref mut id) = fuzzer.info.features[0].key else {
+            unreachable!()
+        };
         assert_eq!(id.bel, *backend.edev.db.bel_slots.key(self.0.bel));
         id.bel = format!("IOB{}", self.0.index);
         Some((fuzzer, false))

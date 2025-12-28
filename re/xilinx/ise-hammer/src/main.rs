@@ -702,11 +702,8 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &R
             .insert_device_data(&part.name, format!("IDCODE:{which}"), idcode);
     }
 
-    for (feat, data) in &ctx.state.features {
-        println!(
-            "{} {} {} {}: {:?}",
-            feat.tile, feat.bel, feat.attr, feat.val, data.diffs
-        );
+    for (key, data) in &ctx.state.features {
+        println!("{key:?}: {diffs:?}", diffs = data.diffs);
     }
 }
 

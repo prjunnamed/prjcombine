@@ -23,6 +23,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirPartMap, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
 };
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId};
 use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{
@@ -151,6 +152,9 @@ impl HarvestContext<'_> {
         let mut colbuf_map = BTreeMap::new();
         let harvester = self.harvester.get_mut().unwrap();
         for (key, bits) in &harvester.known_global {
+            let DiffKey::GlobalLegacy(key) = key else {
+                continue;
+            };
             let Some(crd) = key.strip_prefix("COLBUF:") else {
                 continue;
             };
@@ -221,7 +225,7 @@ impl HarvestContext<'_> {
 
                 for (idx, bits) in plb_bits.iter().enumerate() {
                     let bits = bits.as_ref().unwrap();
-                    let key = format!("COLBUF:{col:#}.{row:#}.{idx}");
+                    let key = DiffKey::GlobalLegacy(format!("COLBUF:{col:#}.{row:#}.{idx}"));
                     let bits = bits
                         .iter()
                         .map(|(&bit, &val)| ((BitOwner::Main(col, trow), bit.frame, bit.bit), val))
@@ -235,7 +239,15 @@ impl HarvestContext<'_> {
         let tcid = self.edev.chip.kind.tile_class_colbuf().unwrap();
         let tcls = self.edev.db.tile_classes.key(tcid);
         for (idx, bits) in plb_bits.into_iter().enumerate() {
-            harvester.force_tiled(format!("{tcls}:COLBUF:GLOBAL.{idx}:BIT0"), bits.unwrap());
+            harvester.force_tiled(
+                DiffKey::Legacy(FeatureId {
+                    tile: tcls.to_string(),
+                    bel: "COLBUF".to_string(),
+                    attr: format!("GLOBAL.{idx}"),
+                    val: "BIT0".to_string(),
+                }),
+                bits.unwrap(),
+            );
         }
         harvester.process();
     }
@@ -1895,57 +1907,70 @@ impl PartContext<'_> {
         let tcid = self.chip.kind.tile_class_plb();
         let tcls = self.intdb.tile_classes.key(tcid);
         harvester.force_tiled(
-            format!("{tcls}:LC0:MUX.I2:LTIN"),
+            DiffKey::Legacy(FeatureId {
+                tile: tcls.to_string(),
+                bel: "LC0".to_string(),
+                attr: "MUX.I2".to_string(),
+                val: "LTIN".to_string(),
+            }),
             BTreeMap::from_iter([(TileBit::new(0, 0, 50), true)]),
         );
     }
 
     fn inject_io_inv_clk(&mut self, harvester: &mut Harvester<BitOwner>) {
-        for (tcid, key, bit) in [
+        for (tcid, attr, bit) in [
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
+                "INV.IMUX_IO_ICLK_OPTINV",
                 TileBit::new(0, 9, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::W),
-                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
+                "INV.IMUX_IO_OCLK_OPTINV",
                 TileBit::new(0, 15, 4),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
+                "INV.IMUX_IO_ICLK_OPTINV",
                 TileBit::new(0, 9, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::E),
-                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
+                "INV.IMUX_IO_OCLK_OPTINV",
                 TileBit::new(0, 15, 13),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
+                "INV.IMUX_IO_ICLK_OPTINV",
                 TileBit::new(0, 6, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::S),
-                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
+                "INV.IMUX_IO_OCLK_OPTINV",
                 TileBit::new(0, 1, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INT:INV.IMUX_IO_ICLK_OPTINV:BIT0",
+                "INV.IMUX_IO_ICLK_OPTINV",
                 TileBit::new(0, 9, 35),
             ),
             (
                 self.chip.kind.tile_class_ioi(Dir::N),
-                "INT:INV.IMUX_IO_OCLK_OPTINV:BIT0",
+                "INV.IMUX_IO_OCLK_OPTINV",
                 TileBit::new(0, 14, 35),
             ),
         ] {
             let Some(tcid) = tcid else { continue };
             let tcls = self.intdb.tile_classes.key(tcid);
-            harvester.force_tiled(format!("{tcls}:{key}"), BTreeMap::from_iter([(bit, true)]));
+            harvester.force_tiled(
+                DiffKey::Legacy(FeatureId {
+                    tile: tcls.to_string(),
+                    bel: "INT".to_string(),
+                    attr: attr.to_string(),
+                    val: "BIT0".to_string(),
+                }),
+                BTreeMap::from_iter([(bit, true)]),
+            );
         }
     }
 
@@ -1961,9 +1986,15 @@ impl PartContext<'_> {
                 let TileItemKind::BitVec { ref invert } = item.kind else {
                     unreachable!()
                 };
+                let (bel, attr) = name.split_once(':').unwrap();
                 for (idx, (&bit, inv)) in item.bits.iter().zip(invert.iter()).enumerate() {
                     harvester.force_tiled(
-                        format!("{tcls}:{name}:BIT{idx}"),
+                        DiffKey::Legacy(FeatureId {
+                            tile: tcls.to_string(),
+                            bel: bel.to_string(),
+                            attr: attr.to_string(),
+                            val: format!("BIT{idx}"),
+                        }),
                         BTreeMap::from_iter([(bit, !inv)]),
                     );
                 }
@@ -1993,13 +2024,19 @@ impl PartContext<'_> {
             pips.insert(tcid, tcls_pips);
             let tile_data = &db.bsdata.tiles[tile];
             for (name, item) in &tile_data.items {
+                let (bel, attr) = name.split_once(':').unwrap();
                 if name.ends_with(":PIN_TYPE") || name.starts_with("INT:INV") {
                     let TileItemKind::BitVec { ref invert } = item.kind else {
                         unreachable!()
                     };
                     for (idx, (&bit, inv)) in item.bits.iter().zip(invert.iter()).enumerate() {
                         harvester.force_tiled(
-                            format!("{tile}:{name}:BIT{idx}"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tile.to_string(),
+                                bel: bel.to_string(),
+                                attr: attr.to_string(),
+                                val: format!("BIT{idx}"),
+                            }),
                             BTreeMap::from_iter([(bit, !inv)]),
                         );
                     }
@@ -2012,7 +2049,12 @@ impl PartContext<'_> {
                             continue;
                         }
                         harvester.force_tiled(
-                            format!("{tile}:{name}:{vname}"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tile.to_string(),
+                                bel: bel.to_string(),
+                                attr: attr.to_string(),
+                                val: vname.to_string(),
+                            }),
                             BTreeMap::from_iter(
                                 item.bits
                                     .iter()
@@ -2029,7 +2071,12 @@ impl PartContext<'_> {
                     };
                     assert_eq!(item.bits.len(), 1);
                     harvester.force_tiled(
-                        format!("{tile}:INT:MUX.{wt}:OUT_{b}"),
+                        DiffKey::Legacy(FeatureId {
+                            tile: tile.to_string(),
+                            bel: "INT".to_string(),
+                            attr: format!("MUX.{wt}"),
+                            val: format!("OUT_{b}"),
+                        }),
                         BTreeMap::from_iter(
                             item.bits
                                 .iter()

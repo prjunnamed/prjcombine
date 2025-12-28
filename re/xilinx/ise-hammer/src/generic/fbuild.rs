@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     dir::DirV,
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
 use prjcombine_xilinx_bitstream::Reg;
 
@@ -339,7 +339,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
     ) -> FuzzBuilderTestManual<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
-        let feature = FeatureId {
+        let key = DiffKey::Legacy(FeatureId {
             tile: if let Some(tile_class) = self.tile_class {
                 self.backend.edev.db.tile_classes.key(tile_class).clone()
             } else {
@@ -348,12 +348,12 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
             bel: bel.into(),
             attr: attr.into(),
             val: val.into(),
-        };
+        });
         FuzzBuilderTestManual {
             session: self.session,
             tile_class: self.tile_class,
             props: self.props,
-            feature,
+            key,
         }
     }
 
@@ -400,7 +400,7 @@ pub struct FuzzBuilderTestManual<'sm, 'b> {
     pub session: &'sm mut Session<'b, IseBackend<'b>>,
     pub tile_class: Option<TileClassId>,
     pub props: Vec<Box<DynProp<'b>>>,
-    pub feature: FeatureId,
+    pub key: DiffKey,
 }
 
 impl<'b> FuzzBuilderTestManual<'_, 'b> {
@@ -443,7 +443,7 @@ impl<'b> FuzzBuilderTestManual<'_, 'b> {
     pub fn commit(self) {
         let fgen = FpgaFuzzerGen {
             tile_class: self.tile_class,
-            feature: self.feature,
+            key: self.key,
             props: self.props,
         };
         self.session.add_fuzzer(Box::new(fgen));
@@ -704,7 +704,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
     ) -> FuzzBuilderBelTestManual<'sm, 'b> {
         let attr = attr.as_ref();
         let val = val.as_ref();
-        let feature = FeatureId {
+        let key = DiffKey::Legacy(FeatureId {
             tile: self
                 .backend
                 .edev
@@ -715,14 +715,14 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
             bel: self.backend.edev.db.bel_slots.key(self.bel).clone(),
             attr: attr.into(),
             val: val.into(),
-        };
+        });
         FuzzBuilderBelTestManual {
             session: self.session,
             backend: self.backend,
             tile_class: self.tile_class,
             bel: self.bel,
             props: self.props,
-            feature,
+            key,
         }
     }
 }
@@ -734,7 +734,7 @@ pub struct FuzzBuilderBelTestManual<'sm, 'b> {
     pub tile_class: TileClassId,
     pub bel: BelSlotId,
     pub props: Vec<Box<DynProp<'b>>>,
-    pub feature: FeatureId,
+    pub key: DiffKey,
 }
 
 impl<'b> FuzzBuilderBelTestManual<'_, 'b> {
@@ -882,7 +882,7 @@ impl<'b> FuzzBuilderBelTestManual<'_, 'b> {
     pub fn commit(self) {
         let fgen = FpgaFuzzerGen {
             tile_class: Some(self.tile_class),
-            feature: self.feature,
+            key: self.key,
             props: self.props,
         };
         self.session.add_fuzzer(Box::new(fgen));

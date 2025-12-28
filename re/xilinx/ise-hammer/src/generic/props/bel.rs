@@ -2,7 +2,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, BelSlotId},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::FuzzerProp;
+use prjcombine_re_fpga_hammer::{DiffKey, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_re_xilinx_naming::db::BelNaming;
 
@@ -847,7 +847,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ForceBelName {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        fuzzer.info.features[0].id.bel = self.0.clone();
+        let DiffKey::Legacy(ref mut id) = fuzzer.info.features[0].key else {
+            unreachable!()
+        };
+        id.bel = self.0.clone();
         Some((fuzzer, false))
     }
 }

@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId, RowId, TileCoord, TileIobId};
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
     extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -179,12 +179,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "IO".into(),
                     bel: "IOB0".into(),
                     attr: "PRESENT".into(),
                     val: "VREF".into(),
-                },
+                }),
                 rects: backend.edev.tile_bits(vref),
             });
         }
@@ -224,12 +224,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VrefInternal {
         });
         fuzzer = fuzzer.fuzz(Key::InternalVref(io.bank), None, self.1);
         fuzzer.info.features.push(FuzzerFeature {
-            id: FeatureId {
+            key: DiffKey::Legacy(FeatureId {
                 tile: self.0.into(),
                 bel: "INTERNAL_VREF".into(),
                 attr: "VREF".into(),
                 val: self.1.to_string(),
-            },
+            }),
             rects: edev.tile_bits(hclk_ioi),
         });
         Some((fuzzer, false))
@@ -273,12 +273,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Test VR.
         if self.0.is_some() {
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "IO".into(),
                     bel: "IOB_COMMON".into(),
                     attr: "PRESENT".into(),
                     val: "VR".into(),
-                },
+                }),
                 rects: edev.tile_bits(tile_vr),
             });
         }
@@ -295,12 +295,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Test bank DCI.
         if let Some(std) = self.0 {
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "HCLK_IOI".into(),
                     bel: "DCI".into(),
                     attr: "STD".into(),
                     val: std.into(),
-                },
+                }),
                 rects: edev.tile_bits(hclk_ioi),
             });
         }
@@ -358,7 +358,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
 
         let hclk_ioi_tile = &edev[hclk_ioi];
         fuzzer.info.features.push(FuzzerFeature {
-            id: FeatureId {
+            key: DiffKey::Legacy(FeatureId {
                 tile: if edev.kind == ChipKind::Virtex5 {
                     "HCLK_IOI".into()
                 } else {
@@ -367,7 +367,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
                 bel: "LVDS".into(),
                 attr: self.0.into(),
                 val: self.1.into(),
-            },
+            }),
             rects: edev.tile_bits(hclk_ioi),
         });
         Some((fuzzer, false))

@@ -44,13 +44,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
         let ExpandedDevice::Xc2000(edev) = backend.edev else {
             unreachable!()
         };
-        let id = fuzzer.info.features.pop().unwrap().id;
+        let id = fuzzer.info.features.pop().unwrap().key;
         for row in backend.edev.rows(tcrd.die) {
             if row == edev.chip.row_s() || row == edev.chip.row_n() {
                 continue;
             }
             fuzzer.info.features.push(FuzzerFeature {
-                id: id.clone(),
+                key: id.clone(),
                 rects: EntityVec::from_iter([BitRect::Null, edev.btile_main(tcrd.col, row)]),
             });
         }

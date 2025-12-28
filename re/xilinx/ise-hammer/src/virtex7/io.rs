@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord, TileIobId};
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
     extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum,
     xlat_enum_ocd,
 };
@@ -218,12 +218,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             if self.0 {
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: edev.db.tile_classes.key(edev[vref].class).clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VREF".into(),
-                    },
+                    }),
                     rects: backend.edev.tile_bits(vref),
                 });
             }
@@ -270,12 +270,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             // Test VR.
             if self.0.is_some() {
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: edev.db.tile_classes.key(edev[vr_tile].class).clone(),
                         bel: "IOB0".into(),
                         attr: "PRESENT".into(),
                         val: "VR".into(),
-                    },
+                    }),
                     rects: edev.tile_bits(vr_tile),
                 });
             }
@@ -294,12 +294,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Test bank DCI.
         if let Some(std) = self.0 {
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "HCLK_IOI_HP".into(),
                     bel: "DCI".into(),
                     attr: "STD".into(),
                     val: std.into(),
-                },
+                }),
                 rects: edev.tile_bits(hclk_ioi),
             });
         }

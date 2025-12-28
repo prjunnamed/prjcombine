@@ -4,7 +4,8 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum_ocd,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec,
+    xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -70,12 +71,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeater {
                 let rcol = if self.0 == DirH::W { col } else { col - 1 };
                 let ntcrd = tcrd.with_cr(rcol, rrow).tile(tslots::CLK);
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
                         bel: "HCLK_MGT_REPEATER".into(),
                         attr: self.2.clone(),
                         val: self.3.into(),
-                    },
+                    }),
                     rects: edev.tile_bits(ntcrd),
                 });
             }

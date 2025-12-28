@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum_default,
-    xlat_enum_ocd,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec,
+    xlat_enum_default, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::bels;
@@ -42,12 +42,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
                 continue;
             }
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "CMT_DCM".into(),
                     bel: self.0.into(),
                     attr: self.1.into(),
                     val: self.2.into(),
-                },
+                }),
                 rects: backend.edev.tile_bits(ntcrd),
             });
         }

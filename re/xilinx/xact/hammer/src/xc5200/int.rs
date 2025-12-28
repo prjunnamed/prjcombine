@@ -363,13 +363,13 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for AllColumnIo {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let id = fuzzer.info.features.pop().unwrap().id;
+        let id = fuzzer.info.features.pop().unwrap().key;
         for row in backend.edev.rows(tcrd.die) {
             if row == backend.edev.chip.row_s() || row == backend.edev.chip.row_n() {
                 continue;
             }
             fuzzer.info.features.push(FuzzerFeature {
-                id: id.clone(),
+                key: id.clone(),
                 rects: EntityVec::from_iter([
                     BitRect::Null,
                     backend.edev.btile_main(tcrd.col, row),

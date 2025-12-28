@@ -2,7 +2,7 @@ use prjcombine_interconnect::{
     db::{BelSlotId, TileClassId},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{FeatureId, FpgaFuzzerGen, FuzzerProp};
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bitvec::BitVec;
 
@@ -227,7 +227,7 @@ impl<'b> FuzzBuilderTestManual<'_, 'b> {
     pub fn commit(self) {
         let fgen = FpgaFuzzerGen {
             tile_class: Some(self.tile_class),
-            feature: self.feature,
+            key: DiffKey::Legacy(self.feature),
             props: self.props,
         };
         self.session.add_fuzzer(Box::new(fgen));
@@ -437,7 +437,7 @@ impl<'b> FuzzBuilderBelTestManual<'_, 'b> {
     pub fn commit(self) {
         let fgen = FpgaFuzzerGen {
             tile_class: Some(self.tile_class),
-            feature: self.feature,
+            key: DiffKey::Legacy(self.feature),
             props: self.props,
         };
         self.session.add_fuzzer(Box::new(fgen));

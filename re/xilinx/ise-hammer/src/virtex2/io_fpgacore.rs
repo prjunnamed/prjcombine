@@ -1,6 +1,6 @@
 use prjcombine_interconnect::{dir::Dir, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_bit_wide, xlat_bool,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_bit_wide, xlat_bool,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -50,12 +50,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
         };
         if edge_match {
             let tile = &backend.edev[tcrd];
-            let fuzzer_id = fuzzer.info.features[0].id.clone();
+            let DiffKey::Legacy(fuzzer_id) = fuzzer.info.features[0].key.clone() else {
+                unreachable!()
+            };
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: backend.edev.db.tile_classes.key(tile.class).clone(),
                     ..fuzzer_id
-                },
+                }),
                 rects: backend.edev.tile_bits(tcrd),
             });
             Some((fuzzer, false))

@@ -1,5 +1,5 @@
 use prjcombine_interconnect::{db::BelSlotId, grid::TileCoord};
-use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp};
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_types::bitvec::BitVec;
 
@@ -594,12 +594,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
         let tile = &backend.edev[self.tcrd];
         let tile = backend.edev.db.tile_classes.key(tile.class);
         fuzzer.info.features.push(FuzzerFeature {
-            id: FeatureId {
+            key: DiffKey::Legacy(FeatureId {
                 tile: tile.into(),
                 bel: self.bel.clone(),
                 attr: self.attr.clone(),
                 val: self.val.clone(),
-            },
+            }),
             rects: backend.edev.tile_bits(self.tcrd),
         });
         Some((fuzzer, false))

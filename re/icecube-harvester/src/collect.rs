@@ -7,8 +7,8 @@ use prjcombine_interconnect::{
     grid::{ColId, EdgeIoCoord, RowId, TileIobId},
 };
 use prjcombine_re_fpga_hammer::{
-    Collector, Diff, FeatureData, FeatureId, OcdMode, State, extract_bitvec_val_part, xlat_bit,
-    xlat_bitvec, xlat_enum, xlat_enum_ocd,
+    Collector, Diff, DiffKey, FeatureData, FeatureId, OcdMode, State, extract_bitvec_val_part,
+    xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
@@ -37,7 +37,8 @@ pub fn collect_iob(
             EdgeIoCoord::N(ColId::from_idx(1), TileIobId::from_idx(1)),
         ] {
             for attrval in ["IBUF_ENABLE:BIT0", "PULLUP:DISABLE"] {
-                let bits = &harvester.known_global[&format!("{anchor}:{attrval}")];
+                let bits =
+                    &harvester.known_global[&DiffKey::GlobalLegacy(format!("{anchor}:{attrval}"))];
                 let owner = bits.keys().next().unwrap().0;
                 let bits = BTreeMap::from_iter(bits.iter().map(|(&bit, &val)| {
                     let (bit_owner, frame, bit) = bit;
@@ -55,16 +56,26 @@ pub fn collect_iob(
                 let iob = anchor.iob();
                 let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
                 let tcls = edev.db.tile_classes.key(tcid);
-                harvester.force_tiled(format!("{tcls}:IOB{iob:#}:{attrval}"), bits);
+                let (attr, val) = attrval.split_once(':').unwrap();
+                harvester.force_tiled(
+                    DiffKey::Legacy(FeatureId {
+                        tile: tcls.to_string(),
+                        bel: format!("IOB{iob:#}"),
+                        attr: attr.to_string(),
+                        val: val.to_string(),
+                    }),
+                    bits,
+                );
             }
         }
         let mut res = BTreeMap::new();
         for &io in edev.chip.io_iob.keys() {
             let mut iob_loc = None;
             'attrs: for attrval in ["IBUF_ENABLE:BIT0", "PULLUP:DISABLE"] {
+                let (attr, val) = attrval.split_once(':').unwrap();
                 let bits = &harvester
                     .known_global
-                    .remove(&format!("{io}:{attrval}"))
+                    .remove(&DiffKey::GlobalLegacy(format!("{io}:{attrval}")))
                     .unwrap();
                 let owner = bits.keys().next().unwrap().0;
                 let bits = BTreeMap::from_iter(bits.iter().map(|(&bit, &val)| {
@@ -87,7 +98,13 @@ pub fn collect_iob(
                     let iob = TileIobId::from_idx(iob);
                     let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
                     let tcls = edev.db.tile_classes.key(tcid);
-                    if harvester.known_tiled[&format!("{tcls}:IOB{iob:#}:{attrval}")] == bits {
+                    if harvester.known_tiled[&DiffKey::Legacy(FeatureId {
+                        tile: tcls.to_string(),
+                        bel: format!("IOB{iob:#}"),
+                        attr: attr.to_string(),
+                        val: val.to_string(),
+                    })] == bits
+                    {
                         let loc = match edge {
                             Dir::W => {
                                 assert_eq!(col, edev.chip.col_w());
@@ -131,35 +148,26 @@ pub fn collect(
 ) -> BsData {
     let mut tiledb = BsData::new();
     let mut state = State::new();
-    let mut bitvec_diffs: BTreeMap<FeatureId, BTreeMap<usize, Diff>> = BTreeMap::new();
+    let mut bitvec_diffs: BTreeMap<DiffKey, BTreeMap<usize, Diff>> = BTreeMap::new();
     for (key, bits) in &harvester.known_global {
-        println!("unhandled global: {key}: {bits:?}");
+        println!("unhandled global: {key:?}: {bits:?}");
     }
     for (key, bits) in &harvester.known_tiled {
-        let &[tile, bel, attr, val] = Vec::from_iter(key.split(':')).as_slice() else {
-            unreachable!()
-        };
         let diff = Diff {
             bits: HashMap::from_iter(bits.iter().map(|(&k, &v)| (k, v))),
         };
-        if let Some(idx) = val.strip_prefix("BIT") {
-            let fid = FeatureId {
-                tile: tile.to_string(),
-                bel: bel.to_string(),
-                attr: attr.to_string(),
+        if let DiffKey::Legacy(id) = key
+            && let Some(idx) = id.val.strip_prefix("BIT")
+        {
+            let key = DiffKey::Legacy(FeatureId {
                 val: "".to_string(),
-            };
+                ..id.clone()
+            });
             let idx: usize = idx.parse().unwrap();
-            bitvec_diffs.entry(fid).or_default().insert(idx, diff);
+            bitvec_diffs.entry(key).or_default().insert(idx, diff);
         } else {
-            let fid = FeatureId {
-                tile: tile.to_string(),
-                bel: bel.to_string(),
-                attr: attr.to_string(),
-                val: val.to_string(),
-            };
             state.features.insert(
-                fid,
+                key.clone(),
                 FeatureData {
                     diffs: vec![diff],
                     fuzzers: vec![],
@@ -167,10 +175,10 @@ pub fn collect(
             );
         }
     }
-    for (fid, mut diffs) in bitvec_diffs {
+    for (key, mut diffs) in bitvec_diffs {
         let diffs = Vec::from_iter((0..diffs.len()).map(|idx| diffs.remove(&idx).unwrap()));
         state.features.insert(
-            fid,
+            key,
             FeatureData {
                 diffs,
                 fuzzers: vec![],
@@ -786,11 +794,8 @@ pub fn collect(
         );
     }
 
-    for (feat, data) in &state.features {
-        println!(
-            "uncollected: {} {} {} {}: {:?}",
-            feat.tile, feat.bel, feat.attr, feat.val, data.diffs
-        );
+    for (key, data) in &state.features {
+        println!("uncollected: {key:?}: {diffs:?}", diffs = data.diffs);
     }
 
     tiledb

@@ -4,7 +4,8 @@ use prjcombine_interconnect::{
     grid::{DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum_ocd,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide,
+    xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -147,12 +148,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraHclkDcmAttr {
                 .find_tile_by_class(tcrd.with_row(row), |kind| kind == self.1)
             {
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: self.1.into(),
                         bel: if self.1 == "DCM" { "DCM0" } else { self.1 }.into(),
                         attr: self.2.clone(),
                         val: self.3.into(),
-                    },
+                    }),
                     rects: edev.tile_bits(ntcrd),
                 });
                 sad = false;
@@ -184,12 +185,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraMgtRepeaterAttr {
                 let rcol = if self.0 == DirH::W { col } else { col - 1 };
                 let ntcrd = tcrd.with_col(rcol).tile(tslots::CLK);
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: "HCLK_MGT_REPEATER".into(),
                         bel: "HCLK_MGT_REPEATER".into(),
                         attr: self.1.clone(),
                         val: self.2.into(),
-                    },
+                    }),
                     rects: edev.tile_bits(ntcrd),
                 });
             }

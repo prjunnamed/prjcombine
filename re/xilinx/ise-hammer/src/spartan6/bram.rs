@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::{DiffKey, FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::bels;
 use prjcombine_types::{
@@ -33,7 +33,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraBramFixup {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let mut feature = fuzzer.info.features[0].clone();
-        feature.id.attr.push_str(".FIXUP");
+        let DiffKey::Legacy(ref mut id) = feature.key else {
+            unreachable!()
+        };
+        id.attr.push_str(".FIXUP");
         feature.rects = feature
             .rects
             .values()

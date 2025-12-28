@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, RowId, TileCoord, TileIobId},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
     extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum,
     xlat_enum_ocd,
 };
@@ -201,12 +201,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "IO".into(),
                     bel: "IOB0".into(),
                     attr: "PRESENT".into(),
                     val: "VREF".into(),
-                },
+                }),
                 rects: backend.edev.tile_bits(tcrd_vref),
             });
         }
@@ -250,12 +250,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         }
         // Test VR.
         fuzzer.info.features.push(FuzzerFeature {
-            id: FeatureId {
+            key: DiffKey::Legacy(FeatureId {
                 tile: "IO".into(),
                 bel: "IOB_COMMON".into(),
                 attr: "PRESENT".into(),
                 val: "VR".into(),
-            },
+            }),
             rects: edev.tile_bits(tile_vr),
         });
         // Take exclusive mutex on bank DCI.
@@ -267,12 +267,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         );
         // Test bank DCI.
         fuzzer.info.features.push(FuzzerFeature {
-            id: FeatureId {
+            key: DiffKey::Legacy(FeatureId {
                 tile: "HCLK_IOIS_DCI".into(),
                 bel: "DCI".into(),
                 attr: "STD".into(),
                 val: self.0.into(),
-            },
+            }),
             rects: edev.tile_bits(hclk_iois_dci),
         });
         // Take shared mutex on global DCI.
@@ -335,12 +335,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
         );
         if let Some(std) = self.0 {
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "HCLK_IOIS_LVDS".into(),
                     bel: "LVDS".into(),
                     attr: "STD".into(),
                     val: std.into(),
-                },
+                }),
                 rects: edev.tile_bits(hclk_iois_lvds),
             });
         }

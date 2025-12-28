@@ -1,7 +1,8 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
-    Diff, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum_ocd,
+    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide,
+    xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -75,12 +76,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkBramMgtPrev {
         if let Some(&col) = col {
             let ntcrd = tcrd.with_col(col).tile(tslots::CLK);
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "HCLK_BRAM_MGT".into(),
                     bel: "HCLK_BRAM_MGT".into(),
                     attr: self.0.clone(),
                     val: self.1.into(),
-                },
+                }),
                 rects: edev.tile_bits(ntcrd),
             });
             sad = false;
@@ -113,12 +114,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for HclkIoiCenter {
                 .find_tile_by_class(tcrd.with_col(edev.col_clk), |kind| kind == self.0)
         {
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: self.0.into(),
                     bel: self.1.into(),
                     attr: self.2.clone(),
                     val: self.3.into(),
-                },
+                }),
                 rects: edev.tile_bits(ntcrd),
             });
             sad = false;
@@ -158,12 +159,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllIodelay {
                 }
             }
             fuzzer.info.features.push(FuzzerFeature {
-                id: FeatureId {
+                key: DiffKey::Legacy(FeatureId {
                     tile: "IO".into(),
                     bel: "IODELAY_BOTH".into(),
                     attr: "IDELAYCTRL_MODE".into(),
                     val: self.1.into(),
-                },
+                }),
                 rects: edev.tile_bits(ntcrd),
             });
         }

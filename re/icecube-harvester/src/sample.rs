@@ -6,6 +6,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
 };
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId};
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bitstream::Bitstream,
@@ -123,13 +124,23 @@ pub fn make_sample(
                                 assert!(defs::wires::OUT_LC.contains(wa));
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Clock(0), BitOwner::Clock(1)],
-                                    format!("{tcls_gb_root}:GB_ROOT:MUX.GLOBAL.{idx}:IO"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_gb_root.to_string(),
+                                        bel: "GB_ROOT".to_string(),
+                                        attr: format!("MUX.GLOBAL.{idx}"),
+                                        val: "IO".to_string(),
+                                    }),
                                 );
                             }
                             continue;
                         }
                         pips.insert((tile.class, wb, wa));
-                        let key = format!("{tile_name}:INT:MUX.{wbn}:{wan}");
+                        let key = DiffKey::Legacy(FeatureId {
+                            tile: tile_name.to_string(),
+                            bel: "INT".to_string(),
+                            attr: format!("MUX.{wbn}"),
+                            val: wan.to_string(),
+                        });
                         if (wbn.starts_with("QUAD") || wbn.starts_with("LONG"))
                             && wan.starts_with("OUT")
                         {
@@ -166,14 +177,19 @@ pub fn make_sample(
                                 let tcls = edev.db.tile_classes.key(tcid);
                                 sample.add_tiled_pattern(
                                     &[BitOwner::Main(cell.col, trow)],
-                                    format!("{tcls}:COLBUF:GLOBAL.{idx}:BIT0"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls.to_string(),
+                                        bel: "COLBUF".to_string(),
+                                        attr: format!("GLOBAL.{idx}"),
+                                        val: "BIT0".to_string(),
+                                    }),
                                 );
                             } else {
-                                sample.add_global_pattern_single(format!(
+                                sample.add_global_pattern_single(DiffKey::GlobalLegacy(format!(
                                     "COLBUF:{col:#}.{row:#}.{idx}",
                                     col = cell.col,
                                     row = cell.row
-                                ));
+                                )));
                             };
                         }
                         if io_hardip_outs.contains(&iwa) {
@@ -187,7 +203,12 @@ pub fn make_sample(
                             let tile_name = edev.db.tile_classes.key(tile.class);
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(crd.col, crd.row)],
-                                format!("{tile_name}:IO{io}:PIN_TYPE:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tile_name.to_string(),
+                                    bel: format!("IO{io}"),
+                                    attr: "PIN_TYPE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         }
                     }
@@ -206,7 +227,12 @@ pub fn make_sample(
                         let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &[BitOwner::Main(iwb.cell.col, iwb.cell.row)],
-                            format!("{tcls}:LC{dst_lc}:MUX.I2:LTIN"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: format!("LC{dst_lc}"),
+                                attr: "MUX.I2".to_string(),
+                                val: "LTIN".to_string(),
+                            }),
                         );
                         int_source.insert(iwb, (src_inst, InstPin::Simple("O".to_string())));
                     }
@@ -219,7 +245,12 @@ pub fn make_sample(
                         let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &[BitOwner::Main(iwb.cell.col, iwb.cell.row)],
-                            format!("{tcls}:INT:MUX.{wbn}:CI", wbn = edev.db.wires.key(iwb.slot)),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "INT".to_string(),
+                                attr: format!("MUX.{wbn}", wbn = edev.db.wires.key(iwb.slot)),
+                                val: "CI".to_string(),
+                            }),
                         );
                         int_source.insert(iwb, (src_inst, src_pin.clone()));
                     }
@@ -264,7 +295,12 @@ pub fn make_sample(
                         let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &tiles,
-                            format!("{tcls}:BRAM:CASCADE_OUT_{which}:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "BRAM".to_string(),
+                                attr: format!("CASCADE_OUT_{which}"),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                     (GenericNet::CascAddr(cell, idx), GenericNet::Int(iwb)) => {
@@ -308,7 +344,12 @@ pub fn make_sample(
                         let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &tiles,
-                            format!("{tcls}:BRAM:CASCADE_IN_{which}:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "BRAM".to_string(),
+                                attr: format!("CASCADE_IN_{which}"),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                     (GenericNet::Gbout(..), GenericNet::GlobalPadIn(_)) => {
@@ -328,7 +369,12 @@ pub fn make_sample(
                         let tcls = edev.db.tile_classes.key(tcid);
                         sample.add_tiled_pattern(
                             &[BitOwner::Clock(0), BitOwner::Clock(1)],
-                            format!("{tcls}:GB_ROOT:MUX.GLOBAL.{idx}:IO"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "GB_ROOT".to_string(),
+                                attr: format!("MUX.GLOBAL.{idx}"),
+                                val: "IO".to_string(),
+                            }),
                         );
                     }
                     _ => {
@@ -398,12 +444,22 @@ pub fn make_sample(
                                 assert_eq!(*cpin, InstPin::Simple("CO".into()));
                                 sample.add_tiled_pattern(
                                     &[btile],
-                                    format!("{tcls}:INT:MUX.IMUX_LC_I3[{lc}]:CI"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls.to_string(),
+                                        bel: "INT".to_string(),
+                                        attr: format!("MUX.IMUX_LC_I3[{lc}]"),
+                                        val: "CI".to_string(),
+                                    }),
                                 );
                                 if lc == 0 {
                                     sample.add_tiled_pattern(
                                         &[btile],
-                                        format!("{tcls}:LC{lc}:MUX.CI:CHAIN"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls.to_string(),
+                                            bel: format!("LC{lc}"),
+                                            attr: "MUX.CI".to_string(),
+                                            val: "CHAIN".to_string(),
+                                        }),
                                     );
                                 }
                                 3
@@ -427,7 +483,12 @@ pub fn make_sample(
                             if (swz_init & (1 << i)) != 0 {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls}:LC{lc}:LUT_INIT:BIT{i}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls.to_string(),
+                                        bel: format!("LC{lc}"),
+                                        attr: "LUT_INIT".to_string(),
+                                        val: format!("BIT{i}"),
+                                    }),
                                 );
                             }
                         }
@@ -444,23 +505,43 @@ pub fn make_sample(
                         if matches!(ci, InstPinSource::Gnd) {
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls}:LC{lc}:MUX.CI:0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls.to_string(),
+                                    bel: format!("LC{lc}"),
+                                    attr: "MUX.CI".to_string(),
+                                    val: "0".to_string(),
+                                }),
                             );
                         } else if matches!(ci, InstPinSource::Vcc) {
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls}:LC{lc}:MUX.CI:1"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls.to_string(),
+                                    bel: format!("LC{lc}"),
+                                    attr: "MUX.CI".to_string(),
+                                    val: "1".to_string(),
+                                }),
                             );
                         } else {
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls}:LC{lc}:MUX.CI:CHAIN"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls.to_string(),
+                                    bel: format!("LC{lc}"),
+                                    attr: "MUX.CI".to_string(),
+                                    val: "CHAIN".to_string(),
+                                }),
                             );
                         }
                     }
                     sample.add_tiled_pattern_single(
                         &[BitOwner::Main(col, row)],
-                        format!("{tcls}:LC{lc}:CARRY_ENABLE:BIT0"),
+                        DiffKey::Legacy(FeatureId {
+                            tile: tcls.to_string(),
+                            bel: format!("LC{lc}"),
+                            attr: "CARRY_ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
                     );
                 }
                 "SB_IO" | "SB_IO_DS" | "SB_GB_IO" | "SB_IO_OD" | "SB_IO_I3C" => {
@@ -496,7 +577,12 @@ pub fn make_sample(
                             if c == '1' {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_ioi}:IO{slot_idx}:PIN_TYPE:BIT{i}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_ioi.to_string(),
+                                        bel: format!("IO{slot_idx}"),
+                                        attr: "PIN_TYPE".to_string(),
+                                        val: format!("BIT{i}"),
+                                    }),
                                 );
                             }
                         }
@@ -508,13 +594,23 @@ pub fn make_sample(
                         {
                             sample.add_tiled_pattern(
                                 &[btile],
-                                format!("{tcls_ioi}:IO{slot_idx}:OUTPUT_ENABLE:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_ioi.to_string(),
+                                    bel: format!("IO{slot_idx}"),
+                                    attr: "OUTPUT_ENABLE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                             if is_lvds {
                                 let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
                                 sample.add_tiled_pattern(
                                     &[btile],
-                                    format!("{tcls_ioi}:IO{oiob:#}:OUTPUT_ENABLE:BIT0"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_ioi.to_string(),
+                                        bel: format!("IO{oiob:#}"),
+                                        attr: "OUTPUT_ENABLE".to_string(),
+                                        val: "BIT0".to_string(),
+                                    }),
                                 );
                             }
                         }
@@ -551,7 +647,12 @@ pub fn make_sample(
                                         };
                                         sample.add_tiled_pattern(
                                             &tiles,
-                                            format!("{tcls}:PLL:LATCH_GLOBAL_OUT_{ab}:BIT0"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: tcls.to_string(),
+                                                bel: "PLL".to_string(),
+                                                attr: format!("LATCH_GLOBAL_OUT_{ab}"),
+                                                val: "BIT0".to_string(),
+                                            }),
                                         );
                                         handled = true;
                                     }
@@ -560,7 +661,12 @@ pub fn make_sample(
                             if !handled {
                                 sample.add_tiled_pattern(
                                     &[btile],
-                                    format!("{tcls_iob}:IOB:LATCH_GLOBAL_OUT:BIT0"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_iob.to_string(),
+                                        bel: "IOB".to_string(),
+                                        attr: "LATCH_GLOBAL_OUT".to_string(),
+                                        val: "BIT0".to_string(),
+                                    }),
                                 );
                             }
                         }
@@ -570,11 +676,21 @@ pub fn make_sample(
                     {
                         sample.add_tiled_pattern(
                             &[btile],
-                            format!("{tcls_ioi}:INT:INV.IMUX_IO_ICLK_OPTINV:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_ioi.to_string(),
+                                bel: "INT".to_string(),
+                                attr: "INV.IMUX_IO_ICLK_OPTINV".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                         sample.add_tiled_pattern(
                             &[btile],
-                            format!("{tcls_ioi}:INT:INV.IMUX_IO_OCLK_OPTINV:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_ioi.to_string(),
+                                bel: "INT".to_string(),
+                                attr: "INV.IMUX_IO_OCLK_OPTINV".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
 
@@ -583,7 +699,12 @@ pub fn make_sample(
                         if weak_pullup.ends_with("0") {
                             sample.add_tiled_pattern_single(
                                 &[btile],
-                                format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_iob.to_string(),
+                                    bel: format!("IOB{iob:#}"),
+                                    attr: "WEAK_PULLUP".to_string(),
+                                    val: "DISABLE".to_string(),
+                                }),
                             );
                         }
                         let pullup = &inst.props["PULLUP"];
@@ -591,12 +712,22 @@ pub fn make_sample(
                             let pullup_kind = &inst.props["PULLUP_RESISTOR"];
                             sample.add_tiled_pattern_single(
                                 &[btile],
-                                format!("{tcls_iob}:IOB{iob:#}:PULLUP:{pullup_kind}"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_iob.to_string(),
+                                    bel: format!("IOB{iob:#}"),
+                                    attr: "PULLUP".to_string(),
+                                    val: pullup_kind.to_string(),
+                                }),
                             );
                         } else {
                             sample.add_tiled_pattern_single(
                                 &[btile],
-                                format!("{tcls_iob}:IOB{iob:#}:PULLUP:DISABLE"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_iob.to_string(),
+                                    bel: format!("IOB{iob:#}"),
+                                    attr: "PULLUP".to_string(),
+                                    val: "DISABLE".to_string(),
+                                }),
                             );
                         }
                     } else {
@@ -608,55 +739,99 @@ pub fn make_sample(
                             if !pullup {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_iob}:IOB{iob:#}:PULLUP:DISABLE"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_iob.to_string(),
+                                        bel: format!("IOB{iob:#}"),
+                                        attr: "PULLUP".to_string(),
+                                        val: "DISABLE".to_string(),
+                                    }),
                                 );
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_iob.to_string(),
+                                        bel: format!("IOB{iob:#}"),
+                                        attr: "WEAK_PULLUP".to_string(),
+                                        val: "DISABLE".to_string(),
+                                    }),
                                 );
                             } else if let Some(pullup_kind) = inst.props.get("PULLUP_RESISTOR")
                                 && pullup_kind != "100K"
                             {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_iob}:IOB{iob:#}:WEAK_PULLUP:DISABLE"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_iob.to_string(),
+                                        bel: format!("IOB{iob:#}"),
+                                        attr: "WEAK_PULLUP".to_string(),
+                                        val: "DISABLE".to_string(),
+                                    }),
                                 );
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_iob}:IOB{iob:#}:PULLUP:{pullup_kind}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_iob.to_string(),
+                                        bel: format!("IOB{iob:#}"),
+                                        attr: "PULLUP".to_string(),
+                                        val: pullup_kind.to_string(),
+                                    }),
                                 );
                             }
                         } else if edev.chip.kind != ChipKind::Ice40P01 {
                             if !pullup && !(io.edge() == Dir::W && edev.chip.kind.has_vref()) {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_iob}:IOB{iob:#}:PULLUP:DISABLE"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_iob.to_string(),
+                                        bel: format!("IOB{iob:#}"),
+                                        attr: "PULLUP".to_string(),
+                                        val: "DISABLE".to_string(),
+                                    }),
                                 );
                             }
                         } else {
                             if !pullup {
-                                sample.add_global_pattern(format!("{io}:PULLUP:DISABLE"));
+                                sample.add_global_pattern(DiffKey::GlobalLegacy(format!(
+                                    "{io}:PULLUP:DISABLE"
+                                )));
                             }
                         }
                     }
                     if is_lvds && !edev.chip.kind.has_vref() {
                         sample.add_tiled_pattern_single(
                             &[btile],
-                            format!("{tcls_iob}:IOB{iob:#}:LVDS_INPUT:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_iob.to_string(),
+                                bel: format!("IOB{iob:#}"),
+                                attr: "LVDS_INPUT".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                         let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
                         let oio = io.with_iob(oiob);
                         if edev.chip.kind == ChipKind::Ice40P01 {
-                            sample.add_global_pattern_single(format!("{oio}:PULLUP:DISABLE"));
+                            sample.add_global_pattern_single(DiffKey::GlobalLegacy(format!(
+                                "{oio}:PULLUP:DISABLE"
+                            )));
                         } else {
                             sample.add_tiled_pattern_single(
                                 &[btile],
-                                format!("{tcls_iob}:IOB{oiob:#}:PULLUP:DISABLE"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_iob.to_string(),
+                                    bel: format!("IOB{oiob:#}"),
+                                    attr: "PULLUP".to_string(),
+                                    val: "DISABLE".to_string(),
+                                }),
                             );
                             if edev.chip.kind.has_multi_pullup() {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
-                                    format!("{tcls_iob}:IOB{oiob:#}:WEAK_PULLUP:DISABLE"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_iob.to_string(),
+                                        bel: format!("IOB{oiob:#}"),
+                                        attr: "WEAK_PULLUP".to_string(),
+                                        val: "DISABLE".to_string(),
+                                    }),
                                 );
                             }
                         }
@@ -667,7 +842,12 @@ pub fn make_sample(
                     {
                         sample.add_tiled_pattern(
                             &[btile],
-                            format!("{tcls_iob}:IOB{iob:#}:IOSTD:{iostd}"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_iob.to_string(),
+                                bel: format!("IOB{iob:#}"),
+                                attr: "IOSTD".to_string(),
+                                val: iostd.to_string(),
+                            }),
                         );
                     }
 
@@ -676,11 +856,18 @@ pub fn make_sample(
                         && ibuf_used.contains(&iid)
                     {
                         if edev.chip.kind == ChipKind::Ice40P01 {
-                            sample.add_global_pattern_single(format!("{io}:IBUF_ENABLE:BIT0"));
+                            sample.add_global_pattern_single(DiffKey::GlobalLegacy(format!(
+                                "{io}:IBUF_ENABLE:BIT0"
+                            )));
                         } else {
                             sample.add_tiled_pattern_single(
                                 &[btile],
-                                format!("{tcls_iob}:IOB{iob:#}:IBUF_ENABLE:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_iob.to_string(),
+                                    bel: format!("IOB{iob:#}"),
+                                    attr: "IBUF_ENABLE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         }
                     }
@@ -694,12 +881,22 @@ pub fn make_sample(
                     let mut kind = kind.strip_prefix("SB_DFF").unwrap();
                     sample.add_tiled_pattern_single(
                         &[BitOwner::Main(col, row)],
-                        format!("{tcls}:LC{lc}:FF_ENABLE:BIT0"),
+                        DiffKey::Legacy(FeatureId {
+                            tile: tcls.to_string(),
+                            bel: format!("LC{lc}"),
+                            attr: "FF_ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
                     );
                     if let Some(rest) = kind.strip_prefix('N') {
                         sample.add_tiled_pattern_single(
                             &[BitOwner::Main(col, row)],
-                            format!("{tcls}:INT:INV.IMUX_CLK_OPTINV:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "INT".to_string(),
+                                attr: "INV.IMUX_CLK_OPTINV".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                         kind = rest;
                     }
@@ -711,23 +908,43 @@ pub fn make_sample(
                         "SS" => {
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls}:LC{lc}:FF_SR_VALUE:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls.to_string(),
+                                    bel: format!("LC{lc}"),
+                                    attr: "FF_SR_VALUE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         }
                         "R" => {
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls}:LC{lc}:FF_SR_ASYNC:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls.to_string(),
+                                    bel: format!("LC{lc}"),
+                                    attr: "FF_SR_ASYNC".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         }
                         "S" => {
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls}:LC{lc}:FF_SR_VALUE:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls.to_string(),
+                                    bel: format!("LC{lc}"),
+                                    attr: "FF_SR_VALUE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                             sample.add_tiled_pattern_single(
                                 &[BitOwner::Main(col, row)],
-                                format!("{tcls}:LC{lc}:FF_SR_ASYNC:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls.to_string(),
+                                    bel: format!("LC{lc}"),
+                                    attr: "FF_SR_ASYNC".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         }
                         "" => (),
@@ -756,7 +973,12 @@ pub fn make_sample(
                             }
                             sample.add_tiled_pattern(
                                 &[BitOwner::Main(wire.cell.col, wire.cell.row)],
-                                "INT_BRAM:INT:INV.IMUX_CLK_OPTINV:BIT0",
+                                DiffKey::Legacy(FeatureId {
+                                    tile: "INT_BRAM".to_string(),
+                                    bel: "INT".to_string(),
+                                    attr: "INV.IMUX_CLK_OPTINV".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         } else {
                             let pin = InstPin::Simple(pin.into());
@@ -807,19 +1029,36 @@ pub fn make_sample(
                     let tcid = edev.chip.kind.tile_class_bram();
                     let tcls = edev.db.tile_classes.key(tcid);
                     if design.kind.is_ice40() {
-                        sample
-                            .add_tiled_pattern_single(&btiles, format!("{tcls}:BRAM:ENABLE:BIT0"));
+                        sample.add_tiled_pattern_single(
+                            &btiles,
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "BRAM".to_string(),
+                                attr: "ENABLE".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
+                        );
                     }
                     if let Some(read_mode) = inst.props.get("READ_MODE") {
                         sample.add_tiled_pattern(
                             &btiles,
-                            format!("{tcls}:BRAM:READ_MODE:{read_mode}"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "BRAM".to_string(),
+                                attr: "READ_MODE".to_string(),
+                                val: read_mode.to_string(),
+                            }),
                         );
                     }
                     if let Some(write_mode) = inst.props.get("WRITE_MODE") {
                         sample.add_tiled_pattern(
                             &btiles,
-                            format!("{tcls}:BRAM:WRITE_MODE:{write_mode}"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls.to_string(),
+                                bel: "BRAM".to_string(),
+                                attr: "WRITE_MODE".to_string(),
+                                val: write_mode.to_string(),
+                            }),
                         );
                     }
                     for i in 0..16 {
@@ -832,7 +1071,12 @@ pub fn make_sample(
                                         let bit = (i << 8) | (j << 2) | k;
                                         sample.add_tiled_pattern(
                                             &[BitOwner::Bram(bel.col, bel.row)],
-                                            format!("BRAM_DATA:BRAM:INIT:BIT{bit}"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: "BRAM_DATA".to_string(),
+                                                bel: "BRAM".to_string(),
+                                                attr: "INIT".to_string(),
+                                                val: format!("BIT{bit}"),
+                                            }),
                                         );
                                     }
                                 }
@@ -861,34 +1105,66 @@ pub fn make_sample(
                     let tiles_io_b = [BitOwner::Main(crd_b.col, crd_b.row)];
                     let tcid_pll = SpecialTileKey::Pll(side).tile_class(edev.chip.kind);
                     let tcls_pll = edev.db.tile_classes.key(tcid_pll);
-                    sample.add_tiled_pattern(&tiles, format!("{tcls_pll}:PLL:MODE:{kind}"));
+                    sample.add_tiled_pattern(
+                        &tiles,
+                        DiffKey::Legacy(FeatureId {
+                            tile: tcls_pll.to_string(),
+                            bel: "PLL".to_string(),
+                            attr: "MODE".to_string(),
+                            val: kind.to_string(),
+                        }),
+                    );
                     let tcid_ioi = edev.chip.kind.tile_class_ioi(Dir::V(side)).unwrap();
                     let tcls_ioi = edev.db.tile_classes.key(tcid_ioi);
                     let tcid_iob = edev.chip.kind.tile_class_iob(Dir::V(side)).unwrap();
                     let tcls_iob = edev.db.tile_classes.key(tcid_iob);
-                    sample.add_tiled_pattern(&tiles_io_a, format!("{tcls_ioi}:IO1:PIN_TYPE:BIT0"));
+                    sample.add_tiled_pattern(
+                        &tiles_io_a,
+                        DiffKey::Legacy(FeatureId {
+                            tile: tcls_ioi.to_string(),
+                            bel: "IO1".to_string(),
+                            attr: "PIN_TYPE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
+                    );
                     if edev.chip.kind == ChipKind::Ice40P01 {
                         if kind.ends_with("_PAD") {
-                            sample.add_global_pattern_single(format!("{io_a}:PULLUP:DISABLE"));
+                            sample.add_global_pattern_single(DiffKey::GlobalLegacy(format!(
+                                "{io_a}:PULLUP:DISABLE"
+                            )));
                         }
-                        sample.add_global_pattern(format!("{io_a}:IBUF_ENABLE:BIT0"));
+                        sample.add_global_pattern(DiffKey::GlobalLegacy(format!(
+                            "{io_a}:IBUF_ENABLE:BIT0"
+                        )));
                     } else if kind.ends_with("_PAD") && edev.chip.kind.is_ice40() {
                         sample.add_tiled_pattern_single(
                             &tiles_io_a,
-                            format!("{tcls_iob}:IOB{iob_a:#}:PULLUP:DISABLE", iob_a = io_a.iob()),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_iob.to_string(),
+                                bel: format!("IOB{iob_a:#}", iob_a = io_a.iob()),
+                                attr: "PULLUP".to_string(),
+                                val: "DISABLE".to_string(),
+                            }),
                         );
                         sample.add_tiled_pattern_single(
                             &tiles_io_a,
-                            format!(
-                                "{tcls_iob}:IOB{iob_a:#}:IBUF_ENABLE:BIT0",
-                                iob_a = io_a.iob()
-                            ),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_iob.to_string(),
+                                bel: format!("IOB{iob_a:#}", iob_a = io_a.iob()),
+                                attr: "IBUF_ENABLE".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                     if edev.chip.kind.is_ultra() {
                         sample.add_tiled_pattern(
                             &tiles_io_a,
-                            format!("{tcls_ioi}:IO1:OUTPUT_ENABLE:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_ioi.to_string(),
+                                bel: "IO1".to_string(),
+                                attr: "OUTPUT_ENABLE".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                     if matches!(
@@ -897,7 +1173,12 @@ pub fn make_sample(
                     ) {
                         sample.add_tiled_pattern(
                             &tiles_io_b,
-                            format!("{tcls_ioi}:IO0:PIN_TYPE:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_ioi.to_string(),
+                                bel: "IO0".to_string(),
+                                attr: "PIN_TYPE".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                     for (prop, val) in &inst.props {
@@ -906,17 +1187,32 @@ pub fn make_sample(
                             if val == "1" {
                                 sample.add_tiled_pattern(
                                     &tiles_io_a,
-                                    format!("{tcls_ioi}:IO1:PIN_TYPE:BIT1"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_ioi.to_string(),
+                                        bel: "IO1".to_string(),
+                                        attr: "PIN_TYPE".to_string(),
+                                        val: "BIT1".to_string(),
+                                    }),
                                 );
                                 if edev.chip.kind == ChipKind::Ice40P01 {
                                     sample.add_tiled_pattern(
                                         &tiles_io_a,
-                                        format!("{tcls_iob}:IOB:LATCH_GLOBAL_OUT:BIT0"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls_iob.to_string(),
+                                            bel: "IOB".to_string(),
+                                            attr: "LATCH_GLOBAL_OUT".to_string(),
+                                            val: "BIT0".to_string(),
+                                        }),
                                     );
                                 } else {
                                     sample.add_tiled_pattern(
                                         &tiles,
-                                        format!("{tcls_pll}:PLL:LATCH_GLOBAL_OUT_A:BIT0"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls_pll.to_string(),
+                                            bel: "PLL".to_string(),
+                                            attr: "LATCH_GLOBAL_OUT_A".to_string(),
+                                            val: "BIT0".to_string(),
+                                        }),
                                     );
                                 }
                             }
@@ -926,17 +1222,32 @@ pub fn make_sample(
                             if val == "1" {
                                 sample.add_tiled_pattern(
                                     &tiles_io_b,
-                                    format!("{tcls_ioi}:IO0:PIN_TYPE:BIT1"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_ioi.to_string(),
+                                        bel: "IO0".to_string(),
+                                        attr: "PIN_TYPE".to_string(),
+                                        val: "BIT1".to_string(),
+                                    }),
                                 );
                                 if edev.chip.kind == ChipKind::Ice40P01 {
                                     sample.add_tiled_pattern(
                                         &tiles_io_b,
-                                        format!("{tcls_iob}:IOB:LATCH_GLOBAL_OUT:BIT0"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls_iob.to_string(),
+                                            bel: "IOB".to_string(),
+                                            attr: "LATCH_GLOBAL_OUT".to_string(),
+                                            val: "BIT0".to_string(),
+                                        }),
                                     );
                                 } else {
                                     sample.add_tiled_pattern(
                                         &tiles,
-                                        format!("{tcls_pll}:PLL:LATCH_GLOBAL_OUT_B:BIT0"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls_pll.to_string(),
+                                            bel: "PLL".to_string(),
+                                            attr: "LATCH_GLOBAL_OUT_B".to_string(),
+                                            val: "BIT0".to_string(),
+                                        }),
                                     );
                                 }
                             }
@@ -960,7 +1271,12 @@ pub fn make_sample(
                             for i in 0..4 {
                                 sample.add_tiled_pattern_single(
                                     &tiles,
-                                    format!("{tcls_pll}:PLL:{prop}:BIT{i}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_pll.to_string(),
+                                        bel: "PLL".to_string(),
+                                        attr: prop.to_string(),
+                                        val: format!("BIT{i}"),
+                                    }),
                                 );
                             }
                             continue;
@@ -985,13 +1301,25 @@ pub fn make_sample(
                                 if c == '1' {
                                     sample.add_tiled_pattern_single(
                                         &tiles,
-                                        format!("{tcls_pll}:PLL:{prop}:BIT{i}"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls_pll.to_string(),
+                                            bel: "PLL".to_string(),
+                                            attr: prop.to_string(),
+                                            val: format!("BIT{i}"),
+                                        }),
                                     );
                                 }
                             }
                         } else {
-                            sample
-                                .add_tiled_pattern(&tiles, format!("{tcls_pll}:PLL:{prop}:{val}"));
+                            sample.add_tiled_pattern(
+                                &tiles,
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_pll.to_string(),
+                                    bel: "PLL".to_string(),
+                                    attr: prop.to_string(),
+                                    val: val.to_string(),
+                                }),
+                            );
                         }
                     }
                 }
@@ -1017,12 +1345,22 @@ pub fn make_sample(
                             for k in [4, 5, 6, 7, 12, 13, 14, 15] {
                                 sample.add_tiled_pattern(
                                     &tiles[i..i + 1],
-                                    format!("{tcls_plb}:LC{j}:LUT_INIT:BIT{k}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_plb.to_string(),
+                                        bel: format!("LC{j}"),
+                                        attr: "LUT_INIT".to_string(),
+                                        val: format!("BIT{k}"),
+                                    }),
                                 );
                             }
                             sample.add_tiled_pattern(
                                 &tiles[i..i + 1],
-                                format!("{tcls_plb}:LC{j}:MUX.I2:LTIN"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_plb.to_string(),
+                                    bel: format!("LC{j}"),
+                                    attr: "MUX.I2".to_string(),
+                                    val: "LTIN".to_string(),
+                                }),
                             );
                         }
                     }
@@ -1033,11 +1371,23 @@ pub fn make_sample(
                         for k in [4, 5, 6, 7, 12, 13, 14, 15] {
                             sample.add_tiled_pattern(
                                 &tiles[4..5],
-                                format!("{tcls_plb}:LC0:LUT_INIT:BIT{k}"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_plb.to_string(),
+                                    bel: "LC0".to_string(),
+                                    attr: "LUT_INIT".to_string(),
+                                    val: format!("BIT{k}"),
+                                }),
                             );
                         }
-                        sample
-                            .add_tiled_pattern(&tiles[4..5], format!("{tcls_plb}:LC0:MUX.I2:LTIN"));
+                        sample.add_tiled_pattern(
+                            &tiles[4..5],
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_plb.to_string(),
+                                bel: "LC0".to_string(),
+                                attr: "MUX.I2".to_string(),
+                                val: "LTIN".to_string(),
+                            }),
+                        );
                     }
                     for (prop, val) in &inst.props {
                         for (i, c) in val.chars().rev().enumerate() {
@@ -1046,12 +1396,22 @@ pub fn make_sample(
                                 if prop == "NEG_TRIGGER" {
                                     sample.add_tiled_pattern_single(
                                         &tiles[2..3],
-                                        format!("{tcls_plb}:INT:INV.IMUX_CLK_OPTINV:BIT0"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls_plb.to_string(),
+                                            bel: "INT".to_string(),
+                                            attr: "INV.IMUX_CLK_OPTINV".to_string(),
+                                            val: "BIT0".to_string(),
+                                        }),
                                     );
                                 } else {
                                     sample.add_tiled_pattern_single(
                                         &tiles,
-                                        format!("{tcls}:MAC16:{prop}:BIT{i}"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls.to_string(),
+                                            bel: "MAC16".to_string(),
+                                            attr: prop.to_string(),
+                                            val: format!("BIT{i}"),
+                                        }),
                                     );
                                 }
                             }
@@ -1072,7 +1432,12 @@ pub fn make_sample(
                     {
                         sample.add_tiled_pattern(
                             &tiles,
-                            format!("{tcls_trim}:HFOSC:TRIM_FABRIC:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_trim.to_string(),
+                                bel: "HFOSC".to_string(),
+                                attr: "TRIM_FABRIC".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                     let clkhf_div = &inst.props["CLKHF_DIV"];
@@ -1084,7 +1449,12 @@ pub fn make_sample(
                         if c == '1' {
                             sample.add_tiled_pattern(
                                 &tiles,
-                                format!("{tcls_trim}:HFOSC:CLKHF_DIV:BIT{i}"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_trim.to_string(),
+                                    bel: "HFOSC".to_string(),
+                                    attr: "CLKHF_DIV".to_string(),
+                                    val: format!("BIT{i}"),
+                                }),
                             );
                         }
                     }
@@ -1103,7 +1473,12 @@ pub fn make_sample(
                     {
                         sample.add_tiled_pattern(
                             &tiles,
-                            format!("{tcls_trim}:LFOSC:TRIM_FABRIC:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_trim.to_string(),
+                                bel: "LFOSC".to_string(),
+                                attr: "TRIM_FABRIC".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                 }
@@ -1116,7 +1491,12 @@ pub fn make_sample(
                     );
                     sample.add_tiled_pattern_single(
                         &tiles,
-                        "LED_DRV_CUR_T04:LED_DRV_CUR:ENABLE:BIT0",
+                        DiffKey::Legacy(FeatureId {
+                            tile: "LED_DRV_CUR_T04".to_string(),
+                            bel: "LED_DRV_CUR".to_string(),
+                            attr: "ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
                     );
                     let tiles = Vec::from_iter(
                         edev.chip.special_tiles[&SpecialTileKey::Trim]
@@ -1131,7 +1511,12 @@ pub fn make_sample(
                     {
                         sample.add_tiled_pattern_single(
                             &tiles,
-                            format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_trim.to_string(),
+                                bel: "LED_DRV_CUR".to_string(),
+                                attr: "TRIM_FABRIC".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                     }
                 }
@@ -1156,7 +1541,12 @@ pub fn make_sample(
                                 got_any = true;
                                 sample.add_tiled_pattern_single(
                                     &tiles,
-                                    format!("{tcls_rgb_drv}:RGB_DRV:{prop}:BIT{i}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: tcls_rgb_drv.to_string(),
+                                        bel: "RGB_DRV".to_string(),
+                                        attr: prop.to_string(),
+                                        val: format!("BIT{i}"),
+                                    }),
                                 );
                             }
                         }
@@ -1166,12 +1556,22 @@ pub fn make_sample(
                         if inst.props["CURRENT_MODE"] == "0b1" {
                             sample.add_tiled_pattern_single(
                                 &tiles,
-                                format!("{tcls_rgb_drv}:RGB_DRV:CURRENT_MODE:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_rgb_drv.to_string(),
+                                    bel: "RGB_DRV".to_string(),
+                                    attr: "CURRENT_MODE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         }
                         sample.add_tiled_pattern_single(
                             &tiles,
-                            format!("{tcls_rgb_drv}:RGB_DRV:ENABLE:BIT0"),
+                            DiffKey::Legacy(FeatureId {
+                                tile: tcls_rgb_drv.to_string(),
+                                bel: "RGB_DRV".to_string(),
+                                attr: "ENABLE".to_string(),
+                                val: "BIT0".to_string(),
+                            }),
                         );
                         if edev.chip.kind == ChipKind::Ice40T01 {
                             let tiles = Vec::from_iter(
@@ -1180,14 +1580,26 @@ pub fn make_sample(
                                     .values()
                                     .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                             );
-                            sample
-                                .add_tiled_pattern_single(&tiles, "IR500_DRV:RGB_DRV:ENABLE:BIT0");
+                            sample.add_tiled_pattern_single(
+                                &tiles,
+                                DiffKey::Legacy(FeatureId {
+                                    tile: "IR500_DRV".to_string(),
+                                    bel: "RGB_DRV".to_string(),
+                                    attr: "ENABLE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
+                            );
                         }
                     } else {
                         if got_any {
                             sample.add_tiled_pattern_single(
                                 &tiles,
-                                format!("{tcls_rgb_drv}:RGB_DRV:ENABLE:BIT0"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: tcls_rgb_drv.to_string(),
+                                    bel: "RGB_DRV".to_string(),
+                                    attr: "ENABLE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
                             );
                         }
                     }
@@ -1209,12 +1621,22 @@ pub fn make_sample(
                             if i == 0 {
                                 sample.add_tiled_pattern(
                                     &tiles,
-                                    format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{i}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: "IR_DRV".to_string(),
+                                        bel: "IR_DRV".to_string(),
+                                        attr: "IR_CURRENT".to_string(),
+                                        val: format!("BIT{i}"),
+                                    }),
                                 );
                             } else {
                                 sample.add_tiled_pattern_single(
                                     &tiles,
-                                    format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{i}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: "IR_DRV".to_string(),
+                                        bel: "IR_DRV".to_string(),
+                                        attr: "IR_CURRENT".to_string(),
+                                        val: format!("BIT{i}"),
+                                    }),
                                 );
                             }
                         }
@@ -1238,22 +1660,53 @@ pub fn make_sample(
                             if i < 4 {
                                 sample.add_tiled_pattern_single(
                                     &tiles,
-                                    format!("IR500_DRV:BARCODE_DRV:BARCODE_CURRENT:BIT{i}"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: "IR500_DRV".to_string(),
+                                        bel: "BARCODE_DRV".to_string(),
+                                        attr: "BARCODE_CURRENT".to_string(),
+                                        val: format!("BIT{i}"),
+                                    }),
                                 );
                             } else {
                                 sample.add_tiled_pattern_single(
                                     &tiles,
-                                    format!(
-                                        "IR500_DRV:IR400_DRV:IR400_CURRENT:BIT{ii}",
-                                        ii = i - 4
-                                    ),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: "IR500_DRV".to_string(),
+                                        bel: "IR400_DRV".to_string(),
+                                        attr: "IR400_CURRENT".to_string(),
+                                        val: format!("BIT{ii}", ii = i - 4),
+                                    }),
                                 );
                             }
                         }
                     }
-                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:BARCODE_DRV:ENABLE:BIT0");
-                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:IR400_DRV:ENABLE:BIT0");
-                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:IR500_DRV:ENABLE:BIT0");
+                    sample.add_tiled_pattern_single(
+                        &tiles,
+                        DiffKey::Legacy(FeatureId {
+                            tile: "IR500_DRV".to_string(),
+                            bel: "BARCODE_DRV".to_string(),
+                            attr: "ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
+                    );
+                    sample.add_tiled_pattern_single(
+                        &tiles,
+                        DiffKey::Legacy(FeatureId {
+                            tile: "IR500_DRV".to_string(),
+                            bel: "IR400_DRV".to_string(),
+                            attr: "ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
+                    );
+                    sample.add_tiled_pattern_single(
+                        &tiles,
+                        DiffKey::Legacy(FeatureId {
+                            tile: "IR500_DRV".to_string(),
+                            bel: "IR500_DRV".to_string(),
+                            attr: "ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
+                    );
                     if inst.props["CURRENT_MODE"] == "0b1" {
                         led_v2_current_mode = true;
                     }
@@ -1275,11 +1728,24 @@ pub fn make_sample(
                         if c == '1' {
                             sample.add_tiled_pattern_single(
                                 &tiles,
-                                format!("IR500_DRV:IR400_DRV:IR400_CURRENT:BIT{i}"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: "IR500_DRV".to_string(),
+                                    bel: "IR400_DRV".to_string(),
+                                    attr: "IR400_CURRENT".to_string(),
+                                    val: format!("BIT{i}"),
+                                }),
                             );
                         }
                     }
-                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:IR400_DRV:ENABLE:BIT0");
+                    sample.add_tiled_pattern_single(
+                        &tiles,
+                        DiffKey::Legacy(FeatureId {
+                            tile: "IR500_DRV".to_string(),
+                            bel: "IR400_DRV".to_string(),
+                            attr: "ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
+                    );
                     if inst.props["CURRENT_MODE"] == "0b1" {
                         led_v2_current_mode = true;
                     }
@@ -1301,11 +1767,24 @@ pub fn make_sample(
                         if c == '1' {
                             sample.add_tiled_pattern_single(
                                 &tiles,
-                                format!("IR500_DRV:BARCODE_DRV:BARCODE_CURRENT:BIT{i}"),
+                                DiffKey::Legacy(FeatureId {
+                                    tile: "IR500_DRV".to_string(),
+                                    bel: "BARCODE_DRV".to_string(),
+                                    attr: "BARCODE_CURRENT".to_string(),
+                                    val: format!("BIT{i}"),
+                                }),
                             );
                         }
                     }
-                    sample.add_tiled_pattern_single(&tiles, "IR500_DRV:BARCODE_DRV:ENABLE:BIT0");
+                    sample.add_tiled_pattern_single(
+                        &tiles,
+                        DiffKey::Legacy(FeatureId {
+                            tile: "IR500_DRV".to_string(),
+                            bel: "BARCODE_DRV".to_string(),
+                            attr: "ENABLE".to_string(),
+                            val: "BIT0".to_string(),
+                        }),
+                    );
                     if inst.props["CURRENT_MODE"] == "0b1" {
                         led_v2_current_mode = true;
                     }
@@ -1328,7 +1807,12 @@ pub fn make_sample(
                                 );
                                 sample.add_tiled_pattern(
                                     &tiles,
-                                    format!("SPRAM:SPRAM{i}:ENABLE:BIT0"),
+                                    DiffKey::Legacy(FeatureId {
+                                        tile: "SPRAM".to_string(),
+                                        bel: format!("SPRAM{i}"),
+                                        attr: "ENABLE".to_string(),
+                                        val: "BIT0".to_string(),
+                                    }),
                                 );
                             }
                         }
@@ -1344,7 +1828,15 @@ pub fn make_sample(
                                     .values()
                                     .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                             );
-                            sample.add_tiled_pattern(&tiles, format!("I3C:FILTER{i}:ENABLE:BIT0"));
+                            sample.add_tiled_pattern(
+                                &tiles,
+                                DiffKey::Legacy(FeatureId {
+                                    tile: "I3C".to_string(),
+                                    bel: format!("FILTER{i}"),
+                                    attr: "ENABLE".to_string(),
+                                    val: "BIT0".to_string(),
+                                }),
+                            );
                         }
                     }
                 }
@@ -1403,14 +1895,22 @@ pub fn make_sample(
                                     if edev.chip.kind == ChipKind::Ice40R04 {
                                         sample.add_tiled_pattern_single(
                                             &[btile_io],
-                                            format!("{tcls_iob}:IOB:HARDIP_DEDICATED_OUT:BIT0"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: tcls_iob.to_string(),
+                                                bel: "IOB".to_string(),
+                                                attr: "HARDIP_DEDICATED_OUT".to_string(),
+                                                val: "BIT0".to_string(),
+                                            }),
                                         );
                                     } else {
                                         sample.add_tiled_pattern_single(
                                             &[btile_io],
-                                            format!(
-                                                "{tcls_iob}:IOB{iob:#}:HARDIP_DEDICATED_OUT:BIT0"
-                                            ),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: tcls_iob.to_string(),
+                                                bel: format!("IOB{iob:#}"),
+                                                attr: "HARDIP_DEDICATED_OUT".to_string(),
+                                                val: "BIT0".to_string(),
+                                            }),
                                         );
                                     }
                                 } else {
@@ -1420,12 +1920,22 @@ pub fn make_sample(
                                     if edev.chip.kind == ChipKind::Ice40R04 {
                                         sample.add_tiled_pattern_single(
                                             &[btile_io],
-                                            format!("{tcls_iob}:IOB:HARDIP_FABRIC_IN:BIT0"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: tcls_iob.to_string(),
+                                                bel: "IOB".to_string(),
+                                                attr: "HARDIP_FABRIC_IN".to_string(),
+                                                val: "BIT0".to_string(),
+                                            }),
                                         );
                                     } else {
                                         sample.add_tiled_pattern_single(
                                             &[btile_io],
-                                            format!("{tcls_iob}:IOB{iob:#}:HARDIP_FABRIC_IN:BIT0"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: tcls_iob.to_string(),
+                                                bel: format!("IOB{iob:#}"),
+                                                attr: "HARDIP_FABRIC_IN".to_string(),
+                                                val: "BIT0".to_string(),
+                                            }),
                                         );
                                     }
                                     all_ded_ins = false;
@@ -1484,11 +1994,21 @@ pub fn make_sample(
                                             .unwrap();
                                         sample.add_tiled_pattern_single(
                                             &[pin_btile],
-                                            format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT3"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: io_tile_kind.to_string(),
+                                                bel: format!("IO{iob}"),
+                                                attr: "PIN_TYPE".to_string(),
+                                                val: "BIT3".to_string(),
+                                            }),
                                         );
                                         sample.add_tiled_pattern_single(
                                             &[pin_btile],
-                                            format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT4"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: io_tile_kind.to_string(),
+                                                bel: format!("IO{iob}"),
+                                                attr: "PIN_TYPE".to_string(),
+                                                val: "BIT4".to_string(),
+                                            }),
                                         );
                                     } else {
                                         let iob = match defs::wires::OUT_LC
@@ -1501,7 +2021,12 @@ pub fn make_sample(
                                         };
                                         sample.add_tiled_pattern_single(
                                             &[pin_btile],
-                                            format!("{io_tile_kind}:IO{iob}:PIN_TYPE:BIT0"),
+                                            DiffKey::Legacy(FeatureId {
+                                                tile: io_tile_kind.to_string(),
+                                                bel: format!("IO{iob}"),
+                                                attr: "PIN_TYPE".to_string(),
+                                                val: "BIT0".to_string(),
+                                            }),
                                         );
                                     }
                                 }
@@ -1518,7 +2043,12 @@ pub fn make_sample(
                                     let tcls_iob = edev.db.tile_classes.key(tcid_iob);
                                     sample.add_tiled_pattern_single(
                                         &[BitOwner::Main(iobel.col, iobel.row)],
-                                        format!("{tcls_iob}:IOB{iob:#}:{prop}:BIT0"),
+                                        DiffKey::Legacy(FeatureId {
+                                            tile: tcls_iob.to_string(),
+                                            bel: format!("IOB{iob:#}"),
+                                            attr: prop.to_string(),
+                                            val: "BIT0".to_string(),
+                                        }),
                                     );
                                 }
                             }
@@ -1537,7 +2067,15 @@ pub fn make_sample(
                     .values()
                     .map(|&cell| BitOwner::Main(cell.col, cell.row)),
             );
-            sample.add_tiled_pattern(&tiles, "IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0");
+            sample.add_tiled_pattern(
+                &tiles,
+                DiffKey::Legacy(FeatureId {
+                    tile: "IR500_DRV".to_string(),
+                    bel: "IR500_DRV".to_string(),
+                    attr: "CURRENT_MODE".to_string(),
+                    val: "BIT0".to_string(),
+                }),
+            );
         }
         let tcid_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
         let tcls_trim = edev.db.tile_classes.key(tcid_trim);
@@ -1552,20 +2090,49 @@ pub fn make_sample(
             );
             sample.add_tiled_pattern_single(
                 &tiles,
-                format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"),
+                DiffKey::Legacy(FeatureId {
+                    tile: tcls_trim.to_string(),
+                    bel: "LED_DRV_CUR".to_string(),
+                    attr: "TRIM_FABRIC".to_string(),
+                    val: "BIT0".to_string(),
+                }),
             );
         }
     }
     for opt in &design.opts {
         match opt.as_str() {
             "--frequency low" => {
-                sample.add_tiled_pattern(&[BitOwner::Speed], "SPEED:SPEED:SPEED:LOW");
+                sample.add_tiled_pattern(
+                    &[BitOwner::Speed],
+                    DiffKey::Legacy(FeatureId {
+                        tile: "SPEED".to_string(),
+                        bel: "SPEED".to_string(),
+                        attr: "SPEED".to_string(),
+                        val: "LOW".to_string(),
+                    }),
+                );
             }
             "--frequency medium" => {
-                sample.add_tiled_pattern(&[BitOwner::Speed], "SPEED:SPEED:SPEED:MEDIUM");
+                sample.add_tiled_pattern(
+                    &[BitOwner::Speed],
+                    DiffKey::Legacy(FeatureId {
+                        tile: "SPEED".to_string(),
+                        bel: "SPEED".to_string(),
+                        attr: "SPEED".to_string(),
+                        val: "MEDIUM".to_string(),
+                    }),
+                );
             }
             "--frequency high" => {
-                sample.add_tiled_pattern(&[BitOwner::Speed], "SPEED:SPEED:SPEED:HIGH");
+                sample.add_tiled_pattern(
+                    &[BitOwner::Speed],
+                    DiffKey::Legacy(FeatureId {
+                        tile: "SPEED".to_string(),
+                        bel: "SPEED".to_string(),
+                        attr: "SPEED".to_string(),
+                        val: "HIGH".to_string(),
+                    }),
+                );
             }
             _ => panic!("ummm {opt}"),
         }
@@ -1573,35 +2140,105 @@ pub fn make_sample(
     (sample, pips)
 }
 
-pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
+pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
     let mut result = vec![];
     // PLB
     let tcid = edev.chip.kind.tile_class_plb();
     let tile = edev.db.tile_classes.key(tcid);
     for lc in 0..8 {
         if edev.chip.kind.is_ice40() {
-            result.push(format!("{tile}:LC{lc}:MUX.I2:LTIN"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: format!("LC{lc}"),
+                attr: "MUX.I2".to_string(),
+                val: "LTIN".to_string(),
+            }));
         }
-        result.push(format!("{tile}:INT:MUX.IMUX_LC_I3[{lc}]:CI"));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile.to_string(),
+            bel: "INT".to_string(),
+            attr: format!("MUX.IMUX_LC_I3[{lc}]"),
+            val: "CI".to_string(),
+        }));
         for i in 0..16 {
-            result.push(format!("{tile}:LC{lc}:LUT_INIT:BIT{i}"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: format!("LC{lc}"),
+                attr: "LUT_INIT".to_string(),
+                val: format!("BIT{i}"),
+            }));
         }
-        result.push(format!("{tile}:LC{lc}:CARRY_ENABLE:BIT0"));
-        result.push(format!("{tile}:LC{lc}:FF_ENABLE:BIT0"));
-        result.push(format!("{tile}:LC{lc}:FF_SR_VALUE:BIT0"));
-        result.push(format!("{tile}:LC{lc}:FF_SR_ASYNC:BIT0"));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile.to_string(),
+            bel: format!("LC{lc}"),
+            attr: "CARRY_ENABLE".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile.to_string(),
+            bel: format!("LC{lc}"),
+            attr: "FF_ENABLE".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile.to_string(),
+            bel: format!("LC{lc}"),
+            attr: "FF_SR_VALUE".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile.to_string(),
+            bel: format!("LC{lc}"),
+            attr: "FF_SR_ASYNC".to_string(),
+            val: "BIT0".to_string(),
+        }));
     }
-    result.push(format!("{tile}:LC0:MUX.CI:0"));
-    result.push(format!("{tile}:LC0:MUX.CI:1"));
-    result.push(format!("{tile}:LC0:MUX.CI:CHAIN"));
-    result.push(format!("{tile}:INT:INV.IMUX_CLK_OPTINV:BIT0"));
+    result.push(DiffKey::Legacy(FeatureId {
+        tile: tile.to_string(),
+        bel: "LC0".to_string(),
+        attr: "MUX.CI".to_string(),
+        val: "0".to_string(),
+    }));
+    result.push(DiffKey::Legacy(FeatureId {
+        tile: tile.to_string(),
+        bel: "LC0".to_string(),
+        attr: "MUX.CI".to_string(),
+        val: "1".to_string(),
+    }));
+    result.push(DiffKey::Legacy(FeatureId {
+        tile: tile.to_string(),
+        bel: "LC0".to_string(),
+        attr: "MUX.CI".to_string(),
+        val: "CHAIN".to_string(),
+    }));
+    result.push(DiffKey::Legacy(FeatureId {
+        tile: tile.to_string(),
+        bel: "INT".to_string(),
+        attr: "INV.IMUX_CLK_OPTINV".to_string(),
+        val: "BIT0".to_string(),
+    }));
     if let Some(tcid) = edev.chip.kind.tile_class_colbuf() {
         let tile = edev.db.tile_classes.key(tcid);
         for i in 0..8 {
-            result.push(format!("{tile}:COLBUF:GLOBAL.{i}:BIT0"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "COLBUF".to_string(),
+                attr: format!("GLOBAL.{i}"),
+                val: "BIT0".to_string(),
+            }));
             if edev.chip.kind.has_ioi_we() {
-                result.push(format!("COLBUF_IO_W:COLBUF:GLOBAL.{i}:BIT0"));
-                result.push(format!("COLBUF_IO_E:COLBUF:GLOBAL.{i}:BIT0"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "COLBUF_IO_W".to_string(),
+                    bel: "COLBUF".to_string(),
+                    attr: format!("GLOBAL.{i}"),
+                    val: "BIT0".to_string(),
+                }));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "COLBUF_IO_E".to_string(),
+                    bel: "COLBUF".to_string(),
+                    attr: format!("GLOBAL.{i}"),
+                    val: "BIT0".to_string(),
+                }));
             }
         }
     }
@@ -1610,23 +2247,98 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         let tcid = edev.chip.kind.tile_class_bram();
         let tile = edev.db.tile_classes.key(tcid);
         if edev.chip.kind.is_ice40() {
-            result.push(format!("{tile}:BRAM:CASCADE_OUT_WADDR:BIT0"));
-            result.push(format!("{tile}:BRAM:CASCADE_OUT_RADDR:BIT0"));
-            result.push(format!("{tile}:BRAM:CASCADE_IN_WADDR:BIT0"));
-            result.push(format!("{tile}:BRAM:CASCADE_IN_RADDR:BIT0"));
-            result.push(format!("{tile}:BRAM:ENABLE:BIT0"));
-            result.push(format!("{tile}:BRAM:READ_MODE:0"));
-            result.push(format!("{tile}:BRAM:READ_MODE:1"));
-            result.push(format!("{tile}:BRAM:READ_MODE:2"));
-            result.push(format!("{tile}:BRAM:READ_MODE:3"));
-            result.push(format!("{tile}:BRAM:WRITE_MODE:0"));
-            result.push(format!("{tile}:BRAM:WRITE_MODE:1"));
-            result.push(format!("{tile}:BRAM:WRITE_MODE:2"));
-            result.push(format!("{tile}:BRAM:WRITE_MODE:3"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "CASCADE_OUT_WADDR".to_string(),
+                val: "BIT0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "CASCADE_OUT_RADDR".to_string(),
+                val: "BIT0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "CASCADE_IN_WADDR".to_string(),
+                val: "BIT0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "CASCADE_IN_RADDR".to_string(),
+                val: "BIT0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "ENABLE".to_string(),
+                val: "BIT0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "READ_MODE".to_string(),
+                val: "0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "READ_MODE".to_string(),
+                val: "1".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "READ_MODE".to_string(),
+                val: "2".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "READ_MODE".to_string(),
+                val: "3".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "WRITE_MODE".to_string(),
+                val: "0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "WRITE_MODE".to_string(),
+                val: "1".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "WRITE_MODE".to_string(),
+                val: "2".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "BRAM".to_string(),
+                attr: "WRITE_MODE".to_string(),
+                val: "3".to_string(),
+            }));
         }
-        result.push("INT_BRAM:INT:INV.IMUX_CLK_OPTINV:BIT0".into());
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "INT_BRAM".to_string(),
+            bel: "INT".to_string(),
+            attr: "INV.IMUX_CLK_OPTINV".to_string(),
+            val: "BIT0".to_string(),
+        }));
         for i in 0..4096 {
-            result.push(format!("BRAM_DATA:BRAM:INIT:BIT{i}"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: "BRAM_DATA".to_string(),
+                bel: "BRAM".to_string(),
+                attr: "INIT".to_string(),
+                val: format!("BIT{i}"),
+            }));
         }
     }
     // IO
@@ -1635,14 +2347,34 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             continue;
         };
         let tile = edev.db.tile_classes.key(tcid);
-        result.push(format!("{tile}:INT:INV.IMUX_IO_ICLK_OPTINV:BIT0"));
-        result.push(format!("{tile}:INT:INV.IMUX_IO_OCLK_OPTINV:BIT0"));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile.to_string(),
+            bel: "INT".to_string(),
+            attr: "INV.IMUX_IO_ICLK_OPTINV".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile.to_string(),
+            bel: "INT".to_string(),
+            attr: "INV.IMUX_IO_OCLK_OPTINV".to_string(),
+            val: "BIT0".to_string(),
+        }));
         for io in 0..2 {
             for i in 0..6 {
-                result.push(format!("{tile}:IO{io}:PIN_TYPE:BIT{i}"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile.to_string(),
+                    bel: format!("IO{io}"),
+                    attr: "PIN_TYPE".to_string(),
+                    val: format!("BIT{i}"),
+                }));
             }
             if edev.chip.kind.is_ultra() {
-                result.push(format!("{tile}:IO{io}:OUTPUT_ENABLE:BIT0"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile.to_string(),
+                    bel: format!("IO{io}"),
+                    attr: "OUTPUT_ENABLE".to_string(),
+                    val: "BIT0".to_string(),
+                }));
             }
         }
         let Some(tcid) = edev.chip.kind.tile_class_iob(edge) else {
@@ -1663,16 +2395,41 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         }
         for iob in 0..2 {
             if edev.chip.kind.is_ice40() || (edge == Dir::W && edev.chip.kind.has_vref()) {
-                result.push(format!("{tile}:IOB{iob}:IBUF_ENABLE:BIT0"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile.to_string(),
+                    bel: format!("IOB{iob}"),
+                    attr: "IBUF_ENABLE".to_string(),
+                    val: "BIT0".to_string(),
+                }));
             }
             if edev.chip.kind.is_ultra()
                 && !(edge == Dir::N && edev.chip.kind == ChipKind::Ice40T01)
             {
-                result.push(format!("{tile}:IOB{iob}:HARDIP_FABRIC_IN:BIT0"));
-                result.push(format!("{tile}:IOB{iob}:HARDIP_DEDICATED_OUT:BIT0"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile.to_string(),
+                    bel: format!("IOB{iob}"),
+                    attr: "HARDIP_FABRIC_IN".to_string(),
+                    val: "BIT0".to_string(),
+                }));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile.to_string(),
+                    bel: format!("IOB{iob}"),
+                    attr: "HARDIP_DEDICATED_OUT".to_string(),
+                    val: "BIT0".to_string(),
+                }));
                 if (edev.chip.kind == ChipKind::Ice40T01 && iob == 0) || edge == Dir::N {
-                    result.push(format!("{tile}:IOB{iob}:SDA_INPUT_DELAYED:BIT0"));
-                    result.push(format!("{tile}:IOB{iob}:SDA_OUTPUT_DELAYED:BIT0"));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "SDA_INPUT_DELAYED".to_string(),
+                        val: "BIT0".to_string(),
+                    }));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "SDA_OUTPUT_DELAYED".to_string(),
+                        val: "BIT0".to_string(),
+                    }));
                 }
             }
             if edge == Dir::W && edev.chip.kind.has_vref() {
@@ -1697,23 +2454,63 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                     "SB_SSTL2_CLASS_1",
                     "SB_LVCMOS33_8",
                 ] {
-                    result.push(format!("{tile}:IOB{iob}:IOSTD:{iostd}"));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "IOSTD".to_string(),
+                        val: iostd.to_string(),
+                    }));
                 }
                 if iob == 0 {
                     for iostd in ["SB_LVDS_INPUT", "SB_SUBLVDS_INPUT"] {
-                        result.push(format!("{tile}:IOB{iob}:IOSTD:{iostd}"));
+                        result.push(DiffKey::Legacy(FeatureId {
+                            tile: tile.to_string(),
+                            bel: format!("IOB{iob}"),
+                            attr: "IOSTD".to_string(),
+                            val: iostd.to_string(),
+                        }));
                     }
                 }
             } else {
-                result.push(format!("{tile}:IOB{iob}:PULLUP:DISABLE"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile.to_string(),
+                    bel: format!("IOB{iob}"),
+                    attr: "PULLUP".to_string(),
+                    val: "DISABLE".to_string(),
+                }));
                 if edev.chip.kind.has_multi_pullup() {
-                    result.push(format!("{tile}:IOB{iob}:PULLUP:3P3K"));
-                    result.push(format!("{tile}:IOB{iob}:PULLUP:6P8K"));
-                    result.push(format!("{tile}:IOB{iob}:PULLUP:10K"));
-                    result.push(format!("{tile}:IOB{iob}:WEAK_PULLUP:DISABLE"));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "PULLUP".to_string(),
+                        val: "3P3K".to_string(),
+                    }));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "PULLUP".to_string(),
+                        val: "6P8K".to_string(),
+                    }));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "PULLUP".to_string(),
+                        val: "10K".to_string(),
+                    }));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "WEAK_PULLUP".to_string(),
+                        val: "DISABLE".to_string(),
+                    }));
                 }
                 if has_lvds && iob == 0 {
-                    result.push(format!("{tile}:IOB{iob}:LVDS_INPUT:BIT0"));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: format!("IOB{iob}"),
+                        attr: "LVDS_INPUT".to_string(),
+                        val: "BIT0".to_string(),
+                    }));
                 }
             }
         }
@@ -1747,11 +2544,26 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             has_latch_global_out = true;
         }
         if has_latch_global_out {
-            result.push(format!("{tile}:IOB:LATCH_GLOBAL_OUT:BIT0"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "IOB".to_string(),
+                attr: "LATCH_GLOBAL_OUT".to_string(),
+                val: "BIT0".to_string(),
+            }));
         }
         if edev.chip.kind == ChipKind::Ice40R04 {
-            result.push(format!("{tile}:IOB:HARDIP_FABRIC_IN:BIT0"));
-            result.push(format!("{tile}:IOB:HARDIP_DEDICATED_OUT:BIT0"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "IOB".to_string(),
+                attr: "HARDIP_FABRIC_IN".to_string(),
+                val: "BIT0".to_string(),
+            }));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile.to_string(),
+                bel: "IOB".to_string(),
+                attr: "HARDIP_DEDICATED_OUT".to_string(),
+                val: "BIT0".to_string(),
+            }));
         }
     }
     for side in [DirV::S, DirV::N] {
@@ -1776,7 +2588,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                     ),
                 ] {
                     for &val in vals {
-                        result.push(format!("{tile}:PLL:{attr}:{val}"));
+                        result.push(DiffKey::Legacy(FeatureId {
+                            tile: tile.to_string(),
+                            bel: "PLL".to_string(),
+                            attr: attr.to_string(),
+                            val: val.to_string(),
+                        }));
                     }
                 }
                 for (attr, width) in [
@@ -1790,7 +2607,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                     ("LATCH_GLOBAL_OUT_B", 1),
                 ] {
                     for i in 0..width {
-                        result.push(format!("{tile}:PLL:{attr}:BIT{i}"));
+                        result.push(DiffKey::Legacy(FeatureId {
+                            tile: tile.to_string(),
+                            bel: "PLL".to_string(),
+                            attr: attr.to_string(),
+                            val: format!("BIT{i}"),
+                        }));
                     }
                 }
             } else {
@@ -1828,7 +2650,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                     ),
                 ] {
                     for &val in vals {
-                        result.push(format!("{tile}:PLL:{attr}:{val}"));
+                        result.push(DiffKey::Legacy(FeatureId {
+                            tile: tile.to_string(),
+                            bel: "PLL".to_string(),
+                            attr: attr.to_string(),
+                            val: val.to_string(),
+                        }));
                     }
                 }
                 for (attr, width) in [
@@ -1848,7 +2675,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                         continue;
                     }
                     for i in 0..width {
-                        result.push(format!("{tile}:PLL:{attr}:BIT{i}"));
+                        result.push(DiffKey::Legacy(FeatureId {
+                            tile: tile.to_string(),
+                            bel: "PLL".to_string(),
+                            attr: attr.to_string(),
+                            val: format!("BIT{i}"),
+                        }));
                     }
                 }
             }
@@ -1858,7 +2690,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
             let tcid = key.tile_class(edev.chip.kind);
             let tile = edev.db.tile_classes.key(tcid);
             for attr in ["LATCH_GLOBAL_OUT_A", "LATCH_GLOBAL_OUT_B"] {
-                result.push(format!("{tile}:PLL:{attr}:BIT0"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile.to_string(),
+                    bel: "PLL".to_string(),
+                    attr: attr.to_string(),
+                    val: "BIT0".to_string(),
+                }));
             }
         }
     }
@@ -1866,38 +2703,123 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
         // OSC & TRIM
         let tcid_trim = SpecialTileKey::Trim.tile_class(edev.chip.kind);
         let tcls_trim = edev.db.tile_classes.key(tcid_trim);
-        result.push(format!("{tcls_trim}:HFOSC:CLKHF_DIV:BIT0"));
-        result.push(format!("{tcls_trim}:HFOSC:CLKHF_DIV:BIT1"));
-        result.push(format!("{tcls_trim}:HFOSC:TRIM_FABRIC:BIT0"));
-        result.push(format!("{tcls_trim}:LFOSC:TRIM_FABRIC:BIT0"));
-        result.push(format!("{tcls_trim}:LED_DRV_CUR:TRIM_FABRIC:BIT0"));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tcls_trim.to_string(),
+            bel: "HFOSC".to_string(),
+            attr: "CLKHF_DIV".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tcls_trim.to_string(),
+            bel: "HFOSC".to_string(),
+            attr: "CLKHF_DIV".to_string(),
+            val: "BIT1".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tcls_trim.to_string(),
+            bel: "HFOSC".to_string(),
+            attr: "TRIM_FABRIC".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tcls_trim.to_string(),
+            bel: "LFOSC".to_string(),
+            attr: "TRIM_FABRIC".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tcls_trim.to_string(),
+            bel: "LED_DRV_CUR".to_string(),
+            attr: "TRIM_FABRIC".to_string(),
+            val: "BIT0".to_string(),
+        }));
         // DRV
         let tcid_rgb_drv = SpecialTileKey::RgbDrv.tile_class(edev.chip.kind);
         let tile_rgb_drv = edev.db.tile_classes.key(tcid_rgb_drv);
-        result.push(format!("{tile_rgb_drv}:RGB_DRV:ENABLE:BIT0"));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tile_rgb_drv.to_string(),
+            bel: "RGB_DRV".to_string(),
+            attr: "ENABLE".to_string(),
+            val: "BIT0".to_string(),
+        }));
         for i in 0..3 {
             for j in 0..6 {
-                result.push(format!("{tile_rgb_drv}:RGB_DRV:RGB{i}_CURRENT:BIT{j}"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: tile_rgb_drv.to_string(),
+                    bel: "RGB_DRV".to_string(),
+                    attr: format!("RGB{i}_CURRENT"),
+                    val: format!("BIT{j}"),
+                }));
             }
         }
         if edev.chip.kind == ChipKind::Ice40T04 {
-            result.push("LED_DRV_CUR_T04:LED_DRV_CUR:ENABLE:BIT0".into());
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: "LED_DRV_CUR_T04".to_string(),
+                bel: "LED_DRV_CUR".to_string(),
+                attr: "ENABLE".to_string(),
+                val: "BIT0".to_string(),
+            }));
             for j in 0..10 {
-                result.push(format!("IR_DRV:IR_DRV:IR_CURRENT:BIT{j}"));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "IR_DRV".to_string(),
+                    bel: "IR_DRV".to_string(),
+                    attr: "IR_CURRENT".to_string(),
+                    val: format!("BIT{j}"),
+                }));
             }
         } else {
-            result.push(format!("{tile_rgb_drv}:RGB_DRV:CURRENT_MODE:BIT0"));
+            result.push(DiffKey::Legacy(FeatureId {
+                tile: tile_rgb_drv.to_string(),
+                bel: "RGB_DRV".to_string(),
+                attr: "CURRENT_MODE".to_string(),
+                val: "BIT0".to_string(),
+            }));
             if edev.chip.kind == ChipKind::Ice40T01 {
-                result.push("IR500_DRV:RGB_DRV:ENABLE:BIT0".into());
-                result.push("IR500_DRV:IR400_DRV:ENABLE:BIT0".into());
-                result.push("IR500_DRV:IR500_DRV:ENABLE:BIT0".into());
-                result.push("IR500_DRV:IR500_DRV:CURRENT_MODE:BIT0".into());
-                result.push("IR500_DRV:BARCODE_DRV:ENABLE:BIT0".into());
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "IR500_DRV".to_string(),
+                    bel: "RGB_DRV".to_string(),
+                    attr: "ENABLE".to_string(),
+                    val: "BIT0".to_string(),
+                }));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "IR500_DRV".to_string(),
+                    bel: "IR400_DRV".to_string(),
+                    attr: "ENABLE".to_string(),
+                    val: "BIT0".to_string(),
+                }));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "IR500_DRV".to_string(),
+                    bel: "IR500_DRV".to_string(),
+                    attr: "ENABLE".to_string(),
+                    val: "BIT0".to_string(),
+                }));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "IR500_DRV".to_string(),
+                    bel: "IR500_DRV".to_string(),
+                    attr: "CURRENT_MODE".to_string(),
+                    val: "BIT0".to_string(),
+                }));
+                result.push(DiffKey::Legacy(FeatureId {
+                    tile: "IR500_DRV".to_string(),
+                    bel: "BARCODE_DRV".to_string(),
+                    attr: "ENABLE".to_string(),
+                    val: "BIT0".to_string(),
+                }));
                 for j in 0..8 {
-                    result.push(format!("IR500_DRV:IR400_DRV:IR400_CURRENT:BIT{j}"));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: "IR500_DRV".to_string(),
+                        bel: "IR400_DRV".to_string(),
+                        attr: "IR400_CURRENT".to_string(),
+                        val: format!("BIT{j}"),
+                    }));
                 }
                 for j in 0..4 {
-                    result.push(format!("IR500_DRV:BARCODE_DRV:BARCODE_CURRENT:BIT{j}"));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: "IR500_DRV".to_string(),
+                        bel: "BARCODE_DRV".to_string(),
+                        attr: "BARCODE_CURRENT".to_string(),
+                        val: format!("BIT{j}"),
+                    }));
                 }
             }
         }
@@ -1930,38 +2852,83 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<String> {
                 ("B_SIGNED", 1),
             ] {
                 for i in 0..width {
-                    result.push(format!("{tile}:MAC16:{attr}:BIT{i}"));
+                    result.push(DiffKey::Legacy(FeatureId {
+                        tile: tile.to_string(),
+                        bel: "MAC16".to_string(),
+                        attr: attr.to_string(),
+                        val: format!("BIT{i}"),
+                    }));
                 }
             }
         }
     }
     // SPRAM
     if edev.chip.kind == ChipKind::Ice40T05 {
-        result.push("SPRAM:SPRAM0:ENABLE:BIT0".into());
-        result.push("SPRAM:SPRAM1:ENABLE:BIT0".into());
-        result.push("I3C:FILTER0:ENABLE:BIT0".into());
-        result.push("I3C:FILTER1:ENABLE:BIT0".into());
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "SPRAM".to_string(),
+            bel: "SPRAM0".to_string(),
+            attr: "ENABLE".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "SPRAM".to_string(),
+            bel: "SPRAM1".to_string(),
+            attr: "ENABLE".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "I3C".to_string(),
+            bel: "FILTER0".to_string(),
+            attr: "ENABLE".to_string(),
+            val: "BIT0".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "I3C".to_string(),
+            bel: "FILTER1".to_string(),
+            attr: "ENABLE".to_string(),
+            val: "BIT0".to_string(),
+        }));
     }
     // misc
     let tcid_gb_root = edev.chip.kind.tile_class_gb_root();
     let tcls_gb_root = edev.db.tile_classes.key(tcid_gb_root);
     for i in 0..8 {
-        result.push(format!("{tcls_gb_root}:GB_ROOT:MUX.GLOBAL.{i}:IO"));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: tcls_gb_root.to_string(),
+            bel: "GB_ROOT".to_string(),
+            attr: format!("MUX.GLOBAL.{i}"),
+            val: "IO".to_string(),
+        }));
     }
     if edev.chip.kind != ChipKind::Ice40T04 {
-        result.push("SPEED:SPEED:SPEED:LOW".into());
-        result.push("SPEED:SPEED:SPEED:MEDIUM".into());
-        result.push("SPEED:SPEED:SPEED:HIGH".into());
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "SPEED".to_string(),
+            bel: "SPEED".to_string(),
+            attr: "SPEED".to_string(),
+            val: "LOW".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "SPEED".to_string(),
+            bel: "SPEED".to_string(),
+            attr: "SPEED".to_string(),
+            val: "MEDIUM".to_string(),
+        }));
+        result.push(DiffKey::Legacy(FeatureId {
+            tile: "SPEED".to_string(),
+            bel: "SPEED".to_string(),
+            attr: "SPEED".to_string(),
+            val: "HIGH".to_string(),
+        }));
     }
     result
 }
 
-pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<String> {
+pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<DiffKey> {
     let mut result = vec![];
     if edev.chip.kind == ChipKind::Ice40P01 {
         for &io in edev.chip.io_iob.keys() {
-            result.push(format!("{io}:IBUF_ENABLE:BIT0"));
-            result.push(format!("{io}:PULLUP:DISABLE"));
+            result.push(DiffKey::GlobalLegacy(format!("{io}:IBUF_ENABLE:BIT0")));
+            result.push(DiffKey::GlobalLegacy(format!("{io}:PULLUP:DISABLE")));
         }
     }
     result

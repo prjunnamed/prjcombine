@@ -1,6 +1,8 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord};
-use prjcombine_re_fpga_hammer::{FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{
+    DiffKey, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_enum,
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
@@ -36,12 +38,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesIoW {
             for &tcrd in locs {
                 let tile = &backend.edev[tcrd];
                 let tile = backend.edev.db.tile_classes.key(tile.class);
-                let fuzzer_id = fuzzer.info.features[0].id.clone();
+                let DiffKey::Legacy(fuzzer_id) = fuzzer.info.features[0].key.clone() else {
+                    unreachable!()
+                };
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: tile.into(),
                         ..fuzzer_id
-                    },
+                    }),
                     rects: EntityVec::from_iter(backend.edev.tile_bits(tcrd).into_values().take(1)),
                 });
             }
@@ -72,12 +76,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTilesAllIo {
             for &tcrd in locs {
                 let tile = &backend.edev[tcrd];
                 let tile = backend.edev.db.tile_classes.key(tile.class);
-                let fuzzer_id = fuzzer.info.features[0].id.clone();
+                let DiffKey::Legacy(fuzzer_id) = fuzzer.info.features[0].key.clone() else {
+                    unreachable!()
+                };
                 fuzzer.info.features.push(FuzzerFeature {
-                    id: FeatureId {
+                    key: DiffKey::Legacy(FeatureId {
                         tile: tile.into(),
                         ..fuzzer_id
-                    },
+                    }),
                     rects: EntityVec::from_iter(backend.edev.tile_bits(tcrd).into_values().take(1)),
                 });
             }
@@ -113,12 +119,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraTileSingle {
             .db
             .tile_classes
             .key(backend.edev[self.tcrd].class);
-        let fuzzer_id = fuzzer.info.features[0].id.clone();
+        let DiffKey::Legacy(fuzzer_id) = fuzzer.info.features[0].key.clone() else {
+            unreachable!()
+        };
         fuzzer.info.features.push(FuzzerFeature {
-            id: FeatureId {
+            key: DiffKey::Legacy(FeatureId {
                 tile: tile.into(),
                 ..fuzzer_id
-            },
+            }),
             rects: EntityVec::from_iter(backend.edev.tile_bits(self.tcrd).into_values().take(1)),
         });
         Some((fuzzer, false))
