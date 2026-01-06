@@ -5,13 +5,14 @@ use prjcombine_entity::{
     EntityBundleIndex, EntityBundleMap, EntityId, EntityPartVec, EntitySet, EntityVec,
 };
 use prjcombine_interconnect::db::{
-    Bel, BelAttributeType, BelClass, BelClassAttribute, BelClassBidir, BelClassId, BelClassInput,
-    BelClassOutput, BelClassPad, BelInfo, BelInput, BelKind, BelSlot, BelSlotId, BitRectInfo,
-    CellSlotId, ConnectorClass, ConnectorClassId, ConnectorSlot, ConnectorSlotId, ConnectorWire,
-    EnumClass, IntDb, Mux, PermaBuf, PolTileWireCoord, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem,
-    TileClass, TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
+    Bel, BelAttribute, BelAttributeEnum, BelAttributeType, BelClass, BelClassAttribute,
+    BelClassBidir, BelClassId, BelClassInput, BelClassOutput, BelClassPad, BelInfo, BelInput,
+    BelKind, BelSlot, BelSlotId, BitRectInfo, CellSlotId, ConnectorClass, ConnectorClassId,
+    ConnectorSlot, ConnectorSlotId, ConnectorWire, EnumClass, IntDb, Mux, PermaBuf,
+    PolTileWireCoord, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem, TileClass, TileClassId,
+    TileSlotId, TileWireCoord, WireKind, WireSlotId,
 };
-use prjcombine_types::bsdata::{BitRectGeometry, PolTileBit};
+use prjcombine_types::bsdata::{BitRectGeometry, PolTileBit, RectBitId, RectFrameId, TileBit};
 use proc_macro::{Ident, Span, TokenStream};
 
 use crate::{
@@ -182,6 +183,68 @@ impl Context {
             ast::PolWireRef::Pos(wire_ref) => self.eval_wire_ref(tcls, wire_ref)?.pos(),
             ast::PolWireRef::Neg(wire_ref) => self.eval_wire_ref(tcls, wire_ref)?.neg(),
         })
+    }
+
+    fn eval_pol_tile_bit(&self, tcls: TileClassId, tbit: &ast::TileBit) -> Result<PolTileBit> {
+        let name = self.eval_templ_id(&tbit.name)?;
+        let mut index = vec![];
+        for idx in &tbit.index {
+            index.push(self.eval_index(idx)?);
+        }
+        let Some((rect, _)) = self.db.tcls_bitrect_id[tcls].get(&name.to_string()) else {
+            error_at(name.span(), "undefined bitrect")?
+        };
+        let rect = match rect {
+            EntityBundleIndex::Single(r) => r,
+            EntityBundleIndex::Array(range) => {
+                if index.is_empty() {
+                    error_at(name.span(), "missing bitrect index")?
+                }
+                let idx = index.remove(0);
+                if idx >= range.len() {
+                    error_at(name.span(), "bitrect out of bounds")?
+                }
+                range.index(idx)
+            }
+        };
+        let geom = self.db.db.tile_classes[tcls].bitrects[rect].geometry;
+        let (frame, bit) = match index.as_slice() {
+            &[] => error_at(name.span(), "missing bit coordinates")?,
+            &[bit] => {
+                if geom.frames != 1 {
+                    error_at(
+                        name.span(),
+                        "single index can only be used for single-frame bitrects",
+                    )?;
+                }
+                if bit >= geom.bits {
+                    error_at(name.span(), "bit out of range")?;
+                }
+                (RectFrameId::from_idx(0), RectBitId::from_idx(bit))
+            }
+            &[frame, bit] => {
+                if frame >= geom.frames {
+                    error_at(name.span(), "frame out of range")?;
+                }
+                if bit >= geom.bits {
+                    error_at(name.span(), "bit out of range")?;
+                }
+                (RectFrameId::from_idx(frame), RectBitId::from_idx(bit))
+            }
+            _ => error_at(name.span(), "too many coordinates")?,
+        };
+        Ok(PolTileBit {
+            bit: TileBit { rect, frame, bit },
+            inv: tbit.inv,
+        })
+    }
+
+    fn eval_tile_bit(&self, tcls: TileClassId, tbit: &ast::TileBit) -> Result<TileBit> {
+        let bit = self.eval_pol_tile_bit(tcls, tbit)?;
+        if bit.inv {
+            error_at(tbit.name.span(), "inversion not accepted here")?;
+        }
+        Ok(bit.bit)
     }
 
     fn eval_for<T>(
@@ -531,6 +594,7 @@ impl Context {
                     }
                     self.db.tcls_id.push(name);
                     self.db.tcls_cell_id.push(Default::default());
+                    self.db.tcls_bitrect_id.push(Default::default());
                     for item in &tcls.items {
                         self.eval_tile_class(ccid, item)?;
                     }
@@ -593,6 +657,17 @@ impl Context {
                     error_at(class.span(), "undefined bitrect class")?
                 };
                 if let Some(num) = num {
+                    let Some(range) = self.db.tcls_bitrect_id[tcls].insert_array(
+                        name.to_string(),
+                        num,
+                        name.clone(),
+                    ) else {
+                        error_at(name.span(), "bitrect redefined")?
+                    };
+                    assert_eq!(
+                        range.first().unwrap(),
+                        self.db.db.tile_classes[tcls].bitrects.next_id()
+                    );
                     for i in 0..num {
                         self.db.db.tile_classes[tcls].bitrects.push(BitRectInfo {
                             name: format!("{name}[{i}]"),
@@ -600,6 +675,12 @@ impl Context {
                         });
                     }
                 } else {
+                    let Some(id) =
+                        self.db.tcls_bitrect_id[tcls].insert(name.to_string(), name.clone())
+                    else {
+                        error_at(name.span(), "bitrect redefined")?
+                    };
+                    assert_eq!(id, self.db.db.tile_classes[tcls].bitrects.next_id());
                     self.db.db.tile_classes[tcls].bitrects.push(BitRectInfo {
                         name: name.to_string(),
                         geometry,
@@ -741,6 +822,59 @@ impl Context {
                 let pin = self.eval_array_ref(pin, &self.db.bcls[bcls].bidir_id)?;
                 let wire = self.eval_wire_ref(tcls, wire_ref)?;
                 bel.bidirs.insert(pin, wire);
+            }
+            ast::BelItem::Attribute(attr) => {
+                let name = self.eval_templ_id(&attr.name)?;
+                let Some((aid, cattr)) = self.db.db.bel_classes[bcls]
+                    .attributes
+                    .get(&name.to_string())
+                else {
+                    error_at(name.span(), "unknown attribute")?
+                };
+                if let Some(ref avalues) = attr.values {
+                    let mut bits = vec![];
+                    for bit in &attr.bits {
+                        bits.push(self.eval_tile_bit(tcls, bit)?);
+                    }
+                    let BelAttributeType::Enum(ecid) = cattr.typ else {
+                        unreachable!()
+                    };
+                    let mut values = EntityPartVec::new();
+                    for (vname, val) in avalues {
+                        let vname = self.eval_templ_id(vname)?;
+                        let Some(vid) =
+                            self.db.db.enum_classes[ecid].values.get(&vname.to_string())
+                        else {
+                            error_at(name.span(), "unknown enum value")?
+                        };
+                        values.insert(vid, val.clone());
+                    }
+                    bel.attributes
+                        .insert(aid, BelAttribute::Enum(BelAttributeEnum { bits, values }));
+                } else {
+                    let mut bits = vec![];
+                    for bit in &attr.bits {
+                        bits.push(self.eval_pol_tile_bit(tcls, bit)?);
+                    }
+                    match cattr.typ {
+                        BelAttributeType::Enum(_) => error_at(name.span(), "missing enum values")?,
+                        BelAttributeType::Bool => {
+                            if bits.len() != 1 {
+                                error_at(name.span(), "expected single bit")?;
+                            }
+                        }
+                        BelAttributeType::Bitvec(width) => {
+                            if bits.len() != width {
+                                error_at(
+                                    name.span(),
+                                    &format!("expected {width} bits, got {n}", n = bits.len()),
+                                )?;
+                            }
+                        }
+                        BelAttributeType::BitvecArray(_, _) => todo!("bitvec array"),
+                    }
+                    bel.attributes.insert(aid, BelAttribute::BitVec(bits));
+                }
             }
             ast::BelItem::ForLoop(for_loop) => self.eval_for(for_loop, |ctx, subitem| {
                 ctx.eval_bel(tcls, bslot, bcls, bel, subitem)
@@ -1046,6 +1180,7 @@ fn eval_variant(variant: Option<Ident>, items: &[ast::TopItem]) -> Result<Annota
             bcls: EntityVec::new(),
             wire_id: Default::default(),
             tcls_cell_id: Default::default(),
+            tcls_bitrect_id: Default::default(),
         },
         for_vars: Default::default(),
         bitrect_geoms: Default::default(),

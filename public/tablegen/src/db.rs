@@ -4,6 +4,7 @@ use prjcombine_interconnect::db::{
     CellSlotId, ConnectorClassId, ConnectorSlotId, EnumClassId, EnumValueId, IntDb, RegionSlotId,
     TileClassId, TileSlotId, WireSlotId,
 };
+use prjcombine_types::bsdata::BitRectId;
 use proc_macro::Ident;
 
 #[derive(Default)]
@@ -26,6 +27,7 @@ pub struct AnnotatedDb {
     pub rslot_id: EntityVec<RegionSlotId, Ident>,
     pub tcls_id: EntityVec<TileClassId, Ident>,
     pub tcls_cell_id: EntityVec<TileClassId, EntityBundleMap<CellSlotId, Ident>>,
+    pub tcls_bitrect_id: EntityVec<TileClassId, EntityBundleMap<BitRectId, Ident>>,
     pub ccls_id: EntityVec<ConnectorClassId, Ident>,
     pub bcls_id: EntityVec<BelClassId, Ident>,
     pub bcls: EntityVec<BelClassId, AnnotatedBelClass>,

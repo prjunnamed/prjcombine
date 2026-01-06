@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::PadKind;
-use prjcombine_types::bsdata::BitRectGeometry;
+use prjcombine_types::{bitvec::BitVec, bsdata::BitRectGeometry};
 use proc_macro::{Ident, Literal, Span};
 
 #[derive(Debug)]
@@ -173,8 +173,23 @@ pub enum BelItem {
     Input(ArrayIdRef, PolWireRef),
     Output(ArrayIdRef, Vec<WireRef>),
     Bidir(ArrayIdRef, WireRef),
+    Attribute(BelAttribute),
     ForLoop(ForLoop<BelItem>),
     If(If<BelItem>),
+}
+
+#[derive(Debug)]
+pub struct BelAttribute {
+    pub name: TemplateId,
+    pub bits: Vec<TileBit>,
+    pub values: Option<Vec<(TemplateId, BitVec)>>,
+}
+
+#[derive(Debug)]
+pub struct TileBit {
+    pub name: TemplateId,
+    pub index: Vec<Index>,
+    pub inv: bool,
 }
 
 // endregion

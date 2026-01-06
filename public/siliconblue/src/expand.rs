@@ -18,6 +18,12 @@ impl Chip {
 
         // fill tiles
 
+        egrid.add_tile_id(
+            CellCoord::new(die, self.col_w(), self.row_s()),
+            defs::tcls::GLOBALS,
+            &[],
+        );
+
         for cell in egrid.die_cells(die) {
             if cell.row == self.row_s() {
                 if cell.col == self.col_w() || cell.col == self.col_e() {

@@ -278,6 +278,16 @@ pub enum DbValue {
     Int(u32),
 }
 
+impl std::fmt::Display for DbValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DbValue::String(s) => write!(f, "\"{s}\""),
+            DbValue::BitVec(v) => write!(f, "0b{v}"),
+            DbValue::Int(v) => write!(f, "{v}"),
+        }
+    }
+}
+
 impl From<BitVec> for DbValue {
     fn from(value: BitVec) -> Self {
         Self::BitVec(value)
@@ -387,6 +397,20 @@ impl BsData {
         for (tname, tile) in &self.tiles {
             writeln!(o, "bstile {tname} {{")?;
             tile.dump(o)?;
+            writeln!(o, "}}")?;
+            writeln!(o)?;
+        }
+        for (name, value) in &self.misc_data {
+            writeln!(o, "misc_data {name} = {value};")?;
+        }
+        if !self.misc_data.is_empty() {
+            writeln!(o)?;
+        }
+        for (name, data) in &self.device_data {
+            writeln!(o, "device_data {name} {{")?;
+            for (name, value) in data {
+                writeln!(o, "\t{name} = {value};")?;
+            }
             writeln!(o, "}}")?;
             writeln!(o)?;
         }

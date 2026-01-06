@@ -1,5 +1,9 @@
 use prjcombine_interconnect::db::PadKind;
-use prjcombine_types::bsdata::{BitRectGeometry, FrameOrientation};
+use prjcombine_types::{
+    bits,
+    bitvec::BitVec,
+    bsdata::{BitRectGeometry, FrameOrientation},
+};
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 
 use crate::ast::{self, IfCond};
@@ -133,29 +137,31 @@ impl Tokenizer {
 
     fn array_id_ref(&mut self) -> Result<ast::ArrayIdRef> {
         let id = self.template_id()?;
-        Ok(
-            if let Some(TokenTree::Group(g)) = self.tokens.peek()
-                && g.delimiter() == Delimiter::Bracket
-            {
-                let mut tokenizer = Tokenizer::new(g.span(), Vec::from_iter(g.stream()));
-                let idx = if let Some(id) = tokenizer.try_ident() {
-                    if tokenizer.try_punct('+') {
-                        let offset = tokenizer.usize()?;
-                        ast::Index::Ident(id, offset)
-                    } else {
-                        ast::Index::Ident(id, 0)
-                    }
-                } else {
-                    let n = tokenizer.usize()?;
-                    ast::Index::Literal(n)
-                };
-                tokenizer.finish()?;
-                self.next();
-                ast::ArrayIdRef::Indexed(id, idx)
+        Ok(if let Some(index) = self.try_index()? {
+            ast::ArrayIdRef::Indexed(id, index)
+        } else {
+            ast::ArrayIdRef::Plain(id)
+        })
+    }
+
+    fn try_index(&mut self) -> Result<Option<ast::Index>> {
+        let Some(mut inner) = self.try_brackets() else {
+            return Ok(None);
+        };
+        Ok(Some(if let Some(id) = inner.try_ident() {
+            if inner.try_punct('+') {
+                let offset = inner.usize()?;
+                inner.finish()?;
+                ast::Index::Ident(id, offset)
             } else {
-                ast::ArrayIdRef::Plain(id)
-            },
-        )
+                inner.finish()?;
+                ast::Index::Ident(id, 0)
+            }
+        } else {
+            let n = inner.usize()?;
+            inner.finish()?;
+            ast::Index::Literal(n)
+        }))
     }
 
     fn wire_ref(&mut self) -> Result<ast::WireRef> {
@@ -203,6 +209,31 @@ impl Tokenizer {
         lit.to_string()
             .parse()
             .map_err(|_| self.error::<()>("expected number").unwrap_err())
+    }
+
+    fn bitvec(&mut self) -> Result<BitVec> {
+        let Some(TokenTree::Literal(lit)) = self.next() else {
+            self.error("expected bitvec")?
+        };
+        let s = lit.to_string();
+        Ok(if let Some(s) = s.strip_prefix("0b") {
+            let mut res = BitVec::new();
+            for c in s.chars().rev() {
+                match c {
+                    '0' => res.push(false),
+                    '1' => res.push(true),
+                    '_' => (),
+                    _ => self.error("expected bitvec")?,
+                }
+            }
+            res
+        } else if s == "0" {
+            bits![0]
+        } else if s == "1" {
+            bits![1]
+        } else {
+            self.error("expected bitvec")?
+        })
     }
 
     fn try_punct(&mut self, ch: char) -> bool {
@@ -545,6 +576,55 @@ fn parse_bel(mut tokenizer: Tokenizer, block: Option<TokenStream>) -> Result<ast
     Ok(ast::Bel { slot, items })
 }
 
+fn parse_bel_attribute(
+    mut tokenizer: Tokenizer,
+    block: Option<TokenStream>,
+) -> Result<ast::BelAttribute> {
+    let name = tokenizer.template_id()?;
+    tokenizer.punct('@')?;
+    let mut bits = vec![];
+    if let Some(mut inner) = tokenizer.try_brackets() {
+        bits.push(parse_tilebit(&mut inner)?);
+        while inner.try_punct(',') {
+            if inner.is_empty() {
+                break;
+            }
+            bits.push(parse_tilebit(&mut inner)?);
+        }
+        bits.reverse();
+        inner.finish()?;
+    } else {
+        bits.push(parse_tilebit(&mut tokenizer)?);
+    };
+    tokenizer.finish()?;
+    let values = if let Some(block) = block {
+        let mut inner = Tokenizer::new(name.span(), Vec::from_iter(block));
+        let mut values = vec![];
+        while !inner.is_empty() {
+            let vname = inner.template_id()?;
+            inner.punct('=')?;
+            let val = inner.bitvec()?;
+            inner.punct(',')?;
+            values.push((vname, val));
+        }
+        inner.finish()?;
+        Some(values)
+    } else {
+        None
+    };
+    Ok(ast::BelAttribute { name, bits, values })
+}
+
+fn parse_tilebit(tokenizer: &mut Tokenizer) -> Result<ast::TileBit> {
+    let inv = tokenizer.try_punct('!');
+    let name = tokenizer.template_id()?;
+    let mut index = vec![];
+    while let Some(idx) = tokenizer.try_index()? {
+        index.push(idx);
+    }
+    Ok(ast::TileBit { name, index, inv })
+}
+
 impl Item for ast::BelItem {
     fn parse_item(
         keyword: Ident,
@@ -583,6 +663,7 @@ impl Item for ast::BelItem {
                 tokenizer.finish()?;
                 ast::BelItem::Bidir(pin, wire)
             }
+            "attribute" => ast::BelItem::Attribute(parse_bel_attribute(tokenizer, block)?),
             _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
         })
     }

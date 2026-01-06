@@ -1235,6 +1235,71 @@ target_defs! {
         }
     }
 
+    enum CONFIG_SPEED {
+        LOW,
+        MEDIUM,
+        HIGH,
+    }
+
+    enum CONFIG_CRC_MODE {
+        WRITE,
+        READ,
+    }
+
+    bel_class GLOBAL_OPTIONS {
+        attribute SPEED: CONFIG_SPEED;
+        attribute FLASH_POWERDOWN: bool;
+        attribute KEEP_SMCCLK: bool;
+        attribute DAISY_CHAIN_ENABLE: bool;
+        attribute CRC_MODE: CONFIG_CRC_MODE;
+        attribute COLDBOOT_ENABLE: bool;
+        attribute WARMBOOT_ENABLE: bool;
+        attribute READ_PROTECT: bool;
+        attribute WRITE_PROTECT: bool;
+        attribute PARALLEL_ENABLE: bool;
+        attribute WARMBOOT_NVCM_MASK: bitvec[4];
+    }
+
+    bitrect CONFIG_CREG = horizontal (1, rev 16);
+    bitrect CONFIG_SPEED = horizontal (1, rev 2);
+
+    tile_slot GLOBALS {
+        bel_slot GLOBAL_OPTIONS: GLOBAL_OPTIONS;
+        tile_class GLOBALS {
+            bitrect CREG: CONFIG_CREG;
+            bitrect SPEED: CONFIG_SPEED;
+
+            bel GLOBAL_OPTIONS {
+                attribute SPEED @[
+                    SPEED[1],
+                    SPEED[0],
+                ] {
+                    LOW = 0b00,
+                    MEDIUM = 0b01,
+                    HIGH = 0b10,
+                }
+                attribute FLASH_POWERDOWN @!CREG[0];
+                attribute KEEP_SMCCLK @CREG[1];
+                attribute DAISY_CHAIN_ENABLE @CREG[2];
+                attribute CRC_MODE @CREG[3] {
+                    WRITE = 0b0,
+                    READ = 0b1,
+                }
+                attribute COLDBOOT_ENABLE @CREG[4];
+                attribute WARMBOOT_ENABLE @CREG[5];
+                attribute READ_PROTECT @CREG[6];
+                attribute WRITE_PROTECT @CREG[7];
+                attribute PARALLEL_ENABLE @CREG[8];
+                attribute WARMBOOT_NVCM_MASK @[
+                    CREG[12],
+                    CREG[11],
+                    CREG[10],
+                    CREG[9],
+                ];
+            }
+        }
+    }
+
     connector_slot W {
         opposite E;
         connector_class PASS_W {

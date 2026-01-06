@@ -9,7 +9,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirV},
     grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
 };
-use prjcombine_re_fpga_hammer::{DiffKey, FeatureId};
+use prjcombine_re_fpga_hammer::DiffKey;
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bitstream::Bitstream,
@@ -2305,35 +2305,35 @@ pub fn make_sample(
         match opt.as_str() {
             "--frequency low" => {
                 sample.add_tiled_pattern(
-                    &[BitOwner::Speed],
-                    DiffKey::Legacy(FeatureId {
-                        tile: "SPEED".to_string(),
-                        bel: "SPEED".to_string(),
-                        attr: "SPEED".to_string(),
-                        val: "LOW".to_string(),
-                    }),
+                    &[BitOwner::CReg, BitOwner::Speed],
+                    DiffKey::BelAttrValue(
+                        defs::tcls::GLOBALS,
+                        defs::bslots::GLOBAL_OPTIONS,
+                        defs::bcls::GLOBAL_OPTIONS::SPEED,
+                        defs::enums::CONFIG_SPEED::LOW,
+                    ),
                 );
             }
             "--frequency medium" => {
                 sample.add_tiled_pattern(
-                    &[BitOwner::Speed],
-                    DiffKey::Legacy(FeatureId {
-                        tile: "SPEED".to_string(),
-                        bel: "SPEED".to_string(),
-                        attr: "SPEED".to_string(),
-                        val: "MEDIUM".to_string(),
-                    }),
+                    &[BitOwner::CReg, BitOwner::Speed],
+                    DiffKey::BelAttrValue(
+                        defs::tcls::GLOBALS,
+                        defs::bslots::GLOBAL_OPTIONS,
+                        defs::bcls::GLOBAL_OPTIONS::SPEED,
+                        defs::enums::CONFIG_SPEED::MEDIUM,
+                    ),
                 );
             }
             "--frequency high" => {
                 sample.add_tiled_pattern(
-                    &[BitOwner::Speed],
-                    DiffKey::Legacy(FeatureId {
-                        tile: "SPEED".to_string(),
-                        bel: "SPEED".to_string(),
-                        attr: "SPEED".to_string(),
-                        val: "HIGH".to_string(),
-                    }),
+                    &[BitOwner::CReg, BitOwner::Speed],
+                    DiffKey::BelAttrValue(
+                        defs::tcls::GLOBALS,
+                        defs::bslots::GLOBAL_OPTIONS,
+                        defs::bcls::GLOBAL_OPTIONS::SPEED,
+                        defs::enums::CONFIG_SPEED::HIGH,
+                    ),
                 );
             }
             _ => panic!("ummm {opt}"),
@@ -2998,24 +2998,18 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
         }
     }
     if edev.chip.kind != ChipKind::Ice40T04 {
-        result.push(DiffKey::Legacy(FeatureId {
-            tile: "SPEED".to_string(),
-            bel: "SPEED".to_string(),
-            attr: "SPEED".to_string(),
-            val: "LOW".to_string(),
-        }));
-        result.push(DiffKey::Legacy(FeatureId {
-            tile: "SPEED".to_string(),
-            bel: "SPEED".to_string(),
-            attr: "SPEED".to_string(),
-            val: "MEDIUM".to_string(),
-        }));
-        result.push(DiffKey::Legacy(FeatureId {
-            tile: "SPEED".to_string(),
-            bel: "SPEED".to_string(),
-            attr: "SPEED".to_string(),
-            val: "HIGH".to_string(),
-        }));
+        for val in [
+            defs::enums::CONFIG_SPEED::LOW,
+            defs::enums::CONFIG_SPEED::MEDIUM,
+            defs::enums::CONFIG_SPEED::HIGH,
+        ] {
+            result.push(DiffKey::BelAttrValue(
+                defs::tcls::GLOBALS,
+                defs::bslots::GLOBAL_OPTIONS,
+                defs::bcls::GLOBAL_OPTIONS::SPEED,
+                val,
+            ));
+        }
     }
     result
 }

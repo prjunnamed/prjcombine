@@ -1039,7 +1039,11 @@ impl CollectorData {
             let BelInfo::Bel(ref mut bel) = intdb.tile_classes[tcid].bels[bslot] else {
                 unreachable!()
             };
-            bel.attributes.insert(aid, attr);
+            if bel.attributes.contains_id(aid) {
+                assert_eq!(bel.attributes[aid], attr);
+            } else {
+                bel.attributes.insert(aid, attr);
+            }
         }
 
         for (tcid, _, tcls) in &mut intdb.tile_classes {

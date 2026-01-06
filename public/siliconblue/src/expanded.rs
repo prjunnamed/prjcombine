@@ -158,6 +158,8 @@ impl ExpandedDevice<'_> {
         let tcls = &self.db.tile_classes[tile.class];
         if tcls.bitrects.is_empty() {
             EntityVec::new()
+        } else if tcls.slot == defs::tslots::GLOBALS {
+            EntityVec::from_iter([BitRect::CReg, BitRect::Speed])
         } else if tcls.bels.contains_id(defs::bslots::BRAM) {
             EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),

@@ -62,12 +62,12 @@ impl TileClass {
                                     for (src, v) in &mux.src {
                                         writeln!(
                                             o,
-                                            "\t\t\t\t\t{src} = {v},",
+                                            "\t\t\t\t\t{src} = 0b{v},",
                                             src = src.to_string(db, self)
                                         )?;
                                     }
                                     if let Some(ref v) = mux.bits_off {
-                                        writeln!(o, "\t\t\t\t\toff = {v},")?;
+                                        writeln!(o, "\t\t\t\t\toff = 0b{v},")?;
                                     }
                                     writeln!(o, "\t\t\t\t}}")?;
                                 }
@@ -127,7 +127,7 @@ impl TileClass {
                                     }
                                     writeln!(o, "] {{")?;
                                     for v in &delay.steps {
-                                        writeln!(o, "\t\t\t\t\t{v},")?;
+                                        writeln!(o, "\t\t\t\t\t0b{v},")?;
                                     }
                                     writeln!(o, "\t\t\t\t}}")?;
                                 }
@@ -204,7 +204,7 @@ impl TileClass {
                     for (aid, attr) in &bel.attributes {
                         write!(
                             o,
-                            "\t\t\t\tattribute {aname} = ",
+                            "\t\t\t\tattribute {aname} ",
                             aname = bcls.attributes.key(aid)
                         )?;
                         let bcattr = &bcls.attributes[aid];
@@ -213,11 +213,11 @@ impl TileClass {
                                 BelAttributeType::Enum(_) => unreachable!(),
                                 BelAttributeType::Bool => {
                                     assert_eq!(bits.len(), 1);
-                                    writeln!(o, "{};", self.dump_polbit(bits[0]))?;
+                                    writeln!(o, "@{};", self.dump_polbit(bits[0]))?;
                                 }
                                 BelAttributeType::Bitvec(width) => {
                                     assert_eq!(bits.len(), width);
-                                    write!(o, "[")?;
+                                    write!(o, "@[")?;
                                     let mut first = true;
                                     for &bit in bits.iter().rev() {
                                         if !first {
@@ -230,7 +230,7 @@ impl TileClass {
                                 }
                                 BelAttributeType::BitvecArray(width, depth) => {
                                     assert_eq!(bits.len(), width * depth);
-                                    writeln!(o, "[")?;
+                                    writeln!(o, "@[")?;
                                     for i in 0..depth {
                                         write!(o, "\t\t\t\t\t[")?;
                                         let mut first = true;
@@ -251,7 +251,7 @@ impl TileClass {
                                     unreachable!()
                                 };
                                 let ecls = &db.enum_classes[eid];
-                                write!(o, "[")?;
+                                write!(o, "@[")?;
                                 let mut first = true;
                                 for &bit in ebits.bits.iter().rev() {
                                     if !first {
@@ -262,7 +262,7 @@ impl TileClass {
                                 }
                                 writeln!(o, "] {{")?;
                                 for (k, v) in &ebits.values {
-                                    writeln!(o, "\t\t\t\t\t{k} = {v},", k = ecls.values[k])?;
+                                    writeln!(o, "\t\t\t\t\t{k} = 0b{v},", k = ecls.values[k])?;
                                 }
                                 writeln!(o, "\t\t\t\t}}")?;
                             }
@@ -379,7 +379,7 @@ impl TileClass {
 
     pub fn dump_polbit(&self, bit: PolTileBit) -> String {
         if bit.inv {
-            format!("~{}", self.dump_bit(bit.bit))
+            format!("!{}", self.dump_bit(bit.bit))
         } else {
             self.dump_bit(bit.bit)
         }
