@@ -4,12 +4,13 @@ use bincode::{Decode, Encode};
 use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityRange, EntityVec};
 use prjcombine_interconnect::{
-    db::{CellSlotId, TileClassId},
+    db::{CellSlotId, IntDb, TileClassId},
     dir::{Dir, DirH, DirV},
-    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileCoord, TileIobId},
+    grid::{BelCoord, CellCoord, ColId, DieId, RowId, TileCoord},
 };
+use prjcombine_types::bimap::BiMap;
 
-use crate::defs::{self, bslots as bels};
+use crate::defs;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub enum ChipKind {
@@ -279,37 +280,16 @@ impl std::fmt::Display for ChipKind {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
-pub enum SharedCfgPad {
-    SpiSo,
-    SpiSi,
-    SpiSck,
-    SpiCsB,
-    CbSel0,
-    CbSel1,
-}
-
-impl std::fmt::Display for SharedCfgPad {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SharedCfgPad::SpiSo => write!(f, "SPI_SO"),
-            SharedCfgPad::SpiSi => write!(f, "SPI_SI"),
-            SharedCfgPad::SpiSck => write!(f, "SPI_SCK"),
-            SharedCfgPad::SpiCsB => write!(f, "SPI_CS_B"),
-            SharedCfgPad::CbSel0 => write!(f, "CBSEL0"),
-            SharedCfgPad::CbSel1 => write!(f, "CBSEL1"),
-        }
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Encode, Decode)]
 pub struct SpecialTile {
-    pub io: BTreeMap<SpecialIoKey, EdgeIoCoord>,
+    // has IOI coords
+    pub io: BTreeMap<SpecialIoKey, BelCoord>,
     pub cells: EntityVec<CellSlotId, CellCoord>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
 pub enum SpecialTileKey {
+    Globals,
     GbRoot,
     Misc,
     LatchIo(Dir),
@@ -329,6 +309,7 @@ pub enum SpecialTileKey {
 impl SpecialTileKey {
     pub fn tile_class(self, kind: ChipKind) -> TileClassId {
         match self {
+            SpecialTileKey::Globals => defs::tcls::GLOBALS,
             SpecialTileKey::GbRoot => kind.tile_class_gb_root(),
             SpecialTileKey::Misc => match kind {
                 ChipKind::Ice40T04 => defs::tcls::MISC_T04,
@@ -376,6 +357,7 @@ impl SpecialTileKey {
 impl std::fmt::Display for SpecialTileKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            SpecialTileKey::Globals => write!(f, "GLOBALS"),
             SpecialTileKey::GbRoot => write!(f, "GB_ROOT"),
             SpecialTileKey::Misc => write!(f, "MISC"),
             SpecialTileKey::LatchIo(edge) => write!(f, "LATCH_IO_{edge}"),
@@ -396,6 +378,16 @@ impl std::fmt::Display for SpecialTileKey {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SpecialIoKey {
+    CfgSdo(usize),
+    CfgSdi(usize),
+    CfgSck,
+    CfgCsB,
+    CbSel0,
+    CbSel1,
+    JtagTdi,
+    JtagTms,
+    JtagTck,
+    JtagTdo,
     GbIn(usize),
     PllA,
     PllB,
@@ -418,6 +410,16 @@ pub enum SpecialIoKey {
 impl std::fmt::Display for SpecialIoKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            SpecialIoKey::CfgSdo(i) => write!(f, "CFG_SDO{i}"),
+            SpecialIoKey::CfgSdi(i) => write!(f, "CFG_SDI{i}"),
+            SpecialIoKey::CfgSck => write!(f, "CFG_SCK"),
+            SpecialIoKey::CfgCsB => write!(f, "CFG_CS_B"),
+            SpecialIoKey::CbSel0 => write!(f, "CBSEL0"),
+            SpecialIoKey::CbSel1 => write!(f, "CBSEL1"),
+            SpecialIoKey::JtagTdi => write!(f, "JTAG_TDI"),
+            SpecialIoKey::JtagTms => write!(f, "JTAG_TMS"),
+            SpecialIoKey::JtagTck => write!(f, "JTAG_TCK"),
+            SpecialIoKey::JtagTdo => write!(f, "JTAG_TDO"),
             SpecialIoKey::GbIn(idx) => write!(f, "GB_IN{idx}"),
             SpecialIoKey::PllA => write!(f, "PLL_A"),
             SpecialIoKey::PllB => write!(f, "PLL_B"),
@@ -449,9 +451,8 @@ pub struct Chip {
     pub row_mid: RowId,
     // (hclk row, start row, end row)
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
-    pub cfg_io: BTreeMap<SharedCfgPad, EdgeIoCoord>,
-    pub io_iob: BTreeMap<EdgeIoCoord, EdgeIoCoord>,
-    pub io_od: BTreeSet<EdgeIoCoord>,
+    pub ioi_iob: BiMap<BelCoord, BelCoord>,
+    pub iob_od: BTreeSet<BelCoord>,
     pub special_tiles: BTreeMap<SpecialTileKey, SpecialTile>,
 }
 
@@ -498,67 +499,50 @@ impl Chip {
         EntityRange::new(0, self.rows)
     }
 
-    pub fn get_io_bank(&self, io: EdgeIoCoord) -> u32 {
-        match io {
-            EdgeIoCoord::N(_, _) => 0,
-            EdgeIoCoord::E(_, _) => 1,
-            EdgeIoCoord::S(col, _) => {
-                if col < self.col_bio_split {
-                    2
-                } else if self.kind.has_ioi_we() {
-                    4
-                } else {
-                    1
-                }
+    pub fn globals(&self) -> TileCoord {
+        CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_s()).tile(defs::tslots::GLOBALS)
+    }
+
+    pub fn get_io_bank(&self, io: BelCoord) -> BelCoord {
+        let slot = if io.col == self.col_w() {
+            defs::bslots::IO_BANK[3]
+        } else if io.col == self.col_e() {
+            defs::bslots::IO_BANK[1]
+        } else if io.row == self.row_n() {
+            defs::bslots::IO_BANK[0]
+        } else if io.row == self.row_s() {
+            if io.col < self.col_bio_split {
+                defs::bslots::IO_BANK[2]
+            } else {
+                defs::bslots::IO_BANK_SPI
             }
-            EdgeIoCoord::W(_, _) => 3,
-        }
-    }
-
-    pub fn get_io_loc(&self, io: EdgeIoCoord) -> BelCoord {
-        let (col, row, iob) = match io {
-            EdgeIoCoord::N(col, iob) => (col, self.row_n(), iob),
-            EdgeIoCoord::E(row, iob) => (self.col_e(), row, iob),
-            EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
-            EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
-        };
-        let slot = bels::IOI[iob.to_idx()];
-        CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
-    }
-
-    pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(bels::IOI.iter().position(|&x| x == bel.slot).unwrap());
-        if bel.col == self.col_w() {
-            EdgeIoCoord::W(bel.row, iob)
-        } else if bel.col == self.col_e() {
-            EdgeIoCoord::E(bel.row, iob)
-        } else if bel.row == self.row_s() {
-            EdgeIoCoord::S(bel.col, iob)
-        } else if bel.row == self.row_n() {
-            EdgeIoCoord::N(bel.col, iob)
         } else {
-            unreachable!()
-        }
+            panic!("weird io")
+        };
+        self.globals().bel(slot)
     }
 
-    pub fn io_has_lvds(&self, crd: EdgeIoCoord) -> bool {
-        let iob = match crd {
-            EdgeIoCoord::N(_, iob) => iob,
-            EdgeIoCoord::E(_, iob) => iob,
-            EdgeIoCoord::S(_, iob) => iob,
-            EdgeIoCoord::W(_, iob) => iob,
-        };
-        if iob.to_idx() != 0 {
+    pub fn ioi_to_iob(&self, ioi: BelCoord) -> Option<BelCoord> {
+        self.ioi_iob.get_left(&ioi).copied()
+    }
+
+    pub fn iob_to_ioi(&self, iob: BelCoord) -> Option<BelCoord> {
+        self.ioi_iob.get_right(&iob).copied()
+    }
+
+    pub fn iob_has_lvds(&self, iob: BelCoord) -> bool {
+        let idx = defs::bslots::IOB.index_of(iob.slot).unwrap();
+        if idx != 0 {
             return false;
         }
         if self.kind == ChipKind::Ice65L01 {
             false
         } else if self.kind.has_iob_we() {
-            crd.edge() == Dir::W
+            iob.col == self.col_w()
         } else if self.kind == ChipKind::Ice40R04 {
-            crd.edge() == Dir::N
+            iob.row == self.row_n()
         } else {
-            !self.io_od.contains(&crd)
+            !self.iob_od.contains(&iob)
         }
     }
 
@@ -586,12 +570,12 @@ impl Chip {
     pub fn special_tile(&self, key: SpecialTileKey) -> TileCoord {
         let spec = &self.special_tiles[&key];
         match key {
+            SpecialTileKey::Globals => self.globals(),
             SpecialTileKey::GbRoot => {
                 CellCoord::new(DieId::from_idx(0), self.col_mid(), self.row_mid)
                     .tile(defs::tslots::GB_ROOT)
             }
-            SpecialTileKey::Misc => CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_s())
-                .tile(defs::tslots::BEL),
+            SpecialTileKey::Misc => self.globals().tile(defs::tslots::BEL),
             SpecialTileKey::Warmboot => {
                 CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s())
                     .tile(defs::tslots::BEL)
@@ -611,10 +595,33 @@ impl Chip {
             | SpecialTileKey::SpramPair(_) => spec.cells.first().unwrap().tile(defs::tslots::BEL),
         }
     }
+
+    pub fn get_io_edge(&self, io: BelCoord) -> Dir {
+        if io.col == self.col_w() {
+            Dir::W
+        } else if io.col == self.col_e() {
+            Dir::E
+        } else if io.row == self.row_n() {
+            Dir::N
+        } else if io.row == self.row_s() {
+            Dir::S
+        } else {
+            panic!("weird io")
+        }
+    }
+
+    pub fn bel_pll(&self, edge: DirV) -> BelCoord {
+        let cell = CellCoord::new(DieId::from_idx(0), self.col_mid() - 1, self.row_edge(edge));
+        cell.bel(if self.kind.is_ice65() {
+            defs::bslots::PLL65
+        } else {
+            defs::bslots::PLL40
+        })
+    }
 }
 
 impl Chip {
-    pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
+    pub fn dump(&self, o: &mut dyn std::io::Write, db: &IntDb) -> std::io::Result<()> {
         writeln!(o, "\tkind {};", self.kind)?;
         writeln!(o, "\tcolumns {};", self.columns)?;
         writeln!(o, "\trows {};", self.rows)?;
@@ -630,14 +637,16 @@ impl Chip {
         for &(row_hclk, row_start, row_end) in &self.rows_colbuf {
             writeln!(o, "\trow_colbuf {row_hclk} = {row_start}..{row_end};")?;
         }
-        for (k, v) in &self.cfg_io {
-            writeln!(o, "\tcfg_io {k} = {v};")?;
+        for (ioi, iob) in &self.ioi_iob {
+            writeln!(
+                o,
+                "\tiob {ioi} = {iob};",
+                ioi = ioi.to_string(db),
+                iob = iob.to_string(db)
+            )?;
         }
-        for (ioi, iob) in &self.io_iob {
-            writeln!(o, "\tiob {ioi} = {iob};")?;
-        }
-        for io in &self.io_od {
-            writeln!(o, "\tio_od {io};")?;
+        for iob in &self.iob_od {
+            writeln!(o, "\tiob_od {iob};", iob = iob.to_string(db))?;
         }
         for (key, spec) in &self.special_tiles {
             writeln!(o, "\tspecial {key} {{")?;
@@ -645,7 +654,7 @@ impl Chip {
                 writeln!(o, "\t\tcell {v};")?;
             }
             for (k, v) in &spec.io {
-                writeln!(o, "\t\tio {k} = {v};")?;
+                writeln!(o, "\t\tio {k} = {v};", v = v.to_string(db))?;
             }
             writeln!(o, "\t}}")?;
         }

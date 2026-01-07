@@ -104,7 +104,7 @@ target_defs! {
         nonroutable output DIN;
 
         // The associated pad.
-        pad IO: inout;
+        pad PAD: inout;
 
         // Only on iCE65L04/L08/P04 west bank.  Determines the output drive strength for
         // the buffer.
@@ -289,6 +289,9 @@ target_defs! {
         // Input from the relevant IOB.
         nonroutable input PACKAGEPIN;
 
+        pad AGND: power;
+        pad AVCC: power;
+
         attribute DIVQ: bitvec[3];
         attribute DIVR: bitvec[4];
         attribute DIVF: bitvec[6];
@@ -348,6 +351,9 @@ target_defs! {
 
         // Input from the relevant IOBs.
         nonroutable input PACKAGEPIN, PACKAGEPINB;
+
+        pad AGND: power;
+        pad AVCC: power;
 
         attribute DIVQ: bitvec[3];
         attribute DIVR: bitvec[4];
@@ -490,6 +496,9 @@ target_defs! {
         // `SB_BARCODE_DRV`.
         input EN;
         input TRIM[10];
+
+        // not present on iCE40T05 for whatever reason
+        pad GND_LED: power;
 
         attribute TRIM_FABRIC: bool;
         // Only on iCE40T04. Must be set when the bel is used.
@@ -1260,11 +1269,39 @@ target_defs! {
         attribute WARMBOOT_NVCM_MASK: bitvec[4];
     }
 
+    bel_class POWER {
+        pad GND: power;
+        pad VCCINT: power;
+    }
+
+    bel_class IO_BANK {
+        pad VCCIO: power;
+        pad VREF: analog;
+    }
+
+    bel_class CONFIG {
+        pad CRESET_B: input;
+        pad CDONE: inout;
+        pad TRST_B: input;
+        pad TCK: input;
+        pad TMS: input;
+        pad TDI: input;
+        pad TDO: output;
+        // ???
+        pad POR_TEST: inout;
+        pad VPP_2V5: power;
+        pad VPP_FAST: power;
+    }
+
     bitrect CONFIG_CREG = horizontal (1, rev 16);
     bitrect CONFIG_SPEED = horizontal (1, rev 2);
 
     tile_slot GLOBALS {
         bel_slot GLOBAL_OPTIONS: GLOBAL_OPTIONS;
+        bel_slot POWER: POWER;
+        bel_slot CONFIG: CONFIG;
+        bel_slot IO_BANK[4]: IO_BANK;
+        bel_slot IO_BANK_SPI: IO_BANK;
         tile_class GLOBALS {
             bitrect CREG: CONFIG_CREG;
             bitrect SPEED: CONFIG_SPEED;
@@ -1297,6 +1334,13 @@ target_defs! {
                     CREG[9],
                 ];
             }
+
+            bel POWER;
+            bel CONFIG;
+            for i in 0..4 {
+                bel IO_BANK[i];
+            }
+            bel IO_BANK_SPI;
         }
     }
 

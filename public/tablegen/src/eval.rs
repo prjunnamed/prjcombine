@@ -208,9 +208,9 @@ impl Context {
             }
         };
         let geom = self.db.db.tile_classes[tcls].bitrects[rect].geometry;
-        let (frame, bit) = match index.as_slice() {
-            &[] => error_at(name.span(), "missing bit coordinates")?,
-            &[bit] => {
+        let (frame, bit) = match *index.as_slice() {
+            [] => error_at(name.span(), "missing bit coordinates")?,
+            [bit] => {
                 if geom.frames != 1 {
                     error_at(
                         name.span(),
@@ -222,7 +222,7 @@ impl Context {
                 }
                 (RectFrameId::from_idx(0), RectBitId::from_idx(bit))
             }
-            &[frame, bit] => {
+            [frame, bit] => {
                 if frame >= geom.frames {
                     error_at(name.span(), "frame out of range")?;
                 }

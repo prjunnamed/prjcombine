@@ -21,19 +21,20 @@ use prjcombine_interconnect::{
         TileClass, TileClassId, TileWireCoord,
     },
     dir::{Dir, DirH, DirPartMap, DirV},
-    grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
+    grid::{BelCoord, CellCoord, ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_re_fpga_hammer::DiffKey;
 use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{
-    bond::{Bond, BondPad, CfgPad},
-    chip::{Chip, ChipKind, SharedCfgPad, SpecialIoKey, SpecialTile, SpecialTileKey},
+    bond::Bond,
+    chip::{Chip, ChipKind, SpecialIoKey, SpecialTile, SpecialTileKey},
     db::Database,
     defs::{self, bslots as bels},
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{
+    bimap::BiMap,
     bsdata::{BitRectId, BsData, PolTileBit, TileBit},
     speed::Speed,
 };
@@ -77,7 +78,7 @@ pub struct PkgInfo {
     pub bel_info: BTreeMap<&'static str, Vec<SiteInfo>>,
     pub xlat_col: Vec<ColId>,
     pub xlat_row: Vec<RowId>,
-    pub xlat_io: BTreeMap<(u32, u32, u32), EdgeIoCoord>,
+    pub xlat_ioi: BTreeMap<(u32, u32, u32), BelCoord>,
 }
 
 #[allow(clippy::type_complexity)]
@@ -634,7 +635,7 @@ impl PartContext<'_> {
                         bel_info: Default::default(),
                         xlat_col: Default::default(),
                         xlat_row: Default::default(),
-                        xlat_io: Default::default(),
+                        xlat_ioi: Default::default(),
                     },
                 )
             })
@@ -777,11 +778,112 @@ impl PartContext<'_> {
         }
     }
 
+    fn fill_cfg_io(&mut self) {
+        let mut special = SpecialTile {
+            io: Default::default(),
+            cells: Default::default(),
+        };
+        let col_base = if matches!(self.chip.kind, ChipKind::Ice65L08 | ChipKind::Ice40P08) {
+            self.chip.col_e() - 4
+        } else {
+            self.chip.col_e() - 3
+        };
+        for (dx, idx, key) in [
+            (0, 0, SpecialIoKey::CbSel0),
+            (0, 1, SpecialIoKey::CbSel1),
+            (1, 0, SpecialIoKey::CfgSdo(0)),
+            (1, 1, SpecialIoKey::CfgSdi(0)),
+            (2, 0, SpecialIoKey::CfgSck),
+            (2, 1, SpecialIoKey::CfgCsB),
+        ] {
+            let ioi = CellCoord::new(DieId::from_idx(0), col_base + dx, self.chip.row_s())
+                .bel(defs::bslots::IOI[idx]);
+            special.io.insert(key, ioi);
+        }
+        if matches!(
+            self.chip.kind,
+            ChipKind::Ice40P01 | ChipKind::Ice40P08 | ChipKind::Ice40P03
+        ) {
+            for (dy, idx, key) in [
+                (1, 0, SpecialIoKey::JtagTdi),
+                (1, 1, SpecialIoKey::JtagTms),
+                (2, 0, SpecialIoKey::JtagTck),
+                (2, 1, SpecialIoKey::JtagTdo),
+            ] {
+                let ioi = CellCoord::new(
+                    DieId::from_idx(0),
+                    self.chip.col_e(),
+                    self.chip.row_s() + dy,
+                )
+                .bel(defs::bslots::IOI[idx]);
+                special.io.insert(key, ioi);
+            }
+        }
+        if matches!(
+            self.chip.kind,
+            ChipKind::Ice65P04 | ChipKind::Ice65L04 | ChipKind::Ice65L08 | ChipKind::Ice40P08
+        ) {
+            if matches!(self.chip.kind, ChipKind::Ice65L04 | ChipKind::Ice65P04) {
+                for (dx, idx, key) in [
+                    (-6, 0, SpecialIoKey::CfgSdo(2)),
+                    (-6, 1, SpecialIoKey::CfgSdo(3)),
+                    (-5, 0, SpecialIoKey::CfgSdo(4)),
+                    (-5, 1, SpecialIoKey::CfgSdo(5)),
+                    (-4, 0, SpecialIoKey::CfgSdo(6)),
+                    (-4, 1, SpecialIoKey::CfgSdo(7)),
+                ] {
+                    let ioi = CellCoord::new(
+                        DieId::from_idx(0),
+                        self.chip.col_e() + dx,
+                        self.chip.row_s(),
+                    )
+                    .bel(defs::bslots::IOI[idx]);
+                    special.io.insert(key, ioi);
+                }
+            } else {
+                for (dx, idx, key) in [
+                    (-8, 1, SpecialIoKey::CfgSdo(7)),
+                    (-7, 0, SpecialIoKey::CfgSdo(6)),
+                    (-7, 1, SpecialIoKey::CfgSdo(5)),
+                    (-6, 0, SpecialIoKey::CfgSdo(4)),
+                    (-6, 1, SpecialIoKey::CfgSdo(3)),
+                    (-5, 0, SpecialIoKey::CfgSdo(2)),
+                ] {
+                    let ioi = CellCoord::new(
+                        DieId::from_idx(0),
+                        self.chip.col_e() + dx,
+                        self.chip.row_s(),
+                    )
+                    .bel(defs::bslots::IOI[idx]);
+                    special.io.insert(key, ioi);
+                }
+            }
+            let row_base: RowId = match self.chip.kind {
+                ChipKind::Ice65L04 | ChipKind::Ice65P04 => self.chip.row_s() + 1,
+                ChipKind::Ice65L08 | ChipKind::Ice40P08 => self.chip.row_s() + 3,
+                _ => unreachable!(),
+            };
+            for (dy, idx, key) in [
+                (0, 0, SpecialIoKey::CfgSdo(1)),
+                (0, 1, SpecialIoKey::CfgSdi(1)),
+                (1, 0, SpecialIoKey::CfgSdi(2)),
+                (1, 1, SpecialIoKey::CfgSdi(3)),
+                (2, 0, SpecialIoKey::CfgSdi(4)),
+                (2, 1, SpecialIoKey::CfgSdi(5)),
+                (3, 0, SpecialIoKey::CfgSdi(6)),
+                (3, 1, SpecialIoKey::CfgSdi(7)),
+            ] {
+                let ioi = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), row_base + dy)
+                    .bel(defs::bslots::IOI[idx]);
+                special.io.insert(key, ioi);
+            }
+        }
+        self.chip
+            .special_tiles
+            .insert(SpecialTileKey::Globals, special);
+    }
+
     fn fill_bonds(&mut self) {
-        let col_w = self.chip.col_w();
-        let col_e = self.chip.col_e();
-        let row_s = self.chip.row_s();
-        let row_n = self.chip.row_n();
         for (&(dev, pkg), pkg_info) in &mut self.pkgs {
             for info in &pkg_info.bel_info["SB_IO"] {
                 let (col, row, ref wn) = info.in_wires[&InstPin::Simple("D_OUT_0".into())];
@@ -790,29 +892,33 @@ impl PartContext<'_> {
                     ColId::from_idx(col.try_into().unwrap()),
                     RowId::from_idx(row.try_into().unwrap()),
                 );
-                let slot = bels::IOI[if wn == "wire_io_cluster/io_0/D_OUT_0" {
+                let idx = if wn == "wire_io_cluster/io_0/D_OUT_0" {
                     0
                 } else if wn == "wire_io_cluster/io_1/D_OUT_0" {
                     1
                 } else {
                     panic!("ummm {wn}?")
-                }];
+                };
                 let (loc, ref pin) = info.pads["PACKAGE_PIN"];
                 let xy = (loc.x, loc.y, loc.bel);
                 assert_eq!(loc, info.loc);
-                let io = self.chip.get_io_crd(cell.bel(slot));
+                let ioi = cell.bel(defs::bslots::IOI[idx]);
                 // will be fixed up later.
-                self.chip.io_iob.insert(io, io);
+                let iob = cell.bel(defs::bslots::IOB[idx]);
+                self.chip.ioi_iob.insert(ioi, iob);
                 assert_eq!(
-                    pkg_info.bond.pins.insert(pin.clone(), BondPad::Io(io)),
+                    pkg_info
+                        .bond
+                        .pins
+                        .insert(pin.clone(), vec![iob.pad(defs::bcls::IOB::PAD)]),
                     None
                 );
-                match pkg_info.xlat_io.entry(xy) {
+                match pkg_info.xlat_ioi.entry(xy) {
                     btree_map::Entry::Vacant(e) => {
-                        e.insert(io);
+                        e.insert(ioi);
                     }
                     btree_map::Entry::Occupied(e) => {
-                        assert_eq!(*e.get(), io);
+                        assert_eq!(*e.get(), ioi);
                     }
                 }
             }
@@ -820,23 +926,21 @@ impl PartContext<'_> {
                 for info in &pkg_info.bel_info["SB_IO_DS"] {
                     for pin in ["PACKAGE_PIN", "PACKAGE_PIN_B"] {
                         let (loc, ref pin) = info.pads[pin];
-                        let col = ColId::from_idx(loc.x.try_into().unwrap());
-                        let row = RowId::from_idx(loc.y.try_into().unwrap());
-                        let iob = TileIobId::from_idx(loc.bel.try_into().unwrap());
-                        let io = if row == row_s {
-                            EdgeIoCoord::S(col, iob)
-                        } else if row == row_n {
-                            EdgeIoCoord::N(col, iob)
-                        } else if col == col_w {
-                            EdgeIoCoord::W(row, iob)
-                        } else if col == col_e {
-                            EdgeIoCoord::E(row, iob)
-                        } else {
-                            unreachable!()
-                        };
-                        self.chip.io_iob.insert(io, io);
+                        let cell = CellCoord::new(
+                            DieId::from_idx(0),
+                            ColId::from_idx(loc.x.try_into().unwrap()),
+                            RowId::from_idx(loc.y.try_into().unwrap()),
+                        );
+                        let idx: usize = loc.bel.try_into().unwrap();
+                        let ioi = cell.bel(defs::bslots::IOI[idx]);
+                        // will be fixed up later.
+                        let iob = cell.bel(defs::bslots::IOB[idx]);
+                        self.chip.ioi_iob.insert(ioi, iob);
                         assert_eq!(
-                            pkg_info.bond.pins.insert(pin.clone(), BondPad::Io(io)),
+                            pkg_info
+                                .bond
+                                .pins
+                                .insert(pin.clone(), vec![iob.pad(defs::bcls::IOB::PAD)]),
                             None
                         );
                     }
@@ -845,73 +949,74 @@ impl PartContext<'_> {
             if let Some(infos) = pkg_info.bel_info.get("SB_IO_OD") {
                 for info in infos {
                     let (col, row, ref wn) = info.in_wires[&InstPin::Simple("DOUT0".into())];
-                    let col = ColId::from_idx(col.try_into().unwrap());
-                    let row = RowId::from_idx(row.try_into().unwrap());
-                    let iob = TileIobId::from_idx(if wn == "wire_io_cluster/io_0/D_OUT_0" {
+                    let cell = CellCoord::new(
+                        DieId::from_idx(0),
+                        ColId::from_idx(col.try_into().unwrap()),
+                        RowId::from_idx(row.try_into().unwrap()),
+                    );
+                    let idx = if wn == "wire_io_cluster/io_0/D_OUT_0" {
                         0
                     } else if wn == "wire_io_cluster/io_1/D_OUT_0" {
                         1
                     } else {
                         panic!("ummm {wn}?")
-                    });
+                    };
+                    let ioi = cell.bel(defs::bslots::IOI[idx]);
+                    // will be fixed up later.
+                    let iob = cell.bel(defs::bslots::IOB[idx]);
+                    self.chip.ioi_iob.insert(ioi, iob);
+                    self.chip.iob_od.insert(iob);
                     let (loc, ref pin) = info.pads["PACKAGEPIN"];
                     let xy = (loc.x, loc.y, loc.bel);
                     assert_eq!(loc, info.loc);
-                    let io = if row == row_s {
-                        EdgeIoCoord::S(col, iob)
-                    } else if row == row_n {
-                        EdgeIoCoord::N(col, iob)
-                    } else if col == col_w {
-                        EdgeIoCoord::W(row, iob)
-                    } else if col == col_e {
-                        EdgeIoCoord::E(row, iob)
-                    } else {
-                        unreachable!()
-                    };
-                    self.chip.io_iob.insert(io, io);
-                    self.chip.io_od.insert(io);
                     assert_eq!(
-                        pkg_info.bond.pins.insert(pin.clone(), BondPad::Io(io)),
+                        pkg_info
+                            .bond
+                            .pins
+                            .insert(pin.clone(), vec![iob.pad(defs::bcls::IOB::PAD)]),
                         None
                     );
-                    match pkg_info.xlat_io.entry(xy) {
+                    match pkg_info.xlat_ioi.entry(xy) {
                         btree_map::Entry::Vacant(e) => {
-                            e.insert(io);
+                            e.insert(ioi);
                         }
                         btree_map::Entry::Occupied(e) => {
-                            assert_eq!(*e.get(), io);
+                            assert_eq!(*e.get(), ioi);
                         }
                     }
                 }
             }
             if matches!(dev, "iCE65L04" | "iCE65P04") && pkg == "CB132" {
                 // AAAAAAAAAAAAAAAAAAAaaaaaaaaaaaa
-                let io = EdgeIoCoord::W(RowId::from_idx(11), TileIobId::from_idx(0));
-                self.chip.io_iob.insert(io, io);
-                pkg_info.bond.pins.insert("G1".into(), BondPad::Io(io));
-                let io = EdgeIoCoord::W(RowId::from_idx(10), TileIobId::from_idx(1));
-                self.chip.io_iob.insert(io, io);
-                pkg_info.bond.pins.insert("H1".into(), BondPad::Io(io));
+                for (row, idx, pin) in [(11, 0, "G1"), (10, 1, "H1")] {
+                    let cell = CellCoord::new(
+                        DieId::from_idx(0),
+                        self.chip.col_w(),
+                        RowId::from_idx(row.try_into().unwrap()),
+                    );
+                    let ioi = cell.bel(defs::bslots::IOI[idx]);
+                    let iob = cell.bel(defs::bslots::IOB[idx]);
+                    self.chip.ioi_iob.insert(ioi, iob);
+                    pkg_info
+                        .bond
+                        .pins
+                        .insert(pin.into(), vec![iob.pad(defs::bcls::IOB::PAD)]);
+                }
             }
             if self.chip.kind.is_ice65() {
-                for &io in self.chip.io_iob.keys() {
-                    let (col, row, iob) = match io {
-                        EdgeIoCoord::N(col, iob) => (col, row_n, iob),
-                        EdgeIoCoord::E(row, iob) => (col_e, row, iob),
-                        EdgeIoCoord::S(col, iob) => (col, row_s, iob),
-                        EdgeIoCoord::W(row, iob) => (col_w, row, iob),
-                    };
+                for &ioi in self.chip.ioi_iob.keys_left() {
+                    let idx = defs::bslots::IOI.index_of(ioi.slot).unwrap();
                     let xy = (
-                        col.to_idx().try_into().unwrap(),
-                        row.to_idx().try_into().unwrap(),
-                        iob.to_idx().try_into().unwrap(),
+                        ioi.col.to_idx().try_into().unwrap(),
+                        ioi.row.to_idx().try_into().unwrap(),
+                        idx.try_into().unwrap(),
                     );
-                    match pkg_info.xlat_io.entry(xy) {
+                    match pkg_info.xlat_ioi.entry(xy) {
                         btree_map::Entry::Vacant(e) => {
-                            e.insert(io);
+                            e.insert(ioi);
                         }
                         btree_map::Entry::Occupied(e) => {
-                            assert_eq!(*e.get(), io);
+                            assert_eq!(*e.get(), ioi);
                         }
                     }
                 }
@@ -919,62 +1024,288 @@ impl PartContext<'_> {
             for (pin, info) in &pkg_info.empty_run.pin_table {
                 let typ = &info.typ[..];
                 let pad = match typ {
-                    "GND" => BondPad::Gnd,
-                    "VCC" => BondPad::VccInt,
-                    "VCCIO_0" => BondPad::VccIo(0),
-                    "VCCIO_1" => BondPad::VccIo(1),
-                    "VCCIO_2" => BondPad::VccIo(2),
-                    "VCCIO_3" => BondPad::VccIo(3),
-                    "VDDIO_SPI" => BondPad::VccIoSpi,
-                    "VPP_DIRECT" | "VPP" => BondPad::VppDirect,
-                    "VPP_PUMP" | "VDDP" => BondPad::VppPump,
-                    "VREF" => BondPad::Vref,
-                    "VSSIO_LED" => BondPad::GndLed,
-                    "AGND" | "AGND_BOT" => BondPad::GndPll(DirV::S),
-                    "AVDD" | "AVDD_BOT" => BondPad::VccPll(DirV::S),
-                    "AGND_TOP" => BondPad::GndPll(DirV::N),
-                    "AVDD_TOP" => BondPad::VccPll(DirV::N),
-                    "CRESET_B" => BondPad::Cfg(CfgPad::CResetB),
-                    "CDONE" => BondPad::Cfg(CfgPad::CDone),
-                    "TCK" => BondPad::Cfg(CfgPad::Tck),
-                    "TMS" => BondPad::Cfg(CfgPad::Tms),
-                    "TDI" => BondPad::Cfg(CfgPad::Tdi),
-                    "TDO" => BondPad::Cfg(CfgPad::Tdo),
-                    "TRST_B" => BondPad::Cfg(CfgPad::TrstB),
-                    "POR_test" => BondPad::PorTest,
-                    "NC" => BondPad::Nc,
+                    "GND" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::POWER)
+                            .pad(defs::bcls::POWER::GND),
+                    ],
+                    "VCC" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::POWER)
+                            .pad(defs::bcls::POWER::VCCINT),
+                    ],
+                    "VCCIO_0" => {
+                        if self.chip.kind == ChipKind::Ice40T01 && pkg == "SWG16" {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[0])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::CONFIG)
+                                    .pad(defs::bcls::CONFIG::VPP_2V5),
+                            ]
+                        } else if self.chip.kind == ChipKind::Ice40P01
+                            && matches!(pkg, "CM36" | "CM49")
+                        {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[0])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[1])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                            ]
+                        } else {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[0])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                            ]
+                        }
+                    }
+                    "VCCIO_1" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::IO_BANK[1])
+                            .pad(defs::bcls::IO_BANK::VCCIO),
+                    ],
+                    "VCCIO_2" => {
+                        if (self.chip.kind == ChipKind::Ice40T01 && pkg == "SWG16")
+                            || (self.chip.kind == ChipKind::Ice40T04 && pkg == "UWG20")
+                            || (self.chip.kind == ChipKind::Ice40R04
+                                && matches!(pkg, "SWG25TR" | "CM36" | "FC36"))
+                        {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[2])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK_SPI)
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                            ]
+                        } else if (self.chip.kind == ChipKind::Ice40P03
+                            && matches!(pkg, "CM36" | "CM49"))
+                            || (self.chip.kind == ChipKind::Ice40P01
+                                && matches!(pkg, "CM36A" | "CM49A" | "CM36" | "CM49" | "CY36"))
+                        {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[2])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[3])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                            ]
+                        } else {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[2])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                            ]
+                        }
+                    }
+                    "VCCIO_3" => {
+                        if self.chip.kind == ChipKind::Ice40P01 && pkg == "SWG16TR" {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[1])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[2])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[3])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK_SPI)
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::CONFIG)
+                                    .pad(defs::bcls::CONFIG::VPP_2V5),
+                            ]
+                        } else {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::IO_BANK[3])
+                                    .pad(defs::bcls::IO_BANK::VCCIO),
+                            ]
+                        }
+                    }
+                    "VDDIO_SPI" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::IO_BANK_SPI)
+                            .pad(defs::bcls::IO_BANK::VCCIO),
+                    ],
+                    "VPP_DIRECT" | "VPP" => {
+                        vec![self.chip.globals().bel(defs::bslots::CONFIG).pad(
+                            if self.chip.kind.is_ultra() {
+                                defs::bcls::CONFIG::VPP_2V5
+                            } else {
+                                defs::bcls::CONFIG::VPP_FAST
+                            },
+                        )]
+                    }
+                    "VPP_PUMP" | "VDDP" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::VPP_2V5),
+                    ],
+                    "VREF" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::IO_BANK[3])
+                            .pad(defs::bcls::IO_BANK::VREF),
+                    ],
+                    "VSSIO_LED" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::LED_DRV_CUR)
+                            .pad(defs::bcls::LED_DRV_CUR::GND_LED),
+                    ],
+                    "AGND" | "AGND_BOT" => {
+                        if self.chip.kind == ChipKind::Ice40P01 && pkg == "SWG16TR" {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::POWER)
+                                    .pad(defs::bcls::POWER::GND),
+                            ]
+                        } else {
+                            vec![
+                                self.chip
+                                    .bel_pll(DirV::S)
+                                    .pad(if self.chip.kind.is_ice65() {
+                                        defs::bcls::PLL65::AGND
+                                    } else {
+                                        defs::bcls::PLL40::AGND
+                                    }),
+                            ]
+                        }
+                    }
+                    "AVDD" | "AVDD_BOT" => {
+                        if self.chip.kind == ChipKind::Ice40P01 && pkg == "CB81" {
+                            vec![
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::POWER)
+                                    .pad(defs::bcls::POWER::VCCINT),
+                            ]
+                        } else {
+                            vec![
+                                self.chip
+                                    .bel_pll(DirV::S)
+                                    .pad(if self.chip.kind.is_ice65() {
+                                        defs::bcls::PLL65::AVCC
+                                    } else {
+                                        defs::bcls::PLL40::AVCC
+                                    }),
+                            ]
+                        }
+                    }
+                    "AGND_TOP" => {
+                        vec![self.chip.bel_pll(DirV::N).pad(defs::bcls::PLL40::AGND)]
+                    }
+                    "AVDD_TOP" => {
+                        vec![self.chip.bel_pll(DirV::N).pad(defs::bcls::PLL40::AVCC)]
+                    }
+                    "CRESET_B" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::CRESET_B),
+                    ],
+                    "CDONE" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::CDONE),
+                    ],
+                    "TCK" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::TCK),
+                    ],
+                    "TMS" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::TMS),
+                    ],
+                    "TDI" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::TDI),
+                    ],
+                    "TDO" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::TDO),
+                    ],
+                    "TRST_B" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::TRST_B),
+                    ],
+                    "POR_test" => vec![
+                        self.chip
+                            .globals()
+                            .bel(defs::bslots::CONFIG)
+                            .pad(defs::bcls::CONFIG::POR_TEST),
+                    ],
+                    "NC" => vec![],
                     "PIO" | "PIO_GBIN" | "PIO_GBIN_CDONE" | "PIO_LED" | "PIO_RGB"
                     | "PIO_BARCODE" | "PIO_I3C" => {
-                        let BondPad::Io(crd) = pkg_info.bond.pins[pin] else {
-                            panic!("umm {pin} not really IO?");
-                        };
+                        let pads = pkg_info.bond.pins.get_mut(pin).unwrap();
+                        assert_eq!(pads.len(), 1);
                         if typ == "PIO_GBIN_CDONE" {
-                            pkg_info
-                                .bond
-                                .pins
-                                .insert(pin.clone(), BondPad::IoCDone(crd));
+                            pads.push(
+                                self.chip
+                                    .globals()
+                                    .bel(defs::bslots::CONFIG)
+                                    .pad(defs::bcls::CONFIG::CDONE),
+                            );
                         }
                         continue;
                     }
                     "SPI_SCK" | "SPI_SI" | "SPI_SO" | "SPI_SS_B" => {
-                        let BondPad::Io(crd) = pkg_info.bond.pins[pin] else {
-                            panic!("umm {pin} not really IO?");
-                        };
+                        let pads = &pkg_info.bond.pins[pin];
+                        assert_eq!(pads.len(), 1);
+                        let ioi = self.chip.iob_to_ioi(pads[0].bel).unwrap();
                         let cpin = match typ {
-                            "SPI_SCK" => SharedCfgPad::SpiSck,
-                            "SPI_SI" => SharedCfgPad::SpiSi,
-                            "SPI_SO" => SharedCfgPad::SpiSo,
-                            "SPI_SS_B" => SharedCfgPad::SpiCsB,
+                            "SPI_SCK" => SpecialIoKey::CfgSck,
+                            "SPI_SI" => SpecialIoKey::CfgSdi(0),
+                            "SPI_SO" => SpecialIoKey::CfgSdo(0),
+                            "SPI_SS_B" => SpecialIoKey::CfgCsB,
                             _ => unreachable!(),
                         };
-                        match self.chip.cfg_io.entry(cpin) {
-                            btree_map::Entry::Vacant(e) => {
-                                e.insert(crd);
-                            }
-                            btree_map::Entry::Occupied(e) => {
-                                assert_eq!(*e.get(), crd);
-                            }
-                        }
+                        assert_eq!(
+                            self.chip.special_tiles[&SpecialTileKey::Globals].io[&cpin],
+                            ioi
+                        );
                         continue;
                     }
                     _ => panic!("ummm {}", info.typ),
@@ -984,85 +1315,104 @@ impl PartContext<'_> {
             let mut x3 = BTreeMap::new();
             for info in &pkg_info.bel_info["IOx3"] {
                 let xy = (info.loc.x, info.loc.y, info.loc.bel);
-                let io = pkg_info.xlat_io[&xy];
+                let ioi = pkg_info.xlat_ioi[&xy];
+                let iob = self.chip.ioi_to_iob(ioi).unwrap();
                 let r0 = info.dedio["REP0"];
-                let ior0 = self.chip.get_io_crd(
-                    CellCoord::new(
-                        DieId::from_idx(0),
-                        ColId::from_idx(r0.x as usize),
-                        RowId::from_idx(r0.y as usize),
-                    )
-                    .bel(bels::IOI[r0.bel as usize]),
-                );
+                let ior0 = CellCoord::new(
+                    DieId::from_idx(0),
+                    ColId::from_idx(r0.x as usize),
+                    RowId::from_idx(r0.y as usize),
+                )
+                .bel(bels::IOB[r0.bel as usize])
+                .pad(defs::bcls::IOB::PAD);
                 let r1 = info.dedio["REP1"];
-                let ior1 = self.chip.get_io_crd(
-                    CellCoord::new(
-                        DieId::from_idx(0),
-                        ColId::from_idx(r1.x as usize),
-                        RowId::from_idx(r1.y as usize),
-                    )
-                    .bel(bels::IOI[r1.bel as usize]),
-                );
-                x3.insert(io, (ior0, ior1));
+                let ior1 = CellCoord::new(
+                    DieId::from_idx(0),
+                    ColId::from_idx(r1.x as usize),
+                    RowId::from_idx(r1.y as usize),
+                )
+                .bel(bels::IOB[r1.bel as usize])
+                .pad(defs::bcls::IOB::PAD);
+                x3.insert(iob, (ior0, ior1));
             }
-            for bpin in pkg_info.bond.pins.values_mut() {
-                if let BondPad::Io(io) = *bpin
-                    && let Some(&(ior0, ior1)) = x3.get(&io)
-                {
+            for pads in pkg_info.bond.pins.values_mut() {
+                if pads.len() != 1 {
+                    continue;
+                }
+                if let Some(&(ior0, ior1)) = x3.get(&pads[0].bel) {
                     let mut ior = [ior0, ior1];
                     ior.sort();
-                    *bpin = BondPad::IoTriple([io, ior[0], ior[1]]);
+                    pads.extend(ior);
                 }
+            }
+            if pkg == "SG48" {
+                pkg_info.bond.pins.insert(
+                    "PAD".to_string(),
+                    if self.chip.kind == ChipKind::Ice40T04 {
+                        vec![
+                            self.chip
+                                .globals()
+                                .bel(defs::bslots::POWER)
+                                .pad(defs::bcls::POWER::GND),
+                            self.chip
+                                .globals()
+                                .bel(defs::bslots::LED_DRV_CUR)
+                                .pad(defs::bcls::LED_DRV_CUR::GND_LED),
+                        ]
+                    } else {
+                        vec![
+                            self.chip
+                                .globals()
+                                .bel(defs::bslots::POWER)
+                                .pad(defs::bcls::POWER::GND),
+                        ]
+                    },
+                );
             }
             if pkg != "DI" {
                 let all_pins = get_pkg_pins(pkg);
                 for pin in &all_pins {
                     if let btree_map::Entry::Vacant(e) = pkg_info.bond.pins.entry(pin.to_string()) {
-                        e.insert(BondPad::Nc);
+                        e.insert(vec![]);
                     }
                 }
                 assert_eq!(pkg_info.bond.pins.len(), all_pins.len());
             }
         }
+        if self.chip.kind == ChipKind::Ice40P03 {
+            let cell = CellCoord::new(DieId::from_idx(0), self.chip.col_e(), RowId::from_idx(3));
+            let ioi = cell.bel(defs::bslots::IOI[0]);
+            let iob = cell.bel(defs::bslots::IOB[0]);
+            self.chip.ioi_iob.insert(ioi, iob);
+        }
         self.chip.col_bio_split = match self.chip.kind {
             ChipKind::Ice40T04 | ChipKind::Ice40T05 => ColId::from_idx(12),
-            _ => {
-                let EdgeIoCoord::S(col, _) = self.chip.cfg_io[&SharedCfgPad::SpiSo] else {
-                    unreachable!()
-                };
-                col
-            }
+            _ => self.chip.special_tiles[&SpecialTileKey::Globals].io[&SpecialIoKey::CfgSdo(0)].col,
         };
     }
 
     fn fill_cbsel(&mut self) {
         if !self.chip.kind.has_iob_we() {
-            // not sure if the later devices really don't have CBSEL or just don't advertise it,
-            // but the below pin mappings definitely aren't stable anymore
             return;
         }
         for (&(_dev, pkg), pkg_info) in &self.pkgs {
             let balls = match pkg {
-                "CB132" => [(SharedCfgPad::CbSel0, "L9"), (SharedCfgPad::CbSel1, "P10")],
-                "CM36" | "CM36A" => [(SharedCfgPad::CbSel0, "E3"), (SharedCfgPad::CbSel1, "F3")],
-                "CM49" => [(SharedCfgPad::CbSel0, "F4"), (SharedCfgPad::CbSel1, "G4")],
-                "CB81" | "CM81" => [(SharedCfgPad::CbSel0, "G5"), (SharedCfgPad::CbSel1, "H5")],
-                "CB121" => [(SharedCfgPad::CbSel0, "H6"), (SharedCfgPad::CbSel1, "J6")],
-                "VQ100" => [(SharedCfgPad::CbSel0, "41"), (SharedCfgPad::CbSel1, "42")],
+                "CB132" => [(SpecialIoKey::CbSel0, "L9"), (SpecialIoKey::CbSel1, "P10")],
+                "CM36" | "CM36A" => [(SpecialIoKey::CbSel0, "E3"), (SpecialIoKey::CbSel1, "F3")],
+                "CM49" => [(SpecialIoKey::CbSel0, "F4"), (SpecialIoKey::CbSel1, "G4")],
+                "CB81" | "CM81" => [(SpecialIoKey::CbSel0, "G5"), (SpecialIoKey::CbSel1, "H5")],
+                "CB121" => [(SpecialIoKey::CbSel0, "H6"), (SpecialIoKey::CbSel1, "J6")],
+                "VQ100" => [(SpecialIoKey::CbSel0, "41"), (SpecialIoKey::CbSel1, "42")],
                 _ => continue,
             };
             for (cpin, ball) in balls {
-                let BondPad::Io(io) = pkg_info.bond.pins[ball] else {
-                    unreachable!()
-                };
-                match self.chip.cfg_io.entry(cpin) {
-                    btree_map::Entry::Vacant(e) => {
-                        e.insert(io);
-                    }
-                    btree_map::Entry::Occupied(e) => {
-                        assert_eq!(*e.get(), io);
-                    }
-                }
+                let pads = &pkg_info.bond.pins[ball];
+                assert_eq!(pads.len(), 1);
+                let ioi = self.chip.iob_to_ioi(pads[0].bel).unwrap();
+                assert_eq!(
+                    self.chip.special_tiles[&SpecialTileKey::Globals].io[&cpin],
+                    ioi,
+                );
             }
         }
     }
@@ -1076,21 +1426,24 @@ impl PartContext<'_> {
                     .bond
                     .pins
                     .values()
-                    .filter(|&pin| matches!(pin, BondPad::Io(_) | BondPad::IoCDone(_)))
+                    .filter(|pads| !pads.is_empty() && defs::bslots::IOB.contains(pads[0].slot))
                     .count()
             })
             .unwrap();
         let mut pkg_pins = DirPartMap::new();
-        for (pkg_pin, &pin) in &pkg_info.bond.pins {
-            let (BondPad::Io(crd) | BondPad::IoCDone(crd)) = pin else {
-                continue;
-            };
-            if self.chip.io_od.contains(&crd) {
+        for (pin, pads) in &pkg_info.bond.pins {
+            if pads.is_empty() {
                 continue;
             }
-            let edge = crd.edge();
+            if !defs::bslots::IOB.contains(pads[0].slot) {
+                continue;
+            }
+            if self.chip.iob_od.contains(&pads[0].bel) {
+                continue;
+            }
+            let edge = self.chip.get_io_edge(pads[0].bel);
             if !pkg_pins.contains_key(edge) {
-                pkg_pins.insert(edge, pkg_pin.as_str());
+                pkg_pins.insert(edge, pin.as_str());
             }
         }
         let expected = if self.chip.kind.has_ioi_we() && self.chip.kind != ChipKind::Ice40R04 {
@@ -1241,7 +1594,7 @@ impl PartContext<'_> {
                 let index =
                     site.global_nets[&InstPin::Simple("GLOBAL_BUFFER_OUTPUT".into())] as usize;
                 let xy = (site.loc.x, site.loc.y, site.loc.bel);
-                let io = pkg_info.xlat_io[&xy];
+                let io = pkg_info.xlat_ioi[&xy];
                 match gb_io.entry(index) {
                     btree_map::Entry::Vacant(entry) => {
                         entry.insert(io);
@@ -1256,16 +1609,12 @@ impl PartContext<'_> {
         if self.chip.kind.is_ice65() {
             // sigh.
             if !gb_io.contains_key(&1) {
-                let Some(&EdgeIoCoord::E(row, iob)) = gb_io.get(&0) else {
-                    unreachable!()
-                };
-                gb_io.insert(1, EdgeIoCoord::W(row, iob));
+                let ioi = gb_io[&0];
+                gb_io.insert(1, ioi.with_col(self.chip.col_w()).bel(ioi.slot));
             }
             if !gb_io.contains_key(&4) {
-                let Some(&EdgeIoCoord::E(row, iob)) = gb_io.get(&5) else {
-                    unreachable!()
-                };
-                gb_io.insert(4, EdgeIoCoord::W(row, iob));
+                let ioi = gb_io[&5];
+                gb_io.insert(4, ioi.with_col(self.chip.col_w()).bel(ioi.slot));
             }
         }
 
@@ -1468,7 +1817,7 @@ impl PartContext<'_> {
                 for &(slot, pin) in dedio {
                     let loc = site.dedio[pin];
                     let xy = (loc.x, loc.y, loc.bel);
-                    let io = pkg_info.xlat_io[&xy];
+                    let io = pkg_info.xlat_ioi[&xy];
                     builder.insert_io(slot, io);
                 }
                 let (tcls, special) = builder.finish();
@@ -1569,7 +1918,7 @@ impl PartContext<'_> {
                 sites.sort_by_key(|site| site.loc);
                 let sites = Vec::from_iter(sites.into_iter().map(|site| {
                     let xy = (site.loc.x, site.loc.y, site.loc.bel);
-                    let crd = pkg_info.xlat_io[&xy];
+                    let crd = pkg_info.xlat_ioi[&xy];
                     (site.loc, crd)
                 }));
                 if io_sites.is_none() {
@@ -1580,13 +1929,11 @@ impl PartContext<'_> {
             }
             let io_sites = io_sites.unwrap();
             for &(site_loc, crd) in &io_sites {
+                let idx = defs::bslots::IOI.index_of(crd.slot).unwrap();
                 let mut bel_pins = self.bel_pins[&("SB_IO_I3C", site_loc)].clone();
                 bel_pins.outs.clear();
-                builder.add_bel(bels::IOB_I3C[crd.iob().to_idx()], &bel_pins);
-                builder.insert_io(
-                    [SpecialIoKey::I3c0, SpecialIoKey::I3c1][crd.iob().to_idx()],
-                    crd,
-                );
+                builder.add_bel(bels::IOB_I3C[idx], &bel_pins);
+                builder.insert_io([SpecialIoKey::I3c0, SpecialIoKey::I3c1][idx], crd);
             }
 
             self.special_tiles.insert(
@@ -1673,7 +2020,7 @@ impl PartContext<'_> {
                 for &(slot, pin) in io_pins {
                     let io = site.pads[pin].0;
                     let xy = (io.x, io.y, io.bel);
-                    let crd = pkg_info.xlat_io[&xy];
+                    let crd = pkg_info.xlat_ioi[&xy];
                     builder.insert_io(slot, crd);
                 }
                 builder.add_bel(slot, &bel_pins);
@@ -1722,13 +2069,8 @@ impl PartContext<'_> {
             };
             for site in sites {
                 let xy = (site.loc.x, site.loc.y, site.loc.bel);
-                let io = pkg_info.xlat_io[&xy];
-                let io2 = match io {
-                    EdgeIoCoord::S(col, _) => EdgeIoCoord::S(col + 1, TileIobId::from_idx(0)),
-                    EdgeIoCoord::N(col, _) => EdgeIoCoord::N(col + 1, TileIobId::from_idx(0)),
-                    _ => unreachable!(),
-                };
-                let bel = self.chip.get_io_loc(io);
+                let ioi = pkg_info.xlat_ioi[&xy];
+                let ioi2 = ioi.delta(1, 0).bel(defs::bslots::IOI[0]);
                 let mut bel_pins = self.bel_pins[&(kind, site.loc)].clone();
                 bel_pins
                     .ins
@@ -1737,7 +2079,7 @@ impl PartContext<'_> {
                     InstPin::Simple(pin) => !pin.starts_with("PLLOUT"),
                     InstPin::Indexed(_, _) => true,
                 });
-                let edge = if bel.row == self.chip.row_s() {
+                let edge = if ioi.row == self.chip.row_s() {
                     DirV::S
                 } else {
                     DirV::N
@@ -1774,23 +2116,8 @@ impl PartContext<'_> {
                     ),
                 ]);
                 let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
-                if self.chip.kind.is_ice40() {
-                    if self.chip.kind == ChipKind::Ice40P01 {
-                        for i in 1..=5 {
-                            builder.get_cell(CellCoord::new(
-                                DieId::from_idx(0),
-                                self.chip.col_w(),
-                                RowId::from_idx(i),
-                            ));
-                        }
-                    } else {
-                        for i in 0..5 {
-                            builder.get_cell(bel.delta(-2 + i, 0));
-                        }
-                    }
-                }
-                builder.insert_io(SpecialIoKey::PllA, io);
-                builder.insert_io(SpecialIoKey::PllB, io2);
+                builder.insert_io(SpecialIoKey::PllA, ioi);
+                builder.insert_io(SpecialIoKey::PllB, ioi2);
                 if self.chip.kind.is_ice40() {
                     builder.add_bel(bels::PLL40, &bel_pins);
                 } else {
@@ -2142,7 +2469,7 @@ impl PartContext<'_> {
 
         let mut pips = hctx.pips.into_inner().unwrap();
         let mut harvester = hctx.harvester.into_inner().unwrap();
-        let io_iob = collect_iob(&edev, &mut harvester);
+        let new_ioi_iob = collect_iob(&edev, &mut harvester);
 
         if self.chip.kind != ChipKind::Ice40P03 {
             let tcid_plb = self.chip.kind.tile_class_plb();
@@ -2176,7 +2503,17 @@ impl PartContext<'_> {
 
         let speed = hctx.speed;
         self.chip.rows_colbuf = hctx.gencfg.rows_colbuf;
-        self.chip.io_iob = io_iob;
+        for pkg in self.pkgs.values_mut() {
+            for pad in pkg.bond.pins.values_mut().flatten() {
+                if let Some(ioi) = self.chip.iob_to_ioi(pad.bel) {
+                    *pad = new_ioi_iob
+                        .get_left(&ioi)
+                        .unwrap()
+                        .pad(defs::bcls::IOB::PAD);
+                }
+            }
+        }
+        self.chip.ioi_iob = new_ioi_iob;
 
         for (tcid, tcls_pips) in pips {
             let sb = self.make_switchbox(&tcls_pips);
@@ -2299,9 +2636,8 @@ fn main() {
                 rows: 0,
                 row_mid: RowId::from_idx(0),
                 rows_colbuf: vec![],
-                cfg_io: BTreeMap::new(),
-                io_iob: BTreeMap::new(),
-                io_od: BTreeSet::new(),
+                ioi_iob: BiMap::new(),
+                iob_od: BTreeSet::new(),
                 special_tiles: BTreeMap::new(),
             },
             intdb: bincode::decode_from_slice(
@@ -2328,6 +2664,7 @@ fn main() {
 
         ctx.fill_sites();
         ctx.fill_xlat_rc();
+        ctx.fill_cfg_io();
         ctx.fill_bonds();
         ctx.fill_cbsel();
         ctx.fill_io_latch();

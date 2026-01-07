@@ -369,8 +369,7 @@ pub fn xlat_wire(edev: &ExpandedDevice, x: u32, y: u32, name: &str) -> GenericNe
                 let idx: usize = idx.parse().unwrap();
                 let special = &edev.chip.special_tiles[&SpecialTileKey::GbRoot];
                 if let Some(&io) = special.io.get(&SpecialIoKey::GbIn(idx)) {
-                    let bel = edev.chip.get_io_loc(io);
-                    return GenericNet::GlobalPadIn(bel.cell);
+                    return GenericNet::GlobalPadIn(io.cell);
                 } else {
                     return match idx {
                         4 => GenericNet::GlobalClkh,

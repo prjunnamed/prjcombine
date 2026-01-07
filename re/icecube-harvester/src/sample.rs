@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
         WireSlotId,
     },
     dir::{Dir, DirH, DirV},
-    grid::{CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId, WireCoord},
+    grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
 use prjcombine_re_fpga_hammer::DiffKey;
 use prjcombine_re_harvester::Sample;
@@ -619,18 +619,25 @@ pub fn make_sample(
                     );
                 }
                 "SB_IO" | "SB_IO_DS" | "SB_GB_IO" | "SB_IO_OD" | "SB_IO_I3C" => {
-                    let io = pkg_info.xlat_io[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
-                    let bel = edev.chip.get_io_loc(io);
-                    let btile = BitOwner::Main(bel.col, bel.row);
-                    let iob = io.iob();
-                    let slot_idx = bels::IOI.index_of(bel.slot).unwrap();
-                    let tcid_ioi = edev.chip.kind.tile_class_ioi(io.edge()).unwrap();
-                    let tcid_iob = edev.chip.kind.tile_class_iob(io.edge()).unwrap();
+                    let ioi = pkg_info.xlat_ioi[&(loc.loc.x, loc.loc.y, loc.loc.bel)];
+                    let idx = defs::bslots::IOI.index_of(ioi.slot).unwrap();
+                    let iob = edev.chip.ioi_to_iob(ioi).unwrap();
+                    let btile = BitOwner::Main(ioi.col, ioi.row);
+                    let tcid_ioi = edev
+                        .chip
+                        .kind
+                        .tile_class_ioi(edev.chip.get_io_edge(ioi))
+                        .unwrap();
+                    let tcid_iob = edev
+                        .chip
+                        .kind
+                        .tile_class_iob(edev.chip.get_io_edge(ioi))
+                        .unwrap();
                     let mut global_idx = None;
                     let special = &edev.chip.special_tiles[&SpecialTileKey::GbRoot];
                     for (&key, &kio) in &special.io {
                         if let SpecialIoKey::GbIn(idx) = key
-                            && kio == io
+                            && kio == ioi
                         {
                             global_idx = Some(idx);
                         }
@@ -652,7 +659,7 @@ pub fn make_sample(
                                     &[btile],
                                     DiffKey::BelAttrBit(
                                         tcid_ioi,
-                                        defs::bslots::IOI[slot_idx],
+                                        ioi.slot,
                                         defs::bcls::IOI::PIN_TYPE,
                                         i,
                                     ),
@@ -669,7 +676,7 @@ pub fn make_sample(
                                 &[btile],
                                 DiffKey::BelAttrBit(
                                     tcid_ioi,
-                                    defs::bslots::IOI[slot_idx],
+                                    ioi.slot,
                                     defs::bcls::IOI::OUTPUT_ENABLE,
                                     0,
                                 ),
@@ -679,7 +686,7 @@ pub fn make_sample(
                                     &[btile],
                                     DiffKey::BelAttrBit(
                                         tcid_ioi,
-                                        defs::bslots::IOI[iob.to_idx() ^ 1],
+                                        defs::bslots::IOI[idx ^ 1],
                                         defs::bcls::IOI::OUTPUT_ENABLE,
                                         0,
                                     ),
@@ -794,7 +801,7 @@ pub fn make_sample(
                                 &[btile],
                                 DiffKey::BelAttrSpecial(
                                     tcid_iob,
-                                    defs::bslots::IOB[iob.to_idx()],
+                                    iob.slot,
                                     defs::bcls::IOB::WEAK_PULLUP,
                                     specials::DISABLE,
                                 ),
@@ -807,7 +814,7 @@ pub fn make_sample(
                                 &[btile],
                                 DiffKey::BelAttrBit(
                                     tcid_iob,
-                                    defs::bslots::IOB[iob.to_idx()],
+                                    iob.slot,
                                     match pullup_kind.as_str() {
                                         "3P3K" => defs::bcls::IOB::PULLUP_3P3K,
                                         "6P8K" => defs::bcls::IOB::PULLUP_6P8K,
@@ -822,7 +829,7 @@ pub fn make_sample(
                                 &[btile],
                                 DiffKey::BelAttrSpecial(
                                     tcid_iob,
-                                    defs::bslots::IOB[iob.to_idx()],
+                                    iob.slot,
                                     defs::bcls::IOB::PULLUP,
                                     specials::DISABLE,
                                 ),
@@ -839,7 +846,7 @@ pub fn make_sample(
                                     &[btile],
                                     DiffKey::BelAttrSpecial(
                                         tcid_iob,
-                                        defs::bslots::IOB[iob.to_idx()],
+                                        iob.slot,
                                         defs::bcls::IOB::PULLUP,
                                         specials::DISABLE,
                                     ),
@@ -848,7 +855,7 @@ pub fn make_sample(
                                     &[btile],
                                     DiffKey::BelAttrSpecial(
                                         tcid_iob,
-                                        defs::bslots::IOB[iob.to_idx()],
+                                        iob.slot,
                                         defs::bcls::IOB::WEAK_PULLUP,
                                         specials::DISABLE,
                                     ),
@@ -860,7 +867,7 @@ pub fn make_sample(
                                     &[btile],
                                     DiffKey::BelAttrSpecial(
                                         tcid_iob,
-                                        defs::bslots::IOB[iob.to_idx()],
+                                        iob.slot,
                                         defs::bcls::IOB::WEAK_PULLUP,
                                         specials::DISABLE,
                                     ),
@@ -869,7 +876,7 @@ pub fn make_sample(
                                     &[btile],
                                     DiffKey::BelAttrBit(
                                         tcid_iob,
-                                        defs::bslots::IOB[iob.to_idx()],
+                                        iob.slot,
                                         match pullup_kind.as_str() {
                                             "3P3K" => defs::bcls::IOB::PULLUP_3P3K,
                                             "6P8K" => defs::bcls::IOB::PULLUP_6P8K,
@@ -881,12 +888,14 @@ pub fn make_sample(
                                 );
                             }
                         } else if edev.chip.kind != ChipKind::Ice40P01 {
-                            if !pullup && !(io.edge() == Dir::W && edev.chip.kind.has_vref()) {
+                            if !pullup
+                                && !(ioi.col == edev.chip.col_w() && edev.chip.kind.has_vref())
+                            {
                                 sample.add_tiled_pattern_single(
                                     &[btile],
                                     DiffKey::BelAttrSpecial(
                                         tcid_iob,
-                                        defs::bslots::IOB[iob.to_idx()],
+                                        iob.slot,
                                         defs::bcls::IOB::PULLUP,
                                         specials::DISABLE,
                                     ),
@@ -895,7 +904,7 @@ pub fn make_sample(
                         } else {
                             if !pullup {
                                 sample.add_global_pattern(DiffKey::GlobalBelAttrSpecial(
-                                    bel,
+                                    iob,
                                     defs::bcls::IOB::PULLUP,
                                     specials::DISABLE,
                                 ));
@@ -912,11 +921,10 @@ pub fn make_sample(
                                 0,
                             ),
                         );
-                        let oiob = TileIobId::from_idx(iob.to_idx() ^ 1);
-                        let oio = io.with_iob(oiob);
+                        let oiob = iob.bel(defs::bslots::IOB[idx ^ 1]);
                         if edev.chip.kind == ChipKind::Ice40P01 {
                             sample.add_global_pattern_single(DiffKey::GlobalBelAttrSpecial(
-                                edev.chip.get_io_loc(oio),
+                                oiob,
                                 defs::bcls::IOB::PULLUP,
                                 specials::DISABLE,
                             ));
@@ -925,7 +933,7 @@ pub fn make_sample(
                                 &[btile],
                                 DiffKey::BelAttrSpecial(
                                     tcid_iob,
-                                    defs::bslots::IOB[oiob.to_idx()],
+                                    oiob.slot,
                                     defs::bcls::IOB::PULLUP,
                                     specials::DISABLE,
                                 ),
@@ -935,7 +943,7 @@ pub fn make_sample(
                                     &[btile],
                                     DiffKey::BelAttrSpecial(
                                         tcid_iob,
-                                        defs::bslots::IOB[oiob.to_idx()],
+                                        oiob.slot,
                                         defs::bcls::IOB::WEAK_PULLUP,
                                         specials::DISABLE,
                                     ),
@@ -943,7 +951,7 @@ pub fn make_sample(
                             }
                         }
                     }
-                    if matches!(io, EdgeIoCoord::W(..))
+                    if ioi.col == edev.chip.col_w()
                         && edev.chip.kind.has_vref()
                         && let Some(iostd) = iostd
                     {
@@ -951,7 +959,7 @@ pub fn make_sample(
                             &[btile],
                             DiffKey::BelSpecialString(
                                 tcid_iob,
-                                defs::bslots::IOB[iob.to_idx()],
+                                iob.slot,
                                 specials::IOSTD,
                                 iostd.to_string(),
                             ),
@@ -959,12 +967,12 @@ pub fn make_sample(
                     }
 
                     if ((edev.chip.kind.is_ice40() && !is_lvds)
-                        || (edev.chip.kind.has_vref() && matches!(io, EdgeIoCoord::W(..))))
+                        || (edev.chip.kind.has_vref() && ioi.col == edev.chip.col_w()))
                         && ibuf_used.contains(&iid)
                     {
                         if edev.chip.kind == ChipKind::Ice40P01 {
                             sample.add_global_pattern_single(DiffKey::GlobalBelAttrBit(
-                                bel,
+                                iob,
                                 defs::bcls::IOB::IBUF_ENABLE,
                                 0,
                             ));
@@ -973,7 +981,7 @@ pub fn make_sample(
                                 &[btile],
                                 DiffKey::BelAttrBit(
                                     tcid_iob,
-                                    defs::bslots::IOB[iob.to_idx()],
+                                    iob.slot,
                                     defs::bcls::IOB::IBUF_ENABLE,
                                     0,
                                 ),
@@ -1248,11 +1256,9 @@ pub fn make_sample(
                     } else {
                         defs::bcls::PLL40
                     }];
-                    let io_a = special.io[&SpecialIoKey::PllA];
-                    let io_b = special.io[&SpecialIoKey::PllB];
-                    let bel_a = edev.chip.get_io_loc(io_a);
-                    let crd_a = bel_a.cell;
-                    let crd_b = edev.chip.get_io_loc(io_b).cell;
+                    let ioi_a = special.io[&SpecialIoKey::PllA];
+                    let ioi_b = special.io[&SpecialIoKey::PllB];
+                    let iob_a = edev.chip.ioi_to_iob(ioi_a).unwrap();
                     let tiles = if edev.chip.kind.is_ice65() {
                         vec![BitOwner::Pll(0), BitOwner::Pll(1)]
                     } else {
@@ -1264,8 +1270,8 @@ pub fn make_sample(
                                 .map(|&cell| BitOwner::Main(cell.col, cell.row)),
                         )
                     };
-                    let tiles_io_a = [BitOwner::Main(crd_a.col, crd_a.row)];
-                    let tiles_io_b = [BitOwner::Main(crd_b.col, crd_b.row)];
+                    let tiles_io_a = [BitOwner::Main(ioi_a.col, ioi_a.row)];
+                    let tiles_io_b = [BitOwner::Main(ioi_b.col, ioi_b.row)];
                     let tcid_pll = SpecialTileKey::Pll(side).tile_class(edev.chip.kind);
                     if edev.chip.kind.is_ice65() {
                         sample.add_tiled_pattern(
@@ -1314,13 +1320,13 @@ pub fn make_sample(
                     if edev.chip.kind == ChipKind::Ice40P01 {
                         if kind.ends_with("_PAD") {
                             sample.add_global_pattern_single(DiffKey::GlobalBelAttrSpecial(
-                                bel_a,
+                                iob_a,
                                 defs::bcls::IOB::PULLUP,
                                 specials::DISABLE,
                             ));
                         }
                         sample.add_global_pattern(DiffKey::GlobalBelAttrBit(
-                            bel_a,
+                            iob_a,
                             defs::bcls::IOB::IBUF_ENABLE,
                             0,
                         ));
@@ -1329,7 +1335,7 @@ pub fn make_sample(
                             &tiles_io_a,
                             DiffKey::BelAttrSpecial(
                                 tcid_iob,
-                                defs::bslots::IOB[io_a.iob().to_idx()],
+                                iob_a.slot,
                                 defs::bcls::IOB::PULLUP,
                                 specials::DISABLE,
                             ),
@@ -1338,7 +1344,7 @@ pub fn make_sample(
                             &tiles_io_a,
                             DiffKey::BelAttrBit(
                                 tcid_iob,
-                                defs::bslots::IOB[io_a.iob().to_idx()],
+                                iob_a.slot,
                                 defs::bcls::IOB::IBUF_ENABLE,
                                 0,
                             ),
@@ -2076,11 +2082,13 @@ pub fn make_sample(
                             let mut all_ded_ins = true;
                             let mut all_ded_outs = true;
                             for &(xnio, o, _oe, i) in dedio {
-                                let crd = special.io[&xnio];
-                                let tcid_iob = edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
-                                let iobel = edev.chip.get_io_loc(crd);
-                                let iob = crd.iob();
-                                let btile_io = BitOwner::Main(iobel.col, iobel.row);
+                                let ioi = special.io[&xnio];
+                                let tcid_iob = edev
+                                    .chip
+                                    .kind
+                                    .tile_class_iob(edev.chip.get_io_edge(ioi))
+                                    .unwrap();
+                                let btile_io = BitOwner::Main(ioi.col, ioi.row);
                                 let mut ded_in = false;
                                 let mut ded_out =
                                     runres.dedio.contains(&(iid, InstPin::Simple(o.into())));
@@ -2109,7 +2117,8 @@ pub fn make_sample(
                                             &[btile_io],
                                             DiffKey::BelAttrBit(
                                                 tcid_iob,
-                                                defs::bslots::IOB[iob.to_idx()],
+                                                defs::bslots::IOB
+                                                    [defs::bslots::IOI.index_of(ioi.slot).unwrap()],
                                                 defs::bcls::IOB::HARDIP_DEDICATED_OUT,
                                                 0,
                                             ),
@@ -2134,7 +2143,8 @@ pub fn make_sample(
                                             &[btile_io],
                                             DiffKey::BelAttrBit(
                                                 tcid_iob,
-                                                defs::bslots::IOB[iob.to_idx()],
+                                                defs::bslots::IOB
+                                                    [defs::bslots::IOI.index_of(ioi.slot).unwrap()],
                                                 defs::bcls::IOB::HARDIP_FABRIC_IN,
                                                 0,
                                             ),
@@ -2242,12 +2252,14 @@ pub fn make_sample(
                                 if let Some(val) = inst.props.get(prop)
                                     && val == "1"
                                 {
-                                    let crd = special.io[&SpecialIoKey::I2cSda];
-                                    let iobel = edev.chip.get_io_loc(crd);
-                                    let tcid_iob =
-                                        edev.chip.kind.tile_class_iob(crd.edge()).unwrap();
+                                    let ioi = special.io[&SpecialIoKey::I2cSda];
+                                    let tcid_iob = edev
+                                        .chip
+                                        .kind
+                                        .tile_class_iob(edev.chip.get_io_edge(ioi))
+                                        .unwrap();
                                     sample.add_tiled_pattern_single(
-                                        &[BitOwner::Main(iobel.col, iobel.row)],
+                                        &[BitOwner::Main(ioi.col, ioi.row)],
                                         DiffKey::BelAttrBit(
                                             tcid_iob,
                                             defs::bslots::IOB_PAIR,
@@ -3017,8 +3029,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
 pub fn wanted_keys_global(edev: &ExpandedDevice) -> Vec<DiffKey> {
     let mut result = vec![];
     if edev.chip.kind == ChipKind::Ice40P01 {
-        for &io in edev.chip.io_iob.keys() {
-            let bel = edev.chip.get_io_loc(io);
+        for &bel in edev.chip.ioi_iob.keys_right() {
             result.push(DiffKey::GlobalBelAttrBit(
                 bel,
                 defs::bcls::IOB::IBUF_ENABLE,

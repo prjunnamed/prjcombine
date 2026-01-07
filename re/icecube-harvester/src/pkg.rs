@@ -104,7 +104,11 @@ pub fn get_pkg_pins(pkg: &str) -> Vec<String> {
         "CB284" => get_cb284_pins(),
 
         "QN32" => get_seq_pins(32),
-        "SG48" => get_seq_pins(48),
+        "SG48" => {
+            let mut res = get_seq_pins(48);
+            res.push("PAD".to_string());
+            res
+        }
         "QN84" | "QFN84" => get_qn84_pins(),
 
         "VQ100" => get_seq_pins(100),

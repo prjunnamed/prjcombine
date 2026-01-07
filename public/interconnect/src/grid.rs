@@ -4,7 +4,7 @@ use crate::{db::*, dir::Dir};
 use bimap::BiHashMap;
 use bincode::{Decode, Encode};
 use prjcombine_entity::{
-    EntityId, EntityPartVec, EntityVec,
+    EntityBundleItemIndex, EntityId, EntityPartVec, EntityVec,
     id::{EntityIdU8, EntityIdU16, EntityRange, EntityTag, EntityTagArith},
 };
 use std::collections::{HashMap, HashSet};
@@ -189,7 +189,7 @@ pub struct TileCoord {
 impl TileCoord {
     pub fn to_string(&self, db: &IntDb) -> String {
         format!(
-            "{cell}_{slot}",
+            "{cell}.{slot}",
             cell = self.cell,
             slot = db.tile_slots[self.slot]
         )
@@ -219,7 +219,7 @@ pub struct ConnectorCoord {
 impl ConnectorCoord {
     pub fn to_string(&self, db: &IntDb) -> String {
         format!(
-            "{cell}_{slot}",
+            "{cell}.{slot}",
             cell = self.cell,
             slot = db.conn_slots.key(self.slot)
         )
@@ -249,7 +249,7 @@ pub struct WireCoord {
 impl WireCoord {
     pub fn to_string(&self, db: &IntDb) -> String {
         format!(
-            "{cell}_{slot}",
+            "{cell}.{slot}",
             cell = self.cell,
             slot = db.wires.key(self.slot)
         )
@@ -306,10 +306,14 @@ pub struct BelCoord {
 impl BelCoord {
     pub fn to_string(&self, db: &IntDb) -> String {
         format!(
-            "{cell}_{slot}",
+            "{cell}.{slot}",
             cell = self.cell,
             slot = db.bel_slots.key(self.slot)
         )
+    }
+
+    pub fn pad(self, pad: BelPadId) -> BelPadCoord {
+        BelPadCoord { bel: self, pad }
     }
 }
 
@@ -324,6 +328,42 @@ impl std::ops::Deref for BelCoord {
 impl std::ops::DerefMut for BelCoord {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.cell
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Encode, Decode)]
+pub struct BelPadCoord {
+    pub bel: BelCoord,
+    pub pad: BelPadId,
+}
+
+impl BelPadCoord {
+    pub fn to_string(&self, db: &IntDb) -> String {
+        let BelKind::Class(bcid) = db.bel_slots[self.slot].kind else {
+            unreachable!()
+        };
+        let (name, idx) = db.bel_classes[bcid].pads.key(self.pad);
+        match idx {
+            EntityBundleItemIndex::Single => format!("{bel}.{name}", bel = self.bel.to_string(db)),
+
+            EntityBundleItemIndex::Array { index, .. } => {
+                format!("{bel}.{name}[{index}]", bel = self.bel.to_string(db))
+            }
+        }
+    }
+}
+
+impl std::ops::Deref for BelPadCoord {
+    type Target = BelCoord;
+
+    fn deref(&self) -> &Self::Target {
+        &self.bel
+    }
+}
+
+impl std::ops::DerefMut for BelPadCoord {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.bel
     }
 }
 

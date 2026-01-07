@@ -4,11 +4,11 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::PinDir,
     dir::{Dir, DirH, DirV},
-    grid::{CellCoord, EdgeIoCoord, RowId, TileIobId},
+    grid::{BelCoord, CellCoord, RowId},
 };
 use prjcombine_siliconblue::{
-    bond::BondPad,
     chip::{ChipKind, SpecialIoKey, SpecialTileKey},
+    defs,
     expanded::ExpandedDevice,
 };
 use prjcombine_types::bitvec::BitVec;
@@ -44,9 +44,9 @@ struct Generator<'a> {
     design: Design,
     signals: Vec<(InstId, InstPin)>,
     unused_signals: HashSet<(InstId, InstPin)>,
-    unused_io: Vec<EdgeIoCoord>,
+    unused_ioi: Vec<BelCoord>,
     io_cs_used: HashSet<CellCoord>,
-    io_map: HashMap<EdgeIoCoord, &'a str>,
+    io_map: HashMap<BelCoord, &'a str>,
     io_latch_ok: HashSet<Dir>,
     gb_net: [Option<(InstId, InstPin)>; 8],
     g2l_mask: u8,
@@ -119,21 +119,22 @@ impl Generator<'_> {
     }
 
     fn emit_io(&mut self) -> usize {
-        let crd = self.unused_io.pop().unwrap();
-        let is_od = self.cfg.edev.chip.io_od.contains(&crd);
+        let ioi = self.unused_ioi.pop().unwrap();
+        let iob = self.cfg.edev.chip.ioi_to_iob(ioi).unwrap();
+        let is_od = self.cfg.edev.chip.iob_od.contains(&iob);
         let mut global_idx = None;
         let mut pll = None;
         let gb_special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::GbRoot];
         for (&key, &kio) in &gb_special.io {
             if let SpecialIoKey::GbIn(idx) = key
-                && kio == crd
+                && kio == ioi
             {
                 global_idx = Some(idx);
             }
         }
         for (&key, special) in &self.cfg.edev.chip.special_tiles {
             if let SpecialTileKey::Pll(side) = key
-                && special.io[&SpecialIoKey::PllA] == crd
+                && special.io[&SpecialIoKey::PllA] == ioi
             {
                 pll = Some(side);
             }
@@ -156,7 +157,7 @@ impl Generator<'_> {
         }
         let is_i3c =
             if let Some(special) = self.cfg.edev.chip.special_tiles.get(&SpecialTileKey::Misc) {
-                special.io.values().any(|&x| x == crd)
+                special.io.values().any(|&x| x == ioi)
                     && global_idx.is_none()
                     && self.cfg.allow_global
                     && self.rng.random()
@@ -167,23 +168,24 @@ impl Generator<'_> {
             && self.rng.random()
             && !is_od
             && !is_i3c
-            && self.cfg.edev.chip.io_has_lvds(crd);
-        if crd.edge() == Dir::W
+            && self.cfg.edev.chip.iob_has_lvds(ioi);
+        if ioi.col == self.cfg.edev.chip.col_w()
             && self.cfg.edev.chip.kind.has_vref()
             && !matches!(self.left_vcc, LeftVcc::_1P8 | LeftVcc::_2P5)
         {
             lvds = false;
         }
         if lvds {
-            let other = crd.with_iob(TileIobId::from_idx(crd.iob().to_idx() ^ 1));
-            let other_idx = self.unused_io.iter().position(|x| *x == other);
+            let other =
+                ioi.bel(defs::bslots::IOI[defs::bslots::IOI.index_of(ioi.slot).unwrap() ^ 1]);
+            let other_idx = self.unused_ioi.iter().position(|x| *x == other);
             if let Some(other_idx) = other_idx {
-                self.unused_io.swap_remove(other_idx);
+                self.unused_ioi.swap_remove(other_idx);
             } else {
                 lvds = false;
             }
         }
-        let pad = self.io_map[&crd];
+        let pad = self.io_map[&ioi];
         let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
         let mut io = Instance::new(if global_idx.is_some() {
             "SB_GB_IO"
@@ -243,7 +245,7 @@ impl Generator<'_> {
             }
         }
         if lvds {
-            let iostd = if crd.edge() == Dir::W
+            let iostd = if ioi.col == self.cfg.edev.chip.col_w()
                 && self.cfg.edev.chip.kind.has_vref()
                 && self.left_vcc == LeftVcc::_1P8
             {
@@ -252,7 +254,7 @@ impl Generator<'_> {
                 "SB_LVDS_INPUT"
             };
             io.prop("IO_STANDARD", iostd);
-        } else if crd.edge() == Dir::W && self.cfg.edev.chip.kind.has_vref() {
+        } else if ioi.col == self.cfg.edev.chip.col_w() && self.cfg.edev.chip.kind.has_vref() {
             let iostds = match self.left_vcc {
                 LeftVcc::_1P5 => ["SB_LVCMOS15_4", "SB_LVCMOS15_2"].as_slice(),
                 LeftVcc::_1P8 => [
@@ -308,9 +310,8 @@ impl Generator<'_> {
                 }
             }
         }
-        let bcrd = self.cfg.edev.chip.get_io_loc(crd);
-        if self.rng.random_bool(0.5) && !self.io_cs_used.contains(&bcrd.cell) {
-            self.io_cs_used.insert(bcrd.cell);
+        if self.rng.random_bool(0.5) && !self.io_cs_used.contains(&ioi.cell) {
+            self.io_cs_used.insert(ioi.cell);
             let shared_in_pins = if is_od {
                 ["INPUTCLK", "OUTPUTCLK", "CLOCKENABLE"]
             } else {
@@ -360,8 +361,9 @@ impl Generator<'_> {
             pin_type.set(1, false);
         }
 
-        if pin_type[1] && self.rng.random_bool(0.5) && self.io_latch_ok.contains(&crd.edge()) {
-            self.io_latch_ok.remove(&crd.edge());
+        let edge = self.cfg.edev.chip.get_io_edge(ioi);
+        if pin_type[1] && self.rng.random_bool(0.5) && self.io_latch_ok.contains(&edge) {
+            self.io_latch_ok.remove(&edge);
             let (sinst, spin) = inps.choose(&mut self.rng).unwrap().clone();
             io.connect(
                 if is_od {
@@ -413,8 +415,8 @@ impl Generator<'_> {
             kind,
             "SB_PLL_2_PAD" | "SB_PLL40_2_PAD" | "SB_PLL40_2F_CORE" | "SB_PLL40_2F_PAD"
         ) {
-            if let Some(io_idx) = self.unused_io.iter().position(|&x| x == io_b) {
-                self.unused_io.swap_remove(io_idx);
+            if let Some(io_idx) = self.unused_ioi.iter().position(|&x| x == io_b) {
+                self.unused_ioi.swap_remove(io_idx);
             } else {
                 kind = if self.cfg.edev.chip.kind.is_ice65() {
                     "SB_PLL_PAD"
@@ -982,25 +984,25 @@ impl Generator<'_> {
             SpecialIoKey::RgbLed1,
             SpecialIoKey::RgbLed2,
         ] {
-            if !self.unused_io.contains(&special.io[&key]) {
+            if !self.unused_ioi.contains(&special.io[&key]) {
                 do_rgb = false;
             }
         }
         if do_rgb {
             for io in special.io.values() {
-                let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
-                self.unused_io.swap_remove(io_idx);
+                let io_idx = self.unused_ioi.iter().position(|x| x == io).unwrap();
+                self.unused_ioi.swap_remove(io_idx);
             }
         }
 
         let mut do_ir: bool = self.rng.random();
-        if !self.unused_io.contains(&special.io[&SpecialIoKey::IrLed]) {
+        if !self.unused_ioi.contains(&special.io[&SpecialIoKey::IrLed]) {
             do_ir = false;
         }
         if do_ir {
             for io in special.io.values() {
-                let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
-                self.unused_io.swap_remove(io_idx);
+                let io_idx = self.unused_ioi.iter().position(|x| x == io).unwrap();
+                self.unused_ioi.swap_remove(io_idx);
             }
         }
 
@@ -1085,14 +1087,14 @@ impl Generator<'_> {
             SpecialIoKey::RgbLed1,
             SpecialIoKey::RgbLed2,
         ] {
-            if !self.unused_io.contains(&special.io[&key]) {
+            if !self.unused_ioi.contains(&special.io[&key]) {
                 do_rgba = false;
             }
         }
         if do_rgba {
             for io in special.io.values() {
-                let io_idx = self.unused_io.iter().position(|x| x == io).unwrap();
-                self.unused_io.swap_remove(io_idx);
+                let io_idx = self.unused_ioi.iter().position(|x| x == io).unwrap();
+                self.unused_ioi.swap_remove(io_idx);
             }
         }
 
@@ -1103,26 +1105,26 @@ impl Generator<'_> {
             self.cfg.edev.chip.kind == ChipKind::Ice40T01 && !do_ir500 && self.rng.random();
         if self.cfg.edev.chip.kind == ChipKind::Ice40T01 {
             let io = special.io[&SpecialIoKey::IrLed];
-            if !self.unused_io.contains(&io) {
+            if !self.unused_ioi.contains(&io) {
                 do_ir500 = false;
                 do_ir400 = false;
             }
 
             let io = special.io[&SpecialIoKey::BarcodeLed];
-            if !self.unused_io.contains(&io) {
+            if !self.unused_ioi.contains(&io) {
                 do_ir500 = false;
                 do_barcode = false;
             }
 
             if do_ir500 || do_ir400 {
                 let io = special.io[&SpecialIoKey::IrLed];
-                let io_idx = self.unused_io.iter().position(|x| *x == io).unwrap();
-                self.unused_io.swap_remove(io_idx);
+                let io_idx = self.unused_ioi.iter().position(|x| *x == io).unwrap();
+                self.unused_ioi.swap_remove(io_idx);
             }
             if do_ir500 || do_barcode {
                 let io = special.io[&SpecialIoKey::BarcodeLed];
-                let io_idx = self.unused_io.iter().position(|x| *x == io).unwrap();
-                self.unused_io.swap_remove(io_idx);
+                let io_idx = self.unused_ioi.iter().position(|x| *x == io).unwrap();
+                self.unused_ioi.swap_remove(io_idx);
             }
         }
 
@@ -1471,10 +1473,10 @@ impl Generator<'_> {
             let crd = special.io[&key];
             if self.rng.random_bool(0.7)
                 && *actual_ios > 6
-                && let Some(io_idx) = self.unused_io.iter().position(|&x| x == crd)
+                && let Some(io_idx) = self.unused_ioi.iter().position(|&x| x == crd)
             {
                 *actual_ios -= 1;
-                self.unused_io.swap_remove(io_idx);
+                self.unused_ioi.swap_remove(io_idx);
                 ded_pins.insert(o);
                 ded_pins.insert(oe);
                 let pad = self.io_map[&crd];
@@ -1504,16 +1506,16 @@ impl Generator<'_> {
             }
             let crd0 = special.io[&pair[0].0];
             let crd1 = special.io[&pair[1].0];
-            if !self.unused_io.contains(&crd0) {
+            if !self.unused_ioi.contains(&crd0) {
                 continue;
             }
-            if !self.unused_io.contains(&crd1) {
+            if !self.unused_ioi.contains(&crd1) {
                 continue;
             }
-            let io0_idx = self.unused_io.iter().position(|&x| x == crd0).unwrap();
-            self.unused_io.swap_remove(io0_idx);
-            let io1_idx = self.unused_io.iter().position(|&x| x == crd1).unwrap();
-            self.unused_io.swap_remove(io1_idx);
+            let io0_idx = self.unused_ioi.iter().position(|&x| x == crd0).unwrap();
+            self.unused_ioi.swap_remove(io0_idx);
+            let io1_idx = self.unused_ioi.iter().position(|&x| x == crd1).unwrap();
+            self.unused_ioi.swap_remove(io1_idx);
             *actual_ios -= 2;
             let do_inp = self.rng.random();
             for (key, o, oe, i) in pair {
@@ -1577,13 +1579,14 @@ impl Generator<'_> {
 
     fn final_output(&mut self) {
         while !self.unused_signals.is_empty() {
-            let crd = self.unused_io.pop().unwrap();
-            let is_od = self.cfg.edev.chip.io_od.contains(&crd);
-            let pad = self.io_map[&crd];
+            let ioi = self.unused_ioi.pop().unwrap();
+            let iob = self.cfg.edev.chip.ioi_to_iob(ioi).unwrap();
+            let is_od = self.cfg.edev.chip.iob_od.contains(&iob);
+            let pad = self.io_map[&ioi];
             let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
             let mut io = Instance::new(if is_od { "SB_IO_OD" } else { "SB_IO" });
             if !is_od {
-                if crd.edge() == Dir::W && self.cfg.edev.chip.kind.has_vref() {
+                if ioi.col == self.cfg.edev.chip.col_w() && self.cfg.edev.chip.kind.has_vref() {
                     let iostd = match self.left_vcc {
                         LeftVcc::_1P5 => "SB_LVCMOS15_4",
                         LeftVcc::_1P8 => "SB_LVCMOS18_10",
@@ -1868,15 +1871,16 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
 
     let mut unused_io = vec![];
     let mut io_map = HashMap::new();
-    for (pad, &pin) in &pkg_info.bond.pins {
-        let (BondPad::Io(crd) | BondPad::IoCDone(crd)) = pin else {
-            continue;
-        };
-        if !cfg.allow_global && cfg.edev.chip.kind.has_vref() && crd.edge() == Dir::W {
+    for (pin, pads) in &pkg_info.bond.pins {
+        if !defs::bslots::IOB.contains(pads[0].slot) {
             continue;
         }
-        io_map.insert(crd, pad.as_str());
-        unused_io.push(crd);
+        let ioi = cfg.edev.chip.iob_to_ioi(pads[0].bel).unwrap();
+        if !cfg.allow_global && cfg.edev.chip.kind.has_vref() && ioi.col == cfg.edev.chip.col_w() {
+            continue;
+        }
+        io_map.insert(ioi, pin.as_str());
+        unused_io.push(ioi);
     }
     unused_io.shuffle(&mut rng);
     let mut io_latch_ok = HashSet::new();
@@ -1900,7 +1904,7 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
         design,
         signals: Default::default(),
         unused_signals: Default::default(),
-        unused_io,
+        unused_ioi: unused_io,
         io_cs_used: HashSet::new(),
         io_map,
         io_latch_ok,

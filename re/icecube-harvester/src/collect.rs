@@ -4,7 +4,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     dir::{Dir, DirV},
-    grid::{ColId, EdgeIoCoord, RowId, TileIobId},
+    grid::{BelCoord, CellCoord, DieId},
 };
 use prjcombine_re_fpga_hammer::{
     Collector, CollectorData, Diff, DiffKey, FeatureData, FeatureId, OcdMode, State,
@@ -17,6 +17,7 @@ use prjcombine_siliconblue::{
     expanded::{BitOwner, ExpandedDevice},
 };
 use prjcombine_types::{
+    bimap::BiMap,
     bits,
     bsdata::{BitRectId, BsData, PolTileBit, RectBitId, TileBit},
 };
@@ -26,7 +27,7 @@ use crate::specials;
 pub fn collect_iob(
     edev: &ExpandedDevice,
     harvester: &mut Harvester<BitOwner>,
-) -> BTreeMap<EdgeIoCoord, EdgeIoCoord> {
+) -> BiMap<BelCoord, BelCoord> {
     #[derive(Debug)]
     enum Key {
         IbufEnable,
@@ -34,24 +35,25 @@ pub fn collect_iob(
     }
 
     if edev.chip.kind == ChipKind::Ice40P01 {
-        for anchor in [
-            EdgeIoCoord::W(RowId::from_idx(2), TileIobId::from_idx(0)),
-            EdgeIoCoord::W(RowId::from_idx(2), TileIobId::from_idx(1)),
-            EdgeIoCoord::E(RowId::from_idx(2), TileIobId::from_idx(0)),
-            EdgeIoCoord::E(RowId::from_idx(2), TileIobId::from_idx(1)),
-            EdgeIoCoord::S(ColId::from_idx(1), TileIobId::from_idx(0)),
-            EdgeIoCoord::S(ColId::from_idx(1), TileIobId::from_idx(1)),
-            EdgeIoCoord::N(ColId::from_idx(1), TileIobId::from_idx(0)),
-            EdgeIoCoord::N(ColId::from_idx(1), TileIobId::from_idx(1)),
+        let die = DieId::from_idx(0);
+        for (col, row, idx) in [
+            (edev.chip.col_w(), edev.chip.row_s() + 2, 0),
+            (edev.chip.col_w(), edev.chip.row_s() + 2, 1),
+            (edev.chip.col_e(), edev.chip.row_s() + 2, 0),
+            (edev.chip.col_e(), edev.chip.row_s() + 2, 1),
+            (edev.chip.col_w() + 1, edev.chip.row_s(), 0),
+            (edev.chip.col_w() + 1, edev.chip.row_s(), 1),
+            (edev.chip.col_w() + 1, edev.chip.row_n(), 0),
+            (edev.chip.col_w() + 1, edev.chip.row_n(), 1),
         ] {
-            let anchor_bel = edev.chip.get_io_loc(anchor);
+            let anchor = CellCoord::new(die, col, row).bel(defs::bslots::IOB[idx]);
             for attrval in [Key::IbufEnable, Key::PullupDisable] {
                 let key = match attrval {
                     Key::IbufEnable => {
-                        DiffKey::GlobalBelAttrBit(anchor_bel, defs::bcls::IOB::IBUF_ENABLE, 0)
+                        DiffKey::GlobalBelAttrBit(anchor, defs::bcls::IOB::IBUF_ENABLE, 0)
                     }
                     Key::PullupDisable => DiffKey::GlobalBelAttrSpecial(
-                        anchor_bel,
+                        anchor,
                         defs::bcls::IOB::PULLUP,
                         specials::DISABLE,
                     ),
@@ -70,18 +72,18 @@ pub fn collect_iob(
                         val,
                     )
                 }));
-                let edge = anchor.edge();
-                let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
+                let tcid = edev
+                    .chip
+                    .kind
+                    .tile_class_iob(edev.chip.get_io_edge(anchor))
+                    .unwrap();
                 let key = match attrval {
-                    Key::IbufEnable => DiffKey::BelAttrBit(
-                        tcid,
-                        defs::bslots::IOB[anchor.iob().to_idx()],
-                        defs::bcls::IOB::IBUF_ENABLE,
-                        0,
-                    ),
+                    Key::IbufEnable => {
+                        DiffKey::BelAttrBit(tcid, anchor.slot, defs::bcls::IOB::IBUF_ENABLE, 0)
+                    }
                     Key::PullupDisable => DiffKey::BelAttrSpecial(
                         tcid,
-                        defs::bslots::IOB[anchor.iob().to_idx()],
+                        anchor.slot,
                         defs::bcls::IOB::PULLUP,
                         specials::DISABLE,
                     ),
@@ -89,17 +91,16 @@ pub fn collect_iob(
                 harvester.force_tiled(key, bits);
             }
         }
-        let mut res = BTreeMap::new();
-        for &io in edev.chip.io_iob.keys() {
+        let mut res = BiMap::new();
+        for (&ioi, &fake_iob) in &edev.chip.ioi_iob {
             let mut iob_loc = None;
             'attrs: for attrval in [Key::IbufEnable, Key::PullupDisable] {
-                let bel = edev.chip.get_io_loc(io);
                 let key = match attrval {
                     Key::IbufEnable => {
-                        DiffKey::GlobalBelAttrBit(bel, defs::bcls::IOB::IBUF_ENABLE, 0)
+                        DiffKey::GlobalBelAttrBit(fake_iob, defs::bcls::IOB::IBUF_ENABLE, 0)
                     }
                     Key::PullupDisable => DiffKey::GlobalBelAttrSpecial(
-                        bel,
+                        fake_iob,
                         defs::bcls::IOB::PULLUP,
                         specials::DISABLE,
                     ),
@@ -118,61 +119,43 @@ pub fn collect_iob(
                         val,
                     )
                 }));
-                let edge = io.edge();
+                let edge = edev.chip.get_io_edge(ioi);
                 let BitOwner::Main(col, row) = owner else {
                     unreachable!()
                 };
-                for iob in 0..2 {
-                    let iob = TileIobId::from_idx(iob);
+                for slot in defs::bslots::IOB {
                     let tcid = edev.chip.kind.tile_class_iob(edge).unwrap();
                     let key = match attrval {
-                        Key::IbufEnable => DiffKey::BelAttrBit(
-                            tcid,
-                            defs::bslots::IOB[iob.to_idx()],
-                            defs::bcls::IOB::IBUF_ENABLE,
-                            0,
-                        ),
+                        Key::IbufEnable => {
+                            DiffKey::BelAttrBit(tcid, slot, defs::bcls::IOB::IBUF_ENABLE, 0)
+                        }
                         Key::PullupDisable => DiffKey::BelAttrSpecial(
                             tcid,
-                            defs::bslots::IOB[iob.to_idx()],
+                            slot,
                             defs::bcls::IOB::PULLUP,
                             specials::DISABLE,
                         ),
                     };
                     if harvester.known_tiled[&key] == bits {
-                        let loc = match edge {
-                            Dir::W => {
-                                assert_eq!(col, edev.chip.col_w());
-                                EdgeIoCoord::W(row, iob)
-                            }
-                            Dir::E => {
-                                assert_eq!(col, edev.chip.col_e());
-                                EdgeIoCoord::E(row, iob)
-                            }
-                            Dir::S => {
-                                assert_eq!(row, edev.chip.row_s());
-                                EdgeIoCoord::S(col, iob)
-                            }
-                            Dir::N => {
-                                assert_eq!(row, edev.chip.row_n());
-                                EdgeIoCoord::N(col, iob)
-                            }
-                        };
-                        if let Some(iob_loc) = iob_loc {
-                            assert_eq!(iob_loc, loc);
+                        let new_iob = CellCoord::new(DieId::from_idx(0), col, row).bel(slot);
+                        if let Some(cur_iob) = iob_loc {
+                            assert_eq!(cur_iob, new_iob);
                         } else {
-                            iob_loc = Some(loc);
+                            iob_loc = Some(new_iob);
                         }
                         continue 'attrs;
                     }
                 }
-                panic!("can't deal with {io} {attrval:?}: {owner:?} {bits:?}");
+                panic!(
+                    "can't deal with {ioi} {attrval:?}: {owner:?} {bits:?}",
+                    ioi = ioi.to_string(edev.db)
+                );
             }
-            res.insert(io, iob_loc.unwrap());
+            res.insert(ioi, iob_loc.unwrap());
         }
         res
     } else {
-        edev.chip.io_iob.clone()
+        edev.chip.ioi_iob.clone()
     }
 }
 

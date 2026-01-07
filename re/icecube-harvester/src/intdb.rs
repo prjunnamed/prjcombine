@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
         BelInfo, BelInput, BelKind, BelPin, BelSlotId, CellSlotId, IntDb, LegacyBel, TileClass,
         TileClassId, TileWireCoord,
     },
-    grid::{CellCoord, EdgeIoCoord},
+    grid::{BelCoord, CellCoord},
 };
 use prjcombine_siliconblue::chip::{SpecialIoKey, SpecialTile};
 
@@ -15,7 +15,7 @@ use crate::{run::InstPin, sites::BelPins};
 pub struct MiscTileBuilder<'a> {
     pub intdb: &'a IntDb,
     pub tcls: TileClass,
-    pub io: BTreeMap<SpecialIoKey, EdgeIoCoord>,
+    pub io: BTreeMap<SpecialIoKey, BelCoord>,
     pub cells: EntityVec<CellSlotId, CellCoord>,
     pub cells_map: HashMap<CellCoord, CellSlotId>,
 }
@@ -168,7 +168,7 @@ impl<'a> MiscTileBuilder<'a> {
         }
     }
 
-    pub fn insert_io(&mut self, key: SpecialIoKey, io: EdgeIoCoord) {
+    pub fn insert_io(&mut self, key: SpecialIoKey, io: BelCoord) {
         match self.io.entry(key) {
             btree_map::Entry::Vacant(e) => {
                 e.insert(io);

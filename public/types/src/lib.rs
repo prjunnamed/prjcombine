@@ -1,3 +1,4 @@
+pub mod bimap;
 pub mod bitrect;
 pub mod bitvec;
 pub mod bscan;
