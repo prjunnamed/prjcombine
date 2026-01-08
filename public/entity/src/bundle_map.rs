@@ -96,14 +96,23 @@ impl<I: EntityId, T> EntityBundleMap<I, T> {
         }
     }
 
-    pub fn bundles(&self) -> impl Iterator<Item = (EntityBundleIndex<I>, &String, &T)> {
-        self.bundles.iter().map(|(k, &(i, ref v))| (i, k, v))
+    pub fn iter(&self) -> impl Iterator<Item = (I, &str, EntityBundleItemIndex, &T)> {
+        self.ids.ids().map(|id| {
+            let (idx, name) = self.key(id);
+            (id, idx, name, &self[id])
+        })
     }
 
-    pub fn bundles_mut(&mut self) -> impl Iterator<Item = (EntityBundleIndex<I>, &String, &mut T)> {
+    pub fn bundles(&self) -> impl Iterator<Item = (EntityBundleIndex<I>, &str, &T)> {
+        self.bundles
+            .iter()
+            .map(|(k, &(i, ref v))| (i, k.as_str(), v))
+    }
+
+    pub fn bundles_mut(&mut self) -> impl Iterator<Item = (EntityBundleIndex<I>, &str, &mut T)> {
         self.bundles
             .iter_mut()
-            .map(|(k, &mut (i, ref mut v))| (i, k, v))
+            .map(|(k, &mut (i, ref mut v))| (i, k.as_str(), v))
     }
 
     pub fn into_bundles(self) -> impl Iterator<Item = (EntityBundleIndex<I>, String, T)> {
