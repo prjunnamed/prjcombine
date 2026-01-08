@@ -301,8 +301,6 @@ pub enum SpecialTileKey {
     I2cFifo(DirH),
     LsOsc,
     HsOsc,
-    Mac16(ColId, RowId),
-    Mac16Trim(ColId, RowId),
     SpramPair(DirH),
 }
 
@@ -344,8 +342,6 @@ impl SpecialTileKey {
                 _ => unreachable!(),
             },
             SpecialTileKey::I2cFifo(..) => defs::tcls::I2C_FIFO,
-            SpecialTileKey::Mac16(..) => defs::tcls::MAC16,
-            SpecialTileKey::Mac16Trim(..) => defs::tcls::MAC16_TRIM,
             SpecialTileKey::SpramPair(_) => defs::tcls::SPRAM,
             SpecialTileKey::Warmboot => defs::tcls::WARMBOOT,
             SpecialTileKey::LsOsc => defs::tcls::LSOSC,
@@ -369,8 +365,6 @@ impl std::fmt::Display for SpecialTileKey {
             SpecialTileKey::I2cFifo(edge) => write!(f, "I2C_FIFO_{edge}"),
             SpecialTileKey::LsOsc => write!(f, "LSOSC"),
             SpecialTileKey::HsOsc => write!(f, "HSOSC"),
-            SpecialTileKey::Mac16(col, row) => write!(f, "MAC16_{col}{row}"),
-            SpecialTileKey::Mac16Trim(col, row) => write!(f, "MAC16_TRIM_{col}{row}"),
             SpecialTileKey::SpramPair(edge) => write!(f, "SPRAM_{edge}"),
         }
     }
@@ -446,11 +440,12 @@ pub struct Chip {
     pub kind: ChipKind,
     pub columns: usize,
     pub col_bio_split: ColId,
-    pub cols_bram: BTreeSet<ColId>,
+    pub cols_bram: Vec<ColId>,
     pub rows: usize,
     pub row_mid: RowId,
     // (hclk row, start row, end row)
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
+    pub rows_mac16: Vec<RowId>,
     pub ioi_iob: BiMap<BelCoord, BelCoord>,
     pub iob_od: BTreeSet<BelCoord>,
     pub special_tiles: BTreeMap<SpecialTileKey, SpecialTile>,
@@ -590,8 +585,6 @@ impl Chip {
             | SpecialTileKey::I2cFifo(_)
             | SpecialTileKey::LsOsc
             | SpecialTileKey::HsOsc
-            | SpecialTileKey::Mac16(..)
-            | SpecialTileKey::Mac16Trim(..)
             | SpecialTileKey::SpramPair(_) => spec.cells.first().unwrap().tile(defs::tslots::BEL),
         }
     }
@@ -636,6 +629,13 @@ impl Chip {
         writeln!(o, "\trow_mid {};", self.row_mid)?;
         for &(row_hclk, row_start, row_end) in &self.rows_colbuf {
             writeln!(o, "\trow_colbuf {row_hclk} = {row_start}..{row_end};")?;
+        }
+        if !self.rows_mac16.is_empty() {
+            writeln!(
+                o,
+                "\trows_mac16 {};",
+                self.rows_mac16.iter().map(|x| x.to_string()).join(", ")
+            )?;
         }
         for (ioi, iob) in &self.ioi_iob {
             writeln!(

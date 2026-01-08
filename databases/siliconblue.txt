@@ -1836,6 +1836,7 @@ chip CHIP8 {
 	row_mid Y11;
 	row_colbuf Y5 = Y0..Y11;
 	row_colbuf Y17 = Y11..Y22;
+	rows_mac16 Y5, Y13;
 	iob D0X4Y21.IOI[0] = D0X4Y21.IOB[0];
 	iob D0X5Y0.IOI[0] = D0X5Y0.IOB[0];
 	iob D0X5Y0.IOI[1] = D0X5Y0.IOB[1];
@@ -2028,34 +2029,6 @@ chip CHIP8 {
 		io I2C_SCL = D0X19Y21.IOI[1];
 		io I2C_SDA = D0X19Y21.IOI[0];
 	}
-	special MAC16_X0Y5 {
-		cell D0X0Y5;
-		cell D0X0Y6;
-		cell D0X0Y7;
-		cell D0X0Y8;
-		cell D0X0Y9;
-	}
-	special MAC16_X0Y13 {
-		cell D0X0Y13;
-		cell D0X0Y14;
-		cell D0X0Y15;
-		cell D0X0Y16;
-		cell D0X0Y17;
-	}
-	special MAC16_X25Y5 {
-		cell D0X25Y5;
-		cell D0X25Y6;
-		cell D0X25Y7;
-		cell D0X25Y8;
-		cell D0X25Y9;
-	}
-	special MAC16_X25Y13 {
-		cell D0X25Y13;
-		cell D0X25Y14;
-		cell D0X25Y15;
-		cell D0X25Y16;
-		cell D0X25Y17;
-	}
 }
 
 // iCE40UP5K iCE40UP3K
@@ -2069,6 +2042,7 @@ chip CHIP9 {
 	row_colbuf Y5 = Y0..Y11;
 	row_colbuf Y15 = Y11..Y21;
 	row_colbuf Y27 = Y21..Y32;
+	rows_mac16 Y5, Y10, Y15, Y23;
 	iob D0X4Y31.IOI[0] = D0X4Y31.IOB[0];
 	iob D0X5Y0.IOI[0] = D0X5Y0.IOB[0];
 	iob D0X5Y0.IOI[1] = D0X5Y0.IOB[1];
@@ -2260,62 +2234,6 @@ chip CHIP9 {
 		cell D0X25Y30;
 		io I2C_SCL = D0X19Y31.IOI[1];
 		io I2C_SDA = D0X19Y31.IOI[0];
-	}
-	special MAC16_X0Y5 {
-		cell D0X0Y5;
-		cell D0X0Y6;
-		cell D0X0Y7;
-		cell D0X0Y8;
-		cell D0X0Y9;
-	}
-	special MAC16_X0Y10 {
-		cell D0X0Y10;
-		cell D0X0Y11;
-		cell D0X0Y12;
-		cell D0X0Y13;
-		cell D0X0Y14;
-	}
-	special MAC16_X0Y23 {
-		cell D0X0Y23;
-		cell D0X0Y24;
-		cell D0X0Y25;
-		cell D0X0Y26;
-		cell D0X0Y27;
-	}
-	special MAC16_X25Y5 {
-		cell D0X25Y5;
-		cell D0X25Y6;
-		cell D0X25Y7;
-		cell D0X25Y8;
-		cell D0X25Y9;
-	}
-	special MAC16_X25Y10 {
-		cell D0X25Y10;
-		cell D0X25Y11;
-		cell D0X25Y12;
-		cell D0X25Y13;
-		cell D0X25Y14;
-	}
-	special MAC16_X25Y15 {
-		cell D0X25Y15;
-		cell D0X25Y16;
-		cell D0X25Y17;
-		cell D0X25Y18;
-		cell D0X25Y19;
-	}
-	special MAC16_X25Y23 {
-		cell D0X25Y23;
-		cell D0X25Y24;
-		cell D0X25Y25;
-		cell D0X25Y26;
-		cell D0X25Y27;
-	}
-	special MAC16_TRIM_X0Y15 {
-		cell D0X0Y15;
-		cell D0X0Y16;
-		cell D0X0Y17;
-		cell D0X0Y18;
-		cell D0X0Y19;
 	}
 	special SPRAM_W {
 		cell D0X0Y1;

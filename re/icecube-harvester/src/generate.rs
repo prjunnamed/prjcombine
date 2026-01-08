@@ -774,7 +774,7 @@ impl Generator<'_> {
         let mut inst_a = Instance::new(&kind);
         let mut inst_b = Instance::new(&kind);
         if !self.have_fixed_bram {
-            let col = *self.cfg.edev.chip.cols_bram.iter().next().unwrap();
+            let col = self.cfg.edev.chip.cols_bram[0];
             let x = col.to_idx() as u32;
             inst_a.loc = Some(RawLoc { x, y: 1, bel: 0 });
             inst_b.loc = Some(RawLoc { x, y: 3, bel: 0 });
@@ -1694,6 +1694,9 @@ impl Generator<'_> {
         for _ in 0..actual_lcs {
             things.push(Thing::Lut);
         }
+        for _ in 0..dsp_limit {
+            things.push(Thing::Dsp);
+        }
         for &key in self.cfg.edev.chip.special_tiles.keys() {
             match key {
                 SpecialTileKey::Spi(side) => {
@@ -1720,12 +1723,6 @@ impl Generator<'_> {
                 }
                 SpecialTileKey::HsOsc => {
                     things.push(Thing::HsOsc);
-                }
-                SpecialTileKey::Mac16(_, _) => {
-                    if dsp_limit > 0 {
-                        things.push(Thing::Dsp);
-                        dsp_limit -= 1;
-                    }
                 }
                 SpecialTileKey::SpramPair(side) => {
                     things.push(Thing::Spram(side));

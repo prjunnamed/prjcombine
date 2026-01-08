@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
 };
 
 use crate::{
-    chip::{Chip, SpecialTileKey},
+    chip::{Chip, ChipKind, SpecialTileKey},
     defs::{self, rslots as regions},
     expanded::ExpandedDevice,
 };
@@ -72,6 +72,20 @@ impl Chip {
                 } else {
                     egrid.add_tile_single_id(cell, self.kind.tile_class_plb());
                 }
+            }
+        }
+
+        for &row in &self.rows_mac16 {
+            for col in [self.col_w(), self.col_e()] {
+                let cell = CellCoord::new(die, col, row);
+                let kind =
+                    if self.kind == ChipKind::Ice40T05 && col == self.col_w() && row.to_idx() == 15
+                    {
+                        defs::tcls::MAC16_TRIM
+                    } else {
+                        defs::tcls::MAC16
+                    };
+                egrid.add_tile_n_id(cell, kind, 5);
             }
         }
 

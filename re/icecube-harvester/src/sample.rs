@@ -1576,17 +1576,9 @@ pub fn make_sample(
                 "SB_MAC16" => {
                     let col = pkg_info.xlat_col[loc.loc.x as usize];
                     let row = pkg_info.xlat_row[loc.loc.y as usize];
-                    let mut key = SpecialTileKey::Mac16(col, row);
-                    if !edev.chip.special_tiles.contains_key(&key) {
-                        key = SpecialTileKey::Mac16Trim(col, row);
-                    }
-                    let tiles = Vec::from_iter(
-                        edev.chip.special_tiles[&key]
-                            .cells
-                            .values()
-                            .map(|&cell| BitOwner::Main(cell.col, cell.row)),
-                    );
-                    let tcid = key.tile_class(edev.chip.kind);
+                    let cell = CellCoord::new(DieId::from_idx(0), col, row);
+                    let tiles = Vec::from_iter((0..5).map(|i| BitOwner::Main(col, row + i)));
+                    let tcid = edev[cell.tile(defs::tslots::BEL)].class;
                     let tcid_plb = edev.chip.kind.tile_class_plb();
                     for i in 0..4 {
                         for j in 0..8 {

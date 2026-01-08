@@ -668,6 +668,7 @@ impl PartContext<'_> {
 
     fn fill_xlat_rc(&mut self) {
         let mut first = true;
+        let mut cols_bram = BTreeSet::new();
         for pkg_info in self.pkgs.values_mut() {
             let mut xlat_col = BTreeMap::new();
             let mut xlat_row = BTreeMap::new();
@@ -734,7 +735,7 @@ impl PartContext<'_> {
                         }
                     }
                     if is_ram {
-                        self.chip.cols_bram.insert(col);
+                        cols_bram.insert(col);
                     }
                     if do_y {
                         let row = RowId::from_idx(row.try_into().unwrap());
@@ -776,6 +777,7 @@ impl PartContext<'_> {
 
             first = false;
         }
+        self.chip.cols_bram = Vec::from_iter(cols_bram);
     }
 
     fn fill_cfg_io(&mut self) {
@@ -1646,27 +1648,35 @@ impl PartContext<'_> {
         let Some(sites) = pkg_info.bel_info.get("SB_MAC16") else {
             return;
         };
+        let mut rows_mac16_w = BTreeSet::new();
+        let mut rows_mac16_e = BTreeSet::new();
         for site in sites {
             let col = pkg_info.xlat_col[site.loc.x as usize];
             let row = pkg_info.xlat_row[site.loc.y as usize];
-            let key = if self.chip.kind == ChipKind::Ice40T05
-                && col.to_idx() == 0
+            if col == self.chip.col_w() {
+                rows_mac16_w.insert(row);
+            } else if col == self.chip.col_e() {
+                rows_mac16_e.insert(row);
+            } else {
+                unreachable!()
+            }
+            let tcid = if self.chip.kind == ChipKind::Ice40T05
+                && col == self.chip.col_w()
                 && row.to_idx() == 15
             {
-                SpecialTileKey::Mac16Trim(col, row)
+                defs::tcls::MAC16_TRIM
             } else {
-                SpecialTileKey::Mac16(col, row)
+                defs::tcls::MAC16
             };
             let bel_pins = &self.bel_pins[&("SB_MAC16", site.loc)];
             let cells: [_; 5] = CellCoord::new(DieId::from_idx(0), col, row).cells_n_const();
-            let tcid = key.tile_class(self.chip.kind);
             let mut builder = MiscTileBuilder::new(&self.intdb, tcid, &cells);
             builder.add_bel(defs::bslots::MAC16, bel_pins);
-            let (tcls, special) = builder.finish();
+            let (tcls, _special) = builder.finish();
             insert_tile_class(&mut self.tcls_filled, &mut self.intdb, tcid, tcls);
-            self.chip.special_tiles.insert(key, special);
-            self.special_tiles.insert(key, vec![site.loc]);
         }
+        assert_eq!(rows_mac16_w, rows_mac16_e);
+        self.chip.rows_mac16 = Vec::from_iter(rows_mac16_w);
     }
 
     fn fill_hardip(&mut self) {
@@ -2631,11 +2641,12 @@ fn main() {
             chip: Chip {
                 kind,
                 columns: 0,
-                cols_bram: BTreeSet::new(),
+                cols_bram: vec![],
                 col_bio_split: ColId::from_idx(0),
                 rows: 0,
                 row_mid: RowId::from_idx(0),
                 rows_colbuf: vec![],
+                rows_mac16: vec![],
                 ioi_iob: BiMap::new(),
                 iob_od: BTreeSet::new(),
                 special_tiles: BTreeMap::new(),
