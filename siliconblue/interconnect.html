@@ -300,31 +300,17 @@ are driven by the various bels within the FPGA:</p>
 </thead>
 
 <tbody>
-<tr><td>MAIN</td><td>PLB_L04, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, PLB_L08, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, PLB_P01, IOI_S_T04, IOI_N_T04</td><td>INT, LC0, LC1, LC2, LC3, LC4, LC5, LC6, LC7, IO0, IO1</td></tr>
+<tr><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_W_L08, IOI_E_L08, IOI_S_L04, IOI_N_L04, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td><td>INT, LC[0], LC[1], LC[2], LC[3], LC[4], LC[5], LC[6], LC[7], IOI[0], IOI[1]</td></tr>
 
-<tr><td>COLBUF</td><td>COLBUF_L01, COLBUF_IO_W, COLBUF_IO_E, COLBUF_P08</td><td></td></tr>
+<tr><td>COLBUF</td><td>COLBUF_L01, COLBUF_P08, COLBUF_IO_W, COLBUF_IO_E, COLBUF_FIXED</td><td>COLBUF</td></tr>
 
-<tr><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08</td><td>GB_ROOT</td></tr>
+<tr><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08, GB_ROOT_R04</td><td>GB_ROOT</td></tr>
 
-<tr><td>BEL</td><td>BRAM_L04, IO_LATCH, GB_FABRIC, PLL_S_P04, BRAM_P01, PLL_S_P01, BRAM_P08, PLL_S_P08, PLL_N_P08, SPI_R04, I2C_R04, PLL_S_R04, PLL_N_R04, MAC16, SPI_T04, I2C_T04, MAC16_TRIM, SPI_T05, I3C, SPRAM, I2C_FIFO, PLL_S_T01</td><td>BRAM, IO_LATCH, GB_FABRIC, PLL, MAC16, SPI, I2C, I2C_FIFO, IO0_I3C, IO1_I3C, SPRAM0, SPRAM1, FILTER0, FILTER1</td></tr>
+<tr><td>BEL</td><td>IO_LATCH, BRAM_L04, BRAM_P01, BRAM_P08, MAC16, MAC16_TRIM, SPRAM, PLL65, PLL40_S_P01, PLL40_S_P08, PLL40_N_P08, PLL40_S_R04, PLL40_N_R04, PLL40_S_STUB, PLL40_S_T01, SPI_R04, SPI_T04, SPI_T05, I2C_R04, I2C_T04, I2C_FIFO, LSOSC, HSOSC, WARMBOOT, MISC_T04, MISC_T01, MISC_T05</td><td>IO_LATCH, BRAM, MAC16, SPRAM[0], SPRAM[1], PLL65, PLL40, SPI, I2C, I2C_FIFO, LSOSC, HSOSC, WARMBOOT, HFOSC, LFOSC, LED_DRV_CUR, RGB_DRV, IR_DRV, IR500_DRV, LEDD_IP, IR_IP, IOB_I3C[0], IOB_I3C[1], FILTER[0], FILTER[1], SMCCLK</td></tr>
 
-<tr><td>IOB</td><td>IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04, IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04, IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08, IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01, IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01, IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08, IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03, IOB_S_R04, IOB_N_R04, IOB_S_T04, IOB_N_T04, IOB_S_T05, IOB_N_T05, IOB_S_T01, IOB_N_T01</td><td></td></tr>
+<tr><td>IOB</td><td>IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04, IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04, IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08, IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01, IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01, IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08, IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03, IOB_S_R04, IOB_N_R04, IOB_S_T04, IOB_N_T04, IOB_S_T05, IOB_N_T05, IOB_S_T01, IOB_N_T01</td><td>IOB[0], IOB[1], IOB_PAIR</td></tr>
 
-<tr><td>OSC</td><td>HSOSC, LSOSC, HFOSC_T04, LFOSC_T04, HFOSC_T01, LFOSC_T01</td><td>HSOSC, LSOSC, HFOSC, LFOSC</td></tr>
-
-<tr><td>TRIM</td><td>TRIM_T04, TRIM_T01</td><td></td></tr>
-
-<tr><td>LED_DRV</td><td>RGB_DRV_T04, IR_DRV, RGB_DRV_T05, RGB_DRV_T01, IR500_DRV</td><td>RGB_DRV, IR_DRV, IR400_DRV, BARCODE_DRV</td></tr>
-
-<tr><td>LED_IP</td><td>LEDD_IP_T04, LEDD_IP_T05, LEDD_IP_T01, IR_IP</td><td>LEDD_IP, IR_IP</td></tr>
-
-<tr><td>LED_DRV_CUR</td><td>LED_DRV_CUR_T04, LED_DRV_CUR_T05, LED_DRV_CUR_T01</td><td>LED_DRV_CUR</td></tr>
-
-<tr><td>PLL_STUB</td><td>PLL_STUB_S</td><td></td></tr>
-
-<tr><td>SMCCLK</td><td>SMCCLK_T04, SMCCLK_T05, SMCCLK_T01</td><td>SMCCLK</td></tr>
-
-<tr><td>WARMBOOT</td><td>WARMBOOT, WARMBOOT_T01</td><td>WARMBOOT</td></tr>
+<tr><td>GLOBALS</td><td>GLOBALS</td><td>GLOBAL_OPTIONS, POWER, CONFIG, IO_BANK[0], IO_BANK[1], IO_BANK[2], IO_BANK[3], IO_BANK_SPI</td></tr>
 
 </tbody>
 
@@ -336,88 +322,110 @@ are driven by the various bels within the FPGA:</p>
 <table>
 <caption>siliconblue bel slots</caption>
 <thead>
-<tr><th>Slot</th><th>Tile slot</th><th>Tiles</th></tr>
+<tr><th>Slot</th><th>Class</th><th>Tile slot</th><th>Tiles</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>INT</td><td>MAIN</td><td>PLB_L04, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, PLB_L08, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, PLB_P01, IOI_S_T04, IOI_N_T04</td></tr>
+<tr><td>INT</td><td>routing</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01, INT_BRAM, IOI_W_L04, IOI_E_L04, IOI_W_L08, IOI_E_L08, IOI_S_L04, IOI_N_L04, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
 
-<tr><td>LC0</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[0]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>LC1</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[1]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>LC2</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[2]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>LC3</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[3]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>LC4</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[4]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>LC5</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[5]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>LC6</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[6]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>LC7</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
+<tr><td>LC[7]</td><td>LC</td><td>MAIN</td><td>PLB_L04, PLB_L08, PLB_P01</td></tr>
 
-<tr><td>IO0</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
+<tr><td>IOI[0]</td><td>IOI</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_W_L08, IOI_E_L08, IOI_S_L04, IOI_N_L04, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
 
-<tr><td>IO1</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_S_L04, IOI_N_L04, IOI_W_L08, IOI_E_L08, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
+<tr><td>IOI[1]</td><td>IOI</td><td>MAIN</td><td>IOI_W_L04, IOI_E_L04, IOI_W_L08, IOI_E_L08, IOI_S_L04, IOI_N_L04, IOI_S_L08, IOI_N_L08, IOI_S_T04, IOI_N_T04</td></tr>
 
-<tr><td>BRAM</td><td>BEL</td><td>BRAM_L04, BRAM_P01, BRAM_P08</td></tr>
+<tr><td>COLBUF</td><td>routing</td><td>COLBUF</td><td>COLBUF_L01, COLBUF_P08, COLBUF_IO_W, COLBUF_IO_E, COLBUF_FIXED</td></tr>
 
-<tr><td>IO_LATCH</td><td>BEL</td><td>IO_LATCH</td></tr>
+<tr><td>GB_ROOT</td><td>routing</td><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08, GB_ROOT_R04</td></tr>
 
-<tr><td>GB_FABRIC</td><td>BEL</td><td>GB_FABRIC</td></tr>
+<tr><td>IO_LATCH</td><td>routing</td><td>BEL</td><td>IO_LATCH</td></tr>
 
-<tr><td>GB_ROOT</td><td>GB_ROOT</td><td>GB_ROOT_L04, GB_ROOT_L08</td></tr>
+<tr><td>BRAM</td><td>BRAM</td><td>BEL</td><td>BRAM_L04, BRAM_P01, BRAM_P08</td></tr>
 
-<tr><td>WARMBOOT</td><td>WARMBOOT</td><td>WARMBOOT, WARMBOOT_T01</td></tr>
+<tr><td>MAC16</td><td>MAC16</td><td>BEL</td><td>MAC16, MAC16_TRIM</td></tr>
 
-<tr><td>PLL</td><td>BEL</td><td>PLL_S_P04, PLL_S_P01, PLL_S_P08, PLL_N_P08, PLL_S_R04, PLL_N_R04, PLL_S_T01</td></tr>
+<tr><td>SPRAM[0]</td><td>SPRAM</td><td>BEL</td><td>SPRAM</td></tr>
 
-<tr><td>MAC16</td><td>BEL</td><td>MAC16, MAC16_TRIM</td></tr>
+<tr><td>SPRAM[1]</td><td>SPRAM</td><td>BEL</td><td>SPRAM</td></tr>
 
-<tr><td>SPI</td><td>BEL</td><td>SPI_R04, SPI_T04, SPI_T05</td></tr>
+<tr><td>PLL65</td><td>PLL65</td><td>BEL</td><td>PLL65</td></tr>
 
-<tr><td>I2C</td><td>BEL</td><td>I2C_R04, I2C_T04</td></tr>
+<tr><td>PLL40</td><td>PLL40</td><td>BEL</td><td>PLL40_S_P01, PLL40_S_P08, PLL40_N_P08, PLL40_S_R04, PLL40_N_R04, PLL40_S_STUB, PLL40_S_T01</td></tr>
 
-<tr><td>I2C_FIFO</td><td>BEL</td><td>I2C_FIFO</td></tr>
+<tr><td>SPI</td><td>SPI</td><td>BEL</td><td>SPI_R04, SPI_T04, SPI_T05</td></tr>
 
-<tr><td>HSOSC</td><td>OSC</td><td>HSOSC</td></tr>
+<tr><td>I2C</td><td>I2C</td><td>BEL</td><td>I2C_R04, I2C_T04</td></tr>
 
-<tr><td>LSOSC</td><td>OSC</td><td>LSOSC</td></tr>
+<tr><td>I2C_FIFO</td><td>I2C_FIFO</td><td>BEL</td><td>I2C_FIFO</td></tr>
 
-<tr><td>HFOSC</td><td>OSC</td><td>HFOSC_T04, HFOSC_T01</td></tr>
+<tr><td>LSOSC</td><td>LSOSC</td><td>BEL</td><td>LSOSC</td></tr>
 
-<tr><td>LFOSC</td><td>OSC</td><td>LFOSC_T04, LFOSC_T01</td></tr>
+<tr><td>HSOSC</td><td>HSOSC</td><td>BEL</td><td>HSOSC</td></tr>
 
-<tr><td>LEDD_IP</td><td>LED_IP</td><td>LEDD_IP_T04, LEDD_IP_T05, LEDD_IP_T01</td></tr>
+<tr><td>WARMBOOT</td><td>WARMBOOT</td><td>BEL</td><td>WARMBOOT, MISC_T01</td></tr>
 
-<tr><td>IR_IP</td><td>LED_IP</td><td>IR_IP</td></tr>
+<tr><td>HFOSC</td><td>HFOSC</td><td>BEL</td><td>MISC_T04, MISC_T01, MISC_T05</td></tr>
 
-<tr><td>IO0_I3C</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>LFOSC</td><td>LFOSC</td><td>BEL</td><td>MISC_T04, MISC_T01, MISC_T05</td></tr>
 
-<tr><td>IO1_I3C</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>LED_DRV_CUR</td><td>LED_DRV_CUR</td><td>BEL</td><td>MISC_T04, MISC_T01, MISC_T05</td></tr>
 
-<tr><td>RGB_DRV</td><td>LED_DRV</td><td>RGB_DRV_T04, RGB_DRV_T05, RGB_DRV_T01</td></tr>
+<tr><td>RGB_DRV</td><td>RGB_DRV</td><td>BEL</td><td>MISC_T04, MISC_T01, MISC_T05</td></tr>
 
-<tr><td>IR_DRV</td><td>LED_DRV</td><td>IR_DRV</td></tr>
+<tr><td>IR_DRV</td><td>IR_DRV</td><td>BEL</td><td>MISC_T04</td></tr>
 
-<tr><td>IR400_DRV</td><td>LED_DRV</td><td>IR500_DRV</td></tr>
+<tr><td>IR500_DRV</td><td>IR500_DRV</td><td>BEL</td><td>MISC_T01</td></tr>
 
-<tr><td>BARCODE_DRV</td><td>LED_DRV</td><td>IR500_DRV</td></tr>
+<tr><td>LEDD_IP</td><td>LEDD_IP</td><td>BEL</td><td>MISC_T04, MISC_T01, MISC_T05</td></tr>
 
-<tr><td>LED_DRV_CUR</td><td>LED_DRV_CUR</td><td>LED_DRV_CUR_T04, LED_DRV_CUR_T05, LED_DRV_CUR_T01</td></tr>
+<tr><td>IR_IP</td><td>IR_IP</td><td>BEL</td><td>MISC_T01</td></tr>
 
-<tr><td>SPRAM0</td><td>BEL</td><td>SPRAM</td></tr>
+<tr><td>IOB_I3C[0]</td><td>IOB_I3C</td><td>BEL</td><td>MISC_T05</td></tr>
 
-<tr><td>SPRAM1</td><td>BEL</td><td>SPRAM</td></tr>
+<tr><td>IOB_I3C[1]</td><td>IOB_I3C</td><td>BEL</td><td>MISC_T05</td></tr>
 
-<tr><td>FILTER0</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>FILTER[0]</td><td>FILTER</td><td>BEL</td><td>MISC_T05</td></tr>
 
-<tr><td>FILTER1</td><td>BEL</td><td>I3C</td></tr>
+<tr><td>FILTER[1]</td><td>FILTER</td><td>BEL</td><td>MISC_T05</td></tr>
 
-<tr><td>SMCCLK</td><td>SMCCLK</td><td>SMCCLK_T04, SMCCLK_T05, SMCCLK_T01</td></tr>
+<tr><td>SMCCLK</td><td>SMCCLK</td><td>BEL</td><td>MISC_T04, MISC_T01, MISC_T05</td></tr>
+
+<tr><td>IOB[0]</td><td>IOB</td><td>IOB</td><td>IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04, IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04, IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08, IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01, IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01, IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08, IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03, IOB_S_R04, IOB_N_R04, IOB_S_T04, IOB_N_T04, IOB_S_T05, IOB_N_T05, IOB_S_T01, IOB_N_T01</td></tr>
+
+<tr><td>IOB[1]</td><td>IOB</td><td>IOB</td><td>IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04, IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04, IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08, IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01, IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01, IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08, IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03, IOB_S_R04, IOB_N_R04, IOB_S_T04, IOB_N_T04, IOB_S_T05, IOB_N_T05, IOB_S_T01, IOB_N_T01</td></tr>
+
+<tr><td>IOB_PAIR</td><td>IOB_PAIR</td><td>IOB</td><td>IOB_W_L04, IOB_E_L04, IOB_S_L04, IOB_N_L04, IOB_W_P04, IOB_E_P04, IOB_S_P04, IOB_N_P04, IOB_W_L08, IOB_E_L08, IOB_S_L08, IOB_N_L08, IOB_W_L01, IOB_E_L01, IOB_S_L01, IOB_N_L01, IOB_W_P01, IOB_E_P01, IOB_S_P01, IOB_N_P01, IOB_W_P08, IOB_E_P08, IOB_S_P08, IOB_N_P08, IOB_W_P03, IOB_E_P03, IOB_S_P03, IOB_N_P03, IOB_S_R04, IOB_N_R04, IOB_S_T04, IOB_N_T04, IOB_S_T05, IOB_N_T05, IOB_S_T01, IOB_N_T01</td></tr>
+
+<tr><td>GLOBAL_OPTIONS</td><td>GLOBAL_OPTIONS</td><td>GLOBALS</td><td>GLOBALS</td></tr>
+
+<tr><td>POWER</td><td>POWER</td><td>GLOBALS</td><td>GLOBALS</td></tr>
+
+<tr><td>CONFIG</td><td>CONFIG</td><td>GLOBALS</td><td>GLOBALS</td></tr>
+
+<tr><td>IO_BANK[0]</td><td>IO_BANK</td><td>GLOBALS</td><td>GLOBALS</td></tr>
+
+<tr><td>IO_BANK[1]</td><td>IO_BANK</td><td>GLOBALS</td><td>GLOBALS</td></tr>
+
+<tr><td>IO_BANK[2]</td><td>IO_BANK</td><td>GLOBALS</td><td>GLOBALS</td></tr>
+
+<tr><td>IO_BANK[3]</td><td>IO_BANK</td><td>GLOBALS</td><td>GLOBALS</td></tr>
+
+<tr><td>IO_BANK_SPI</td><td>IO_BANK</td><td>GLOBALS</td><td>GLOBALS</td></tr>
 
 </tbody>
 
@@ -457,9 +465,11 @@ are driven by the various bels within the FPGA:</p>
 </thead>
 
 <tbody>
-<tr><td>GLOBAL</td><td>GLOBAL.0, GLOBAL.1, GLOBAL.2, GLOBAL.3, GLOBAL.4, GLOBAL.5, GLOBAL.6, GLOBAL.7</td></tr>
+<tr><td>GLOBAL</td><td>GLOBAL_ROOT[0], GLOBAL_ROOT[1], GLOBAL_ROOT[2], GLOBAL_ROOT[3], GLOBAL_ROOT[4], GLOBAL_ROOT[5], GLOBAL_ROOT[6], GLOBAL_ROOT[7], HSOSC_GLOBAL, LSOSC_GLOBAL</td></tr>
 
-<tr><td>COLBUF</td><td></td></tr>
+<tr><td>COLBUF</td><td>GLOBAL[0], GLOBAL[1], GLOBAL[2], GLOBAL[3], GLOBAL[4], GLOBAL[5], GLOBAL[6], GLOBAL[7]</td></tr>
+
+<tr><td>EDGE</td><td>IO_LATCH</td></tr>
 
 </tbody>
 
@@ -477,771 +487,839 @@ are driven by the various bels within the FPGA:</p>
 </thead>
 
 <tbody>
-<tr><td>GLOBAL.0</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>TIE_0</td><td>tie 0</td></tr>
 
-<tr><td>GLOBAL.1</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>TIE_1</td><td>tie 1</td></tr>
 
-<tr><td>GLOBAL.2</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL_ROOT[0]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GLOBAL.3</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL_ROOT[1]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GLOBAL.4</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL_ROOT[2]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GLOBAL.5</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL_ROOT[3]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GLOBAL.6</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL_ROOT[4]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GLOBAL.7</td><td>REGIONAL:GLOBAL</td></tr>
+<tr><td>GLOBAL_ROOT[5]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GOUT.0</td><td>MUX_OUT</td></tr>
+<tr><td>GLOBAL_ROOT[6]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GOUT.1</td><td>MUX_OUT</td></tr>
+<tr><td>GLOBAL_ROOT[7]</td><td>regional GLOBAL</td></tr>
 
-<tr><td>GOUT.2</td><td>MUX_OUT</td></tr>
+<tr><td>GLOBAL[0]</td><td>regional COLBUF</td></tr>
 
-<tr><td>GOUT.3</td><td>MUX_OUT</td></tr>
+<tr><td>GLOBAL[1]</td><td>regional COLBUF</td></tr>
 
-<tr><td>QUAD.H0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>GLOBAL[2]</td><td>regional COLBUF</td></tr>
 
-<tr><td>QUAD.H0.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL[3]</td><td>regional COLBUF</td></tr>
 
-<tr><td>QUAD.H0.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL[4]</td><td>regional COLBUF</td></tr>
 
-<tr><td>QUAD.H0.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL[5]</td><td>regional COLBUF</td></tr>
 
-<tr><td>QUAD.H0.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL[6]</td><td>regional COLBUF</td></tr>
 
-<tr><td>QUAD.H1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>GLOBAL[7]</td><td>regional COLBUF</td></tr>
 
-<tr><td>QUAD.H1.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL_OUT[0]</td><td>mux</td></tr>
 
-<tr><td>QUAD.H1.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL_OUT[1]</td><td>mux</td></tr>
 
-<tr><td>QUAD.H1.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL_OUT[2]</td><td>mux</td></tr>
 
-<tr><td>QUAD.H1.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>GLOBAL_OUT[3]</td><td>mux</td></tr>
 
-<tr><td>QUAD.H2.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H0[0]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H2.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[1]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H2.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[2]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H2.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[3]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H2.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[4]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H3.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H0[5]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H3.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[6]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H3.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[7]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H3.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[8]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H3.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[9]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H4.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H0[10]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H4.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H0[11]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.H4.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H4.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H4.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[2]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H5.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H1[3]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H5.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[4]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H5.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[5]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H5.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[6]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H5.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[7]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H6.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H1[8]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H6.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[9]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H6.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[10]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H6.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H1[11]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H6.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H7.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H2[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H7.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[2]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H7.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[3]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H7.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[4]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H7.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[5]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H8.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H2[6]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H8.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[7]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H8.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[8]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H8.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[9]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H8.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H2[10]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H9.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H2[11]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H9.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H9.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H9.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[2]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H9.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[3]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H10.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H3[4]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H10.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[5]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H10.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[6]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H10.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[7]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H10.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[8]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H11.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H3[9]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H11.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[10]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H11.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H3[11]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H11.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H4[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.H11.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_H4[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H4[2]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_H4[3]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_H4[4]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_H4[5]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_H4[6]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_H4[7]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_H4[8]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_H4[9]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V0.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_H4[10]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_H4[11]</td><td>multi_branch W</td></tr>
 
-<tr><td>QUAD.V1.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V0[0]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V1.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V0[1]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V1.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V0[2]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V1.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V0[3]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V1.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V0[4]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V1.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V0[5]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V1.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V0[6]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V1.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V0[7]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V2.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V0[8]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V2.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V0[9]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V2.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V0[10]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V2.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V0[11]</td><td>multi_root</td></tr>
 
-<tr><td>QUAD.V2.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V2.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V2.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1[2]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V2.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1[3]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V2.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1[4]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V1[5]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1[6]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1[7]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1[8]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1[9]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1[10]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1[11]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V3.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1_W[0]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V3.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1_W[1]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V1_W[2]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1_W[3]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1_W[4]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1_W[5]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1_W[6]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1_W[7]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1_W[8]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V1_W[9]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V4.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V1_W[10]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V5.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V1_W[11]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V5.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V5.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V5.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2[2]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V5.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2[3]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V5.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2[4]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V5.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2[5]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V5.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2[6]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V5.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2[7]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V6.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V2[8]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V6.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2[9]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V6.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2[10]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V6.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2[11]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V6.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2_W[0]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V6.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2_W[1]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V6.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2_W[2]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V6.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2_W[3]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V6.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2_W[4]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V2_W[5]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2_W[6]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2_W[7]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2_W[8]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2_W[9]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V2_W[10]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V2_W[11]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V7.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V7.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V3[2]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3[3]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3[4]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3[5]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3[6]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3[7]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3[8]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3[9]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V8.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3[10]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V9.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V3[11]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V9.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3_W[0]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V9.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3_W[1]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V9.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3_W[2]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V9.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3_W[3]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V9.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3_W[4]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V9.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3_W[5]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V9.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3_W[6]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V9.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3_W[7]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V10.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V3_W[8]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V10.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3_W[9]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V10.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V3_W[10]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V10.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V3_W[11]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V10.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V4[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V10.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V4[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V10.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V4[2]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V10.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V4[3]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V10.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V4[4]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V4[5]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V4[6]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.1.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V4[7]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V4[8]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.2.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V4[9]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V4[10]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.3.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V4[11]</td><td>multi_branch S</td></tr>
 
-<tr><td>QUAD.V11.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>QUAD_V4_W[0]</td><td>multi_branch E</td></tr>
 
-<tr><td>QUAD.V11.4.W</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>QUAD_V4_W[1]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>QUAD_V4_W[2]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[3]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[4]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[5]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[6]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.5</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[7]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.6</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[8]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.7</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[9]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.8</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[10]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.9</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>QUAD_V4_W[11]</td><td>multi_branch E</td></tr>
 
-<tr><td>LONG.H0.10</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H0[0]</td><td>multi_root</td></tr>
 
-<tr><td>LONG.H0.11</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H0[1]</td><td>multi_root</td></tr>
 
-<tr><td>LONG.H0.12</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H1[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>LONG_H1[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H2[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H2[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H3[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H3[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.5</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H4[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.6</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H4[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.7</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H5[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.8</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H5[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.9</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H6[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.10</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H6[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.11</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H7[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.H1.12</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LONG_H7[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.0</td><td>MULTI_OUT</td></tr>
+<tr><td>LONG_H8[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H8[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H9[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H9[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H10[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.5</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H10[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.6</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H11[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.7</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H11[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.8</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H12[0]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.9</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_H12[1]</td><td>multi_branch W</td></tr>
 
-<tr><td>LONG.V0.10</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V0[0]</td><td>multi_root</td></tr>
 
-<tr><td>LONG.V0.11</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V0[1]</td><td>multi_root</td></tr>
 
-<tr><td>LONG.V0.12</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V1[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.0</td><td>MULTI_OUT</td></tr>
+<tr><td>LONG_V1[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.1</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V2[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.2</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V2[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.3</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V3[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.4</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V3[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.5</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V4[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.6</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V4[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.7</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V5[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.8</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V5[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.9</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V6[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.10</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V6[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.11</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V7[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LONG.V1.12</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LONG_V7[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.0</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V8[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.1</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V8[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.2</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V9[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.3</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V9[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.4</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V10[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.5</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V10[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.6</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V11[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.0.7</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V11[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.1.0</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V12[0]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.1.1</td><td>MUX_OUT</td></tr>
+<tr><td>LONG_V12[1]</td><td>multi_branch S</td></tr>
 
-<tr><td>LOCAL.1.2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[0]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.1.3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[1]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.1.4</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[2]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.1.5</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[3]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.1.6</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[4]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.1.7</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[5]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[6]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_0[7]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[0]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[1]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.4</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[2]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.5</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[3]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.6</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[4]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.2.7</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[5]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[6]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_1[7]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[0]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[1]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.4</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[2]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.5</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[3]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.6</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[4]</td><td>mux</td></tr>
 
-<tr><td>LOCAL.3.7</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[5]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC0.I0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[6]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC0.I1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_2[7]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC0.I2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[0]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC0.I3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[1]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC1.I0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[2]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC1.I1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[3]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC1.I2</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[4]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC1.I3</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[5]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC2.I0</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[6]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC2.I1</td><td>MUX_OUT</td></tr>
+<tr><td>LOCAL_3[7]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC2.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[0]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC2.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[1]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC3.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[2]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC3.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[3]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC3.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[4]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC3.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[5]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC4.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[6]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC4.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I0[7]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC4.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[0]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC4.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[1]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC5.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[2]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC5.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[3]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC5.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[4]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC5.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[5]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC6.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[6]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC6.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I1[7]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC6.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[0]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC6.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[1]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC7.I0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[2]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC7.I1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[3]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC7.I2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[4]</td><td>mux</td></tr>
 
-<tr><td>IMUX.LC7.I3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[5]</td><td>mux</td></tr>
 
-<tr><td>IMUX.CLK</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[6]</td><td>mux</td></tr>
 
-<tr><td>IMUX.CLK.OPTINV</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I2[7]</td><td>mux</td></tr>
 
-<tr><td>IMUX.RST</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[0]</td><td>mux</td></tr>
 
-<tr><td>IMUX.CE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[1]</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO0.DOUT0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[2]</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO0.DOUT1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[3]</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO0.OE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[4]</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO1.DOUT0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[5]</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO1.DOUT1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[6]</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO1.OE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_LC_I3[7]</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO.ICLK</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_CLK</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO.ICLK.OPTINV</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_CLK_OPTINV</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO.OCLK</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_RST</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO.OCLK.OPTINV</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_CE</td><td>mux</td></tr>
 
-<tr><td>IMUX.IO.EXTRA</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX_IO_DOUT0[0]</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0</td><td>LOGIC_OUT</td></tr>
+<tr><td>IMUX_IO_DOUT0[1]</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX_IO_DOUT1[0]</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX_IO_DOUT1[1]</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.E</td><td>BRANCH:W</td></tr>
+<tr><td>IMUX_IO_OE[0]</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.EN</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX_IO_OE[1]</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.ES</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX_IO_ICLK</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.W</td><td>BRANCH:E</td></tr>
+<tr><td>IMUX_IO_ICLK_OPTINV</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.WN</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX_IO_OCLK</td><td>mux</td></tr>
 
-<tr><td>OUT.LC0.WS</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX_IO_OCLK_OPTINV</td><td>mux</td></tr>
 
-<tr><td>OUT.LC1</td><td>LOGIC_OUT</td></tr>
+<tr><td>IMUX_IO_EXTRA</td><td>mux</td></tr>
 
-<tr><td>OUT.LC1.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC[0]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC1.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC[1]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC1.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT_LC[2]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC1.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC[3]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC1.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC[4]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC1.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT_LC[5]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC1.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC[6]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC1.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC[7]</td><td>bel</td></tr>
 
-<tr><td>OUT.LC2</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT_LC_N[0]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_N[1]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_N[2]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT_LC_N[3]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_N[4]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_N[5]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT_LC_N[6]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_N[7]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC2.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_S[0]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT_LC_S[1]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_S[2]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_S[3]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT_LC_S[4]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_S[5]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_S[6]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT_LC_S[7]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC3.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_E[0]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC3.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_E[1]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC4</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT_LC_E[2]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC4.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_E[3]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC4.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_E[4]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC4.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT_LC_E[5]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC4.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_E[6]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC4.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_E[7]</td><td>branch W</td></tr>
 
-<tr><td>OUT.LC4.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT_LC_EN[0]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC4.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_EN[1]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC4.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_EN[2]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC5</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT_LC_EN[3]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC5.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_EN[4]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC5.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_EN[5]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC5.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT_LC_EN[6]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC5.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_EN[7]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC5.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_ES[0]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC5.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT_LC_ES[1]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC5.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_ES[2]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC5.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_ES[3]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC6</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT_LC_ES[4]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC6.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_ES[5]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC6.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_ES[6]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC6.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT_LC_ES[7]</td><td>branch N</td></tr>
 
-<tr><td>OUT.LC6.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_W[0]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC6.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_W[1]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC6.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT_LC_W[2]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC6.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_W[3]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC6.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_W[4]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC7</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT_LC_W[5]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC7.N</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_W[6]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC7.S</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_W[7]</td><td>branch E</td></tr>
 
-<tr><td>OUT.LC7.E</td><td>BRANCH:W</td></tr>
+<tr><td>OUT_LC_WN[0]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC7.EN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_WN[1]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC7.ES</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_WN[2]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC7.W</td><td>BRANCH:E</td></tr>
+<tr><td>OUT_LC_WN[3]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC7.WN</td><td>BRANCH:S</td></tr>
+<tr><td>OUT_LC_WN[4]</td><td>branch S</td></tr>
 
-<tr><td>OUT.LC7.WS</td><td>BRANCH:N</td></tr>
+<tr><td>OUT_LC_WN[5]</td><td>branch S</td></tr>
+
+<tr><td>OUT_LC_WN[6]</td><td>branch S</td></tr>
+
+<tr><td>OUT_LC_WN[7]</td><td>branch S</td></tr>
+
+<tr><td>OUT_LC_WS[0]</td><td>branch N</td></tr>
+
+<tr><td>OUT_LC_WS[1]</td><td>branch N</td></tr>
+
+<tr><td>OUT_LC_WS[2]</td><td>branch N</td></tr>
+
+<tr><td>OUT_LC_WS[3]</td><td>branch N</td></tr>
+
+<tr><td>OUT_LC_WS[4]</td><td>branch N</td></tr>
+
+<tr><td>OUT_LC_WS[5]</td><td>branch N</td></tr>
+
+<tr><td>OUT_LC_WS[6]</td><td>branch N</td></tr>
+
+<tr><td>OUT_LC_WS[7]</td><td>branch N</td></tr>
+
+<tr><td>LC_LTIN[0]</td><td>bel</td></tr>
+
+<tr><td>LC_LTIN[1]</td><td>bel</td></tr>
+
+<tr><td>LC_LTIN[2]</td><td>bel</td></tr>
+
+<tr><td>LC_LTIN[3]</td><td>bel</td></tr>
+
+<tr><td>LC_LTIN[4]</td><td>bel</td></tr>
+
+<tr><td>LC_LTIN[5]</td><td>bel</td></tr>
+
+<tr><td>LC_LTIN[6]</td><td>bel</td></tr>
+
+<tr><td>LC_LTIN[7]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[0]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[1]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[2]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[3]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[4]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[5]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[6]</td><td>bel</td></tr>
+
+<tr><td>LC_CI_OUT[7]</td><td>bel</td></tr>
+
+<tr><td>IO_LATCH</td><td>regional EDGE</td></tr>
+
+<tr><td>IO_GLOBAL</td><td>bel</td></tr>
+
+<tr><td>HSOSC_GLOBAL</td><td>regional GLOBAL</td></tr>
+
+<tr><td>LSOSC_GLOBAL</td><td>regional GLOBAL</td></tr>
+
+<tr><td>IOB_DIN[0]</td><td>bel</td></tr>
+
+<tr><td>IOB_DIN[1]</td><td>bel</td></tr>
+
+<tr><td>IOB_DOUT[0]</td><td>bel</td></tr>
+
+<tr><td>IOB_DOUT[1]</td><td>bel</td></tr>
 
 </tbody>
 
@@ -1260,324 +1338,324 @@ are driven by the various bels within the FPGA:</p>
 </thead>
 
 <tbody>
-<tr><td>QUAD.H0.1</td>
-<td>→ QUAD.H0.0</td>
+<tr><td>QUAD_H1[0]</td>
+<td>→ QUAD_H0[0]</td>
 </tr>
 
-<tr><td>QUAD.H0.2</td>
-<td>→ QUAD.H0.1</td>
+<tr><td>QUAD_H1[1]</td>
+<td>→ QUAD_H0[1]</td>
 </tr>
 
-<tr><td>QUAD.H0.3</td>
-<td>→ QUAD.H0.2</td>
+<tr><td>QUAD_H1[2]</td>
+<td>→ QUAD_H0[2]</td>
 </tr>
 
-<tr><td>QUAD.H0.4</td>
-<td>→ QUAD.H0.3</td>
+<tr><td>QUAD_H1[3]</td>
+<td>→ QUAD_H0[3]</td>
 </tr>
 
-<tr><td>QUAD.H1.1</td>
-<td>→ QUAD.H1.0</td>
+<tr><td>QUAD_H1[4]</td>
+<td>→ QUAD_H0[4]</td>
 </tr>
 
-<tr><td>QUAD.H1.2</td>
-<td>→ QUAD.H1.1</td>
+<tr><td>QUAD_H1[5]</td>
+<td>→ QUAD_H0[5]</td>
 </tr>
 
-<tr><td>QUAD.H1.3</td>
-<td>→ QUAD.H1.2</td>
+<tr><td>QUAD_H1[6]</td>
+<td>→ QUAD_H0[6]</td>
 </tr>
 
-<tr><td>QUAD.H1.4</td>
-<td>→ QUAD.H1.3</td>
+<tr><td>QUAD_H1[7]</td>
+<td>→ QUAD_H0[7]</td>
 </tr>
 
-<tr><td>QUAD.H2.1</td>
-<td>→ QUAD.H2.0</td>
+<tr><td>QUAD_H1[8]</td>
+<td>→ QUAD_H0[8]</td>
 </tr>
 
-<tr><td>QUAD.H2.2</td>
-<td>→ QUAD.H2.1</td>
+<tr><td>QUAD_H1[9]</td>
+<td>→ QUAD_H0[9]</td>
 </tr>
 
-<tr><td>QUAD.H2.3</td>
-<td>→ QUAD.H2.2</td>
+<tr><td>QUAD_H1[10]</td>
+<td>→ QUAD_H0[10]</td>
 </tr>
 
-<tr><td>QUAD.H2.4</td>
-<td>→ QUAD.H2.3</td>
+<tr><td>QUAD_H1[11]</td>
+<td>→ QUAD_H0[11]</td>
 </tr>
 
-<tr><td>QUAD.H3.1</td>
-<td>→ QUAD.H3.0</td>
+<tr><td>QUAD_H2[0]</td>
+<td>→ QUAD_H1[0]</td>
 </tr>
 
-<tr><td>QUAD.H3.2</td>
-<td>→ QUAD.H3.1</td>
+<tr><td>QUAD_H2[1]</td>
+<td>→ QUAD_H1[1]</td>
 </tr>
 
-<tr><td>QUAD.H3.3</td>
-<td>→ QUAD.H3.2</td>
+<tr><td>QUAD_H2[2]</td>
+<td>→ QUAD_H1[2]</td>
 </tr>
 
-<tr><td>QUAD.H3.4</td>
-<td>→ QUAD.H3.3</td>
+<tr><td>QUAD_H2[3]</td>
+<td>→ QUAD_H1[3]</td>
 </tr>
 
-<tr><td>QUAD.H4.1</td>
-<td>→ QUAD.H4.0</td>
+<tr><td>QUAD_H2[4]</td>
+<td>→ QUAD_H1[4]</td>
 </tr>
 
-<tr><td>QUAD.H4.2</td>
-<td>→ QUAD.H4.1</td>
+<tr><td>QUAD_H2[5]</td>
+<td>→ QUAD_H1[5]</td>
 </tr>
 
-<tr><td>QUAD.H4.3</td>
-<td>→ QUAD.H4.2</td>
+<tr><td>QUAD_H2[6]</td>
+<td>→ QUAD_H1[6]</td>
 </tr>
 
-<tr><td>QUAD.H4.4</td>
-<td>→ QUAD.H4.3</td>
+<tr><td>QUAD_H2[7]</td>
+<td>→ QUAD_H1[7]</td>
 </tr>
 
-<tr><td>QUAD.H5.1</td>
-<td>→ QUAD.H5.0</td>
+<tr><td>QUAD_H2[8]</td>
+<td>→ QUAD_H1[8]</td>
 </tr>
 
-<tr><td>QUAD.H5.2</td>
-<td>→ QUAD.H5.1</td>
+<tr><td>QUAD_H2[9]</td>
+<td>→ QUAD_H1[9]</td>
 </tr>
 
-<tr><td>QUAD.H5.3</td>
-<td>→ QUAD.H5.2</td>
+<tr><td>QUAD_H2[10]</td>
+<td>→ QUAD_H1[10]</td>
 </tr>
 
-<tr><td>QUAD.H5.4</td>
-<td>→ QUAD.H5.3</td>
+<tr><td>QUAD_H2[11]</td>
+<td>→ QUAD_H1[11]</td>
 </tr>
 
-<tr><td>QUAD.H6.1</td>
-<td>→ QUAD.H6.0</td>
+<tr><td>QUAD_H3[0]</td>
+<td>→ QUAD_H2[0]</td>
 </tr>
 
-<tr><td>QUAD.H6.2</td>
-<td>→ QUAD.H6.1</td>
+<tr><td>QUAD_H3[1]</td>
+<td>→ QUAD_H2[1]</td>
 </tr>
 
-<tr><td>QUAD.H6.3</td>
-<td>→ QUAD.H6.2</td>
+<tr><td>QUAD_H3[2]</td>
+<td>→ QUAD_H2[2]</td>
 </tr>
 
-<tr><td>QUAD.H6.4</td>
-<td>→ QUAD.H6.3</td>
+<tr><td>QUAD_H3[3]</td>
+<td>→ QUAD_H2[3]</td>
 </tr>
 
-<tr><td>QUAD.H7.1</td>
-<td>→ QUAD.H7.0</td>
+<tr><td>QUAD_H3[4]</td>
+<td>→ QUAD_H2[4]</td>
 </tr>
 
-<tr><td>QUAD.H7.2</td>
-<td>→ QUAD.H7.1</td>
+<tr><td>QUAD_H3[5]</td>
+<td>→ QUAD_H2[5]</td>
 </tr>
 
-<tr><td>QUAD.H7.3</td>
-<td>→ QUAD.H7.2</td>
+<tr><td>QUAD_H3[6]</td>
+<td>→ QUAD_H2[6]</td>
 </tr>
 
-<tr><td>QUAD.H7.4</td>
-<td>→ QUAD.H7.3</td>
+<tr><td>QUAD_H3[7]</td>
+<td>→ QUAD_H2[7]</td>
 </tr>
 
-<tr><td>QUAD.H8.1</td>
-<td>→ QUAD.H8.0</td>
+<tr><td>QUAD_H3[8]</td>
+<td>→ QUAD_H2[8]</td>
 </tr>
 
-<tr><td>QUAD.H8.2</td>
-<td>→ QUAD.H8.1</td>
+<tr><td>QUAD_H3[9]</td>
+<td>→ QUAD_H2[9]</td>
 </tr>
 
-<tr><td>QUAD.H8.3</td>
-<td>→ QUAD.H8.2</td>
+<tr><td>QUAD_H3[10]</td>
+<td>→ QUAD_H2[10]</td>
 </tr>
 
-<tr><td>QUAD.H8.4</td>
-<td>→ QUAD.H8.3</td>
+<tr><td>QUAD_H3[11]</td>
+<td>→ QUAD_H2[11]</td>
 </tr>
 
-<tr><td>QUAD.H9.1</td>
-<td>→ QUAD.H9.0</td>
+<tr><td>QUAD_H4[0]</td>
+<td>→ QUAD_H3[0]</td>
 </tr>
 
-<tr><td>QUAD.H9.2</td>
-<td>→ QUAD.H9.1</td>
+<tr><td>QUAD_H4[1]</td>
+<td>→ QUAD_H3[1]</td>
 </tr>
 
-<tr><td>QUAD.H9.3</td>
-<td>→ QUAD.H9.2</td>
+<tr><td>QUAD_H4[2]</td>
+<td>→ QUAD_H3[2]</td>
 </tr>
 
-<tr><td>QUAD.H9.4</td>
-<td>→ QUAD.H9.3</td>
+<tr><td>QUAD_H4[3]</td>
+<td>→ QUAD_H3[3]</td>
 </tr>
 
-<tr><td>QUAD.H10.1</td>
-<td>→ QUAD.H10.0</td>
+<tr><td>QUAD_H4[4]</td>
+<td>→ QUAD_H3[4]</td>
 </tr>
 
-<tr><td>QUAD.H10.2</td>
-<td>→ QUAD.H10.1</td>
+<tr><td>QUAD_H4[5]</td>
+<td>→ QUAD_H3[5]</td>
 </tr>
 
-<tr><td>QUAD.H10.3</td>
-<td>→ QUAD.H10.2</td>
+<tr><td>QUAD_H4[6]</td>
+<td>→ QUAD_H3[6]</td>
 </tr>
 
-<tr><td>QUAD.H10.4</td>
-<td>→ QUAD.H10.3</td>
+<tr><td>QUAD_H4[7]</td>
+<td>→ QUAD_H3[7]</td>
 </tr>
 
-<tr><td>QUAD.H11.1</td>
-<td>→ QUAD.H11.0</td>
+<tr><td>QUAD_H4[8]</td>
+<td>→ QUAD_H3[8]</td>
 </tr>
 
-<tr><td>QUAD.H11.2</td>
-<td>→ QUAD.H11.1</td>
+<tr><td>QUAD_H4[9]</td>
+<td>→ QUAD_H3[9]</td>
 </tr>
 
-<tr><td>QUAD.H11.3</td>
-<td>→ QUAD.H11.2</td>
+<tr><td>QUAD_H4[10]</td>
+<td>→ QUAD_H3[10]</td>
 </tr>
 
-<tr><td>QUAD.H11.4</td>
-<td>→ QUAD.H11.3</td>
+<tr><td>QUAD_H4[11]</td>
+<td>→ QUAD_H3[11]</td>
 </tr>
 
-<tr><td>LONG.H0.1</td>
-<td>→ LONG.H0.0</td>
+<tr><td>LONG_H1[0]</td>
+<td>→ LONG_H0[0]</td>
 </tr>
 
-<tr><td>LONG.H0.2</td>
-<td>→ LONG.H0.1</td>
+<tr><td>LONG_H1[1]</td>
+<td>→ LONG_H0[1]</td>
 </tr>
 
-<tr><td>LONG.H0.3</td>
-<td>→ LONG.H0.2</td>
+<tr><td>LONG_H2[0]</td>
+<td>→ LONG_H1[0]</td>
 </tr>
 
-<tr><td>LONG.H0.4</td>
-<td>→ LONG.H0.3</td>
+<tr><td>LONG_H2[1]</td>
+<td>→ LONG_H1[1]</td>
 </tr>
 
-<tr><td>LONG.H0.5</td>
-<td>→ LONG.H0.4</td>
+<tr><td>LONG_H3[0]</td>
+<td>→ LONG_H2[0]</td>
 </tr>
 
-<tr><td>LONG.H0.6</td>
-<td>→ LONG.H0.5</td>
+<tr><td>LONG_H3[1]</td>
+<td>→ LONG_H2[1]</td>
 </tr>
 
-<tr><td>LONG.H0.7</td>
-<td>→ LONG.H0.6</td>
+<tr><td>LONG_H4[0]</td>
+<td>→ LONG_H3[0]</td>
 </tr>
 
-<tr><td>LONG.H0.8</td>
-<td>→ LONG.H0.7</td>
+<tr><td>LONG_H4[1]</td>
+<td>→ LONG_H3[1]</td>
 </tr>
 
-<tr><td>LONG.H0.9</td>
-<td>→ LONG.H0.8</td>
+<tr><td>LONG_H5[0]</td>
+<td>→ LONG_H4[0]</td>
 </tr>
 
-<tr><td>LONG.H0.10</td>
-<td>→ LONG.H0.9</td>
+<tr><td>LONG_H5[1]</td>
+<td>→ LONG_H4[1]</td>
 </tr>
 
-<tr><td>LONG.H0.11</td>
-<td>→ LONG.H0.10</td>
+<tr><td>LONG_H6[0]</td>
+<td>→ LONG_H5[0]</td>
 </tr>
 
-<tr><td>LONG.H0.12</td>
-<td>→ LONG.H0.11</td>
+<tr><td>LONG_H6[1]</td>
+<td>→ LONG_H5[1]</td>
 </tr>
 
-<tr><td>LONG.H1.1</td>
-<td>→ LONG.H1.0</td>
+<tr><td>LONG_H7[0]</td>
+<td>→ LONG_H6[0]</td>
 </tr>
 
-<tr><td>LONG.H1.2</td>
-<td>→ LONG.H1.1</td>
+<tr><td>LONG_H7[1]</td>
+<td>→ LONG_H6[1]</td>
 </tr>
 
-<tr><td>LONG.H1.3</td>
-<td>→ LONG.H1.2</td>
+<tr><td>LONG_H8[0]</td>
+<td>→ LONG_H7[0]</td>
 </tr>
 
-<tr><td>LONG.H1.4</td>
-<td>→ LONG.H1.3</td>
+<tr><td>LONG_H8[1]</td>
+<td>→ LONG_H7[1]</td>
 </tr>
 
-<tr><td>LONG.H1.5</td>
-<td>→ LONG.H1.4</td>
+<tr><td>LONG_H9[0]</td>
+<td>→ LONG_H8[0]</td>
 </tr>
 
-<tr><td>LONG.H1.6</td>
-<td>→ LONG.H1.5</td>
+<tr><td>LONG_H9[1]</td>
+<td>→ LONG_H8[1]</td>
 </tr>
 
-<tr><td>LONG.H1.7</td>
-<td>→ LONG.H1.6</td>
+<tr><td>LONG_H10[0]</td>
+<td>→ LONG_H9[0]</td>
 </tr>
 
-<tr><td>LONG.H1.8</td>
-<td>→ LONG.H1.7</td>
+<tr><td>LONG_H10[1]</td>
+<td>→ LONG_H9[1]</td>
 </tr>
 
-<tr><td>LONG.H1.9</td>
-<td>→ LONG.H1.8</td>
+<tr><td>LONG_H11[0]</td>
+<td>→ LONG_H10[0]</td>
 </tr>
 
-<tr><td>LONG.H1.10</td>
-<td>→ LONG.H1.9</td>
+<tr><td>LONG_H11[1]</td>
+<td>→ LONG_H10[1]</td>
 </tr>
 
-<tr><td>LONG.H1.11</td>
-<td>→ LONG.H1.10</td>
+<tr><td>LONG_H12[0]</td>
+<td>→ LONG_H11[0]</td>
 </tr>
 
-<tr><td>LONG.H1.12</td>
-<td>→ LONG.H1.11</td>
+<tr><td>LONG_H12[1]</td>
+<td>→ LONG_H11[1]</td>
 </tr>
 
-<tr><td>OUT.LC0.E</td>
-<td>→ OUT.LC0</td>
+<tr><td>OUT_LC_E[0]</td>
+<td>→ OUT_LC[0]</td>
 </tr>
 
-<tr><td>OUT.LC1.E</td>
-<td>→ OUT.LC1</td>
+<tr><td>OUT_LC_E[1]</td>
+<td>→ OUT_LC[1]</td>
 </tr>
 
-<tr><td>OUT.LC2.E</td>
-<td>→ OUT.LC2</td>
+<tr><td>OUT_LC_E[2]</td>
+<td>→ OUT_LC[2]</td>
 </tr>
 
-<tr><td>OUT.LC3.E</td>
-<td>→ OUT.LC3</td>
+<tr><td>OUT_LC_E[3]</td>
+<td>→ OUT_LC[3]</td>
 </tr>
 
-<tr><td>OUT.LC4.E</td>
-<td>→ OUT.LC4</td>
+<tr><td>OUT_LC_E[4]</td>
+<td>→ OUT_LC[4]</td>
 </tr>
 
-<tr><td>OUT.LC5.E</td>
-<td>→ OUT.LC5</td>
+<tr><td>OUT_LC_E[5]</td>
+<td>→ OUT_LC[5]</td>
 </tr>
 
-<tr><td>OUT.LC6.E</td>
-<td>→ OUT.LC6</td>
+<tr><td>OUT_LC_E[6]</td>
+<td>→ OUT_LC[6]</td>
 </tr>
 
-<tr><td>OUT.LC7.E</td>
-<td>→ OUT.LC7</td>
+<tr><td>OUT_LC_E[7]</td>
+<td>→ OUT_LC[7]</td>
 </tr>
 
 </tbody>
@@ -1597,228 +1675,228 @@ are driven by the various bels within the FPGA:</p>
 </thead>
 
 <tbody>
-<tr><td>QUAD.V0.1.W</td>
-<td>→ QUAD.V0.1</td>
+<tr><td>QUAD_V1_W[0]</td>
+<td>→ QUAD_V1[0]</td>
 </tr>
 
-<tr><td>QUAD.V0.2.W</td>
-<td>→ QUAD.V0.2</td>
+<tr><td>QUAD_V1_W[1]</td>
+<td>→ QUAD_V1[1]</td>
 </tr>
 
-<tr><td>QUAD.V0.3.W</td>
-<td>→ QUAD.V0.3</td>
+<tr><td>QUAD_V1_W[2]</td>
+<td>→ QUAD_V1[2]</td>
 </tr>
 
-<tr><td>QUAD.V0.4.W</td>
-<td>→ QUAD.V0.4</td>
+<tr><td>QUAD_V1_W[3]</td>
+<td>→ QUAD_V1[3]</td>
 </tr>
 
-<tr><td>QUAD.V1.1.W</td>
-<td>→ QUAD.V1.1</td>
+<tr><td>QUAD_V1_W[4]</td>
+<td>→ QUAD_V1[4]</td>
 </tr>
 
-<tr><td>QUAD.V1.2.W</td>
-<td>→ QUAD.V1.2</td>
+<tr><td>QUAD_V1_W[5]</td>
+<td>→ QUAD_V1[5]</td>
 </tr>
 
-<tr><td>QUAD.V1.3.W</td>
-<td>→ QUAD.V1.3</td>
+<tr><td>QUAD_V1_W[6]</td>
+<td>→ QUAD_V1[6]</td>
 </tr>
 
-<tr><td>QUAD.V1.4.W</td>
-<td>→ QUAD.V1.4</td>
+<tr><td>QUAD_V1_W[7]</td>
+<td>→ QUAD_V1[7]</td>
 </tr>
 
-<tr><td>QUAD.V2.1.W</td>
-<td>→ QUAD.V2.1</td>
+<tr><td>QUAD_V1_W[8]</td>
+<td>→ QUAD_V1[8]</td>
 </tr>
 
-<tr><td>QUAD.V2.2.W</td>
-<td>→ QUAD.V2.2</td>
+<tr><td>QUAD_V1_W[9]</td>
+<td>→ QUAD_V1[9]</td>
 </tr>
 
-<tr><td>QUAD.V2.3.W</td>
-<td>→ QUAD.V2.3</td>
+<tr><td>QUAD_V1_W[10]</td>
+<td>→ QUAD_V1[10]</td>
 </tr>
 
-<tr><td>QUAD.V2.4.W</td>
-<td>→ QUAD.V2.4</td>
+<tr><td>QUAD_V1_W[11]</td>
+<td>→ QUAD_V1[11]</td>
 </tr>
 
-<tr><td>QUAD.V3.1.W</td>
-<td>→ QUAD.V3.1</td>
+<tr><td>QUAD_V2_W[0]</td>
+<td>→ QUAD_V2[0]</td>
 </tr>
 
-<tr><td>QUAD.V3.2.W</td>
-<td>→ QUAD.V3.2</td>
+<tr><td>QUAD_V2_W[1]</td>
+<td>→ QUAD_V2[1]</td>
 </tr>
 
-<tr><td>QUAD.V3.3.W</td>
-<td>→ QUAD.V3.3</td>
+<tr><td>QUAD_V2_W[2]</td>
+<td>→ QUAD_V2[2]</td>
 </tr>
 
-<tr><td>QUAD.V3.4.W</td>
-<td>→ QUAD.V3.4</td>
+<tr><td>QUAD_V2_W[3]</td>
+<td>→ QUAD_V2[3]</td>
 </tr>
 
-<tr><td>QUAD.V4.1.W</td>
-<td>→ QUAD.V4.1</td>
+<tr><td>QUAD_V2_W[4]</td>
+<td>→ QUAD_V2[4]</td>
 </tr>
 
-<tr><td>QUAD.V4.2.W</td>
-<td>→ QUAD.V4.2</td>
+<tr><td>QUAD_V2_W[5]</td>
+<td>→ QUAD_V2[5]</td>
 </tr>
 
-<tr><td>QUAD.V4.3.W</td>
-<td>→ QUAD.V4.3</td>
+<tr><td>QUAD_V2_W[6]</td>
+<td>→ QUAD_V2[6]</td>
 </tr>
 
-<tr><td>QUAD.V4.4.W</td>
-<td>→ QUAD.V4.4</td>
+<tr><td>QUAD_V2_W[7]</td>
+<td>→ QUAD_V2[7]</td>
 </tr>
 
-<tr><td>QUAD.V5.1.W</td>
-<td>→ QUAD.V5.1</td>
+<tr><td>QUAD_V2_W[8]</td>
+<td>→ QUAD_V2[8]</td>
 </tr>
 
-<tr><td>QUAD.V5.2.W</td>
-<td>→ QUAD.V5.2</td>
+<tr><td>QUAD_V2_W[9]</td>
+<td>→ QUAD_V2[9]</td>
 </tr>
 
-<tr><td>QUAD.V5.3.W</td>
-<td>→ QUAD.V5.3</td>
+<tr><td>QUAD_V2_W[10]</td>
+<td>→ QUAD_V2[10]</td>
 </tr>
 
-<tr><td>QUAD.V5.4.W</td>
-<td>→ QUAD.V5.4</td>
+<tr><td>QUAD_V2_W[11]</td>
+<td>→ QUAD_V2[11]</td>
 </tr>
 
-<tr><td>QUAD.V6.1.W</td>
-<td>→ QUAD.V6.1</td>
+<tr><td>QUAD_V3_W[0]</td>
+<td>→ QUAD_V3[0]</td>
 </tr>
 
-<tr><td>QUAD.V6.2.W</td>
-<td>→ QUAD.V6.2</td>
+<tr><td>QUAD_V3_W[1]</td>
+<td>→ QUAD_V3[1]</td>
 </tr>
 
-<tr><td>QUAD.V6.3.W</td>
-<td>→ QUAD.V6.3</td>
+<tr><td>QUAD_V3_W[2]</td>
+<td>→ QUAD_V3[2]</td>
 </tr>
 
-<tr><td>QUAD.V6.4.W</td>
-<td>→ QUAD.V6.4</td>
+<tr><td>QUAD_V3_W[3]</td>
+<td>→ QUAD_V3[3]</td>
 </tr>
 
-<tr><td>QUAD.V7.1.W</td>
-<td>→ QUAD.V7.1</td>
+<tr><td>QUAD_V3_W[4]</td>
+<td>→ QUAD_V3[4]</td>
 </tr>
 
-<tr><td>QUAD.V7.2.W</td>
-<td>→ QUAD.V7.2</td>
+<tr><td>QUAD_V3_W[5]</td>
+<td>→ QUAD_V3[5]</td>
 </tr>
 
-<tr><td>QUAD.V7.3.W</td>
-<td>→ QUAD.V7.3</td>
+<tr><td>QUAD_V3_W[6]</td>
+<td>→ QUAD_V3[6]</td>
 </tr>
 
-<tr><td>QUAD.V7.4.W</td>
-<td>→ QUAD.V7.4</td>
+<tr><td>QUAD_V3_W[7]</td>
+<td>→ QUAD_V3[7]</td>
 </tr>
 
-<tr><td>QUAD.V8.1.W</td>
-<td>→ QUAD.V8.1</td>
+<tr><td>QUAD_V3_W[8]</td>
+<td>→ QUAD_V3[8]</td>
 </tr>
 
-<tr><td>QUAD.V8.2.W</td>
-<td>→ QUAD.V8.2</td>
+<tr><td>QUAD_V3_W[9]</td>
+<td>→ QUAD_V3[9]</td>
 </tr>
 
-<tr><td>QUAD.V8.3.W</td>
-<td>→ QUAD.V8.3</td>
+<tr><td>QUAD_V3_W[10]</td>
+<td>→ QUAD_V3[10]</td>
 </tr>
 
-<tr><td>QUAD.V8.4.W</td>
-<td>→ QUAD.V8.4</td>
+<tr><td>QUAD_V3_W[11]</td>
+<td>→ QUAD_V3[11]</td>
 </tr>
 
-<tr><td>QUAD.V9.1.W</td>
-<td>→ QUAD.V9.1</td>
+<tr><td>QUAD_V4_W[0]</td>
+<td>→ QUAD_V4[0]</td>
 </tr>
 
-<tr><td>QUAD.V9.2.W</td>
-<td>→ QUAD.V9.2</td>
+<tr><td>QUAD_V4_W[1]</td>
+<td>→ QUAD_V4[1]</td>
 </tr>
 
-<tr><td>QUAD.V9.3.W</td>
-<td>→ QUAD.V9.3</td>
+<tr><td>QUAD_V4_W[2]</td>
+<td>→ QUAD_V4[2]</td>
 </tr>
 
-<tr><td>QUAD.V9.4.W</td>
-<td>→ QUAD.V9.4</td>
+<tr><td>QUAD_V4_W[3]</td>
+<td>→ QUAD_V4[3]</td>
 </tr>
 
-<tr><td>QUAD.V10.1.W</td>
-<td>→ QUAD.V10.1</td>
+<tr><td>QUAD_V4_W[4]</td>
+<td>→ QUAD_V4[4]</td>
 </tr>
 
-<tr><td>QUAD.V10.2.W</td>
-<td>→ QUAD.V10.2</td>
+<tr><td>QUAD_V4_W[5]</td>
+<td>→ QUAD_V4[5]</td>
 </tr>
 
-<tr><td>QUAD.V10.3.W</td>
-<td>→ QUAD.V10.3</td>
+<tr><td>QUAD_V4_W[6]</td>
+<td>→ QUAD_V4[6]</td>
 </tr>
 
-<tr><td>QUAD.V10.4.W</td>
-<td>→ QUAD.V10.4</td>
+<tr><td>QUAD_V4_W[7]</td>
+<td>→ QUAD_V4[7]</td>
 </tr>
 
-<tr><td>QUAD.V11.1.W</td>
-<td>→ QUAD.V11.1</td>
+<tr><td>QUAD_V4_W[8]</td>
+<td>→ QUAD_V4[8]</td>
 </tr>
 
-<tr><td>QUAD.V11.2.W</td>
-<td>→ QUAD.V11.2</td>
+<tr><td>QUAD_V4_W[9]</td>
+<td>→ QUAD_V4[9]</td>
 </tr>
 
-<tr><td>QUAD.V11.3.W</td>
-<td>→ QUAD.V11.3</td>
+<tr><td>QUAD_V4_W[10]</td>
+<td>→ QUAD_V4[10]</td>
 </tr>
 
-<tr><td>QUAD.V11.4.W</td>
-<td>→ QUAD.V11.4</td>
+<tr><td>QUAD_V4_W[11]</td>
+<td>→ QUAD_V4[11]</td>
 </tr>
 
-<tr><td>OUT.LC0.W</td>
-<td>→ OUT.LC0</td>
+<tr><td>OUT_LC_W[0]</td>
+<td>→ OUT_LC[0]</td>
 </tr>
 
-<tr><td>OUT.LC1.W</td>
-<td>→ OUT.LC1</td>
+<tr><td>OUT_LC_W[1]</td>
+<td>→ OUT_LC[1]</td>
 </tr>
 
-<tr><td>OUT.LC2.W</td>
-<td>→ OUT.LC2</td>
+<tr><td>OUT_LC_W[2]</td>
+<td>→ OUT_LC[2]</td>
 </tr>
 
-<tr><td>OUT.LC3.W</td>
-<td>→ OUT.LC3</td>
+<tr><td>OUT_LC_W[3]</td>
+<td>→ OUT_LC[3]</td>
 </tr>
 
-<tr><td>OUT.LC4.W</td>
-<td>→ OUT.LC4</td>
+<tr><td>OUT_LC_W[4]</td>
+<td>→ OUT_LC[4]</td>
 </tr>
 
-<tr><td>OUT.LC5.W</td>
-<td>→ OUT.LC5</td>
+<tr><td>OUT_LC_W[5]</td>
+<td>→ OUT_LC[5]</td>
 </tr>
 
-<tr><td>OUT.LC6.W</td>
-<td>→ OUT.LC6</td>
+<tr><td>OUT_LC_W[6]</td>
+<td>→ OUT_LC[6]</td>
 </tr>
 
-<tr><td>OUT.LC7.W</td>
-<td>→ OUT.LC7</td>
+<tr><td>OUT_LC_W[7]</td>
+<td>→ OUT_LC[7]</td>
 </tr>
 
 </tbody>
@@ -1838,388 +1916,388 @@ are driven by the various bels within the FPGA:</p>
 </thead>
 
 <tbody>
-<tr><td>QUAD.V0.1</td>
-<td>→ QUAD.V0.0</td>
+<tr><td>QUAD_V1[0]</td>
+<td>→ QUAD_V0[0]</td>
 </tr>
 
-<tr><td>QUAD.V0.2</td>
-<td>→ QUAD.V0.1</td>
+<tr><td>QUAD_V1[1]</td>
+<td>→ QUAD_V0[1]</td>
 </tr>
 
-<tr><td>QUAD.V0.3</td>
-<td>→ QUAD.V0.2</td>
+<tr><td>QUAD_V1[2]</td>
+<td>→ QUAD_V0[2]</td>
 </tr>
 
-<tr><td>QUAD.V0.4</td>
-<td>→ QUAD.V0.3</td>
+<tr><td>QUAD_V1[3]</td>
+<td>→ QUAD_V0[3]</td>
 </tr>
 
-<tr><td>QUAD.V1.1</td>
-<td>→ QUAD.V1.0</td>
+<tr><td>QUAD_V1[4]</td>
+<td>→ QUAD_V0[4]</td>
 </tr>
 
-<tr><td>QUAD.V1.2</td>
-<td>→ QUAD.V1.1</td>
+<tr><td>QUAD_V1[5]</td>
+<td>→ QUAD_V0[5]</td>
 </tr>
 
-<tr><td>QUAD.V1.3</td>
-<td>→ QUAD.V1.2</td>
+<tr><td>QUAD_V1[6]</td>
+<td>→ QUAD_V0[6]</td>
 </tr>
 
-<tr><td>QUAD.V1.4</td>
-<td>→ QUAD.V1.3</td>
+<tr><td>QUAD_V1[7]</td>
+<td>→ QUAD_V0[7]</td>
 </tr>
 
-<tr><td>QUAD.V2.1</td>
-<td>→ QUAD.V2.0</td>
+<tr><td>QUAD_V1[8]</td>
+<td>→ QUAD_V0[8]</td>
 </tr>
 
-<tr><td>QUAD.V2.2</td>
-<td>→ QUAD.V2.1</td>
+<tr><td>QUAD_V1[9]</td>
+<td>→ QUAD_V0[9]</td>
 </tr>
 
-<tr><td>QUAD.V2.3</td>
-<td>→ QUAD.V2.2</td>
+<tr><td>QUAD_V1[10]</td>
+<td>→ QUAD_V0[10]</td>
 </tr>
 
-<tr><td>QUAD.V2.4</td>
-<td>→ QUAD.V2.3</td>
+<tr><td>QUAD_V1[11]</td>
+<td>→ QUAD_V0[11]</td>
 </tr>
 
-<tr><td>QUAD.V3.1</td>
-<td>→ QUAD.V3.0</td>
+<tr><td>QUAD_V2[0]</td>
+<td>→ QUAD_V1[0]</td>
 </tr>
 
-<tr><td>QUAD.V3.2</td>
-<td>→ QUAD.V3.1</td>
+<tr><td>QUAD_V2[1]</td>
+<td>→ QUAD_V1[1]</td>
 </tr>
 
-<tr><td>QUAD.V3.3</td>
-<td>→ QUAD.V3.2</td>
+<tr><td>QUAD_V2[2]</td>
+<td>→ QUAD_V1[2]</td>
 </tr>
 
-<tr><td>QUAD.V3.4</td>
-<td>→ QUAD.V3.3</td>
+<tr><td>QUAD_V2[3]</td>
+<td>→ QUAD_V1[3]</td>
 </tr>
 
-<tr><td>QUAD.V4.1</td>
-<td>→ QUAD.V4.0</td>
+<tr><td>QUAD_V2[4]</td>
+<td>→ QUAD_V1[4]</td>
 </tr>
 
-<tr><td>QUAD.V4.2</td>
-<td>→ QUAD.V4.1</td>
+<tr><td>QUAD_V2[5]</td>
+<td>→ QUAD_V1[5]</td>
 </tr>
 
-<tr><td>QUAD.V4.3</td>
-<td>→ QUAD.V4.2</td>
+<tr><td>QUAD_V2[6]</td>
+<td>→ QUAD_V1[6]</td>
 </tr>
 
-<tr><td>QUAD.V4.4</td>
-<td>→ QUAD.V4.3</td>
+<tr><td>QUAD_V2[7]</td>
+<td>→ QUAD_V1[7]</td>
 </tr>
 
-<tr><td>QUAD.V5.1</td>
-<td>→ QUAD.V5.0</td>
+<tr><td>QUAD_V2[8]</td>
+<td>→ QUAD_V1[8]</td>
 </tr>
 
-<tr><td>QUAD.V5.2</td>
-<td>→ QUAD.V5.1</td>
+<tr><td>QUAD_V2[9]</td>
+<td>→ QUAD_V1[9]</td>
 </tr>
 
-<tr><td>QUAD.V5.3</td>
-<td>→ QUAD.V5.2</td>
+<tr><td>QUAD_V2[10]</td>
+<td>→ QUAD_V1[10]</td>
 </tr>
 
-<tr><td>QUAD.V5.4</td>
-<td>→ QUAD.V5.3</td>
+<tr><td>QUAD_V2[11]</td>
+<td>→ QUAD_V1[11]</td>
 </tr>
 
-<tr><td>QUAD.V6.1</td>
-<td>→ QUAD.V6.0</td>
+<tr><td>QUAD_V3[0]</td>
+<td>→ QUAD_V2[0]</td>
 </tr>
 
-<tr><td>QUAD.V6.2</td>
-<td>→ QUAD.V6.1</td>
+<tr><td>QUAD_V3[1]</td>
+<td>→ QUAD_V2[1]</td>
 </tr>
 
-<tr><td>QUAD.V6.3</td>
-<td>→ QUAD.V6.2</td>
+<tr><td>QUAD_V3[2]</td>
+<td>→ QUAD_V2[2]</td>
 </tr>
 
-<tr><td>QUAD.V6.4</td>
-<td>→ QUAD.V6.3</td>
+<tr><td>QUAD_V3[3]</td>
+<td>→ QUAD_V2[3]</td>
 </tr>
 
-<tr><td>QUAD.V7.1</td>
-<td>→ QUAD.V7.0</td>
+<tr><td>QUAD_V3[4]</td>
+<td>→ QUAD_V2[4]</td>
 </tr>
 
-<tr><td>QUAD.V7.2</td>
-<td>→ QUAD.V7.1</td>
+<tr><td>QUAD_V3[5]</td>
+<td>→ QUAD_V2[5]</td>
 </tr>
 
-<tr><td>QUAD.V7.3</td>
-<td>→ QUAD.V7.2</td>
+<tr><td>QUAD_V3[6]</td>
+<td>→ QUAD_V2[6]</td>
 </tr>
 
-<tr><td>QUAD.V7.4</td>
-<td>→ QUAD.V7.3</td>
+<tr><td>QUAD_V3[7]</td>
+<td>→ QUAD_V2[7]</td>
 </tr>
 
-<tr><td>QUAD.V8.1</td>
-<td>→ QUAD.V8.0</td>
+<tr><td>QUAD_V3[8]</td>
+<td>→ QUAD_V2[8]</td>
 </tr>
 
-<tr><td>QUAD.V8.2</td>
-<td>→ QUAD.V8.1</td>
+<tr><td>QUAD_V3[9]</td>
+<td>→ QUAD_V2[9]</td>
 </tr>
 
-<tr><td>QUAD.V8.3</td>
-<td>→ QUAD.V8.2</td>
+<tr><td>QUAD_V3[10]</td>
+<td>→ QUAD_V2[10]</td>
 </tr>
 
-<tr><td>QUAD.V8.4</td>
-<td>→ QUAD.V8.3</td>
+<tr><td>QUAD_V3[11]</td>
+<td>→ QUAD_V2[11]</td>
 </tr>
 
-<tr><td>QUAD.V9.1</td>
-<td>→ QUAD.V9.0</td>
+<tr><td>QUAD_V4[0]</td>
+<td>→ QUAD_V3[0]</td>
 </tr>
 
-<tr><td>QUAD.V9.2</td>
-<td>→ QUAD.V9.1</td>
+<tr><td>QUAD_V4[1]</td>
+<td>→ QUAD_V3[1]</td>
 </tr>
 
-<tr><td>QUAD.V9.3</td>
-<td>→ QUAD.V9.2</td>
+<tr><td>QUAD_V4[2]</td>
+<td>→ QUAD_V3[2]</td>
 </tr>
 
-<tr><td>QUAD.V9.4</td>
-<td>→ QUAD.V9.3</td>
+<tr><td>QUAD_V4[3]</td>
+<td>→ QUAD_V3[3]</td>
 </tr>
 
-<tr><td>QUAD.V10.1</td>
-<td>→ QUAD.V10.0</td>
+<tr><td>QUAD_V4[4]</td>
+<td>→ QUAD_V3[4]</td>
 </tr>
 
-<tr><td>QUAD.V10.2</td>
-<td>→ QUAD.V10.1</td>
+<tr><td>QUAD_V4[5]</td>
+<td>→ QUAD_V3[5]</td>
 </tr>
 
-<tr><td>QUAD.V10.3</td>
-<td>→ QUAD.V10.2</td>
+<tr><td>QUAD_V4[6]</td>
+<td>→ QUAD_V3[6]</td>
 </tr>
 
-<tr><td>QUAD.V10.4</td>
-<td>→ QUAD.V10.3</td>
+<tr><td>QUAD_V4[7]</td>
+<td>→ QUAD_V3[7]</td>
 </tr>
 
-<tr><td>QUAD.V11.1</td>
-<td>→ QUAD.V11.0</td>
+<tr><td>QUAD_V4[8]</td>
+<td>→ QUAD_V3[8]</td>
 </tr>
 
-<tr><td>QUAD.V11.2</td>
-<td>→ QUAD.V11.1</td>
+<tr><td>QUAD_V4[9]</td>
+<td>→ QUAD_V3[9]</td>
 </tr>
 
-<tr><td>QUAD.V11.3</td>
-<td>→ QUAD.V11.2</td>
+<tr><td>QUAD_V4[10]</td>
+<td>→ QUAD_V3[10]</td>
 </tr>
 
-<tr><td>QUAD.V11.4</td>
-<td>→ QUAD.V11.3</td>
+<tr><td>QUAD_V4[11]</td>
+<td>→ QUAD_V3[11]</td>
 </tr>
 
-<tr><td>LONG.V0.1</td>
-<td>→ LONG.V0.0</td>
+<tr><td>LONG_V1[0]</td>
+<td>→ LONG_V0[0]</td>
 </tr>
 
-<tr><td>LONG.V0.2</td>
-<td>→ LONG.V0.1</td>
+<tr><td>LONG_V1[1]</td>
+<td>→ LONG_V0[1]</td>
 </tr>
 
-<tr><td>LONG.V0.3</td>
-<td>→ LONG.V0.2</td>
+<tr><td>LONG_V2[0]</td>
+<td>→ LONG_V1[0]</td>
 </tr>
 
-<tr><td>LONG.V0.4</td>
-<td>→ LONG.V0.3</td>
+<tr><td>LONG_V2[1]</td>
+<td>→ LONG_V1[1]</td>
 </tr>
 
-<tr><td>LONG.V0.5</td>
-<td>→ LONG.V0.4</td>
+<tr><td>LONG_V3[0]</td>
+<td>→ LONG_V2[0]</td>
 </tr>
 
-<tr><td>LONG.V0.6</td>
-<td>→ LONG.V0.5</td>
+<tr><td>LONG_V3[1]</td>
+<td>→ LONG_V2[1]</td>
 </tr>
 
-<tr><td>LONG.V0.7</td>
-<td>→ LONG.V0.6</td>
+<tr><td>LONG_V4[0]</td>
+<td>→ LONG_V3[0]</td>
 </tr>
 
-<tr><td>LONG.V0.8</td>
-<td>→ LONG.V0.7</td>
+<tr><td>LONG_V4[1]</td>
+<td>→ LONG_V3[1]</td>
 </tr>
 
-<tr><td>LONG.V0.9</td>
-<td>→ LONG.V0.8</td>
+<tr><td>LONG_V5[0]</td>
+<td>→ LONG_V4[0]</td>
 </tr>
 
-<tr><td>LONG.V0.10</td>
-<td>→ LONG.V0.9</td>
+<tr><td>LONG_V5[1]</td>
+<td>→ LONG_V4[1]</td>
 </tr>
 
-<tr><td>LONG.V0.11</td>
-<td>→ LONG.V0.10</td>
+<tr><td>LONG_V6[0]</td>
+<td>→ LONG_V5[0]</td>
 </tr>
 
-<tr><td>LONG.V0.12</td>
-<td>→ LONG.V0.11</td>
+<tr><td>LONG_V6[1]</td>
+<td>→ LONG_V5[1]</td>
 </tr>
 
-<tr><td>LONG.V1.1</td>
-<td>→ LONG.V1.0</td>
+<tr><td>LONG_V7[0]</td>
+<td>→ LONG_V6[0]</td>
 </tr>
 
-<tr><td>LONG.V1.2</td>
-<td>→ LONG.V1.1</td>
+<tr><td>LONG_V7[1]</td>
+<td>→ LONG_V6[1]</td>
 </tr>
 
-<tr><td>LONG.V1.3</td>
-<td>→ LONG.V1.2</td>
+<tr><td>LONG_V8[0]</td>
+<td>→ LONG_V7[0]</td>
 </tr>
 
-<tr><td>LONG.V1.4</td>
-<td>→ LONG.V1.3</td>
+<tr><td>LONG_V8[1]</td>
+<td>→ LONG_V7[1]</td>
 </tr>
 
-<tr><td>LONG.V1.5</td>
-<td>→ LONG.V1.4</td>
+<tr><td>LONG_V9[0]</td>
+<td>→ LONG_V8[0]</td>
 </tr>
 
-<tr><td>LONG.V1.6</td>
-<td>→ LONG.V1.5</td>
+<tr><td>LONG_V9[1]</td>
+<td>→ LONG_V8[1]</td>
 </tr>
 
-<tr><td>LONG.V1.7</td>
-<td>→ LONG.V1.6</td>
+<tr><td>LONG_V10[0]</td>
+<td>→ LONG_V9[0]</td>
 </tr>
 
-<tr><td>LONG.V1.8</td>
-<td>→ LONG.V1.7</td>
+<tr><td>LONG_V10[1]</td>
+<td>→ LONG_V9[1]</td>
 </tr>
 
-<tr><td>LONG.V1.9</td>
-<td>→ LONG.V1.8</td>
+<tr><td>LONG_V11[0]</td>
+<td>→ LONG_V10[0]</td>
 </tr>
 
-<tr><td>LONG.V1.10</td>
-<td>→ LONG.V1.9</td>
+<tr><td>LONG_V11[1]</td>
+<td>→ LONG_V10[1]</td>
 </tr>
 
-<tr><td>LONG.V1.11</td>
-<td>→ LONG.V1.10</td>
+<tr><td>LONG_V12[0]</td>
+<td>→ LONG_V11[0]</td>
 </tr>
 
-<tr><td>LONG.V1.12</td>
-<td>→ LONG.V1.11</td>
+<tr><td>LONG_V12[1]</td>
+<td>→ LONG_V11[1]</td>
 </tr>
 
-<tr><td>OUT.LC0.N</td>
-<td>→ OUT.LC0</td>
+<tr><td>OUT_LC_N[0]</td>
+<td>→ OUT_LC[0]</td>
 </tr>
 
-<tr><td>OUT.LC0.EN</td>
-<td>→ OUT.LC0.E</td>
+<tr><td>OUT_LC_N[1]</td>
+<td>→ OUT_LC[1]</td>
 </tr>
 
-<tr><td>OUT.LC0.WN</td>
-<td>→ OUT.LC0.W</td>
+<tr><td>OUT_LC_N[2]</td>
+<td>→ OUT_LC[2]</td>
 </tr>
 
-<tr><td>OUT.LC1.N</td>
-<td>→ OUT.LC1</td>
+<tr><td>OUT_LC_N[3]</td>
+<td>→ OUT_LC[3]</td>
 </tr>
 
-<tr><td>OUT.LC1.EN</td>
-<td>→ OUT.LC1.E</td>
+<tr><td>OUT_LC_N[4]</td>
+<td>→ OUT_LC[4]</td>
 </tr>
 
-<tr><td>OUT.LC1.WN</td>
-<td>→ OUT.LC1.W</td>
+<tr><td>OUT_LC_N[5]</td>
+<td>→ OUT_LC[5]</td>
 </tr>
 
-<tr><td>OUT.LC2.N</td>
-<td>→ OUT.LC2</td>
+<tr><td>OUT_LC_N[6]</td>
+<td>→ OUT_LC[6]</td>
 </tr>
 
-<tr><td>OUT.LC2.EN</td>
-<td>→ OUT.LC2.E</td>
+<tr><td>OUT_LC_N[7]</td>
+<td>→ OUT_LC[7]</td>
 </tr>
 
-<tr><td>OUT.LC2.WN</td>
-<td>→ OUT.LC2.W</td>
+<tr><td>OUT_LC_EN[0]</td>
+<td>→ OUT_LC_E[0]</td>
 </tr>
 
-<tr><td>OUT.LC3.N</td>
-<td>→ OUT.LC3</td>
+<tr><td>OUT_LC_EN[1]</td>
+<td>→ OUT_LC_E[1]</td>
 </tr>
 
-<tr><td>OUT.LC3.EN</td>
-<td>→ OUT.LC3.E</td>
+<tr><td>OUT_LC_EN[2]</td>
+<td>→ OUT_LC_E[2]</td>
 </tr>
 
-<tr><td>OUT.LC3.WN</td>
-<td>→ OUT.LC3.W</td>
+<tr><td>OUT_LC_EN[3]</td>
+<td>→ OUT_LC_E[3]</td>
 </tr>
 
-<tr><td>OUT.LC4.N</td>
-<td>→ OUT.LC4</td>
+<tr><td>OUT_LC_EN[4]</td>
+<td>→ OUT_LC_E[4]</td>
 </tr>
 
-<tr><td>OUT.LC4.EN</td>
-<td>→ OUT.LC4.E</td>
+<tr><td>OUT_LC_EN[5]</td>
+<td>→ OUT_LC_E[5]</td>
 </tr>
 
-<tr><td>OUT.LC4.WN</td>
-<td>→ OUT.LC4.W</td>
+<tr><td>OUT_LC_EN[6]</td>
+<td>→ OUT_LC_E[6]</td>
 </tr>
 
-<tr><td>OUT.LC5.N</td>
-<td>→ OUT.LC5</td>
+<tr><td>OUT_LC_EN[7]</td>
+<td>→ OUT_LC_E[7]</td>
 </tr>
 
-<tr><td>OUT.LC5.EN</td>
-<td>→ OUT.LC5.E</td>
+<tr><td>OUT_LC_WN[0]</td>
+<td>→ OUT_LC_W[0]</td>
 </tr>
 
-<tr><td>OUT.LC5.WN</td>
-<td>→ OUT.LC5.W</td>
+<tr><td>OUT_LC_WN[1]</td>
+<td>→ OUT_LC_W[1]</td>
 </tr>
 
-<tr><td>OUT.LC6.N</td>
-<td>→ OUT.LC6</td>
+<tr><td>OUT_LC_WN[2]</td>
+<td>→ OUT_LC_W[2]</td>
 </tr>
 
-<tr><td>OUT.LC6.EN</td>
-<td>→ OUT.LC6.E</td>
+<tr><td>OUT_LC_WN[3]</td>
+<td>→ OUT_LC_W[3]</td>
 </tr>
 
-<tr><td>OUT.LC6.WN</td>
-<td>→ OUT.LC6.W</td>
+<tr><td>OUT_LC_WN[4]</td>
+<td>→ OUT_LC_W[4]</td>
 </tr>
 
-<tr><td>OUT.LC7.N</td>
-<td>→ OUT.LC7</td>
+<tr><td>OUT_LC_WN[5]</td>
+<td>→ OUT_LC_W[5]</td>
 </tr>
 
-<tr><td>OUT.LC7.EN</td>
-<td>→ OUT.LC7.E</td>
+<tr><td>OUT_LC_WN[6]</td>
+<td>→ OUT_LC_W[6]</td>
 </tr>
 
-<tr><td>OUT.LC7.WN</td>
-<td>→ OUT.LC7.W</td>
+<tr><td>OUT_LC_WN[7]</td>
+<td>→ OUT_LC_W[7]</td>
 </tr>
 
 </tbody>
@@ -2239,100 +2317,100 @@ are driven by the various bels within the FPGA:</p>
 </thead>
 
 <tbody>
-<tr><td>OUT.LC0.S</td>
-<td>→ OUT.LC0</td>
+<tr><td>OUT_LC_S[0]</td>
+<td>→ OUT_LC[0]</td>
 </tr>
 
-<tr><td>OUT.LC0.ES</td>
-<td>→ OUT.LC0.E</td>
+<tr><td>OUT_LC_S[1]</td>
+<td>→ OUT_LC[1]</td>
 </tr>
 
-<tr><td>OUT.LC0.WS</td>
-<td>→ OUT.LC0.W</td>
+<tr><td>OUT_LC_S[2]</td>
+<td>→ OUT_LC[2]</td>
 </tr>
 
-<tr><td>OUT.LC1.S</td>
-<td>→ OUT.LC1</td>
+<tr><td>OUT_LC_S[3]</td>
+<td>→ OUT_LC[3]</td>
 </tr>
 
-<tr><td>OUT.LC1.ES</td>
-<td>→ OUT.LC1.E</td>
+<tr><td>OUT_LC_S[4]</td>
+<td>→ OUT_LC[4]</td>
 </tr>
 
-<tr><td>OUT.LC1.WS</td>
-<td>→ OUT.LC1.W</td>
+<tr><td>OUT_LC_S[5]</td>
+<td>→ OUT_LC[5]</td>
 </tr>
 
-<tr><td>OUT.LC2.S</td>
-<td>→ OUT.LC2</td>
+<tr><td>OUT_LC_S[6]</td>
+<td>→ OUT_LC[6]</td>
 </tr>
 
-<tr><td>OUT.LC2.ES</td>
-<td>→ OUT.LC2.E</td>
+<tr><td>OUT_LC_S[7]</td>
+<td>→ OUT_LC[7]</td>
 </tr>
 
-<tr><td>OUT.LC2.WS</td>
-<td>→ OUT.LC2.W</td>
+<tr><td>OUT_LC_ES[0]</td>
+<td>→ OUT_LC_E[0]</td>
 </tr>
 
-<tr><td>OUT.LC3.S</td>
-<td>→ OUT.LC3</td>
+<tr><td>OUT_LC_ES[1]</td>
+<td>→ OUT_LC_E[1]</td>
 </tr>
 
-<tr><td>OUT.LC3.ES</td>
-<td>→ OUT.LC3.E</td>
+<tr><td>OUT_LC_ES[2]</td>
+<td>→ OUT_LC_E[2]</td>
 </tr>
 
-<tr><td>OUT.LC3.WS</td>
-<td>→ OUT.LC3.W</td>
+<tr><td>OUT_LC_ES[3]</td>
+<td>→ OUT_LC_E[3]</td>
 </tr>
 
-<tr><td>OUT.LC4.S</td>
-<td>→ OUT.LC4</td>
+<tr><td>OUT_LC_ES[4]</td>
+<td>→ OUT_LC_E[4]</td>
 </tr>
 
-<tr><td>OUT.LC4.ES</td>
-<td>→ OUT.LC4.E</td>
+<tr><td>OUT_LC_ES[5]</td>
+<td>→ OUT_LC_E[5]</td>
 </tr>
 
-<tr><td>OUT.LC4.WS</td>
-<td>→ OUT.LC4.W</td>
+<tr><td>OUT_LC_ES[6]</td>
+<td>→ OUT_LC_E[6]</td>
 </tr>
 
-<tr><td>OUT.LC5.S</td>
-<td>→ OUT.LC5</td>
+<tr><td>OUT_LC_ES[7]</td>
+<td>→ OUT_LC_E[7]</td>
 </tr>
 
-<tr><td>OUT.LC5.ES</td>
-<td>→ OUT.LC5.E</td>
+<tr><td>OUT_LC_WS[0]</td>
+<td>→ OUT_LC_W[0]</td>
 </tr>
 
-<tr><td>OUT.LC5.WS</td>
-<td>→ OUT.LC5.W</td>
+<tr><td>OUT_LC_WS[1]</td>
+<td>→ OUT_LC_W[1]</td>
 </tr>
 
-<tr><td>OUT.LC6.S</td>
-<td>→ OUT.LC6</td>
+<tr><td>OUT_LC_WS[2]</td>
+<td>→ OUT_LC_W[2]</td>
 </tr>
 
-<tr><td>OUT.LC6.ES</td>
-<td>→ OUT.LC6.E</td>
+<tr><td>OUT_LC_WS[3]</td>
+<td>→ OUT_LC_W[3]</td>
 </tr>
 
-<tr><td>OUT.LC6.WS</td>
-<td>→ OUT.LC6.W</td>
+<tr><td>OUT_LC_WS[4]</td>
+<td>→ OUT_LC_W[4]</td>
 </tr>
 
-<tr><td>OUT.LC7.S</td>
-<td>→ OUT.LC7</td>
+<tr><td>OUT_LC_WS[5]</td>
+<td>→ OUT_LC_W[5]</td>
 </tr>
 
-<tr><td>OUT.LC7.ES</td>
-<td>→ OUT.LC7.E</td>
+<tr><td>OUT_LC_WS[6]</td>
+<td>→ OUT_LC_W[6]</td>
 </tr>
 
-<tr><td>OUT.LC7.WS</td>
-<td>→ OUT.LC7.W</td>
+<tr><td>OUT_LC_WS[7]</td>
+<td>→ OUT_LC_W[7]</td>
 </tr>
 
 </tbody>

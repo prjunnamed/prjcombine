@@ -191,884 +191,884 @@
 <table>
 <caption>virtex7 bel slots</caption>
 <thead>
-<tr><th>Slot</th><th>Tile slot</th><th>Tiles</th></tr>
+<tr><th>Slot</th><th>Class</th><th>Tile slot</th><th>Tiles</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>INT</td><td>INT</td><td>INT</td></tr>
+<tr><td>INT</td><td>legacy</td><td>INT</td><td>INT</td></tr>
 
-<tr><td>INTF_DELAY</td><td>INTF</td><td>INTF.DELAY</td></tr>
+<tr><td>INTF_DELAY</td><td>legacy</td><td>INTF</td><td>INTF.DELAY</td></tr>
 
-<tr><td>INTF_TESTMUX</td><td>INTF</td><td>INTF, INTF.BRAM, INTF.DELAY</td></tr>
+<tr><td>INTF_TESTMUX</td><td>legacy</td><td>INTF</td><td>INTF, INTF.BRAM, INTF.DELAY</td></tr>
 
-<tr><td>SLICE0</td><td>BEL</td><td>CLBLL, CLBLM</td></tr>
+<tr><td>SLICE0</td><td>legacy</td><td>BEL</td><td>CLBLL, CLBLM</td></tr>
 
-<tr><td>SLICE1</td><td>BEL</td><td>CLBLL, CLBLM</td></tr>
+<tr><td>SLICE1</td><td>legacy</td><td>BEL</td><td>CLBLL, CLBLM</td></tr>
 
-<tr><td>SLICE2</td><td>BEL</td><td></td></tr>
+<tr><td>SLICE2</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>SLICE3</td><td>BEL</td><td></td></tr>
+<tr><td>SLICE3</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BRAM</td><td>BEL</td><td></td></tr>
+<tr><td>BRAM</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>FIFO</td><td>BEL</td><td></td></tr>
+<tr><td>FIFO</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BRAM_F</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>BRAM_F</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
 
-<tr><td>BRAM_H0</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>BRAM_H0</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
 
-<tr><td>BRAM_H1</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>BRAM_H1</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
 
-<tr><td>BRAM_ADDR</td><td>BEL</td><td>BRAM</td></tr>
+<tr><td>BRAM_ADDR</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
 
-<tr><td>PMVBRAM</td><td>HCLK_BEL</td><td>PMVBRAM</td></tr>
+<tr><td>PMVBRAM</td><td>legacy</td><td>HCLK_BEL</td><td>PMVBRAM</td></tr>
 
-<tr><td>PMVBRAM_NC</td><td>HCLK_BEL</td><td>PMVBRAM_NC</td></tr>
+<tr><td>PMVBRAM_NC</td><td>legacy</td><td>HCLK_BEL</td><td>PMVBRAM_NC</td></tr>
 
-<tr><td>DSP0</td><td>BEL</td><td>DSP</td></tr>
+<tr><td>DSP0</td><td>legacy</td><td>BEL</td><td>DSP</td></tr>
 
-<tr><td>DSP1</td><td>BEL</td><td>DSP</td></tr>
+<tr><td>DSP1</td><td>legacy</td><td>BEL</td><td>DSP</td></tr>
 
-<tr><td>TIEOFF_DSP</td><td>BEL</td><td>DSP</td></tr>
+<tr><td>TIEOFF_DSP</td><td>legacy</td><td>BEL</td><td>DSP</td></tr>
 
-<tr><td>IN_FIFO</td><td>BEL_B</td><td>CMT_FIFO</td></tr>
+<tr><td>IN_FIFO</td><td>legacy</td><td>BEL_B</td><td>CMT_FIFO</td></tr>
 
-<tr><td>OUT_FIFO</td><td>BEL_B</td><td>CMT_FIFO</td></tr>
+<tr><td>OUT_FIFO</td><td>legacy</td><td>BEL_B</td><td>CMT_FIFO</td></tr>
 
-<tr><td>ILOGIC0</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
+<tr><td>ILOGIC0</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
 
-<tr><td>ILOGIC1</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
+<tr><td>ILOGIC1</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
 
-<tr><td>OLOGIC0</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
+<tr><td>OLOGIC0</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
 
-<tr><td>OLOGIC1</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
+<tr><td>OLOGIC1</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
 
-<tr><td>IODELAY0</td><td>BEL</td><td></td></tr>
+<tr><td>IODELAY0</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IODELAY1</td><td>BEL</td><td></td></tr>
+<tr><td>IODELAY1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IDELAY0</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
+<tr><td>IDELAY0</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
 
-<tr><td>IDELAY1</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
+<tr><td>IDELAY1</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
 
-<tr><td>ODELAY0</td><td>BEL</td><td>IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
+<tr><td>ODELAY0</td><td>legacy</td><td>BEL</td><td>IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
 
-<tr><td>ODELAY1</td><td>BEL</td><td>IO_HP_PAIR</td></tr>
+<tr><td>ODELAY1</td><td>legacy</td><td>BEL</td><td>IO_HP_PAIR</td></tr>
 
-<tr><td>IOB0</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
+<tr><td>IOB0</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
 
-<tr><td>IOB1</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
+<tr><td>IOB1</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HP_PAIR</td></tr>
 
-<tr><td>IOI</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
+<tr><td>IOI</td><td>legacy</td><td>BEL</td><td>IO_HR_PAIR, IO_HR_BOT, IO_HR_TOP, IO_HP_PAIR, IO_HP_BOT, IO_HP_TOP</td></tr>
 
-<tr><td>DCM0</td><td>BEL</td><td></td></tr>
+<tr><td>DCM0</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>DCM1</td><td>BEL</td><td></td></tr>
+<tr><td>DCM1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>PLL</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PLL</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>CMT</td><td>BEL</td><td></td></tr>
+<tr><td>CMT</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>CMT_A</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>CMT_A</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>CMT_B</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>CMT_B</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>CMT_C</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>CMT_C</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>CMT_D</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>CMT_D</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>CCM</td><td>BEL</td><td></td></tr>
+<tr><td>CCM</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>PMCD0</td><td>BEL</td><td></td></tr>
+<tr><td>PMCD0</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>PMCD1</td><td>BEL</td><td></td></tr>
+<tr><td>PMCD1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>DPM</td><td>BEL</td><td></td></tr>
+<tr><td>DPM</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>MMCM0</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>MMCM0</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>MMCM1</td><td>BEL</td><td></td></tr>
+<tr><td>MMCM1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>PPR_FRAME</td><td>BEL</td><td></td></tr>
+<tr><td>PPR_FRAME</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>PMVIOB</td><td>BEL</td><td>CLK_PMVIOB, CFG</td></tr>
+<tr><td>PMVIOB</td><td>legacy</td><td>BEL</td><td>CLK_PMVIOB, CFG</td></tr>
 
-<tr><td>PHASER_IN0</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_IN0</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_IN1</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_IN1</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_IN2</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_IN2</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_IN3</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_IN3</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_OUT0</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_OUT0</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_OUT1</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_OUT1</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_OUT2</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_OUT2</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_OUT3</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_OUT3</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHASER_REF</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHASER_REF</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PHY_CONTROL</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>PHY_CONTROL</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>BUFMRCE0</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>BUFMRCE0</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>BUFMRCE1</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>BUFMRCE1</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>PPC</td><td>BEL</td><td></td></tr>
+<tr><td>PPC</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>EMAC</td><td>BEL</td><td></td></tr>
+<tr><td>EMAC</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>PCIE</td><td>BEL</td><td>PCIE</td></tr>
+<tr><td>PCIE</td><td>legacy</td><td>BEL</td><td>PCIE</td></tr>
 
-<tr><td>PCIE3</td><td>BEL</td><td>PCIE3</td></tr>
+<tr><td>PCIE3</td><td>legacy</td><td>BEL</td><td>PCIE3</td></tr>
 
-<tr><td>SYSMON</td><td>BEL</td><td>SYSMON</td></tr>
+<tr><td>SYSMON</td><td>legacy</td><td>BEL</td><td>SYSMON</td></tr>
 
-<tr><td>IPAD_VP</td><td>BEL</td><td>SYSMON</td></tr>
+<tr><td>IPAD_VP</td><td>legacy</td><td>BEL</td><td>SYSMON</td></tr>
 
-<tr><td>IPAD_VN</td><td>BEL</td><td>SYSMON</td></tr>
+<tr><td>IPAD_VN</td><td>legacy</td><td>BEL</td><td>SYSMON</td></tr>
 
-<tr><td>GT11_0</td><td>BEL</td><td></td></tr>
+<tr><td>GT11_0</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GT11_1</td><td>BEL</td><td></td></tr>
+<tr><td>GT11_1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GT11CLK</td><td>BEL</td><td></td></tr>
+<tr><td>GT11CLK</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTP_DUAL</td><td>BEL</td><td></td></tr>
+<tr><td>GTP_DUAL</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTX_DUAL</td><td>BEL</td><td></td></tr>
+<tr><td>GTX_DUAL</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTX0</td><td>BEL</td><td></td></tr>
+<tr><td>GTX0</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTX1</td><td>BEL</td><td></td></tr>
+<tr><td>GTX1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTX2</td><td>BEL</td><td></td></tr>
+<tr><td>GTX2</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTX3</td><td>BEL</td><td></td></tr>
+<tr><td>GTX3</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTH_QUAD</td><td>BEL</td><td></td></tr>
+<tr><td>GTH_QUAD</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GTP_COMMON</td><td>BEL</td><td>GTP_COMMON, GTP_COMMON_MID</td></tr>
+<tr><td>GTP_COMMON</td><td>legacy</td><td>BEL</td><td>GTP_COMMON, GTP_COMMON_MID</td></tr>
 
-<tr><td>GTX_COMMON</td><td>BEL</td><td>GTX_COMMON</td></tr>
+<tr><td>GTX_COMMON</td><td>legacy</td><td>BEL</td><td>GTX_COMMON</td></tr>
 
-<tr><td>GTH_COMMON</td><td>BEL</td><td>GTH_COMMON</td></tr>
+<tr><td>GTH_COMMON</td><td>legacy</td><td>BEL</td><td>GTH_COMMON</td></tr>
 
-<tr><td>GTP_CHANNEL</td><td>BEL</td><td>GTP_CHANNEL, GTP_CHANNEL_MID</td></tr>
+<tr><td>GTP_CHANNEL</td><td>legacy</td><td>BEL</td><td>GTP_CHANNEL, GTP_CHANNEL_MID</td></tr>
 
-<tr><td>GTX_CHANNEL</td><td>BEL</td><td>GTX_CHANNEL</td></tr>
+<tr><td>GTX_CHANNEL</td><td>legacy</td><td>BEL</td><td>GTX_CHANNEL</td></tr>
 
-<tr><td>GTH_CHANNEL</td><td>BEL</td><td>GTH_CHANNEL</td></tr>
+<tr><td>GTH_CHANNEL</td><td>legacy</td><td>BEL</td><td>GTH_CHANNEL</td></tr>
 
-<tr><td>BUFDS0</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
+<tr><td>BUFDS0</td><td>legacy</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
 
-<tr><td>BUFDS1</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
+<tr><td>BUFDS1</td><td>legacy</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
 
-<tr><td>CRC32_0</td><td>BEL</td><td></td></tr>
+<tr><td>CRC32_0</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>CRC32_1</td><td>BEL</td><td></td></tr>
+<tr><td>CRC32_1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>CRC32_2</td><td>BEL</td><td></td></tr>
+<tr><td>CRC32_2</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>CRC32_3</td><td>BEL</td><td></td></tr>
+<tr><td>CRC32_3</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>CRC64_0</td><td>BEL</td><td></td></tr>
+<tr><td>CRC64_0</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>CRC64_1</td><td>BEL</td><td></td></tr>
+<tr><td>CRC64_1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IPAD_CLKP0</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
+<tr><td>IPAD_CLKP0</td><td>legacy</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
 
-<tr><td>IPAD_CLKN0</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
+<tr><td>IPAD_CLKN0</td><td>legacy</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
 
-<tr><td>IPAD_CLKP1</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
+<tr><td>IPAD_CLKP1</td><td>legacy</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
 
-<tr><td>IPAD_CLKN1</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
+<tr><td>IPAD_CLKN1</td><td>legacy</td><td>BEL</td><td>GTP_COMMON, GTX_COMMON, GTP_COMMON_MID, GTH_COMMON</td></tr>
 
-<tr><td>IPAD_RXP0</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
+<tr><td>IPAD_RXP0</td><td>legacy</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
 
-<tr><td>IPAD_RXN0</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
+<tr><td>IPAD_RXN0</td><td>legacy</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
 
-<tr><td>IPAD_RXP1</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXP1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IPAD_RXN1</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXN1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IPAD_RXP2</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXP2</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IPAD_RXN2</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXN2</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IPAD_RXP3</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXP3</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>IPAD_RXN3</td><td>BEL</td><td></td></tr>
+<tr><td>IPAD_RXN3</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>OPAD_TXP0</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
+<tr><td>OPAD_TXP0</td><td>legacy</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
 
-<tr><td>OPAD_TXN0</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
+<tr><td>OPAD_TXN0</td><td>legacy</td><td>BEL</td><td>GTP_CHANNEL, GTX_CHANNEL, GTP_CHANNEL_MID, GTH_CHANNEL</td></tr>
 
-<tr><td>OPAD_TXP1</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXP1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>OPAD_TXN1</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXN1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>OPAD_TXP2</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXP2</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>OPAD_TXN2</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXN2</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>OPAD_TXP3</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXP3</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>OPAD_TXN3</td><td>BEL</td><td></td></tr>
+<tr><td>OPAD_TXN3</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL0</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL0</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL1</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL1</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL2</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL2</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL3</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL3</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL4</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL4</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL5</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL5</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL6</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL6</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL7</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL7</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL8</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL8</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL9</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL9</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL10</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL10</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL11</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL11</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL12</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL12</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL13</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL13</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL14</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL14</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL15</td><td>BEL</td><td>CLK_BUFG</td></tr>
+<tr><td>BUFGCTRL15</td><td>legacy</td><td>BEL</td><td>CLK_BUFG</td></tr>
 
-<tr><td>BUFGCTRL16</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL16</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL17</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL17</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL18</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL18</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL19</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL19</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL20</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL20</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL21</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL21</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL22</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL22</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL23</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL23</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL24</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL24</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL25</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL25</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL26</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL26</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL27</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL27</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL28</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL28</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL29</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL29</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL30</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL30</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFGCTRL31</td><td>BEL</td><td></td></tr>
+<tr><td>BUFGCTRL31</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GIO_S</td><td>BEL</td><td></td></tr>
+<tr><td>GIO_S</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GIO_N</td><td>BEL</td><td></td></tr>
+<tr><td>GIO_N</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>GCLK_BUF</td><td>BEL</td><td></td></tr>
+<tr><td>GCLK_BUF</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFG_MGTCLK_S</td><td>BEL</td><td></td></tr>
+<tr><td>BUFG_MGTCLK_S</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFG_MGTCLK_N</td><td>BEL</td><td></td></tr>
+<tr><td>BUFG_MGTCLK_N</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFG_MGTCLK_S_HROW</td><td>BEL</td><td></td></tr>
+<tr><td>BUFG_MGTCLK_S_HROW</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFG_MGTCLK_N_HROW</td><td>BEL</td><td></td></tr>
+<tr><td>BUFG_MGTCLK_N_HROW</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFG_MGTCLK_S_HCLK</td><td>BEL</td><td></td></tr>
+<tr><td>BUFG_MGTCLK_S_HCLK</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFG_MGTCLK_N_HCLK</td><td>BEL</td><td></td></tr>
+<tr><td>BUFG_MGTCLK_N_HCLK</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>BUFHCE_W0</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W0</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W1</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W1</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W2</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W2</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W3</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W3</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W4</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W4</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W5</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W5</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W6</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W6</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W7</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W7</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W8</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W8</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W9</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W9</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W10</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W10</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_W11</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_W11</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E0</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E0</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E1</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E1</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E2</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E2</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E3</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E3</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E4</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E4</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E5</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E5</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E6</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E6</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E7</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E7</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E8</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E8</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E9</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E9</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E10</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E10</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>BUFHCE_E11</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>BUFHCE_E11</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>CLK_HROW</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>CLK_HROW</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>CLK_IOB</td><td>CLK</td><td></td></tr>
+<tr><td>CLK_IOB</td><td>legacy</td><td>CLK</td><td></td></tr>
 
-<tr><td>CLK_DCM</td><td>CLK</td><td></td></tr>
+<tr><td>CLK_DCM</td><td>legacy</td><td>CLK</td><td></td></tr>
 
-<tr><td>CLK_CMT</td><td>CLK</td><td></td></tr>
+<tr><td>CLK_CMT</td><td>legacy</td><td>CLK</td><td></td></tr>
 
-<tr><td>CLK_MGT</td><td>CLK</td><td></td></tr>
+<tr><td>CLK_MGT</td><td>legacy</td><td>CLK</td><td></td></tr>
 
-<tr><td>HCLK_BRAM_MGT</td><td>CLK</td><td></td></tr>
+<tr><td>HCLK_BRAM_MGT</td><td>legacy</td><td>CLK</td><td></td></tr>
 
-<tr><td>BRKH_GTX</td><td>HCLK_BEL</td><td>BRKH_GTX</td></tr>
+<tr><td>BRKH_GTX</td><td>legacy</td><td>HCLK_BEL</td><td>BRKH_GTX</td></tr>
 
-<tr><td>HCLK_GTX</td><td>BEL</td><td></td></tr>
+<tr><td>HCLK_GTX</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>HCLK_GTH</td><td>BEL</td><td></td></tr>
+<tr><td>HCLK_GTH</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>MGT_BUF</td><td>CLK</td><td></td></tr>
+<tr><td>MGT_BUF</td><td>legacy</td><td>CLK</td><td></td></tr>
 
-<tr><td>BSCAN0</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>BSCAN0</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>BSCAN1</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>BSCAN1</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>BSCAN2</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>BSCAN2</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>BSCAN3</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>BSCAN3</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>ICAP0</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>ICAP0</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>ICAP1</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>ICAP1</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>STARTUP</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>STARTUP</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>CAPTURE</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>CAPTURE</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>JTAGPPC</td><td>BEL</td><td></td></tr>
+<tr><td>JTAGPPC</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>PMV0</td><td>BEL</td><td>CLK_PMV</td></tr>
+<tr><td>PMV0</td><td>legacy</td><td>BEL</td><td>CLK_PMV</td></tr>
 
-<tr><td>PMV1</td><td>BEL</td><td></td></tr>
+<tr><td>PMV1</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>DCIRESET</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>DCIRESET</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>FRAME_ECC</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>FRAME_ECC</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>USR_ACCESS</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>USR_ACCESS</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>DNA_PORT</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>DNA_PORT</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>KEY_CLEAR</td><td>BEL</td><td></td></tr>
+<tr><td>KEY_CLEAR</td><td>legacy</td><td>BEL</td><td></td></tr>
 
-<tr><td>EFUSE_USR</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>EFUSE_USR</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>CFG_IO_ACCESS</td><td>BEL</td><td>CFG</td></tr>
+<tr><td>CFG_IO_ACCESS</td><td>legacy</td><td>BEL</td><td>CFG</td></tr>
 
-<tr><td>PMV2</td><td>BEL</td><td>CLK_PMV2</td></tr>
+<tr><td>PMV2</td><td>legacy</td><td>BEL</td><td>CLK_PMV2</td></tr>
 
-<tr><td>PMV2_SVT</td><td>BEL</td><td>CLK_PMV2_SVT</td></tr>
+<tr><td>PMV2_SVT</td><td>legacy</td><td>BEL</td><td>CLK_PMV2_SVT</td></tr>
 
-<tr><td>MTBF2</td><td>BEL</td><td>CLK_MTBF2</td></tr>
+<tr><td>MTBF2</td><td>legacy</td><td>BEL</td><td>CLK_MTBF2</td></tr>
 
-<tr><td>HCLK_IOI</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>HCLK_IOI</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>IOCLK</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>IOCLK</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>RCLK</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>RCLK</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>HCLK_DCM_HROW</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>HCLK_DCM_HROW</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>HCLK_DCM</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>HCLK_DCM</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>HCLK_DCM_S</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>HCLK_DCM_S</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>HCLK_DCM_N</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>HCLK_DCM_N</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>HCLK_CMT</td><td>BEL</td><td>CMT</td></tr>
+<tr><td>HCLK_CMT</td><td>legacy</td><td>BEL</td><td>CMT</td></tr>
 
-<tr><td>HCLK_CMT_HCLK</td><td>HCLK_CMT</td><td></td></tr>
+<tr><td>HCLK_CMT_HCLK</td><td>legacy</td><td>HCLK_CMT</td><td></td></tr>
 
-<tr><td>HCLK_CMT_GIOB</td><td>HCLK_CMT</td><td></td></tr>
+<tr><td>HCLK_CMT_GIOB</td><td>legacy</td><td>HCLK_CMT</td><td></td></tr>
 
-<tr><td>BUFR0</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFR0</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFR1</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFR1</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFR2</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFR2</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFR3</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFR3</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFIO0</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFIO0</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFIO1</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFIO1</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFIO2</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFIO2</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFIO3</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>BUFIO3</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>BUFO0</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>BUFO0</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>BUFO1</td><td>HCLK_BEL</td><td></td></tr>
+<tr><td>BUFO1</td><td>legacy</td><td>HCLK_BEL</td><td></td></tr>
 
-<tr><td>IDELAYCTRL</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
+<tr><td>IDELAYCTRL</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HR, HCLK_IOI_HP</td></tr>
 
-<tr><td>DCI</td><td>HCLK_BEL</td><td>HCLK_IOI_HP</td></tr>
+<tr><td>DCI</td><td>legacy</td><td>HCLK_BEL</td><td>HCLK_IOI_HP</td></tr>
 
-<tr><td>HCLK</td><td>HCLK</td><td></td></tr>
+<tr><td>HCLK</td><td>legacy</td><td>HCLK</td><td></td></tr>
 
-<tr><td>HCLK_QBUF</td><td>HROW</td><td></td></tr>
+<tr><td>HCLK_QBUF</td><td>legacy</td><td>HROW</td><td></td></tr>
 
-<tr><td>HCLK_W</td><td>HCLK</td><td>HCLK</td></tr>
+<tr><td>HCLK_W</td><td>legacy</td><td>HCLK</td><td>HCLK</td></tr>
 
-<tr><td>HCLK_E</td><td>HCLK</td><td>HCLK</td></tr>
+<tr><td>HCLK_E</td><td>legacy</td><td>HCLK</td><td>HCLK</td></tr>
 
-<tr><td>INT_LCLK_W</td><td>CLK</td><td>INT_LCLK</td></tr>
+<tr><td>INT_LCLK_W</td><td>legacy</td><td>CLK</td><td>INT_LCLK</td></tr>
 
-<tr><td>INT_LCLK_E</td><td>CLK</td><td>INT_LCLK</td></tr>
+<tr><td>INT_LCLK_E</td><td>legacy</td><td>CLK</td><td>INT_LCLK</td></tr>
 
-<tr><td>GLOBALSIG</td><td>HCLK</td><td></td></tr>
+<tr><td>GLOBALSIG</td><td>legacy</td><td>HCLK</td><td></td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK0</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK0</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK1</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK1</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK2</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK2</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK3</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK3</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK4</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK4</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK5</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK5</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK6</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK6</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK7</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK7</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK8</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK8</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK9</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK9</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK10</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK10</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK11</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK11</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK12</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK12</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK13</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK13</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK14</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK14</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK15</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK15</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK16</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK16</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK17</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK17</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK18</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK18</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK19</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK19</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK20</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK20</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK21</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK21</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK22</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK22</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK23</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK23</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK24</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK24</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK25</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK25</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK26</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK26</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK27</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK27</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK28</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK28</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK29</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK29</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK30</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK30</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_GCLK31</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_GCLK31</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>CLK_REBUF</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>CLK_REBUF</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S0</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S0</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S1</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S1</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S2</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S2</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S3</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S3</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S4</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S4</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S5</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S5</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S6</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S6</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S7</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S7</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S8</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S8</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S9</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S9</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S10</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S10</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S11</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S11</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S12</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S12</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S13</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S13</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S14</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S14</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_S15</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_S15</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N0</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N0</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N1</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N1</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N2</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N2</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N3</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N3</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N4</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N4</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N5</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N5</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N6</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N6</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N7</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N7</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N8</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N8</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N9</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N9</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N10</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N10</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N11</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N11</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N12</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N12</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N13</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N13</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N14</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N14</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_REBUF_N15</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
+<tr><td>GCLK_TEST_BUF_REBUF_N15</td><td>legacy</td><td>BEL</td><td>CLK_BUFG_REBUF, CLK_BALI_REBUF</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_BUFH_W</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_BUFH_W</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>GCLK_TEST_BUF_HROW_BUFH_E</td><td>BEL</td><td>CLK_HROW</td></tr>
+<tr><td>GCLK_TEST_BUF_HROW_BUFH_E</td><td>legacy</td><td>BEL</td><td>CLK_HROW</td></tr>
 
-<tr><td>PS</td><td>BEL</td><td>PS</td></tr>
+<tr><td>PS</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>HCLK_PS_S</td><td>BEL</td><td>PS</td></tr>
+<tr><td>HCLK_PS_S</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>HCLK_PS_N</td><td>BEL</td><td>PS</td></tr>
+<tr><td>HCLK_PS_N</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRWEB</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRWEB</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRVRN</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRVRN</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRVRP</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRVRP</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA0</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA0</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA1</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA1</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA2</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA2</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA3</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA3</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA4</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA4</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA5</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA5</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA6</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA6</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA7</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA7</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA8</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA8</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA9</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA9</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA10</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA10</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA11</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA11</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA12</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA12</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA14</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA14</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRA13</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRA13</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRBA0</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRBA0</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRBA1</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRBA1</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRBA2</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRBA2</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRCASB</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRCASB</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRCKE</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRCKE</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRCKN</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRCKN</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRCKP</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRCKP</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_PSCLK</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_PSCLK</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRCSB</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRCSB</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDM0</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDM0</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDM1</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDM1</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDM2</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDM2</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDM3</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDM3</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ0</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ0</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ1</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ1</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ2</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ2</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ3</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ3</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ4</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ4</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ5</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ5</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ6</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ6</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ7</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ7</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ8</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ8</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ9</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ9</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ10</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ10</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ11</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ11</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ12</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ12</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ13</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ13</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ14</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ14</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ15</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ15</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ16</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ16</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ17</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ17</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ18</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ18</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ19</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ19</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ20</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ20</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ21</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ21</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ22</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ22</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ23</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ23</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ24</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ24</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ25</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ25</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ26</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ26</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ27</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ27</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ28</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ28</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ29</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ29</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ30</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ30</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQ31</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQ31</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSN0</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSN0</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSN1</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSN1</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSN2</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSN2</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSN3</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSN3</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSP0</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSP0</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSP1</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSP1</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSP2</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSP2</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDQSP3</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDQSP3</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRDRSTB</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRDRSTB</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO0</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO0</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO1</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO1</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO2</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO2</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO3</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO3</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO4</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO4</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO5</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO5</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO6</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO6</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO7</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO7</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO8</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO8</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO9</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO9</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO10</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO10</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO11</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO11</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO12</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO12</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO13</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO13</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO14</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO14</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO15</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO15</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO16</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO16</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO17</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO17</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO18</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO18</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO19</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO19</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO20</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO20</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO21</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO21</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO22</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO22</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO23</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO23</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO24</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO24</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO25</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO25</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO26</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO26</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO27</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO27</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO28</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO28</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO29</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO29</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO30</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO30</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO31</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO31</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO32</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO32</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO33</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO33</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO34</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO34</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO35</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO35</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO36</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO36</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO37</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO37</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO38</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO38</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO39</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO39</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO40</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO40</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO41</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO41</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO42</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO42</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO43</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO43</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO44</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO44</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO45</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO45</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO46</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO46</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO47</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO47</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO48</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO48</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO49</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO49</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO50</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO50</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO51</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO51</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO52</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO52</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_MIO53</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_MIO53</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRODT</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRODT</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_PSPORB</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_PSPORB</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_DDRRASB</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_DDRRASB</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
-<tr><td>IOPAD_PSSRSTB</td><td>BEL</td><td>PS</td></tr>
+<tr><td>IOPAD_PSSRSTB</td><td>legacy</td><td>BEL</td><td>PS</td></tr>
 
 </tbody>
 
@@ -1128,1413 +1128,1413 @@
 </thead>
 
 <tbody>
-<tr><td>GND</td><td>TIE_0</td></tr>
+<tr><td>GND</td><td>tie 0</td></tr>
 
-<tr><td>VCC</td><td>TIE_1</td></tr>
+<tr><td>VCC</td><td>tie 1</td></tr>
 
-<tr><td>LCLK0</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK0</td><td>bel</td></tr>
 
-<tr><td>LCLK1</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK1</td><td>bel</td></tr>
 
-<tr><td>LCLK2</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK2</td><td>bel</td></tr>
 
-<tr><td>LCLK3</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK3</td><td>bel</td></tr>
 
-<tr><td>LCLK4</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK4</td><td>bel</td></tr>
 
-<tr><td>LCLK5</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK5</td><td>bel</td></tr>
 
-<tr><td>LCLK6</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK6</td><td>bel</td></tr>
 
-<tr><td>LCLK7</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK7</td><td>bel</td></tr>
 
-<tr><td>LCLK8</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK8</td><td>bel</td></tr>
 
-<tr><td>LCLK9</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK9</td><td>bel</td></tr>
 
-<tr><td>LCLK10</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK10</td><td>bel</td></tr>
 
-<tr><td>LCLK11</td><td>LOGIC_OUT</td></tr>
+<tr><td>LCLK11</td><td>bel</td></tr>
 
-<tr><td>SNG.EL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL0.0</td><td>mux</td></tr>
 
-<tr><td>SNG.EL0.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.EL0.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.EL0.2</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.EL0.2</td><td>branch N</td></tr>
 
-<tr><td>SNG.EL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.EL1.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.EL1.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.EL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.EL2.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.EL2.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.EL3.0.N</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.EL3.0.N</td><td>mux</td></tr>
 
-<tr><td>SNG.EL3.0</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.EL3.0</td><td>branch N</td></tr>
 
-<tr><td>SNG.EL3.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.EL3.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.ER0.0.S</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER0.0.S</td><td>mux</td></tr>
 
-<tr><td>SNG.ER0.0</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.ER0.0</td><td>branch S</td></tr>
 
-<tr><td>SNG.ER0.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER0.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.ER1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.ER1.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER1.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.ER2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.ER2.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER2.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.ER3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.ER3.0</td><td>mux</td></tr>
 
-<tr><td>SNG.ER3.1</td><td>BRANCH:W</td></tr>
+<tr><td>SNG.ER3.1</td><td>branch W</td></tr>
 
-<tr><td>SNG.ER3.2</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.ER3.2</td><td>branch S</td></tr>
 
-<tr><td>SNG.WL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL0.0</td><td>mux</td></tr>
 
-<tr><td>SNG.WL0.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL0.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.WL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.WL1.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL1.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.WL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.WL2.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL2.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.WL3.0.N</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WL3.0.N</td><td>mux</td></tr>
 
-<tr><td>SNG.WL3.0</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.WL3.0</td><td>branch N</td></tr>
 
-<tr><td>SNG.WL3.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WL3.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.WL3.2</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.WL3.2</td><td>branch S</td></tr>
 
-<tr><td>SNG.WR0.0.S</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR0.0.S</td><td>mux</td></tr>
 
-<tr><td>SNG.WR0.0</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.WR0.0</td><td>branch S</td></tr>
 
-<tr><td>SNG.WR0.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WR0.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.WR0.2</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.WR0.2</td><td>branch N</td></tr>
 
-<tr><td>SNG.WR1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.WR1.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WR1.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.WR2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.WR2.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WR2.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.WR3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.WR3.0</td><td>mux</td></tr>
 
-<tr><td>SNG.WR3.1</td><td>BRANCH:E</td></tr>
+<tr><td>SNG.WR3.1</td><td>branch E</td></tr>
 
-<tr><td>SNG.NL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL0.0</td><td>mux</td></tr>
 
-<tr><td>SNG.NL0.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NL0.1</td><td>branch S</td></tr>
 
-<tr><td>SNG.NL0.2</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.NL0.2</td><td>branch N</td></tr>
 
-<tr><td>SNG.NL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.NL1.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NL1.1</td><td>branch S</td></tr>
 
-<tr><td>SNG.NL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.NL2.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NL2.1</td><td>branch S</td></tr>
 
-<tr><td>SNG.NL3.0.N</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NL3.0.N</td><td>mux</td></tr>
 
-<tr><td>SNG.NR0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR0.0</td><td>mux</td></tr>
 
-<tr><td>SNG.NR0.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR0.1</td><td>branch S</td></tr>
 
-<tr><td>SNG.NR1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.NR1.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR1.1</td><td>branch S</td></tr>
 
-<tr><td>SNG.NR2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.NR2.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR2.1</td><td>branch S</td></tr>
 
-<tr><td>SNG.NR3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.NR3.0</td><td>mux</td></tr>
 
-<tr><td>SNG.NR3.1</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.NR3.1</td><td>branch S</td></tr>
 
-<tr><td>SNG.SL0.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL0.0</td><td>mux</td></tr>
 
-<tr><td>SNG.SL0.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SL0.1</td><td>branch N</td></tr>
 
-<tr><td>SNG.SL1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.SL1.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SL1.1</td><td>branch N</td></tr>
 
-<tr><td>SNG.SL2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.SL2.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SL2.1</td><td>branch N</td></tr>
 
-<tr><td>SNG.SL3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SL3.0</td><td>mux</td></tr>
 
-<tr><td>SNG.SL3.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SL3.1</td><td>branch N</td></tr>
 
-<tr><td>SNG.SR0.0.S</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR0.0.S</td><td>mux</td></tr>
 
-<tr><td>SNG.SR1.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR1.0</td><td>mux</td></tr>
 
-<tr><td>SNG.SR1.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR1.1</td><td>branch N</td></tr>
 
-<tr><td>SNG.SR2.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR2.0</td><td>mux</td></tr>
 
-<tr><td>SNG.SR2.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR2.1</td><td>branch N</td></tr>
 
-<tr><td>SNG.SR3.0</td><td>MUX_OUT</td></tr>
+<tr><td>SNG.SR3.0</td><td>mux</td></tr>
 
-<tr><td>SNG.SR3.1</td><td>BRANCH:N</td></tr>
+<tr><td>SNG.SR3.1</td><td>branch N</td></tr>
 
-<tr><td>SNG.SR3.2</td><td>BRANCH:S</td></tr>
+<tr><td>SNG.SR3.2</td><td>branch S</td></tr>
 
-<tr><td>DBL.EE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.EE0.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE0.1</td><td>branch W</td></tr>
 
-<tr><td>DBL.EE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE0.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.EE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.EE1.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE1.1</td><td>branch W</td></tr>
 
-<tr><td>DBL.EE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE1.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.EE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.EE2.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE2.1</td><td>branch W</td></tr>
 
-<tr><td>DBL.EE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE2.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.EE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.EE3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.EE3.1</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE3.1</td><td>branch W</td></tr>
 
-<tr><td>DBL.EE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.EE3.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.WW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.WW0.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW0.1</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW0.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.WW1.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW1.1</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW1.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.WW2.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW2.1</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW2.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.WW3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.WW3.1</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW3.1</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.WW3.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.WW3.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.WW3.3</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NN0.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN0.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN0.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN0.2</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.NN0.3</td><td>branch N</td></tr>
 
-<tr><td>DBL.NN1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NN1.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN1.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN1.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN1.2</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NN2.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN2.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN2.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN2.2</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NN3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NN3.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN3.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NN3.2</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NN3.2</td><td>branch S</td></tr>
 
-<tr><td>DBL.NE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NE0.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE0.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NE0.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.NE0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.NE0.3</td><td>branch N</td></tr>
 
-<tr><td>DBL.NE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NE1.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE1.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NE1.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.NE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NE2.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE2.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NE2.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.NE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NE3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NE3.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NE3.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.NE3.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.NW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NW0.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW0.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.NW0.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.NW0.3</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.NW0.3</td><td>branch N</td></tr>
 
-<tr><td>DBL.NW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NW1.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW1.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.NW1.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.NW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NW2.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW2.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.NW2.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.NW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.NW3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.NW3.1</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.NW3.1</td><td>branch S</td></tr>
 
-<tr><td>DBL.NW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.NW3.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.SS0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SS0.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS0.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS0.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS0.2</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SS1.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS1.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS1.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS1.2</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SS2.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS2.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS2.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS2.2</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SS3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SS3.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS3.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS3.2</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SS3.2</td><td>branch N</td></tr>
 
-<tr><td>DBL.SS3.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.SS3.3</td><td>branch S</td></tr>
 
-<tr><td>DBL.SE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SE0.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE0.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SE0.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.SE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SE1.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE1.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SE1.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.SE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SE2.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE2.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SE2.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.SE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SE3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SE3.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SE3.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>DBL.SE3.2</td><td>branch W</td></tr>
 
-<tr><td>DBL.SW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW0.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SW0.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW0.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW0.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.SW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW1.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SW1.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW1.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW1.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.SW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW2.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SW2.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW2.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW2.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.SW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>DBL.SW3.0</td><td>mux</td></tr>
 
-<tr><td>DBL.SW3.1</td><td>BRANCH:N</td></tr>
+<tr><td>DBL.SW3.1</td><td>branch N</td></tr>
 
-<tr><td>DBL.SW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>DBL.SW3.2</td><td>branch E</td></tr>
 
-<tr><td>DBL.SW3.3</td><td>BRANCH:S</td></tr>
+<tr><td>DBL.SW3.3</td><td>branch S</td></tr>
 
-<tr><td>QUAD.EE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE0.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.EE0.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE0.1</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE0.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE0.2</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE0.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE0.3</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE0.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE0.4</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE1.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.EE1.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.1</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE1.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.2</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE1.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.3</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE1.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE1.4</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE2.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.EE2.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.1</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE2.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.2</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE2.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.3</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE2.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE2.4</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.EE3.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.EE3.1</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.1</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE3.2</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.2</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE3.3</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.3</td><td>branch W</td></tr>
 
-<tr><td>QUAD.EE3.4</td><td>BRANCH:W</td></tr>
+<tr><td>QUAD.EE3.4</td><td>branch W</td></tr>
 
-<tr><td>QUAD.WW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW0.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.WW0.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.1</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW0.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.2</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW0.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.3</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW0.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW0.4</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW0.5</td><td>BRANCH:N</td></tr>
+<tr><td>QUAD.WW0.5</td><td>branch N</td></tr>
 
-<tr><td>QUAD.WW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW1.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.WW1.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW1.1</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW1.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW1.2</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW1.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW1.3</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW1.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW1.4</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW2.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.WW2.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.1</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW2.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.2</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW2.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.3</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW2.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW2.4</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>QUAD.WW3.0</td><td>mux</td></tr>
 
-<tr><td>QUAD.WW3.1</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.1</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW3.2</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.2</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW3.3</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.3</td><td>branch E</td></tr>
 
-<tr><td>QUAD.WW3.4</td><td>BRANCH:E</td></tr>
+<tr><td>QUAD.WW3.4</td><td>branch E</td></tr>
 
-<tr><td>HEX.NN0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NN0.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NN0.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN0.1</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN0.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN0.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN0.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN0.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN0.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN0.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN0.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN0.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN0.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN0.6</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN0.7</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.NN0.7</td><td>branch N</td></tr>
 
-<tr><td>HEX.NN1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NN1.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NN1.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN1.1</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN1.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN1.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN1.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN1.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN1.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN1.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN1.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN1.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN1.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN1.6</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NN2.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NN2.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN2.1</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN2.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN2.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN2.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN2.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN2.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN2.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN2.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN2.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN2.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN2.6</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NN3.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NN3.1</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN3.1</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN3.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN3.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN3.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN3.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN3.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN3.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN3.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN3.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NN3.6</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NN3.6</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NE0.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NE0.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE0.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.NE0.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE0.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE0.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE0.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE0.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE0.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE0.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE0.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE0.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE0.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.NE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NE1.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NE1.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE1.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.NE1.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE1.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE1.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE1.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE1.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE1.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE1.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE1.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE1.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE1.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.NE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NE2.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NE2.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE2.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.NE2.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE2.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE2.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE2.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE2.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE2.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE2.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE2.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE2.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE2.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.NE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NE3.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NE3.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE3.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.NE3.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE3.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE3.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE3.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE3.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE3.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE3.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NE3.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NE3.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.NE3.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.NW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NW0.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NW0.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW0.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.NW0.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW0.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW0.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW0.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW0.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW0.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW0.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW0.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW0.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW0.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.NW0.7</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.NW0.7</td><td>branch N</td></tr>
 
-<tr><td>HEX.NW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NW1.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NW1.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW1.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.NW1.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW1.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW1.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW1.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW1.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW1.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW1.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW1.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW1.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW1.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.NW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NW2.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NW2.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW2.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.NW2.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW2.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW2.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW2.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW2.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW2.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW2.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW2.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW2.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW2.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.NW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.NW3.0</td><td>mux</td></tr>
 
-<tr><td>HEX.NW3.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW3.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.NW3.2</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW3.2</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW3.3</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW3.3</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW3.4</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW3.4</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW3.5</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.NW3.5</td><td>branch S</td></tr>
 
-<tr><td>HEX.NW3.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.NW3.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.SS0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SS0.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SS0.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS0.1</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS0.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS0.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS0.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS0.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS0.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS0.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS0.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS0.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS0.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS0.6</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SS1.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SS1.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS1.1</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS1.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS1.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS1.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS1.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS1.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS1.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS1.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS1.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS1.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS1.6</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SS2.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SS2.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS2.1</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS2.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS2.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS2.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS2.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS2.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS2.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS2.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS2.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS2.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS2.6</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SS3.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SS3.1</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS3.1</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS3.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS3.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS3.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS3.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS3.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS3.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS3.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS3.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS3.6</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SS3.6</td><td>branch N</td></tr>
 
-<tr><td>HEX.SS3.7</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.SS3.7</td><td>branch S</td></tr>
 
-<tr><td>HEX.SE0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SE0.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SE0.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE0.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.SE0.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE0.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE0.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE0.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE0.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE0.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE0.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE0.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE0.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE0.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.SE1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SE1.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SE1.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE1.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.SE1.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE1.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE1.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE1.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE1.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE1.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE1.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE1.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE1.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE1.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.SE2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SE2.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SE2.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE2.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.SE2.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE2.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE2.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE2.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE2.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE2.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE2.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE2.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE2.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE2.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.SE3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SE3.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SE3.1</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE3.1</td><td>branch W</td></tr>
 
-<tr><td>HEX.SE3.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE3.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE3.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE3.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE3.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE3.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE3.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SE3.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SE3.6</td><td>BRANCH:W</td></tr>
+<tr><td>HEX.SE3.6</td><td>branch W</td></tr>
 
-<tr><td>HEX.SW0.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SW0.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SW0.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW0.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW0.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW0.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW0.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW0.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW0.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW0.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW0.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW0.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW0.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW0.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW1.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SW1.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SW1.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW1.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW1.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW1.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW1.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW1.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW1.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW1.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW1.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW1.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW1.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW1.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW2.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SW2.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SW2.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW2.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW2.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW2.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW2.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW2.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW2.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW2.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW2.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW2.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW2.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW2.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW3.0</td><td>MUX_OUT</td></tr>
+<tr><td>HEX.SW3.0</td><td>mux</td></tr>
 
-<tr><td>HEX.SW3.1</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW3.1</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW3.2</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW3.2</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW3.3</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW3.3</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW3.4</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW3.4</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW3.5</td><td>BRANCH:N</td></tr>
+<tr><td>HEX.SW3.5</td><td>branch N</td></tr>
 
-<tr><td>HEX.SW3.6</td><td>BRANCH:E</td></tr>
+<tr><td>HEX.SW3.6</td><td>branch E</td></tr>
 
-<tr><td>HEX.SW3.7</td><td>BRANCH:S</td></tr>
+<tr><td>HEX.SW3.7</td><td>branch S</td></tr>
 
-<tr><td>LH.6</td><td>MULTI_OUT</td></tr>
+<tr><td>LH.6</td><td>multi_root</td></tr>
 
-<tr><td>LH.5</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.5</td><td>multi_branch W</td></tr>
 
-<tr><td>LH.4</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.4</td><td>multi_branch W</td></tr>
 
-<tr><td>LH.3</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.3</td><td>multi_branch W</td></tr>
 
-<tr><td>LH.2</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.2</td><td>multi_branch W</td></tr>
 
-<tr><td>LH.1</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.1</td><td>multi_branch W</td></tr>
 
-<tr><td>LH.0</td><td>MULTI_BRANCH:W</td></tr>
+<tr><td>LH.0</td><td>multi_branch W</td></tr>
 
-<tr><td>LH.7</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>LH.7</td><td>multi_branch E</td></tr>
 
-<tr><td>LH.8</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>LH.8</td><td>multi_branch E</td></tr>
 
-<tr><td>LH.9</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>LH.9</td><td>multi_branch E</td></tr>
 
-<tr><td>LH.10</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>LH.10</td><td>multi_branch E</td></tr>
 
-<tr><td>LH.11</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>LH.11</td><td>multi_branch E</td></tr>
 
-<tr><td>LH.12</td><td>MULTI_BRANCH:E</td></tr>
+<tr><td>LH.12</td><td>multi_branch E</td></tr>
 
-<tr><td>LV.9</td><td>MULTI_OUT</td></tr>
+<tr><td>LV.9</td><td>multi_root</td></tr>
 
-<tr><td>LV.8</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.8</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.7</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.7</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.6</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.6</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.5</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.5</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.4</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.4</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.3</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.3</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.2</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.2</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.1</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.1</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.0</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LV.0</td><td>multi_branch N</td></tr>
 
-<tr><td>LV.10</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.10</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.11</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.11</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.12</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.12</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.13</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.13</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.14</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.14</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.15</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.15</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.16</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.16</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.17</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.17</td><td>multi_branch S</td></tr>
 
-<tr><td>LV.18</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LV.18</td><td>multi_branch S</td></tr>
 
-<tr><td>LVB.6</td><td>MULTI_OUT</td></tr>
+<tr><td>LVB.6</td><td>multi_root</td></tr>
 
-<tr><td>LVB.5</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LVB.5</td><td>multi_branch N</td></tr>
 
-<tr><td>LVB.4</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LVB.4</td><td>multi_branch N</td></tr>
 
-<tr><td>LVB.3</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LVB.3</td><td>multi_branch N</td></tr>
 
-<tr><td>LVB.2</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LVB.2</td><td>multi_branch N</td></tr>
 
-<tr><td>LVB.1</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LVB.1</td><td>multi_branch N</td></tr>
 
-<tr><td>LVB.0</td><td>MULTI_BRANCH:N</td></tr>
+<tr><td>LVB.0</td><td>multi_branch N</td></tr>
 
-<tr><td>LVB.7</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LVB.7</td><td>multi_branch S</td></tr>
 
-<tr><td>LVB.8</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LVB.8</td><td>multi_branch S</td></tr>
 
-<tr><td>LVB.9</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LVB.9</td><td>multi_branch S</td></tr>
 
-<tr><td>LVB.10</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LVB.10</td><td>multi_branch S</td></tr>
 
-<tr><td>LVB.11</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LVB.11</td><td>multi_branch S</td></tr>
 
-<tr><td>LVB.12</td><td>MULTI_BRANCH:S</td></tr>
+<tr><td>LVB.12</td><td>multi_branch S</td></tr>
 
-<tr><td>IMUX.GFAN0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.GFAN0</td><td>mux</td></tr>
 
-<tr><td>IMUX.GFAN1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.GFAN1</td><td>mux</td></tr>
 
-<tr><td>IMUX.CLK0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK0</td><td>mux</td></tr>
 
-<tr><td>IMUX.CLK1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CLK1</td><td>mux</td></tr>
 
-<tr><td>IMUX.CTRL0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CTRL0</td><td>mux</td></tr>
 
-<tr><td>IMUX.CTRL1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.CTRL1</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP0</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP0.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP0.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP0.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP0.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP1</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP1.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP1.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP1.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP1.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP2</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP2.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP2.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP2.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP2.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP2.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.BYP2.BOUNCE.N</td><td>branch S</td></tr>
 
-<tr><td>IMUX.BYP3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP3</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP3.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP3.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP3.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP3.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP3.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.BYP3.BOUNCE.N</td><td>branch S</td></tr>
 
-<tr><td>IMUX.BYP4</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP4</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP4.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP4.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP4.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP4.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP5</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP5</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP5.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP5.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP5.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP5.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP6</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP6</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP6.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP6.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP6.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP6.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP6.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.BYP6.BOUNCE.N</td><td>branch S</td></tr>
 
-<tr><td>IMUX.BYP7</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP7</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP7.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP7.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP7.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.BYP7.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.BYP7.BOUNCE.N</td><td>BRANCH:S</td></tr>
+<tr><td>IMUX.BYP7.BOUNCE.N</td><td>branch S</td></tr>
 
-<tr><td>IMUX.FAN0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN0</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN0.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN0.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN0.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN0.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN0.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.FAN0.BOUNCE.S</td><td>branch N</td></tr>
 
-<tr><td>IMUX.FAN1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN1</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN1.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN1.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN1.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN1.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN2</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN2.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN2.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN2.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN2.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN2.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.FAN2.BOUNCE.S</td><td>branch N</td></tr>
 
-<tr><td>IMUX.FAN3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN3</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN3.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN3.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN3.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN3.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN4</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN4</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN4.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN4.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN4.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN4.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN4.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.FAN4.BOUNCE.S</td><td>branch N</td></tr>
 
-<tr><td>IMUX.FAN5</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN5</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN5.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN5.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN5.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN5.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN6</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN6</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN6.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN6.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN6.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN6.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN6.BOUNCE.S</td><td>BRANCH:N</td></tr>
+<tr><td>IMUX.FAN6.BOUNCE.S</td><td>branch N</td></tr>
 
-<tr><td>IMUX.FAN7</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN7</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN7.SITE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN7.SITE</td><td>mux</td></tr>
 
-<tr><td>IMUX.FAN7.BOUNCE</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.FAN7.BOUNCE</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX0</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX0</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX0.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX0.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX1</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX1</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX1.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX1.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX2</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX2</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX2.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX2.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX3</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX3</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX3.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX3.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX4</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX4</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX4.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX4.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX5</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX5</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX5.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX5.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX6</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX6</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX6.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX6.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX7</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX7</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX7.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX7.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX8</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX8</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX8.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX8.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX9</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX9</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX9.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX9.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX10</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX10</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX10.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX10.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX11</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX11</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX11.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX11.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX12</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX12</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX12.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX12.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX13</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX13</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX13.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX13.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX14</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX14</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX14.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX14.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX15</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX15</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX15.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX15.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX16</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX16</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX16.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX16.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX17</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX17</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX17.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX17.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX18</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX18</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX18.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX18.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX19</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX19</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX19.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX19.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX20</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX20</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX20.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX20.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX21</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX21</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX21.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX21.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX22</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX22</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX22.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX22.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX23</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX23</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX23.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX23.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX24</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX24</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX24.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX24.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX25</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX25</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX25.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX25.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX26</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX26</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX26.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX26.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX27</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX27</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX27.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX27.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX28</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX28</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX28.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX28.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX29</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX29</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX29.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX29.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX30</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX30</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX30.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX30.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX31</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX31</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX31.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX31.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX32</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX32</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX32.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX32.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX33</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX33</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX33.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX33.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX34</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX34</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX34.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX34.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX35</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX35</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX35.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX35.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX36</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX36</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX36.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX36.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX37</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX37</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX37.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX37.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX38</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX38</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX38.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX38.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX39</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX39</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX39.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX39.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX40</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX40</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX40.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX40.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX41</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX41</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX41.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX41.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX42</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX42</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX42.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX42.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX43</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX43</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX43.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX43.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX44</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX44</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX44.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX44.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX45</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX45</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX45.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX45.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX46</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX46</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX46.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX46.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX47</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX47</td><td>mux</td></tr>
 
-<tr><td>IMUX.IMUX47.DELAY</td><td>MUX_OUT</td></tr>
+<tr><td>IMUX.IMUX47.DELAY</td><td>mux</td></tr>
 
-<tr><td>IMUX.BRAM0</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM0</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM1</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM1</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM2</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM2</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM3</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM3</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM4</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM4</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM5</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM5</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM6</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM6</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM7</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM7</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM8</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM8</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM9</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM9</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM10</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM10</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM11</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM11</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM12</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM12</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM13</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM13</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM14</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM14</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM15</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM15</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM16</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM16</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM17</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM17</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM18</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM18</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM19</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM19</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM20</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM20</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM21</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM21</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM22</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM22</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM23</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM23</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM24</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM24</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM25</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM25</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM26</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM26</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM27</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM27</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM28</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM28</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM29</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM29</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM30</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM30</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM31</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM31</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM32</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM32</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM33</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM33</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM34</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM34</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM35</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM35</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM36</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM36</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM37</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM37</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM38</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM38</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM39</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM39</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM40</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM40</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM41</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM41</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM42</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM42</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM43</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM43</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM44</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM44</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM45</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM45</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM46</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM46</td><td>test</td></tr>
 
-<tr><td>IMUX.BRAM47</td><td>TEST_OUT</td></tr>
+<tr><td>IMUX.BRAM47</td><td>test</td></tr>
 
-<tr><td>OUT0</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT0</td><td>bel</td></tr>
 
-<tr><td>OUT0.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT0.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT1</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT1</td><td>bel</td></tr>
 
-<tr><td>OUT1.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT1.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT2</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT2</td><td>bel</td></tr>
 
-<tr><td>OUT2.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT2.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT3</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT3</td><td>bel</td></tr>
 
-<tr><td>OUT3.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT3.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT4</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT4</td><td>bel</td></tr>
 
-<tr><td>OUT4.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT4.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT5</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT5</td><td>bel</td></tr>
 
-<tr><td>OUT5.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT5.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT6</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT6</td><td>bel</td></tr>
 
-<tr><td>OUT6.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT6.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT7</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT7</td><td>bel</td></tr>
 
-<tr><td>OUT7.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT7.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT8</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT8</td><td>bel</td></tr>
 
-<tr><td>OUT8.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT8.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT9</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT9</td><td>bel</td></tr>
 
-<tr><td>OUT9.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT9.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT10</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT10</td><td>bel</td></tr>
 
-<tr><td>OUT10.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT10.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT11</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT11</td><td>bel</td></tr>
 
-<tr><td>OUT11.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT11.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT12</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT12</td><td>bel</td></tr>
 
-<tr><td>OUT12.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT12.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT13</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT13</td><td>bel</td></tr>
 
-<tr><td>OUT13.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT13.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT14</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT14</td><td>bel</td></tr>
 
-<tr><td>OUT14.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT14.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT15</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT15</td><td>bel</td></tr>
 
-<tr><td>OUT15.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT15.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT16</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT16</td><td>bel</td></tr>
 
-<tr><td>OUT16.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT16.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT17</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT17</td><td>bel</td></tr>
 
-<tr><td>OUT17.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT17.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT18</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT18</td><td>bel</td></tr>
 
-<tr><td>OUT18.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT18.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT19</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT19</td><td>bel</td></tr>
 
-<tr><td>OUT19.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT19.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT20</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT20</td><td>bel</td></tr>
 
-<tr><td>OUT20.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT20.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT21</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT21</td><td>bel</td></tr>
 
-<tr><td>OUT21.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT21.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT22</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT22</td><td>bel</td></tr>
 
-<tr><td>OUT22.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT22.TMIN</td><td>bel</td></tr>
 
-<tr><td>OUT23</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT23</td><td>bel</td></tr>
 
-<tr><td>OUT23.TMIN</td><td>LOGIC_OUT</td></tr>
+<tr><td>OUT23.TMIN</td><td>bel</td></tr>
 
-<tr><td>TEST0</td><td>TEST_OUT</td></tr>
+<tr><td>TEST0</td><td>test</td></tr>
 
-<tr><td>TEST1</td><td>TEST_OUT</td></tr>
+<tr><td>TEST1</td><td>test</td></tr>
 
-<tr><td>TEST2</td><td>TEST_OUT</td></tr>
+<tr><td>TEST2</td><td>test</td></tr>
 
-<tr><td>TEST3</td><td>TEST_OUT</td></tr>
+<tr><td>TEST3</td><td>test</td></tr>
 
 </tbody>
 
@@ -60326,53 +60326,53 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>TCELL0:LCLK0</td><td>INT_LCLK_E.LCLK0_O_L</td></tr>
+<tr><td>CELL0.LCLK0</td><td>INT_LCLK_E.LCLK0_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK1</td><td>INT_LCLK_E.LCLK1_O_L</td></tr>
+<tr><td>CELL0.LCLK1</td><td>INT_LCLK_E.LCLK1_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK2</td><td>INT_LCLK_E.LCLK2_O_L</td></tr>
+<tr><td>CELL0.LCLK2</td><td>INT_LCLK_E.LCLK2_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK3</td><td>INT_LCLK_E.LCLK3_O_L</td></tr>
+<tr><td>CELL0.LCLK3</td><td>INT_LCLK_E.LCLK3_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK4</td><td>INT_LCLK_E.LCLK4_O_L</td></tr>
+<tr><td>CELL0.LCLK4</td><td>INT_LCLK_E.LCLK4_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK5</td><td>INT_LCLK_E.LCLK5_O_L</td></tr>
+<tr><td>CELL0.LCLK5</td><td>INT_LCLK_E.LCLK5_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK6</td><td>INT_LCLK_W.LCLK6_O_L</td></tr>
+<tr><td>CELL0.LCLK6</td><td>INT_LCLK_W.LCLK6_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK7</td><td>INT_LCLK_W.LCLK7_O_L</td></tr>
+<tr><td>CELL0.LCLK7</td><td>INT_LCLK_W.LCLK7_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK8</td><td>INT_LCLK_W.LCLK8_O_L</td></tr>
+<tr><td>CELL0.LCLK8</td><td>INT_LCLK_W.LCLK8_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK9</td><td>INT_LCLK_W.LCLK9_O_L</td></tr>
+<tr><td>CELL0.LCLK9</td><td>INT_LCLK_W.LCLK9_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK10</td><td>INT_LCLK_W.LCLK10_O_L</td></tr>
+<tr><td>CELL0.LCLK10</td><td>INT_LCLK_W.LCLK10_O_L</td></tr>
 
-<tr><td>TCELL0:LCLK11</td><td>INT_LCLK_W.LCLK11_O_L</td></tr>
+<tr><td>CELL0.LCLK11</td><td>INT_LCLK_W.LCLK11_O_L</td></tr>
 
-<tr><td>TCELL1:LCLK0</td><td>INT_LCLK_E.LCLK0_O_R</td></tr>
+<tr><td>CELL1.LCLK0</td><td>INT_LCLK_E.LCLK0_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK1</td><td>INT_LCLK_E.LCLK1_O_R</td></tr>
+<tr><td>CELL1.LCLK1</td><td>INT_LCLK_E.LCLK1_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK2</td><td>INT_LCLK_E.LCLK2_O_R</td></tr>
+<tr><td>CELL1.LCLK2</td><td>INT_LCLK_E.LCLK2_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK3</td><td>INT_LCLK_E.LCLK3_O_R</td></tr>
+<tr><td>CELL1.LCLK3</td><td>INT_LCLK_E.LCLK3_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK4</td><td>INT_LCLK_E.LCLK4_O_R</td></tr>
+<tr><td>CELL1.LCLK4</td><td>INT_LCLK_E.LCLK4_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK5</td><td>INT_LCLK_E.LCLK5_O_R</td></tr>
+<tr><td>CELL1.LCLK5</td><td>INT_LCLK_E.LCLK5_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK6</td><td>INT_LCLK_W.LCLK6_O_R</td></tr>
+<tr><td>CELL1.LCLK6</td><td>INT_LCLK_W.LCLK6_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK7</td><td>INT_LCLK_W.LCLK7_O_R</td></tr>
+<tr><td>CELL1.LCLK7</td><td>INT_LCLK_W.LCLK7_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK8</td><td>INT_LCLK_W.LCLK8_O_R</td></tr>
+<tr><td>CELL1.LCLK8</td><td>INT_LCLK_W.LCLK8_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK9</td><td>INT_LCLK_W.LCLK9_O_R</td></tr>
+<tr><td>CELL1.LCLK9</td><td>INT_LCLK_W.LCLK9_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK10</td><td>INT_LCLK_W.LCLK10_O_R</td></tr>
+<tr><td>CELL1.LCLK10</td><td>INT_LCLK_W.LCLK10_O_R</td></tr>
 
-<tr><td>TCELL1:LCLK11</td><td>INT_LCLK_W.LCLK11_O_R</td></tr>
+<tr><td>CELL1.LCLK11</td><td>INT_LCLK_W.LCLK11_O_R</td></tr>
 
 </tbody>
 

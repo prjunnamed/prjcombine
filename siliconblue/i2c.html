@@ -154,87 +154,87 @@
                         <h1 id="i2c-controller"><a class="header" href="#i2c-controller">I2C controller</a></h1>
 <h2 id="tile-i2c_r04"><a class="header" href="#tile-i2c_r04">Tile I2C_R04</a></h2>
 <p>Cells: 12</p>
-<h3 id="bel-i2c"><a class="header" href="#bel-i2c">Bel I2C</a></h3>
+<h3 id="bels-i2c"><a class="header" href="#bels-i2c">Bels I2C</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue I2C_R04 bel I2C</caption>
+<caption>siliconblue I2C_R04 bel I2C pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>I2C</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>I2CIRQ</td><td>output</td><td>TCELL9:OUT.LC2, TCELL9:OUT.LC6</td></tr>
+<tr><td>SBADRI[0]</td><td>in</td><td>CELL[5].IOB_DOUT[1]</td></tr>
 
-<tr><td>I2CWKUP</td><td>output</td><td>TCELL4:OUT.LC2, TCELL4:OUT.LC6</td></tr>
+<tr><td>SBADRI[1]</td><td>in</td><td>CELL[6].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBACKO</td><td>output</td><td>TCELL9:OUT.LC0, TCELL9:OUT.LC4</td></tr>
+<tr><td>SBADRI[2]</td><td>in</td><td>CELL[6].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBADRI0</td><td>input</td><td>TCELL5:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBADRI[3]</td><td>in</td><td>CELL[7].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBADRI1</td><td>input</td><td>TCELL6:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBADRI[4]</td><td>in</td><td>CELL[7].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBADRI2</td><td>input</td><td>TCELL6:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBADRI[5]</td><td>in</td><td>CELL[8].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBADRI3</td><td>input</td><td>TCELL7:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBADRI[6]</td><td>in</td><td>CELL[8].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBADRI4</td><td>input</td><td>TCELL7:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBADRI[7]</td><td>in</td><td>CELL[0].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBADRI5</td><td>input</td><td>TCELL8:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBCLKI</td><td>in</td><td>CELL[9].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBADRI6</td><td>input</td><td>TCELL8:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBDATI[0]</td><td>in</td><td>CELL[1].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBADRI7</td><td>input</td><td>TCELL0:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBDATI[1]</td><td>in</td><td>CELL[2].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBCLKI</td><td>input</td><td>TCELL9:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBDATI[2]</td><td>in</td><td>CELL[2].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBDATI0</td><td>input</td><td>TCELL1:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBDATI[3]</td><td>in</td><td>CELL[3].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBDATI1</td><td>input</td><td>TCELL2:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBDATI[4]</td><td>in</td><td>CELL[3].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBDATI2</td><td>input</td><td>TCELL2:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBDATI[5]</td><td>in</td><td>CELL[4].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBDATI3</td><td>input</td><td>TCELL3:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBDATI[6]</td><td>in</td><td>CELL[4].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBDATI4</td><td>input</td><td>TCELL3:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBDATI[7]</td><td>in</td><td>CELL[5].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBDATI5</td><td>input</td><td>TCELL4:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBRWI</td><td>in</td><td>CELL[1].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBDATI6</td><td>input</td><td>TCELL4:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBSTBI</td><td>in</td><td>CELL[0].IOB_DOUT[1]</td></tr>
 
-<tr><td>SBDATI7</td><td>input</td><td>TCELL5:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SCLI</td><td>in</td><td>CELL_IO[1].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBDATO0</td><td>output</td><td>TCELL5:OUT.LC0, TCELL5:OUT.LC4</td></tr>
+<tr><td>SDAI</td><td>in</td><td>CELL_IO[0].IOB_DOUT[0]</td></tr>
 
-<tr><td>SBDATO1</td><td>output</td><td>TCELL5:OUT.LC2, TCELL5:OUT.LC6</td></tr>
+<tr><td>SBACKO</td><td>out</td><td>CELL[9].IOB_DIN[0]</td></tr>
 
-<tr><td>SBDATO2</td><td>output</td><td>TCELL6:OUT.LC0, TCELL6:OUT.LC4</td></tr>
+<tr><td>SBDATO[0]</td><td>out</td><td>CELL[5].IOB_DIN[0]</td></tr>
 
-<tr><td>SBDATO3</td><td>output</td><td>TCELL6:OUT.LC2, TCELL6:OUT.LC6</td></tr>
+<tr><td>SBDATO[1]</td><td>out</td><td>CELL[5].IOB_DIN[1]</td></tr>
 
-<tr><td>SBDATO4</td><td>output</td><td>TCELL7:OUT.LC0, TCELL7:OUT.LC4</td></tr>
+<tr><td>SBDATO[2]</td><td>out</td><td>CELL[6].IOB_DIN[0]</td></tr>
 
-<tr><td>SBDATO5</td><td>output</td><td>TCELL7:OUT.LC2, TCELL7:OUT.LC6</td></tr>
+<tr><td>SBDATO[3]</td><td>out</td><td>CELL[6].IOB_DIN[1]</td></tr>
 
-<tr><td>SBDATO6</td><td>output</td><td>TCELL8:OUT.LC0, TCELL8:OUT.LC4</td></tr>
+<tr><td>SBDATO[4]</td><td>out</td><td>CELL[7].IOB_DIN[0]</td></tr>
 
-<tr><td>SBDATO7</td><td>output</td><td>TCELL8:OUT.LC2, TCELL8:OUT.LC6</td></tr>
+<tr><td>SBDATO[5]</td><td>out</td><td>CELL[7].IOB_DIN[1]</td></tr>
 
-<tr><td>SBRWI</td><td>input</td><td>TCELL1:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SBDATO[6]</td><td>out</td><td>CELL[8].IOB_DIN[0]</td></tr>
 
-<tr><td>SBSTBI</td><td>input</td><td>TCELL0:IMUX.IO1.DOUT0</td></tr>
+<tr><td>SBDATO[7]</td><td>out</td><td>CELL[8].IOB_DIN[1]</td></tr>
 
-<tr><td>SCLI</td><td>input</td><td>TCELL11:IMUX.IO0.DOUT0</td></tr>
+<tr><td>I2CIRQ</td><td>out</td><td>CELL[9].IOB_DIN[1]</td></tr>
 
-<tr><td>SCLO</td><td>output</td><td>TCELL11:OUT.LC0, TCELL11:OUT.LC4</td></tr>
+<tr><td>I2CWKUP</td><td>out</td><td>CELL[4].IOB_DIN[1]</td></tr>
 
-<tr><td>SCLOE</td><td>output</td><td>TCELL11:OUT.LC2, TCELL11:OUT.LC6</td></tr>
+<tr><td>SCLO</td><td>out</td><td>CELL_IO[1].IOB_DIN[0]</td></tr>
 
-<tr><td>SDAI</td><td>input</td><td>TCELL10:IMUX.IO0.DOUT0</td></tr>
+<tr><td>SCLOE</td><td>out</td><td>CELL_IO[1].IOB_DIN[1]</td></tr>
 
-<tr><td>SDAO</td><td>output</td><td>TCELL10:OUT.LC0, TCELL10:OUT.LC4</td></tr>
+<tr><td>SDAO</td><td>out</td><td>CELL_IO[0].IOB_DIN[0]</td></tr>
 
-<tr><td>SDAOE</td><td>output</td><td>TCELL10:OUT.LC2, TCELL10:OUT.LC6</td></tr>
+<tr><td>SDAOE</td><td>out</td><td>CELL_IO[0].IOB_DIN[1]</td></tr>
 
 </tbody>
 
@@ -251,107 +251,77 @@
 </thead>
 
 <tbody>
-<tr><td>TCELL0:IMUX.IO0.DOUT0</td><td>I2C.SBADRI7</td></tr>
+<tr><td>CELL[0].IOB_DOUT[0]</td><td>I2C.SBADRI[7]</td></tr>
 
-<tr><td>TCELL0:IMUX.IO1.DOUT0</td><td>I2C.SBSTBI</td></tr>
+<tr><td>CELL[0].IOB_DOUT[1]</td><td>I2C.SBSTBI</td></tr>
 
-<tr><td>TCELL1:IMUX.IO0.DOUT0</td><td>I2C.SBRWI</td></tr>
+<tr><td>CELL[1].IOB_DOUT[0]</td><td>I2C.SBRWI</td></tr>
 
-<tr><td>TCELL1:IMUX.IO1.DOUT0</td><td>I2C.SBDATI0</td></tr>
+<tr><td>CELL[1].IOB_DOUT[1]</td><td>I2C.SBDATI[0]</td></tr>
 
-<tr><td>TCELL2:IMUX.IO0.DOUT0</td><td>I2C.SBDATI1</td></tr>
+<tr><td>CELL[2].IOB_DOUT[0]</td><td>I2C.SBDATI[1]</td></tr>
 
-<tr><td>TCELL2:IMUX.IO1.DOUT0</td><td>I2C.SBDATI2</td></tr>
+<tr><td>CELL[2].IOB_DOUT[1]</td><td>I2C.SBDATI[2]</td></tr>
 
-<tr><td>TCELL3:IMUX.IO0.DOUT0</td><td>I2C.SBDATI3</td></tr>
+<tr><td>CELL[3].IOB_DOUT[0]</td><td>I2C.SBDATI[3]</td></tr>
 
-<tr><td>TCELL3:IMUX.IO1.DOUT0</td><td>I2C.SBDATI4</td></tr>
+<tr><td>CELL[3].IOB_DOUT[1]</td><td>I2C.SBDATI[4]</td></tr>
 
-<tr><td>TCELL4:IMUX.IO0.DOUT0</td><td>I2C.SBDATI5</td></tr>
+<tr><td>CELL[4].IOB_DIN[1]</td><td>I2C.I2CWKUP</td></tr>
 
-<tr><td>TCELL4:IMUX.IO1.DOUT0</td><td>I2C.SBDATI6</td></tr>
+<tr><td>CELL[4].IOB_DOUT[0]</td><td>I2C.SBDATI[5]</td></tr>
 
-<tr><td>TCELL4:OUT.LC2</td><td>I2C.I2CWKUP</td></tr>
+<tr><td>CELL[4].IOB_DOUT[1]</td><td>I2C.SBDATI[6]</td></tr>
 
-<tr><td>TCELL4:OUT.LC6</td><td>I2C.I2CWKUP</td></tr>
+<tr><td>CELL[5].IOB_DIN[0]</td><td>I2C.SBDATO[0]</td></tr>
 
-<tr><td>TCELL5:IMUX.IO0.DOUT0</td><td>I2C.SBDATI7</td></tr>
+<tr><td>CELL[5].IOB_DIN[1]</td><td>I2C.SBDATO[1]</td></tr>
 
-<tr><td>TCELL5:IMUX.IO1.DOUT0</td><td>I2C.SBADRI0</td></tr>
+<tr><td>CELL[5].IOB_DOUT[0]</td><td>I2C.SBDATI[7]</td></tr>
 
-<tr><td>TCELL5:OUT.LC0</td><td>I2C.SBDATO0</td></tr>
+<tr><td>CELL[5].IOB_DOUT[1]</td><td>I2C.SBADRI[0]</td></tr>
 
-<tr><td>TCELL5:OUT.LC2</td><td>I2C.SBDATO1</td></tr>
+<tr><td>CELL[6].IOB_DIN[0]</td><td>I2C.SBDATO[2]</td></tr>
 
-<tr><td>TCELL5:OUT.LC4</td><td>I2C.SBDATO0</td></tr>
+<tr><td>CELL[6].IOB_DIN[1]</td><td>I2C.SBDATO[3]</td></tr>
 
-<tr><td>TCELL5:OUT.LC6</td><td>I2C.SBDATO1</td></tr>
+<tr><td>CELL[6].IOB_DOUT[0]</td><td>I2C.SBADRI[1]</td></tr>
 
-<tr><td>TCELL6:IMUX.IO0.DOUT0</td><td>I2C.SBADRI1</td></tr>
+<tr><td>CELL[6].IOB_DOUT[1]</td><td>I2C.SBADRI[2]</td></tr>
 
-<tr><td>TCELL6:IMUX.IO1.DOUT0</td><td>I2C.SBADRI2</td></tr>
+<tr><td>CELL[7].IOB_DIN[0]</td><td>I2C.SBDATO[4]</td></tr>
 
-<tr><td>TCELL6:OUT.LC0</td><td>I2C.SBDATO2</td></tr>
+<tr><td>CELL[7].IOB_DIN[1]</td><td>I2C.SBDATO[5]</td></tr>
 
-<tr><td>TCELL6:OUT.LC2</td><td>I2C.SBDATO3</td></tr>
+<tr><td>CELL[7].IOB_DOUT[0]</td><td>I2C.SBADRI[3]</td></tr>
 
-<tr><td>TCELL6:OUT.LC4</td><td>I2C.SBDATO2</td></tr>
+<tr><td>CELL[7].IOB_DOUT[1]</td><td>I2C.SBADRI[4]</td></tr>
 
-<tr><td>TCELL6:OUT.LC6</td><td>I2C.SBDATO3</td></tr>
+<tr><td>CELL[8].IOB_DIN[0]</td><td>I2C.SBDATO[6]</td></tr>
 
-<tr><td>TCELL7:IMUX.IO0.DOUT0</td><td>I2C.SBADRI3</td></tr>
+<tr><td>CELL[8].IOB_DIN[1]</td><td>I2C.SBDATO[7]</td></tr>
 
-<tr><td>TCELL7:IMUX.IO1.DOUT0</td><td>I2C.SBADRI4</td></tr>
+<tr><td>CELL[8].IOB_DOUT[0]</td><td>I2C.SBADRI[5]</td></tr>
 
-<tr><td>TCELL7:OUT.LC0</td><td>I2C.SBDATO4</td></tr>
+<tr><td>CELL[8].IOB_DOUT[1]</td><td>I2C.SBADRI[6]</td></tr>
 
-<tr><td>TCELL7:OUT.LC2</td><td>I2C.SBDATO5</td></tr>
+<tr><td>CELL[9].IOB_DIN[0]</td><td>I2C.SBACKO</td></tr>
 
-<tr><td>TCELL7:OUT.LC4</td><td>I2C.SBDATO4</td></tr>
+<tr><td>CELL[9].IOB_DIN[1]</td><td>I2C.I2CIRQ</td></tr>
 
-<tr><td>TCELL7:OUT.LC6</td><td>I2C.SBDATO5</td></tr>
+<tr><td>CELL[9].IOB_DOUT[1]</td><td>I2C.SBCLKI</td></tr>
 
-<tr><td>TCELL8:IMUX.IO0.DOUT0</td><td>I2C.SBADRI5</td></tr>
+<tr><td>CELL_IO[0].IOB_DIN[0]</td><td>I2C.SDAO</td></tr>
 
-<tr><td>TCELL8:IMUX.IO1.DOUT0</td><td>I2C.SBADRI6</td></tr>
+<tr><td>CELL_IO[0].IOB_DIN[1]</td><td>I2C.SDAOE</td></tr>
 
-<tr><td>TCELL8:OUT.LC0</td><td>I2C.SBDATO6</td></tr>
+<tr><td>CELL_IO[0].IOB_DOUT[0]</td><td>I2C.SDAI</td></tr>
 
-<tr><td>TCELL8:OUT.LC2</td><td>I2C.SBDATO7</td></tr>
+<tr><td>CELL_IO[1].IOB_DIN[0]</td><td>I2C.SCLO</td></tr>
 
-<tr><td>TCELL8:OUT.LC4</td><td>I2C.SBDATO6</td></tr>
+<tr><td>CELL_IO[1].IOB_DIN[1]</td><td>I2C.SCLOE</td></tr>
 
-<tr><td>TCELL8:OUT.LC6</td><td>I2C.SBDATO7</td></tr>
-
-<tr><td>TCELL9:IMUX.IO1.DOUT0</td><td>I2C.SBCLKI</td></tr>
-
-<tr><td>TCELL9:OUT.LC0</td><td>I2C.SBACKO</td></tr>
-
-<tr><td>TCELL9:OUT.LC2</td><td>I2C.I2CIRQ</td></tr>
-
-<tr><td>TCELL9:OUT.LC4</td><td>I2C.SBACKO</td></tr>
-
-<tr><td>TCELL9:OUT.LC6</td><td>I2C.I2CIRQ</td></tr>
-
-<tr><td>TCELL10:IMUX.IO0.DOUT0</td><td>I2C.SDAI</td></tr>
-
-<tr><td>TCELL10:OUT.LC0</td><td>I2C.SDAO</td></tr>
-
-<tr><td>TCELL10:OUT.LC2</td><td>I2C.SDAOE</td></tr>
-
-<tr><td>TCELL10:OUT.LC4</td><td>I2C.SDAO</td></tr>
-
-<tr><td>TCELL10:OUT.LC6</td><td>I2C.SDAOE</td></tr>
-
-<tr><td>TCELL11:IMUX.IO0.DOUT0</td><td>I2C.SCLI</td></tr>
-
-<tr><td>TCELL11:OUT.LC0</td><td>I2C.SCLO</td></tr>
-
-<tr><td>TCELL11:OUT.LC2</td><td>I2C.SCLOE</td></tr>
-
-<tr><td>TCELL11:OUT.LC4</td><td>I2C.SCLO</td></tr>
-
-<tr><td>TCELL11:OUT.LC6</td><td>I2C.SCLOE</td></tr>
+<tr><td>CELL_IO[1].IOB_DOUT[0]</td><td>I2C.SCLI</td></tr>
 
 </tbody>
 
@@ -360,87 +330,87 @@
 
 <h2 id="tile-i2c_t04"><a class="header" href="#tile-i2c_t04">Tile I2C_T04</a></h2>
 <p>Cells: 2</p>
-<h3 id="bel-i2c-1"><a class="header" href="#bel-i2c-1">Bel I2C</a></h3>
+<h3 id="bels-i2c-1"><a class="header" href="#bels-i2c-1">Bels I2C</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue I2C_T04 bel I2C</caption>
+<caption>siliconblue I2C_T04 bel I2C pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>I2C</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>I2CIRQ</td><td>output</td><td>TCELL1:OUT.LC7</td></tr>
+<tr><td>SBADRI[0]</td><td>in</td><td>CELL[1].IMUX_LC_I0[1]</td></tr>
 
-<tr><td>I2CWKUP</td><td>output</td><td>TCELL0:OUT.LC5</td></tr>
+<tr><td>SBADRI[1]</td><td>in</td><td>CELL[1].IMUX_LC_I0[2]</td></tr>
 
-<tr><td>SBACKO</td><td>output</td><td>TCELL1:OUT.LC6</td></tr>
+<tr><td>SBADRI[2]</td><td>in</td><td>CELL[1].IMUX_LC_I0[3]</td></tr>
 
-<tr><td>SBADRI0</td><td>input</td><td>TCELL1:IMUX.LC1.I0</td></tr>
+<tr><td>SBADRI[3]</td><td>in</td><td>CELL[1].IMUX_LC_I0[4]</td></tr>
 
-<tr><td>SBADRI1</td><td>input</td><td>TCELL1:IMUX.LC2.I0</td></tr>
+<tr><td>SBADRI[4]</td><td>in</td><td>CELL[1].IMUX_LC_I0[5]</td></tr>
 
-<tr><td>SBADRI2</td><td>input</td><td>TCELL1:IMUX.LC3.I0</td></tr>
+<tr><td>SBADRI[5]</td><td>in</td><td>CELL[1].IMUX_LC_I0[6]</td></tr>
 
-<tr><td>SBADRI3</td><td>input</td><td>TCELL1:IMUX.LC4.I0</td></tr>
+<tr><td>SBADRI[6]</td><td>in</td><td>CELL[1].IMUX_LC_I0[7]</td></tr>
 
-<tr><td>SBADRI4</td><td>input</td><td>TCELL1:IMUX.LC5.I0</td></tr>
+<tr><td>SBADRI[7]</td><td>in</td><td>CELL[0].IMUX_LC_I0[2]</td></tr>
 
-<tr><td>SBADRI5</td><td>input</td><td>TCELL1:IMUX.LC6.I0</td></tr>
+<tr><td>SBCLKI</td><td>in</td><td>CELL[1].IMUX_CLK_OPTINV</td></tr>
 
-<tr><td>SBADRI6</td><td>input</td><td>TCELL1:IMUX.LC7.I0</td></tr>
+<tr><td>SBDATI[0]</td><td>in</td><td>CELL[0].IMUX_LC_I0[5]</td></tr>
 
-<tr><td>SBADRI7</td><td>input</td><td>TCELL0:IMUX.LC2.I0</td></tr>
+<tr><td>SBDATI[1]</td><td>in</td><td>CELL[0].IMUX_LC_I0[6]</td></tr>
 
-<tr><td>SBCLKI</td><td>input</td><td>TCELL1:IMUX.CLK.OPTINV</td></tr>
+<tr><td>SBDATI[2]</td><td>in</td><td>CELL[0].IMUX_LC_I0[7]</td></tr>
 
-<tr><td>SBDATI0</td><td>input</td><td>TCELL0:IMUX.LC5.I0</td></tr>
+<tr><td>SBDATI[3]</td><td>in</td><td>CELL[1].IMUX_LC_I3[0]</td></tr>
 
-<tr><td>SBDATI1</td><td>input</td><td>TCELL0:IMUX.LC6.I0</td></tr>
+<tr><td>SBDATI[4]</td><td>in</td><td>CELL[1].IMUX_LC_I1[5]</td></tr>
 
-<tr><td>SBDATI2</td><td>input</td><td>TCELL0:IMUX.LC7.I0</td></tr>
+<tr><td>SBDATI[5]</td><td>in</td><td>CELL[1].IMUX_LC_I1[6]</td></tr>
 
-<tr><td>SBDATI3</td><td>input</td><td>TCELL1:IMUX.LC0.I3</td></tr>
+<tr><td>SBDATI[6]</td><td>in</td><td>CELL[1].IMUX_LC_I1[7]</td></tr>
 
-<tr><td>SBDATI4</td><td>input</td><td>TCELL1:IMUX.LC5.I1</td></tr>
+<tr><td>SBDATI[7]</td><td>in</td><td>CELL[1].IMUX_LC_I0[0]</td></tr>
 
-<tr><td>SBDATI5</td><td>input</td><td>TCELL1:IMUX.LC6.I1</td></tr>
+<tr><td>SBRWI</td><td>in</td><td>CELL[0].IMUX_LC_I0[4]</td></tr>
 
-<tr><td>SBDATI6</td><td>input</td><td>TCELL1:IMUX.LC7.I1</td></tr>
+<tr><td>SBSTBI</td><td>in</td><td>CELL[0].IMUX_LC_I0[3]</td></tr>
 
-<tr><td>SBDATI7</td><td>input</td><td>TCELL1:IMUX.LC0.I0</td></tr>
+<tr><td>SCLI</td><td>in</td><td>CELL[0].IMUX_LC_I1[2]</td></tr>
 
-<tr><td>SBDATO0</td><td>output</td><td>TCELL0:OUT.LC6</td></tr>
+<tr><td>SDAI</td><td>in</td><td>CELL[0].IMUX_LC_I1[1]</td></tr>
 
-<tr><td>SBDATO1</td><td>output</td><td>TCELL0:OUT.LC7</td></tr>
+<tr><td>SBACKO</td><td>out</td><td>CELL[1].LC_LTIN[6]</td></tr>
 
-<tr><td>SBDATO2</td><td>output</td><td>TCELL1:OUT.LC0</td></tr>
+<tr><td>SBDATO[0]</td><td>out</td><td>CELL[0].LC_LTIN[6]</td></tr>
 
-<tr><td>SBDATO3</td><td>output</td><td>TCELL1:OUT.LC1</td></tr>
+<tr><td>SBDATO[1]</td><td>out</td><td>CELL[0].LC_LTIN[7]</td></tr>
 
-<tr><td>SBDATO4</td><td>output</td><td>TCELL1:OUT.LC2</td></tr>
+<tr><td>SBDATO[2]</td><td>out</td><td>CELL[1].LC_LTIN[0]</td></tr>
 
-<tr><td>SBDATO5</td><td>output</td><td>TCELL1:OUT.LC3</td></tr>
+<tr><td>SBDATO[3]</td><td>out</td><td>CELL[1].LC_LTIN[1]</td></tr>
 
-<tr><td>SBDATO6</td><td>output</td><td>TCELL1:OUT.LC4</td></tr>
+<tr><td>SBDATO[4]</td><td>out</td><td>CELL[1].LC_LTIN[2]</td></tr>
 
-<tr><td>SBDATO7</td><td>output</td><td>TCELL1:OUT.LC5</td></tr>
+<tr><td>SBDATO[5]</td><td>out</td><td>CELL[1].LC_LTIN[3]</td></tr>
 
-<tr><td>SBRWI</td><td>input</td><td>TCELL0:IMUX.LC4.I0</td></tr>
+<tr><td>SBDATO[6]</td><td>out</td><td>CELL[1].LC_LTIN[4]</td></tr>
 
-<tr><td>SBSTBI</td><td>input</td><td>TCELL0:IMUX.LC3.I0</td></tr>
+<tr><td>SBDATO[7]</td><td>out</td><td>CELL[1].LC_LTIN[5]</td></tr>
 
-<tr><td>SCLI</td><td>input</td><td>TCELL0:IMUX.LC2.I1</td></tr>
+<tr><td>I2CIRQ</td><td>out</td><td>CELL[1].LC_LTIN[7]</td></tr>
 
-<tr><td>SCLO</td><td>output</td><td>TCELL0:OUT.LC3</td></tr>
+<tr><td>I2CWKUP</td><td>out</td><td>CELL[0].LC_LTIN[5]</td></tr>
 
-<tr><td>SCLOE</td><td>output</td><td>TCELL0:OUT.LC4</td></tr>
+<tr><td>SCLO</td><td>out</td><td>CELL[0].LC_LTIN[3]</td></tr>
 
-<tr><td>SDAI</td><td>input</td><td>TCELL0:IMUX.LC1.I1</td></tr>
+<tr><td>SCLOE</td><td>out</td><td>CELL[0].LC_LTIN[4]</td></tr>
 
-<tr><td>SDAO</td><td>output</td><td>TCELL0:OUT.LC1</td></tr>
+<tr><td>SDAO</td><td>out</td><td>CELL[0].LC_LTIN[1]</td></tr>
 
-<tr><td>SDAOE</td><td>output</td><td>TCELL0:OUT.LC2</td></tr>
+<tr><td>SDAOE</td><td>out</td><td>CELL[0].LC_LTIN[2]</td></tr>
 
 </tbody>
 
@@ -457,77 +427,77 @@
 </thead>
 
 <tbody>
-<tr><td>TCELL0:IMUX.LC1.I1</td><td>I2C.SDAI</td></tr>
+<tr><td>CELL[0].IMUX_LC_I0[2]</td><td>I2C.SBADRI[7]</td></tr>
 
-<tr><td>TCELL0:IMUX.LC2.I0</td><td>I2C.SBADRI7</td></tr>
+<tr><td>CELL[0].IMUX_LC_I0[3]</td><td>I2C.SBSTBI</td></tr>
 
-<tr><td>TCELL0:IMUX.LC2.I1</td><td>I2C.SCLI</td></tr>
+<tr><td>CELL[0].IMUX_LC_I0[4]</td><td>I2C.SBRWI</td></tr>
 
-<tr><td>TCELL0:IMUX.LC3.I0</td><td>I2C.SBSTBI</td></tr>
+<tr><td>CELL[0].IMUX_LC_I0[5]</td><td>I2C.SBDATI[0]</td></tr>
 
-<tr><td>TCELL0:IMUX.LC4.I0</td><td>I2C.SBRWI</td></tr>
+<tr><td>CELL[0].IMUX_LC_I0[6]</td><td>I2C.SBDATI[1]</td></tr>
 
-<tr><td>TCELL0:IMUX.LC5.I0</td><td>I2C.SBDATI0</td></tr>
+<tr><td>CELL[0].IMUX_LC_I0[7]</td><td>I2C.SBDATI[2]</td></tr>
 
-<tr><td>TCELL0:IMUX.LC6.I0</td><td>I2C.SBDATI1</td></tr>
+<tr><td>CELL[0].IMUX_LC_I1[1]</td><td>I2C.SDAI</td></tr>
 
-<tr><td>TCELL0:IMUX.LC7.I0</td><td>I2C.SBDATI2</td></tr>
+<tr><td>CELL[0].IMUX_LC_I1[2]</td><td>I2C.SCLI</td></tr>
 
-<tr><td>TCELL0:OUT.LC1</td><td>I2C.SDAO</td></tr>
+<tr><td>CELL[0].LC_LTIN[1]</td><td>I2C.SDAO</td></tr>
 
-<tr><td>TCELL0:OUT.LC2</td><td>I2C.SDAOE</td></tr>
+<tr><td>CELL[0].LC_LTIN[2]</td><td>I2C.SDAOE</td></tr>
 
-<tr><td>TCELL0:OUT.LC3</td><td>I2C.SCLO</td></tr>
+<tr><td>CELL[0].LC_LTIN[3]</td><td>I2C.SCLO</td></tr>
 
-<tr><td>TCELL0:OUT.LC4</td><td>I2C.SCLOE</td></tr>
+<tr><td>CELL[0].LC_LTIN[4]</td><td>I2C.SCLOE</td></tr>
 
-<tr><td>TCELL0:OUT.LC5</td><td>I2C.I2CWKUP</td></tr>
+<tr><td>CELL[0].LC_LTIN[5]</td><td>I2C.I2CWKUP</td></tr>
 
-<tr><td>TCELL0:OUT.LC6</td><td>I2C.SBDATO0</td></tr>
+<tr><td>CELL[0].LC_LTIN[6]</td><td>I2C.SBDATO[0]</td></tr>
 
-<tr><td>TCELL0:OUT.LC7</td><td>I2C.SBDATO1</td></tr>
+<tr><td>CELL[0].LC_LTIN[7]</td><td>I2C.SBDATO[1]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC0.I0</td><td>I2C.SBDATI7</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[0]</td><td>I2C.SBDATI[7]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC0.I3</td><td>I2C.SBDATI3</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[1]</td><td>I2C.SBADRI[0]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC1.I0</td><td>I2C.SBADRI0</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[2]</td><td>I2C.SBADRI[1]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC2.I0</td><td>I2C.SBADRI1</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[3]</td><td>I2C.SBADRI[2]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC3.I0</td><td>I2C.SBADRI2</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[4]</td><td>I2C.SBADRI[3]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC4.I0</td><td>I2C.SBADRI3</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[5]</td><td>I2C.SBADRI[4]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC5.I0</td><td>I2C.SBADRI4</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[6]</td><td>I2C.SBADRI[5]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC5.I1</td><td>I2C.SBDATI4</td></tr>
+<tr><td>CELL[1].IMUX_LC_I0[7]</td><td>I2C.SBADRI[6]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC6.I0</td><td>I2C.SBADRI5</td></tr>
+<tr><td>CELL[1].IMUX_LC_I1[5]</td><td>I2C.SBDATI[4]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC6.I1</td><td>I2C.SBDATI5</td></tr>
+<tr><td>CELL[1].IMUX_LC_I1[6]</td><td>I2C.SBDATI[5]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC7.I0</td><td>I2C.SBADRI6</td></tr>
+<tr><td>CELL[1].IMUX_LC_I1[7]</td><td>I2C.SBDATI[6]</td></tr>
 
-<tr><td>TCELL1:IMUX.LC7.I1</td><td>I2C.SBDATI6</td></tr>
+<tr><td>CELL[1].IMUX_LC_I3[0]</td><td>I2C.SBDATI[3]</td></tr>
 
-<tr><td>TCELL1:IMUX.CLK.OPTINV</td><td>I2C.SBCLKI</td></tr>
+<tr><td>CELL[1].IMUX_CLK_OPTINV</td><td>I2C.SBCLKI</td></tr>
 
-<tr><td>TCELL1:OUT.LC0</td><td>I2C.SBDATO2</td></tr>
+<tr><td>CELL[1].LC_LTIN[0]</td><td>I2C.SBDATO[2]</td></tr>
 
-<tr><td>TCELL1:OUT.LC1</td><td>I2C.SBDATO3</td></tr>
+<tr><td>CELL[1].LC_LTIN[1]</td><td>I2C.SBDATO[3]</td></tr>
 
-<tr><td>TCELL1:OUT.LC2</td><td>I2C.SBDATO4</td></tr>
+<tr><td>CELL[1].LC_LTIN[2]</td><td>I2C.SBDATO[4]</td></tr>
 
-<tr><td>TCELL1:OUT.LC3</td><td>I2C.SBDATO5</td></tr>
+<tr><td>CELL[1].LC_LTIN[3]</td><td>I2C.SBDATO[5]</td></tr>
 
-<tr><td>TCELL1:OUT.LC4</td><td>I2C.SBDATO6</td></tr>
+<tr><td>CELL[1].LC_LTIN[4]</td><td>I2C.SBDATO[6]</td></tr>
 
-<tr><td>TCELL1:OUT.LC5</td><td>I2C.SBDATO7</td></tr>
+<tr><td>CELL[1].LC_LTIN[5]</td><td>I2C.SBDATO[7]</td></tr>
 
-<tr><td>TCELL1:OUT.LC6</td><td>I2C.SBACKO</td></tr>
+<tr><td>CELL[1].LC_LTIN[6]</td><td>I2C.SBACKO</td></tr>
 
-<tr><td>TCELL1:OUT.LC7</td><td>I2C.I2CIRQ</td></tr>
+<tr><td>CELL[1].LC_LTIN[7]</td><td>I2C.I2CIRQ</td></tr>
 
 </tbody>
 

@@ -228,63 +228,38 @@
 </ul>
 <p>On these devices, the global nets are permanently connected to all consumers, and the column buffer enable bits don’t have to be set.</p>
 <h2 id="tile-gb_root_l04"><a class="header" href="#tile-gb_root_l04">Tile GB_ROOT_L04</a></h2>
-<p>Cells: 1</p>
-<h3 id="bel-gb_root"><a class="header" href="#bel-gb_root">Bel GB_ROOT</a></h3>
+<p>Cells: 8</p>
+<h3 id="switchbox-gb_root"><a class="header" href="#switchbox-gb_root">Switchbox GB_ROOT</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_ROOT_L04 bel GB_ROOT</caption>
+<caption>siliconblue GB_ROOT_L04 switchbox GB_ROOT muxes GLOBAL_ROOT</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th colspan="1">Bits</th><th colspan="8">Destination</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>O0</td><td>output</td><td>GLOBAL.0</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[0]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[0][15][0]">CLK[0][15][0]</a></td><td>SE.GLOBAL_ROOT[0]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O1</td><td>output</td><td>GLOBAL.1</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[1]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[0][15][1]">CLK[0][15][1]</a></td><td>-</td><td>SE.GLOBAL_ROOT[1]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O2</td><td>output</td><td>GLOBAL.2</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[2]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[1][1][0]">CLK[1][1][0]</a></td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[2]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O3</td><td>output</td><td>GLOBAL.3</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[3]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[1][1][1]">CLK[1][1][1]</a></td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[3]</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O4</td><td>output</td><td>GLOBAL.4</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[4]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[1][0][0]">CLK[1][0][0]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[4]</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O5</td><td>output</td><td>GLOBAL.5</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[5]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[1][0][1]">CLK[1][0][1]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[5]</td><td>-</td><td>-</td></tr>
 
-<tr><td>O6</td><td>output</td><td>GLOBAL.6</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[6]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[0][14][0]">CLK[0][14][0]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[6]</td><td>-</td></tr>
 
-<tr><td>O7</td><td>output</td><td>GLOBAL.7</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[7]-0"><a href="#siliconblue-GB_ROOT_L04-bit-CLK[0][14][1]">CLK[0][14][1]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[7]</td></tr>
 
-</tbody>
+<tr><th colspan="1"></th><th colspan="8">Source</th></tr>
 
-</table>
-</div>
+<tr><td>0</td><td>SE.IMUX_IO_EXTRA</td><td>NE.IMUX_IO_EXTRA</td><td>EN.IMUX_IO_EXTRA</td><td>WN.IMUX_IO_EXTRA</td><td>NW.IMUX_IO_EXTRA</td><td>SW.IMUX_IO_EXTRA</td><td>WS.IMUX_IO_EXTRA</td><td>ES.IMUX_IO_EXTRA</td></tr>
 
-<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>siliconblue GB_ROOT_L04 bel wires</caption>
-<thead>
-<tr><th>Wire</th><th>Pins</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>GLOBAL.0</td><td>GB_ROOT.O0</td></tr>
-
-<tr><td>GLOBAL.1</td><td>GB_ROOT.O1</td></tr>
-
-<tr><td>GLOBAL.2</td><td>GB_ROOT.O2</td></tr>
-
-<tr><td>GLOBAL.3</td><td>GB_ROOT.O3</td></tr>
-
-<tr><td>GLOBAL.4</td><td>GB_ROOT.O4</td></tr>
-
-<tr><td>GLOBAL.5</td><td>GB_ROOT.O5</td></tr>
-
-<tr><td>GLOBAL.6</td><td>GB_ROOT.O6</td></tr>
-
-<tr><td>GLOBAL.7</td><td>GB_ROOT.O7</td></tr>
+<tr><td>1</td><td>ES.IO_GLOBAL</td><td>WS.IO_GLOBAL</td><td>NE.IO_GLOBAL</td><td>SE.IO_GLOBAL</td><td>WN.IO_GLOBAL</td><td>EN.IO_GLOBAL</td><td>SW.IO_GLOBAL</td><td>NW.IO_GLOBAL</td></tr>
 
 </tbody>
 
@@ -294,7 +269,7 @@
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_ROOT_L04 rect R0</caption>
+<caption>siliconblue GB_ROOT_L04 rect CLK[0]</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
 
@@ -377,20 +352,20 @@
 </tr>
 
 <tr><td>F14</td>
-<td title="R0.F14.B0">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.6">GB_ROOT:MUX.GLOBAL.6[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[0][14][0]" title="CLK[0][14][0]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[6]-0">GB_ROOT: mux SE.GLOBAL_ROOT[6] bit 0</a>
 </td>
-<td title="R0.F14.B1">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.7">GB_ROOT:MUX.GLOBAL.7[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[0][14][1]" title="CLK[0][14][1]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[7]-0">GB_ROOT: mux SE.GLOBAL_ROOT[7] bit 0</a>
 </td>
 </tr>
 
 <tr><td>F15</td>
-<td title="R0.F15.B0">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.0">GB_ROOT:MUX.GLOBAL.0[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[0][15][0]" title="CLK[0][15][0]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[0]-0">GB_ROOT: mux SE.GLOBAL_ROOT[0] bit 0</a>
 </td>
-<td title="R0.F15.B1">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.1">GB_ROOT:MUX.GLOBAL.1[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[0][15][1]" title="CLK[0][15][1]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[1]-0">GB_ROOT: mux SE.GLOBAL_ROOT[1] bit 0</a>
 </td>
 </tr>
 
@@ -401,7 +376,7 @@
 
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_ROOT_L04 rect R1</caption>
+<caption>siliconblue GB_ROOT_L04 rect CLK[1]</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
 
@@ -414,72 +389,91 @@
 
 <tbody>
 <tr><td>F0</td>
-<td title="R1.F0.B0">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.4">GB_ROOT:MUX.GLOBAL.4[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[1][0][0]" title="CLK[1][0][0]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[4]-0">GB_ROOT: mux SE.GLOBAL_ROOT[4] bit 0</a>
 </td>
-<td title="R1.F0.B1">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.5">GB_ROOT:MUX.GLOBAL.5[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[1][0][1]" title="CLK[1][0][1]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[5]-0">GB_ROOT: mux SE.GLOBAL_ROOT[5] bit 0</a>
 </td>
 </tr>
 
 <tr><td>F1</td>
-<td title="R1.F1.B0">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.2">GB_ROOT:MUX.GLOBAL.2[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[1][1][0]" title="CLK[1][1][0]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[2]-0">GB_ROOT: mux SE.GLOBAL_ROOT[2] bit 0</a>
 </td>
-<td title="R1.F1.B1">
-<a href="#tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.3">GB_ROOT:MUX.GLOBAL.3[0]</a>
+<td id="siliconblue-GB_ROOT_L04-bit-CLK[1][1][1]" title="CLK[1][1][1]">
+<a href="#siliconblue-GB_ROOT_L04-GB_ROOT-mux-SE.GLOBAL_ROOT[3]-0">GB_ROOT: mux SE.GLOBAL_ROOT[3] bit 0</a>
 </td>
 </tr>
 
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.0">GB_ROOT:MUX.GLOBAL.0</th>
-<th>0.F15.B0</th>
+<tr><td>F2</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.1">GB_ROOT:MUX.GLOBAL.1</th>
-<th>0.F15.B1</th>
+<tr><td>F3</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.2">GB_ROOT:MUX.GLOBAL.2</th>
-<th>1.F1.B0</th>
+<tr><td>F4</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.3">GB_ROOT:MUX.GLOBAL.3</th>
-<th>1.F1.B1</th>
+<tr><td>F5</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.4">GB_ROOT:MUX.GLOBAL.4</th>
-<th>1.F0.B0</th>
+<tr><td>F6</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.5">GB_ROOT:MUX.GLOBAL.5</th>
-<th>1.F0.B1</th>
+<tr><td>F7</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.6">GB_ROOT:MUX.GLOBAL.6</th>
-<th>0.F14.B0</th>
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L04-GB_ROOT:MUX.GLOBAL.7">GB_ROOT:MUX.GLOBAL.7</th>
-<th>0.F14.B1</th>
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-</thead>
-
-<tbody>
-<tr><td>FABRIC</td>
-<td>0</td>
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
-<tr><td>IO</td>
-<td>1</td>
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F15</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -488,63 +482,38 @@
 </div>
 
 <h2 id="tile-gb_root_l08"><a class="header" href="#tile-gb_root_l08">Tile GB_ROOT_L08</a></h2>
-<p>Cells: 1</p>
-<h3 id="bel-gb_root-1"><a class="header" href="#bel-gb_root-1">Bel GB_ROOT</a></h3>
+<p>Cells: 8</p>
+<h3 id="switchbox-gb_root-1"><a class="header" href="#switchbox-gb_root-1">Switchbox GB_ROOT</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_ROOT_L08 bel GB_ROOT</caption>
+<caption>siliconblue GB_ROOT_L08 switchbox GB_ROOT muxes GLOBAL_ROOT</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th colspan="1">Bits</th><th colspan="8">Destination</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>O0</td><td>output</td><td>GLOBAL.0</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[0]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[0][14][0]">CLK[0][14][0]</a></td><td>SE.GLOBAL_ROOT[0]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O1</td><td>output</td><td>GLOBAL.1</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[1]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[0][14][1]">CLK[0][14][1]</a></td><td>-</td><td>SE.GLOBAL_ROOT[1]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O2</td><td>output</td><td>GLOBAL.2</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[2]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[1][0][0]">CLK[1][0][0]</a></td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[2]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O3</td><td>output</td><td>GLOBAL.3</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[3]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[1][0][1]">CLK[1][0][1]</a></td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[3]</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O4</td><td>output</td><td>GLOBAL.4</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[4]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[1][1][0]">CLK[1][1][0]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[4]</td><td>-</td><td>-</td><td>-</td></tr>
 
-<tr><td>O5</td><td>output</td><td>GLOBAL.5</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[5]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[1][1][1]">CLK[1][1][1]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[5]</td><td>-</td><td>-</td></tr>
 
-<tr><td>O6</td><td>output</td><td>GLOBAL.6</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[6]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[0][15][0]">CLK[0][15][0]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[6]</td><td>-</td></tr>
 
-<tr><td>O7</td><td>output</td><td>GLOBAL.7</td></tr>
+<tr><td id="siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[7]-0"><a href="#siliconblue-GB_ROOT_L08-bit-CLK[0][15][1]">CLK[0][15][1]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[7]</td></tr>
 
-</tbody>
+<tr><th colspan="1"></th><th colspan="8">Source</th></tr>
 
-</table>
-</div>
+<tr><td>0</td><td>SE.IMUX_IO_EXTRA</td><td>NE.IMUX_IO_EXTRA</td><td>EN.IMUX_IO_EXTRA</td><td>WN.IMUX_IO_EXTRA</td><td>NW.IMUX_IO_EXTRA</td><td>SW.IMUX_IO_EXTRA</td><td>WS.IMUX_IO_EXTRA</td><td>ES.IMUX_IO_EXTRA</td></tr>
 
-<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>siliconblue GB_ROOT_L08 bel wires</caption>
-<thead>
-<tr><th>Wire</th><th>Pins</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>GLOBAL.0</td><td>GB_ROOT.O0</td></tr>
-
-<tr><td>GLOBAL.1</td><td>GB_ROOT.O1</td></tr>
-
-<tr><td>GLOBAL.2</td><td>GB_ROOT.O2</td></tr>
-
-<tr><td>GLOBAL.3</td><td>GB_ROOT.O3</td></tr>
-
-<tr><td>GLOBAL.4</td><td>GB_ROOT.O4</td></tr>
-
-<tr><td>GLOBAL.5</td><td>GB_ROOT.O5</td></tr>
-
-<tr><td>GLOBAL.6</td><td>GB_ROOT.O6</td></tr>
-
-<tr><td>GLOBAL.7</td><td>GB_ROOT.O7</td></tr>
+<tr><td>1</td><td>ES.IO_GLOBAL</td><td>WS.IO_GLOBAL</td><td>NE.IO_GLOBAL</td><td>SE.IO_GLOBAL</td><td>WN.IO_GLOBAL</td><td>EN.IO_GLOBAL</td><td>SW.IO_GLOBAL</td><td>NW.IO_GLOBAL</td></tr>
 
 </tbody>
 
@@ -554,7 +523,7 @@
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_ROOT_L08 rect R0</caption>
+<caption>siliconblue GB_ROOT_L08 rect CLK[0]</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
 
@@ -637,20 +606,20 @@
 </tr>
 
 <tr><td>F14</td>
-<td title="R0.F14.B0">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.0">GB_ROOT:MUX.GLOBAL.0[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[0][14][0]" title="CLK[0][14][0]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[0]-0">GB_ROOT: mux SE.GLOBAL_ROOT[0] bit 0</a>
 </td>
-<td title="R0.F14.B1">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.1">GB_ROOT:MUX.GLOBAL.1[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[0][14][1]" title="CLK[0][14][1]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[1]-0">GB_ROOT: mux SE.GLOBAL_ROOT[1] bit 0</a>
 </td>
 </tr>
 
 <tr><td>F15</td>
-<td title="R0.F15.B0">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.6">GB_ROOT:MUX.GLOBAL.6[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[0][15][0]" title="CLK[0][15][0]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[6]-0">GB_ROOT: mux SE.GLOBAL_ROOT[6] bit 0</a>
 </td>
-<td title="R0.F15.B1">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.7">GB_ROOT:MUX.GLOBAL.7[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[0][15][1]" title="CLK[0][15][1]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[7]-0">GB_ROOT: mux SE.GLOBAL_ROOT[7] bit 0</a>
 </td>
 </tr>
 
@@ -661,7 +630,7 @@
 
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_ROOT_L08 rect R1</caption>
+<caption>siliconblue GB_ROOT_L08 rect CLK[1]</caption>
 <thead>
 <tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
 
@@ -674,20 +643,237 @@
 
 <tbody>
 <tr><td>F0</td>
-<td title="R1.F0.B0">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.2">GB_ROOT:MUX.GLOBAL.2[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[1][0][0]" title="CLK[1][0][0]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[2]-0">GB_ROOT: mux SE.GLOBAL_ROOT[2] bit 0</a>
 </td>
-<td title="R1.F0.B1">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.3">GB_ROOT:MUX.GLOBAL.3[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[1][0][1]" title="CLK[1][0][1]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[3]-0">GB_ROOT: mux SE.GLOBAL_ROOT[3] bit 0</a>
 </td>
 </tr>
 
 <tr><td>F1</td>
-<td title="R1.F1.B0">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.4">GB_ROOT:MUX.GLOBAL.4[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[1][1][0]" title="CLK[1][1][0]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[4]-0">GB_ROOT: mux SE.GLOBAL_ROOT[4] bit 0</a>
 </td>
-<td title="R1.F1.B1">
-<a href="#tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.5">GB_ROOT:MUX.GLOBAL.5[0]</a>
+<td id="siliconblue-GB_ROOT_L08-bit-CLK[1][1][1]" title="CLK[1][1][1]">
+<a href="#siliconblue-GB_ROOT_L08-GB_ROOT-mux-SE.GLOBAL_ROOT[5]-0">GB_ROOT: mux SE.GLOBAL_ROOT[5] bit 0</a>
+</td>
+</tr>
+
+<tr><td>F2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F3</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F4</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F5</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F7</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F15</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="tile-gb_root_r04"><a class="header" href="#tile-gb_root_r04">Tile GB_ROOT_R04</a></h2>
+<p>Cells: 8</p>
+<h3 id="switchbox-gb_root-2"><a class="header" href="#switchbox-gb_root-2">Switchbox GB_ROOT</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>siliconblue GB_ROOT_R04 switchbox GB_ROOT muxes GLOBAL_ROOT</caption>
+<thead>
+<tr><th colspan="1">Bits</th><th colspan="8">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[0]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[0][14][0]">CLK[0][14][0]</a></td><td>SE.GLOBAL_ROOT[0]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[1]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[0][14][1]">CLK[0][14][1]</a></td><td>-</td><td>SE.GLOBAL_ROOT[1]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[2]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[1][0][0]">CLK[1][0][0]</a></td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[2]</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[3]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[1][0][1]">CLK[1][0][1]</a></td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[3]</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[4]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[1][1][0]">CLK[1][1][0]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[4]</td><td>-</td><td>-</td><td>-</td></tr>
+
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[5]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[1][1][1]">CLK[1][1][1]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[5]</td><td>-</td><td>-</td></tr>
+
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[6]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[0][15][0]">CLK[0][15][0]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[6]</td><td>-</td></tr>
+
+<tr><td id="siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[7]-0"><a href="#siliconblue-GB_ROOT_R04-bit-CLK[0][15][1]">CLK[0][15][1]</a></td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>SE.GLOBAL_ROOT[7]</td></tr>
+
+<tr><th colspan="1"></th><th colspan="8">Source</th></tr>
+
+<tr><td>0</td><td>SE.IMUX_IO_EXTRA</td><td>NE.IMUX_IO_EXTRA</td><td>EN.IMUX_IO_EXTRA</td><td>WN.IMUX_IO_EXTRA</td><td>NW.IMUX_IO_EXTRA</td><td>SW.IMUX_IO_EXTRA</td><td>WS.IMUX_IO_EXTRA</td><td>ES.IMUX_IO_EXTRA</td></tr>
+
+<tr><td>1</td><td>ES.IO_GLOBAL</td><td>WS.IO_GLOBAL</td><td>NE.IO_GLOBAL</td><td>SE.IO_GLOBAL</td><td>SE.HSOSC_GLOBAL</td><td>SE.LSOSC_GLOBAL</td><td>SW.IO_GLOBAL</td><td>NW.IO_GLOBAL</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>siliconblue GB_ROOT_R04 rect CLK[0]</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
+
+<tr>
+<th>B0</th>
+<th>B1</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F1</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F3</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F4</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F5</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F7</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[0][14][0]" title="CLK[0][14][0]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[0]-0">GB_ROOT: mux SE.GLOBAL_ROOT[0] bit 0</a>
+</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[0][14][1]" title="CLK[0][14][1]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[1]-0">GB_ROOT: mux SE.GLOBAL_ROOT[1] bit 0</a>
+</td>
+</tr>
+
+<tr><td>F15</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[0][15][0]" title="CLK[0][15][0]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[6]-0">GB_ROOT: mux SE.GLOBAL_ROOT[6] bit 0</a>
+</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[0][15][1]" title="CLK[0][15][1]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[7]-0">GB_ROOT: mux SE.GLOBAL_ROOT[7] bit 0</a>
 </td>
 </tr>
 
@@ -698,48 +884,104 @@
 
 <div class="table-wrapper">
 <table>
+<caption>siliconblue GB_ROOT_R04 rect CLK[1]</caption>
 <thead>
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.0">GB_ROOT:MUX.GLOBAL.0</th>
-<th>0.F14.B0</th>
-</tr>
+<tr><th rowspan="2">Frame</th><th colspan="2">Bit</th></tr>
 
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.1">GB_ROOT:MUX.GLOBAL.1</th>
-<th>0.F14.B1</th>
-</tr>
-
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.2">GB_ROOT:MUX.GLOBAL.2</th>
-<th>1.F0.B0</th>
-</tr>
-
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.3">GB_ROOT:MUX.GLOBAL.3</th>
-<th>1.F0.B1</th>
-</tr>
-
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.4">GB_ROOT:MUX.GLOBAL.4</th>
-<th>1.F1.B0</th>
-</tr>
-
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.5">GB_ROOT:MUX.GLOBAL.5</th>
-<th>1.F1.B1</th>
-</tr>
-
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.6">GB_ROOT:MUX.GLOBAL.6</th>
-<th>0.F15.B0</th>
-</tr>
-
-<tr><th id="tile-siliconblue-GB_ROOT_L08-GB_ROOT:MUX.GLOBAL.7">GB_ROOT:MUX.GLOBAL.7</th>
-<th>0.F15.B1</th>
+<tr>
+<th>B0</th>
+<th>B1</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>FABRIC</td>
-<td>0</td>
+<tr><td>F0</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[1][0][0]" title="CLK[1][0][0]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[2]-0">GB_ROOT: mux SE.GLOBAL_ROOT[2] bit 0</a>
+</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[1][0][1]" title="CLK[1][0][1]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[3]-0">GB_ROOT: mux SE.GLOBAL_ROOT[3] bit 0</a>
+</td>
 </tr>
 
-<tr><td>IO</td>
-<td>1</td>
+<tr><td>F1</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[1][1][0]" title="CLK[1][1][0]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[4]-0">GB_ROOT: mux SE.GLOBAL_ROOT[4] bit 0</a>
+</td>
+<td id="siliconblue-GB_ROOT_R04-bit-CLK[1][1][1]" title="CLK[1][1][1]">
+<a href="#siliconblue-GB_ROOT_R04-GB_ROOT-mux-SE.GLOBAL_ROOT[5]-0">GB_ROOT: mux SE.GLOBAL_ROOT[5] bit 0</a>
+</td>
+</tr>
+
+<tr><td>F2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F3</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F4</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F5</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F7</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F15</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -749,655 +991,43 @@
 
 <h2 id="tile-colbuf_l01"><a class="header" href="#tile-colbuf_l01">Tile COLBUF_L01</a></h2>
 <p>Cells: 1</p>
-<h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
+<h3 id="switchbox-colbuf"><a class="header" href="#switchbox-colbuf">Switchbox COLBUF</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue COLBUF_L01 rect R0</caption>
+<caption>siliconblue COLBUF_L01 switchbox COLBUF programmable buffers</caption>
 <thead>
-<tr><th rowspan="2">Frame</th><th colspan="3">Bit</th></tr>
-
-<tr>
-<th>B0</th>
-<th>B1</th>
-<th>B2</th>
-</tr>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>F0</td>
-<td>-</td>
-<td title="R0.F0.B1">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</a>
-</td>
-<td>-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]"><td>GLOBAL[0]</td><td>GLOBAL_ROOT[0]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[0][1]">MAIN[0][1]</a></td></tr>
 
-<tr><td>F1</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F1.B2">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</a>
-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]"><td>GLOBAL[1]</td><td>GLOBAL_ROOT[1]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[1][2]">MAIN[1][2]</a></td></tr>
 
-<tr><td>F2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]"><td>GLOBAL[2]</td><td>GLOBAL_ROOT[2]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[5][2]">MAIN[5][2]</a></td></tr>
 
-<tr><td>F3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]"><td>GLOBAL[3]</td><td>GLOBAL_ROOT[3]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[7][2]">MAIN[7][2]</a></td></tr>
 
-<tr><td>F4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]"><td>GLOBAL[4]</td><td>GLOBAL_ROOT[4]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[9][2]">MAIN[9][2]</a></td></tr>
 
-<tr><td>F5</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F5.B2">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</a>
-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]"><td>GLOBAL[5]</td><td>GLOBAL_ROOT[5]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[11][2]">MAIN[11][2]</a></td></tr>
 
-<tr><td>F6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]"><td>GLOBAL[6]</td><td>GLOBAL_ROOT[6]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[13][2]">MAIN[13][2]</a></td></tr>
 
-<tr><td>F7</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F7.B2">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</a>
-</td>
-</tr>
-
-<tr><td>F8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F9</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F9.B2">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</a>
-</td>
-</tr>
-
-<tr><td>F10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F11</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F11.B2">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</a>
-</td>
-</tr>
-
-<tr><td>F12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F13</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F13.B2">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</a>
-</td>
-</tr>
-
-<tr><td>F14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F15</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F15.B2">
-<a href="#tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</a>
-</td>
-</tr>
+<tr id="siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]"><td>GLOBAL[7]</td><td>GLOBAL_ROOT[7]</td><td><a href="#siliconblue-COLBUF_L01-bit-MAIN[15][2]">MAIN[15][2]</a></td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</th>
-<th>0.F1.B2</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</th>
-<th>0.F5.B2</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</th>
-<th>0.F7.B2</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</th>
-<th>0.F9.B2</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</th>
-<th>0.F11.B2</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</th>
-<th>0.F13.B2</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_L01-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</th>
-<th>0.F15.B2</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-colbuf_p08"><a class="header" href="#tile-colbuf_p08">Tile COLBUF_P08</a></h2>
-<p>Cells: 1</p>
 <h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue COLBUF_P08 rect R0</caption>
+<caption>siliconblue COLBUF_L01 rect MAIN</caption>
 <thead>
-<tr><th rowspan="2">Frame</th><th colspan="8">Bit</th></tr>
-
-<tr>
-<th>B0</th>
-<th>B1</th>
-<th>B2</th>
-<th>B3</th>
-<th>B4</th>
-<th>B5</th>
-<th>B6</th>
-<th>B7</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>F0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-<tr><td>F8</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F8.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</a>
-</td>
-</tr>
-
-<tr><td>F9</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F9.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</a>
-</td>
-</tr>
-
-<tr><td>F10</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F10.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</a>
-</td>
-</tr>
-
-<tr><td>F11</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F11.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</a>
-</td>
-</tr>
-
-<tr><td>F12</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F12.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</a>
-</td>
-</tr>
-
-<tr><td>F13</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F13.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</a>
-</td>
-</tr>
-
-<tr><td>F14</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F14.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</a>
-</td>
-</tr>
-
-<tr><td>F15</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F15.B7">
-<a href="#tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</th>
-<th>0.F9.B7</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</th>
-<th>0.F8.B7</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</th>
-<th>0.F11.B7</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</th>
-<th>0.F10.B7</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</th>
-<th>0.F13.B7</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</th>
-<th>0.F12.B7</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</th>
-<th>0.F15.B7</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_P08-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</th>
-<th>0.F14.B7</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-colbuf_io_w"><a class="header" href="#tile-colbuf_io_w">Tile COLBUF_IO_W</a></h2>
-<p>Cells: 1</p>
-<h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>siliconblue COLBUF_IO_W rect R0</caption>
-<thead>
-<tr><th rowspan="2">Frame</th><th colspan="9">Bit</th></tr>
-
-<tr>
-<th>B0</th>
-<th>B1</th>
-<th>B2</th>
-<th>B3</th>
-<th>B4</th>
-<th>B5</th>
-<th>B6</th>
-<th>B7</th>
-<th>B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>F0</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F0.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</a>
-</td>
-</tr>
-
-<tr><td>F1</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F1.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</a>
-</td>
-</tr>
-
-<tr><td>F2</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F2.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</a>
-</td>
-</tr>
-
-<tr><td>F3</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F3.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</a>
-</td>
-</tr>
-
-<tr><td>F4</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F4.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</a>
-</td>
-</tr>
-
-<tr><td>F5</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F5.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</a>
-</td>
-</tr>
-
-<tr><td>F6</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F6.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</a>
-</td>
-</tr>
-
-<tr><td>F7</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td title="R0.F7.B8">
-<a href="#tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</th>
-<th>0.F1.B8</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</th>
-<th>0.F0.B8</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</th>
-<th>0.F3.B8</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</th>
-<th>0.F2.B8</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</th>
-<th>0.F5.B8</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</th>
-<th>0.F4.B8</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</th>
-<th>0.F7.B8</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_W-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</th>
-<th>0.F6.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-colbuf_io_e"><a class="header" href="#tile-colbuf_io_e">Tile COLBUF_IO_E</a></h2>
-<p>Cells: 1</p>
-<h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>siliconblue COLBUF_IO_E rect R0</caption>
-<thead>
-<tr><th rowspan="2">Frame</th><th colspan="10">Bit</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="42">Bit</th></tr>
 
 <tr>
 <th>B0</th>
@@ -1410,6 +1040,867 @@ non-inverted
 <th>B7</th>
 <th>B8</th>
 <th>B9</th>
+<th>B10</th>
+<th>B11</th>
+<th>B12</th>
+<th>B13</th>
+<th>B14</th>
+<th>B15</th>
+<th>B16</th>
+<th>B17</th>
+<th>B18</th>
+<th>B19</th>
+<th>B20</th>
+<th>B21</th>
+<th>B22</th>
+<th>B23</th>
+<th>B24</th>
+<th>B25</th>
+<th>B26</th>
+<th>B27</th>
+<th>B28</th>
+<th>B29</th>
+<th>B30</th>
+<th>B31</th>
+<th>B32</th>
+<th>B33</th>
+<th>B34</th>
+<th>B35</th>
+<th>B36</th>
+<th>B37</th>
+<th>B38</th>
+<th>B39</th>
+<th>B40</th>
+<th>B41</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[0][1]" title="MAIN[0][1]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]">COLBUF: buffer GLOBAL[0] ← GLOBAL_ROOT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F1</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[1][2]" title="MAIN[1][2]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]">COLBUF: buffer GLOBAL[1] ← GLOBAL_ROOT[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F5</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[5][2]" title="MAIN[5][2]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]">COLBUF: buffer GLOBAL[2] ← GLOBAL_ROOT[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F7</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[7][2]" title="MAIN[7][2]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]">COLBUF: buffer GLOBAL[3] ← GLOBAL_ROOT[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[9][2]" title="MAIN[9][2]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]">COLBUF: buffer GLOBAL[4] ← GLOBAL_ROOT[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[11][2]" title="MAIN[11][2]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]">COLBUF: buffer GLOBAL[5] ← GLOBAL_ROOT[5]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[13][2]" title="MAIN[13][2]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]">COLBUF: buffer GLOBAL[6] ← GLOBAL_ROOT[6]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F15</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_L01-bit-MAIN[15][2]" title="MAIN[15][2]">
+<a href="#siliconblue-COLBUF_L01-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]">COLBUF: buffer GLOBAL[7] ← GLOBAL_ROOT[7]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="tile-colbuf_p08"><a class="header" href="#tile-colbuf_p08">Tile COLBUF_P08</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-colbuf-1"><a class="header" href="#switchbox-colbuf-1">Switchbox COLBUF</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>siliconblue COLBUF_P08 switchbox COLBUF programmable buffers</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
+
+</thead>
+
+<tbody>
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]"><td>GLOBAL[0]</td><td>GLOBAL_ROOT[0]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[9][7]">MAIN[9][7]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]"><td>GLOBAL[1]</td><td>GLOBAL_ROOT[1]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[8][7]">MAIN[8][7]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]"><td>GLOBAL[2]</td><td>GLOBAL_ROOT[2]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[11][7]">MAIN[11][7]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]"><td>GLOBAL[3]</td><td>GLOBAL_ROOT[3]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[10][7]">MAIN[10][7]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]"><td>GLOBAL[4]</td><td>GLOBAL_ROOT[4]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[13][7]">MAIN[13][7]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]"><td>GLOBAL[5]</td><td>GLOBAL_ROOT[5]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[12][7]">MAIN[12][7]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]"><td>GLOBAL[6]</td><td>GLOBAL_ROOT[6]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[15][7]">MAIN[15][7]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]"><td>GLOBAL[7]</td><td>GLOBAL_ROOT[7]</td><td><a href="#siliconblue-COLBUF_P08-bit-MAIN[14][7]">MAIN[14][7]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>siliconblue COLBUF_P08 rect MAIN</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="42">Bit</th></tr>
+
+<tr>
+<th>B0</th>
+<th>B1</th>
+<th>B2</th>
+<th>B3</th>
+<th>B4</th>
+<th>B5</th>
+<th>B6</th>
+<th>B7</th>
+<th>B8</th>
+<th>B9</th>
+<th>B10</th>
+<th>B11</th>
+<th>B12</th>
+<th>B13</th>
+<th>B14</th>
+<th>B15</th>
+<th>B16</th>
+<th>B17</th>
+<th>B18</th>
+<th>B19</th>
+<th>B20</th>
+<th>B21</th>
+<th>B22</th>
+<th>B23</th>
+<th>B24</th>
+<th>B25</th>
+<th>B26</th>
+<th>B27</th>
+<th>B28</th>
+<th>B29</th>
+<th>B30</th>
+<th>B31</th>
+<th>B32</th>
+<th>B33</th>
+<th>B34</th>
+<th>B35</th>
+<th>B36</th>
+<th>B37</th>
+<th>B38</th>
+<th>B39</th>
+<th>B40</th>
+<th>B41</th>
 </tr>
 
 </thead>
@@ -1425,9 +1916,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F0.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>F1</td>
@@ -1440,9 +1961,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F1.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>F2</td>
@@ -1455,9 +2006,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F2.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>F3</td>
@@ -1470,9 +2051,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F3.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>F4</td>
@@ -1485,9 +2096,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F4.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>F5</td>
@@ -1500,9 +2141,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F5.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>F6</td>
@@ -1515,9 +2186,39 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F6.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>F7</td>
@@ -1530,9 +2231,415 @@ non-inverted
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td title="R0.F7.B9">
-<a href="#tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[8][7]" title="MAIN[8][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]">COLBUF: buffer GLOBAL[1] ← GLOBAL_ROOT[1]</a>
 </td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[9][7]" title="MAIN[9][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]">COLBUF: buffer GLOBAL[0] ← GLOBAL_ROOT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[10][7]" title="MAIN[10][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]">COLBUF: buffer GLOBAL[3] ← GLOBAL_ROOT[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[11][7]" title="MAIN[11][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]">COLBUF: buffer GLOBAL[2] ← GLOBAL_ROOT[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[12][7]" title="MAIN[12][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]">COLBUF: buffer GLOBAL[5] ← GLOBAL_ROOT[5]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[13][7]" title="MAIN[13][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]">COLBUF: buffer GLOBAL[4] ← GLOBAL_ROOT[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[14][7]" title="MAIN[14][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]">COLBUF: buffer GLOBAL[7] ← GLOBAL_ROOT[7]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_P08-bit-MAIN[15][7]" title="MAIN[15][7]">
+<a href="#siliconblue-COLBUF_P08-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]">COLBUF: buffer GLOBAL[6] ← GLOBAL_ROOT[6]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -1540,85 +2647,883 @@ non-inverted
 </table>
 </div>
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.0">COLBUF:GLOBAL.0</th>
-<th>0.F1.B9</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.1">COLBUF:GLOBAL.1</th>
-<th>0.F0.B9</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.2">COLBUF:GLOBAL.2</th>
-<th>0.F3.B9</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.3">COLBUF:GLOBAL.3</th>
-<th>0.F2.B9</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.4">COLBUF:GLOBAL.4</th>
-<th>0.F5.B9</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.5">COLBUF:GLOBAL.5</th>
-<th>0.F4.B9</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.6">COLBUF:GLOBAL.6</th>
-<th>0.F7.B9</th>
-</tr>
-
-<tr><th id="tile-siliconblue-COLBUF_IO_E-COLBUF:GLOBAL.7">COLBUF:GLOBAL.7</th>
-<th>0.F6.B9</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-non-inverted
-</td>
-<td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-gb_fabric"><a class="header" href="#tile-gb_fabric">Tile GB_FABRIC</a></h2>
+<h2 id="tile-colbuf_io_w"><a class="header" href="#tile-colbuf_io_w">Tile COLBUF_IO_W</a></h2>
 <p>Cells: 1</p>
-<h3 id="bel-gb_fabric"><a class="header" href="#bel-gb_fabric">Bel GB_FABRIC</a></h3>
+<h3 id="switchbox-colbuf-2"><a class="header" href="#switchbox-colbuf-2">Switchbox COLBUF</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_FABRIC bel GB_FABRIC</caption>
+<caption>siliconblue COLBUF_IO_W switchbox COLBUF programmable buffers</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>I</td><td>input</td><td>IMUX.IO.EXTRA</td></tr>
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]"><td>GLOBAL[0]</td><td>GLOBAL_ROOT[0]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[1][8]">MAIN[1][8]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]"><td>GLOBAL[1]</td><td>GLOBAL_ROOT[1]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[0][8]">MAIN[0][8]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]"><td>GLOBAL[2]</td><td>GLOBAL_ROOT[2]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[3][8]">MAIN[3][8]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]"><td>GLOBAL[3]</td><td>GLOBAL_ROOT[3]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[2][8]">MAIN[2][8]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]"><td>GLOBAL[4]</td><td>GLOBAL_ROOT[4]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[5][8]">MAIN[5][8]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]"><td>GLOBAL[5]</td><td>GLOBAL_ROOT[5]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[4][8]">MAIN[4][8]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]"><td>GLOBAL[6]</td><td>GLOBAL_ROOT[6]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[7][8]">MAIN[7][8]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]"><td>GLOBAL[7]</td><td>GLOBAL_ROOT[7]</td><td><a href="#siliconblue-COLBUF_IO_W-bit-MAIN[6][8]">MAIN[6][8]</a></td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>siliconblue GB_FABRIC bel wires</caption>
+<caption>siliconblue COLBUF_IO_W rect MAIN</caption>
 <thead>
-<tr><th>Wire</th><th>Pins</th></tr>
+<tr><th rowspan="2">Frame</th><th colspan="18">Bit</th></tr>
+
+<tr>
+<th>B0</th>
+<th>B1</th>
+<th>B2</th>
+<th>B3</th>
+<th>B4</th>
+<th>B5</th>
+<th>B6</th>
+<th>B7</th>
+<th>B8</th>
+<th>B9</th>
+<th>B10</th>
+<th>B11</th>
+<th>B12</th>
+<th>B13</th>
+<th>B14</th>
+<th>B15</th>
+<th>B16</th>
+<th>B17</th>
+</tr>
 
 </thead>
 
 <tbody>
-<tr><td>IMUX.IO.EXTRA</td><td>GB_FABRIC.I</td></tr>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[0][8]" title="MAIN[0][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]">COLBUF: buffer GLOBAL[1] ← GLOBAL_ROOT[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[1][8]" title="MAIN[1][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]">COLBUF: buffer GLOBAL[0] ← GLOBAL_ROOT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[2][8]" title="MAIN[2][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]">COLBUF: buffer GLOBAL[3] ← GLOBAL_ROOT[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[3][8]" title="MAIN[3][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]">COLBUF: buffer GLOBAL[2] ← GLOBAL_ROOT[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[4][8]" title="MAIN[4][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]">COLBUF: buffer GLOBAL[5] ← GLOBAL_ROOT[5]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[5][8]" title="MAIN[5][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]">COLBUF: buffer GLOBAL[4] ← GLOBAL_ROOT[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[6][8]" title="MAIN[6][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]">COLBUF: buffer GLOBAL[7] ← GLOBAL_ROOT[7]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_W-bit-MAIN[7][8]" title="MAIN[7][8]">
+<a href="#siliconblue-COLBUF_IO_W-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]">COLBUF: buffer GLOBAL[6] ← GLOBAL_ROOT[6]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="tile-colbuf_io_e"><a class="header" href="#tile-colbuf_io_e">Tile COLBUF_IO_E</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-colbuf-3"><a class="header" href="#switchbox-colbuf-3">Switchbox COLBUF</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>siliconblue COLBUF_IO_E switchbox COLBUF programmable buffers</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
+
+</thead>
+
+<tbody>
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]"><td>GLOBAL[0]</td><td>GLOBAL_ROOT[0]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[1][9]">MAIN[1][9]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]"><td>GLOBAL[1]</td><td>GLOBAL_ROOT[1]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[0][9]">MAIN[0][9]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]"><td>GLOBAL[2]</td><td>GLOBAL_ROOT[2]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[3][9]">MAIN[3][9]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]"><td>GLOBAL[3]</td><td>GLOBAL_ROOT[3]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[2][9]">MAIN[2][9]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]"><td>GLOBAL[4]</td><td>GLOBAL_ROOT[4]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[5][9]">MAIN[5][9]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]"><td>GLOBAL[5]</td><td>GLOBAL_ROOT[5]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[4][9]">MAIN[4][9]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]"><td>GLOBAL[6]</td><td>GLOBAL_ROOT[6]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[7][9]">MAIN[7][9]</a></td></tr>
+
+<tr id="siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]"><td>GLOBAL[7]</td><td>GLOBAL_ROOT[7]</td><td><a href="#siliconblue-COLBUF_IO_E-bit-MAIN[6][9]">MAIN[6][9]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream-6"><a class="header" href="#bitstream-6">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>siliconblue COLBUF_IO_E rect MAIN</caption>
+<thead>
+<tr><th rowspan="2">Frame</th><th colspan="18">Bit</th></tr>
+
+<tr>
+<th>B0</th>
+<th>B1</th>
+<th>B2</th>
+<th>B3</th>
+<th>B4</th>
+<th>B5</th>
+<th>B6</th>
+<th>B7</th>
+<th>B8</th>
+<th>B9</th>
+<th>B10</th>
+<th>B11</th>
+<th>B12</th>
+<th>B13</th>
+<th>B14</th>
+<th>B15</th>
+<th>B16</th>
+<th>B17</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>F0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[0][9]" title="MAIN[0][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[1]-GLOBAL_ROOT[1]">COLBUF: buffer GLOBAL[1] ← GLOBAL_ROOT[1]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[1][9]" title="MAIN[1][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[0]-GLOBAL_ROOT[0]">COLBUF: buffer GLOBAL[0] ← GLOBAL_ROOT[0]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[2][9]" title="MAIN[2][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[3]-GLOBAL_ROOT[3]">COLBUF: buffer GLOBAL[3] ← GLOBAL_ROOT[3]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[3][9]" title="MAIN[3][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[2]-GLOBAL_ROOT[2]">COLBUF: buffer GLOBAL[2] ← GLOBAL_ROOT[2]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[4][9]" title="MAIN[4][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[5]-GLOBAL_ROOT[5]">COLBUF: buffer GLOBAL[5] ← GLOBAL_ROOT[5]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[5][9]" title="MAIN[5][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[4]-GLOBAL_ROOT[4]">COLBUF: buffer GLOBAL[4] ← GLOBAL_ROOT[4]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[6][9]" title="MAIN[6][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[7]-GLOBAL_ROOT[7]">COLBUF: buffer GLOBAL[7] ← GLOBAL_ROOT[7]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="siliconblue-COLBUF_IO_E-bit-MAIN[7][9]" title="MAIN[7][9]">
+<a href="#siliconblue-COLBUF_IO_E-COLBUF-progbuf-GLOBAL[6]-GLOBAL_ROOT[6]">COLBUF: buffer GLOBAL[6] ← GLOBAL_ROOT[6]</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>F15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="tile-colbuf_fixed"><a class="header" href="#tile-colbuf_fixed">Tile COLBUF_FIXED</a></h2>
+<p>Cells: 1</p>
+<h3 id="switchbox-colbuf-4"><a class="header" href="#switchbox-colbuf-4">Switchbox COLBUF</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>siliconblue COLBUF_FIXED switchbox COLBUF</caption>
+<thead>
+<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td rowspan="1">GLOBAL[0]</td><td>GLOBAL_ROOT[0]</td><td>fixed buffer</td>
+</tr>
+
+<tr><td rowspan="1">GLOBAL[1]</td><td>GLOBAL_ROOT[1]</td><td>fixed buffer</td>
+</tr>
+
+<tr><td rowspan="1">GLOBAL[2]</td><td>GLOBAL_ROOT[2]</td><td>fixed buffer</td>
+</tr>
+
+<tr><td rowspan="1">GLOBAL[3]</td><td>GLOBAL_ROOT[3]</td><td>fixed buffer</td>
+</tr>
+
+<tr><td rowspan="1">GLOBAL[4]</td><td>GLOBAL_ROOT[4]</td><td>fixed buffer</td>
+</tr>
+
+<tr><td rowspan="1">GLOBAL[5]</td><td>GLOBAL_ROOT[5]</td><td>fixed buffer</td>
+</tr>
+
+<tr><td rowspan="1">GLOBAL[6]</td><td>GLOBAL_ROOT[6]</td><td>fixed buffer</td>
+</tr>
+
+<tr><td rowspan="1">GLOBAL[7]</td><td>GLOBAL_ROOT[7]</td><td>fixed buffer</td>
+</tr>
 
 </tbody>
 
