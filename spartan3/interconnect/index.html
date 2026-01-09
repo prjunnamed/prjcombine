@@ -354,7 +354,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>INTF</td><td>INTF.DSP</td><td>INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLB, IOI.S3A.LR, IOI.S3A.B, IOI.S3A.T, DCM.S3E.TL, DCM.S3E.TR, LL.S3A, LR.S3A, UL.S3A, UR.S3A, BRAM.S3A, IOI.S3E, DCM.S3E.BR, LL.S3E, LR.S3E, UL.S3E, UR.S3E, BRAM.S3E, DCM.S3E.BL, IOI.S3, DCM.S3, LL.S3, LR.S3, UL.S3, UR.S3, BRAM.S3, DCM.S3E.LB, DCM.S3E.LT, DCM.S3E.RB, DCM.S3E.RT, BRAM.S3ADSP, DSP</td><td>SLICE0, SLICE1, SLICE2, SLICE3, TBUF0, TBUF1, TBUS, IO0, IO1, IO2, IO3, IBUF0, IBUF1, IBUF2, IBUF3, OBUF0, OBUF1, OBUF2, OBUF3, BRAM, MULT, DSP, DCM, GT, GT10, IPAD_RXP, IPAD_RXN, OPAD_TXP, OPAD_TXN, PPC405, DCI0, DCI1, DCIRESET0, DCIRESET1, STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
+<tr><td>BEL</td><td>CLB, IOI.S3A.LR, IOI.S3A.B, IOI.S3A.T, DCM.S3E.TL, DCM.S3E.TR, LL.S3A, LR.S3A, UL.S3A, UR.S3A, BRAM.S3A, IOI.S3E, DCM.S3E.BR, LL.S3E, LR.S3E, UL.S3E, UR.S3E, BRAM.S3E, DCM.S3E.BL, DCM.S3E.LB, DCM.S3E.LT, IOI.S3, DCM.S3, LL.S3, LR.S3, UL.S3, UR.S3, BRAM.S3, DCM.S3E.RB, DCM.S3E.RT, BRAM.S3ADSP, DSP</td><td>SLICE0, SLICE1, SLICE2, SLICE3, TBUF0, TBUF1, TBUS, IO0, IO1, IO2, IO3, IBUF0, IBUF1, IBUF2, IBUF3, OBUF0, OBUF1, OBUF2, OBUF3, BRAM, MULT, DSP, DCM, GT, GT10, IPAD_RXP, IPAD_RXN, OPAD_TXP, OPAD_TXN, PPC405, DCI0, DCI1, DCIRESET0, DCIRESET1, STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
 
 <tr><td>TERM_H</td><td>LLH, LLH.CLKT.S3A, LLH.CLKB.S3A</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E, LLH</td></tr>
 
@@ -459,7 +459,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>DSP</td><td>legacy</td><td>BEL</td><td>DSP</td></tr>
 
-<tr><td>DCM</td><td>legacy</td><td>BEL</td><td>DCM.S3E.TL, DCM.S3E.TR, DCM.S3E.BR, DCM.S3E.BL, DCM.S3, DCM.S3E.LB, DCM.S3E.LT, DCM.S3E.RB, DCM.S3E.RT</td></tr>
+<tr><td>DCM</td><td>legacy</td><td>BEL</td><td>DCM.S3E.TL, DCM.S3E.TR, DCM.S3E.BR, DCM.S3E.BL, DCM.S3E.LB, DCM.S3E.LT, DCM.S3, DCM.S3E.RB, DCM.S3E.RT</td></tr>
 
 <tr><td>GT</td><td>legacy</td><td>BEL</td><td></td></tr>
 
@@ -602,9 +602,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>E</td><td>W</td><td>MAIN.E, TERM.E, LLH.E, LLH.DCM.S3ADSP.E, DSPHOLE.E, HDCM.E</td></tr>
 
-<tr><td>S</td><td>N</td><td>MAIN.S, TERM.S, TERM.BRAM.S, CLKLR.S3E.S, LLV.S, LLV.CLKLR.S3E.S, BRKH.S3.S</td></tr>
+<tr><td>S</td><td>N</td><td>MAIN.S, TERM.S, TERM.BRAM.S, CLKLR.S3E.S, BRKH.S3.S, LLV.S, LLV.CLKLR.S3E.S</td></tr>
 
-<tr><td>N</td><td>S</td><td>MAIN.N, TERM.N, TERM.BRAM.N, CLKLR.S3E.N, LLV.N, LLV.CLKLR.S3E.N, BRKH.S3.N</td></tr>
+<tr><td>N</td><td>S</td><td>MAIN.N, TERM.N, TERM.BRAM.N, CLKLR.S3E.N, BRKH.S3.N, LLV.N, LLV.CLKLR.S3E.N</td></tr>
 
 </tbody>
 
@@ -3342,9 +3342,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <th>TERM.S</th>
 <th>TERM.BRAM.S</th>
 <th>CLKLR.S3E.S</th>
+<th>BRKH.S3.S</th>
 <th>LLV.S</th>
 <th>LLV.CLKLR.S3E.S</th>
-<th>BRKH.S3.S</th>
 </tr>
 
 </thead>
@@ -3356,8 +3356,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX8.E</td>
-<td>-</td>
 <td>→ OMUX8.E</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX9.N</td>
@@ -3366,8 +3366,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX9</td>
-<td>-</td>
 <td>→ OMUX9</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX10.N</td>
@@ -3376,8 +3376,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX10</td>
-<td>-</td>
 <td>→ OMUX10</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX11.N</td>
@@ -3386,8 +3386,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX11</td>
-<td>-</td>
 <td>→ OMUX11</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX12.N</td>
@@ -3396,8 +3396,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX12</td>
-<td>-</td>
 <td>→ OMUX12</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX14.WN</td>
@@ -3406,8 +3406,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX14.W</td>
-<td>-</td>
 <td>→ OMUX14.W</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX15.N</td>
@@ -3416,8 +3416,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX15</td>
-<td>-</td>
 <td>→ OMUX15</td>
+<td>-</td>
 </tr>
 
 <tr><td>DBL.W6.3</td>
@@ -3425,8 +3425,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ DBL.W6.2</td>
 <td>-</td>
+<td>→ DBL.W6.2</td>
 <td>-</td>
 </tr>
 
@@ -3435,8 +3435,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ DBL.W7.2</td>
 <td>-</td>
+<td>→ DBL.W7.2</td>
 <td>-</td>
 </tr>
 
@@ -3585,8 +3585,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ DBL.N6.2</td>
 <td>-</td>
+<td>→ DBL.N6.2</td>
 <td>-</td>
 </tr>
 
@@ -3615,8 +3615,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ DBL.N7.2</td>
 <td>-</td>
+<td>→ DBL.N7.2</td>
 <td>-</td>
 </tr>
 
@@ -3625,8 +3625,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ HEX.W6.6</td>
 <td>-</td>
+<td>→ HEX.W6.6</td>
 <td>-</td>
 </tr>
 
@@ -3635,8 +3635,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ HEX.W7.6</td>
 <td>-</td>
+<td>→ HEX.W7.6</td>
 <td>-</td>
 </tr>
 
@@ -4065,8 +4065,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ HEX.N6.6</td>
 <td>-</td>
+<td>→ HEX.N6.6</td>
 <td>-</td>
 </tr>
 
@@ -4135,8 +4135,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>-</td>
-<td>→ HEX.N7.6</td>
 <td>-</td>
+<td>→ HEX.N7.6</td>
 <td>-</td>
 </tr>
 
@@ -4145,9 +4145,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.1</td>
 <td>→ LV.1</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.1</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.1</td>
@@ -4155,9 +4155,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.2</td>
 <td>→ LV.2</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.2</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.2</td>
@@ -4165,9 +4165,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.3</td>
 <td>→ LV.3</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.3</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.3</td>
@@ -4175,9 +4175,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.4</td>
 <td>→ LV.4</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.4</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.4</td>
@@ -4185,9 +4185,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.5</td>
 <td>→ LV.5</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.5</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.5</td>
@@ -4195,9 +4195,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.6</td>
 <td>→ LV.6</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.6</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.6</td>
@@ -4205,9 +4205,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.7</td>
 <td>→ LV.7</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.7</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.7</td>
@@ -4215,9 +4215,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.8</td>
 <td>→ LV.8</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.8</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.8</td>
@@ -4225,9 +4225,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.9</td>
 <td>→ LV.9</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.9</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.9</td>
@@ -4235,9 +4235,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.10</td>
 <td>→ LV.10</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.10</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.10</td>
@@ -4245,9 +4245,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.11</td>
 <td>→ LV.11</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.11</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.11</td>
@@ -4255,9 +4255,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.12</td>
 <td>→ LV.12</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.12</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.12</td>
@@ -4265,9 +4265,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.13</td>
 <td>→ LV.13</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.13</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.13</td>
@@ -4275,9 +4275,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.14</td>
 <td>→ LV.14</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.14</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.14</td>
@@ -4285,9 +4285,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.15</td>
 <td>→ LV.15</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.15</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.15</td>
@@ -4295,9 +4295,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.16</td>
 <td>→ LV.16</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.16</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.16</td>
@@ -4305,9 +4305,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.17</td>
 <td>→ LV.17</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.17</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.17</td>
@@ -4315,9 +4315,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.18</td>
 <td>→ LV.18</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.18</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.18</td>
@@ -4325,9 +4325,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.19</td>
 <td>→ LV.19</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.19</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.19</td>
@@ -4335,9 +4335,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.20</td>
 <td>→ LV.20</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.20</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.20</td>
@@ -4345,9 +4345,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.21</td>
 <td>→ LV.21</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.21</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.21</td>
@@ -4355,9 +4355,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.22</td>
 <td>→ LV.22</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.22</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.22</td>
@@ -4365,9 +4365,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.23</td>
 <td>→ LV.23</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.23</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 <tr><td>LV.23</td>
@@ -4375,9 +4375,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>→ LV.0</td>
 <td>→ LV.0</td>
-<td>-</td>
-<td>-</td>
 <td>→ LV.0</td>
+<td>-</td>
+<td>-</td>
 </tr>
 
 </tbody>
@@ -4395,9 +4395,9 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <th>TERM.N</th>
 <th>TERM.BRAM.N</th>
 <th>CLKLR.S3E.N</th>
+<th>BRKH.S3.N</th>
 <th>LLV.N</th>
 <th>LLV.CLKLR.S3E.N</th>
-<th>BRKH.S3.N</th>
 </tr>
 
 </thead>
@@ -4409,8 +4409,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX0</td>
-<td>-</td>
 <td>→ OMUX0</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX1.WS</td>
@@ -4419,8 +4419,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX1.W</td>
-<td>-</td>
 <td>→ OMUX1.W</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX2.S</td>
@@ -4429,8 +4429,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX2</td>
-<td>-</td>
 <td>→ OMUX2</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX3.S</td>
@@ -4439,8 +4439,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX3</td>
-<td>-</td>
 <td>→ OMUX3</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX4.S</td>
@@ -4449,8 +4449,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX4</td>
-<td>-</td>
 <td>→ OMUX4</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX5.S</td>
@@ -4459,8 +4459,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX5</td>
-<td>-</td>
 <td>→ OMUX5</td>
+<td>-</td>
 </tr>
 
 <tr><td>OMUX7.ES</td>
@@ -4469,8 +4469,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ OMUX7.E</td>
-<td>-</td>
 <td>→ OMUX7.E</td>
+<td>-</td>
 </tr>
 
 <tr><td>DBL.E0.3</td>
@@ -4479,8 +4479,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ DBL.E0.2</td>
-<td>-</td>
 <td>→ DBL.E0.2</td>
+<td>-</td>
 </tr>
 
 <tr><td>DBL.E1.3</td>
@@ -4489,8 +4489,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ DBL.E1.2</td>
-<td>-</td>
 <td>→ DBL.E1.2</td>
+<td>-</td>
 </tr>
 
 <tr><td>DBL.S0.1</td>
@@ -4519,8 +4519,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ DBL.S0.2</td>
-<td>-</td>
 <td>→ DBL.S0.2</td>
+<td>-</td>
 </tr>
 
 <tr><td>DBL.S1.1</td>
@@ -4549,8 +4549,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ DBL.S1.2</td>
-<td>-</td>
 <td>→ DBL.S1.2</td>
+<td>-</td>
 </tr>
 
 <tr><td>DBL.S2.1</td>
@@ -4679,8 +4679,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ HEX.E0.6</td>
-<td>-</td>
 <td>→ HEX.E0.6</td>
+<td>-</td>
 </tr>
 
 <tr><td>HEX.E1.7</td>
@@ -4689,8 +4689,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ HEX.E1.6</td>
-<td>-</td>
 <td>→ HEX.E1.6</td>
+<td>-</td>
 </tr>
 
 <tr><td>HEX.S0.1</td>
@@ -4759,8 +4759,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ HEX.S0.6</td>
-<td>-</td>
 <td>→ HEX.S0.6</td>
+<td>-</td>
 </tr>
 
 <tr><td>HEX.S1.1</td>
@@ -4829,8 +4829,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <td>-</td>
 <td>-</td>
 <td>→ HEX.S1.6</td>
-<td>-</td>
 <td>→ HEX.S1.6</td>
+<td>-</td>
 </tr>
 
 <tr><td>HEX.S2.1</td>
