@@ -133,7 +133,7 @@ impl Database {
                 writeln!(
                     o,
                     "\tchip {};",
-                    dev.chips.ids().map(|x| x.to_string()).join(", ")
+                    dev.chips.values().map(|x| x.to_string()).join(", ")
                 )?;
                 if let Some(ipid) = dev.interposer {
                     writeln!(o, "\tinterposer {ipid};")?;
@@ -154,10 +154,10 @@ impl Database {
                 }
                 for &dis in &dev.disabled {
                     match dis {
-                        DisabledPart::Emac(reg) => write!(o, "\tdisabled emac {reg};")?,
-                        DisabledPart::GtxRow(reg) => write!(o, "\tdisabled gtx {reg};")?,
-                        DisabledPart::SysMon => write!(o, "\tdisabled sysmon;")?,
-                        DisabledPart::Gtp => write!(o, "\tdisabled gtp;")?,
+                        DisabledPart::Emac(reg) => writeln!(o, "\tdisabled emac {reg};")?,
+                        DisabledPart::GtxRow(reg) => writeln!(o, "\tdisabled gtx {reg};")?,
+                        DisabledPart::SysMon => writeln!(o, "\tdisabled sysmon;")?,
+                        DisabledPart::Gtp => writeln!(o, "\tdisabled gtp;")?,
                     }
                 }
                 writeln!(o, "}}")?;

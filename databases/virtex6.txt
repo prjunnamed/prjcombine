@@ -22033,7 +22033,7 @@ bond BOND15 {
 }
 
 device xc6vlx760 {
-	chip D0;
+	chip CHIP0;
 	bond ff1760 = BOND0;
 	speed -1;
 	speed -2;
@@ -22042,14 +22042,14 @@ device xc6vlx760 {
 }
 
 device xc6vlx760l {
-	chip D0;
+	chip CHIP0;
 	bond ff1760 = BOND0;
 	speed -1L;
 	combo ff1760 -1L;
 }
 
 device xc6vlx75t {
-	chip D0;
+	chip CHIP1;
 	bond ff484 = BOND1;
 	bond ff784 = BOND2;
 	speed -1;
@@ -22064,7 +22064,7 @@ device xc6vlx75t {
 }
 
 device xc6vlx75tl {
-	chip D0;
+	chip CHIP1;
 	bond ff484 = BOND1;
 	bond ff784 = BOND2;
 	speed -1L;
@@ -22073,7 +22073,7 @@ device xc6vlx75tl {
 }
 
 device xc6vcx75t {
-	chip D0;
+	chip CHIP1;
 	bond ff484 = BOND3;
 	bond ff784 = BOND4;
 	speed -1;
@@ -22082,10 +22082,14 @@ device xc6vcx75t {
 	combo ff484 -2;
 	combo ff784 -1;
 	combo ff784 -2;
-	disabled emac Y0;	disabled emac Y10;	disabled emac Y80;	disabled sysmon;}
+	disabled emac Y0;
+	disabled emac Y10;
+	disabled emac Y80;
+	disabled sysmon;
+}
 
 device xc6vlx130t {
-	chip D0;
+	chip CHIP2;
 	bond ff1156 = BOND5;
 	bond ff484 = BOND1;
 	bond ff784 = BOND6;
@@ -22104,7 +22108,7 @@ device xc6vlx130t {
 }
 
 device xq6vlx130t {
-	chip D0;
+	chip CHIP2;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf784 = BOND6;
@@ -22122,7 +22126,7 @@ device xq6vlx130t {
 }
 
 device xc6vlx130tl {
-	chip D0;
+	chip CHIP2;
 	bond ff1156 = BOND5;
 	bond ff484 = BOND1;
 	bond ff784 = BOND6;
@@ -22133,7 +22137,7 @@ device xc6vlx130tl {
 }
 
 device xq6vlx130tl {
-	chip D0;
+	chip CHIP2;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf784 = BOND6;
@@ -22144,7 +22148,7 @@ device xq6vlx130tl {
 }
 
 device xc6vcx130t {
-	chip D0;
+	chip CHIP2;
 	bond ff1156 = BOND7;
 	bond ff484 = BOND3;
 	bond ff784 = BOND8;
@@ -22156,10 +22160,15 @@ device xc6vcx130t {
 	combo ff484 -2;
 	combo ff784 -1;
 	combo ff784 -2;
-	disabled emac Y80;	disabled emac Y90;	disabled emac Y160;	disabled gtx REG0;	disabled sysmon;}
+	disabled emac Y80;
+	disabled emac Y90;
+	disabled emac Y160;
+	disabled gtx REG0;
+	disabled sysmon;
+}
 
 device xc6vlx195t {
-	chip D0;
+	chip CHIP3;
 	bond ff1156 = BOND5;
 	bond ff784 = BOND6;
 	speed -1;
@@ -22174,7 +22183,7 @@ device xc6vlx195t {
 }
 
 device xc6vlx195tl {
-	chip D0;
+	chip CHIP3;
 	bond ff1156 = BOND5;
 	bond ff784 = BOND6;
 	speed -1L;
@@ -22183,7 +22192,7 @@ device xc6vlx195tl {
 }
 
 device xc6vcx195t {
-	chip D0;
+	chip CHIP3;
 	bond ff1156 = BOND7;
 	bond ff784 = BOND8;
 	speed -1;
@@ -22192,10 +22201,15 @@ device xc6vcx195t {
 	combo ff1156 -2;
 	combo ff784 -1;
 	combo ff784 -2;
-	disabled emac Y80;	disabled emac Y90;	disabled emac Y160;	disabled gtx REG0;	disabled sysmon;}
+	disabled emac Y80;
+	disabled emac Y90;
+	disabled emac Y160;
+	disabled gtx REG0;
+	disabled sysmon;
+}
 
 device xc6vlx240t {
-	chip D0;
+	chip CHIP4;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND9;
 	bond ff784 = BOND6;
@@ -22214,7 +22228,7 @@ device xc6vlx240t {
 }
 
 device xq6vlx240t {
-	chip D0;
+	chip CHIP4;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf1759 = BOND9;
@@ -22236,7 +22250,7 @@ device xq6vlx240t {
 }
 
 device xc6vlx240tl {
-	chip D0;
+	chip CHIP4;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND9;
 	bond ff784 = BOND6;
@@ -22247,7 +22261,7 @@ device xc6vlx240tl {
 }
 
 device xq6vlx240tl {
-	chip D0;
+	chip CHIP4;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf1759 = BOND9;
@@ -22260,7 +22274,7 @@ device xq6vlx240tl {
 }
 
 device xc6vcx240t {
-	chip D0;
+	chip CHIP4;
 	bond ff1156 = BOND7;
 	bond ff784 = BOND8;
 	speed -1;
@@ -22269,10 +22283,16 @@ device xc6vcx240t {
 	combo ff1156 -2;
 	combo ff784 -1;
 	combo ff784 -2;
-	disabled emac Y80;	disabled emac Y90;	disabled emac Y160;	disabled gtx REG0;	disabled gtx REG5;	disabled sysmon;}
+	disabled emac Y80;
+	disabled emac Y90;
+	disabled emac Y160;
+	disabled gtx REG0;
+	disabled gtx REG5;
+	disabled sysmon;
+}
 
 device xc6vlx365t {
-	chip D0;
+	chip CHIP5;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND9;
 	speed -1;
@@ -22287,7 +22307,7 @@ device xc6vlx365t {
 }
 
 device xc6vlx365tl {
-	chip D0;
+	chip CHIP5;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND9;
 	speed -1L;
@@ -22296,7 +22316,7 @@ device xc6vlx365tl {
 }
 
 device xc6vlx550t {
-	chip D0;
+	chip CHIP6;
 	bond ff1759 = BOND10;
 	bond ff1760 = BOND0;
 	speed -1;
@@ -22308,14 +22328,14 @@ device xc6vlx550t {
 }
 
 device xq6vlx550t {
-	chip D0;
+	chip CHIP6;
 	bond rf1759 = BOND10;
 	speed -1;
 	combo rf1759 -1;
 }
 
 device xc6vlx550tl {
-	chip D0;
+	chip CHIP6;
 	bond ff1759 = BOND10;
 	bond ff1760 = BOND0;
 	speed -1L;
@@ -22324,14 +22344,14 @@ device xc6vlx550tl {
 }
 
 device xq6vlx550tl {
-	chip D0;
+	chip CHIP6;
 	bond rf1759 = BOND10;
 	speed -1L;
 	combo rf1759 -1L;
 }
 
 device xc6vsx315t {
-	chip D0;
+	chip CHIP7;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND9;
 	speed -1;
@@ -22346,7 +22366,7 @@ device xc6vsx315t {
 }
 
 device xq6vsx315t {
-	chip D0;
+	chip CHIP7;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf1759 = BOND9;
@@ -22364,7 +22384,7 @@ device xq6vsx315t {
 }
 
 device xc6vsx315tl {
-	chip D0;
+	chip CHIP7;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND9;
 	speed -1L;
@@ -22373,7 +22393,7 @@ device xc6vsx315tl {
 }
 
 device xq6vsx315tl {
-	chip D0;
+	chip CHIP7;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf1759 = BOND9;
@@ -22384,7 +22404,7 @@ device xq6vsx315tl {
 }
 
 device xc6vsx475t {
-	chip D0;
+	chip CHIP8;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND10;
 	speed -1;
@@ -22396,7 +22416,7 @@ device xc6vsx475t {
 }
 
 device xq6vsx475t {
-	chip D0;
+	chip CHIP8;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf1759 = BOND10;
@@ -22407,7 +22427,7 @@ device xq6vsx475t {
 }
 
 device xc6vsx475tl {
-	chip D0;
+	chip CHIP8;
 	bond ff1156 = BOND5;
 	bond ff1759 = BOND10;
 	speed -1L;
@@ -22416,7 +22436,7 @@ device xc6vsx475tl {
 }
 
 device xq6vsx475tl {
-	chip D0;
+	chip CHIP8;
 	bond ffg1156 = BOND5;
 	bond rf1156 = BOND5;
 	bond rf1759 = BOND10;
@@ -22427,7 +22447,7 @@ device xq6vsx475tl {
 }
 
 device xc6vhx250t {
-	chip D0;
+	chip CHIP9;
 	bond ff1154 = BOND11;
 	speed -1;
 	speed -2;
@@ -22438,7 +22458,7 @@ device xc6vhx250t {
 }
 
 device xc6vhx255t {
-	chip D0;
+	chip CHIP10;
 	bond ff1155 = BOND12;
 	bond ff1923 = BOND13;
 	speed -1;
@@ -22453,7 +22473,7 @@ device xc6vhx255t {
 }
 
 device xc6vhx380t {
-	chip D0;
+	chip CHIP11;
 	bond ff1154 = BOND11;
 	bond ff1155 = BOND12;
 	bond ff1923 = BOND14;
@@ -22476,7 +22496,7 @@ device xc6vhx380t {
 }
 
 device xc6vhx565t {
-	chip D0;
+	chip CHIP12;
 	bond ff1923 = BOND14;
 	bond ff1924 = BOND15;
 	speed -1;
