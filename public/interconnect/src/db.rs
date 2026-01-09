@@ -9,75 +9,7 @@ use prjcombine_types::{
 };
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
-impl EntityTag for EnumClass {
-    const PREFIX: &'static str = "ECLS";
-}
-impl EntityTag for BelClass {
-    const PREFIX: &'static str = "BCLS";
-}
-impl EntityTag for BelClassInput {
-    const PREFIX: &'static str = "BELIN";
-}
-impl EntityTag for BelClassOutput {
-    const PREFIX: &'static str = "BELOUT";
-}
-impl EntityTag for BelClassBidir {
-    const PREFIX: &'static str = "BELIO";
-}
-impl EntityTag for BelClassPad {
-    const PREFIX: &'static str = "BELPAD";
-}
-impl EntityTag for BelClassAttribute {
-    const PREFIX: &'static str = "BELATTR";
-}
-
-impl EntityTag for WireKind {
-    const PREFIX: &'static str = "WIRE";
-}
-impl EntityTag for TileClass {
-    const PREFIX: &'static str = "TCLS";
-}
-impl EntityTag for ConnectorSlot {
-    const PREFIX: &'static str = "CSLOT";
-}
-pub struct RegionSlotTag;
-impl EntityTag for RegionSlotTag {
-    const PREFIX: &'static str = "RSLOT";
-}
-impl EntityTag for ConnectorClass {
-    const PREFIX: &'static str = "CCLS";
-}
-pub struct CellSlotTag;
-impl EntityTag for CellSlotTag {
-    const PREFIX: &'static str = "TCELL";
-}
-impl EntityTag for BelSlot {
-    const PREFIX: &'static str = "BEL";
-}
-pub struct TileSlotTag;
-impl EntityTag for TileSlotTag {
-    const PREFIX: &'static str = "TSLOT";
-}
-pub struct EnumValueTag;
-impl EntityTag for EnumValueTag {
-    const PREFIX: &'static str = "EV";
-}
-pub type EnumClassId = EntityIdU16<EnumClass>;
-pub type EnumValueId = EntityIdU16<EnumValueTag>;
-pub type BelClassId = EntityIdU16<BelClass>;
-pub type BelInputId = EntityIdU16<BelClassInput>;
-pub type BelOutputId = EntityIdU16<BelClassOutput>;
-pub type BelBidirId = EntityIdU16<BelClassBidir>;
-pub type BelPadId = EntityIdU16<BelClassPad>;
-pub type BelAttributeId = EntityIdU16<BelClassAttribute>;
-pub type WireSlotId = EntityIdU16<WireKind>;
-pub type TileClassId = EntityIdU16<TileClass>;
-pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
-pub type ConnectorSlotId = EntityIdU8<ConnectorSlot>;
-pub type ConnectorClassId = EntityIdU16<ConnectorClass>;
-pub type CellSlotId = EntityIdU16<CellSlotTag>;
-pub type BelSlotId = EntityIdU16<BelSlot>;
-pub type TileSlotId = EntityIdU8<TileSlotTag>;
+// region: top
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Encode, Decode)]
 pub struct IntDb {
@@ -222,10 +154,53 @@ impl std::ops::Index<ConnectorClassId> for IntDb {
     }
 }
 
+// endregion:
+
+// region: enums
+
+impl EntityTag for EnumClass {
+    const PREFIX: &'static str = "ECLS";
+}
+pub struct EnumValueTag;
+impl EntityTag for EnumValueTag {
+    const PREFIX: &'static str = "EV";
+}
+pub type EnumClassId = EntityIdU16<EnumClass>;
+pub type EnumValueId = EntityIdU16<EnumValueTag>;
+
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct EnumClass {
     pub values: EntitySet<EnumValueId, String>,
 }
+
+// endregion:
+
+// region: bel classes and slots
+
+impl EntityTag for BelClass {
+    const PREFIX: &'static str = "BCLS";
+}
+impl EntityTag for BelClassInput {
+    const PREFIX: &'static str = "BELIN";
+}
+impl EntityTag for BelClassOutput {
+    const PREFIX: &'static str = "BELOUT";
+}
+impl EntityTag for BelClassBidir {
+    const PREFIX: &'static str = "BELIO";
+}
+impl EntityTag for BelClassPad {
+    const PREFIX: &'static str = "BELPAD";
+}
+impl EntityTag for BelClassAttribute {
+    const PREFIX: &'static str = "BELATTR";
+}
+pub type BelClassId = EntityIdU16<BelClass>;
+pub type BelInputId = EntityIdU16<BelClassInput>;
+pub type BelOutputId = EntityIdU16<BelClassOutput>;
+pub type BelBidirId = EntityIdU16<BelClassBidir>;
+pub type BelPadId = EntityIdU16<BelClassPad>;
+pub type BelAttributeId = EntityIdU16<BelClassAttribute>;
 
 #[derive(Default, Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BelClass {
@@ -278,6 +253,12 @@ pub enum PadKind {
     Analog,
 }
 
+impl EntityTag for BelSlot {
+    const PREFIX: &'static str = "BEL";
+}
+
+pub type BelSlotId = EntityIdU16<BelSlot>;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct BelSlot {
     pub tile_slot: TileSlotId,
@@ -290,6 +271,21 @@ pub enum BelKind {
     Class(BelClassId),
     Legacy,
 }
+
+// endregion:
+
+// region: regions, wires, connectors
+
+pub struct RegionSlotTag;
+impl EntityTag for RegionSlotTag {
+    const PREFIX: &'static str = "RSLOT";
+}
+pub type RegionSlotId = EntityIdU8<RegionSlotTag>;
+
+impl EntityTag for WireKind {
+    const PREFIX: &'static str = "WIRE";
+}
+pub type WireSlotId = EntityIdU16<WireKind>;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub enum WireKind {
@@ -329,6 +325,62 @@ impl WireKind {
         matches!(self, WireKind::Tie0 | WireKind::Tie1 | WireKind::TiePullup)
     }
 }
+
+impl EntityTag for ConnectorSlot {
+    const PREFIX: &'static str = "CSLOT";
+}
+impl EntityTag for ConnectorClass {
+    const PREFIX: &'static str = "CCLS";
+}
+
+pub type ConnectorSlotId = EntityIdU8<ConnectorSlot>;
+pub type ConnectorClassId = EntityIdU16<ConnectorClass>;
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct ConnectorClass {
+    pub slot: ConnectorSlotId,
+    pub wires: EntityPartVec<WireSlotId, ConnectorWire>,
+}
+
+impl ConnectorClass {
+    pub fn new(slot: ConnectorSlotId) -> Self {
+        ConnectorClass {
+            slot,
+            wires: Default::default(),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub enum ConnectorWire {
+    BlackHole,
+    Reflect(WireSlotId),
+    Pass(WireSlotId),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub struct ConnectorSlot {
+    pub opposite: ConnectorSlotId,
+}
+
+// endregion:
+
+// region: tiles
+
+impl EntityTag for TileClass {
+    const PREFIX: &'static str = "TCLS";
+}
+pub struct CellSlotTag;
+impl EntityTag for CellSlotTag {
+    const PREFIX: &'static str = "TCELL";
+}
+pub struct TileSlotTag;
+impl EntityTag for TileSlotTag {
+    const PREFIX: &'static str = "TSLOT";
+}
+pub type TileClassId = EntityIdU16<TileClass>;
+pub type CellSlotId = EntityIdU16<CellSlotTag>;
+pub type TileSlotId = EntityIdU8<TileSlotTag>;
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct TileClass {
@@ -443,6 +495,10 @@ pub enum BelInfo {
     Legacy(LegacyBel),
 }
 
+// endregion:
+
+// region: bels
+
 #[derive(Default, Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct Bel {
     pub inputs: EntityPartVec<BelInputId, BelInput>,
@@ -473,6 +529,46 @@ pub struct BelAttributeEnum {
 pub struct LegacyBel {
     pub pins: BTreeMap<String, BelPin>,
 }
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub struct BelPin {
+    pub wires: BTreeSet<TileWireCoord>,
+    pub dir: PinDir,
+}
+
+impl BelPin {
+    pub fn new_in(wire: TileWireCoord) -> BelPin {
+        BelPin {
+            wires: BTreeSet::from_iter([wire]),
+            dir: PinDir::Input,
+        }
+    }
+
+    pub fn new_out(wire: TileWireCoord) -> BelPin {
+        BelPin {
+            wires: BTreeSet::from_iter([wire]),
+            dir: PinDir::Output,
+        }
+    }
+
+    pub fn new_out_multi(wires: impl IntoIterator<Item = TileWireCoord>) -> BelPin {
+        BelPin {
+            wires: BTreeSet::from_iter(wires),
+            dir: PinDir::Output,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+pub enum PinDir {
+    Input,
+    Output,
+    Inout,
+}
+
+// endregion:
+
+// region: routing
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
 pub struct SwitchBox {
@@ -563,68 +659,9 @@ pub struct GroupTestMuxWire {
     pub test_src: Vec<Option<PolTileWireCoord>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
-pub struct BelPin {
-    pub wires: BTreeSet<TileWireCoord>,
-    pub dir: PinDir,
-}
+// endregion:
 
-impl BelPin {
-    pub fn new_in(wire: TileWireCoord) -> BelPin {
-        BelPin {
-            wires: BTreeSet::from_iter([wire]),
-            dir: PinDir::Input,
-        }
-    }
-
-    pub fn new_out(wire: TileWireCoord) -> BelPin {
-        BelPin {
-            wires: BTreeSet::from_iter([wire]),
-            dir: PinDir::Output,
-        }
-    }
-
-    pub fn new_out_multi(wires: impl IntoIterator<Item = TileWireCoord>) -> BelPin {
-        BelPin {
-            wires: BTreeSet::from_iter(wires),
-            dir: PinDir::Output,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
-pub enum PinDir {
-    Input,
-    Output,
-    Inout,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
-pub struct ConnectorClass {
-    pub slot: ConnectorSlotId,
-    pub wires: EntityPartVec<WireSlotId, ConnectorWire>,
-}
-
-impl ConnectorClass {
-    pub fn new(slot: ConnectorSlotId) -> Self {
-        ConnectorClass {
-            slot,
-            wires: Default::default(),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
-pub enum ConnectorWire {
-    BlackHole,
-    Reflect(WireSlotId),
-    Pass(WireSlotId),
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
-pub struct ConnectorSlot {
-    pub opposite: ConnectorSlotId,
-}
+// region: index
 
 #[derive(Clone, Debug)]
 pub struct IntDbIndex {
@@ -769,3 +806,5 @@ impl ConnectorClassIndex {
         }
     }
 }
+
+// endregion:
