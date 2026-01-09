@@ -4,7 +4,6 @@ use bincode::{Decode, Encode};
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::db::IntDb;
 use prjcombine_types::{
-    bsdata::BsData,
     db::{BondId, ChipId, DumpFlags, SpeedId},
     speed::Speed,
 };
@@ -27,7 +26,6 @@ pub struct Database {
     pub speeds: EntityVec<SpeedId, Speed>,
     pub devices: Vec<Device>,
     pub int: IntDb,
-    pub bsdata: BsData,
 }
 
 impl Database {
@@ -144,9 +142,6 @@ impl Database {
             writeln!(o)?;
         }
 
-        if flags.bsdata {
-            self.bsdata.dump(o)?;
-        }
         Ok(())
     }
 }

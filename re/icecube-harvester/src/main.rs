@@ -35,7 +35,7 @@ use prjcombine_siliconblue::{
 };
 use prjcombine_types::{
     bimap::BiMap,
-    bsdata::{BitRectId, BsData, PolTileBit, TileBit},
+    bsdata::{BitRectId, PolTileBit, TileBit},
     speed::Speed,
 };
 use rand::Rng;
@@ -92,7 +92,6 @@ struct PartContext<'a> {
     extra_wire_names: BTreeMap<(u32, u32, String), WireCoord>,
     bel_pins: BTreeMap<(&'static str, RawLoc), BelPins>,
     special_tiles: BTreeMap<SpecialTileKey, Vec<RawLoc>>,
-    bsdata: BsData,
     speed: BTreeMap<(&'static str, &'static str), Speed>,
     tcls_filled: BTreeSet<TileClassId>,
     debug: u8,
@@ -2534,9 +2533,7 @@ impl PartContext<'_> {
 
         let edev = self.chip.expand_grid(&self.intdb);
 
-        let (bsdata, cdata) = collect(&edev, &harvester);
-
-        self.bsdata = bsdata;
+        let cdata = collect(&edev, &harvester);
 
         cdata.insert_into(&mut self.intdb, true);
 
@@ -2552,7 +2549,6 @@ impl PartContext<'_> {
             speeds: EntityVec::new(),
             devices: vec![],
             int: self.intdb.clone(),
-            bsdata: self.bsdata.clone(),
         };
         db.int.validate();
         let chip = db.chips.push(self.chip.clone());
@@ -2663,7 +2659,6 @@ fn main() {
             extra_wire_names: BTreeMap::new(),
             bel_pins: BTreeMap::new(),
             special_tiles: BTreeMap::new(),
-            bsdata: BsData::default(),
             speed: BTreeMap::new(),
             debug: args.debug,
             tcls_filled: BTreeSet::new(),

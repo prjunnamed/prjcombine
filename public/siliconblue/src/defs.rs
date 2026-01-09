@@ -1390,6 +1390,35 @@ target_defs! {
             pass OUT_LC_ES = OUT_LC_E;
         }
     }
+
+    table IOSTD {
+        field DRIVE: bitvec[2];
+        field IOSTD_MISC: bitvec[1];
+
+        row
+            SB_LVCMOS15_2,
+            SB_LVCMOS15_4,
+            SB_LVCMOS18_2,
+            SB_LVCMOS18_4,
+            SB_LVCMOS18_8,
+            SB_LVCMOS18_10,
+            SB_LVCMOS25_4,
+            SB_LVCMOS25_8,
+            SB_LVCMOS25_12,
+            SB_LVCMOS25_16,
+            SB_LVCMOS33_8,
+            SB_MDDR2,
+            SB_MDDR4,
+            SB_MDDR8,
+            SB_MDDR10,
+            SB_SSTL18_FULL,
+            SB_SSTL18_HALF,
+            SB_SSTL2_CLASS_1,
+            SB_SSTL2_CLASS_2,
+            SB_LVDS_INPUT,
+            SB_SUBLVDS_INPUT
+        ;
+    }
 }
 
 pub const QUAD_H: &[EntityStaticRange<WireSlotId, 12>; 5] = &[

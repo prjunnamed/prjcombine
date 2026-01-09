@@ -159,7 +159,7 @@ pub fn collect_iob(
     }
 }
 
-pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> (BsData, CollectorData) {
+pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> CollectorData {
     let mut tiledb = BsData::new();
     let mut state = State::new();
     let mut bitvec_diffs: BTreeMap<DiffKey, BTreeMap<usize, Diff>> = BTreeMap::new();
@@ -392,6 +392,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> (BsDat
                     .combine(&!&diff_cmos);
                 let bits = xlat_bitvec_raw(vec![diff0, diff1]);
                 collector.insert_bel_attr_bitvec(tcid, bel, defs::bcls::IOB::DRIVE, bits);
+                let table = &edev.db.tables[defs::tables::IOSTD];
                 for std in [
                     "SB_LVCMOS15_4",
                     "SB_LVCMOS15_2",
@@ -427,17 +428,24 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> (BsDat
                         &bits![0, 0],
                         &mut diff,
                     );
-                    collector
-                        .tiledb
-                        .insert_misc_data(format!("IOSTD:DRIVE:{std}"), drive);
+                    let rid = table.rows.get(std).unwrap().0;
+                    collector.insert_table_bitvec(
+                        defs::tables::IOSTD,
+                        rid,
+                        defs::tables::IOSTD::DRIVE,
+                        drive,
+                    );
                     let misc = extract_bitvec_val_part_raw(
                         collector.bel_attr_bitvec(tcid, bel, defs::bcls::IOB::IOSTD_MISC),
                         &bits![0],
                         &mut diff,
                     );
-                    collector
-                        .tiledb
-                        .insert_misc_data(format!("IOSTD:IOSTD_MISC:{std}"), misc);
+                    collector.insert_table_bitvec(
+                        defs::tables::IOSTD,
+                        rid,
+                        defs::tables::IOSTD::IOSTD_MISC,
+                        misc,
+                    );
                     diff.assert_empty();
                 }
             } else {
@@ -485,6 +493,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> (BsDat
                     defs::bcls::IOB_PAIR::LVDS_INPUT,
                 );
             } else {
+                let table = &edev.db.tables[defs::tables::IOSTD];
                 for std in ["SB_LVDS_INPUT", "SB_SUBLVDS_INPUT"] {
                     let mut diff = collector.state.get_diff_raw(&DiffKey::BelSpecialString(
                         tcid,
@@ -498,9 +507,13 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> (BsDat
                             &bits![0],
                             &mut diff,
                         );
-                        collector
-                            .tiledb
-                            .insert_misc_data(format!("IOSTD:IOSTD_MISC:{std}"), misc);
+                        let rid = table.rows.get(std).unwrap().0;
+                        collector.insert_table_bitvec(
+                            defs::tables::IOSTD,
+                            rid,
+                            defs::tables::IOSTD::IOSTD_MISC,
+                            misc,
+                        );
                     }
                     let bit = xlat_bit_raw(diff);
                     collector.insert_bel_attr_bool(
@@ -809,5 +822,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> (BsDat
         println!("uncollected: {key:?}: {diffs:?}", diffs = data.diffs);
     }
 
-    (tiledb, data)
+    assert_eq!(tiledb, BsData::new());
+
+    data
 }

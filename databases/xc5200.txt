@@ -8817,10 +8817,10 @@ intdb {
 	tile_slot EXTRA_CROSS {
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class CNR.LL {
+		connector_class CNR.LL {
 			reflect IO.SINGLE.B.E0 = IO.SINGLE.L.N0;
 			reflect IO.SINGLE.B.E1 = IO.SINGLE.L.N1;
 			reflect IO.SINGLE.B.E2 = IO.SINGLE.L.N2;
@@ -8831,7 +8831,7 @@ intdb {
 			reflect IO.SINGLE.B.E7 = IO.SINGLE.L.N7;
 		}
 
-		conn_class MAIN.W {
+		connector_class MAIN.W {
 			pass SINGLE.W1 = SINGLE.E1;
 			pass SINGLE.W2 = SINGLE.E2;
 			pass SINGLE.W3 = SINGLE.E3;
@@ -8868,7 +8868,7 @@ intdb {
 			pass OMUX3.BUF.E = OMUX3.BUF;
 		}
 
-		conn_class LLH.W {
+		connector_class LLH.W {
 			pass SINGLE.W1 = SINGLE.E1;
 			pass SINGLE.W2 = SINGLE.E2;
 			pass SINGLE.W3 = SINGLE.E3;
@@ -8898,10 +8898,10 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class CNR.UR {
+		connector_class CNR.UR {
 			reflect IO.SINGLE.T.W0 = IO.SINGLE.R.S0;
 			reflect IO.SINGLE.T.W1 = IO.SINGLE.R.S1;
 			reflect IO.SINGLE.T.W2 = IO.SINGLE.R.S2;
@@ -8912,7 +8912,7 @@ intdb {
 			reflect IO.SINGLE.T.W7 = IO.SINGLE.R.S7;
 		}
 
-		conn_class MAIN.E {
+		connector_class MAIN.E {
 			pass IO.SINGLE.T.E0 = IO.SINGLE.T.W0;
 			pass IO.SINGLE.T.E1 = IO.SINGLE.T.W1;
 			pass IO.SINGLE.T.E2 = IO.SINGLE.T.W2;
@@ -8931,7 +8931,7 @@ intdb {
 			pass OMUX3.BUF.W = OMUX3.BUF;
 		}
 
-		conn_class LLH.E {
+		connector_class LLH.E {
 			pass IO.SINGLE.T.E0 = IO.SINGLE.T.W0;
 			pass IO.SINGLE.T.E1 = IO.SINGLE.T.W1;
 			pass IO.SINGLE.T.E2 = IO.SINGLE.T.W2;
@@ -8951,10 +8951,10 @@ intdb {
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class CNR.LR {
+		connector_class CNR.LR {
 			reflect IO.SINGLE.R.N0 = IO.SINGLE.B.W0;
 			reflect IO.SINGLE.R.N1 = IO.SINGLE.B.W1;
 			reflect IO.SINGLE.R.N2 = IO.SINGLE.B.W2;
@@ -8965,7 +8965,7 @@ intdb {
 			reflect IO.SINGLE.R.N7 = IO.SINGLE.B.W7;
 		}
 
-		conn_class MAIN.S {
+		connector_class MAIN.S {
 			pass IO.SINGLE.R.S0 = IO.SINGLE.R.N0;
 			pass IO.SINGLE.R.S1 = IO.SINGLE.R.N1;
 			pass IO.SINGLE.R.S2 = IO.SINGLE.R.N2;
@@ -8992,7 +8992,7 @@ intdb {
 			pass OMUX3.BUF.N = OMUX3.BUF;
 		}
 
-		conn_class LLV.S {
+		connector_class LLV.S {
 			pass IO.SINGLE.R.S0 = IO.SINGLE.R.N0;
 			pass IO.SINGLE.R.S1 = IO.SINGLE.R.N1;
 			pass IO.SINGLE.R.S2 = IO.SINGLE.R.N2;
@@ -9012,10 +9012,10 @@ intdb {
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class CNR.UL {
+		connector_class CNR.UL {
 			reflect IO.SINGLE.L.S0 = IO.SINGLE.T.E0;
 			reflect IO.SINGLE.L.S1 = IO.SINGLE.T.E1;
 			reflect IO.SINGLE.L.S2 = IO.SINGLE.T.E2;
@@ -9026,7 +9026,7 @@ intdb {
 			reflect IO.SINGLE.L.S7 = IO.SINGLE.T.E7;
 		}
 
-		conn_class MAIN.N {
+		connector_class MAIN.N {
 			pass SINGLE.N1 = SINGLE.S1;
 			pass SINGLE.N2 = SINGLE.S2;
 			pass SINGLE.N3 = SINGLE.S3;
@@ -9055,7 +9055,7 @@ intdb {
 			pass OMUX3.BUF.S = OMUX3.BUF;
 		}
 
-		conn_class LLV.N {
+		connector_class LLV.N {
 			pass SINGLE.N1 = SINGLE.S1;
 			pass SINGLE.N2 = SINGLE.S2;
 			pass SINGLE.N3 = SINGLE.S3;

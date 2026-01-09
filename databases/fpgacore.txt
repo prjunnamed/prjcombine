@@ -3362,10 +3362,10 @@ intdb {
 		}
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class MAIN.W {
+		connector_class MAIN.W {
 			pass OMUX2.E = OMUX2;
 			pass OMUX3.SE = OMUX3.S;
 			pass OMUX7.E = OMUX7;
@@ -3450,7 +3450,7 @@ intdb {
 			pass LH.11 = LH.10;
 		}
 
-		conn_class TERM.W {
+		connector_class TERM.W {
 			reflect DBL.E0.1 = DBL.W0.0;
 			reflect DBL.E0.2 = DBL.W0.1;
 			reflect DBL.E1.1 = DBL.W1.0;
@@ -3518,10 +3518,10 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class MAIN.E {
+		connector_class MAIN.E {
 			pass OMUX1.W = OMUX1;
 			pass OMUX5.SW = OMUX5.S;
 			pass OMUX6.W = OMUX6;
@@ -3594,7 +3594,7 @@ intdb {
 			pass HEX.W7.6 = HEX.W7.5;
 		}
 
-		conn_class TERM.E {
+		connector_class TERM.E {
 			reflect DBL.W0.1 = DBL.E0.0;
 			reflect DBL.W0.2 = DBL.E0.1;
 			reflect DBL.W1.1 = DBL.E1.0;
@@ -3662,10 +3662,10 @@ intdb {
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class MAIN.S {
+		connector_class MAIN.S {
 			pass OMUX8.EN = OMUX8.E;
 			pass OMUX9.N = OMUX9;
 			pass OMUX10.N = OMUX10;
@@ -3759,7 +3759,7 @@ intdb {
 			pass LV.11 = LV.0;
 		}
 
-		conn_class TERM.S {
+		connector_class TERM.S {
 			reflect DBL.N0.1 = DBL.S0.0;
 			reflect DBL.N0.2 = DBL.S0.1;
 			reflect DBL.N1.1 = DBL.S1.0;
@@ -3827,10 +3827,10 @@ intdb {
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class MAIN.N {
+		connector_class MAIN.N {
 			pass OMUX0.S = OMUX0;
 			pass OMUX1.WS = OMUX1.W;
 			pass OMUX2.S = OMUX2;
@@ -3912,7 +3912,7 @@ intdb {
 			pass HEX.S7.6 = HEX.S7.5;
 		}
 
-		conn_class TERM.N {
+		connector_class TERM.N {
 			reflect DBL.S0.1 = DBL.N0.0;
 			reflect DBL.S0.2 = DBL.N0.1;
 			reflect DBL.S1.1 = DBL.N1.0;

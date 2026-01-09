@@ -399,6 +399,12 @@ impl Item for ast::TopItem {
                 }
                 ast::TopItem::Wire(parse_wire(tokenizer)?)
             }
+            "table" => {
+                let Some(block) = block else {
+                    error_at(keyword.span(), "table requires a block")?
+                };
+                ast::TopItem::Table(parse_table(tokenizer, block)?)
+            }
             _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
         })
     }
@@ -893,6 +899,62 @@ fn parse_wire(mut tokenizer: Tokenizer) -> Result<ast::Wire> {
 }
 
 // endregion
+
+// region: tables
+
+fn parse_table(mut tokenizer: Tokenizer, block: TokenStream) -> Result<ast::Table> {
+    let name = tokenizer.template_id()?;
+    tokenizer.finish()?;
+
+    let items = parse(block)?;
+    Ok(ast::Table { name, items })
+}
+
+impl Item for ast::TableItem {
+    fn parse_item(
+        keyword: Ident,
+        tokens: Vec<TokenTree>,
+        block: Option<TokenStream>,
+    ) -> Result<Self> {
+        let mut tokenizer = Tokenizer::new(keyword.span(), tokens);
+        Ok(match keyword.to_string().as_str() {
+            "field" => {
+                if block.is_some() {
+                    error_at(keyword.span(), "field does not accept a block")?;
+                }
+                let names = tokenizer.list(Tokenizer::template_id)?;
+                tokenizer.punct(':')?;
+                let typ_raw = tokenizer.ident()?;
+                let typ = match typ_raw.to_string().as_str() {
+                    "bool" => ast::AttributeType::Bool,
+                    "bitvec" => {
+                        let mut inner = tokenizer.brackets()?;
+                        let width = inner.usize()?;
+                        inner.finish()?;
+                        ast::AttributeType::BitVec(width)
+                    }
+                    _ => ast::AttributeType::Enum(typ_raw),
+                };
+                tokenizer.finish()?;
+                ast::TableItem::Field(ast::TableField {
+                    names,
+                    typ,
+                })
+            }
+            "row" => {
+                if block.is_some() {
+                    todo!("row block")
+                }
+                let names = tokenizer.list(Tokenizer::template_id)?;
+                tokenizer.finish()?;
+                ast::TableItem::Row(names)
+            }
+            _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
+        })
+    }
+}
+
+// endregion:
 
 pub fn error_at<T>(span: Span, msg: &str) -> Result<T> {
     let mut group = Group::new(

@@ -1,8 +1,6 @@
 use prjcombine_entity::{EntityBundleMap, EntityVec};
 use prjcombine_interconnect::db::{
-    BelAttributeId, BelBidirId, BelClassId, BelInputId, BelOutputId, BelPadId, BelSlotId,
-    CellSlotId, ConnectorClassId, ConnectorSlotId, EnumClassId, EnumValueId, IntDb, RegionSlotId,
-    TileClassId, TileSlotId, WireSlotId,
+    BelAttributeId, BelBidirId, BelClassId, BelInputId, BelOutputId, BelPadId, BelSlotId, CellSlotId, ConnectorClassId, ConnectorSlotId, EnumClassId, EnumValueId, IntDb, RegionSlotId, TableFieldId, TableId, TableRowId, TileClassId, TileSlotId, WireSlotId
 };
 use prjcombine_types::bsdata::BitRectId;
 use proc_macro::Ident;
@@ -14,6 +12,12 @@ pub struct AnnotatedBelClass {
     pub bidir_id: EntityBundleMap<BelBidirId, Ident>,
     pub pad_id: EntityBundleMap<BelPadId, Ident>,
     pub attr_id: EntityVec<BelAttributeId, Ident>,
+}
+
+#[derive(Default)]
+pub struct AnnotatedTable {
+    pub field_id: EntityVec<TableFieldId, Ident>,
+    pub row_id: EntityVec<TableRowId, Ident>,
 }
 
 pub struct AnnotatedDb {
@@ -32,4 +36,6 @@ pub struct AnnotatedDb {
     pub bcls_id: EntityVec<BelClassId, Ident>,
     pub bcls: EntityVec<BelClassId, AnnotatedBelClass>,
     pub wire_id: EntityBundleMap<WireSlotId, Ident>,
+    pub table_id: EntityVec<TableId, Ident>,
+    pub table: EntityVec<TableId, AnnotatedTable>,
 }

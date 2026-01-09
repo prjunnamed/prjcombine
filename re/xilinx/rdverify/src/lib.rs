@@ -209,7 +209,7 @@ fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo
                 for (&dst, tmux) in &tm.wires {
                     used_o.insert(dst);
                     used_i.insert(tmux.primary_src.tw);
-                    for &src in &tmux.test_src {
+                    for &src in tmux.test_src.keys() {
                         used_i.insert(src.tw);
                     }
                 }
@@ -1086,7 +1086,7 @@ impl<'a> Verifier<'a> {
                                 }
                             }
                         }
-                        for &wf in &tmux.test_src {
+                        for &wf in tmux.test_src.keys() {
                             let wfi = self.grid.tile_wire(tcrd, wf.tw);
                             if let Some(iwi) = naming.intf_wires_in.get(&wf) {
                                 let wfn = match *iwi {

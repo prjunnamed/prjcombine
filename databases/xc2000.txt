@@ -2754,10 +2754,10 @@ intdb {
 	tile_slot EXTRA_CROSS {
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class MAIN.W {
+		connector_class MAIN.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -2781,17 +2781,17 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class MAIN.E {
+		connector_class MAIN.E {
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class MAIN.S {
+		connector_class MAIN.S {
 			pass LONG.V0 = LONG.V0;
 			pass LONG.V1 = LONG.V1;
 			pass LONG.RV0 = LONG.RV0;
@@ -2803,10 +2803,10 @@ intdb {
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class MAIN.N {
+		connector_class MAIN.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;

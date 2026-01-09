@@ -116,7 +116,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         } else {
                             format!("MUX.{:#}.{}", dst.cell, intdb.wires.key(dst.wire))
                         };
-                        for &src in &tmux.test_src {
+                        for &src in tmux.test_src.keys() {
                             let in_name = if tcls.cells.len() == 1 {
                                 intdb.wires.key(src.wire).to_string()
                             } else {
@@ -186,7 +186,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             format!("MUX.{:#}.{}", dst.cell, intdb.wires.key(dst.wire))
                         };
                         let mut mux_inps = vec![];
-                        for &src in &tmux.test_src {
+                        for &src in tmux.test_src.keys() {
                             let in_name = if tcls.cells.len() == 1 {
                                 intdb.wires.key(src.wire).to_string()
                             } else {

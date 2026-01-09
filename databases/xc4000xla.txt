@@ -25503,10 +25503,10 @@ intdb {
 		}
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class MAIN.W {
+		connector_class MAIN.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -25579,7 +25579,7 @@ intdb {
 			pass OUT.TOP.COUT.E = OUT.TOP.COUT;
 		}
 
-		conn_class LLHC.W {
+		connector_class LLHC.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -25636,7 +25636,7 @@ intdb {
 			pass OUT.TOP.COUT.E = OUT.TOP.COUT;
 		}
 
-		conn_class LLHQ.W {
+		connector_class LLHQ.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -25701,7 +25701,7 @@ intdb {
 			pass OUT.TOP.COUT.E = OUT.TOP.COUT;
 		}
 
-		conn_class LLHQ.IO.W {
+		connector_class LLHQ.IO.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -25764,7 +25764,7 @@ intdb {
 			pass OUT.TOP.COUT.E = OUT.TOP.COUT;
 		}
 
-		conn_class LCLB.W {
+		connector_class LCLB.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -25837,7 +25837,7 @@ intdb {
 			pass OUT.TOP.COUT.E = OUT.TOP.COUT;
 		}
 
-		conn_class CNR.LL.W {
+		connector_class CNR.LL.W {
 			reflect IO.DOUBLE.0.S.1 = IO.DOUBLE.0.W.1;
 			reflect IO.DOUBLE.1.S.1 = IO.DOUBLE.1.W.1;
 			reflect IO.DOUBLE.2.S.1 = IO.DOUBLE.2.W.1;
@@ -25853,10 +25853,10 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class MAIN.E {
+		connector_class MAIN.E {
 			pass IO.DOUBLE.0.N.1 = IO.DOUBLE.0.N.0;
 			pass IO.DOUBLE.0.N.2 = IO.DOUBLE.0.N.1;
 			pass IO.DOUBLE.1.N.1 = IO.DOUBLE.1.N.0;
@@ -25879,7 +25879,7 @@ intdb {
 			pass OUT.IOB.CLKIN.W = OUT.IOB.CLKIN;
 		}
 
-		conn_class LLHC.E {
+		connector_class LLHC.E {
 			pass IO.DOUBLE.0.N.1 = IO.DOUBLE.0.N.0;
 			pass IO.DOUBLE.0.N.2 = IO.DOUBLE.0.N.1;
 			pass IO.DOUBLE.1.N.1 = IO.DOUBLE.1.N.0;
@@ -25902,7 +25902,7 @@ intdb {
 			pass OUT.IOB.CLKIN.W = OUT.IOB.CLKIN;
 		}
 
-		conn_class LLHQ.E {
+		connector_class LLHQ.E {
 			pass IO.DOUBLE.0.N.1 = IO.DOUBLE.0.N.0;
 			pass IO.DOUBLE.0.N.2 = IO.DOUBLE.0.N.1;
 			pass IO.DOUBLE.1.N.1 = IO.DOUBLE.1.N.0;
@@ -25925,7 +25925,7 @@ intdb {
 			pass OUT.IOB.CLKIN.W = OUT.IOB.CLKIN;
 		}
 
-		conn_class LLHQ.IO.E {
+		connector_class LLHQ.IO.E {
 			pass IO.DOUBLE.0.N.1 = IO.DOUBLE.0.N.0;
 			pass IO.DOUBLE.0.N.2 = IO.DOUBLE.0.N.1;
 			pass IO.DOUBLE.1.N.1 = IO.DOUBLE.1.N.0;
@@ -25948,7 +25948,7 @@ intdb {
 			pass OUT.IOB.CLKIN.W = OUT.IOB.CLKIN;
 		}
 
-		conn_class CNR.UR.E {
+		connector_class CNR.UR.E {
 			reflect IO.DOUBLE.0.N.1 = IO.DOUBLE.0.E.1;
 			reflect IO.DOUBLE.1.N.1 = IO.DOUBLE.1.E.1;
 			reflect IO.DOUBLE.2.N.1 = IO.DOUBLE.2.E.1;
@@ -25964,10 +25964,10 @@ intdb {
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class MAIN.S {
+		connector_class MAIN.S {
 			pass IO.DOUBLE.0.E.1 = IO.DOUBLE.0.E.0;
 			pass IO.DOUBLE.0.E.2 = IO.DOUBLE.0.E.1;
 			pass IO.DOUBLE.1.E.1 = IO.DOUBLE.1.E.0;
@@ -26020,7 +26020,7 @@ intdb {
 			pass OUT.IOB.CLKIN.N = OUT.IOB.CLKIN;
 		}
 
-		conn_class LLVC.S {
+		connector_class LLVC.S {
 			pass IO.DOUBLE.0.E.1 = IO.DOUBLE.0.E.0;
 			pass IO.DOUBLE.0.E.2 = IO.DOUBLE.0.E.1;
 			pass IO.DOUBLE.1.E.1 = IO.DOUBLE.1.E.0;
@@ -26045,7 +26045,7 @@ intdb {
 			pass OUT.IOB.CLKIN.N = OUT.IOB.CLKIN;
 		}
 
-		conn_class LLVQ.S {
+		connector_class LLVQ.S {
 			pass IO.DOUBLE.0.E.1 = IO.DOUBLE.0.E.0;
 			pass IO.DOUBLE.0.E.2 = IO.DOUBLE.0.E.1;
 			pass IO.DOUBLE.1.E.1 = IO.DOUBLE.1.E.0;
@@ -26082,7 +26082,7 @@ intdb {
 			pass OUT.IOB.CLKIN.N = OUT.IOB.CLKIN;
 		}
 
-		conn_class CNR.LR.S {
+		connector_class CNR.LR.S {
 			reflect IO.OCTAL.E.0 = IO.OCTAL.S.1;
 			reflect IO.OCTAL.E.1 = IO.OCTAL.S.2;
 			reflect IO.OCTAL.E.2 = IO.OCTAL.S.3;
@@ -26094,10 +26094,10 @@ intdb {
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class MAIN.N {
+		connector_class MAIN.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;
@@ -26145,7 +26145,7 @@ intdb {
 			pass OUT.IOB.CLKIN.S = OUT.IOB.CLKIN;
 		}
 
-		conn_class LLVC.N {
+		connector_class LLVC.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;
@@ -26193,7 +26193,7 @@ intdb {
 			pass OUT.IOB.CLKIN.S = OUT.IOB.CLKIN;
 		}
 
-		conn_class LLVQ.N {
+		connector_class LLVQ.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;
@@ -26241,7 +26241,7 @@ intdb {
 			pass OUT.IOB.CLKIN.S = OUT.IOB.CLKIN;
 		}
 
-		conn_class TCLB.N {
+		connector_class TCLB.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;
@@ -26289,7 +26289,7 @@ intdb {
 			pass OUT.IOB.CLKIN.S = OUT.IOB.CLKIN;
 		}
 
-		conn_class CNR.UL.N {
+		connector_class CNR.UL.N {
 			reflect IO.DOUBLE.0.W.0 = IO.DOUBLE.0.N.1;
 			reflect IO.DOUBLE.0.W.1 = IO.DOUBLE.0.N.2;
 			reflect IO.DOUBLE.1.W.0 = IO.DOUBLE.1.N.1;

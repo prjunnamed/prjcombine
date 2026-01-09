@@ -155,6 +155,18 @@ fn emit_enums(stream: &mut TokenStream, adb: &AnnotatedDb) {
     emit_mod(stream, to_ident("enums"), mod_stream);
 }
 
+fn emit_tables(stream: &mut TokenStream, adb: &AnnotatedDb) {
+    let mut mod_stream = emit_ids("TableId", &adb.table_id);
+    for (tid, tdata) in &adb.table {
+        let mut inner = TokenStream::new();
+        inner.extend(emit_ids("TableFieldId", &tdata.field_id));
+        inner.extend(emit_ids("TableRowId", &tdata.row_id));
+        mod_stream.extend(TokenStream::from_str("#[allow(non_snake_case)]").unwrap());
+        emit_mod(&mut mod_stream, adb.table_id[tid].clone(), inner);
+    }
+    emit_mod(stream, to_ident("tables"), mod_stream);
+}
+
 fn emit_use(stream: &mut TokenStream, name: &[&str]) {
     stream.extend([keyword("use")]);
     for part in name {
@@ -194,6 +206,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
     let mut cslot_uniform = true;
     let mut ccls_uniform = true;
     let mut wire_uniform = true;
+    let mut table_uniform = true;
     for db in &dbs[1..] {
         if db.db.enum_classes != dbs[0].db.enum_classes {
             enum_uniform = false;
@@ -221,6 +234,9 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         }
         if db.db.wires != dbs[0].db.wires {
             wire_uniform = false;
+        }
+        if db.db.tables != dbs[0].db.tables {
+            table_uniform = false;
         }
     }
     let mut res = TokenStream::new();
@@ -388,6 +404,19 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
                 to_ident("wires"),
                 emit_array_ids("WireSlotId", &adb.wire_id, true),
             );
+        }
+    }
+
+    if table_uniform {
+        emit_tables(&mut res, &dbs[0]);
+        if dbs.len() != 1 {
+            for stream in &mut variant_outs {
+                stream.extend(TokenStream::from_str("use super::tables;").unwrap());
+            }
+        }
+    } else {
+        for (adb, stream) in dbs.iter().zip(variant_outs.iter_mut()) {
+            emit_tables(stream, adb);
         }
     }
 

@@ -72,8 +72,4 @@
 
 {{ tile siliconblue IOB_N_T01 }}
 
-## Bitstream — misc data
-
-{{ misc siliconblue iostd-drive }}
-
-{{ misc siliconblue iostd-misc }}
+{{ table siliconblue IOSTD }}

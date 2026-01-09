@@ -21,7 +21,7 @@ use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 
 use assert_matches::assert_matches;
 
-use prjcombine_types::bsdata::PolTileBit;
+use prjcombine_types::{bitvec::BitVec, bsdata::PolTileBit};
 use rawdump::TileKindId;
 
 #[derive(Clone, Debug)]
@@ -1241,9 +1241,12 @@ impl XTileExtractor<'_, '_, '_> {
                 }
             }
         }
-        let mut tm = TestMux::default();
+        let mut tm = TestMux {
+            wires: Default::default(),
+            bit: PolTileBit::DUMMY,
+        };
         for (wt, (wfs, pwf)) in out_muxes {
-            let wfs = wfs.into_iter().map(|x| x.pos()).collect();
+            let wfs = wfs.into_iter().map(|x| (x.pos(), BitVec::new())).collect();
             let pwf = pwf.unwrap_or_else(|| TileWireCoord {
                 cell: wt.cell,
                 wire: self.xtile.builder.test_mux_ins[&wt.wire],
@@ -1252,6 +1255,7 @@ impl XTileExtractor<'_, '_, '_> {
                 wt,
                 TestMuxWire {
                     primary_src: pwf.pos(),
+                    bits: vec![],
                     test_src: wfs,
                 },
             );
@@ -2334,8 +2338,8 @@ impl<'a> IntBuilder<'a> {
                         for (dst, tmux) in tm.wires {
                             let cur_tmux = cur_tm.wires.get_mut(&dst).unwrap();
                             assert_eq!(cur_tmux.primary_src, tmux.primary_src);
-                            for w in tmux.test_src {
-                                cur_tmux.test_src.insert(w);
+                            for (w, val) in tmux.test_src {
+                                cur_tmux.test_src.insert(w, val);
                             }
                         }
                     } else {

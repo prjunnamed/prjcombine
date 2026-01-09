@@ -12312,10 +12312,10 @@ intdb {
 	tile_slot EXTRA_CROSS {
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class MAIN.W {
+		connector_class MAIN.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -12345,7 +12345,7 @@ intdb {
 			pass OUT.TIOB1.Q.E = OUT.TIOB1.Q;
 		}
 
-		conn_class LLH.W {
+		connector_class LLH.W {
 			pass SINGLE.H0.E = SINGLE.H0;
 			pass SINGLE.H1.E = SINGLE.H1;
 			pass SINGLE.H2.E = SINGLE.H2;
@@ -12374,22 +12374,22 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class MAIN.E {
+		connector_class MAIN.E {
 			pass OUT.CLB.X.W = OUT.CLB.X;
 		}
 
-		conn_class LLH.E {
+		connector_class LLH.E {
 			pass OUT.CLB.X.W = OUT.CLB.X;
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class MAIN.S {
+		connector_class MAIN.S {
 			pass LONG.V0 = LONG.V0;
 			pass LONG.V1 = LONG.V1;
 			pass LONG.IO.L0 = LONG.IO.L0;
@@ -12400,14 +12400,14 @@ intdb {
 			pass ACLK.V = ACLK.V;
 		}
 
-		conn_class LLV.S {
+		connector_class LLV.S {
 			pass LONG.IO.L1 = LONG.IO.L1;
 			pass LONG.IO.R1 = LONG.IO.R1;
 			pass GCLK.V = GCLK.V;
 			pass ACLK.V = ACLK.V;
 		}
 
-		conn_class LLV.S.S {
+		connector_class LLV.S.S {
 			pass LONG.V0 = LONG.V0;
 			pass LONG.V1 = LONG.V1;
 			pass LONG.IO.L1 = LONG.IO.L1;
@@ -12417,10 +12417,10 @@ intdb {
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class MAIN.N {
+		connector_class MAIN.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;
@@ -12444,7 +12444,7 @@ intdb {
 			pass OUT.RIOB1.Q.S = OUT.RIOB1.Q;
 		}
 
-		conn_class LLV.N {
+		connector_class LLV.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;
@@ -12468,7 +12468,7 @@ intdb {
 			pass OUT.RIOB1.Q.S = OUT.RIOB1.Q;
 		}
 
-		conn_class LLV.S.N {
+		connector_class LLV.S.N {
 			pass SINGLE.V0.S = SINGLE.V0;
 			pass SINGLE.V1.S = SINGLE.V1;
 			pass SINGLE.V2.S = SINGLE.V2;

@@ -9,8 +9,8 @@ use prjcombine_interconnect::db::{
     BelClassBidir, BelClassId, BelClassInput, BelClassOutput, BelClassPad, BelInfo, BelInput,
     BelKind, BelSlot, BelSlotId, BitRectInfo, CellSlotId, ConnectorClass, ConnectorClassId,
     ConnectorSlot, ConnectorSlotId, ConnectorWire, EnumClass, IntDb, Mux, PermaBuf,
-    PolTileWireCoord, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem, TileClass, TileClassId,
-    TileSlotId, TileWireCoord, WireKind, WireSlotId,
+    PolTileWireCoord, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem, Table, TableId, TileClass,
+    TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
 };
 use prjcombine_types::bsdata::{BitRectGeometry, PolTileBit, RectBitId, RectFrameId, TileBit};
 use proc_macro::{Ident, Span, TokenStream};
@@ -1006,6 +1006,50 @@ impl Context {
         Ok(())
     }
 
+    fn eval_table(&mut self, tid: TableId, item: &ast::TableItem) -> Result<()> {
+        match item {
+            ast::TableItem::Field(field) => {
+                let typ = match field.typ {
+                    ast::AttributeType::Bool => BelAttributeType::Bool,
+                    ast::AttributeType::BitVec(num) => BelAttributeType::Bitvec(num),
+                    ast::AttributeType::Enum(ref ident) => {
+                        let Some((eid, _)) = self.db.db.enum_classes.get(&ident.to_string()) else {
+                            error_at(ident.span(), "undefined enum")?
+                        };
+                        BelAttributeType::Enum(eid)
+                    }
+                };
+                for name in &field.names {
+                    let ident = self.eval_templ_id(name)?;
+                    let (_, prev) = self.db.db.tables[tid].fields.insert(ident.to_string(), typ);
+                    if prev.is_some() {
+                        error_at(ident.span(), "table field redefined")?
+                    }
+                    self.db.table[tid].field_id.push(ident.clone());
+                }
+            }
+            ast::TableItem::Row(names) => {
+                for name in names {
+                    let ident = self.eval_templ_id(name)?;
+                    let (_, prev) = self.db.db.tables[tid]
+                        .rows
+                        .insert(ident.to_string(), EntityPartVec::new());
+                    if prev.is_some() {
+                        error_at(ident.span(), "table row redefined")?
+                    }
+                    self.db.table[tid].row_id.push(ident.clone());
+                }
+            }
+            ast::TableItem::ForLoop(for_loop) => {
+                self.eval_for(for_loop, |ctx, subitem| ctx.eval_table(tid, subitem))?
+            }
+            ast::TableItem::If(if_) => self.eval_if(IfContext::Top, if_, |ctx, subitem| {
+                ctx.eval_table(tid, subitem)
+            })?,
+        }
+        Ok(())
+    }
+
     fn eval_top(&mut self, item: &ast::TopItem) -> Result<()> {
         match item {
             ast::TopItem::Variant(ident) => {
@@ -1152,6 +1196,24 @@ impl Context {
                     }
                 }
             }
+            ast::TopItem::Table(table) => {
+                let name = self.eval_templ_id(&table.name)?;
+                let (tid, prev) = self.db.db.tables.insert(
+                    name.to_string(),
+                    Table {
+                        fields: Default::default(),
+                        rows: Default::default(),
+                    },
+                );
+                if prev.is_some() {
+                    error_at(table.name.span(), "table redefined")?;
+                }
+                self.db.table_id.push(name);
+                self.db.table.push(Default::default());
+                for item in &table.items {
+                    self.eval_table(tid, item)?;
+                }
+            }
             ast::TopItem::ForLoop(for_loop) => {
                 self.eval_for(for_loop, |ctx, subitem| ctx.eval_top(subitem))?
             }
@@ -1181,6 +1243,8 @@ fn eval_variant(variant: Option<Ident>, items: &[ast::TopItem]) -> Result<Annota
             wire_id: Default::default(),
             tcls_cell_id: Default::default(),
             tcls_bitrect_id: Default::default(),
+            table_id: Default::default(),
+            table: Default::default(),
         },
         for_vars: Default::default(),
         bitrect_geoms: Default::default(),

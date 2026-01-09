@@ -12,6 +12,7 @@ pub enum TopItem {
     RegionSlot(RegionSlot),
     ConnectorSlot(ConnectorSlot),
     Wire(Wire),
+    Table(Table),
     ForLoop(ForLoop<TopItem>),
     If(If<TopItem>),
 }
@@ -253,6 +254,26 @@ pub enum WireKind {
 // endregion
 
 #[derive(Debug)]
+pub struct Table {
+    pub name: TemplateId,
+    pub items: Vec<TableItem>,
+}
+
+#[derive(Debug)]
+pub enum TableItem {
+    Field(TableField),
+    Row(Vec<TemplateId>),
+    ForLoop(ForLoop<TableItem>),
+    If(If<TableItem>),
+}
+
+#[derive(Debug)]
+pub struct TableField {
+    pub names: Vec<TemplateId>,
+    pub typ: AttributeType,
+}
+
+#[derive(Debug)]
 pub enum TemplateId {
     Raw(Ident),
     String(Literal),
@@ -329,3 +350,4 @@ impl_from!(SwitchBoxItem);
 impl_from!(BelItem);
 impl_from!(ConnectorSlotItem);
 impl_from!(ConnectorClassItem);
+impl_from!(TableItem);

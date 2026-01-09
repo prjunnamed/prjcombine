@@ -11,6 +11,7 @@ use prjcombine_re_xilinx_naming::db::{
     BelNaming, BelPinNaming, NamingDb, PipNaming, ProperBelNaming, RawTileId,
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
+use prjcombine_types::bitvec::BitVec;
 use prjcombine_virtex2::{bels, cslots, regions, tslots};
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
@@ -3525,7 +3526,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             unreachable!()
         };
         let mut gtm = GroupTestMux {
-            num_groups: 2,
+            bits: vec![],
+            groups: vec![
+                BitVec::new(),
+                BitVec::new(),
+            ],
+            bits_primary: BitVec::new(),
             wires: Default::default(),
         };
         for (dst, tmux) in tm.wires {
@@ -3534,7 +3540,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 test_src: vec![None, None],
             };
             let num = tmux.test_src.len();
-            for src in tmux.test_src {
+            for src in tmux.test_src.into_keys() {
                 let group = if num == 2 && !wires_c.contains(&src.tw) {
                     1
                 } else {

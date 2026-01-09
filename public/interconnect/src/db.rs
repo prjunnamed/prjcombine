@@ -15,13 +15,15 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 pub struct IntDb {
     pub enum_classes: EntityMap<EnumClassId, String, EnumClass>,
     pub bel_classes: EntityMap<BelClassId, String, BelClass>,
+    pub region_slots: EntitySet<RegionSlotId, String>,
     pub wires: EntityMap<WireSlotId, String, WireKind>,
     pub tile_slots: EntitySet<TileSlotId, String>,
     pub bel_slots: EntityMap<BelSlotId, String, BelSlot>,
-    pub region_slots: EntitySet<RegionSlotId, String>,
     pub tile_classes: EntityMap<TileClassId, String, TileClass>,
     pub conn_slots: EntityMap<ConnectorSlotId, String, ConnectorSlot>,
     pub conn_classes: EntityMap<ConnectorClassId, String, ConnectorClass>,
+    pub tables: EntityMap<TableId, String, Table>,
+    pub devdata: EntityMap<DeviceDataId, String, BelAttributeType>,
 }
 
 impl IntDb {
@@ -30,13 +32,6 @@ impl IntDb {
         self.wires
             .get(name)
             .unwrap_or_else(|| panic!("no wire {name}"))
-            .0
-    }
-    #[track_caller]
-    pub fn get_bel_slot(&self, name: &str) -> BelSlotId {
-        self.bel_slots
-            .get(name)
-            .unwrap_or_else(|| panic!("no bel slot {name}"))
             .0
     }
     #[track_caller]
@@ -154,9 +149,17 @@ impl std::ops::Index<ConnectorClassId> for IntDb {
     }
 }
 
+impl std::ops::Index<TableId> for IntDb {
+    type Output = Table;
+
+    fn index(&self, index: TableId) -> &Self::Output {
+        &self.tables[index]
+    }
+}
+
 // endregion:
 
-// region: enums
+// region: enums and tables
 
 impl EntityTag for EnumClass {
     const PREFIX: &'static str = "ECLS";
@@ -172,6 +175,39 @@ pub type EnumValueId = EntityIdU16<EnumValueTag>;
 pub struct EnumClass {
     pub values: EntitySet<EnumValueId, String>,
 }
+
+impl EntityTag for Table {
+    const PREFIX: &'static str = "TABLE";
+}
+pub type TableId = EntityIdU16<Table>;
+pub struct TableFieldTag;
+impl EntityTag for TableFieldTag {
+    const PREFIX: &'static str = "FIELD";
+}
+pub type TableFieldId = EntityIdU8<TableFieldTag>;
+pub struct TableRowTag;
+impl EntityTag for TableRowTag {
+    const PREFIX: &'static str = "ROW";
+}
+pub type TableRowId = EntityIdU16<TableRowTag>;
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub struct Table {
+    pub fields: EntityMap<TableFieldId, String, BelAttributeType>,
+    pub rows: EntityMap<TableRowId, String, EntityPartVec<TableFieldId, TableValue>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
+pub enum TableValue {
+    BitVec(BitVec),
+    Enum(EnumValueId),
+}
+
+impl EntityTag for DeviceDataTag {
+    const PREFIX: &'static str = "DD";
+}
+pub struct DeviceDataTag;
+pub type DeviceDataId = EntityIdU16<DeviceDataTag>;
 
 // endregion:
 
@@ -636,20 +672,24 @@ pub struct ProgDelay {
     pub steps: Vec<BitVec>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct TestMux {
     pub wires: BTreeMap<TileWireCoord, TestMuxWire>,
+    pub bit: PolTileBit,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct TestMuxWire {
     pub primary_src: PolTileWireCoord,
-    pub test_src: BTreeSet<PolTileWireCoord>,
+    pub bits: Vec<TileBit>,
+    pub test_src: BTreeMap<PolTileWireCoord, BitVec>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
 pub struct GroupTestMux {
-    pub num_groups: usize,
+    pub bits: Vec<TileBit>,
+    pub groups: Vec<BitVec>,
+    pub bits_primary: BitVec,
     pub wires: BTreeMap<TileWireCoord, GroupTestMuxWire>,
 }
 

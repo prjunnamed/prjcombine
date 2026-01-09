@@ -7828,10 +7828,10 @@ intdb {
 		bel_slot HSDCLK_SPLITTER: legacy;
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class PASS_W {
+		connector_class PASS_W {
 			pass X1_E0_1 = X1_E0_0;
 			pass X1_E1_1 = X1_E1_0;
 			pass X2_E0_1 = X2_E0_0;
@@ -7880,7 +7880,7 @@ intdb {
 			pass OUT_F7_E = OUT_F7;
 		}
 
-		conn_class TERM_W {
+		connector_class TERM_W {
 			reflect X2_E0_1 = X2_W0_0;
 			reflect X2_E0_2 = X2_W0_1;
 			reflect X2_E1_1 = X2_W1_0;
@@ -7924,10 +7924,10 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class PASS_E {
+		connector_class PASS_E {
 			pass X1_W0_1 = X1_W0_0;
 			pass X1_W1_1 = X1_W1_0;
 			pass X2_W0_1 = X2_W0_0;
@@ -7976,7 +7976,7 @@ intdb {
 			pass OUT_OFX3_W = OUT_OFX3;
 		}
 
-		conn_class TERM_E {
+		connector_class TERM_E {
 			reflect X2_W0_1 = X2_E0_0;
 			reflect X2_W0_2 = X2_E0_1;
 			reflect X2_W1_1 = X2_E1_0;
@@ -8020,10 +8020,10 @@ intdb {
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class PASS_S {
+		connector_class PASS_S {
 			pass X1_N0_1 = X1_N0_0;
 			pass X1_N1_1 = X1_N1_0;
 			pass X2_N0_1 = X2_N0_0;
@@ -8068,7 +8068,7 @@ intdb {
 			pass X6_N3_6 = X6_N3_5;
 		}
 
-		conn_class TERM_S {
+		connector_class TERM_S {
 			reflect X2_N0_1 = X2_S0_0;
 			reflect X2_N0_2 = X2_S0_1;
 			reflect X2_N1_1 = X2_S1_0;
@@ -8112,10 +8112,10 @@ intdb {
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class PASS_N {
+		connector_class PASS_N {
 			pass X1_S0_1 = X1_S0_0;
 			pass X1_S1_1 = X1_S1_0;
 			pass X2_S0_1 = X2_S0_0;
@@ -8160,7 +8160,7 @@ intdb {
 			pass X6_S3_6 = X6_S3_5;
 		}
 
-		conn_class TERM_N {
+		connector_class TERM_N {
 			reflect X2_S0_1 = X2_N0_0;
 			reflect X2_S0_2 = X2_N0_1;
 			reflect X2_S1_1 = X2_N1_0;
@@ -8204,33 +8204,33 @@ intdb {
 		}
 	}
 
-	conn_slot SW {
+	connector_slot SW {
 		opposite SE;
 
-		conn_class PASS_SW {
+		connector_class PASS_SW {
 		}
 	}
 
-	conn_slot SE {
+	connector_slot SE {
 		opposite SW;
 
-		conn_class PASS_SE {
+		connector_class PASS_SE {
 		}
 	}
 
-	conn_slot EBR_W {
+	connector_slot EBR_W {
 		opposite EBR_E;
 	}
 
-	conn_slot EBR_E {
+	connector_slot EBR_E {
 		opposite EBR_W;
 	}
 
-	conn_slot IO_W {
+	connector_slot IO_W {
 		opposite IO_E;
 	}
 
-	conn_slot IO_E {
+	connector_slot IO_E {
 		opposite IO_W;
 	}
 }

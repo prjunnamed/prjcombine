@@ -88618,10 +88618,10 @@ intdb {
 		}
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class MAIN.W {
+		connector_class MAIN.W {
 			pass SINGLE.W0 = SINGLE.E0;
 			pass SINGLE.W1 = SINGLE.E1;
 			pass SINGLE.W2 = SINGLE.E2;
@@ -88705,10 +88705,10 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class MAIN.E {
+		connector_class MAIN.E {
 			pass HEX.H0.2 = HEX.H0.3;
 			pass HEX.H0.1 = HEX.H0.2;
 			pass HEX.H0.0 = HEX.H0.1;
@@ -88756,10 +88756,10 @@ intdb {
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class MAIN.S {
+		connector_class MAIN.S {
 			pass PCI_CE = PCI_CE;
 			pass HEX.V0.4 = HEX.V0.3;
 			pass HEX.V0.5 = HEX.V0.4;
@@ -88812,10 +88812,10 @@ intdb {
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class MAIN.N {
+		connector_class MAIN.N {
 			pass SINGLE.N0 = SINGLE.S0;
 			pass SINGLE.N1 = SINGLE.S1;
 			pass SINGLE.N2 = SINGLE.S2;

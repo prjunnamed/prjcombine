@@ -33934,7 +33934,7 @@ intdb {
 			cell CELL2;
 			cell CELL3;
 
-			group_test_mux INTF_TESTMUX: 2 {
+			group_test_mux INTF_TESTMUX #2 {
 				CELL0.OUT.FAN0 = CELL0.OUT.FAN0.TMIN || [CELL0.IMUX.DATA11, CELL0.IMUX.DATA22];
 				CELL0.OUT.FAN1 = CELL0.OUT.FAN1.TMIN || [CELL0.IMUX.DATA14, CELL0.IMUX.DATA17];
 				CELL0.OUT.FAN2 = CELL0.OUT.FAN2.TMIN || [CELL0.IMUX.DATA16, CELL0.IMUX.DATA10];
@@ -36442,6 +36442,224 @@ intdb {
 			// wire OUT.SEC11                      DCM.STATUS3
 		}
 
+		tile_class DCM.S3E.LB {
+			cell CELL0;
+
+			bel DCM {
+				output CLK0 = OUT.FAN3;
+				output CLK180 = OUT.FAN1;
+				output CLK270 = OUT.FAN0;
+				output CLK2X = OUT.FAN7;
+				output CLK2X180 = OUT.FAN6;
+				output CLK90 = OUT.FAN2;
+				output CLKDV = OUT.SEC3;
+				input CLKFB = IMUX.CLK3;
+				output CLKFX = OUT.FAN5;
+				output CLKFX180 = OUT.FAN4;
+				input CLKIN = IMUX.CLK2;
+				output CONCUR = OUT.SEC1;
+				input CTLGO = IMUX.DATA31;
+				input CTLMODE = IMUX.DATA24;
+				input CTLOSC1 = IMUX.DATA30;
+				input CTLOSC2 = IMUX.DATA29;
+				input CTLSEL0 = IMUX.DATA2;
+				input CTLSEL1 = IMUX.DATA3;
+				input CTLSEL2 = IMUX.DATA28;
+				input DSSEN = IMUX.DATA16;
+				input FREEZEDFS = IMUX.DATA26;
+				input FREEZEDLL = IMUX.DATA25;
+				output LOCKED = OUT.SEC2;
+				input PSCLK = IMUX.CLK1;
+				output PSDONE = OUT.SEC0;
+				input PSEN = IMUX.DATA17;
+				input PSINCDEC = IMUX.DATA18;
+				input RST = IMUX.DATA19;
+				output STATUS0 = OUT.SEC8;
+				output STATUS1 = OUT.SEC9;
+				output STATUS2 = OUT.SEC10;
+				output STATUS3 = OUT.SEC11;
+				output STATUS4 = OUT.SEC4;
+				output STATUS5 = OUT.SEC5;
+				output STATUS6 = OUT.SEC6;
+				output STATUS7 = OUT.SEC7;
+				input STSADRS0 = IMUX.DATA27;
+				input STSADRS1 = IMUX.DATA20;
+				input STSADRS2 = IMUX.DATA21;
+				input STSADRS3 = IMUX.DATA22;
+				input STSADRS4 = IMUX.DATA23;
+			}
+
+			bel DCMCONN_S3E {
+				output CLKPAD0 = DCM.CLKPAD0;
+				output CLKPAD1 = DCM.CLKPAD1;
+				output CLKPAD2 = DCM.CLKPAD2;
+				output CLKPAD3 = DCM.CLKPAD3;
+				input OUT0 = OMUX10;
+				input OUT1 = OMUX11;
+				input OUT2 = OMUX12;
+				input OUT3 = OMUX15;
+			}
+
+			// wire DCM.CLKPAD0                    DCMCONN_S3E.CLKPAD0
+			// wire DCM.CLKPAD1                    DCMCONN_S3E.CLKPAD1
+			// wire DCM.CLKPAD2                    DCMCONN_S3E.CLKPAD2
+			// wire DCM.CLKPAD3                    DCMCONN_S3E.CLKPAD3
+			// wire OMUX10                         DCMCONN_S3E.OUT0
+			// wire OMUX11                         DCMCONN_S3E.OUT1
+			// wire OMUX12                         DCMCONN_S3E.OUT2
+			// wire OMUX15                         DCMCONN_S3E.OUT3
+			// wire IMUX.CLK1                      DCM.PSCLK
+			// wire IMUX.CLK2                      DCM.CLKIN
+			// wire IMUX.CLK3                      DCM.CLKFB
+			// wire IMUX.DATA2                     DCM.CTLSEL0
+			// wire IMUX.DATA3                     DCM.CTLSEL1
+			// wire IMUX.DATA16                    DCM.DSSEN
+			// wire IMUX.DATA17                    DCM.PSEN
+			// wire IMUX.DATA18                    DCM.PSINCDEC
+			// wire IMUX.DATA19                    DCM.RST
+			// wire IMUX.DATA20                    DCM.STSADRS1
+			// wire IMUX.DATA21                    DCM.STSADRS2
+			// wire IMUX.DATA22                    DCM.STSADRS3
+			// wire IMUX.DATA23                    DCM.STSADRS4
+			// wire IMUX.DATA24                    DCM.CTLMODE
+			// wire IMUX.DATA25                    DCM.FREEZEDLL
+			// wire IMUX.DATA26                    DCM.FREEZEDFS
+			// wire IMUX.DATA27                    DCM.STSADRS0
+			// wire IMUX.DATA28                    DCM.CTLSEL2
+			// wire IMUX.DATA29                    DCM.CTLOSC2
+			// wire IMUX.DATA30                    DCM.CTLOSC1
+			// wire IMUX.DATA31                    DCM.CTLGO
+			// wire OUT.FAN0                       DCM.CLK270
+			// wire OUT.FAN1                       DCM.CLK180
+			// wire OUT.FAN2                       DCM.CLK90
+			// wire OUT.FAN3                       DCM.CLK0
+			// wire OUT.FAN4                       DCM.CLKFX180
+			// wire OUT.FAN5                       DCM.CLKFX
+			// wire OUT.FAN6                       DCM.CLK2X180
+			// wire OUT.FAN7                       DCM.CLK2X
+			// wire OUT.SEC0                       DCM.PSDONE
+			// wire OUT.SEC1                       DCM.CONCUR
+			// wire OUT.SEC2                       DCM.LOCKED
+			// wire OUT.SEC3                       DCM.CLKDV
+			// wire OUT.SEC4                       DCM.STATUS4
+			// wire OUT.SEC5                       DCM.STATUS5
+			// wire OUT.SEC6                       DCM.STATUS6
+			// wire OUT.SEC7                       DCM.STATUS7
+			// wire OUT.SEC8                       DCM.STATUS0
+			// wire OUT.SEC9                       DCM.STATUS1
+			// wire OUT.SEC10                      DCM.STATUS2
+			// wire OUT.SEC11                      DCM.STATUS3
+		}
+
+		tile_class DCM.S3E.LT {
+			cell CELL0;
+
+			bel DCM {
+				output CLK0 = OUT.FAN3;
+				output CLK180 = OUT.FAN1;
+				output CLK270 = OUT.FAN0;
+				output CLK2X = OUT.FAN7;
+				output CLK2X180 = OUT.FAN6;
+				output CLK90 = OUT.FAN2;
+				output CLKDV = OUT.SEC3;
+				input CLKFB = IMUX.CLK3;
+				output CLKFX = OUT.FAN5;
+				output CLKFX180 = OUT.FAN4;
+				input CLKIN = IMUX.CLK2;
+				output CONCUR = OUT.SEC1;
+				input CTLGO = IMUX.DATA31;
+				input CTLMODE = IMUX.DATA24;
+				input CTLOSC1 = IMUX.DATA30;
+				input CTLOSC2 = IMUX.DATA29;
+				input CTLSEL0 = IMUX.DATA2;
+				input CTLSEL1 = IMUX.DATA3;
+				input CTLSEL2 = IMUX.DATA28;
+				input DSSEN = IMUX.DATA16;
+				input FREEZEDFS = IMUX.DATA26;
+				input FREEZEDLL = IMUX.DATA25;
+				output LOCKED = OUT.SEC2;
+				input PSCLK = IMUX.CLK1;
+				output PSDONE = OUT.SEC0;
+				input PSEN = IMUX.DATA17;
+				input PSINCDEC = IMUX.DATA18;
+				input RST = IMUX.DATA19;
+				output STATUS0 = OUT.SEC8;
+				output STATUS1 = OUT.SEC9;
+				output STATUS2 = OUT.SEC10;
+				output STATUS3 = OUT.SEC11;
+				output STATUS4 = OUT.SEC4;
+				output STATUS5 = OUT.SEC5;
+				output STATUS6 = OUT.SEC6;
+				output STATUS7 = OUT.SEC7;
+				input STSADRS0 = IMUX.DATA27;
+				input STSADRS1 = IMUX.DATA20;
+				input STSADRS2 = IMUX.DATA21;
+				input STSADRS3 = IMUX.DATA22;
+				input STSADRS4 = IMUX.DATA23;
+			}
+
+			bel DCMCONN_S3E {
+				output CLKPAD0 = DCM.CLKPAD0;
+				output CLKPAD1 = DCM.CLKPAD1;
+				output CLKPAD2 = DCM.CLKPAD2;
+				output CLKPAD3 = DCM.CLKPAD3;
+				input OUT0 = OMUX10;
+				input OUT1 = OMUX11;
+				input OUT2 = OMUX12;
+				input OUT3 = OMUX15;
+			}
+
+			// wire DCM.CLKPAD0                    DCMCONN_S3E.CLKPAD0
+			// wire DCM.CLKPAD1                    DCMCONN_S3E.CLKPAD1
+			// wire DCM.CLKPAD2                    DCMCONN_S3E.CLKPAD2
+			// wire DCM.CLKPAD3                    DCMCONN_S3E.CLKPAD3
+			// wire OMUX10                         DCMCONN_S3E.OUT0
+			// wire OMUX11                         DCMCONN_S3E.OUT1
+			// wire OMUX12                         DCMCONN_S3E.OUT2
+			// wire OMUX15                         DCMCONN_S3E.OUT3
+			// wire IMUX.CLK1                      DCM.PSCLK
+			// wire IMUX.CLK2                      DCM.CLKIN
+			// wire IMUX.CLK3                      DCM.CLKFB
+			// wire IMUX.DATA2                     DCM.CTLSEL0
+			// wire IMUX.DATA3                     DCM.CTLSEL1
+			// wire IMUX.DATA16                    DCM.DSSEN
+			// wire IMUX.DATA17                    DCM.PSEN
+			// wire IMUX.DATA18                    DCM.PSINCDEC
+			// wire IMUX.DATA19                    DCM.RST
+			// wire IMUX.DATA20                    DCM.STSADRS1
+			// wire IMUX.DATA21                    DCM.STSADRS2
+			// wire IMUX.DATA22                    DCM.STSADRS3
+			// wire IMUX.DATA23                    DCM.STSADRS4
+			// wire IMUX.DATA24                    DCM.CTLMODE
+			// wire IMUX.DATA25                    DCM.FREEZEDLL
+			// wire IMUX.DATA26                    DCM.FREEZEDFS
+			// wire IMUX.DATA27                    DCM.STSADRS0
+			// wire IMUX.DATA28                    DCM.CTLSEL2
+			// wire IMUX.DATA29                    DCM.CTLOSC2
+			// wire IMUX.DATA30                    DCM.CTLOSC1
+			// wire IMUX.DATA31                    DCM.CTLGO
+			// wire OUT.FAN0                       DCM.CLK270
+			// wire OUT.FAN1                       DCM.CLK180
+			// wire OUT.FAN2                       DCM.CLK90
+			// wire OUT.FAN3                       DCM.CLK0
+			// wire OUT.FAN4                       DCM.CLKFX180
+			// wire OUT.FAN5                       DCM.CLKFX
+			// wire OUT.FAN6                       DCM.CLK2X180
+			// wire OUT.FAN7                       DCM.CLK2X
+			// wire OUT.SEC0                       DCM.PSDONE
+			// wire OUT.SEC1                       DCM.CONCUR
+			// wire OUT.SEC2                       DCM.LOCKED
+			// wire OUT.SEC3                       DCM.CLKDV
+			// wire OUT.SEC4                       DCM.STATUS4
+			// wire OUT.SEC5                       DCM.STATUS5
+			// wire OUT.SEC6                       DCM.STATUS6
+			// wire OUT.SEC7                       DCM.STATUS7
+			// wire OUT.SEC8                       DCM.STATUS0
+			// wire OUT.SEC9                       DCM.STATUS1
+			// wire OUT.SEC10                      DCM.STATUS2
+			// wire OUT.SEC11                      DCM.STATUS3
+		}
+
 		tile_class IOI.S3 {
 			cell CELL0;
 
@@ -37497,224 +37715,6 @@ intdb {
 			// wire CELL3.OUT.HALF2.1              BRAM.DOB31
 			// wire CELL3.OUT.HALF3.0              BRAM.DOA30
 			// wire CELL3.OUT.HALF3.1              BRAM.DOB30
-		}
-
-		tile_class DCM.S3E.LB {
-			cell CELL0;
-
-			bel DCM {
-				output CLK0 = OUT.FAN3;
-				output CLK180 = OUT.FAN1;
-				output CLK270 = OUT.FAN0;
-				output CLK2X = OUT.FAN7;
-				output CLK2X180 = OUT.FAN6;
-				output CLK90 = OUT.FAN2;
-				output CLKDV = OUT.SEC3;
-				input CLKFB = IMUX.CLK3;
-				output CLKFX = OUT.FAN5;
-				output CLKFX180 = OUT.FAN4;
-				input CLKIN = IMUX.CLK2;
-				output CONCUR = OUT.SEC1;
-				input CTLGO = IMUX.DATA31;
-				input CTLMODE = IMUX.DATA24;
-				input CTLOSC1 = IMUX.DATA30;
-				input CTLOSC2 = IMUX.DATA29;
-				input CTLSEL0 = IMUX.DATA2;
-				input CTLSEL1 = IMUX.DATA3;
-				input CTLSEL2 = IMUX.DATA28;
-				input DSSEN = IMUX.DATA16;
-				input FREEZEDFS = IMUX.DATA26;
-				input FREEZEDLL = IMUX.DATA25;
-				output LOCKED = OUT.SEC2;
-				input PSCLK = IMUX.CLK1;
-				output PSDONE = OUT.SEC0;
-				input PSEN = IMUX.DATA17;
-				input PSINCDEC = IMUX.DATA18;
-				input RST = IMUX.DATA19;
-				output STATUS0 = OUT.SEC8;
-				output STATUS1 = OUT.SEC9;
-				output STATUS2 = OUT.SEC10;
-				output STATUS3 = OUT.SEC11;
-				output STATUS4 = OUT.SEC4;
-				output STATUS5 = OUT.SEC5;
-				output STATUS6 = OUT.SEC6;
-				output STATUS7 = OUT.SEC7;
-				input STSADRS0 = IMUX.DATA27;
-				input STSADRS1 = IMUX.DATA20;
-				input STSADRS2 = IMUX.DATA21;
-				input STSADRS3 = IMUX.DATA22;
-				input STSADRS4 = IMUX.DATA23;
-			}
-
-			bel DCMCONN_S3E {
-				output CLKPAD0 = DCM.CLKPAD0;
-				output CLKPAD1 = DCM.CLKPAD1;
-				output CLKPAD2 = DCM.CLKPAD2;
-				output CLKPAD3 = DCM.CLKPAD3;
-				input OUT0 = OMUX10;
-				input OUT1 = OMUX11;
-				input OUT2 = OMUX12;
-				input OUT3 = OMUX15;
-			}
-
-			// wire DCM.CLKPAD0                    DCMCONN_S3E.CLKPAD0
-			// wire DCM.CLKPAD1                    DCMCONN_S3E.CLKPAD1
-			// wire DCM.CLKPAD2                    DCMCONN_S3E.CLKPAD2
-			// wire DCM.CLKPAD3                    DCMCONN_S3E.CLKPAD3
-			// wire OMUX10                         DCMCONN_S3E.OUT0
-			// wire OMUX11                         DCMCONN_S3E.OUT1
-			// wire OMUX12                         DCMCONN_S3E.OUT2
-			// wire OMUX15                         DCMCONN_S3E.OUT3
-			// wire IMUX.CLK1                      DCM.PSCLK
-			// wire IMUX.CLK2                      DCM.CLKIN
-			// wire IMUX.CLK3                      DCM.CLKFB
-			// wire IMUX.DATA2                     DCM.CTLSEL0
-			// wire IMUX.DATA3                     DCM.CTLSEL1
-			// wire IMUX.DATA16                    DCM.DSSEN
-			// wire IMUX.DATA17                    DCM.PSEN
-			// wire IMUX.DATA18                    DCM.PSINCDEC
-			// wire IMUX.DATA19                    DCM.RST
-			// wire IMUX.DATA20                    DCM.STSADRS1
-			// wire IMUX.DATA21                    DCM.STSADRS2
-			// wire IMUX.DATA22                    DCM.STSADRS3
-			// wire IMUX.DATA23                    DCM.STSADRS4
-			// wire IMUX.DATA24                    DCM.CTLMODE
-			// wire IMUX.DATA25                    DCM.FREEZEDLL
-			// wire IMUX.DATA26                    DCM.FREEZEDFS
-			// wire IMUX.DATA27                    DCM.STSADRS0
-			// wire IMUX.DATA28                    DCM.CTLSEL2
-			// wire IMUX.DATA29                    DCM.CTLOSC2
-			// wire IMUX.DATA30                    DCM.CTLOSC1
-			// wire IMUX.DATA31                    DCM.CTLGO
-			// wire OUT.FAN0                       DCM.CLK270
-			// wire OUT.FAN1                       DCM.CLK180
-			// wire OUT.FAN2                       DCM.CLK90
-			// wire OUT.FAN3                       DCM.CLK0
-			// wire OUT.FAN4                       DCM.CLKFX180
-			// wire OUT.FAN5                       DCM.CLKFX
-			// wire OUT.FAN6                       DCM.CLK2X180
-			// wire OUT.FAN7                       DCM.CLK2X
-			// wire OUT.SEC0                       DCM.PSDONE
-			// wire OUT.SEC1                       DCM.CONCUR
-			// wire OUT.SEC2                       DCM.LOCKED
-			// wire OUT.SEC3                       DCM.CLKDV
-			// wire OUT.SEC4                       DCM.STATUS4
-			// wire OUT.SEC5                       DCM.STATUS5
-			// wire OUT.SEC6                       DCM.STATUS6
-			// wire OUT.SEC7                       DCM.STATUS7
-			// wire OUT.SEC8                       DCM.STATUS0
-			// wire OUT.SEC9                       DCM.STATUS1
-			// wire OUT.SEC10                      DCM.STATUS2
-			// wire OUT.SEC11                      DCM.STATUS3
-		}
-
-		tile_class DCM.S3E.LT {
-			cell CELL0;
-
-			bel DCM {
-				output CLK0 = OUT.FAN3;
-				output CLK180 = OUT.FAN1;
-				output CLK270 = OUT.FAN0;
-				output CLK2X = OUT.FAN7;
-				output CLK2X180 = OUT.FAN6;
-				output CLK90 = OUT.FAN2;
-				output CLKDV = OUT.SEC3;
-				input CLKFB = IMUX.CLK3;
-				output CLKFX = OUT.FAN5;
-				output CLKFX180 = OUT.FAN4;
-				input CLKIN = IMUX.CLK2;
-				output CONCUR = OUT.SEC1;
-				input CTLGO = IMUX.DATA31;
-				input CTLMODE = IMUX.DATA24;
-				input CTLOSC1 = IMUX.DATA30;
-				input CTLOSC2 = IMUX.DATA29;
-				input CTLSEL0 = IMUX.DATA2;
-				input CTLSEL1 = IMUX.DATA3;
-				input CTLSEL2 = IMUX.DATA28;
-				input DSSEN = IMUX.DATA16;
-				input FREEZEDFS = IMUX.DATA26;
-				input FREEZEDLL = IMUX.DATA25;
-				output LOCKED = OUT.SEC2;
-				input PSCLK = IMUX.CLK1;
-				output PSDONE = OUT.SEC0;
-				input PSEN = IMUX.DATA17;
-				input PSINCDEC = IMUX.DATA18;
-				input RST = IMUX.DATA19;
-				output STATUS0 = OUT.SEC8;
-				output STATUS1 = OUT.SEC9;
-				output STATUS2 = OUT.SEC10;
-				output STATUS3 = OUT.SEC11;
-				output STATUS4 = OUT.SEC4;
-				output STATUS5 = OUT.SEC5;
-				output STATUS6 = OUT.SEC6;
-				output STATUS7 = OUT.SEC7;
-				input STSADRS0 = IMUX.DATA27;
-				input STSADRS1 = IMUX.DATA20;
-				input STSADRS2 = IMUX.DATA21;
-				input STSADRS3 = IMUX.DATA22;
-				input STSADRS4 = IMUX.DATA23;
-			}
-
-			bel DCMCONN_S3E {
-				output CLKPAD0 = DCM.CLKPAD0;
-				output CLKPAD1 = DCM.CLKPAD1;
-				output CLKPAD2 = DCM.CLKPAD2;
-				output CLKPAD3 = DCM.CLKPAD3;
-				input OUT0 = OMUX10;
-				input OUT1 = OMUX11;
-				input OUT2 = OMUX12;
-				input OUT3 = OMUX15;
-			}
-
-			// wire DCM.CLKPAD0                    DCMCONN_S3E.CLKPAD0
-			// wire DCM.CLKPAD1                    DCMCONN_S3E.CLKPAD1
-			// wire DCM.CLKPAD2                    DCMCONN_S3E.CLKPAD2
-			// wire DCM.CLKPAD3                    DCMCONN_S3E.CLKPAD3
-			// wire OMUX10                         DCMCONN_S3E.OUT0
-			// wire OMUX11                         DCMCONN_S3E.OUT1
-			// wire OMUX12                         DCMCONN_S3E.OUT2
-			// wire OMUX15                         DCMCONN_S3E.OUT3
-			// wire IMUX.CLK1                      DCM.PSCLK
-			// wire IMUX.CLK2                      DCM.CLKIN
-			// wire IMUX.CLK3                      DCM.CLKFB
-			// wire IMUX.DATA2                     DCM.CTLSEL0
-			// wire IMUX.DATA3                     DCM.CTLSEL1
-			// wire IMUX.DATA16                    DCM.DSSEN
-			// wire IMUX.DATA17                    DCM.PSEN
-			// wire IMUX.DATA18                    DCM.PSINCDEC
-			// wire IMUX.DATA19                    DCM.RST
-			// wire IMUX.DATA20                    DCM.STSADRS1
-			// wire IMUX.DATA21                    DCM.STSADRS2
-			// wire IMUX.DATA22                    DCM.STSADRS3
-			// wire IMUX.DATA23                    DCM.STSADRS4
-			// wire IMUX.DATA24                    DCM.CTLMODE
-			// wire IMUX.DATA25                    DCM.FREEZEDLL
-			// wire IMUX.DATA26                    DCM.FREEZEDFS
-			// wire IMUX.DATA27                    DCM.STSADRS0
-			// wire IMUX.DATA28                    DCM.CTLSEL2
-			// wire IMUX.DATA29                    DCM.CTLOSC2
-			// wire IMUX.DATA30                    DCM.CTLOSC1
-			// wire IMUX.DATA31                    DCM.CTLGO
-			// wire OUT.FAN0                       DCM.CLK270
-			// wire OUT.FAN1                       DCM.CLK180
-			// wire OUT.FAN2                       DCM.CLK90
-			// wire OUT.FAN3                       DCM.CLK0
-			// wire OUT.FAN4                       DCM.CLKFX180
-			// wire OUT.FAN5                       DCM.CLKFX
-			// wire OUT.FAN6                       DCM.CLK2X180
-			// wire OUT.FAN7                       DCM.CLK2X
-			// wire OUT.SEC0                       DCM.PSDONE
-			// wire OUT.SEC1                       DCM.CONCUR
-			// wire OUT.SEC2                       DCM.LOCKED
-			// wire OUT.SEC3                       DCM.CLKDV
-			// wire OUT.SEC4                       DCM.STATUS4
-			// wire OUT.SEC5                       DCM.STATUS5
-			// wire OUT.SEC6                       DCM.STATUS6
-			// wire OUT.SEC7                       DCM.STATUS7
-			// wire OUT.SEC8                       DCM.STATUS0
-			// wire OUT.SEC9                       DCM.STATUS1
-			// wire OUT.SEC10                      DCM.STATUS2
-			// wire OUT.SEC11                      DCM.STATUS3
 		}
 
 		tile_class DCM.S3E.RB {
@@ -40220,10 +40220,10 @@ intdb {
 		}
 	}
 
-	conn_slot W {
+	connector_slot W {
 		opposite E;
 
-		conn_class MAIN.W {
+		connector_class MAIN.W {
 			pass OMUX2.E = OMUX2;
 			pass OMUX3.SE = OMUX3.S;
 			pass OMUX7.E = OMUX7;
@@ -40320,7 +40320,7 @@ intdb {
 			pass LH.23 = LH.22;
 		}
 
-		conn_class TERM.W {
+		connector_class TERM.W {
 			reflect DBL.E0.1 = DBL.W0.0;
 			reflect DBL.E0.2 = DBL.W0.1;
 			reflect DBL.E1.1 = DBL.W1.0;
@@ -40387,7 +40387,7 @@ intdb {
 			reflect HEX.E7.6 = HEX.W7.5;
 		}
 
-		conn_class LLH.W {
+		connector_class LLH.W {
 			pass OMUX2.E = OMUX2;
 			pass OMUX3.SE = OMUX3.S;
 			pass OMUX7.E = OMUX7;
@@ -40460,7 +40460,7 @@ intdb {
 			pass HEX.E7.6 = HEX.E7.5;
 		}
 
-		conn_class LLH.DCM.S3ADSP.W {
+		connector_class LLH.DCM.S3ADSP.W {
 			pass OMUX2.E = OMUX2;
 			pass OMUX3.SE = OMUX3.S;
 			pass OMUX7.E = OMUX7;
@@ -40532,7 +40532,7 @@ intdb {
 			pass HEX.E7.6 = HEX.E7.5;
 		}
 
-		conn_class DSPHOLE.W {
+		connector_class DSPHOLE.W {
 			pass OMUX2.E = OMUX2;
 			pass OMUX3.SE = OMUX3.S;
 			pass OMUX7.E = OMUX7;
@@ -40629,7 +40629,7 @@ intdb {
 			pass LH.23 = LH.22;
 		}
 
-		conn_class HDCM.W {
+		connector_class HDCM.W {
 			pass OMUX2.E = OMUX2;
 			pass OMUX3.SE = OMUX3.S;
 			pass OMUX7.E = OMUX7;
@@ -40726,10 +40726,10 @@ intdb {
 		}
 	}
 
-	conn_slot E {
+	connector_slot E {
 		opposite W;
 
-		conn_class MAIN.E {
+		connector_class MAIN.E {
 			pass OMUX1.W = OMUX1;
 			pass OMUX5.SW = OMUX5.S;
 			pass OMUX6.W = OMUX6;
@@ -40802,7 +40802,7 @@ intdb {
 			pass HEX.W7.6 = HEX.W7.5;
 		}
 
-		conn_class TERM.E {
+		connector_class TERM.E {
 			reflect DBL.W0.1 = DBL.E0.0;
 			reflect DBL.W0.2 = DBL.E0.1;
 			reflect DBL.W1.1 = DBL.E1.0;
@@ -40869,7 +40869,7 @@ intdb {
 			reflect HEX.W7.6 = HEX.E7.5;
 		}
 
-		conn_class LLH.E {
+		connector_class LLH.E {
 			pass OMUX1.W = OMUX1;
 			pass OMUX5.SW = OMUX5.S;
 			pass OMUX6.W = OMUX6;
@@ -40942,7 +40942,7 @@ intdb {
 			pass HEX.W7.6 = HEX.W7.5;
 		}
 
-		conn_class LLH.DCM.S3ADSP.E {
+		connector_class LLH.DCM.S3ADSP.E {
 			pass OMUX1.W = OMUX1;
 			pass OMUX5.SW = OMUX5.S;
 			pass OMUX6.W = OMUX6;
@@ -41015,7 +41015,7 @@ intdb {
 			pass HEX.W7.6 = HEX.W7.5;
 		}
 
-		conn_class DSPHOLE.E {
+		connector_class DSPHOLE.E {
 			pass OMUX1.W = OMUX1;
 			pass OMUX5.SW = OMUX5.S;
 			pass OMUX6.W = OMUX6;
@@ -41087,7 +41087,7 @@ intdb {
 			pass HEX.W7.6 = HEX.W7.5;
 		}
 
-		conn_class HDCM.E {
+		connector_class HDCM.E {
 			pass OMUX1.W = OMUX1;
 			pass OMUX5.SW = OMUX5.S;
 			pass OMUX6.W = OMUX6;
@@ -41160,10 +41160,10 @@ intdb {
 		}
 	}
 
-	conn_slot S {
+	connector_slot S {
 		opposite N;
 
-		conn_class MAIN.S {
+		connector_class MAIN.S {
 			pass OMUX8.EN = OMUX8.E;
 			pass OMUX9.N = OMUX9;
 			pass OMUX10.N = OMUX10;
@@ -41269,7 +41269,7 @@ intdb {
 			pass LV.23 = LV.0;
 		}
 
-		conn_class TERM.S {
+		connector_class TERM.S {
 			reflect DBL.N0.1 = DBL.S0.0;
 			reflect DBL.N0.2 = DBL.S0.1;
 			reflect DBL.N1.1 = DBL.S1.0;
@@ -41336,7 +41336,7 @@ intdb {
 			reflect HEX.N7.6 = HEX.S7.5;
 		}
 
-		conn_class TERM.BRAM.S {
+		connector_class TERM.BRAM.S {
 			reflect DBL.N0.1 = DBL.S0.0;
 			reflect DBL.N0.2 = DBL.S0.1;
 			reflect DBL.N1.1 = DBL.S1.0;
@@ -41427,7 +41427,7 @@ intdb {
 			pass LV.23 = LV.0;
 		}
 
-		conn_class CLKLR.S3E.S {
+		connector_class CLKLR.S3E.S {
 			pass DBL.N0.1 = DBL.N0.0;
 			pass DBL.N0.2 = DBL.N0.1;
 			pass DBL.N1.1 = DBL.N1.0;
@@ -41518,7 +41518,105 @@ intdb {
 			pass LV.23 = LV.0;
 		}
 
-		conn_class LLV.S {
+		connector_class BRKH.S3.S {
+			pass OMUX8.EN = OMUX8.E;
+			pass OMUX9.N = OMUX9;
+			pass OMUX10.N = OMUX10;
+			pass OMUX11.N = OMUX11;
+			pass OMUX12.N = OMUX12;
+			pass OMUX14.WN = OMUX14.W;
+			pass OMUX15.N = OMUX15;
+			pass DBL.N0.1 = DBL.N0.0;
+			pass DBL.N0.2 = DBL.N0.1;
+			pass DBL.N1.1 = DBL.N1.0;
+			pass DBL.N1.2 = DBL.N1.1;
+			pass DBL.N2.1 = DBL.N2.0;
+			pass DBL.N2.2 = DBL.N2.1;
+			pass DBL.N3.1 = DBL.N3.0;
+			pass DBL.N3.2 = DBL.N3.1;
+			pass DBL.N4.1 = DBL.N4.0;
+			pass DBL.N4.2 = DBL.N4.1;
+			pass DBL.N5.1 = DBL.N5.0;
+			pass DBL.N5.2 = DBL.N5.1;
+			pass DBL.N6.1 = DBL.N6.0;
+			pass DBL.N6.2 = DBL.N6.1;
+			pass DBL.N7.1 = DBL.N7.0;
+			pass DBL.N7.2 = DBL.N7.1;
+			pass HEX.N0.1 = HEX.N0.0;
+			pass HEX.N0.2 = HEX.N0.1;
+			pass HEX.N0.3 = HEX.N0.2;
+			pass HEX.N0.4 = HEX.N0.3;
+			pass HEX.N0.5 = HEX.N0.4;
+			pass HEX.N0.6 = HEX.N0.5;
+			pass HEX.N1.1 = HEX.N1.0;
+			pass HEX.N1.2 = HEX.N1.1;
+			pass HEX.N1.3 = HEX.N1.2;
+			pass HEX.N1.4 = HEX.N1.3;
+			pass HEX.N1.5 = HEX.N1.4;
+			pass HEX.N1.6 = HEX.N1.5;
+			pass HEX.N2.1 = HEX.N2.0;
+			pass HEX.N2.2 = HEX.N2.1;
+			pass HEX.N2.3 = HEX.N2.2;
+			pass HEX.N2.4 = HEX.N2.3;
+			pass HEX.N2.5 = HEX.N2.4;
+			pass HEX.N2.6 = HEX.N2.5;
+			pass HEX.N3.1 = HEX.N3.0;
+			pass HEX.N3.2 = HEX.N3.1;
+			pass HEX.N3.3 = HEX.N3.2;
+			pass HEX.N3.4 = HEX.N3.3;
+			pass HEX.N3.5 = HEX.N3.4;
+			pass HEX.N3.6 = HEX.N3.5;
+			pass HEX.N4.1 = HEX.N4.0;
+			pass HEX.N4.2 = HEX.N4.1;
+			pass HEX.N4.3 = HEX.N4.2;
+			pass HEX.N4.4 = HEX.N4.3;
+			pass HEX.N4.5 = HEX.N4.4;
+			pass HEX.N4.6 = HEX.N4.5;
+			pass HEX.N5.1 = HEX.N5.0;
+			pass HEX.N5.2 = HEX.N5.1;
+			pass HEX.N5.3 = HEX.N5.2;
+			pass HEX.N5.4 = HEX.N5.3;
+			pass HEX.N5.5 = HEX.N5.4;
+			pass HEX.N5.6 = HEX.N5.5;
+			pass HEX.N6.1 = HEX.N6.0;
+			pass HEX.N6.2 = HEX.N6.1;
+			pass HEX.N6.3 = HEX.N6.2;
+			pass HEX.N6.4 = HEX.N6.3;
+			pass HEX.N6.5 = HEX.N6.4;
+			pass HEX.N6.6 = HEX.N6.5;
+			pass HEX.N7.1 = HEX.N7.0;
+			pass HEX.N7.2 = HEX.N7.1;
+			pass HEX.N7.3 = HEX.N7.2;
+			pass HEX.N7.4 = HEX.N7.3;
+			pass HEX.N7.5 = HEX.N7.4;
+			pass HEX.N7.6 = HEX.N7.5;
+			pass LV.0 = LV.1;
+			pass LV.1 = LV.2;
+			pass LV.2 = LV.3;
+			pass LV.3 = LV.4;
+			pass LV.4 = LV.5;
+			pass LV.5 = LV.6;
+			pass LV.6 = LV.7;
+			pass LV.7 = LV.8;
+			pass LV.8 = LV.9;
+			pass LV.9 = LV.10;
+			pass LV.10 = LV.11;
+			pass LV.11 = LV.12;
+			pass LV.12 = LV.13;
+			pass LV.13 = LV.14;
+			pass LV.14 = LV.15;
+			pass LV.15 = LV.16;
+			pass LV.16 = LV.17;
+			pass LV.17 = LV.18;
+			pass LV.18 = LV.19;
+			pass LV.19 = LV.20;
+			pass LV.20 = LV.21;
+			pass LV.21 = LV.22;
+			pass LV.22 = LV.23;
+			pass LV.23 = LV.0;
+		}
+
+		connector_class LLV.S {
 			pass OMUX8.EN = OMUX8.E;
 			pass OMUX9.N = OMUX9;
 			pass OMUX10.N = OMUX10;
@@ -41600,7 +41698,7 @@ intdb {
 			pass HEX.N7.7 = HEX.N7.6;
 		}
 
-		conn_class LLV.CLKLR.S3E.S {
+		connector_class LLV.CLKLR.S3E.S {
 			pass DBL.N0.1 = DBL.N0.0;
 			pass DBL.N0.2 = DBL.N0.1;
 			pass DBL.N1.1 = DBL.N1.0;
@@ -41665,111 +41763,13 @@ intdb {
 			pass HEX.N7.4 = HEX.N7.3;
 			pass HEX.N7.5 = HEX.N7.4;
 			pass HEX.N7.6 = HEX.N7.5;
-		}
-
-		conn_class BRKH.S3.S {
-			pass OMUX8.EN = OMUX8.E;
-			pass OMUX9.N = OMUX9;
-			pass OMUX10.N = OMUX10;
-			pass OMUX11.N = OMUX11;
-			pass OMUX12.N = OMUX12;
-			pass OMUX14.WN = OMUX14.W;
-			pass OMUX15.N = OMUX15;
-			pass DBL.N0.1 = DBL.N0.0;
-			pass DBL.N0.2 = DBL.N0.1;
-			pass DBL.N1.1 = DBL.N1.0;
-			pass DBL.N1.2 = DBL.N1.1;
-			pass DBL.N2.1 = DBL.N2.0;
-			pass DBL.N2.2 = DBL.N2.1;
-			pass DBL.N3.1 = DBL.N3.0;
-			pass DBL.N3.2 = DBL.N3.1;
-			pass DBL.N4.1 = DBL.N4.0;
-			pass DBL.N4.2 = DBL.N4.1;
-			pass DBL.N5.1 = DBL.N5.0;
-			pass DBL.N5.2 = DBL.N5.1;
-			pass DBL.N6.1 = DBL.N6.0;
-			pass DBL.N6.2 = DBL.N6.1;
-			pass DBL.N7.1 = DBL.N7.0;
-			pass DBL.N7.2 = DBL.N7.1;
-			pass HEX.N0.1 = HEX.N0.0;
-			pass HEX.N0.2 = HEX.N0.1;
-			pass HEX.N0.3 = HEX.N0.2;
-			pass HEX.N0.4 = HEX.N0.3;
-			pass HEX.N0.5 = HEX.N0.4;
-			pass HEX.N0.6 = HEX.N0.5;
-			pass HEX.N1.1 = HEX.N1.0;
-			pass HEX.N1.2 = HEX.N1.1;
-			pass HEX.N1.3 = HEX.N1.2;
-			pass HEX.N1.4 = HEX.N1.3;
-			pass HEX.N1.5 = HEX.N1.4;
-			pass HEX.N1.6 = HEX.N1.5;
-			pass HEX.N2.1 = HEX.N2.0;
-			pass HEX.N2.2 = HEX.N2.1;
-			pass HEX.N2.3 = HEX.N2.2;
-			pass HEX.N2.4 = HEX.N2.3;
-			pass HEX.N2.5 = HEX.N2.4;
-			pass HEX.N2.6 = HEX.N2.5;
-			pass HEX.N3.1 = HEX.N3.0;
-			pass HEX.N3.2 = HEX.N3.1;
-			pass HEX.N3.3 = HEX.N3.2;
-			pass HEX.N3.4 = HEX.N3.3;
-			pass HEX.N3.5 = HEX.N3.4;
-			pass HEX.N3.6 = HEX.N3.5;
-			pass HEX.N4.1 = HEX.N4.0;
-			pass HEX.N4.2 = HEX.N4.1;
-			pass HEX.N4.3 = HEX.N4.2;
-			pass HEX.N4.4 = HEX.N4.3;
-			pass HEX.N4.5 = HEX.N4.4;
-			pass HEX.N4.6 = HEX.N4.5;
-			pass HEX.N5.1 = HEX.N5.0;
-			pass HEX.N5.2 = HEX.N5.1;
-			pass HEX.N5.3 = HEX.N5.2;
-			pass HEX.N5.4 = HEX.N5.3;
-			pass HEX.N5.5 = HEX.N5.4;
-			pass HEX.N5.6 = HEX.N5.5;
-			pass HEX.N6.1 = HEX.N6.0;
-			pass HEX.N6.2 = HEX.N6.1;
-			pass HEX.N6.3 = HEX.N6.2;
-			pass HEX.N6.4 = HEX.N6.3;
-			pass HEX.N6.5 = HEX.N6.4;
-			pass HEX.N6.6 = HEX.N6.5;
-			pass HEX.N7.1 = HEX.N7.0;
-			pass HEX.N7.2 = HEX.N7.1;
-			pass HEX.N7.3 = HEX.N7.2;
-			pass HEX.N7.4 = HEX.N7.3;
-			pass HEX.N7.5 = HEX.N7.4;
-			pass HEX.N7.6 = HEX.N7.5;
-			pass LV.0 = LV.1;
-			pass LV.1 = LV.2;
-			pass LV.2 = LV.3;
-			pass LV.3 = LV.4;
-			pass LV.4 = LV.5;
-			pass LV.5 = LV.6;
-			pass LV.6 = LV.7;
-			pass LV.7 = LV.8;
-			pass LV.8 = LV.9;
-			pass LV.9 = LV.10;
-			pass LV.10 = LV.11;
-			pass LV.11 = LV.12;
-			pass LV.12 = LV.13;
-			pass LV.13 = LV.14;
-			pass LV.14 = LV.15;
-			pass LV.15 = LV.16;
-			pass LV.16 = LV.17;
-			pass LV.17 = LV.18;
-			pass LV.18 = LV.19;
-			pass LV.19 = LV.20;
-			pass LV.20 = LV.21;
-			pass LV.21 = LV.22;
-			pass LV.22 = LV.23;
-			pass LV.23 = LV.0;
 		}
 	}
 
-	conn_slot N {
+	connector_slot N {
 		opposite S;
 
-		conn_class MAIN.N {
+		connector_class MAIN.N {
 			pass OMUX0.S = OMUX0;
 			pass OMUX1.WS = OMUX1.W;
 			pass OMUX2.S = OMUX2;
@@ -41851,7 +41851,7 @@ intdb {
 			pass HEX.S7.6 = HEX.S7.5;
 		}
 
-		conn_class TERM.N {
+		connector_class TERM.N {
 			reflect DBL.S0.1 = DBL.N0.0;
 			reflect DBL.S0.2 = DBL.N0.1;
 			reflect DBL.S1.1 = DBL.N1.0;
@@ -41918,7 +41918,7 @@ intdb {
 			reflect HEX.S7.6 = HEX.N7.5;
 		}
 
-		conn_class TERM.BRAM.N {
+		connector_class TERM.BRAM.N {
 			reflect DBL.S0.1 = DBL.N0.0;
 			reflect DBL.S0.2 = DBL.N0.1;
 			reflect DBL.S1.1 = DBL.N1.0;
@@ -41985,7 +41985,7 @@ intdb {
 			reflect HEX.S7.6 = HEX.N7.5;
 		}
 
-		conn_class CLKLR.S3E.N {
+		connector_class CLKLR.S3E.N {
 			pass DBL.S0.1 = DBL.S0.0;
 			pass DBL.S0.2 = DBL.S0.1;
 			pass DBL.S1.1 = DBL.S1.0;
@@ -42052,7 +42052,7 @@ intdb {
 			pass HEX.S7.6 = HEX.S7.5;
 		}
 
-		conn_class LLV.N {
+		connector_class BRKH.S3.N {
 			pass OMUX0.S = OMUX0;
 			pass OMUX1.WS = OMUX1.W;
 			pass OMUX2.S = OMUX2;
@@ -42134,74 +42134,7 @@ intdb {
 			pass HEX.S7.6 = HEX.S7.5;
 		}
 
-		conn_class LLV.CLKLR.S3E.N {
-			pass DBL.S0.1 = DBL.S0.0;
-			pass DBL.S0.2 = DBL.S0.1;
-			pass DBL.S1.1 = DBL.S1.0;
-			pass DBL.S1.2 = DBL.S1.1;
-			pass DBL.S2.1 = DBL.S2.0;
-			pass DBL.S2.2 = DBL.S2.1;
-			pass DBL.S3.1 = DBL.S3.0;
-			pass DBL.S3.2 = DBL.S3.1;
-			pass DBL.S4.1 = DBL.S4.0;
-			pass DBL.S4.2 = DBL.S4.1;
-			pass DBL.S5.1 = DBL.S5.0;
-			pass DBL.S5.2 = DBL.S5.1;
-			pass DBL.S6.1 = DBL.S6.0;
-			pass DBL.S6.2 = DBL.S6.1;
-			pass DBL.S7.1 = DBL.S7.0;
-			pass DBL.S7.2 = DBL.S7.1;
-			pass HEX.S0.1 = HEX.S0.0;
-			pass HEX.S0.2 = HEX.S0.1;
-			pass HEX.S0.3 = HEX.S0.2;
-			pass HEX.S0.4 = HEX.S0.3;
-			pass HEX.S0.5 = HEX.S0.4;
-			pass HEX.S0.6 = HEX.S0.5;
-			pass HEX.S1.1 = HEX.S1.0;
-			pass HEX.S1.2 = HEX.S1.1;
-			pass HEX.S1.3 = HEX.S1.2;
-			pass HEX.S1.4 = HEX.S1.3;
-			pass HEX.S1.5 = HEX.S1.4;
-			pass HEX.S1.6 = HEX.S1.5;
-			pass HEX.S2.1 = HEX.S2.0;
-			pass HEX.S2.2 = HEX.S2.1;
-			pass HEX.S2.3 = HEX.S2.2;
-			pass HEX.S2.4 = HEX.S2.3;
-			pass HEX.S2.5 = HEX.S2.4;
-			pass HEX.S2.6 = HEX.S2.5;
-			pass HEX.S3.1 = HEX.S3.0;
-			pass HEX.S3.2 = HEX.S3.1;
-			pass HEX.S3.3 = HEX.S3.2;
-			pass HEX.S3.4 = HEX.S3.3;
-			pass HEX.S3.5 = HEX.S3.4;
-			pass HEX.S3.6 = HEX.S3.5;
-			pass HEX.S4.1 = HEX.S4.0;
-			pass HEX.S4.2 = HEX.S4.1;
-			pass HEX.S4.3 = HEX.S4.2;
-			pass HEX.S4.4 = HEX.S4.3;
-			pass HEX.S4.5 = HEX.S4.4;
-			pass HEX.S4.6 = HEX.S4.5;
-			pass HEX.S5.1 = HEX.S5.0;
-			pass HEX.S5.2 = HEX.S5.1;
-			pass HEX.S5.3 = HEX.S5.2;
-			pass HEX.S5.4 = HEX.S5.3;
-			pass HEX.S5.5 = HEX.S5.4;
-			pass HEX.S5.6 = HEX.S5.5;
-			pass HEX.S6.1 = HEX.S6.0;
-			pass HEX.S6.2 = HEX.S6.1;
-			pass HEX.S6.3 = HEX.S6.2;
-			pass HEX.S6.4 = HEX.S6.3;
-			pass HEX.S6.5 = HEX.S6.4;
-			pass HEX.S6.6 = HEX.S6.5;
-			pass HEX.S7.1 = HEX.S7.0;
-			pass HEX.S7.2 = HEX.S7.1;
-			pass HEX.S7.3 = HEX.S7.2;
-			pass HEX.S7.4 = HEX.S7.3;
-			pass HEX.S7.5 = HEX.S7.4;
-			pass HEX.S7.6 = HEX.S7.5;
-		}
-
-		conn_class BRKH.S3.N {
+		connector_class LLV.N {
 			pass OMUX0.S = OMUX0;
 			pass OMUX1.WS = OMUX1.W;
 			pass OMUX2.S = OMUX2;
@@ -42245,6 +42178,73 @@ intdb {
 			pass HEX.S1.5 = HEX.S1.4;
 			pass HEX.S1.6 = HEX.S1.5;
 			pass HEX.S1.7 = HEX.S1.6;
+			pass HEX.S2.1 = HEX.S2.0;
+			pass HEX.S2.2 = HEX.S2.1;
+			pass HEX.S2.3 = HEX.S2.2;
+			pass HEX.S2.4 = HEX.S2.3;
+			pass HEX.S2.5 = HEX.S2.4;
+			pass HEX.S2.6 = HEX.S2.5;
+			pass HEX.S3.1 = HEX.S3.0;
+			pass HEX.S3.2 = HEX.S3.1;
+			pass HEX.S3.3 = HEX.S3.2;
+			pass HEX.S3.4 = HEX.S3.3;
+			pass HEX.S3.5 = HEX.S3.4;
+			pass HEX.S3.6 = HEX.S3.5;
+			pass HEX.S4.1 = HEX.S4.0;
+			pass HEX.S4.2 = HEX.S4.1;
+			pass HEX.S4.3 = HEX.S4.2;
+			pass HEX.S4.4 = HEX.S4.3;
+			pass HEX.S4.5 = HEX.S4.4;
+			pass HEX.S4.6 = HEX.S4.5;
+			pass HEX.S5.1 = HEX.S5.0;
+			pass HEX.S5.2 = HEX.S5.1;
+			pass HEX.S5.3 = HEX.S5.2;
+			pass HEX.S5.4 = HEX.S5.3;
+			pass HEX.S5.5 = HEX.S5.4;
+			pass HEX.S5.6 = HEX.S5.5;
+			pass HEX.S6.1 = HEX.S6.0;
+			pass HEX.S6.2 = HEX.S6.1;
+			pass HEX.S6.3 = HEX.S6.2;
+			pass HEX.S6.4 = HEX.S6.3;
+			pass HEX.S6.5 = HEX.S6.4;
+			pass HEX.S6.6 = HEX.S6.5;
+			pass HEX.S7.1 = HEX.S7.0;
+			pass HEX.S7.2 = HEX.S7.1;
+			pass HEX.S7.3 = HEX.S7.2;
+			pass HEX.S7.4 = HEX.S7.3;
+			pass HEX.S7.5 = HEX.S7.4;
+			pass HEX.S7.6 = HEX.S7.5;
+		}
+
+		connector_class LLV.CLKLR.S3E.N {
+			pass DBL.S0.1 = DBL.S0.0;
+			pass DBL.S0.2 = DBL.S0.1;
+			pass DBL.S1.1 = DBL.S1.0;
+			pass DBL.S1.2 = DBL.S1.1;
+			pass DBL.S2.1 = DBL.S2.0;
+			pass DBL.S2.2 = DBL.S2.1;
+			pass DBL.S3.1 = DBL.S3.0;
+			pass DBL.S3.2 = DBL.S3.1;
+			pass DBL.S4.1 = DBL.S4.0;
+			pass DBL.S4.2 = DBL.S4.1;
+			pass DBL.S5.1 = DBL.S5.0;
+			pass DBL.S5.2 = DBL.S5.1;
+			pass DBL.S6.1 = DBL.S6.0;
+			pass DBL.S6.2 = DBL.S6.1;
+			pass DBL.S7.1 = DBL.S7.0;
+			pass DBL.S7.2 = DBL.S7.1;
+			pass HEX.S0.1 = HEX.S0.0;
+			pass HEX.S0.2 = HEX.S0.1;
+			pass HEX.S0.3 = HEX.S0.2;
+			pass HEX.S0.4 = HEX.S0.3;
+			pass HEX.S0.5 = HEX.S0.4;
+			pass HEX.S0.6 = HEX.S0.5;
+			pass HEX.S1.1 = HEX.S1.0;
+			pass HEX.S1.2 = HEX.S1.1;
+			pass HEX.S1.3 = HEX.S1.2;
+			pass HEX.S1.4 = HEX.S1.3;
+			pass HEX.S1.5 = HEX.S1.4;
+			pass HEX.S1.6 = HEX.S1.5;
 			pass HEX.S2.1 = HEX.S2.0;
 			pass HEX.S2.2 = HEX.S2.1;
 			pass HEX.S2.3 = HEX.S2.2;

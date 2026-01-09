@@ -1,4 +1,4 @@
-use std::{collections::btree_map, fs::File};
+use std::fs::File;
 
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::db::IntDb;
@@ -8,7 +8,6 @@ use prjcombine_siliconblue::{
     db::{Database, Device},
 };
 use prjcombine_types::{
-    bsdata::BsData,
     db::{BondId, ChipId, DumpFlags, SpeedId},
     speed::Speed,
 };
@@ -38,20 +37,19 @@ fn merge_int(dst: &mut IntDb, src: &IntDb, init: &IntDb, dbname: &str) {
             assert_eq!(*dtcls, *stcls, "FAIL when merging {dbname} TCLS {name}");
         }
     }
-}
-
-fn merge_bsdata(dst: &mut BsData, src: &BsData, dbname: &str) {
-    for (k, v) in &src.misc_data {
-        dst.insert_misc_data(k, v.clone());
-    }
-    for (name, tile) in &src.tiles {
-        match dst.tiles.entry(name.clone()) {
-            btree_map::Entry::Vacant(e) => {
-                e.insert(tile.clone());
-            }
-            btree_map::Entry::Occupied(e) => {
-                assert_eq!(e.get(), tile, "FAIL when merging {dbname} BSTILE {name}");
-            }
+    for ((dtable, stable), (_tid, name, itable)) in dst
+        .tables
+        .values_mut()
+        .zip(src.tables.values())
+        .zip(&init.tables)
+    {
+        if *stable == *itable {
+            continue;
+        }
+        if *dtable == *itable {
+            *dtable = stable.clone();
+        } else {
+            assert_eq!(*dtable, *stable, "FAIL when merging {dbname} TABLE {name}");
         }
     }
 }
@@ -111,7 +109,6 @@ fn main() {
         speeds: Default::default(),
         devices: Default::default(),
         int: init.clone(),
-        bsdata: Default::default(),
     };
     for fname in [
         "db/icecube/ice65l04.zstd",
@@ -128,7 +125,6 @@ fn main() {
     ] {
         let src = Database::from_file(fname).unwrap();
         merge_int(&mut dst.int, &src.int, &init, fname);
-        merge_bsdata(&mut dst.bsdata, &src.bsdata, fname);
         let bonds = merge_bonds(&mut dst.bonds, &src.bonds);
         let speeds = merge_speeds(&mut dst.speeds, &src.speeds);
         let chips = merge_chips(&mut dst.chips, &src.chips);

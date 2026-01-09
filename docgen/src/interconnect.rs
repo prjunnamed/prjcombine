@@ -9,7 +9,7 @@ use prjcombine_entity::{EntityBundleItemIndex, EntityId};
 use prjcombine_interconnect::db::{
     BelAttribute, BelAttributeId, BelAttributeType, BelClassId, BelInfo, BelInput, BelInputId,
     BelKind, BelSlotId, ConnectorWire, IntDb, PinDir, PolTileWireCoord, SwitchBox, SwitchBoxItem,
-    TileClass, TileClassId, TileWireCoord, WireKind,
+    TableId, TableValue, TileClass, TileClassId, TileWireCoord, WireKind,
 };
 use prjcombine_types::{
     bitvec::BitVec,
@@ -1309,7 +1309,6 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
     writeln!(buf, r#"Cells: {}"#, tcls.cells.len()).unwrap();
     writeln!(buf).unwrap();
 
-    let single_cell = tcls.cells.len() == 1;
     let mut tcgen = TileClassGen {
         ctx,
         dbname,
@@ -1355,13 +1354,7 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                     let wires = pin
                         .wires
                         .iter()
-                        .map(|wire| {
-                            if single_cell {
-                                intdb.wires.key(wire.wire).to_string()
-                            } else {
-                                format!("{}:{}", wire.cell, intdb.wires.key(wire.wire))
-                            }
-                        })
+                        .map(|wire| wire.to_string(intdb, tcls))
                         .join(", ");
                     let dir = match pin.dir {
                         PinDir::Input => "input",
@@ -1399,30 +1392,12 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 writeln!(buf, r#"</thead>"#).unwrap();
                 writeln!(buf, r#"<tbody>"#).unwrap();
                 for (dst, tmux) in &bel.wires {
-                    let dst = if single_cell {
-                        intdb.wires.key(dst.wire).to_string()
-                    } else {
-                        format!("{}:{}", dst.cell, intdb.wires.key(dst.wire))
-                    };
-                    let primary_src = if single_cell {
-                        intdb.wires.key(tmux.primary_src.wire).to_string()
-                    } else {
-                        format!(
-                            "{}:{}",
-                            tmux.primary_src.cell,
-                            intdb.wires.key(tmux.primary_src.wire)
-                        )
-                    };
+                    let dst = dst.to_string(intdb, tcls);
+                    let primary_src = tmux.primary_src.to_string(intdb, tcls);
                     let test_srcs = tmux
                         .test_src
-                        .iter()
-                        .map(|wsrc| {
-                            if single_cell {
-                                intdb.wires.key(wsrc.wire).to_string()
-                            } else {
-                                format!("{}:{}", wsrc.cell, intdb.wires.key(wsrc.wire))
-                            }
-                        })
+                        .keys()
+                        .map(|wsrc| wsrc.to_string(intdb, tcls))
                         .join(", ");
                     writeln!(
                         buf,
@@ -1441,35 +1416,19 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 writeln!(buf, r#"<caption>{dbname} {tname} {bname} mux</caption>"#).unwrap();
                 writeln!(buf, r#"<thead>"#).unwrap();
                 writeln!(buf, r#"<tr><th>Destination</th><th>Primary source</th>"#).unwrap();
-                for i in 0..bel.num_groups {
+                for i in 0..bel.groups.len() {
                     writeln!(buf, r#"<th>Test source {i}</th>"#).unwrap();
                 }
                 writeln!(buf, r#"</tr>"#).unwrap();
                 writeln!(buf, r#"</thead>"#).unwrap();
                 writeln!(buf, r#"<tbody>"#).unwrap();
                 for (dst, tmux) in &bel.wires {
-                    let dst = if single_cell {
-                        intdb.wires.key(dst.wire).to_string()
-                    } else {
-                        format!("{}:{}", dst.cell, intdb.wires.key(dst.wire))
-                    };
-                    let primary_src = if single_cell {
-                        intdb.wires.key(tmux.primary_src.wire).to_string()
-                    } else {
-                        format!(
-                            "{}:{}",
-                            tmux.primary_src.cell,
-                            intdb.wires.key(tmux.primary_src.wire)
-                        )
-                    };
+                    let dst = dst.to_string(intdb, tcls);
+                    let primary_src = tmux.primary_src.to_string(intdb, tcls);
                     writeln!(buf, r#"<tr><td>{dst}</td><td>{primary_src}</td>"#).unwrap();
                     for &src in &tmux.test_src {
                         if let Some(src) = src {
-                            let src = if single_cell {
-                                intdb.wires.key(src.wire).to_string()
-                            } else {
-                                format!("{}:{}", src.cell, intdb.wires.key(src.wire))
-                            };
+                            let src = src.to_string(intdb, tcls);
                             writeln!(buf, r#"<td>{src}</td>"#).unwrap();
                         } else {
                             writeln!(buf, r#"<td>-</td>"#).unwrap();
@@ -1524,9 +1483,64 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
     ctx.items.insert(format!("tile-{dbname}-{tname}"), buf);
 }
 
+fn gen_table(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tid: TableId) {
+    let tname = intdb.tables.key(tid);
+    let table = &intdb[tid];
+    let mut buf = String::new();
+
+    writeln!(buf, r#"## Table {tname}"#).unwrap();
+    writeln!(buf).unwrap();
+    writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+    writeln!(buf, r#"<caption>{dbname} table {tname}</caption>"#).unwrap();
+    writeln!(buf, r#"<thead>"#).unwrap();
+    writeln!(buf, r#"<tr><th>Row</th>"#).unwrap();
+    for fname in table.fields.keys() {
+        writeln!(buf, r#"<th>{fname}</th>"#).unwrap();
+    }
+    writeln!(buf, r#"</tr>"#).unwrap();
+    writeln!(buf, r#"</thead>"#).unwrap();
+    writeln!(buf, r#"<tbody>"#).unwrap();
+
+    for (_, rname, row) in &table.rows {
+        writeln!(buf, r#"<tr><td>{rname}</td>"#).unwrap();
+        for (fid, _, &typ) in &table.fields {
+            if let Some(value) = row.get(fid) {
+                match value {
+                    TableValue::BitVec(bv) => {
+                        writeln!(buf, r#"<td>0b{bv}</td>"#).unwrap();
+                    }
+                    TableValue::Enum(vid) => {
+                        let BelAttributeType::Enum(ecid) = typ else {
+                            unreachable!()
+                        };
+                        writeln!(
+                            buf,
+                            r#"<td>{val}</td>"#,
+                            val = intdb.enum_classes[ecid].values[*vid]
+                        )
+                        .unwrap();
+                    }
+                }
+            } else {
+                writeln!(buf, r#"<td>-</td>"#).unwrap();
+            }
+        }
+        writeln!(buf, r#"</tr>"#).unwrap();
+    }
+
+    writeln!(buf, r#"</tbody>"#).unwrap();
+    writeln!(buf, r#"</table></div>"#).unwrap();
+    writeln!(buf).unwrap();
+
+    ctx.items.insert(format!("table-{dbname}-{tname}"), buf);
+}
+
 pub fn gen_intdb(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb) {
     gen_intdb_basics(ctx, dbname, intdb);
     for id in intdb.tile_classes.ids() {
         gen_tile(ctx, dbname, intdb, id);
+    }
+    for id in intdb.tables.ids() {
+        gen_table(ctx, dbname, intdb, id);
     }
 }

@@ -1,6 +1,6 @@
 use crate::db::{
     BelAttribute, BelAttributeType, BelInfo, BelKind, ConnectorWire, IntDb, PadKind, PinDir,
-    TileClass,
+    TableValue, TileClass,
 };
 use prjcombine_entity::{EntityBundleIndex, EntityBundleItemIndex, EntityId};
 use prjcombine_types::bsdata::{PolTileBit, TileBit};
@@ -296,33 +296,77 @@ impl TileClass {
                     writeln!(o, "\t\t\t}}")?;
                 }
                 BelInfo::TestMux(tmux) => {
-                    writeln!(o, "\t\t\ttest_mux {slot} {{", slot = db.bel_slots.key(slot))?;
+                    writeln!(
+                        o,
+                        "\t\t\ttest_mux {slot} @{bit} {{",
+                        slot = db.bel_slots.key(slot),
+                        bit = self.dump_polbit(tmux.bit)
+                    )?;
                     for (dst, tmwire) in &tmux.wires {
                         write!(
                             o,
-                            "\t\t\t\t{dst} = {psrc} ||",
+                            "\t\t\t\t{dst} = {psrc} || ",
                             dst = dst.to_string(db, self),
                             psrc = tmwire.primary_src.to_string(db, self),
                         )?;
-                        let mut first = true;
-                        for src in &tmwire.test_src {
-                            if !first {
-                                write!(o, " | ")?;
+                        if tmwire.bits.is_empty() {
+                            let mut first = true;
+                            for src in tmwire.test_src.keys() {
+                                if !first {
+                                    write!(o, " | ")?;
+                                }
+                                first = false;
+                                write!(o, "{src}", src = src.to_string(db, self))?;
                             }
-                            first = false;
-                            write!(o, "{src}", src = src.to_string(db, self))?;
+                            writeln!(o, ";")?;
+                        } else {
+                            write!(o, "mux @[")?;
+                            let mut first = true;
+                            for &bit in tmwire.bits.iter().rev() {
+                                if !first {
+                                    write!(o, ", ")?;
+                                }
+                                first = false;
+                                write!(o, "{}", self.dump_bit(bit))?;
+                            }
+                            writeln!(o, "] {{")?;
+                            for (src, v) in &tmwire.test_src {
+                                writeln!(
+                                    o,
+                                    "\t\t\t\t\t{src} = 0b{v},",
+                                    src = src.to_string(db, self)
+                                )?;
+                            }
+                            writeln!(o, "\t\t\t\t}}")?;
                         }
-                        writeln!(o, ";")?;
                     }
                     writeln!(o, "\t\t\t}}")?;
                 }
                 BelInfo::GroupTestMux(tmux) => {
-                    writeln!(
+                    write!(
                         o,
-                        "\t\t\tgroup_test_mux {slot}: {num_groups} {{",
+                        "\t\t\tgroup_test_mux {slot}",
                         slot = db.bel_slots.key(slot),
-                        num_groups = tmux.num_groups
                     )?;
+                    if tmux.bits.is_empty() {
+                        writeln!(o, " #{n} {{", n = tmux.groups.len())?;
+                    } else {
+                        write!(o, " @[")?;
+                        let mut first = true;
+                        for &bit in tmux.bits.iter().rev() {
+                            if !first {
+                                write!(o, ", ")?;
+                            }
+                            first = false;
+                            write!(o, "{}", self.dump_bit(bit))?;
+                        }
+                        writeln!(o, "] {{")?;
+                        writeln!(o, "\t\t\t\tprimary = 0b{v},", v = tmux.bits_primary)?;
+                        for (idx, v) in tmux.groups.iter().enumerate() {
+                            writeln!(o, "\t\t\t\ttest_group {idx} = 0b{v},")?;
+                        }
+                        writeln!(o, "\t\t\t\t}} {{")?;
+                    }
                     for (dst, tmwire) in &tmux.wires {
                         write!(
                             o,
@@ -387,6 +431,57 @@ impl TileClass {
 }
 
 impl IntDb {
+    pub fn dump_typ(&self, typ: BelAttributeType) -> String {
+        match typ {
+            BelAttributeType::Enum(eid) => self.enum_classes.key(eid).to_string(),
+            BelAttributeType::Bool => "bool".to_string(),
+            BelAttributeType::Bitvec(width) => {
+                format!("bitvec[{width}]")
+            }
+            BelAttributeType::BitvecArray(width, depth) => {
+                format!("bitvec[{width}][{depth}]")
+            }
+        }
+    }
+
+    pub fn dump_value(&self, typ: BelAttributeType, value: &TableValue) -> String {
+        match (typ, value) {
+            (BelAttributeType::Enum(eid), TableValue::Enum(vid)) => {
+                self.enum_classes[eid].values[*vid].to_string()
+            }
+            (BelAttributeType::Bool, TableValue::BitVec(val)) => {
+                assert_eq!(val.len(), 1);
+                if val[0] {
+                    "true".to_string()
+                } else {
+                    "false".to_string()
+                }
+            }
+            (BelAttributeType::Bitvec(width), TableValue::BitVec(val)) => {
+                assert_eq!(val.len(), width);
+                format!("0b{val}")
+            }
+            (BelAttributeType::BitvecArray(width, depth), TableValue::BitVec(val)) => {
+                assert_eq!(val.len(), width * depth);
+                let mut res = "[".to_string();
+                let mut first = true;
+                for i in 0..depth {
+                    if !first {
+                        res.push_str(", ");
+                    }
+                    first = false;
+                    res.push_str("0b");
+                    for bidx in ((i * width)..((i + 1) * width)).rev() {
+                        res.push(if val[bidx] { '1' } else { '0' });
+                    }
+                }
+                res.push(']');
+                res
+            }
+            _ => unreachable!(),
+        }
+    }
+
     pub fn dump(&self, o: &mut dyn std::io::Write) -> std::io::Result<()> {
         writeln!(o, "intdb {{")?;
         for (_, name, ecls) in &self.enum_classes {
@@ -451,22 +546,11 @@ impl IntDb {
                 )?;
             }
             for (_, aname, attr) in &bcls.attributes {
-                write!(o, "\t\tattribute {aname}: ")?;
-                match attr.typ {
-                    BelAttributeType::Enum(eid) => {
-                        write!(o, "{}", self.enum_classes.key(eid))?;
-                    }
-                    BelAttributeType::Bool => {
-                        write!(o, "bool")?;
-                    }
-                    BelAttributeType::Bitvec(width) => {
-                        write!(o, "bitvec[{width}]")?;
-                    }
-                    BelAttributeType::BitvecArray(width, depth) => {
-                        write!(o, "bitvec[{width}][{depth}]")?;
-                    }
-                }
-                writeln!(o, ";")?;
+                writeln!(
+                    o,
+                    "\t\tattribute {aname}: {typ};",
+                    typ = self.dump_typ(attr.typ)
+                )?;
             }
             writeln!(o, "\t}}")?;
             writeln!(o,)?;
@@ -497,7 +581,7 @@ impl IntDb {
                     continue;
                 }
                 writeln!(o,)?;
-                writeln!(o, "\t\ttile_class {name} {{",)?;
+                writeln!(o, "\t\ttile_class {name} {{")?;
                 tcls.dump(self, o)?;
                 writeln!(o, "\t\t}}")?;
             }
@@ -505,7 +589,7 @@ impl IntDb {
         }
         for (csid, csname, cslot) in &self.conn_slots {
             writeln!(o,)?;
-            writeln!(o, "\tconn_slot {csname} {{",)?;
+            writeln!(o, "\tconnector_slot {csname} {{")?;
             writeln!(
                 o,
                 "\t\topposite {oname};",
@@ -516,7 +600,7 @@ impl IntDb {
                     continue;
                 }
                 writeln!(o,)?;
-                writeln!(o, "\t\tconn_class {name} {{",)?;
+                writeln!(o, "\t\tconnector_class {name} {{",)?;
                 for (w, ti) in &ccls.wires {
                     let wn = &self.wires.key(w);
                     match ti {
@@ -535,6 +619,40 @@ impl IntDb {
             }
             writeln!(o, "\t}}")?;
         }
+
+        for (_, tname, table) in &self.tables {
+            writeln!(o)?;
+            writeln!(o, "\ttable {tname} {{")?;
+            for (_, fname, &typ) in &table.fields {
+                writeln!(o, "\t\tfield {fname}: {typ};", typ = self.dump_typ(typ))?;
+            }
+            writeln!(o)?;
+            for (_, rname, row) in &table.rows {
+                if row.iter().next().is_some() {
+                    writeln!(o, "\t\trow {rname} {{")?;
+                    for (fid, value) in row {
+                        writeln!(
+                            o,
+                            "\t\t\t{fname} = {value};",
+                            fname = table.fields.key(fid),
+                            value = self.dump_value(table.fields[fid], value)
+                        )?;
+                    }
+                    writeln!(o, "\t\t}}")?;
+                } else {
+                    writeln!(o, "\t\trow {rname};")?;
+                }
+            }
+            writeln!(o, "\t}}")?;
+        }
+
+        if !self.devdata.is_empty() {
+            writeln!(o)?;
+            for (_, name, &typ) in &self.devdata {
+                writeln!(o, "\tdevice_data {name}: {typ};", typ = self.dump_typ(typ))?;
+            }
+        }
+
         writeln!(o, "}}")?;
         Ok(())
     }

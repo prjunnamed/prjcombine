@@ -14,8 +14,8 @@ use prjcombine_entity::{
 use prjcombine_interconnect::{
     db::{
         BelAttribute, BelAttributeEnum, BelAttributeId, BelAttributeType, BelInfo, BelKind,
-        BelSlotId, EnumValueId, IntDb, PolTileWireCoord, SwitchBoxItem, TileClassId, TileSlotId,
-        TileWireCoord,
+        BelSlotId, EnumValueId, IntDb, PolTileWireCoord, SwitchBoxItem, TableFieldId, TableId,
+        TableRowId, TableValue, TileClassId, TileSlotId, TileWireCoord,
     },
     grid::{
         BelCoord, CellCoord, ColId, DieId, ExpandedGrid, PolWireCoord, RowId, TileCoord, WireCoord,
@@ -1031,6 +1031,7 @@ pub struct CollectorData {
     pub inv: HashMap<(TileClassId, TileWireCoord), PolTileBit>,
     pub buf: HashMap<(TileClassId, TileWireCoord, PolTileWireCoord), PolTileBit>,
     pub mux: HashMap<(TileClassId, TileWireCoord), EnumData<Option<PolTileWireCoord>>>,
+    pub table_data: HashMap<(TableId, TableRowId, TableFieldId), TableValue>,
 }
 
 impl CollectorData {
@@ -1158,6 +1159,15 @@ impl CollectorData {
                 wire = twc.to_string(intdb, &intdb.tile_classes[tcid]),
                 bit = intdb.tile_classes[tcid].dump_polbit(bit),
             );
+        }
+
+        for ((tid, rid, fid), value) in self.table_data {
+            let row = &mut intdb.tables[tid].rows[rid];
+            if row.contains_id(fid) {
+                assert_eq!(row[fid], value);
+            } else {
+                row.insert(fid, value);
+            }
         }
     }
 }
@@ -1345,6 +1355,24 @@ impl<'a, 'b> Collector<'a, 'b> {
             }
             hash_map::Entry::Vacant(e) => {
                 e.insert(bit);
+            }
+        }
+    }
+
+    pub fn insert_table_bitvec(
+        &mut self,
+        tid: TableId,
+        rid: TableRowId,
+        fid: TableFieldId,
+        val: BitVec,
+    ) {
+        let val = TableValue::BitVec(val);
+        match self.data.table_data.entry((tid, rid, fid)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), val);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(val);
             }
         }
     }
