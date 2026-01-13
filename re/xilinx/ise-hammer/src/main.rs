@@ -770,6 +770,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 prjcombine_virtex2::chip::ChipKind::Spartan3
+                | prjcombine_virtex2::chip::ChipKind::FpgaCore
                 | prjcombine_virtex2::chip::ChipKind::Spartan3E
                 | prjcombine_virtex2::chip::ChipKind::Spartan3A
                 | prjcombine_virtex2::chip::ChipKind::Spartan3ADsp => {
@@ -782,6 +783,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     run(&tc, &db, parts_dict[&"xc3s50a"], &mut tiledb, &opts);
                     run(&tc, &db, parts_dict[&"xc3s700a"], &mut tiledb, &opts);
                     run(&tc, &db, parts_dict[&"xc3sd1800a"], &mut tiledb, &opts);
+                    run(&tc, &db, parts_dict[&"xcexf10"], &mut tiledb, &opts);
                     if !args.skip_core || !args.skip_io {
                         // dummy DCM int; more VREF
                         let mut xopts = opts;
@@ -797,17 +799,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                         xopts.skip_io = opts.skip_io;
                         run(&tc, &db, parts_dict[&"xc3s1000"], &mut tiledb, &xopts);
                     }
-                    if !args.skip_devdata {
-                        let mut xopts = opts;
-                        xopts.skip_all();
-                        xopts.devdata_only = true;
-                        for part in &db.devices {
-                            run(&tc, &db, part, &mut tiledb, &xopts);
-                        }
-                    }
-                }
-                prjcombine_virtex2::chip::ChipKind::FpgaCore => {
-                    run(&tc, &db, parts_dict[&"xcexf10"], &mut tiledb, &opts);
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
@@ -962,15 +953,15 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    if let Some(tile) = tiledb.tiles.get("INT.GT.CLKPAD") {
-        let dcmclk0 = tile.items["INT:INV.IMUX.DCMCLK0"].clone();
-        let dcmclk1 = tile.items["INT:INV.IMUX.DCMCLK1"].clone();
-        let dcmclk2 = tile.items["INT:INV.IMUX.DCMCLK2"].clone();
-        for tile in ["INT.DCM.V2", "INT.DCM.V2P"] {
+    if let Some(tile) = tiledb.tiles.get("INT_GT_CLKPAD") {
+        let dcmclk0 = tile.items["INT:INV.IMUX_DCM_CLK[0]"].clone();
+        let dcmclk1 = tile.items["INT:INV.IMUX_DCM_CLK[1]"].clone();
+        let dcmclk2 = tile.items["INT:INV.IMUX_DCM_CLK[2]"].clone();
+        for tile in ["INT_DCM_V2", "INT_DCM_V2P"] {
             if tiledb.tiles.contains_key(tile) {
-                tiledb.insert(tile, "INT", "INV.IMUX.DCMCLK0", dcmclk0.clone());
-                tiledb.insert(tile, "INT", "INV.IMUX.DCMCLK1", dcmclk1.clone());
-                tiledb.insert(tile, "INT", "INV.IMUX.DCMCLK2", dcmclk2.clone());
+                tiledb.insert(tile, "INT", "INV.IMUX_DCM_CLK[0]", dcmclk0.clone());
+                tiledb.insert(tile, "INT", "INV.IMUX_DCM_CLK[1]", dcmclk1.clone());
+                tiledb.insert(tile, "INT", "INV.IMUX_DCM_CLK[2]", dcmclk2.clone());
             }
         }
     }

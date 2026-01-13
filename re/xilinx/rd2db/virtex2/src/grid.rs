@@ -4,8 +4,8 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, RowId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex2::{
-    bels,
     chip::{Chip, ChipKind, Column, ColumnIoKind, ColumnKind, Dcms, RowIoKind, SharedCfgPad},
+    defs,
 };
 
 use prjcombine_re_xilinx_rd2db_grid::{
@@ -97,36 +97,36 @@ fn get_cols_io(rd: &Part, int: &IntGrid, kind: ChipKind, cols: &mut EntityVec<Co
                 match (tk0, tk1) {
                     ("BTERM012" | "BCLKTERM012" | "ML_BCLKTERM012", "BTERM323") => {
                         for i in 0..2 {
-                            cols[col].io = ColumnIoKind::DoubleLeft(i as u8);
+                            cols[col].io = ColumnIoKind::DoubleW(i as u8);
                             col += 1;
                         }
                     }
                     ("BTERM010", "BTERM123" | "BCLKTERM123" | "ML_BCLKTERM123") => {
                         if tku1 == "MK_B_IOIS" {
                             for i in 0..2 {
-                                cols[col].io = ColumnIoKind::DoubleRightClk(i as u8);
+                                cols[col].io = ColumnIoKind::DoubleEClk(i as u8);
                                 col += 1;
                             }
                         } else {
                             for i in 0..2 {
-                                cols[col].io = ColumnIoKind::DoubleRight(i as u8);
+                                cols[col].io = ColumnIoKind::DoubleE(i as u8);
                                 col += 1;
                             }
                         }
                     }
                     ("BTERM123", _) => {
                         if tku0 == "ML_TBS_IOIS" {
-                            cols[col].io = ColumnIoKind::SingleLeftAlt;
+                            cols[col].io = ColumnIoKind::SingleWAlt;
                         } else {
-                            cols[col].io = ColumnIoKind::SingleLeft;
+                            cols[col].io = ColumnIoKind::SingleW;
                         }
                         col += 1;
                     }
                     ("BTERM012", _) => {
                         if tku0 == "ML_TBS_IOIS" {
-                            cols[col].io = ColumnIoKind::SingleRightAlt;
+                            cols[col].io = ColumnIoKind::SingleEAlt;
                         } else {
-                            cols[col].io = ColumnIoKind::SingleRight;
+                            cols[col].io = ColumnIoKind::SingleE;
                         }
                         col += 1;
                     }
@@ -269,11 +269,11 @@ fn get_rows(rd: &Part, int: &IntGrid, kind: ChipKind) -> EntityVec<RowId, RowIoK
             ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => {
                 if res.len() < int.rows.len() / 2 {
                     for i in 0..2 {
-                        res.push(RowIoKind::DoubleBot(i));
+                        res.push(RowIoKind::DoubleS(i));
                     }
                 } else {
                     for i in 0..2 {
-                        res.push(RowIoKind::DoubleTop(i));
+                        res.push(RowIoKind::DoubleN(i));
                     }
                 }
             }
@@ -424,7 +424,8 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                 let col = int.lookup_column(crd.x.into());
                 let row = int.lookup_row(crd.y.into());
                 let io = chip.get_io_crd(
-                    CellCoord::new(DieId::from_idx(0), col, row).bel(bels::IO[idx as usize]),
+                    CellCoord::new(DieId::from_idx(0), col, row)
+                        .bel(defs::bslots::IOI[idx as usize]),
                 );
                 io_lookup.insert(v.clone(), io);
             }

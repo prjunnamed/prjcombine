@@ -16,9 +16,10 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex2::{
-    bels,
     chip::{ChipKind, ColumnKind},
-    tslots,
+    defs,
+    defs::spartan3::tcls as tcls_s3,
+    defs::virtex2::tcls as tcls_v2,
 };
 
 use crate::{
@@ -58,7 +59,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DcmCornerEnable {
         };
         if we_match && sn_match {
             let col = edev.chip.col_edge(self.0.h);
-            let tcrd = tcrd.with_col(col).tile(tslots::BEL);
+            let tcrd = tcrd.with_col(col).tile(defs::tslots::BEL);
             fuzzer.info.features.push(FuzzerFeature {
                 key: DiffKey::Legacy(FeatureId {
                     tile: edev.db.tile_classes.key(edev[tcrd].class).clone(),
@@ -86,15 +87,15 @@ pub fn add_fuzzers<'a>(
         unreachable!()
     };
     let tile = match edev.chip.kind {
-        ChipKind::Virtex2 => "DCM.V2",
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => "DCM.V2P",
-        ChipKind::Spartan3 => "DCM.S3",
+        ChipKind::Virtex2 => tcls_v2::DCM_V2,
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => tcls_v2::DCM_V2P,
+        ChipKind::Spartan3 => tcls_s3::DCM_S3,
         _ => unreachable!(),
     };
 
     if devdata_only {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
-        let mut bctx = ctx.bel(bels::DCM);
+        let mut ctx = FuzzCtx::new_id(session, backend, tile);
+        let mut bctx = ctx.bel(defs::bslots::DCM);
         let mode = "DCM";
         let mut builder = bctx.build().global_mutex("DCM_OPT", "NO");
         if edev.chip.kind == ChipKind::Spartan3 {
@@ -107,14 +108,14 @@ pub fn add_fuzzers<'a>(
     let mut ctx = FuzzCtx::new_null(session, backend);
     for val in ["90", "180", "270", "360"] {
         ctx.build()
-            .extra_tiles_by_bel(bels::DCM, "DCM")
+            .extra_tiles_by_bel(defs::bslots::DCM, "DCM")
             .test_manual("DCM", "TEST_OSC", val)
             .global("TESTOSC", val)
             .commit();
     }
 
-    let mut ctx = FuzzCtx::new(session, backend, tile);
-    let mut bctx = ctx.bel(bels::DCM);
+    let mut ctx = FuzzCtx::new_id(session, backend, tile);
+    let mut bctx = ctx.bel(defs::bslots::DCM);
     let mode = "DCM";
     let mut props = vec![];
     if edev.chip.kind == ChipKind::Spartan3 {
@@ -562,9 +563,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         unreachable!()
     };
     let tile = match edev.chip.kind {
-        ChipKind::Virtex2 => "DCM.V2",
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => "DCM.V2P",
-        ChipKind::Spartan3 => "DCM.S3",
+        ChipKind::Virtex2 => "DCM_V2",
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => "DCM_V2P",
+        ChipKind::Spartan3 => "DCM_S3",
         _ => unreachable!(),
     };
     let bel = "DCM";
@@ -591,7 +592,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.insert_device_data("DCM:VBG_SEL", vbg_sel);
         ctx.insert_device_data("DCM:VBG_PD", vbg_pd);
         if edev.chip.kind == ChipKind::Spartan3 {
-            ctx.collect_bit("LL.S3", "MISC", "DCM_ENABLE", "1");
+            ctx.collect_bit("CNR_SW_S3", "MISC", "DCM_ENABLE", "1");
         }
         return;
     }
@@ -709,9 +710,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
 
     let int_tiles = &[match edev.chip.kind {
-        ChipKind::Virtex2 => "INT.DCM.V2",
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => "INT.DCM.V2P",
-        ChipKind::Spartan3 => "INT.DCM",
+        ChipKind::Virtex2 => "INT_DCM_V2",
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => "INT_DCM_V2P",
+        ChipKind::Spartan3 => "INT_DCM",
         _ => unreachable!(),
     }];
     ctx.collect_int_inv(int_tiles, tile, bel, "PSCLK", false);
@@ -1125,11 +1126,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     present.assert_empty();
 
     if edev.chip.kind == ChipKind::Spartan3 {
-        ctx.collect_bit("LL.S3", "MISC", "DCM_ENABLE", "1");
-        ctx.collect_bit("UL.S3", "MISC", "DCM_ENABLE", "1");
+        ctx.collect_bit("CNR_SW_S3", "MISC", "DCM_ENABLE", "1");
+        ctx.collect_bit("CNR_NW_S3", "MISC", "DCM_ENABLE", "1");
         if edev.chip.columns[edev.chip.columns.last_id().unwrap() - 3].kind == ColumnKind::Bram {
-            ctx.collect_bit("LR.S3", "MISC", "DCM_ENABLE", "1");
-            ctx.collect_bit("UR.S3", "MISC", "DCM_ENABLE", "1");
+            ctx.collect_bit("CNR_SE_S3", "MISC", "DCM_ENABLE", "1");
+            ctx.collect_bit("CNR_NE_S3", "MISC", "DCM_ENABLE", "1");
         }
     }
 }

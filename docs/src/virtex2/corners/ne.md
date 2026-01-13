@@ -2,5 +2,5 @@
 
 TODO: document
 
-{{tile virtex2 UR.V2}}
-{{tile virtex2 UR.V2P}}
+{{tile virtex2 CNR_NE_V2}}
+{{tile virtex2 CNR_NE_V2P}}

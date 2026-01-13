@@ -6,7 +6,9 @@ use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum, xlat_enum_defau
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{bitvec::BitVec, bsdata::TileItemKind};
-use prjcombine_virtex2::{bels, chip::ChipKind};
+use prjcombine_virtex2::{
+    chip::ChipKind, defs, defs::spartan3::tcls as tcls_s3, defs::virtex2::tcls as tcls_v2,
+};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -37,7 +39,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
         mut fuzzer: Fuzzer<IseBackend<'b>>,
     ) -> Option<(Fuzzer<IseBackend<'b>>, bool)> {
         for (tcid, tcname, _) in &backend.edev.db.tile_classes {
-            if !tcname.starts_with("GCLKC") {
+            if !tcname.starts_with("HROW") {
                 continue;
             }
             for &tcrd in &backend.edev.tile_index[tcid] {
@@ -62,8 +64,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for StabilizeGclkc {
                     fuzzer = fuzzer.base(Key::TileMutex(tcrd, o.into()), i);
                     (fuzzer, _) = BasePip::new(
                         NoopRelation,
-                        PipWire::BelPinNear(bels::GCLKC, o.into()),
-                        PipWire::BelPinNear(bels::GCLKC, i.into()),
+                        PipWire::BelPinNear(defs::bslots::HROW, o.into()),
+                        PipWire::BelPinNear(defs::bslots::HROW, i.into()),
                     )
                     .apply(backend, tcrd, fuzzer)?;
                 }
@@ -78,23 +80,23 @@ pub fn add_fuzzers<'a>(
     backend: &'a IseBackend<'a>,
     devdata_only: bool,
 ) {
-    let (edev, grid_kind) = match backend.edev {
+    let (edev, chip_kind) = match backend.edev {
         ExpandedDevice::Virtex2(edev) => (edev, edev.chip.kind),
         _ => unreachable!(),
     };
 
     if devdata_only {
-        if grid_kind.is_spartan3a() {
+        if chip_kind.is_spartan3a() {
             // CLK[LR]
-            let (clkl, clkr) = match grid_kind {
-                ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-                ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-                ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+            let (clkl, clkr) = match chip_kind {
+                ChipKind::Spartan3E => (tcls_s3::CLK_W_S3E, tcls_s3::CLK_E_S3E),
+                ChipKind::Spartan3A => (tcls_s3::CLK_W_S3A, tcls_s3::CLK_E_S3A),
+                ChipKind::Spartan3ADsp => (tcls_s3::CLK_W_S3A, tcls_s3::CLK_E_S3A),
                 _ => unreachable!(),
             };
             for tile in [clkl, clkr] {
-                let mut ctx = FuzzCtx::new(session, backend, tile);
-                let mut bctx = ctx.bel(bels::PCILOGICSE);
+                let mut ctx = FuzzCtx::new_id(session, backend, tile);
+                let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
                 bctx.build()
                     .global_mutex("PCILOGICSE", "NONE")
                     .test_manual("PRESENT", "1")
@@ -106,27 +108,34 @@ pub fn add_fuzzers<'a>(
     }
 
     // CLK[BT]
-    let (clkb, clkt) = match grid_kind {
-        ChipKind::Virtex2 => ("CLKB.V2", "CLKT.V2"),
-        ChipKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
-        ChipKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
-        ChipKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
-        ChipKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
-        ChipKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
-        ChipKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
-        ChipKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
+    let (clkb, clkt) = match chip_kind {
+        ChipKind::Virtex2 => (tcls_v2::CLK_S_V2, tcls_v2::CLK_N_V2),
+        ChipKind::Virtex2P => (tcls_v2::CLK_S_V2P, tcls_v2::CLK_N_V2P),
+        ChipKind::Virtex2PX => (tcls_v2::CLK_S_V2PX, tcls_v2::CLK_N_V2PX),
+        ChipKind::Spartan3 => (tcls_s3::CLK_S_S3, tcls_s3::CLK_N_S3),
+        ChipKind::FpgaCore => (tcls_s3::CLK_S_FC, tcls_s3::CLK_N_FC),
+        ChipKind::Spartan3E => (tcls_s3::CLK_S_S3E, tcls_s3::CLK_N_S3E),
+        ChipKind::Spartan3A => (tcls_s3::CLK_S_S3A, tcls_s3::CLK_N_S3A),
+        ChipKind::Spartan3ADsp => (tcls_s3::CLK_S_S3A, tcls_s3::CLK_N_S3A),
     };
-    let bufg_num = if grid_kind.is_virtex2() { 8 } else { 4 };
-    for tile in [clkb, clkt] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+    let bufg_num = if chip_kind.is_virtex2() { 8 } else { 4 };
+    for tcid in [clkb, clkt] {
+        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
         for i in 0..bufg_num {
-            let mut bctx = ctx.bel(bels::BUFGMUX[i]);
+            let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
             if edev.chip.kind != ChipKind::FpgaCore {
-                bctx.build()
-                    .prop(StabilizeGclkc)
-                    .test_manual("PRESENT", "1")
-                    .mode("BUFGMUX")
-                    .commit();
+                if edev.chip.kind.is_virtex2() {
+                    bctx.build()
+                        .prop(StabilizeGclkc)
+                        .test_manual("PRESENT", "1")
+                        .mode("BUFGMUX")
+                        .commit();
+                } else {
+                    bctx.build()
+                        .test_manual("PRESENT", "1")
+                        .mode("BUFGMUX")
+                        .commit();
+                }
                 bctx.mode("BUFGMUX")
                     .global_mutex("BUFG", "TEST")
                     .attr("DISABLE_ATTR", "LOW")
@@ -135,7 +144,7 @@ pub fn add_fuzzers<'a>(
                     .global_mutex("BUFG", "TEST")
                     .pin("S")
                     .test_enum("DISABLE_ATTR", &["HIGH", "LOW"]);
-                let inps = if grid_kind.is_spartan3ea() {
+                let inps = if chip_kind.is_spartan3ea() {
                     &["CKIL", "CKIR", "DCM_OUT_L", "DCM_OUT_R"][..]
                 } else {
                     &["CKI", "DCM_OUT_L", "DCM_OUT_R"]
@@ -166,11 +175,14 @@ pub fn add_fuzzers<'a>(
                     .commit();
             }
         }
-        if grid_kind.is_virtex2() {
-            let bels = if tile.starts_with("CLKB") {
-                [bels::GLOBALSIG_S0, bels::GLOBALSIG_S1]
+        if chip_kind.is_virtex2() {
+            let bels = if edev.db.tile_classes[tcid]
+                .bels
+                .contains_id(defs::bslots::GLOBALSIG_S[0])
+            {
+                defs::bslots::GLOBALSIG_S
             } else {
-                [bels::GLOBALSIG_N0, bels::GLOBALSIG_N1]
+                defs::bslots::GLOBALSIG_N
             };
             for bel in bels {
                 let mut bctx = ctx.bel(bel);
@@ -186,10 +198,13 @@ pub fn add_fuzzers<'a>(
                 }
             }
         } else {
-            let bel = if tile.starts_with("CLKB") {
-                bels::GLOBALSIG_S
+            let bel = if edev.db.tile_classes[tcid]
+                .bels
+                .contains_id(defs::bslots::GLOBALSIG_S[0])
+            {
+                defs::bslots::GLOBALSIG_S[0]
             } else {
-                bels::GLOBALSIG_N
+                defs::bslots::GLOBALSIG_N[0]
             };
             let mut bctx = ctx.bel(bel);
             bctx.build()
@@ -203,18 +218,18 @@ pub fn add_fuzzers<'a>(
         }
     }
 
-    if grid_kind.is_spartan3ea() {
+    if chip_kind.is_spartan3ea() {
         // CLK[LR]
-        let (clkl, clkr) = match grid_kind {
-            ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-            ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-            ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+        let (clkl, clkr) = match chip_kind {
+            ChipKind::Spartan3E => (tcls_s3::CLK_W_S3E, tcls_s3::CLK_E_S3E),
+            ChipKind::Spartan3A => (tcls_s3::CLK_W_S3A, tcls_s3::CLK_E_S3A),
+            ChipKind::Spartan3ADsp => (tcls_s3::CLK_W_S3A, tcls_s3::CLK_E_S3A),
             _ => unreachable!(),
         };
-        for tile in [clkl, clkr] {
-            let mut ctx = FuzzCtx::new(session, backend, tile);
+        for tcid in [clkl, clkr] {
+            let mut ctx = FuzzCtx::new_id(session, backend, tcid);
             for i in 0..8 {
-                let mut bctx = ctx.bel(bels::BUFGMUX[i]);
+                let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
                 bctx.test_manual("PRESENT", "1").mode("BUFGMUX").commit();
 
                 bctx.mode("BUFGMUX")
@@ -236,13 +251,13 @@ pub fn add_fuzzers<'a>(
                     .pip("CLK", (PinFar, "CLK"))
                     .commit();
             }
-            let mut bctx = ctx.bel(bels::PCILOGICSE);
+            let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
             bctx.build()
                 .global_mutex("PCILOGICSE", "NONE")
                 .test_manual("PRESENT", "1")
                 .mode("PCILOGICSE")
                 .commit();
-            if grid_kind.is_spartan3a() {
+            if chip_kind.is_spartan3a() {
                 for val in ["LOW", "MED", "HIGH", "NILL"] {
                     bctx.mode("PCILOGICSE")
                         .global_mutex_here("PCILOGICSE")
@@ -253,7 +268,7 @@ pub fn add_fuzzers<'a>(
                 }
             }
 
-            let mut bctx = ctx.bel(bels::GLOBALSIG_WE);
+            let mut bctx = ctx.bel(defs::bslots::GLOBALSIG_WE);
             bctx.build()
                 .null_bits()
                 .test_manual("PRESENT", "1")
@@ -265,10 +280,10 @@ pub fn add_fuzzers<'a>(
         }
     }
 
-    if grid_kind.is_virtex2() {
+    if chip_kind.is_virtex2() {
         // CLKC
-        let mut ctx = FuzzCtx::new(session, backend, "CLKC");
-        let mut bctx = ctx.bel(bels::CLKC);
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls_v2::CLKC);
+        let mut bctx = ctx.bel(defs::bslots::CLKC);
         for i in 0..8 {
             for bt in ["B", "T"] {
                 bctx.build()
@@ -280,9 +295,9 @@ pub fn add_fuzzers<'a>(
         }
 
         // GCLKC
-        for tile in ["GCLKC", "GCLKC.B", "GCLKC.T"] {
-            if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
-                let mut bctx = ctx.bel(bels::GCLKC);
+        for tcid in [tcls_v2::HROW, tcls_v2::HROW_S, tcls_v2::HROW_N] {
+            if let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) {
+                let mut bctx = ctx.bel(defs::bslots::HROW);
                 for i in 0..8 {
                     for lr in ["L", "R"] {
                         let out_name = format!("OUT_{lr}{i}");
@@ -301,8 +316,8 @@ pub fn add_fuzzers<'a>(
         }
     } else if edev.chip.cols_clkv.is_none() {
         // CLKC_50A
-        let mut ctx = FuzzCtx::new(session, backend, "CLKC_50A");
-        let mut bctx = ctx.bel(bels::CLKC_50A);
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls_s3::CLKC_50A);
+        let mut bctx = ctx.bel(defs::bslots::CLKC_50A);
         for (out_l, out_r, in_l, in_r, in_bt) in [
             ("OUT_L0", "OUT_R0", "IN_L0", "IN_R0", "IN_B0"),
             ("OUT_L1", "OUT_R1", "IN_L1", "IN_R1", "IN_B1"),
@@ -323,8 +338,8 @@ pub fn add_fuzzers<'a>(
         }
     } else {
         // CLKC
-        let mut ctx = FuzzCtx::new(session, backend, "CLKC");
-        let mut bctx = ctx.bel(bels::CLKC);
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls_s3::CLKC);
+        let mut bctx = ctx.bel(defs::bslots::CLKC);
         for (out, inp) in [
             ("OUT0", "IN_B0"),
             ("OUT1", "IN_B1"),
@@ -342,10 +357,10 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
 
-        // GCLKVM
-        if grid_kind.is_spartan3ea() {
-            let mut ctx = FuzzCtx::new(session, backend, "GCLKVM.S3E");
-            let mut bctx = ctx.bel(bels::GCLKVM);
+        // CLKQC
+        if chip_kind.is_spartan3ea() {
+            let mut ctx = FuzzCtx::new_id(session, backend, tcls_s3::CLKQC_S3E);
+            let mut bctx = ctx.bel(defs::bslots::CLKQC);
             for i in 0..8 {
                 for bt in ["B", "T"] {
                     let out_name = format!("OUT_{bt}{i}");
@@ -360,8 +375,8 @@ pub fn add_fuzzers<'a>(
                 }
             }
         } else {
-            let mut ctx = FuzzCtx::new(session, backend, "GCLKVM.S3");
-            let mut bctx = ctx.bel(bels::GCLKVM);
+            let mut ctx = FuzzCtx::new_id(session, backend, tcls_s3::CLKQC_S3);
+            let mut bctx = ctx.bel(defs::bslots::CLKQC);
             for i in 0..8 {
                 for bt in ["B", "T"] {
                     let out_name = format!("OUT_{bt}{i}");
@@ -375,9 +390,9 @@ pub fn add_fuzzers<'a>(
             }
         }
 
-        // GCLKVC
-        let mut ctx = FuzzCtx::new(session, backend, "GCLKVC");
-        let mut bctx = ctx.bel(bels::GCLKVC);
+        // HROW
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls_s3::HROW);
+        let mut bctx = ctx.bel(defs::bslots::HROW);
         for i in 0..8 {
             let inp_name = format!("IN{i}");
             for lr in ["L", "R"] {
@@ -392,32 +407,34 @@ pub fn add_fuzzers<'a>(
         }
     }
 
-    // GCLKH
-    for tile in [
-        "GCLKH",
-        "GCLKH.S",
-        "GCLKH.N",
-        "GCLKH.UNI",
-        "GCLKH.UNI.S",
-        "GCLKH.UNI.N",
-        "GCLKH.0",
-        "GCLKH.DSP",
-    ] {
-        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == ChipKind::FpgaCore) {
-            continue;
-        }
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+    // HCLK
+    for &(tcid, is_s, is_n, is_0, is_dsp) in if chip_kind.is_virtex2() {
+        [(tcls_v2::HCLK, false, false, false, false)].as_slice()
+    } else {
+        [
+            (tcls_s3::HCLK, false, false, false, false),
+            (tcls_s3::HCLK_S, true, false, false, false),
+            (tcls_s3::HCLK_N, false, true, false, false),
+            (tcls_s3::HCLK_UNI, false, false, false, false),
+            (tcls_s3::HCLK_UNI_S, true, false, false, false),
+            (tcls_s3::HCLK_UNI_N, false, true, false, false),
+            (tcls_s3::HCLK_0, false, false, true, false),
+            (tcls_s3::HCLK_DSP, false, false, false, true),
+        ]
+        .as_slice()
+    } {
+        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
             continue;
         };
-        if tile != "GCLKH.0" && tile != "GCLKH.DSP" {
-            let mut bctx = ctx.bel(bels::GCLKH);
+        if !is_0 && !is_dsp {
+            let mut bctx = ctx.bel(defs::bslots::HCLK);
             for i in 0..8 {
                 let inp_name = format!("IN{i}");
                 for bt in ["B", "T"] {
-                    if bt == "T" && tile.ends_with(".S") {
+                    if bt == "T" && is_s {
                         continue;
                     }
-                    if bt == "B" && tile.ends_with(".N") {
+                    if bt == "B" && is_n {
                         continue;
                     }
                     let out_name = format!("OUT_{bt}{i}");
@@ -430,10 +447,10 @@ pub fn add_fuzzers<'a>(
                 }
             }
         }
-        let slot = if tile == "GCLKH.DSP" {
-            bels::GLOBALSIG_DSP
+        let slot = if is_dsp {
+            defs::bslots::GLOBALSIG_DSP
         } else {
-            bels::GLOBALSIG
+            defs::bslots::GLOBALSIG
         };
         let mut bctx = ctx.bel(slot);
         bctx.build()
@@ -441,7 +458,7 @@ pub fn add_fuzzers<'a>(
             .test_manual("PRESENT", "1")
             .mode("GLOBALSIG")
             .commit();
-        if grid_kind.is_virtex2() {
+        if chip_kind.is_virtex2() {
             for attr in ["DOWN1MUX", "UP1MUX", "DOWN2MUX", "UP2MUX"] {
                 bctx.mode("GLOBALSIG")
                     .null_bits()
@@ -454,17 +471,21 @@ pub fn add_fuzzers<'a>(
         }
     }
 
-    if !grid_kind.is_spartan3ea() && grid_kind != ChipKind::FpgaCore {
+    if !chip_kind.is_spartan3ea() && chip_kind != ChipKind::FpgaCore {
         // DCMCONN
-        for tile in ["DCMCONN.BOT", "DCMCONN.TOP"] {
-            let mut ctx = FuzzCtx::new(session, backend, tile);
-            let mut bctx = ctx.bel(bels::DCMCONN);
-            let num_bus = if grid_kind.is_virtex2() { 8 } else { 4 };
+        for tcid in if chip_kind.is_virtex2() {
+            [tcls_v2::DCMCONN_S, tcls_v2::DCMCONN_N]
+        } else {
+            [tcls_s3::DCMCONN_S, tcls_s3::DCMCONN_N]
+        } {
+            let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+            let mut bctx = ctx.bel(defs::bslots::DCMCONN);
+            let num_bus = if chip_kind.is_virtex2() { 8 } else { 4 };
             for i in 0..num_bus {
                 let out_name = format!("OUTBUS{i}");
                 let in_name = format!("OUT{ii}", ii = i % 4);
                 let mut builder = bctx.build().row_mutex_here("DCMCONN");
-                if !grid_kind.is_virtex2() {
+                if !chip_kind.is_virtex2() {
                     builder = builder.null_bits();
                 }
                 builder
@@ -483,14 +504,14 @@ pub fn add_fuzzers<'a>(
             }
         }
     }
-    if grid_kind.is_spartan3ea() {
+    if chip_kind.is_spartan3ea() {
         // PCI_CE_*
         for (tile, bel) in [
-            ("PCI_CE_S", bels::PCI_CE_S),
-            ("PCI_CE_N", bels::PCI_CE_N),
-            ("PCI_CE_W", bels::PCI_CE_W),
-            ("PCI_CE_E", bels::PCI_CE_E),
-            ("PCI_CE_CNR", bels::PCI_CE_CNR),
+            ("PCI_CE_S", defs::bslots::PCI_CE_S),
+            ("PCI_CE_N", defs::bslots::PCI_CE_N),
+            ("PCI_CE_W", defs::bslots::PCI_CE_W),
+            ("PCI_CE_E", defs::bslots::PCI_CE_E),
+            ("PCI_CE_CNR", defs::bslots::PCI_CE_CNR),
         ] {
             if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
                 let mut bctx = ctx.bel(bel);
@@ -504,18 +525,15 @@ pub fn add_fuzzers<'a>(
         }
     }
 
-    if !grid_kind.is_virtex2() && grid_kind != ChipKind::FpgaCore {
+    if !chip_kind.is_virtex2() && chip_kind != ChipKind::FpgaCore {
         // PTE2OMUX
-        for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
-            let tcls = backend.edev.db.get_tile_class(tile);
-            if backend.edev.tile_index[tcls].is_empty() {
-                continue;
-            }
+        for tcid in [tcls_s3::INT_DCM, tcls_s3::INT_DCM_S3E_DUMMY] {
             for i in 0..4 {
-                let mut ctx = FuzzCtx::new(session, backend, tile);
-                let tcid = backend.edev.db.get_tile_class(tile);
-                let mut bctx = ctx.bel(bels::PTE2OMUX[i]);
-                let bel_data = &backend.edev.db[tcid].bels[bels::PTE2OMUX[i]];
+                let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
+                    continue;
+                };
+                let mut bctx = ctx.bel(defs::bslots::PTE2OMUX[i]);
+                let bel_data = &backend.edev.db[tcid].bels[defs::bslots::PTE2OMUX[i]];
                 let BelInfo::Legacy(bel_data) = bel_data else {
                     unreachable!()
                 };
@@ -527,7 +545,7 @@ pub fn add_fuzzers<'a>(
                         .prop(IntMutex::new("PTE2OMUX".into()))
                         .global_mutex("PSCLK", "PTE2OMUX")
                         .mutex("OUT", pin_name.as_str())
-                        .test_manual(format!("MUX.PTE2OMUX{i}"), pin_name)
+                        .test_manual(format!("MUX.PTE2OMUX[{i}]"), pin_name)
                         .pip("OUT", pin_name.as_str())
                         .commit();
                 }
@@ -545,11 +563,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     if devdata_only {
         if grid_kind.is_spartan3a() {
-            // CLK[LR]
+            // CLK_[WE]
             let (clkl, clkr) = match grid_kind {
-                ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-                ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-                ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+                ChipKind::Spartan3E => ("CLK_W_S3E", "CLK_E_S3E"),
+                ChipKind::Spartan3A => ("CLK_W_S3A", "CLK_E_S3A"),
+                ChipKind::Spartan3ADsp => ("CLK_W_S3A", "CLK_E_S3A"),
                 _ => unreachable!(),
             };
             for tile in [clkl, clkr] {
@@ -575,28 +593,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         return;
     }
 
-    // CLK[BT]
+    // CLK_[SN]
     let (clkb, clkt) = match grid_kind {
-        ChipKind::Virtex2 => ("CLKB.V2", "CLKT.V2"),
-        ChipKind::Virtex2P => ("CLKB.V2P", "CLKT.V2P"),
-        ChipKind::Virtex2PX => ("CLKB.V2PX", "CLKT.V2PX"),
-        ChipKind::Spartan3 => ("CLKB.S3", "CLKT.S3"),
-        ChipKind::FpgaCore => ("CLKB.FC", "CLKT.FC"),
-        ChipKind::Spartan3E => ("CLKB.S3E", "CLKT.S3E"),
-        ChipKind::Spartan3A => ("CLKB.S3A", "CLKT.S3A"),
-        ChipKind::Spartan3ADsp => ("CLKB.S3A", "CLKT.S3A"),
+        ChipKind::Virtex2 => ("CLK_S_V2", "CLK_N_V2"),
+        ChipKind::Virtex2P => ("CLK_S_V2P", "CLK_N_V2P"),
+        ChipKind::Virtex2PX => ("CLK_S_V2PX", "CLK_N_V2PX"),
+        ChipKind::Spartan3 => ("CLK_S_S3", "CLK_N_S3"),
+        ChipKind::FpgaCore => ("CLK_S_FC", "CLK_N_FC"),
+        ChipKind::Spartan3E => ("CLK_S_S3E", "CLK_N_S3E"),
+        ChipKind::Spartan3A => ("CLK_S_S3A", "CLK_N_S3A"),
+        ChipKind::Spartan3ADsp => ("CLK_S_S3A", "CLK_N_S3A"),
     };
     let bufg_num = if grid_kind.is_virtex2() { 8 } else { 4 };
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
             if edev.chip.kind != ChipKind::FpgaCore {
                 let tcid = intdb.get_tile_class(tile);
-                let bel = &intdb[tcid].bels[bels::BUFGMUX[i]];
+                let bel = &intdb[tcid].bels[defs::bslots::BUFGMUX[i]];
                 let BelInfo::Legacy(bel) = bel else {
                     unreachable!()
                 };
                 let pin = &bel.pins["S"];
-                let bel = format!("BUFGMUX{i}");
+                let bel = format!("BUFGMUX[{i}]");
                 let bel = &bel;
                 ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
                 assert_eq!(pin.wires.len(), 1);
@@ -616,7 +634,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 };
                 ctx.collect_enum(tile, bel, "MUX.CLK", inps);
             } else {
-                let bel = format!("BUFGMUX{i}");
+                let bel = format!("BUFGMUX[{i}]");
                 let bel = &bel;
                 ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
                 ctx.collect_enum(tile, bel, "MUX.CLK", &["INT", "CKI"]);
@@ -625,16 +643,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
 
     if grid_kind.is_spartan3ea() {
-        // CLK[LR]
+        // CLK_[WE]
         let (clkl, clkr) = match grid_kind {
-            ChipKind::Spartan3E => ("CLKL.S3E", "CLKR.S3E"),
-            ChipKind::Spartan3A => ("CLKL.S3A", "CLKR.S3A"),
-            ChipKind::Spartan3ADsp => ("CLKL.S3A", "CLKR.S3A"),
+            ChipKind::Spartan3E => ("CLK_W_S3E", "CLK_E_S3E"),
+            ChipKind::Spartan3A => ("CLK_W_S3A", "CLK_E_S3A"),
+            ChipKind::Spartan3ADsp => ("CLK_W_S3A", "CLK_E_S3A"),
             _ => unreachable!(),
         };
         for tile in [clkl, clkr] {
             for i in 0..8 {
-                let bel = format!("BUFGMUX{i}");
+                let bel = format!("BUFGMUX[{i}]");
                 ctx.state
                     .get_diff(tile, &bel, "PRESENT", "1")
                     .assert_empty();
@@ -665,9 +683,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
 
     if grid_kind.is_virtex2() {
-        // GCLKC
-        for tile in ["GCLKC", "GCLKC.B", "GCLKC.T"] {
-            let bel = "GCLKC";
+        // HROW
+        for tile in ["HROW", "HROW_S", "HROW_N"] {
+            let bel = "HROW";
             if !ctx.has_tile(tile) {
                 continue;
             }
@@ -701,9 +719,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ctx.collect_enum(tile, bel, out_r, &[in_r, in_bt]);
         }
     } else if grid_kind.is_spartan3ea() {
-        // GCLKVM
-        let tile = "GCLKVM.S3E";
-        let bel = "GCLKVM";
+        // CLKQC
+        let tile = "CLKQC_S3E";
+        let bel = "CLKQC";
         for i in 0..8 {
             for bt in ["B", "T"] {
                 let out_name = format!("MUX.OUT_{bt}{i}");
@@ -717,9 +735,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             }
         }
     } else {
-        // GCLKVM
-        let tile = "GCLKVM.S3";
-        let bel = "GCLKVM";
+        // CLKQC
+        let tile = "CLKQC_S3";
+        let bel = "CLKQC";
         for i in 0..8 {
             for bt in ["B", "T"] {
                 ctx.collect_bit(
@@ -732,34 +750,34 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
 
-    // GCLKH
+    // HCLK
     for tile in [
-        "GCLKH",
-        "GCLKH.S",
-        "GCLKH.N",
-        "GCLKH.UNI",
-        "GCLKH.UNI.S",
-        "GCLKH.UNI.N",
+        "HCLK",
+        "HCLK_S",
+        "HCLK_N",
+        "HCLK_UNI",
+        "HCLK_UNI_S",
+        "HCLK_UNI_N",
     ] {
-        if tile != "GCLKH" && (grid_kind.is_virtex2() || grid_kind == ChipKind::FpgaCore) {
+        if tile != "HCLK" && (grid_kind.is_virtex2() || grid_kind == ChipKind::FpgaCore) {
             continue;
         }
         if !ctx.has_tile(tile) {
             continue;
         }
-        let bel = "GCLKH";
+        let bel = "HCLK";
         for i in 0..8 {
             let inp_name = format!("IN{i}");
             let uni_name = format!("OUT{i}");
             for bt in ["B", "T"] {
-                if bt == "T" && tile.ends_with(".S") {
+                if bt == "T" && tile.ends_with("_S") {
                     continue;
                 }
-                if bt == "B" && tile.ends_with(".N") {
+                if bt == "B" && tile.ends_with("_N") {
                     continue;
                 }
                 let out_name = format!("OUT_{bt}{i}");
-                let attr = if tile.starts_with("GCLKH.UNI") {
+                let attr = if tile.starts_with("HCLK_UNI") {
                     format!("BUF.{uni_name}")
                 } else {
                     format!("BUF.{out_name}")
@@ -772,7 +790,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     // DCMCONN
     if grid_kind.is_virtex2() {
-        for tile in ["DCMCONN.BOT", "DCMCONN.TOP"] {
+        for tile in ["DCMCONN_S", "DCMCONN_N"] {
             let bel = "DCMCONN";
             for i in 0..8 {
                 ctx.collect_bit(tile, bel, &format!("BUF.OUTBUS{i}"), "1");
@@ -782,14 +800,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     if !grid_kind.is_virtex2() && grid_kind != ChipKind::FpgaCore {
         // PTE2OMUX
-        for tile in ["INT.DCM", "INT.DCM.S3E.DUMMY"] {
+        for tile in ["INT_DCM", "INT_DCM_S3E_DUMMY"] {
             if !ctx.has_tile(tile) {
                 continue;
             }
             let tcid = intdb.get_tile_class(tile);
             let bel = "PTE2OMUX";
             for i in 0..4 {
-                let bel_id = bels::PTE2OMUX[i];
+                let bel_id = defs::bslots::PTE2OMUX[i];
                 let bel_data = &intdb[tcid].bels[bel_id];
                 let BelInfo::Legacy(bel_data) = bel_data else {
                     unreachable!()
@@ -802,7 +820,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     }
                     let mut diff = ctx.state.get_diff(
                         tile,
-                        format!("PTE2OMUX{i}"),
+                        format!("PTE2OMUX[{i}]"),
                         format!("MUX.{mux_name}"),
                         pin_name,
                     );

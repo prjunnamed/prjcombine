@@ -50,6 +50,7 @@ prjcombine-re-xilinx-rdverify-virtex6.workspace = true
 prjcombine-re-xilinx-rdverify-virtex7.workspace = true
 prjcombine-re-xilinx-rdverify-ultrascale.workspace = true
 prjcombine-re-xilinx-rdverify-versal.workspace = true
+bincode.workspace = true
 clap.workspace = true
 simple-error.workspace = true
 std-semaphore.workspace = true

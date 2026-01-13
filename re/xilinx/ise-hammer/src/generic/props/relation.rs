@@ -1,6 +1,6 @@
 use core::fmt::Debug;
 
-use prjcombine_interconnect::grid::TileCoord;
+use prjcombine_interconnect::{db::TileSlotId, grid::TileCoord};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 
@@ -61,6 +61,30 @@ impl TileRelation for Delta {
         backend
             .edev
             .find_tile_by_class(cell, |tcname| self.tcnames.iter().any(|x| x == tcname))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct DeltaSlot {
+    pub dx: i32,
+    pub dy: i32,
+    pub slot: TileSlotId,
+}
+
+impl DeltaSlot {
+    pub fn new(dx: i32, dy: i32, slot: TileSlotId) -> Self {
+        Self { dx, dy, slot }
+    }
+}
+
+impl TileRelation for DeltaSlot {
+    fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
+        let cell = backend.edev.cell_delta(tcrd.cell, self.dx, self.dy)?;
+        if backend.edev[cell].tiles.contains_id(self.slot) {
+            Some(cell.tile(self.slot))
+        } else {
+            None
+        }
     }
 }
 

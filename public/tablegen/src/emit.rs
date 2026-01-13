@@ -246,7 +246,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         emit_enums(&mut res, &dbs[0]);
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::enums;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::enums;").unwrap());
             }
         }
     } else {
@@ -263,7 +263,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         );
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::tslots;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::tslots;").unwrap());
             }
         }
     } else {
@@ -284,7 +284,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         );
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::rslots;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::rslots;").unwrap());
             }
         }
     } else {
@@ -305,7 +305,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         );
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::cslots;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::cslots;").unwrap());
             }
         }
     } else {
@@ -322,7 +322,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         emit_tile_classes(&mut res, &dbs[0]);
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::tcls;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::tcls;").unwrap());
             }
         }
     } else {
@@ -335,7 +335,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         emit_bel_classes(&mut res, &dbs[0]);
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::bcls;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::bcls;").unwrap());
             }
         }
     } else {
@@ -352,7 +352,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         );
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::ccls;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::ccls;").unwrap());
             }
         }
     } else {
@@ -373,7 +373,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         );
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::bslots;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::bslots;").unwrap());
             }
         }
     } else {
@@ -394,7 +394,7 @@ pub fn emit(dbs: Vec<AnnotatedDb>) -> TokenStream {
         );
         if dbs.len() != 1 {
             for stream in &mut variant_outs {
-                stream.extend(TokenStream::from_str("use super::wires;").unwrap());
+                stream.extend(TokenStream::from_str("pub use super::wires;").unwrap());
             }
         }
     } else {

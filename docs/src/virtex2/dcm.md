@@ -2,8 +2,8 @@
 
 TODO: reverse, document
 
-{{tile virtex2 DCM.V2}}
-{{tile virtex2 DCM.V2P}}
+{{tile virtex2 DCM_V2}}
+{{tile virtex2 DCM_V2P}}
 
 ## Device data
 

@@ -1,3 +1,4 @@
+use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip, DisabledPart};
 use prjcombine_re_xilinx_naming_virtex::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -26,6 +27,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         disabled,
         "virtex",
+        IntDb::default(),
         intdb,
         ndb,
     )

@@ -2,5 +2,5 @@
 
 TODO: document
 
-{{tile virtex2 GIGABIT.B}}
-{{tile virtex2 GIGABIT.T}}
+{{tile virtex2 GIGABIT_S}}
+{{tile virtex2 GIGABIT_N}}

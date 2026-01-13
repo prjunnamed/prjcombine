@@ -8,14 +8,14 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileItem, TileItemKind},
 };
-use prjcombine_virtex2::{bels, chip::Dcms};
+use prjcombine_virtex2::{chip::Dcms, defs, defs::spartan3::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue, PinFromKind},
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::relation::Delta,
+        props::relation::DeltaSlot,
     },
 };
 
@@ -25,8 +25,8 @@ pub fn add_fuzzers<'a>(
     devdata_only: bool,
 ) {
     if devdata_only {
-        let mut ctx = FuzzCtx::new(session, backend, "DCM.S3E.TR");
-        let mut bctx = ctx.bel(bels::DCM);
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls::DCM_S3E_NE);
+        let mut bctx = ctx.bel(defs::bslots::DCM);
         bctx.build()
             .global_mutex("DCM", "ENABLE")
             .test_manual("ENABLE", "1")
@@ -35,31 +35,43 @@ pub fn add_fuzzers<'a>(
         return;
     }
     for (tile, vreg) in [
-        ("DCM.S3E.BL", Some(Delta::new(1, 0, "DCM.S3E.BR"))),
-        ("DCM.S3E.BR", None),
-        ("DCM.S3E.TL", Some(Delta::new(1, 0, "DCM.S3E.TR"))),
-        ("DCM.S3E.TR", None),
-        ("DCM.S3E.LB", Some(Delta::new(0, 1, "DCM.S3E.LT"))),
-        ("DCM.S3E.LT", None),
-        ("DCM.S3E.RB", None),
-        ("DCM.S3E.RT", Some(Delta::new(0, -1, "DCM.S3E.RB"))),
+        (
+            tcls::DCM_S3E_SW,
+            Some((tcls::DCM_S3E_SE, DeltaSlot::new(1, 0, defs::tslots::BEL))),
+        ),
+        (tcls::DCM_S3E_SE, None),
+        (
+            tcls::DCM_S3E_NW,
+            Some((tcls::DCM_S3E_NE, DeltaSlot::new(1, 0, defs::tslots::BEL))),
+        ),
+        (tcls::DCM_S3E_NE, None),
+        (
+            tcls::DCM_S3E_WS,
+            Some((tcls::DCM_S3E_WN, DeltaSlot::new(0, 1, defs::tslots::BEL))),
+        ),
+        (tcls::DCM_S3E_WN, None),
+        (tcls::DCM_S3E_ES, None),
+        (
+            tcls::DCM_S3E_EN,
+            Some((tcls::DCM_S3E_ES, DeltaSlot::new(0, -1, defs::tslots::BEL))),
+        ),
     ] {
-        let vreg_tile = if let Some(ref vreg) = vreg {
-            vreg.tcnames[0].clone()
+        let vreg_tile = if let Some((vreg, _)) = vreg {
+            vreg
         } else {
-            tile.to_string()
+            tile
         };
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tile) else {
             continue;
         };
-        let mut bctx = ctx.bel(bels::DCM);
+        let mut bctx = ctx.bel(defs::bslots::DCM);
         let mode = "DCM";
 
-        let mut builder = bctx
-            .build()
-            .global_mutex("DCM", "ENABLE")
-            .global_mutex(vreg_tile, tile);
-        if let Some(ref vreg) = vreg {
+        let mut builder = bctx.build().global_mutex("DCM", "ENABLE").global_mutex(
+            backend.edev.db.tile_classes.key(vreg_tile),
+            backend.edev.db.tile_classes.key(tile),
+        );
+        if let Some((_, ref vreg)) = vreg {
             builder = builder.extra_tile_attr(vreg.clone(), "DCM_VREG", "ENABLE", "1");
         }
         builder.test_manual("ENABLE", "1").mode(mode).commit();
@@ -343,7 +355,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         unreachable!()
     };
     if devdata_only {
-        let tile = "DCM.S3E.TR";
+        let tile = "DCM_S3E_NE";
         let bel = "DCM";
         let mut present = ctx.state.get_diff(tile, bel, "ENABLE", "1");
         let item = ctx.tiledb.item(tile, bel, "DESKEW_ADJUST");
@@ -356,14 +368,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         return;
     }
     for (tile, vreg) in [
-        ("DCM.S3E.BL", Some("DCM.S3E.BR")),
-        ("DCM.S3E.BR", None),
-        ("DCM.S3E.TL", Some("DCM.S3E.TR")),
-        ("DCM.S3E.TR", None),
-        ("DCM.S3E.LB", Some("DCM.S3E.LT")),
-        ("DCM.S3E.LT", None),
-        ("DCM.S3E.RB", None),
-        ("DCM.S3E.RT", Some("DCM.S3E.RB")),
+        ("DCM_S3E_SW", Some("DCM_S3E_SE")),
+        ("DCM_S3E_SE", None),
+        ("DCM_S3E_NW", Some("DCM_S3E_NE")),
+        ("DCM_S3E_NE", None),
+        ("DCM_S3E_WS", Some("DCM_S3E_WN")),
+        ("DCM_S3E_WN", None),
+        ("DCM_S3E_ES", None),
+        ("DCM_S3E_EN", Some("DCM_S3E_ES")),
     ] {
         let bel = "DCM";
         if !ctx.has_tile(tile) {
@@ -390,7 +402,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ] {
             ctx.collect_inv(tile, bel, pin);
         }
-        ctx.collect_int_inv(&["INT.DCM"], tile, bel, "PSCLK", false);
+        ctx.collect_int_inv(&["INT_DCM"], tile, bel, "PSCLK", false);
         ctx.state
             .get_diff(tile, bel, "DSSENINV", "DSSEN")
             .assert_empty();

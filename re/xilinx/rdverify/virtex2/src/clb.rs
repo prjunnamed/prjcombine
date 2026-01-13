@@ -1,6 +1,6 @@
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
-use prjcombine_virtex2::{bels, chip::ColumnKind};
+use prjcombine_virtex2::{chip::ColumnKind, defs};
 
 pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
     vrf.verify_bel(
@@ -40,47 +40,217 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
         vrf.claim_net(&[bel.fwire(pin)]);
     }
     for (dbel, dpin, sbel, spin) in [
-        (bels::SLICE0, "FXINA", bels::SLICE0, "F5"),
-        (bels::SLICE0, "FXINB", bels::SLICE1, "F5"),
-        (bels::SLICE1, "FXINA", bels::SLICE0, "FX"),
-        (bels::SLICE1, "FXINB", bels::SLICE2, "FX"),
-        (bels::SLICE2, "FXINA", bels::SLICE2, "F5"),
-        (bels::SLICE2, "FXINB", bels::SLICE3, "F5"),
-        (bels::SLICE3, "FXINA", bels::SLICE1, "FX"),
+        (
+            defs::bslots::SLICE[0],
+            "FXINA",
+            defs::bslots::SLICE[0],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "FXINB",
+            defs::bslots::SLICE[1],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "FXINA",
+            defs::bslots::SLICE[0],
+            "FX",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "FXINB",
+            defs::bslots::SLICE[2],
+            "FX",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "FXINA",
+            defs::bslots::SLICE[2],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "FXINB",
+            defs::bslots::SLICE[3],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "FXINA",
+            defs::bslots::SLICE[1],
+            "FX",
+        ),
         // SLICE3 FXINB <- top's SLICE1 FX
 
         // SLICE0 CIN <- bot's SLICE1 COUT
-        (bels::SLICE1, "CIN", bels::SLICE0, "COUT"),
+        (
+            defs::bslots::SLICE[1],
+            "CIN",
+            defs::bslots::SLICE[0],
+            "COUT",
+        ),
         // SLICE2 CIN <- bot's SLICE3 COUT
-        (bels::SLICE3, "CIN", bels::SLICE2, "COUT"),
-        (bels::SLICE0, "SHIFTIN", bels::SLICE1, "SHIFTOUT"),
-        (bels::SLICE1, "SHIFTIN", bels::SLICE2, "SHIFTOUT"),
-        (bels::SLICE2, "SHIFTIN", bels::SLICE3, "SHIFTOUT"),
+        (
+            defs::bslots::SLICE[3],
+            "CIN",
+            defs::bslots::SLICE[2],
+            "COUT",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "SHIFTIN",
+            defs::bslots::SLICE[1],
+            "SHIFTOUT",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "SHIFTIN",
+            defs::bslots::SLICE[2],
+            "SHIFTOUT",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "SHIFTIN",
+            defs::bslots::SLICE[3],
+            "SHIFTOUT",
+        ),
         // SLICE3 SHIFTIN disconnected? supposed to be top's SLICE0 SHIFTOUT?
-        (bels::SLICE3, "DIG_LOCAL", bels::SLICE3, "DIG"),
-        (bels::SLICE0, "ALTDIG", bels::SLICE1, "DIG"),
-        (bels::SLICE1, "ALTDIG", bels::SLICE3, "DIG_LOCAL"),
-        (bels::SLICE2, "ALTDIG", bels::SLICE3, "DIG_LOCAL"),
-        (bels::SLICE3, "ALTDIG", bels::SLICE3, "DIG_S"), // top's SLICE3 DIG
-        (bels::SLICE1, "BYOUT_LOCAL", bels::SLICE1, "BYOUT"),
-        (bels::SLICE0, "BYINVOUT_LOCAL", bels::SLICE0, "BYINVOUT"),
-        (bels::SLICE1, "BYINVOUT_LOCAL", bels::SLICE1, "BYINVOUT"),
-        (bels::SLICE0, "SLICEWE0", bels::SLICE0, "BXOUT"),
-        (bels::SLICE1, "SLICEWE0", bels::SLICE1, "BXOUT"),
-        (bels::SLICE2, "SLICEWE0", bels::SLICE0, "BXOUT"),
-        (bels::SLICE3, "SLICEWE0", bels::SLICE1, "BXOUT"),
-        (bels::SLICE0, "SLICEWE1", bels::SLICE0, "BYOUT"),
-        (bels::SLICE1, "SLICEWE1", bels::SLICE0, "BYINVOUT_LOCAL"),
-        (bels::SLICE2, "SLICEWE1", bels::SLICE0, "BYOUT"),
-        (bels::SLICE3, "SLICEWE1", bels::SLICE0, "BYINVOUT_LOCAL"),
-        (bels::SLICE0, "SLICEWE2", bels::SLICE1, "BYOUT_LOCAL"),
-        (bels::SLICE1, "SLICEWE2", bels::SLICE1, "BYOUT_LOCAL"),
-        (bels::SLICE2, "SLICEWE2", bels::SLICE1, "BYINVOUT_LOCAL"),
-        (bels::SLICE3, "SLICEWE2", bels::SLICE1, "BYINVOUT_LOCAL"),
+        (
+            defs::bslots::SLICE[3],
+            "DIG_LOCAL",
+            defs::bslots::SLICE[3],
+            "DIG",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "ALTDIG",
+            defs::bslots::SLICE[1],
+            "DIG",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "ALTDIG",
+            defs::bslots::SLICE[3],
+            "DIG_LOCAL",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "ALTDIG",
+            defs::bslots::SLICE[3],
+            "DIG_LOCAL",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "ALTDIG",
+            defs::bslots::SLICE[3],
+            "DIG_S",
+        ), // top's SLICE3 DIG
+        (
+            defs::bslots::SLICE[1],
+            "BYOUT_LOCAL",
+            defs::bslots::SLICE[1],
+            "BYOUT",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "BYINVOUT_LOCAL",
+            defs::bslots::SLICE[0],
+            "BYINVOUT",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "BYINVOUT_LOCAL",
+            defs::bslots::SLICE[1],
+            "BYINVOUT",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "SLICEWE0",
+            defs::bslots::SLICE[0],
+            "BXOUT",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "SLICEWE0",
+            defs::bslots::SLICE[1],
+            "BXOUT",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "SLICEWE0",
+            defs::bslots::SLICE[0],
+            "BXOUT",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "SLICEWE0",
+            defs::bslots::SLICE[1],
+            "BXOUT",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "SLICEWE1",
+            defs::bslots::SLICE[0],
+            "BYOUT",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "SLICEWE1",
+            defs::bslots::SLICE[0],
+            "BYINVOUT_LOCAL",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "SLICEWE1",
+            defs::bslots::SLICE[0],
+            "BYOUT",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "SLICEWE1",
+            defs::bslots::SLICE[0],
+            "BYINVOUT_LOCAL",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "SLICEWE2",
+            defs::bslots::SLICE[1],
+            "BYOUT_LOCAL",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "SLICEWE2",
+            defs::bslots::SLICE[1],
+            "BYOUT_LOCAL",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "SLICEWE2",
+            defs::bslots::SLICE[1],
+            "BYINVOUT_LOCAL",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "SLICEWE2",
+            defs::bslots::SLICE[1],
+            "BYINVOUT_LOCAL",
+        ),
         // SLICE0 SOPIN <- left's SLICE2 SOPOUT
         // SLICE1 SOPIN <- left's SLICE3 SOPOUT
-        (bels::SLICE2, "SOPIN", bels::SLICE0, "SOPOUT"),
-        (bels::SLICE3, "SOPIN", bels::SLICE1, "SOPOUT"),
+        (
+            defs::bslots::SLICE[2],
+            "SOPIN",
+            defs::bslots::SLICE[0],
+            "SOPOUT",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "SOPIN",
+            defs::bslots::SLICE[1],
+            "SOPOUT",
+        ),
     ] {
         if dbel != bel.slot {
             continue;
@@ -89,22 +259,25 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
         vrf.claim_pip(bel.crd(), bel.wire(dpin), obel.wire(spin));
         vrf.claim_net(&[bel.fwire(dpin)]);
     }
-    if bel.slot == bels::SLICE3 {
+    if bel.slot == defs::bslots::SLICE[3] {
         // supposed to be connected? idk.
         vrf.claim_net(&[bel.fwire("SHIFTIN")]);
 
-        if let Some(obel) = vrf.find_bel_delta(bel, 0, 1, bels::SLICE3) {
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, 1, defs::bslots::SLICE[3]) {
             vrf.verify_net(&[bel.fwire("DIG_S"), obel.fwire("DIG_LOCAL")]);
         }
 
-        if let Some(obel) = vrf.find_bel_delta(bel, 0, 1, bels::SLICE1) {
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, 1, defs::bslots::SLICE[1]) {
             vrf.claim_net(&[bel.fwire("FXINB"), obel.fwire("FX_S")]);
             vrf.claim_pip(obel.crd(), obel.wire("FX_S"), obel.wire("FX"));
         } else {
             vrf.claim_net(&[bel.fwire("FXINB")]);
         }
     }
-    for (dbel, sbel) in [(bels::SLICE0, bels::SLICE1), (bels::SLICE2, bels::SLICE3)] {
+    for (dbel, sbel) in [
+        (defs::bslots::SLICE[0], defs::bslots::SLICE[1]),
+        (defs::bslots::SLICE[2], defs::bslots::SLICE[3]),
+    ] {
         if bel.slot != dbel {
             continue;
         }
@@ -115,7 +288,10 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
             vrf.claim_net(&[bel.fwire("CIN")]);
         }
     }
-    for (dbel, sbel) in [(bels::SLICE0, bels::SLICE2), (bels::SLICE1, bels::SLICE3)] {
+    for (dbel, sbel) in [
+        (defs::bslots::SLICE[0], defs::bslots::SLICE[2]),
+        (defs::bslots::SLICE[1], defs::bslots::SLICE[3]),
+    ] {
         if bel.slot != dbel {
             continue;
         }
@@ -133,7 +309,8 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
 }
 
 pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
-    let kind = if matches!(bel.slot, bels::SLICE0 | bels::SLICE2) {
+    let idx = defs::bslots::SLICE.index_of(bel.slot).unwrap();
+    let kind = if matches!(idx, 0 | 2) {
         "SLICEM"
     } else {
         "SLICEL"
@@ -167,25 +344,90 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
         }
     }
     for (dbel, dpin, sbel, spin) in [
-        (bels::SLICE0, "FXINA", bels::SLICE0, "F5"),
-        (bels::SLICE0, "FXINB", bels::SLICE2, "F5"),
-        (bels::SLICE1, "FXINA", bels::SLICE1, "F5"),
-        (bels::SLICE1, "FXINB", bels::SLICE3, "F5"),
-        (bels::SLICE2, "FXINA", bels::SLICE0, "FX"),
-        (bels::SLICE2, "FXINB", bels::SLICE1, "FX"),
-        (bels::SLICE3, "FXINA", bels::SLICE2, "FX"),
+        (
+            defs::bslots::SLICE[0],
+            "FXINA",
+            defs::bslots::SLICE[0],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "FXINB",
+            defs::bslots::SLICE[2],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "FXINA",
+            defs::bslots::SLICE[1],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[1],
+            "FXINB",
+            defs::bslots::SLICE[3],
+            "F5",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "FXINA",
+            defs::bslots::SLICE[0],
+            "FX",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "FXINB",
+            defs::bslots::SLICE[1],
+            "FX",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "FXINA",
+            defs::bslots::SLICE[2],
+            "FX",
+        ),
         // SLICE3 FXINB <- top's SLICE2 FX
 
         // SLICE0 CIN <- bot's SLICE2 COUT
         // SLICE1 CIN <- bot's SLICE3 COUT
-        (bels::SLICE2, "CIN", bels::SLICE0, "COUT"),
-        (bels::SLICE3, "CIN", bels::SLICE1, "COUT"),
-        (bels::SLICE0, "SHIFTIN", bels::SLICE2, "SHIFTOUT"),
+        (
+            defs::bslots::SLICE[2],
+            "CIN",
+            defs::bslots::SLICE[0],
+            "COUT",
+        ),
+        (
+            defs::bslots::SLICE[3],
+            "CIN",
+            defs::bslots::SLICE[1],
+            "COUT",
+        ),
+        (
+            defs::bslots::SLICE[0],
+            "SHIFTIN",
+            defs::bslots::SLICE[2],
+            "SHIFTOUT",
+        ),
         // SLICE2 SHIFTIN disconnected?
-        (bels::SLICE0, "ALTDIG", bels::SLICE2, "DIG"),
+        (
+            defs::bslots::SLICE[0],
+            "ALTDIG",
+            defs::bslots::SLICE[2],
+            "DIG",
+        ),
         // SLICE2 ALTDIG disconnected?
-        (bels::SLICE0, "SLICEWE1", bels::SLICE0, "BYOUT"),
-        (bels::SLICE2, "SLICEWE1", bels::SLICE0, "BYINVOUT"),
+        (
+            defs::bslots::SLICE[0],
+            "SLICEWE1",
+            defs::bslots::SLICE[0],
+            "BYOUT",
+        ),
+        (
+            defs::bslots::SLICE[2],
+            "SLICEWE1",
+            defs::bslots::SLICE[0],
+            "BYINVOUT",
+        ),
     ] {
         if dbel != bel.slot {
             continue;
@@ -194,19 +436,22 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
         vrf.claim_pip(bel.crd(), bel.wire(dpin), obel.wire(spin));
         vrf.claim_net(&[bel.fwire(dpin)]);
     }
-    if bel.slot == bels::SLICE2 {
+    if bel.slot == defs::bslots::SLICE[2] {
         vrf.claim_net(&[bel.fwire("SHIFTIN")]);
         vrf.claim_net(&[bel.fwire("ALTDIG")]);
     }
-    if bel.slot == bels::SLICE3 {
-        if let Some(obel) = vrf.find_bel_delta(bel, 0, 1, bels::SLICE2) {
+    if bel.slot == defs::bslots::SLICE[3] {
+        if let Some(obel) = vrf.find_bel_delta(bel, 0, 1, defs::bslots::SLICE[2]) {
             vrf.claim_net(&[bel.fwire("FXINB"), obel.fwire("FX_S")]);
             vrf.claim_pip(obel.crd(), obel.wire("FX_S"), obel.wire("FX"));
         } else {
             vrf.claim_net(&[bel.fwire("FXINB")]);
         }
     }
-    for (dbel, sbel) in [(bels::SLICE0, bels::SLICE2), (bels::SLICE1, bels::SLICE3)] {
+    for (dbel, sbel) in [
+        (defs::bslots::SLICE[0], defs::bslots::SLICE[2]),
+        (defs::bslots::SLICE[1], defs::bslots::SLICE[3]),
+    ] {
         if bel.slot != dbel {
             continue;
         }
@@ -220,13 +465,13 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
 }
 
 pub fn verify_tbus(vrf: &mut Verifier, bel: &BelContext) {
-    let obel = vrf.find_bel_sibling(bel, bels::TBUF0);
+    let obel = vrf.find_bel_sibling(bel, defs::bslots::TBUF[0]);
     vrf.claim_pip(bel.crd(), bel.wire("BUS0"), obel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("BUS2"), obel.wire("O"));
-    let obel = vrf.find_bel_sibling(bel, bels::TBUF1);
+    let obel = vrf.find_bel_sibling(bel, defs::bslots::TBUF[1]);
     vrf.claim_pip(bel.crd(), bel.wire("BUS1"), obel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("BUS3"), obel.wire("O"));
-    if let Some(obel) = vrf.find_bel_walk(bel, -1, 0, bels::TBUS) {
+    if let Some(obel) = vrf.find_bel_walk(bel, -1, 0, defs::bslots::TBUS) {
         vrf.claim_net(&[bel.fwire("BUS0"), obel.fwire("BUS3_E")]);
         vrf.verify_net(&[bel.fwire("BUS1"), obel.fwire("BUS0")]);
         vrf.verify_net(&[bel.fwire("BUS2"), obel.fwire("BUS1")]);
@@ -261,7 +506,10 @@ pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
         for pin in ["CPREV", "O"] {
             vrf.claim_net(&[bel.fwire(pin)]);
         }
-        for (pin, sbel) in [("CIN1", bels::SLICE2), ("CIN0", bels::SLICE3)] {
+        for (pin, sbel) in [
+            ("CIN1", defs::bslots::SLICE[2]),
+            ("CIN0", defs::bslots::SLICE[3]),
+        ] {
             if let Some(obel) = vrf.find_bel_delta(bel, 0, -1, sbel) {
                 vrf.claim_net(&[bel.fwire(pin), obel.fwire("COUT_N")]);
                 vrf.claim_pip(obel.crd(), obel.wire("COUT_N"), obel.wire("COUT"));
@@ -270,11 +518,13 @@ pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelC
             }
         }
         vrf.claim_pip(bel.crd(), bel.wire_far("O"), bel.wire("O"));
-        if let Some(obel) = vrf.find_bel_walk(bel, 1, 0, bels::RANDOR) {
+        if let Some(obel) = vrf.find_bel_walk(bel, 1, 0, defs::bslots::RANDOR) {
             vrf.claim_net(&[bel.fwire_far("O"), obel.fwire_far("CPREV")]);
             vrf.claim_pip(obel.crd(), obel.wire("CPREV"), obel.wire_far("CPREV"));
         } else {
-            let obel = vrf.find_bel_walk(bel, 1, 0, bels::RANDOR_OUT).unwrap();
+            let obel = vrf
+                .find_bel_walk(bel, 1, 0, defs::bslots::RANDOR_OUT)
+                .unwrap();
             vrf.verify_net(&[bel.fwire_far("O"), obel.fwire("O")]);
         }
     }

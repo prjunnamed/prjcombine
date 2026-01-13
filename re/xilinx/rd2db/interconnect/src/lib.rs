@@ -5,10 +5,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, BelSlotId, BiPass, CellSlotId, ConnectorClass, ConnectorSlotId,
-        ConnectorWire, IntDb, LegacyBel, Mux, Pass, PermaBuf, PinDir, ProgBuf, ProgDelay,
-        SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass, TileClassId, TileSlotId,
-        TileWireCoord, WireKind, WireSlotId,
+        BelInfo, BelPin, BelSlotId, BiPass, CellSlotId, ConnectorClass, ConnectorClassId,
+        ConnectorSlotId, ConnectorWire, IntDb, LegacyBel, Mux, Pass, PermaBuf, PinDir, ProgBuf,
+        ProgDelay, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass, TileClassId,
+        TileSlotId, TileWireCoord, WireKind, WireSlotId,
     },
     dir::{Dir, DirMap},
 };
@@ -58,10 +58,14 @@ pub struct XTileRef {
     pub tile_map: EntityPartVec<CellSlotId, CellSlotId>,
 }
 
+pub enum XTileTarget {
+    Id(TileClassId),
+    Name(TileSlotId, String),
+}
+
 pub struct XTileInfo<'a, 'b> {
-    pub slot: TileSlotId,
     pub builder: &'b mut IntBuilder<'a>,
-    pub kind: String,
+    pub target: XTileTarget,
     pub naming: String,
     pub raw_tiles: Vec<XTileRawTile>,
     pub num_tiles: usize,
@@ -566,6 +570,11 @@ impl XTileInfo<'_, '_> {
             })
             .collect();
 
+        let tcid = match self.target {
+            XTileTarget::Id(id) => id,
+            XTileTarget::Name(slot, ref name) => self.builder.make_tcls(slot, self.num_tiles, name),
+        };
+
         let mut extractor = XTileExtractor {
             rd: self.builder.rd,
             db: &self.builder.db,
@@ -575,7 +584,7 @@ impl XTileInfo<'_, '_> {
             buf_in,
             int_out,
             int_in,
-            tcls: TileClass::new(self.slot, self.num_tiles),
+            bels: Default::default(),
             tcls_naming: TileClassNaming::default(),
         };
 
@@ -598,11 +607,22 @@ impl XTileInfo<'_, '_> {
             extractor.extract_bel(bel);
         }
 
-        let tcls = extractor.tcls;
         let tcls_naming = extractor.tcls_naming;
 
-        self.builder.insert_tcls_merge(&self.kind, tcls, pips);
+        for (bslot, bel) in extractor.bels {
+            self.builder.insert_tcls_bel(tcid, bslot, bel);
+        }
+        for (bslot, pips) in pips {
+            self.builder.insert_tcls_pips(tcid, bslot, pips);
+        }
         self.builder.insert_tcls_naming(&self.naming, tcls_naming);
+    }
+
+    pub fn name(&self) -> &str {
+        match self.target {
+            XTileTarget::Id(id) => self.builder.db.tile_classes.key(id),
+            XTileTarget::Name(_, ref name) => name,
+        }
     }
 }
 
@@ -634,7 +654,7 @@ struct XTileExtractor<'a, 'b, 'c> {
             rawdump::WireId,
         ),
     >,
-    tcls: TileClass,
+    bels: BTreeMap<BelSlotId, BelInfo>,
     tcls_naming: TileClassNaming,
 }
 
@@ -688,7 +708,9 @@ impl XTileExtractor<'_, '_, '_> {
                     }
                     panic!(
                         "CANNOT WALK INPUT WIRE {} {} {}",
-                        self.rd.part, self.xtile.kind, pin
+                        self.rd.part,
+                        self.xtile.name(),
+                        pin
                     );
                 }
                 PinDir::Output => {
@@ -747,13 +769,17 @@ impl XTileExtractor<'_, '_, '_> {
                     }
                     panic!(
                         "CANNOT WALK OUTPUT WIRE {} {} {}",
-                        self.rd.part, self.xtile.kind, pin
+                        self.rd.part,
+                        self.xtile.name(),
+                        pin
                     );
                 }
                 PinDir::Inout => {
                     panic!(
                         "CANNOT WALK INOUT WIRE {} {} {}",
-                        self.rd.part, self.xtile.kind, pin
+                        self.rd.part,
+                        self.xtile.name(),
+                        pin
                     );
                 }
             }
@@ -807,7 +833,9 @@ impl XTileExtractor<'_, '_, '_> {
             }
             panic!(
                 "CANNOT WALK WIRE {} {} {}",
-                self.rd.part, self.xtile.kind, pin
+                self.rd.part,
+                self.xtile.name(),
+                pin
             );
         }
         (wn, pips)
@@ -832,7 +860,7 @@ impl XTileExtractor<'_, '_, '_> {
                         if tksp.wire.is_none() {
                             panic!(
                                 "missing site wire for pin {name} tile {tile}",
-                                tile = self.xtile.kind
+                                tile = self.xtile.name()
                             );
                         }
                         let (ick, wires, wnf, pips, int_pips) =
@@ -877,7 +905,7 @@ impl XTileExtractor<'_, '_, '_> {
                         if tksp.wire.is_none() {
                             panic!(
                                 "missing site wire for pin {name} tile {tile}",
-                                tile = self.xtile.kind
+                                tile = self.xtile.name()
                             );
                         }
                         if buf_cnt == 0 {
@@ -1020,8 +1048,7 @@ impl XTileExtractor<'_, '_, '_> {
                 _ => (),
             }
         }
-        self.tcls
-            .bels
+        self.bels
             .insert(bel.bel, BelInfo::Legacy(LegacyBel { pins }));
         self.tcls_naming.bels.insert(
             bel.bel,
@@ -1168,8 +1195,7 @@ impl XTileExtractor<'_, '_, '_> {
                 }
             }
             items.sort();
-            self.tcls
-                .bels
+            self.bels
                 .insert(sb, BelInfo::SwitchBox(SwitchBox { items }));
         }
     }
@@ -1260,8 +1286,7 @@ impl XTileExtractor<'_, '_, '_> {
                 },
             );
         }
-        self.tcls
-            .bels
+        self.bels
             .insert(self.xtile.tmux_bel.unwrap(), BelInfo::TestMux(tm));
     }
 }
@@ -1575,6 +1600,10 @@ impl<'a> IntBuilder<'a> {
         w
     }
 
+    pub fn mark_permabuf(&mut self, wire: WireSlotId) {
+        self.permabuf_wires.insert(wire);
+    }
+
     pub fn delay(
         &mut self,
         wire: WireSlotId,
@@ -1598,6 +1627,10 @@ impl<'a> IntBuilder<'a> {
         let tmin = self.logic_out(name, &[""]);
         self.test_mux_ins.insert(wire, tmin);
         tmin
+    }
+
+    pub fn mark_test_mux_in(&mut self, tmin: WireSlotId, wire: WireSlotId) {
+        self.test_mux_ins.insert(wire, tmin);
     }
 
     pub fn multi_out(
@@ -1660,6 +1693,15 @@ impl<'a> IntBuilder<'a> {
         self.stub_outs.insert(name.into());
     }
 
+    pub fn wire_names(&mut self, wire: WireSlotId, names: &[impl AsRef<str>]) {
+        for name in names {
+            let name = name.as_ref();
+            if !name.is_empty() {
+                self.extra_name(name, wire);
+            }
+        }
+    }
+
     pub fn extra_name(&mut self, name: impl Into<String>, wire: WireSlotId) {
         self.extra_names
             .insert(name.into(), TileWireCoord::new_idx(0, wire));
@@ -1706,6 +1748,16 @@ impl<'a> IntBuilder<'a> {
             .copied()
     }
 
+    pub fn inject_main_passes(&mut self, passes: DirMap<ConnectorClassId>) {
+        for (dir, ccid) in passes {
+            for (wt, &wf) in &self.db.conn_classes[ccid].wires {
+                if let ConnectorWire::Pass(wf) = wf {
+                    self.main_passes[dir].insert(wt, wf);
+                }
+            }
+        }
+    }
+
     pub fn extract_main_passes(&mut self) {
         for (dir, wires) in &self.main_passes {
             self.db.conn_classes.insert(
@@ -1722,8 +1774,8 @@ impl<'a> IntBuilder<'a> {
     }
 
     fn extract_bels(
-        &self,
-        tcls: &mut TileClass,
+        &mut self,
+        tcid: TileClassId,
         naming: &mut TileClassNaming,
         bels: &[ExtrBelInfo],
         tki: rawdump::TileKindId,
@@ -2073,8 +2125,7 @@ impl<'a> IntBuilder<'a> {
                     _ => (),
                 }
             }
-            tcls.bels
-                .insert(bel.bel, BelInfo::Legacy(LegacyBel { pins }));
+            self.insert_tcls_bel(tcid, bel.bel, BelInfo::Legacy(LegacyBel { pins }));
             naming.bels.insert(
                 bel.bel,
                 BelNaming::Bel(ProperBelNaming {
@@ -2085,19 +2136,17 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn extract_int(
+    pub fn extract_int_id(
         &mut self,
-        slot: TileSlotId,
+        tcid: TileClassId,
         sb: BelSlotId,
         tile_kind: &str,
-        kind: &str,
         naming: &str,
         bels: &[ExtrBelInfo],
     ) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile_kind) {
             let tk = &self.rd.tile_kinds[tki];
             let tkn = self.rd.tile_kinds.key(tki);
-            let mut tcls = TileClass::new(slot, 1);
             let mut pips = Pips::default();
             let mut tcls_naming = TileClassNaming::default();
             let mut names = HashMap::new();
@@ -2135,20 +2184,53 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
+            self.insert_tcls_pips(tcid, sb, pips);
+            self.extract_bels(tcid, &mut tcls_naming, bels, tki, &names);
 
-            self.extract_bels(&mut tcls, &mut tcls_naming, bels, tki, &names);
-
-            self.insert_tcls_merge(kind, tcls, BTreeMap::from_iter([(sb, pips)]));
             let naming = self.insert_tcls_naming(naming, tcls_naming);
             self.int_types.push(IntType { tki, naming });
         }
     }
 
-    pub fn extract_int_bels(
+    pub fn make_tcls(&mut self, slot: TileSlotId, num_cells: usize, kind: &str) -> TileClassId {
+        if let Some((id, _)) = self.db.tile_classes.get(kind) {
+            id
+        } else {
+            self.db
+                .tile_classes
+                .insert(kind.to_string(), TileClass::new(slot, num_cells))
+                .0
+        }
+    }
+
+    pub fn make_ccls(&mut self, slot: ConnectorSlotId, kind: &str) -> ConnectorClassId {
+        if let Some((id, _)) = self.db.conn_classes.get(kind) {
+            id
+        } else {
+            self.db
+                .conn_classes
+                .insert(kind.to_string(), ConnectorClass::new(slot))
+                .0
+        }
+    }
+
+    pub fn extract_int(
         &mut self,
         slot: TileSlotId,
+        sb: BelSlotId,
         tile_kind: &str,
         kind: &str,
+        naming: &str,
+        bels: &[ExtrBelInfo],
+    ) {
+        let tcid = self.make_tcls(slot, 1, kind);
+        self.extract_int_id(tcid, sb, tile_kind, naming, bels);
+    }
+
+    pub fn extract_int_bels_id(
+        &mut self,
+        tcid: TileClassId,
+        tile_kind: &str,
         naming: &str,
         bels: &[ExtrBelInfo],
     ) {
@@ -2161,13 +2243,22 @@ impl<'a> IntBuilder<'a> {
                 }
             }
 
-            let mut tcls = TileClass::new(slot, 1);
             let mut tcls_naming = TileClassNaming::default();
-            self.extract_bels(&mut tcls, &mut tcls_naming, bels, tki, &names);
-
-            self.insert_tcls_merge(kind, tcls, BTreeMap::new());
+            self.extract_bels(tcid, &mut tcls_naming, bels, tki, &names);
             self.insert_tcls_naming(naming, tcls_naming);
         }
+    }
+
+    pub fn extract_int_bels(
+        &mut self,
+        slot: TileSlotId,
+        tile_kind: &str,
+        kind: &str,
+        naming: &str,
+        bels: &[ExtrBelInfo],
+    ) {
+        let tcid = self.make_tcls(slot, 1, kind);
+        self.extract_int_bels_id(tcid, tile_kind, naming, bels);
     }
 
     pub fn int_type(
@@ -2308,6 +2399,52 @@ impl<'a> IntBuilder<'a> {
             .collect()
     }
 
+    fn insert_tcls_pips(&mut self, tcid: TileClassId, bslot: BelSlotId, pips: Pips) {
+        match self.pips.entry((tcid, bslot)) {
+            btree_map::Entry::Vacant(e) => {
+                e.insert(pips);
+            }
+            btree_map::Entry::Occupied(mut e) => {
+                let cur_pips = e.get_mut();
+                for ((wt, wf), mode) in pips.pips {
+                    match cur_pips.pips.entry((wt, wf)) {
+                        btree_map::Entry::Vacant(ee) => {
+                            ee.insert(mode);
+                        }
+                        btree_map::Entry::Occupied(ee) => {
+                            assert_eq!(*ee.get(), mode);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fn insert_tcls_bel(&mut self, tcid: TileClassId, slot: BelSlotId, bel: BelInfo) {
+        let tcls = &mut self.db.tile_classes[tcid];
+        if !tcls.bels.contains_id(slot) {
+            tcls.bels.insert(slot, bel);
+        } else {
+            let cur_bel = &mut tcls.bels[slot];
+            if let BelInfo::TestMux(cur_tm) = cur_bel
+                && let BelInfo::TestMux(tm) = bel
+            {
+                for &dst in cur_tm.wires.keys() {
+                    assert!(tm.wires.contains_key(&dst));
+                }
+                for (dst, tmux) in tm.wires {
+                    let cur_tmux = cur_tm.wires.get_mut(&dst).unwrap();
+                    assert_eq!(cur_tmux.primary_src, tmux.primary_src);
+                    for (w, bits) in tmux.test_src {
+                        cur_tmux.test_src.insert(w, bits);
+                    }
+                }
+            } else {
+                assert_eq!(bel, *cur_bel);
+            }
+        }
+    }
+
     fn insert_tcls_merge(
         &mut self,
         name: &str,
@@ -2347,24 +2484,7 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
                 for (slot, sb_pips) in pips {
-                    match self.pips.entry((id, slot)) {
-                        btree_map::Entry::Vacant(e) => {
-                            e.insert(sb_pips);
-                        }
-                        btree_map::Entry::Occupied(mut e) => {
-                            let cur_pips = e.get_mut();
-                            for ((wt, wf), mode) in sb_pips.pips {
-                                match cur_pips.pips.entry((wt, wf)) {
-                                    btree_map::Entry::Vacant(ee) => {
-                                        ee.insert(mode);
-                                    }
-                                    btree_map::Entry::Occupied(ee) => {
-                                        assert_eq!(*ee.get(), mode);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    self.insert_tcls_pips(id, slot, sb_pips);
                 }
                 id
             }
@@ -2409,12 +2529,26 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    pub fn insert_term_merge(&mut self, name: &str, term: ConnectorClass) {
-        match self.db.conn_classes.get_mut(name) {
-            None => {
-                self.db.conn_classes.insert(name.to_string(), term);
+    pub fn insert_connector(&mut self, ccid: ConnectorClassId, ccls: ConnectorClass) {
+        let cur_ccls = &mut self.db.conn_classes[ccid];
+        assert_eq!(ccls.slot, cur_ccls.slot);
+        for k in self.db.wires.ids() {
+            let a = cur_ccls.wires.get_mut(k);
+            let b = ccls.wires.get(k);
+            match (a, b) {
+                (_, None) => (),
+                (None, Some(b)) => {
+                    cur_ccls.wires.insert(k, *b);
+                }
+                (a, b) => assert_eq!(a.map(|x| &*x), b),
             }
-            Some((_, cterm)) => {
+        }
+    }
+
+    pub fn insert_term_merge(&mut self, name: &str, term: ConnectorClass) -> ConnectorClassId {
+        match self.db.conn_classes.get_mut(name) {
+            None => self.db.conn_classes.insert(name.to_string(), term).0,
+            Some((ccid, cterm)) => {
                 assert_eq!(term.slot, cterm.slot);
                 for k in self.db.wires.ids() {
                     let a = cterm.wires.get_mut(k);
@@ -2427,6 +2561,7 @@ impl<'a> IntBuilder<'a> {
                         (a, b) => assert_eq!(a.map(|x| &*x), b),
                     }
                 }
+                ccid
             }
         }
     }
@@ -2475,10 +2610,10 @@ impl<'a> IntBuilder<'a> {
         res
     }
 
-    pub fn extract_term_tile(
+    pub fn extract_term_tile_id(
         &mut self,
-        name: impl AsRef<str>,
-        node_name: Option<(TileSlotId, BelSlotId, &str)>,
+        ccid: ConnectorClassId,
+        tcls: Option<(TileClassId, BelSlotId)>,
         dir: Dir,
         term_xy: Coord,
         naming: impl AsRef<str>,
@@ -2571,12 +2706,8 @@ impl<'a> IntBuilder<'a> {
                 }
             }
         }
-        if let Some((slot, sb, nn)) = node_name {
-            self.insert_tcls_merge(
-                nn,
-                TileClass::new(slot, 1),
-                BTreeMap::from_iter([(sb, node_pips)]),
-            );
+        if let Some((tcid, sb)) = tcls {
+            self.insert_tcls_pips(tcid, sb, node_pips);
             self.insert_tcls_naming(
                 naming.as_ref(),
                 TileClassNaming {
@@ -2595,7 +2726,26 @@ impl<'a> IntBuilder<'a> {
             slot: self.term_slots[dir],
             wires,
         };
-        self.insert_term_merge(name.as_ref(), term);
+        self.insert_connector(ccid, term);
+    }
+
+    pub fn extract_term_tile(
+        &mut self,
+        name: impl AsRef<str>,
+        node_name: Option<(TileSlotId, BelSlotId, &str)>,
+        dir: Dir,
+        term_xy: Coord,
+        naming: impl AsRef<str>,
+        int_xy: Coord,
+    ) {
+        let tcls = if let Some((tslot, bslot, kind)) = node_name {
+            let tcid = self.make_tcls(tslot, 1, kind);
+            Some((tcid, bslot))
+        } else {
+            None
+        };
+        let ccls = self.make_ccls(self.term_slots[dir], name.as_ref());
+        self.extract_term_tile_id(ccls, tcls, dir, term_xy, naming, int_xy);
     }
 
     pub fn extract_term_buf_tile(
@@ -2780,6 +2930,21 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
+    pub fn extract_term_id(
+        &mut self,
+        ccid: ConnectorClassId,
+        tcls: Option<(TileClassId, BelSlotId)>,
+        dir: Dir,
+        tkn: impl AsRef<str>,
+        naming: impl AsRef<str>,
+    ) {
+        for &term_xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
+            if let Some(int_xy) = self.walk_to_int(term_xy, !dir, false) {
+                self.extract_term_tile_id(ccid, tcls, dir, term_xy, naming.as_ref(), int_xy);
+            }
+        }
+    }
+
     pub fn extract_term_buf(
         &mut self,
         name: impl AsRef<str>,
@@ -2827,16 +2992,16 @@ impl<'a> IntBuilder<'a> {
             .collect()
     }
 
-    pub fn extract_pass_tile(
+    pub fn extract_pass_tile_id(
         &mut self,
-        name: impl AsRef<str>,
+        ccid: ConnectorClassId,
         dir: Dir,
         int_xy: Coord,
         near: Option<Coord>,
         far: Option<Coord>,
         naming: Option<&str>,
-        tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
-        splitter_tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
+        tcls: Option<(TileClassId, BelSlotId, &str)>,
+        splitter_tcls: Option<(TileClassId, BelSlotId, &str)>,
         src_xy: Coord,
         force_pass: &[WireSlotId],
     ) {
@@ -3111,12 +3276,8 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
-            if let Some((slot, sb, nn, nnn)) = tcls {
-                self.insert_tcls_merge(
-                    nn,
-                    TileClass::new(slot, node_tiles.len()),
-                    BTreeMap::from_iter([(sb, node_pips)]),
-                );
+            if let Some((tcid, sb, nnn)) = tcls {
+                self.insert_tcls_pips(tcid, sb, node_pips);
                 self.insert_tcls_naming(
                     nnn,
                     TileClassNaming {
@@ -3183,12 +3344,8 @@ impl<'a> IntBuilder<'a> {
                     }
                 }
             }
-            if let Some((slot, sb, nn, nnn)) = splitter_tcls {
-                self.insert_tcls_merge(
-                    nn,
-                    TileClass::new(slot, snode_tiles.len()),
-                    BTreeMap::from_iter([(sb, snode_pips)]),
-                );
+            if let Some((tcid, sb, nnn)) = splitter_tcls {
+                self.insert_tcls_pips(tcid, sb, snode_pips);
                 self.insert_tcls_naming(
                     nnn,
                     TileClassNaming {
@@ -3209,7 +3366,53 @@ impl<'a> IntBuilder<'a> {
             slot: self.term_slots[dir],
             wires,
         };
-        self.insert_term_merge(name.as_ref(), term);
+        self.insert_connector(ccid, term);
+    }
+
+    pub fn extract_pass_tile(
+        &mut self,
+        name: impl AsRef<str>,
+        dir: Dir,
+        int_xy: Coord,
+        near: Option<Coord>,
+        far: Option<Coord>,
+        naming: Option<&str>,
+        tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
+        splitter_tcls: Option<(TileSlotId, BelSlotId, &str, &str)>,
+        src_xy: Coord,
+        force_pass: &[WireSlotId],
+    ) {
+        let ccid = self.insert_term_merge(
+            name.as_ref(),
+            ConnectorClass {
+                slot: self.term_slots[dir],
+                wires: Default::default(),
+            },
+        );
+        let tcls = if let Some((tslot, bslot, name, nname)) = tcls {
+            let tcid = self.make_tcls(tslot, 2, name);
+            Some((tcid, bslot, nname))
+        } else {
+            None
+        };
+        let splitter_tcls = if let Some((tslot, bslot, name, nname)) = splitter_tcls {
+            let tcid = self.make_tcls(tslot, 2, name);
+            Some((tcid, bslot, nname))
+        } else {
+            None
+        };
+        self.extract_pass_tile_id(
+            ccid,
+            dir,
+            int_xy,
+            near,
+            far,
+            naming,
+            tcls,
+            splitter_tcls,
+            src_xy,
+            force_pass,
+        )
     }
 
     pub fn extract_pass_simple(
@@ -3246,6 +3449,28 @@ impl<'a> IntBuilder<'a> {
                     None,
                     int_bwd_xy,
                     force_pass,
+                );
+            }
+        }
+    }
+
+    pub fn extract_pass_simple_id(
+        &mut self,
+        ccid_a: ConnectorClassId,
+        ccid_b: ConnectorClassId,
+        dir: Dir,
+        tkn: impl AsRef<str>,
+        force_pass: &[WireSlotId],
+    ) {
+        for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
+            if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false)
+                && let Some(int_bwd_xy) = self.walk_to_int(xy, !dir, false)
+            {
+                self.extract_pass_tile_id(
+                    ccid_a, dir, int_bwd_xy, None, None, None, None, None, int_fwd_xy, force_pass,
+                );
+                self.extract_pass_tile_id(
+                    ccid_b, !dir, int_fwd_xy, None, None, None, None, None, int_bwd_xy, force_pass,
                 );
             }
         }
@@ -3338,6 +3563,29 @@ impl<'a> IntBuilder<'a> {
         x.extract();
     }
 
+    pub fn extract_intf_tile_multi_id(
+        &mut self,
+        tcid: TileClassId,
+        xy: Coord,
+        int_xy: &[Coord],
+        naming: impl AsRef<str>,
+        bel: BelSlotId,
+        has_out_bufs: bool,
+        sb_delay: Option<BelSlotId>,
+    ) {
+        let mut x = self
+            .xtile_id(tcid, naming.as_ref(), xy)
+            .num_tiles(int_xy.len())
+            .extract_intfs(bel, has_out_bufs);
+        if let Some(sb) = sb_delay {
+            x = x.extract_delay(sb);
+        }
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
+        }
+        x.extract();
+    }
+
     pub fn extract_intf_tile(
         &mut self,
         slot: TileSlotId,
@@ -3361,6 +3609,19 @@ impl<'a> IntBuilder<'a> {
         );
     }
 
+    pub fn extract_intf_tile_id(
+        &mut self,
+        tcid: TileClassId,
+        xy: Coord,
+        int_xy: Coord,
+        naming: impl AsRef<str>,
+        bel: BelSlotId,
+        has_out_bufs: bool,
+        sb_delay: Option<BelSlotId>,
+    ) {
+        self.extract_intf_tile_multi_id(tcid, xy, &[int_xy], naming, bel, has_out_bufs, sb_delay);
+    }
+
     pub fn extract_intf(
         &mut self,
         slot: TileSlotId,
@@ -3377,6 +3638,30 @@ impl<'a> IntBuilder<'a> {
             self.extract_intf_tile(
                 slot,
                 name.as_ref(),
+                xy,
+                int_xy,
+                naming.as_ref(),
+                bel,
+                has_out_bufs,
+                sb_delay,
+            );
+        }
+    }
+
+    pub fn extract_intf_id(
+        &mut self,
+        tcid: TileClassId,
+        dir: Dir,
+        tkn: impl AsRef<str>,
+        naming: impl AsRef<str>,
+        bel: BelSlotId,
+        has_out_bufs: bool,
+        sb_delay: Option<BelSlotId>,
+    ) {
+        for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
+            let int_xy = self.walk_to_int(xy, !dir, false).unwrap();
+            self.extract_intf_tile_id(
+                tcid,
                 xy,
                 int_xy,
                 naming.as_ref(),
@@ -3412,6 +3697,60 @@ impl<'a> IntBuilder<'a> {
         }
         for bel in bels {
             x = x.bel(bel.clone());
+        }
+        x.extract();
+    }
+
+    pub fn extract_xtile_id(
+        &mut self,
+        tcid: TileClassId,
+        sb: BelSlotId,
+        xy: Coord,
+        buf_xy: &[Coord],
+        int_xy: &[Coord],
+        naming: &str,
+        bels: &[ExtrBelInfo],
+        skip_wires: &[WireSlotId],
+    ) {
+        let mut x = self
+            .xtile_id(tcid, naming, xy)
+            .num_tiles(int_xy.len())
+            .extract_muxes(sb)
+            .skip_muxes(skip_wires);
+        for &xy in buf_xy {
+            x = x.raw_tile(xy);
+        }
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
+        }
+        for bel in bels {
+            x = x.bel(bel.clone());
+        }
+        x.extract();
+    }
+
+    pub fn extract_xtile_bels_id(
+        &mut self,
+        tcid: TileClassId,
+        xy: Coord,
+        buf_xy: &[Coord],
+        int_xy: &[Coord],
+        naming: &str,
+        bels: &[ExtrBelInfo],
+        force_test_mux_in: bool,
+    ) {
+        let mut x = self.xtile_id(tcid, naming, xy).num_tiles(int_xy.len());
+        for &xy in buf_xy {
+            x = x.raw_tile(xy);
+        }
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
+        }
+        for bel in bels {
+            x = x.bel(bel.clone());
+        }
+        if force_test_mux_in {
+            x = x.force_test_mux_in();
         }
         x.extract();
     }
@@ -3514,6 +3853,38 @@ impl<'a> IntBuilder<'a> {
         self.insert_tcls_merge(name, tcls, BTreeMap::new());
     }
 
+    pub fn xtile_id<'b>(
+        &'b mut self,
+        tcid: TileClassId,
+        naming: impl Into<String>,
+        tile: Coord,
+    ) -> XTileInfo<'a, 'b> {
+        XTileInfo {
+            builder: self,
+            target: XTileTarget::Id(tcid),
+            naming: naming.into(),
+            raw_tiles: vec![XTileRawTile {
+                xy: tile,
+                tile_map: None,
+                extract_muxes: false,
+            }],
+            num_tiles: 1,
+            refs: vec![],
+            tmux_bel: None,
+            delay_sb: None,
+            has_intf_out_bufs: false,
+            skip_muxes: BTreeSet::new(),
+            optin_muxes: BTreeSet::new(),
+            optin_muxes_tile: BTreeSet::new(),
+            bels: vec![],
+            force_names: HashMap::new(),
+            force_skip_pips: HashSet::new(),
+            force_pips: HashSet::new(),
+            switchbox: None,
+            force_test_mux_in: false,
+        }
+    }
+
     pub fn xtile<'b>(
         &'b mut self,
         slot: TileSlotId,
@@ -3522,9 +3893,8 @@ impl<'a> IntBuilder<'a> {
         tile: Coord,
     ) -> XTileInfo<'a, 'b> {
         XTileInfo {
-            slot,
             builder: self,
-            kind: kind.into(),
+            target: XTileTarget::Name(slot, kind.into()),
             naming: naming.into(),
             raw_tiles: vec![XTileRawTile {
                 xy: tile,

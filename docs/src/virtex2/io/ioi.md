@@ -4,5 +4,5 @@ TODO: document
 
 
 {{tile virtex2 IOI}}
-{{tile virtex2 IOI.CLK_B}}
-{{tile virtex2 IOI.CLK_T}}
+{{tile virtex2 IOI_CLK_S}}
+{{tile virtex2 IOI_CLK_N}}

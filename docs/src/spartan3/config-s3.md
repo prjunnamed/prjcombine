@@ -10,6 +10,13 @@ This is the Spartan 3 version of `COR`.
 {{tile spartan3 REG.COR.S3}}
 
 
+## `COR.FC`
+
+This is the FPGAcore version of `COR`.
+
+{{tile spartan3 REG.COR.FC}}
+
+
 ## `COR.S3E`
 
 This is the Spartan 3E version of `COR`.

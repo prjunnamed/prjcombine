@@ -1,3 +1,4 @@
+use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip, DeviceNaming, DisabledPart, Interposer};
 use prjcombine_re_xilinx_naming_ultrascale::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -36,6 +37,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         disabled,
         DeviceNaming::Ultrascale(naming),
         rd.family.clone(),
+        IntDb::default(),
         intdb,
         ndb,
     )

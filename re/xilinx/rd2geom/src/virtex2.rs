@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use prjcombine_re_xilinx_geom::{Bond, Chip};
 use prjcombine_re_xilinx_naming_virtex2::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_virtex2::chip::ChipKind;
+use prjcombine_virtex2::defs;
 
 use crate::db::{PreDevice, make_device};
 use prjcombine_re_xilinx_rd2db_virtex2::{bond, grid, int_s3, int_v2};
@@ -11,10 +11,20 @@ use prjcombine_re_xilinx_rdverify_virtex2::verify_device;
 
 pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let grid = grid::make_grid(rd);
-    let (intdb, ndb) = if rd.family.starts_with("virtex2") {
-        int_v2::make_int_db(rd)
+    let (intdb_init, (intdb, ndb)) = if rd.family.starts_with("virtex2") {
+        (
+            bincode::decode_from_slice(defs::virtex2::INIT, bincode::config::standard())
+                .unwrap()
+                .0,
+            int_v2::make_int_db(rd),
+        )
     } else {
-        int_s3::make_int_db(rd)
+        (
+            bincode::decode_from_slice(defs::spartan3::INIT, bincode::config::standard())
+                .unwrap()
+                .0,
+            int_s3::make_int_db(rd),
+        )
     };
     let edev = grid.expand_grid(&intdb);
     let endev = name_device(&edev, &ndb);
@@ -28,8 +38,6 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     }
     let intdb_name = if grid.kind.is_virtex2() {
         "virtex2"
-    } else if grid.kind == ChipKind::FpgaCore {
-        "fpgacore"
     } else {
         "spartan3"
     };
@@ -39,6 +47,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         BTreeSet::new(),
         intdb_name,
+        intdb_init,
         intdb,
         ndb,
     )

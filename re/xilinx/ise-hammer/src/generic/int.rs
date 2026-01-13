@@ -94,7 +94,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                     .db
                     .tile_classes
                     .key(tile.class)
-                    .starts_with("INT.BRAM")
+                    .starts_with("INT_BRAM")
                 {
                     let mut tgt = None;
                     for i in 0..4 {
@@ -112,10 +112,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                     let bram_tcls = &intdb[bram_tile.class];
                     if (edev.chip.kind.is_virtex2()
                         || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
-                        && (wire_name.starts_with("IMUX.CLK")
-                            || wire_name.starts_with("IMUX.SR")
-                            || wire_name.starts_with("IMUX.CE")
-                            || wire_name.starts_with("IMUX.TS"))
+                        && (wire_name.starts_with("IMUX_CLK")
+                            || wire_name.starts_with("IMUX_SR")
+                            || wire_name.starts_with("IMUX_CE")
+                            || wire_name.starts_with("IMUX_TS"))
                     {
                         let mut found = false;
                         for bel in bram_tcls.bels.values() {
@@ -137,25 +137,25 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                         }
                     }
                 }
-                if backend.edev.db.tile_classes.key(tile.class) == "INT.IOI.S3E"
-                    || backend.edev.db.tile_classes.key(tile.class) == "INT.IOI.S3A.LR"
+                if backend.edev.db.tile_classes.key(tile.class) == "INT_IOI_S3E"
+                    || backend.edev.db.tile_classes.key(tile.class) == "INT_IOI_S3A_WE"
                 {
                     if matches!(
                         &wire_name[..],
-                        "IMUX.DATA3"
-                            | "IMUX.DATA7"
-                            | "IMUX.DATA11"
-                            | "IMUX.DATA15"
-                            | "IMUX.DATA19"
-                            | "IMUX.DATA23"
-                            | "IMUX.DATA27"
-                            | "IMUX.DATA31"
+                        "IMUX_DATA[3]"
+                            | "IMUX_DATA[7]"
+                            | "IMUX_DATA[11]"
+                            | "IMUX_DATA[15]"
+                            | "IMUX_DATA[19]"
+                            | "IMUX_DATA[23]"
+                            | "IMUX_DATA[27]"
+                            | "IMUX_DATA[31]"
                     ) && tcrd.row != edev.chip.row_mid() - 1
                         && tcrd.row != edev.chip.row_mid()
                     {
                         return None;
                     }
-                    if wire_name == "IMUX.DATA13"
+                    if wire_name == "IMUX_DATA[13]"
                         && edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
                         && tcrd.col == edev.chip.col_w()
                     {
@@ -164,34 +164,34 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                     }
                     if matches!(
                         &wire_name[..],
-                        "IMUX.DATA12" | "IMUX.DATA13" | "IMUX.DATA14"
+                        "IMUX_DATA[12]" | "IMUX_DATA[13]" | "IMUX_DATA[14]"
                     ) && tcrd.row != edev.chip.row_mid()
                     {
                         return None;
                     }
                 }
-                if backend.edev.db.tile_classes.key(tile.class) == "INT.IOI.S3A.TB"
-                    && wire_name == "IMUX.DATA15"
+                if backend.edev.db.tile_classes.key(tile.class) == "INT_IOI_S3A_SN"
+                    && wire_name == "IMUX_DATA[15]"
                     && tcrd.row == edev.chip.row_n()
                 {
                     // also ISE bug.
                     return None;
                 }
                 if edev.chip.kind.is_spartan3a()
-                    && backend.edev.db.tile_classes.key(tile.class) == "INT.CLB"
+                    && backend.edev.db.tile_classes.key(tile.class) == "INT_CLB"
                 {
                     // avoid SR in corners — it causes the inverter bit to be auto-set
                     let is_lr = tcrd.col == edev.chip.col_w() || tcrd.col == edev.chip.col_e();
                     let is_bt = tcrd.row == edev.chip.row_s() || tcrd.row == edev.chip.row_n();
-                    if intdb.wires.key(self.wire.wire).starts_with("IMUX.SR") && is_lr && is_bt {
+                    if intdb.wires.key(self.wire.wire).starts_with("IMUX_SR") && is_lr && is_bt {
                         return None;
                     }
                 }
-                if matches!(&wire_name[..], "IMUX.DATA15" | "IMUX.DATA31")
+                if matches!(&wire_name[..], "IMUX_DATA[15]" | "IMUX_DATA[31]")
                     && ndb
                         .tile_class_namings
                         .key(ntile.naming)
-                        .starts_with("INT.MACC")
+                        .starts_with("INT_MACC")
                 {
                     // ISE bug.
                     return None;
@@ -247,12 +247,16 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
                 if (edev.chip.kind.is_virtex2()
                     || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::Spartan3)
                     && wire_name.starts_with("OUT")
-                    && intdb.tile_classes.key(tile.class).starts_with("INT.DCM")
+                    && intdb.tile_classes.key(tile.class).starts_with("INT_DCM")
                 {
-                    let ndcm = &backend.ngrid.tiles[&tcrd.tile(prjcombine_virtex2::tslots::BEL)];
-                    let site = &ndcm.bels[prjcombine_virtex2::bels::DCM];
+                    let ndcm =
+                        &backend.ngrid.tiles[&tcrd.tile(prjcombine_virtex2::defs::tslots::BEL)];
+                    let site = &ndcm.bels[prjcombine_virtex2::defs::bslots::DCM];
                     fuzzer = fuzzer.base(Key::SiteMode(site), "DCM").base(
-                        Key::BelMutex(tcrd.bel(prjcombine_virtex2::bels::DCM), "MODE".into()),
+                        Key::BelMutex(
+                            tcrd.bel(prjcombine_virtex2::defs::bslots::DCM),
+                            "MODE".into(),
+                        ),
                         "INT",
                     );
                     for pin in [
@@ -262,7 +266,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
                         fuzzer = fuzzer.base(Key::SitePin(site, pin.into()), true);
                     }
                 }
-                if wire_name == "OUT.PCI0"
+                if wire_name == "OUT_PCI[0]"
                     && tcrd.row != edev.chip.row_pci.unwrap() - 2
                     && tcrd.row != edev.chip.row_pci.unwrap() - 1
                     && tcrd.row != edev.chip.row_pci.unwrap()
@@ -270,17 +274,17 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
                 {
                     return None;
                 }
-                if wire_name == "OUT.PCI1"
+                if wire_name == "OUT_PCI[1]"
                     && tcrd.row != edev.chip.row_pci.unwrap() - 1
                     && tcrd.row != edev.chip.row_pci.unwrap()
                 {
                     return None;
                 }
-                if (backend.edev.db.tile_classes.key(tile.class) == "INT.IOI.S3E"
-                    || backend.edev.db.tile_classes.key(tile.class) == "INT.IOI.S3A.LR")
+                if (backend.edev.db.tile_classes.key(tile.class) == "INT_IOI_S3E"
+                    || backend.edev.db.tile_classes.key(tile.class) == "INT_IOI_S3A_WE")
                     && matches!(
                         &wire_name[..],
-                        "OUT.FAN3" | "OUT.FAN7" | "OUT.SEC11" | "OUT.SEC15"
+                        "OUT_FAN[3]" | "OUT_FAN[7]" | "OUT_SEC[11]" | "OUT_SEC[15]"
                     )
                     && tcrd.row != edev.chip.row_mid() - 1
                     && tcrd.row != edev.chip.row_mid()
@@ -290,7 +294,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
                 if wire_name.starts_with("GCLK")
                     && matches!(
                         &ndb.tile_class_namings.key(ntile.naming)[..],
-                        "INT.BRAM.BRK" | "INT.BRAM.S3ADSP.BRK" | "INT.MACC.BRK"
+                        "INT_BRAM_BRK" | "INT_BRAM_S3ADSP_BRK" | "INT_MACC_BRK"
                     )
                 {
                     // ISE bug.
@@ -465,7 +469,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                     let int_tcrd = tcrd
                         .cell
                         .with_col(src_col)
-                        .tile(prjcombine_virtex2::tslots::INT);
+                        .tile(prjcombine_virtex2::defs::tslots::INT);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
                         for (&dwire, ins) in &backend.edev.db_index[src_tile.class].pips_bwd {
                             if !backend.edev.db.wires.key(dwire.wire).starts_with("LH") {
@@ -577,7 +581,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                     let int_tcrd = tcrd
                         .cell
                         .with_row(src_row)
-                        .tile(prjcombine_virtex2::tslots::INT);
+                        .tile(prjcombine_virtex2::defs::tslots::INT);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
                         for (&dwire, ins) in &backend.edev.db_index[src_tile.class].pips_bwd {
                             if !backend.edev.db.wires.key(dwire.wire).starts_with("LV") {
@@ -764,7 +768,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         Value::None,
                     ));
                 }
-                if intdb.wires.key(wire_from.wire) == "OUT.TBUS" {
+                if intdb.wires.key(wire_from.wire) == "OUT_TBUS" {
                     builder = builder.prop(RowMutex::new("TBUF".to_string(), "INT".to_string()));
                 }
                 builder.commit();
@@ -805,9 +809,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if let ExpandedDevice::Virtex2(edev) = ctx.edev
                                 && edev.chip.kind
                                     == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
-                                && tcname == "INT.IOI.S3A.LR"
-                                && mux_name == "MUX.IMUX.DATA3"
-                                && in_name == "OMUX10.N"
+                                && tcname == "INT_IOI_S3A_WE"
+                                && mux_name == "MUX.IMUX_DATA[3]"
+                                && in_name == "OMUX_N10"
                             {
                                 // ISE is bad and should feel bad.
                                 continue;
@@ -817,17 +821,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     && !intdb[wire_from.wire].is_tie()
                                 {
                                     // suppress message on known offenders.
-                                    if tcname == "INT.BRAM.S3A.03"
-                                        && (mux_name.starts_with("MUX.IMUX.CLK")
-                                            || mux_name.starts_with("MUX.IMUX.CE"))
+                                    if tcname == "INT_BRAM_S3A_03"
+                                        && (mux_name.starts_with("MUX.IMUX_CLK")
+                                            || mux_name.starts_with("MUX.IMUX_CE"))
                                     {
                                         // these muxes don't actually exist.
                                         continue;
                                     }
-                                    if tcname.starts_with("INT.IOI.S3")
-                                        && mux_name.starts_with("MUX.IMUX.DATA")
-                                        && (in_name.starts_with("OUT.FAN")
-                                            || in_name.starts_with("IMUX.FAN")
+                                    if tcname.starts_with("INT_IOI_S3")
+                                        && mux_name.starts_with("MUX.IMUX_DATA")
+                                        && (in_name.starts_with("OUT_FAN")
+                                            || in_name.starts_with("IMUX_FAN")
                                             || in_name.starts_with("OMUX"))
                                     {
                                         // ISE is kind of bad. fill these from INT.CLB and verify later?
@@ -845,17 +849,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         let ti = xlat_enum_ocd(inps, OcdMode::Mux);
                         if ti.bits.is_empty()
-                            && !(tcname == "INT.GT.CLKPAD"
+                            && !(tcname == "INT_GT_CLKPAD"
                                 && matches!(
                                     &mux_name[..],
-                                    "MUX.IMUX.CE0"
-                                        | "MUX.IMUX.CE1"
-                                        | "MUX.IMUX.TS0"
-                                        | "MUX.IMUX.TS1"
+                                    "MUX.IMUX_CE[0]"
+                                        | "MUX.IMUX_CE[1]"
+                                        | "MUX.IMUX_TS[0]"
+                                        | "MUX.IMUX_TS[1]"
                                 ))
-                            && !(tcname == "INT.BRAM.S3A.03"
-                                && (mux_name.starts_with("MUX.IMUX.CLK")
-                                    || mux_name.starts_with("MUX.IMUX.CE")))
+                            && !(tcname == "INT_BRAM_S3A_03"
+                                && (mux_name.starts_with("MUX.IMUX_CLK")
+                                    || mux_name.starts_with("MUX.IMUX_CE")))
                         {
                             println!("UMMM MUX {tcname} {mux_name} is empty");
                         }

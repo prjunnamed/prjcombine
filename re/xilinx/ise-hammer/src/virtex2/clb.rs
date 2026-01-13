@@ -4,7 +4,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex2::tslots;
+use prjcombine_virtex2::defs;
 
 use crate::{
     backend::IseBackend,
@@ -43,7 +43,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
             return None;
         }
         if tcrd.col == edev.chip.col_w() + 1 {
-            let tcrd = tcrd.delta(-1, 0).tile(tslots::RANDOR);
+            let tcrd = tcrd.delta(-1, 0).tile(defs::tslots::RANDOR);
             let tile = &backend.edev[tcrd];
             let tcls = backend.edev.db.tile_classes.key(tile.class);
             let DiffKey::Legacy(first_feature_id) =
@@ -86,8 +86,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     let mut ctx = FuzzCtx::new(session, backend, "CLB");
     let slots = match mode {
-        Mode::Virtex2 | Mode::Spartan3 => prjcombine_virtex2::bels::SLICE,
-        Mode::Virtex4 => prjcombine_virtex4::bels::SLICE,
+        Mode::Virtex2 | Mode::Spartan3 => Vec::from_iter(prjcombine_virtex2::defs::bslots::SLICE),
+        Mode::Virtex4 => Vec::from_iter(prjcombine_virtex4::bels::SLICE),
     };
     for i in 0..4 {
         let mut bctx = ctx.bel(slots[i]);
@@ -587,8 +587,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum("REVUSED", &["0"]);
     }
     if mode == Mode::Spartan3 {
-        let mut ctx = FuzzCtx::new(session, backend, "RANDOR");
-        let mut bctx = ctx.bel(prjcombine_virtex2::bels::RANDOR);
+        let ExpandedDevice::Virtex2(edev) = backend.edev else {
+            unreachable!()
+        };
+        let mut ctx = FuzzCtx::new(
+            session,
+            backend,
+            if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+                "RANDOR_FC"
+            } else {
+                "RANDOR"
+            },
+        );
+        let mut bctx = ctx.bel(prjcombine_virtex2::defs::bslots::RANDOR);
         bctx.mode("RESERVED_ANDOR")
             .pin("O")
             .prop(RandorInit)
@@ -609,9 +620,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         _ => unreachable!(),
     };
 
-    for (idx, bel) in ["SLICE0", "SLICE1", "SLICE2", "SLICE3"]
-        .into_iter()
-        .enumerate()
+    for (idx, bel) in match mode {
+        Mode::Virtex2 | Mode::Spartan3 => ["SLICE[0]", "SLICE[1]", "SLICE[2]", "SLICE[3]"],
+        Mode::Virtex4 => ["SLICE0", "SLICE1", "SLICE2", "SLICE3"],
+    }
+    .into_iter()
+    .enumerate()
     {
         ctx.collect_bitvec("CLB", bel, "F", "#LUT");
         ctx.collect_bitvec("CLB", bel, "G", "#LUT");
@@ -878,8 +892,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         // inverts
         let int = if mode == Mode::Virtex4 {
             "INT"
+        } else if let ExpandedDevice::Virtex2(edev) = ctx.edev
+            && edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore
+        {
+            "INT_CLB_FC"
         } else {
-            "INT.CLB"
+            "INT_CLB"
         };
         ctx.collect_int_inv(&[int], "CLB", bel, "CLK", false);
         ctx.collect_int_inv(&[int], "CLB", bel, "SR", mode == Mode::Virtex2);
@@ -896,9 +914,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let ExpandedDevice::Virtex2(edev) = ctx.edev else {
             unreachable!()
         };
-        let tile = "RANDOR";
+        let tile = if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+            "RANDOR_FC"
+        } else {
+            "RANDOR"
+        };
         let bel = "RANDOR";
-        if edev.chip.kind.is_spartan3a() {
+        if edev.chip.kind.is_spartan3a()
+            || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore
+        {
             ctx.state
                 .get_diff(tile, bel, "ANDORMUX", "0")
                 .assert_empty();
@@ -912,7 +936,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ]);
             ctx.tiledb.insert(tile, bel, "MODE", item);
         }
-        let tile = "RANDOR_INIT";
+        let tile = if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+            "RANDOR_INIT_FC"
+        } else {
+            "RANDOR_INIT"
+        };
         let bel = "RANDOR_INIT";
         let item = xlat_enum(vec![
             ("OR", ctx.state.get_diff(tile, bel, "ANDORMUX", "0")),
@@ -920,46 +948,53 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ]);
         ctx.tiledb.insert(tile, bel, "MODE", item);
     }
-    for (tcid, name, _) in &ctx.edev.db.tile_classes {
-        if !name.starts_with("INT.") {
-            continue;
-        }
-        if name == "INT.CLB" {
-            continue;
-        }
-        if ctx.edev.tile_index[tcid].is_empty() {
-            continue;
-        }
-        for &wire in ctx.edev.db_index[tcid].pips_bwd.keys() {
-            let wire_name = ctx.edev.db.wires.key(wire.wire);
-            if name == "INT.GT.CLKPAD"
-                && matches!(
-                    &wire_name[..],
-                    "IMUX.CE0" | "IMUX.CE1" | "IMUX.TS0" | "IMUX.TS1"
-                )
-            {
+    if let ExpandedDevice::Virtex2(edev) = ctx.edev {
+        let int_clb = if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+            "INT_CLB_FC"
+        } else {
+            "INT_CLB"
+        };
+        for (tcid, name, _) in &ctx.edev.db.tile_classes {
+            if !name.starts_with("INT_") {
                 continue;
             }
-            if name == "INT.BRAM.S3A.03"
-                && (wire_name.starts_with("IMUX.CLK") || wire_name.starts_with("IMUX.CE"))
-            {
+            if name == int_clb {
                 continue;
             }
-            let inv_name = format!("INT:INV.{wire_name}");
-            let mux_name = format!("INT:MUX.{wire_name}");
-            if !ctx.tiledb.tiles.contains_key(name) {
+            if ctx.edev.tile_index[tcid].is_empty() {
                 continue;
             }
-            if !ctx.tiledb.tiles[name].items.contains_key(&mux_name) {
-                continue;
+            for &wire in ctx.edev.db_index[tcid].pips_bwd.keys() {
+                let wire_name = ctx.edev.db.wires.key(wire.wire);
+                if name == "INT_GT_CLKPAD"
+                    && matches!(
+                        &wire_name[..],
+                        "IMUX_CE[0]" | "IMUX_CE[1]" | "IMUX_TS[0]" | "IMUX_TS[1]"
+                    )
+                {
+                    continue;
+                }
+                if name == "INT_BRAM_S3A_03"
+                    && (wire_name.starts_with("IMUX_CLK") || wire_name.starts_with("IMUX_CE"))
+                {
+                    continue;
+                }
+                let inv_name = format!("INT:INV.{wire_name}");
+                let mux_name = format!("INT:MUX.{wire_name}");
+                if !ctx.tiledb.tiles.contains_key(name) {
+                    continue;
+                }
+                if !ctx.tiledb.tiles[name].items.contains_key(&mux_name) {
+                    continue;
+                }
+                let int_clb = &ctx.tiledb.tiles[int_clb];
+                let Some(item) = int_clb.items.get(&inv_name) else {
+                    continue;
+                };
+                let item = item.clone();
+                ctx.tiledb
+                    .insert(name, "INT", format!("INV.{wire_name}"), item);
             }
-            let int_clb = &ctx.tiledb.tiles["INT.CLB"];
-            let Some(item) = int_clb.items.get(&inv_name) else {
-                continue;
-            };
-            let item = item.clone();
-            ctx.tiledb
-                .insert(name, "INT", format!("INV.{wire_name}"), item);
         }
     }
 }

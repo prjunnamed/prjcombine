@@ -1,6 +1,8 @@
 use prjcombine_entity::{EntityBundleMap, EntityVec};
 use prjcombine_interconnect::db::{
-    BelAttributeId, BelBidirId, BelClassId, BelInputId, BelOutputId, BelPadId, BelSlotId, CellSlotId, ConnectorClassId, ConnectorSlotId, EnumClassId, EnumValueId, IntDb, RegionSlotId, TableFieldId, TableId, TableRowId, TileClassId, TileSlotId, WireSlotId
+    BelAttributeId, BelBidirId, BelClassId, BelInputId, BelOutputId, BelPadId, BelSlotId,
+    CellSlotId, ConnectorClassId, ConnectorSlotId, EnumClassId, EnumValueId, IntDb, RegionSlotId,
+    TableFieldId, TableId, TableRowId, TileClassId, TileSlotId, WireSlotId,
 };
 use prjcombine_types::bsdata::BitRectId;
 use proc_macro::Ident;

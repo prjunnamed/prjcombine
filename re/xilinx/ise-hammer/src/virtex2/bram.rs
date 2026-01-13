@@ -5,7 +5,9 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;
-use prjcombine_virtex2::{bels, chip::ChipKind};
+use prjcombine_virtex2::{
+    chip::ChipKind, defs, defs::spartan3::tcls as tcls_s3, defs::virtex2::tcls as tcls_v2,
+};
 
 use crate::{
     backend::IseBackend,
@@ -22,16 +24,16 @@ pub fn add_fuzzers<'a>(
         ExpandedDevice::Virtex2(edev) => edev.chip.kind,
         _ => unreachable!(),
     };
-    let tile_name = match grid_kind {
-        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => "BRAM",
-        ChipKind::Spartan3 => "BRAM.S3",
+    let tcid = match grid_kind {
+        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => tcls_v2::BRAM,
+        ChipKind::Spartan3 => tcls_s3::BRAM_S3,
         ChipKind::FpgaCore => unreachable!(),
-        ChipKind::Spartan3E => "BRAM.S3E",
-        ChipKind::Spartan3A => "BRAM.S3A",
-        ChipKind::Spartan3ADsp => "BRAM.S3ADSP",
+        ChipKind::Spartan3E => tcls_s3::BRAM_S3E,
+        ChipKind::Spartan3A => tcls_s3::BRAM_S3A,
+        ChipKind::Spartan3ADsp => tcls_s3::BRAM_S3ADSP,
     };
-    let mut ctx = FuzzCtx::new(session, backend, tile_name);
-    let mut bctx = ctx.bel(bels::BRAM);
+    let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+    let mut bctx = ctx.bel(defs::bslots::BRAM);
     let mode = match grid_kind {
         ChipKind::Spartan3ADsp => "RAMB16BWER",
         ChipKind::Spartan3A => "RAMB16BWE",
@@ -251,7 +253,7 @@ pub fn add_fuzzers<'a>(
     }
     if grid_kind != ChipKind::Spartan3ADsp {
         // mult
-        let mut bctx = ctx.bel(bels::MULT);
+        let mut bctx = ctx.bel(defs::bslots::MULT);
         let mode = if matches!(grid_kind, ChipKind::Spartan3E | ChipKind::Spartan3A) {
             "MULT18X18SIO"
         } else {
@@ -282,7 +284,7 @@ pub fn add_fuzzers<'a>(
                         };
                         let mult_pin = format!("{ab}{i}");
                         bctx.test_manual(name, "BRAM")
-                            .pip(mult_pin, (bels::BRAM, bram_pin))
+                            .pip(mult_pin, (defs::bslots::BRAM, bram_pin))
                             .commit();
                     }
                 }
@@ -297,25 +299,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         _ => unreachable!(),
     };
     let int_tiles = match grid_kind {
-        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &["INT.BRAM"; 4],
-        ChipKind::Spartan3 => &["INT.BRAM.S3"; 4],
+        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &["INT_BRAM"; 4],
+        ChipKind::Spartan3 => &["INT_BRAM_S3"; 4],
         ChipKind::FpgaCore => unreachable!(),
-        ChipKind::Spartan3E => &["INT.BRAM.S3E"; 4],
+        ChipKind::Spartan3E => &["INT_BRAM_S3E"; 4],
         ChipKind::Spartan3A => &[
-            "INT.BRAM.S3A.03",
-            "INT.BRAM.S3A.12",
-            "INT.BRAM.S3A.12",
-            "INT.BRAM.S3A.03",
+            "INT_BRAM_S3A_03",
+            "INT_BRAM_S3A_12",
+            "INT_BRAM_S3A_12",
+            "INT_BRAM_S3A_03",
         ],
-        ChipKind::Spartan3ADsp => &["INT.BRAM.S3ADSP"; 4],
+        ChipKind::Spartan3ADsp => &["INT_BRAM_S3ADSP"; 4],
     };
     let tile = match grid_kind {
         ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => "BRAM",
-        ChipKind::Spartan3 => "BRAM.S3",
+        ChipKind::Spartan3 => "BRAM_S3",
         ChipKind::FpgaCore => unreachable!(),
-        ChipKind::Spartan3E => "BRAM.S3E",
-        ChipKind::Spartan3A => "BRAM.S3A",
-        ChipKind::Spartan3ADsp => "BRAM.S3ADSP",
+        ChipKind::Spartan3E => "BRAM_S3E",
+        ChipKind::Spartan3A => "BRAM_S3A",
+        ChipKind::Spartan3ADsp => "BRAM_S3ADSP",
     };
     fn filter_ab(diff: Diff) -> (Diff, Diff) {
         (

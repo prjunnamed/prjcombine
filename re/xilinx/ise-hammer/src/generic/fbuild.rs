@@ -44,6 +44,18 @@ impl<'sm, 'b> FuzzCtx<'sm, 'b> {
         }
     }
 
+    pub fn new_id(
+        session: &'sm mut Session<'b, IseBackend<'b>>,
+        backend: &'b IseBackend<'b>,
+        tcid: TileClassId,
+    ) -> Self {
+        Self {
+            session,
+            backend,
+            tile_class: Some(tcid),
+        }
+    }
+
     pub fn try_new(
         session: &'sm mut Session<'b, IseBackend<'b>>,
         backend: &'b IseBackend<'b>,
@@ -58,6 +70,21 @@ impl<'sm, 'b> FuzzCtx<'sm, 'b> {
             session,
             backend,
             tile_class: Some(tile_class),
+        })
+    }
+
+    pub fn try_new_id(
+        session: &'sm mut Session<'b, IseBackend<'b>>,
+        backend: &'b IseBackend<'b>,
+        tcid: TileClassId,
+    ) -> Option<Self> {
+        if backend.edev.tile_index[tcid].is_empty() {
+            return None;
+        }
+        Some(Self {
+            session,
+            backend,
+            tile_class: Some(tcid),
         })
     }
 

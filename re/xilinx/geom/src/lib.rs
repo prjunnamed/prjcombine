@@ -306,8 +306,6 @@ impl GeomDb {
             Chip::Virtex2(chip) => {
                 let intdb = if chip.kind.is_virtex2() {
                     &self.ints["virtex2"]
-                } else if chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                    &self.ints["fpgacore"]
                 } else {
                     &self.ints["spartan3"]
                 };
@@ -433,8 +431,6 @@ impl GeomDb {
             ExpandedDevice::Virtex2(edev) => {
                 let ndb = if edev.chip.kind.is_virtex2() {
                     &self.namings["virtex2"]
-                } else if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
-                    &self.namings["fpgacore"]
                 } else {
                     &self.namings["spartan3"]
                 };

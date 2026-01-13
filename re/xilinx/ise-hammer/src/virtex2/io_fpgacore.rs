@@ -5,7 +5,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex2::{bels, tslots};
+use prjcombine_virtex2::defs;
 
 use crate::{
     backend::IseBackend,
@@ -38,7 +38,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let tcrd = tcrd.tile(tslots::IOB);
+        let tcrd = tcrd.tile(defs::tslots::IOB);
         let ExpandedDevice::Virtex2(edev) = backend.edev else {
             unreachable!()
         };
@@ -68,10 +68,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IobExtra {
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let tile = "IOI.FC";
+    let tile = "IOI_FC";
     let mut ctx = FuzzCtx::new(session, backend, tile);
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::IBUF[i]);
+        let mut bctx = ctx.bel(defs::bslots::IBUF[i]);
         let mode = "IBUF";
         bctx.test_manual("ENABLE", "1")
             .mode(mode)
@@ -140,7 +140,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::OBUF[i]);
+        let mut bctx = ctx.bel(defs::bslots::OBUF[i]);
         let mode = "OBUF";
         bctx.test_manual("ENABLE", "1")
             .mode(mode)
@@ -198,8 +198,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
-        let tile = "IOI.FC";
-        let bel = &format!("IBUF{i}");
+        let tile = "IOI_FC";
+        let bel = &format!("IBUF[{i}]");
         ctx.state.get_diff(tile, bel, "ENABLE", "1").assert_empty();
         ctx.state
             .get_diff(tile, bel, "ENABLE_O2IPADPATH", "1")
@@ -252,14 +252,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "READBACK_I",
             TileItem::from_bit(TileBit::new(0, 3, [0, 31, 32, 63][i]), false),
         );
-        for tile in ["IOBS.FC.B", "IOBS.FC.T", "IOBS.FC.L", "IOBS.FC.R"] {
+        for tile in ["IOB_FC_S", "IOB_FC_N", "IOB_FC_W", "IOB_FC_E"] {
             ctx.collect_bit(tile, bel, "ENABLE", "1");
             ctx.collect_bit(tile, bel, "ENABLE_O2IPADPATH", "1");
         }
     }
     for i in 0..4 {
-        let tile = "IOI.FC";
-        let bel = &format!("OBUF{i}");
+        let tile = "IOI_FC";
+        let bel = &format!("OBUF[{i}]");
         ctx.state.get_diff(tile, bel, "ENABLE", "1").assert_empty();
         ctx.state
             .get_diff(tile, bel, "ENABLE_MISR", "TRUE")
@@ -267,7 +267,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for pin in ["CLK", "O"] {
             ctx.collect_inv(tile, bel, pin);
         }
-        ctx.collect_int_inv(&["INT.IOI.FC"], tile, bel, "CE", false);
+        ctx.collect_int_inv(&["INT_IOI_FC"], tile, bel, "CE", false);
         for pin in ["REV", "SR"] {
             let d0 = ctx.state.get_diff(tile, bel, format!("{pin}INV"), pin);
             let d1 = ctx
@@ -278,7 +278,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.tiledb
                     .insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
             } else {
-                ctx.insert_int_inv(&["INT.IOI.FC"], tile, bel, pin, xlat_bool(d0, d1));
+                ctx.insert_int_inv(&["INT_IOI_FC"], tile, bel, pin, xlat_bool(d0, d1));
             }
             ctx.tiledb
                 .insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
@@ -292,7 +292,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum_bool(tile, bel, "OFF_SR_ATTR", "SRLOW", "SRHIGH");
         ctx.tiledb.insert(tile, bel, "FF_SRVAL", item);
         ctx.collect_enum_default(tile, bel, "OMUX", &["O", "OFF"], "NONE");
-        for tile in ["IOBS.FC.B", "IOBS.FC.T", "IOBS.FC.L", "IOBS.FC.R"] {
+        for tile in ["IOB_FC_S", "IOB_FC_N", "IOB_FC_W", "IOB_FC_E"] {
             ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
             ctx.collect_bit(tile, bel, "ENABLE_MISR", "TRUE");
         }

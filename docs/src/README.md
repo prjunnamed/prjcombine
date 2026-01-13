@@ -11,7 +11,7 @@ Project Combine consists of:
    Each individual database file is provided in two forms:
 
    - zstd-compressed bincode-serialized Rust structures, suitable for use with the provided Rust crates
-   - JSON
+   - text format dump
 
    The database format is target-dependent, though there are broad similarities.
 
@@ -87,18 +87,17 @@ The currently supported top-level FPGA targets and their corresponding crates ar
   - geometry and bitstream data: ✅ complete
   - speed data, documentation, verification: ❌ not started
 
-- `prjcombine-virtex2`: Xilinx Virtex-II and Spartan-3; has three databases:
+- `prjcombine-virtex2`: Xilinx Virtex-II and Spartan-3; has two databases:
 
   - `virtex2`:
     - Virtex-II
     - Virtex-II Pro
   - `spartan3`:
     - Spartan-3
+    - FPGAcore eFPGA
     - Spartan-3E
     - Spartan-3A and Spartan-3AN
     - Spartan-3A DSP
-  - `fpgacore`:
-    - FPGAcore eFPGA
 
   Status:
 

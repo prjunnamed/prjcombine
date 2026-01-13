@@ -444,7 +444,7 @@ The following attributes determine register function:
 
 ## Bitstream
 
-The data for a CLB is located in the same bitstream tile as the associated `INT.CLB` tile.
+The data for a CLB is located in the same bitstream tile as the associated `INT_CLB` tile.
 
 {{tile spartan3 CLB}}
 
@@ -456,9 +456,10 @@ TODO: wtf is this even
 
 ## `RANDOR`
 
-This tile overlaps `IOI.*`.
+This tile overlaps `IOI_*`.
 
 {{tile spartan3 RANDOR}}
+{{tile spartan3 RANDOR_FC}}
 
 
 ## `RANDOR_INIT`
@@ -466,3 +467,4 @@ This tile overlaps `IOI.*`.
 This tile overlaps top-left interconnect tile.
 
 {{tile spartan3 RANDOR_INIT}}
+{{tile spartan3 RANDOR_INIT_FC}}

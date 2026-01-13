@@ -41,9 +41,9 @@ impl TileRelation for ClbTbusRight {
                     }
                     if backend
                         .edev
-                        .has_bel(cell.bel(prjcombine_virtex2::bels::SLICE0))
+                        .has_bel(cell.bel(prjcombine_virtex2::defs::bslots::SLICE[0]))
                     {
-                        return Some(cell.tile(prjcombine_virtex2::tslots::BEL));
+                        return Some(cell.tile(prjcombine_virtex2::defs::tslots::BEL));
                     }
                 }
                 _ => unreachable!(),
@@ -61,12 +61,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let (tbus, tbuf, tiles) = match mode {
         Mode::Virtex => (
             prjcombine_virtex::bels::TBUS,
-            prjcombine_virtex::bels::TBUF,
+            Vec::from_iter(prjcombine_virtex::bels::TBUF),
             &["CLB", "IO.L", "IO.R"][..],
         ),
         Mode::Virtex2 => (
-            prjcombine_virtex2::bels::TBUS,
-            prjcombine_virtex2::bels::TBUF,
+            prjcombine_virtex2::defs::bslots::TBUS,
+            Vec::from_iter(prjcombine_virtex2::defs::bslots::TBUF),
             &["CLB"][..],
         ),
     };
@@ -131,7 +131,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         Mode::Virtex2 => &["CLB"],
     };
     for &tile in tiles {
-        for bel in ["TBUF0", "TBUF1"] {
+        for bel in match mode {
+            Mode::Virtex => ["TBUF0", "TBUF1"],
+            Mode::Virtex2 => ["TBUF[0]", "TBUF[1]"],
+        } {
             if mode == Mode::Virtex {
                 for (pinmux, pin, pin_b) in [("TMUX", "T", "T_B"), ("IMUX", "I", "I_B")] {
                     let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
@@ -142,8 +145,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.insert_int_inv(&[tile], tile, bel, pin, item);
                 }
             } else {
-                ctx.collect_int_inv(&["INT.CLB"], tile, bel, "T", false);
-                ctx.collect_int_inv(&["INT.CLB"], tile, bel, "I", true);
+                ctx.collect_int_inv(&["INT_CLB"], tile, bel, "T", false);
+                ctx.collect_int_inv(&["INT_CLB"], tile, bel, "I", true);
             }
             for attr in ["OUT_A", "OUT_B"] {
                 ctx.collect_bit(tile, bel, attr, "1");

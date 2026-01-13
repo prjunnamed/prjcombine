@@ -3,39 +3,39 @@
 TODO: document
 
 
-## Bitstream — left tiles
+## Bitstream — west tiles
 
 TODO: write
 
 
-## `CLKL.S3E`
+## `CLK_W_S3E`
 
 This tile is used on Spartan 3E.
 
-{{tile spartan3 CLKL.S3E}}
+{{tile spartan3 CLK_W_S3E}}
 
 
-## `CLKL.S3A`
+## `CLK_W_S3A`
 
 This tile is used on Spartan 3A.
 
-{{tile spartan3 CLKL.S3A}}
+{{tile spartan3 CLK_W_S3A}}
 
 
-## Bitstream — right tiles
+## Bitstream — east tiles
 
 TODO: write
 
 
-## `CLKR.S3E`
+## `CLK_E_S3E`
 
 This tile is used on Spartan 3E.
 
-{{tile spartan3 CLKR.S3E}}
+{{tile spartan3 CLK_E_S3E}}
 
 
-## `CLKR.S3A`
+## `CLK_E_S3A`
 
 This tile is used on Spartan 3A.
 
-{{tile spartan3 CLKR.S3A}}
+{{tile spartan3 CLK_E_S3A}}

@@ -2,19 +2,19 @@ use prjcombine_interconnect::db::{BelInfo, PinDir};
 use prjcombine_re_fpga_hammer::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{bits, bitvec::BitVec};
-use prjcombine_virtex2::bels;
+use prjcombine_virtex2::{defs, defs::virtex2::tcls};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
-    for tile in ["GIGABIT.B", "GIGABIT.T"] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
-        let bel_data = &intdb[ctx.tile_class.unwrap()].bels[bels::GT];
+    for tcid in [tcls::GIGABIT_S, tcls::GIGABIT_N] {
+        let mut ctx = FuzzCtx::new_id(session, backend, tcid);
+        let bel_data = &intdb[ctx.tile_class.unwrap()].bels[defs::bslots::GT];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
-        let mut bctx = ctx.bel(bels::GT);
+        let mut bctx = ctx.bel(defs::bslots::GT);
         let mode = "GT";
         bctx.test_manual("ENABLE", "1").mode(mode).commit();
         for (pin, pin_data) in &bel_data.pins {
@@ -23,7 +23,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if intdb.wires.key(wire.wire).starts_with("IMUX.G") {
+            if intdb.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
             bctx.mode(mode).test_inv(pin);
@@ -160,11 +160,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ["GIGABIT.B", "GIGABIT.T"] {
+    for tile in ["GIGABIT_S", "GIGABIT_N"] {
         let tcid = ctx.edev.db.get_tile_class(tile);
         let bel = "GT";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-        let bel_data = &ctx.edev.db[tcid].bels[bels::GT];
+        let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::GT];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
@@ -174,11 +174,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX.G") {
+            if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
-            let int_tiles = &["INT.GT.CLKPAD", "INT.PPC", "INT.PPC", "INT.PPC", "INT.PPC"];
-            let flip = ctx.edev.db.wires.key(wire.wire).starts_with("IMUX.SR");
+            let int_tiles = &["INT_GT_CLKPAD", "INT_PPC", "INT_PPC", "INT_PPC", "INT_PPC"];
+            let flip = ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_SR");
             ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }
         for attr in [

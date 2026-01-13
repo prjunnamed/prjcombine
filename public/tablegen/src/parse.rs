@@ -936,10 +936,7 @@ impl Item for ast::TableItem {
                     _ => ast::AttributeType::Enum(typ_raw),
                 };
                 tokenizer.finish()?;
-                ast::TableItem::Field(ast::TableField {
-                    names,
-                    typ,
-                })
+                ast::TableItem::Field(ast::TableField { names, typ })
             }
             "row" => {
                 if block.is_some() {

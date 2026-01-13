@@ -3,6 +3,6 @@
 TODO: document
 
 
-{{tile virtex2 GCLKC}}
-{{tile virtex2 GCLKC.B}}
-{{tile virtex2 GCLKC.T}}
+{{tile virtex2 HROW}}
+{{tile virtex2 HROW_S}}
+{{tile virtex2 HROW_N}}

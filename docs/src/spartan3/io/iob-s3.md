@@ -10,7 +10,7 @@ TODO: document
 {{misc spartan3 iostd-dci-term-split}}
 {{misc spartan3 iostd-dci-term-vcc}}
 
-{{tile spartan3 IOBS.S3.T2}}
-{{tile spartan3 IOBS.S3.R1}}
-{{tile spartan3 IOBS.S3.B2}}
-{{tile spartan3 IOBS.S3.L1}}
+{{tile spartan3 IOB_S3_N2}}
+{{tile spartan3 IOB_S3_E1}}
+{{tile spartan3 IOB_S3_S2}}
+{{tile spartan3 IOB_S3_W1}}

@@ -12,6 +12,7 @@ assert_matches.workspace = true
 bimap.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
+prjcombine-tablegen.workspace = true
 prjcombine-xilinx-bitstream.workspace = true
 
 [lints]

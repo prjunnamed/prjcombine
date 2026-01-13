@@ -9,7 +9,7 @@ TODO: document
 {{misc spartan3a iostd-lr-slew}}
 {{misc spartan3a iostd-tb-lvdsbias}}
 
-{{tile spartan3 IOBS.S3A.T2}}
-{{tile spartan3 IOBS.S3A.R4}}
-{{tile spartan3 IOBS.S3A.B2}}
-{{tile spartan3 IOBS.S3A.L4}}
+{{tile spartan3 IOB_S3A_N2}}
+{{tile spartan3 IOB_S3A_E4}}
+{{tile spartan3 IOB_S3A_S2}}
+{{tile spartan3 IOB_S3A_W4}}

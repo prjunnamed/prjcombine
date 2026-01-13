@@ -963,6 +963,10 @@ impl ExpandedGrid<'_> {
         self.add_tile(cell, kind, &[cell])
     }
 
+    pub fn add_tile_e_id(&mut self, cell: CellCoord, tcid: TileClassId, num: usize) -> &mut Tile {
+        self.add_tile_id(cell, tcid, &cell.cells_e(num))
+    }
+
     pub fn add_tile_e(&mut self, cell: CellCoord, kind: &str, num: usize) -> &mut Tile {
         self.add_tile(cell, kind, &cell.cells_e(num))
     }
@@ -983,6 +987,16 @@ impl ExpandedGrid<'_> {
         num: usize,
     ) -> &mut Tile {
         self.add_tile(cell, kind, &cell.delta(-(num_w as i32), 0).cells_e(num))
+    }
+
+    pub fn add_tile_sn_id(
+        &mut self,
+        cell: CellCoord,
+        tcid: TileClassId,
+        num_s: usize,
+        num: usize,
+    ) -> &mut Tile {
+        self.add_tile_id(cell, tcid, &cell.delta(0, -(num_s as i32)).cells_n(num))
     }
 
     pub fn add_tile_sn(
@@ -1025,8 +1039,7 @@ impl ExpandedGrid<'_> {
         self.fill_conn_pair_id(a, b, fwd, bwd);
     }
 
-    pub fn fill_conn_term(&mut self, xy: CellCoord, kind: &str) {
-        let ccls = self.db.get_conn_class(kind);
+    pub fn fill_conn_term_id(&mut self, xy: CellCoord, ccls: ConnectorClassId) {
         let slot = self.db[ccls].slot;
         self[xy].conns.insert(
             slot,
@@ -1035,6 +1048,11 @@ impl ExpandedGrid<'_> {
                 target: None,
             },
         );
+    }
+
+    pub fn fill_conn_term(&mut self, xy: CellCoord, kind: &str) {
+        let ccls = self.db.get_conn_class(kind);
+        self.fill_conn_term_id(xy, ccls);
     }
 
     pub fn fill_main_passes(&mut self, die: DieId) {

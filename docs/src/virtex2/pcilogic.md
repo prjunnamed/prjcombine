@@ -2,5 +2,5 @@
 
 TODO: reverse, document
 
-{{tile virtex2 REG_L}}
-{{tile virtex2 REG_R}}
+{{tile virtex2 PCI_W}}
+{{tile virtex2 PCI_E}}

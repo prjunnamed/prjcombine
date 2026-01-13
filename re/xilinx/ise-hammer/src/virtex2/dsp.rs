@@ -37,7 +37,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     let mut ctx = FuzzCtx::new(session, backend, "DSP");
     let (bel_kind, slot) = match mode {
-        Mode::Spartan3ADsp => ("DSP48A", prjcombine_virtex2::bels::DSP),
+        Mode::Spartan3ADsp => ("DSP48A", prjcombine_virtex2::defs::bslots::DSP),
         Mode::Spartan6 => ("DSP48A1", prjcombine_spartan6::bels::DSP),
     };
     let mut bctx = ctx.bel(slot);
@@ -79,7 +79,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for &pin in DSP48A_INVPINS {
         match mode {
             Mode::Spartan3ADsp => {
-                ctx.collect_int_inv(&["INT.BRAM.S3ADSP"; 4], "DSP", "DSP", pin, false)
+                ctx.collect_int_inv(&["INT_BRAM_S3ADSP"; 4], "DSP", "DSP", pin, false)
             }
             Mode::Spartan6 => ctx.collect_inv("DSP", "DSP", pin),
         }

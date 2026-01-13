@@ -2,10 +2,10 @@
 
 All of these tiles share their bitstream tiles with the corresponding `INT` tile.
 
-{{tile virtex2 INTF.PPC}}
-{{tile virtex2 INTF.GT.B0}}
-{{tile virtex2 INTF.GT.B123}}
-{{tile virtex2 INTF.GT.BCLKPAD}}
-{{tile virtex2 INTF.GT.T0}}
-{{tile virtex2 INTF.GT.T123}}
-{{tile virtex2 INTF.GT.TCLKPAD}}
+{{tile virtex2 INTF_PPC}}
+{{tile virtex2 INTF_GT_S0}}
+{{tile virtex2 INTF_GT_S123}}
+{{tile virtex2 INTF_GT_S_CLKPAD}}
+{{tile virtex2 INTF_GT_N0}}
+{{tile virtex2 INTF_GT_N123}}
+{{tile virtex2 INTF_GT_N_CLKPAD}}

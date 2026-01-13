@@ -2,5 +2,5 @@
 
 TODO: document
 
-{{tile virtex2 DCMCONN.BOT}}
-{{tile virtex2 DCMCONN.TOP}}
+{{tile virtex2 DCMCONN_S}}
+{{tile virtex2 DCMCONN_N}}

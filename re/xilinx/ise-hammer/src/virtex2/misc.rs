@@ -18,10 +18,11 @@ use prjcombine_types::{
     bsdata::{BitRectId, RectBitId, RectFrameId, TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex2::{
-    bels,
     chip::{ChipKind, IoDiffKind},
+    defs,
+    defs::spartan3::tcls as tcls_s3,
+    defs::virtex2::tcls as tcls_v2,
     iob::IobKind,
-    tslots,
 };
 use prjcombine_xilinx_bitstream::{BitRect, Reg};
 
@@ -41,7 +42,7 @@ struct IntRelation;
 
 impl TileRelation for IntRelation {
     fn resolve(&self, _backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
-        Some(tcrd.tile(tslots::INT))
+        Some(tcrd.tile(defs::tslots::INT))
     }
 }
 
@@ -78,27 +79,57 @@ pub fn add_fuzzers<'a>(
     };
 
     let (ll, ul, lr, ur) = match edev.chip.kind {
-        ChipKind::Virtex2 => ("LL.V2", "UL.V2", "LR.V2", "UR.V2"),
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => ("LL.V2P", "UL.V2P", "LR.V2P", "UR.V2P"),
-        ChipKind::Spartan3 => ("LL.S3", "UL.S3", "LR.S3", "UR.S3"),
-        ChipKind::FpgaCore => ("LL.FC", "UL.FC", "LR.FC", "UR.FC"),
-        ChipKind::Spartan3E => ("LL.S3E", "UL.S3E", "LR.S3E", "UR.S3E"),
-        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => ("LL.S3A", "UL.S3A", "LR.S3A", "UR.S3A"),
+        ChipKind::Virtex2 => (
+            tcls_v2::CNR_SW_V2,
+            tcls_v2::CNR_NW_V2,
+            tcls_v2::CNR_SE_V2,
+            tcls_v2::CNR_NE_V2,
+        ),
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => (
+            tcls_v2::CNR_SW_V2P,
+            tcls_v2::CNR_NW_V2P,
+            tcls_v2::CNR_SE_V2P,
+            tcls_v2::CNR_NE_V2P,
+        ),
+        ChipKind::Spartan3 => (
+            tcls_s3::CNR_SW_S3,
+            tcls_s3::CNR_NW_S3,
+            tcls_s3::CNR_SE_S3,
+            tcls_s3::CNR_NE_S3,
+        ),
+        ChipKind::FpgaCore => (
+            tcls_s3::CNR_SW_FC,
+            tcls_s3::CNR_NW_FC,
+            tcls_s3::CNR_SE_FC,
+            tcls_s3::CNR_NE_FC,
+        ),
+        ChipKind::Spartan3E => (
+            tcls_s3::CNR_SW_S3E,
+            tcls_s3::CNR_NW_S3E,
+            tcls_s3::CNR_SE_S3E,
+            tcls_s3::CNR_NE_S3E,
+        ),
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => (
+            tcls_s3::CNR_SW_S3A,
+            tcls_s3::CNR_NW_S3A,
+            tcls_s3::CNR_SE_S3A,
+            tcls_s3::CNR_NE_S3A,
+        ),
     };
 
     let freeze_dci_btiles = EntityVec::from_iter([
-        edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell),
-        edev.btile_btterm(edev.chip.corner(DirHV::SW).cell),
-        edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell)
+        edev.btile_term_h(edev.chip.corner(DirHV::SW).cell),
+        edev.btile_term_v(edev.chip.corner(DirHV::SW).cell),
+        edev.btile_term_h(edev.chip.corner(DirHV::SW).cell)
             .to_fixup(),
-        edev.btile_btterm(edev.chip.corner(DirHV::SW).cell)
+        edev.btile_term_v(edev.chip.corner(DirHV::SW).cell)
             .to_fixup(),
         BitRect::Reg(DieId::from_idx(0), Reg::FakeFreezeDciNops),
         BitRect::RegPresent(DieId::from_idx(0), Reg::FakeFreezeDciNops),
     ]);
 
     if devdata_only {
-        let mut ctx = FuzzCtx::new(session, backend, ll);
+        let mut ctx = FuzzCtx::new_id(session, backend, ll);
         if !edev.chip.kind.is_virtex2() {
             for (attr, vals) in [
                 ("SEND_VGG0", &["1", "0"][..]),
@@ -126,7 +157,7 @@ pub fn add_fuzzers<'a>(
             }
         }
         if edev.chip.kind.is_virtex2() {
-            let mut ctx = FuzzCtx::new(session, backend, ll);
+            let mut ctx = FuzzCtx::new_id(session, backend, ll);
             ctx.build()
                 .prop(ForceBits(freeze_dci_btiles))
                 .global_mutex("DCI", "FREEZE")
@@ -165,8 +196,8 @@ pub fn add_fuzzers<'a>(
 
     if edev.chip.kind == ChipKind::Spartan3 {
         for tile in [ll, ul, lr, ur] {
-            let mut ctx = FuzzCtx::new(session, backend, tile);
-            for bel in [bels::DCIRESET0, bels::DCIRESET1] {
+            let mut ctx = FuzzCtx::new_id(session, backend, tile);
+            for bel in defs::bslots::DCIRESET {
                 let mut bctx = ctx.bel(bel);
                 bctx.test_manual("PRESENT", "1").mode("DCIRESET").commit();
             }
@@ -175,7 +206,7 @@ pub fn add_fuzzers<'a>(
 
     // LL
     {
-        let mut ctx = FuzzCtx::new(session, backend, ll);
+        let mut ctx = FuzzCtx::new_id(session, backend, ll);
         // MISC
         if edev.chip.kind.is_virtex2() {
             fuzz_global(&mut ctx, "MISC", "DISABLEBANDGAP", &["YES", "NO"]);
@@ -259,7 +290,7 @@ pub fn add_fuzzers<'a>(
 
     // UL
     {
-        let mut ctx = FuzzCtx::new(session, backend, ul);
+        let mut ctx = FuzzCtx::new_id(session, backend, ul);
         if edev.chip.kind != ChipKind::FpgaCore {
             fuzz_global(&mut ctx, "MISC", "PROGPIN", &["PULLUP", "PULLNONE"]);
             fuzz_pull(&mut ctx, "MISC", "TDIPIN");
@@ -282,13 +313,13 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
 
-        let mut bctx = ctx.bel(bels::PMV);
+        let mut bctx = ctx.bel(defs::bslots::PMV);
         bctx.build()
             .test_manual("PRESENT", "1")
             .mode("PMV")
             .commit();
         if edev.chip.kind.is_spartan3a() {
-            let mut bctx = ctx.bel(bels::DNA_PORT);
+            let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
             bctx.build()
                 .test_manual("PRESENT", "1")
                 .mode("DNA_PORT")
@@ -298,7 +329,7 @@ pub fn add_fuzzers<'a>(
 
     {
         // LR
-        let mut ctx = FuzzCtx::new(session, backend, lr);
+        let mut ctx = FuzzCtx::new_id(session, backend, lr);
         if edev.chip.kind != ChipKind::FpgaCore {
             fuzz_global(&mut ctx, "MISC", "DONEPIN", &["PULLUP", "PULLNONE"]);
         }
@@ -318,7 +349,7 @@ pub fn add_fuzzers<'a>(
             }
         }
 
-        let mut bctx = ctx.bel(bels::STARTUP);
+        let mut bctx = ctx.bel(defs::bslots::STARTUP);
         bctx.test_manual("PRESENT", "1").mode("STARTUP").commit();
         bctx.mode("STARTUP")
             .null_bits()
@@ -367,7 +398,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
 
-        let mut bctx = ctx.bel(bels::CAPTURE);
+        let mut bctx = ctx.bel(defs::bslots::CAPTURE);
         bctx.test_manual("PRESENT", "1").mode("CAPTURE").commit();
         bctx.mode("CAPTURE")
             .null_bits()
@@ -395,7 +426,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
 
-        let mut bctx = ctx.bel(bels::ICAP);
+        let mut bctx = ctx.bel(defs::bslots::ICAP);
         if edev.chip.kind.is_spartan3a() {
             bctx.build()
                 .null_bits()
@@ -432,7 +463,7 @@ pub fn add_fuzzers<'a>(
         }
 
         if edev.chip.kind.is_spartan3a() {
-            let mut bctx = ctx.bel(bels::SPI_ACCESS);
+            let mut bctx = ctx.bel(defs::bslots::SPI_ACCESS);
             bctx.build()
                 .extra_tile(IntRelation, "SPI_ACCESS")
                 .test_manual("ENABLE", "1")
@@ -443,7 +474,7 @@ pub fn add_fuzzers<'a>(
 
     {
         // UR
-        let mut ctx = FuzzCtx::new(session, backend, ur);
+        let mut ctx = FuzzCtx::new_id(session, backend, ur);
         if edev.chip.kind != ChipKind::FpgaCore {
             fuzz_pull(&mut ctx, "MISC", "TCKPIN");
             fuzz_pull(&mut ctx, "MISC", "TDOPIN");
@@ -454,7 +485,7 @@ pub fn add_fuzzers<'a>(
                 fuzz_pull(&mut ctx, "MISC", "CSO2PIN");
             }
         }
-        let mut bctx = ctx.bel(bels::BSCAN);
+        let mut bctx = ctx.bel(defs::bslots::BSCAN);
         bctx.test_manual("PRESENT", "1").mode("BSCAN").commit();
         bctx.build()
             .test_manual("USERID", "")
@@ -472,7 +503,7 @@ pub fn add_fuzzers<'a>(
             .pin_int_pips("TDO2")
             .commit();
         if edev.chip.kind.is_virtex2p() {
-            let mut bctx = ctx.bel(bels::JTAGPPC);
+            let mut bctx = ctx.bel(defs::bslots::JTAGPPC);
             bctx.test_manual("PRESENT", "1").mode("JTAGPPC").commit();
         }
     }
@@ -483,10 +514,10 @@ pub fn add_fuzzers<'a>(
         let cnr_ul = edev.chip.corner(DirHV::NW);
         let cnr_lr = edev.chip.corner(DirHV::SE);
         let cnr_ur = edev.chip.corner(DirHV::NE);
-        let int_ll = edev.chip.corner(DirHV::SW).cell.tile(tslots::INT);
-        let int_ul = edev.chip.corner(DirHV::NW).cell.tile(tslots::INT);
-        let int_lr = edev.chip.corner(DirHV::SE).cell.tile(tslots::INT);
-        let int_ur = edev.chip.corner(DirHV::NE).cell.tile(tslots::INT);
+        let int_ll = edev.chip.corner(DirHV::SW).cell.tile(defs::tslots::INT);
+        let int_ul = edev.chip.corner(DirHV::NW).cell.tile(defs::tslots::INT);
+        let int_lr = edev.chip.corner(DirHV::SE).cell.tile(defs::tslots::INT);
+        let int_ur = edev.chip.corner(DirHV::NE).cell.tile(defs::tslots::INT);
         for val in ["NO", "YES"] {
             ctx.build()
                 .extra_tile_fixed(cnr_ll, "MISC")
@@ -507,8 +538,8 @@ pub fn add_fuzzers<'a>(
             .extra_tile_fixed(int_ul, "MISC")
             .extra_tile_fixed(int_lr, "MISC")
             .extra_tile_fixed(int_ur, "MISC")
-            .extra_tiles_by_bel(bels::GCLKVM, "MISC")
-            .extra_tiles_by_bel(bels::GCLKH, "MISC")
+            .extra_tiles_by_bel(defs::bslots::CLKQC, "MISC")
+            .extra_tiles_by_bel(defs::bslots::HCLK, "MISC")
             .test_manual("MISC", "MISR_CLOCK", "GCLK0")
             .global("MISRCLOCK", "GCLK0")
             .commit();
@@ -542,14 +573,14 @@ pub fn add_fuzzers<'a>(
                 (DirHV::SW, ll, 1, 5),
                 (DirHV::SW, ll, 0, 6),
             ] {
-                let mut ctx = FuzzCtx::new(session, backend, tile_name);
-                let mut bctx = ctx.bel([bels::DCI0, bels::DCI1][bel]);
+                let mut ctx = FuzzCtx::new_id(session, backend, tile_name);
+                let mut bctx = ctx.bel(defs::bslots::DCI[bel]);
 
-                let bel_name = ["DCI0", "DCI1"][bel];
+                let bel_name = ["DCI[0]", "DCI[1]"][bel];
                 let mut btiles =
-                    EntityVec::from_iter([edev.btile_lrterm(edev.chip.corner(dir).cell)]);
+                    EntityVec::from_iter([edev.btile_term_h(edev.chip.corner(dir).cell)]);
                 if edev.chip.kind.is_virtex2() {
-                    btiles.push(edev.btile_btterm(edev.chip.corner(dir).cell));
+                    btiles.push(edev.btile_term_v(edev.chip.corner(dir).cell));
                 }
                 let mut site = None;
                 let mut site_other = None;
@@ -575,9 +606,9 @@ pub fn add_fuzzers<'a>(
                         btiles.push(edev.btile_main(bcrd.cell));
                         if bcrd.cell.col == edev.chip.col_w() || bcrd.cell.col == edev.chip.col_e()
                         {
-                            btiles.push(edev.btile_lrterm(bcrd.cell));
+                            btiles.push(edev.btile_term_h(bcrd.cell));
                         } else {
-                            btiles.push(edev.btile_btterm(bcrd.cell));
+                            btiles.push(edev.btile_term_v(bcrd.cell));
                         }
                     }
                     if ebond.ios.contains_key(&io)
@@ -776,16 +807,16 @@ pub fn add_fuzzers<'a>(
                 && !backend.device.name.ends_with("2vp4")
                 && !backend.device.name.ends_with("2vp7")
             {
-                let mut ctx = FuzzCtx::new(session, backend, ll);
+                let mut ctx = FuzzCtx::new_id(session, backend, ll);
                 let btiles = EntityVec::from_iter([
-                    edev.btile_btterm(edev.chip.corner(DirHV::NW).cell),
-                    edev.btile_btterm(edev.chip.corner(DirHV::NE).cell),
-                    edev.btile_lrterm(edev.chip.corner(DirHV::NE).cell),
-                    edev.btile_lrterm(edev.chip.corner(DirHV::SE).cell),
-                    edev.btile_btterm(edev.chip.corner(DirHV::SE).cell),
-                    edev.btile_btterm(edev.chip.corner(DirHV::SW).cell),
-                    edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell),
-                    edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell),
+                    edev.btile_term_v(edev.chip.corner(DirHV::NW).cell),
+                    edev.btile_term_v(edev.chip.corner(DirHV::NE).cell),
+                    edev.btile_term_h(edev.chip.corner(DirHV::NE).cell),
+                    edev.btile_term_h(edev.chip.corner(DirHV::SE).cell),
+                    edev.btile_term_v(edev.chip.corner(DirHV::SE).cell),
+                    edev.btile_term_v(edev.chip.corner(DirHV::SW).cell),
+                    edev.btile_term_h(edev.chip.corner(DirHV::SW).cell),
+                    edev.btile_term_h(edev.chip.corner(DirHV::NW).cell),
                 ]);
                 for val in ["ASREQUIRED", "CONTINUOUS", "QUIET"] {
                     ctx.build()
@@ -799,19 +830,19 @@ pub fn add_fuzzers<'a>(
         } else {
             let banks = if edev.chip.kind == ChipKind::Spartan3E {
                 &[
-                    (ul, edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell), 0),
-                    (ur, edev.btile_lrterm(edev.chip.corner(DirHV::NE).cell), 1),
-                    (lr, edev.btile_lrterm(edev.chip.corner(DirHV::SE).cell), 2),
-                    (ll, edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell), 3),
+                    (ul, edev.btile_term_h(edev.chip.corner(DirHV::NW).cell), 0),
+                    (ur, edev.btile_term_h(edev.chip.corner(DirHV::NE).cell), 1),
+                    (lr, edev.btile_term_h(edev.chip.corner(DirHV::SE).cell), 2),
+                    (ll, edev.btile_term_h(edev.chip.corner(DirHV::SW).cell), 3),
                 ][..]
             } else {
                 &[
-                    (ul, edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell), 0),
-                    (ll, edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell), 2),
+                    (ul, edev.btile_term_h(edev.chip.corner(DirHV::NW).cell), 0),
+                    (ll, edev.btile_term_h(edev.chip.corner(DirHV::SW).cell), 2),
                 ][..]
             };
             for &(tile_name, btile, bank) in banks {
-                let mut ctx = FuzzCtx::new(session, backend, tile_name);
+                let mut ctx = FuzzCtx::new_id(session, backend, tile_name);
                 let mut btiles = EntityVec::from_iter([btile]);
                 match bank {
                     0 => {
@@ -820,7 +851,7 @@ pub fn add_fuzzers<'a>(
                             if col != edev.chip.col_w() && col != edev.chip.col_e() {
                                 let cell = CellCoord::new(DieId::from_idx(0), col, row);
                                 btiles.push(edev.btile_main(cell));
-                                btiles.push(edev.btile_btterm(cell));
+                                btiles.push(edev.btile_term_v(cell));
                             }
                         }
                     }
@@ -830,7 +861,7 @@ pub fn add_fuzzers<'a>(
                             if row != edev.chip.row_s() && row != edev.chip.row_n() {
                                 let cell = CellCoord::new(DieId::from_idx(0), col, row);
                                 btiles.push(edev.btile_main(cell));
-                                btiles.push(edev.btile_lrterm(cell));
+                                btiles.push(edev.btile_term_h(cell));
                             }
                         }
                     }
@@ -840,7 +871,7 @@ pub fn add_fuzzers<'a>(
                             if col != edev.chip.col_w() && col != edev.chip.col_e() {
                                 let cell = CellCoord::new(DieId::from_idx(0), col, row);
                                 btiles.push(edev.btile_main(cell));
-                                btiles.push(edev.btile_btterm(cell));
+                                btiles.push(edev.btile_term_v(cell));
                             }
                         }
                     }
@@ -850,7 +881,7 @@ pub fn add_fuzzers<'a>(
                             if row != edev.chip.row_s() && row != edev.chip.row_n() {
                                 let cell = CellCoord::new(DieId::from_idx(0), col, row);
                                 btiles.push(edev.btile_main(cell));
-                                btiles.push(edev.btile_lrterm(cell));
+                                btiles.push(edev.btile_term_h(cell));
                             }
                         }
                     }
@@ -1335,22 +1366,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         unreachable!()
     };
     let int_tiles = if edev.chip.kind.is_virtex2() {
-        &["INT.CNR"]
+        &["INT_CNR"]
+    } else if edev.chip.kind == ChipKind::FpgaCore {
+        &["INT_CLB_FC"]
     } else {
-        &["INT.CLB"]
+        &["INT_CLB"]
     };
 
-    let (ll, ul, lr, ur) = match edev.chip.kind {
-        ChipKind::Virtex2 => ("LL.V2", "UL.V2", "LR.V2", "UR.V2"),
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => ("LL.V2P", "UL.V2P", "LR.V2P", "UR.V2P"),
-        ChipKind::Spartan3 => ("LL.S3", "UL.S3", "LR.S3", "UR.S3"),
-        ChipKind::FpgaCore => ("LL.FC", "UL.FC", "LR.FC", "UR.FC"),
-        ChipKind::Spartan3E => ("LL.S3E", "UL.S3E", "LR.S3E", "UR.S3E"),
-        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => ("LL.S3A", "UL.S3A", "LR.S3A", "UR.S3A"),
+    let (cnr_sw, cnr_nw, cnr_se, cnr_ne) = match edev.chip.kind {
+        ChipKind::Virtex2 => ("CNR_SW_V2", "CNR_NW_V2", "CNR_SE_V2", "CNR_NE_V2"),
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => {
+            ("CNR_SW_V2P", "CNR_NW_V2P", "CNR_SE_V2P", "CNR_NE_V2P")
+        }
+        ChipKind::Spartan3 => ("CNR_SW_S3", "CNR_NW_S3", "CNR_SE_S3", "CNR_NE_S3"),
+        ChipKind::FpgaCore => ("CNR_SW_FC", "CNR_NW_FC", "CNR_SE_FC", "CNR_NE_FC"),
+        ChipKind::Spartan3E => ("CNR_SW_S3E", "CNR_NW_S3E", "CNR_SE_S3E", "CNR_NE_S3E"),
+        ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
+            ("CNR_SW_S3A", "CNR_NW_S3A", "CNR_SE_S3A", "CNR_NE_S3A")
+        }
     };
 
     if devdata_only {
-        let tile = ll;
+        let tile = cnr_sw;
         let bel = "MISC";
         if !edev.chip.kind.is_virtex2() {
             let sendmax = ctx.collect_enum_bool_default(tile, bel, "VGG_SENDMAX", "NO", "YES");
@@ -1392,8 +1429,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
 
     if edev.chip.kind == ChipKind::Spartan3 {
-        for tile in [ll, ul, lr, ur] {
-            for bel in ["DCIRESET0", "DCIRESET1"] {
+        for tile in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
+            for bel in ["DCIRESET[0]", "DCIRESET[1]"] {
                 let diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
                 ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff));
             }
@@ -1401,7 +1438,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
 
     // LL
-    let tile = ll;
+    let tile = cnr_sw;
     let bel = "MISC";
     if edev.chip.kind.is_virtex2() {
         ctx.collect_enum_bool(tile, bel, "DISABLEBANDGAP", "NO", "YES");
@@ -1504,7 +1541,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
 
     // UL
-    let tile = ul;
+    let tile = cnr_nw;
     let bel = "MISC";
     if edev.chip.kind != ChipKind::FpgaCore {
         ctx.collect_enum(tile, bel, "PROGPIN", &["PULLUP", "PULLNONE"]);
@@ -1528,7 +1565,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
 
     // LR
-    let tile = lr;
+    let tile = cnr_se;
     let bel = "MISC";
     if edev.chip.kind != ChipKind::FpgaCore {
         ctx.collect_enum(tile, bel, "DONEPIN", &["PULLUP", "PULLNONE"]);
@@ -1620,7 +1657,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
 
     // UR
-    let tile = ur;
+    let tile = cnr_ne;
     let bel = "MISC";
     if edev.chip.kind != ChipKind::FpgaCore {
         ctx.collect_enum(tile, bel, "TCKPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
@@ -1662,30 +1699,31 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
 
     if edev.chip.kind == ChipKind::FpgaCore {
-        for tile in ["LL.FC", "UL.FC", "LR.FC", "UR.FC"] {
+        for tile in ["CNR_SW_FC", "CNR_NW_FC", "CNR_SE_FC", "CNR_NE_FC"] {
             let bel = "MISC";
             ctx.collect_bit(tile, bel, "MISR_CLOCK", "GCLK0");
             ctx.collect_enum_bool(tile, bel, "MISR_RESET", "NO", "YES");
         }
         // could be verified, but meh; they just route given GCLK to CLK3 of every corner tile.
-        ctx.state.get_diff("INT.CLB", "MISC", "MISR_CLOCK", "GCLK0");
-        ctx.state.get_diff("GCLKH", "MISC", "MISR_CLOCK", "GCLK0");
         ctx.state
-            .get_diff("GCLKVM.S3", "MISC", "MISR_CLOCK", "GCLK0");
+            .get_diff("INT_CLB_FC", "MISC", "MISR_CLOCK", "GCLK0");
+        ctx.state.get_diff("HCLK", "MISC", "MISR_CLOCK", "GCLK0");
+        ctx.state
+            .get_diff("CLKQC_S3", "MISC", "MISR_CLOCK", "GCLK0");
     }
 
     // I/O bank misc control
     if !skip_io && edev.chip.kind != ChipKind::FpgaCore {
         if !edev.chip.kind.is_spartan3ea() {
             for (tile, bel) in [
-                (ul, "DCI0"),
-                (ul, "DCI1"),
-                (ur, "DCI1"),
-                (ur, "DCI0"),
-                (lr, "DCI0"),
-                (lr, "DCI1"),
-                (ll, "DCI1"),
-                (ll, "DCI0"),
+                (cnr_nw, "DCI[0]"),
+                (cnr_nw, "DCI[1]"),
+                (cnr_ne, "DCI[1]"),
+                (cnr_ne, "DCI[0]"),
+                (cnr_se, "DCI[0]"),
+                (cnr_se, "DCI[1]"),
+                (cnr_sw, "DCI[1]"),
+                (cnr_sw, "DCI[0]"),
             ] {
                 // LVDS
                 let mut vals = vec![];
@@ -1724,7 +1762,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 } else {
                     TileItem::from_bitvec(
                         match bel {
-                            "DCI0" => vec![
+                            "DCI[0]" => vec![
                                 TileBit::new(0, 3, 48),
                                 TileBit::new(0, 2, 48),
                                 TileBit::new(0, 3, 47),
@@ -1735,7 +1773,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                                 TileBit::new(0, 2, 45),
                                 TileBit::new(0, 3, 44),
                             ],
-                            "DCI1" => vec![
+                            "DCI[1]" => vec![
                                 TileBit::new(1, 12, 8),
                                 TileBit::new(1, 12, 6),
                                 TileBit::new(1, 12, 7),
@@ -1799,16 +1837,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 // DCI TERM stuff
                 let (pmask_term_vcc, pmask_term_split, nmask_term_split) =
                     if edev.chip.kind == ChipKind::Spartan3 {
-                        let frame = if tile == ll {
+                        let frame = if tile == cnr_sw {
                             match bel {
-                                "DCI0" => 1,
-                                "DCI1" => 0,
+                                "DCI[0]" => 1,
+                                "DCI[1]" => 0,
                                 _ => unreachable!(),
                             }
                         } else {
                             match bel {
-                                "DCI0" => 0,
-                                "DCI1" => 1,
+                                "DCI[0]" => 0,
+                                "DCI[1]" => 1,
                                 _ => unreachable!(),
                             }
                         };
@@ -1845,14 +1883,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         (
                             TileItem::from_bitvec(
                                 match bel {
-                                    "DCI0" => vec![
+                                    "DCI[0]" => vec![
                                         TileBit::new(0, 3, 36),
                                         TileBit::new(0, 2, 36),
                                         TileBit::new(0, 3, 35),
                                         TileBit::new(0, 2, 35),
                                         TileBit::new(0, 3, 34),
                                     ],
-                                    "DCI1" => vec![
+                                    "DCI[1]" => vec![
                                         TileBit::new(1, 8, 8),
                                         TileBit::new(1, 8, 6),
                                         TileBit::new(1, 8, 7),
@@ -1865,14 +1903,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                             ),
                             TileItem::from_bitvec(
                                 match bel {
-                                    "DCI0" => vec![
+                                    "DCI[0]" => vec![
                                         TileBit::new(0, 2, 34),
                                         TileBit::new(0, 3, 33),
                                         TileBit::new(0, 2, 33),
                                         TileBit::new(0, 3, 32),
                                         TileBit::new(0, 2, 32),
                                     ],
-                                    "DCI1" => vec![
+                                    "DCI[1]" => vec![
                                         TileBit::new(1, 8, 9),
                                         TileBit::new(1, 9, 9),
                                         TileBit::new(1, 9, 11),
@@ -1885,14 +1923,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                             ),
                             TileItem::from_bitvec(
                                 match bel {
-                                    "DCI0" => vec![
+                                    "DCI[0]" => vec![
                                         TileBit::new(0, 2, 39),
                                         TileBit::new(0, 3, 38),
                                         TileBit::new(0, 2, 38),
                                         TileBit::new(0, 3, 37),
                                         TileBit::new(0, 2, 37),
                                     ],
-                                    "DCI1" => vec![
+                                    "DCI[1]" => vec![
                                         TileBit::new(1, 11, 11),
                                         TileBit::new(1, 11, 7),
                                         TileBit::new(1, 11, 10),
@@ -2023,10 +2061,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             }
 
             if edev.chip.kind == ChipKind::Spartan3 {
-                for tile in [ll, ul, lr, ur] {
+                for tile in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
                     let item = xlat_enum(vec![
-                        ("DCI0", ctx.state.get_diff(tile, "DCI0", "SELECT", "1")),
-                        ("DCI1", ctx.state.get_diff(tile, "DCI1", "SELECT", "1")),
+                        ("DCI0", ctx.state.get_diff(tile, "DCI[0]", "SELECT", "1")),
+                        ("DCI1", ctx.state.get_diff(tile, "DCI[1]", "SELECT", "1")),
                     ]);
                     ctx.tiledb.insert(tile, "MISC", "DCI_TEST_MUX", item);
                 }
@@ -2036,12 +2074,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 && !ctx.device.name.ends_with("2vp7")
             {
                 ctx.state
-                    .get_diff(ll, "MISC", "DCIUPDATEMODE", "ASREQUIRED")
+                    .get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "ASREQUIRED")
                     .assert_empty();
                 ctx.state
-                    .get_diff(ll, "MISC", "DCIUPDATEMODE", "CONTINUOUS")
+                    .get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "CONTINUOUS")
                     .assert_empty();
-                let diff = ctx.state.get_diff(ll, "MISC", "DCIUPDATEMODE", "QUIET");
+                let diff = ctx.state.get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "QUIET");
                 let diff0 = diff.filter_rects(&EntityVec::from_iter([
                     BitRectId::from_idx(8),
                     BitRectId::from_idx(0),
@@ -2062,18 +2100,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 ]));
                 let diff6 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(6)]));
                 let diff7 = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(7)]));
-                ctx.tiledb.insert(ul, "DCI1", "QUIET", xlat_bit(diff0));
-                ctx.tiledb.insert(ur, "DCI1", "QUIET", xlat_bit(diff1));
-                ctx.tiledb.insert(ur, "DCI0", "QUIET", xlat_bit(diff2));
-                ctx.tiledb.insert(lr, "DCI0", "QUIET", xlat_bit(diff3));
-                ctx.tiledb.insert(lr, "DCI1", "QUIET", xlat_bit(diff4));
-                ctx.tiledb.insert(ll, "DCI1", "QUIET", xlat_bit(diff5));
-                ctx.tiledb.insert(ll, "DCI0", "QUIET", xlat_bit(diff6));
-                ctx.tiledb.insert(ul, "DCI0", "QUIET", xlat_bit(diff7));
+                ctx.tiledb
+                    .insert(cnr_nw, "DCI[1]", "QUIET", xlat_bit(diff0));
+                ctx.tiledb
+                    .insert(cnr_ne, "DCI[1]", "QUIET", xlat_bit(diff1));
+                ctx.tiledb
+                    .insert(cnr_ne, "DCI[0]", "QUIET", xlat_bit(diff2));
+                ctx.tiledb
+                    .insert(cnr_se, "DCI[0]", "QUIET", xlat_bit(diff3));
+                ctx.tiledb
+                    .insert(cnr_se, "DCI[1]", "QUIET", xlat_bit(diff4));
+                ctx.tiledb
+                    .insert(cnr_sw, "DCI[1]", "QUIET", xlat_bit(diff5));
+                ctx.tiledb
+                    .insert(cnr_sw, "DCI[0]", "QUIET", xlat_bit(diff6));
+                ctx.tiledb
+                    .insert(cnr_nw, "DCI[0]", "QUIET", xlat_bit(diff7));
             }
 
-            let tile = ll;
-            let bel = "DCI0";
+            let tile = cnr_sw;
+            let bel = "DCI[0]";
             let mut diff = ctx
                 .state
                 .get_diff(tile, bel, "DCI_OUT_ALONE", "1")
@@ -2084,7 +2130,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 });
             diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "ENABLE"), true, false);
             if edev.chip.dci_io_alt.contains_key(&5) {
-                let bel = "DCI1";
+                let bel = "DCI[1]";
                 let mut alt_diff = ctx
                     .state
                     .get_diff(tile, bel, "DCI_OUT_ALONE", "1")
@@ -2111,7 +2157,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             let banks = if edev.chip.kind == ChipKind::Spartan3E {
                 vec![
                     (
-                        ul,
+                        cnr_nw,
                         TileItem::from_bitvec(
                             vec![
                                 TileBit::new(0, 0, 44),
@@ -2146,7 +2192,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         ),
                     ),
                     (
-                        ur,
+                        cnr_ne,
                         TileItem::from_bitvec(
                             vec![
                                 TileBit::new(0, 1, 10),
@@ -2181,7 +2227,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         ),
                     ),
                     (
-                        lr,
+                        cnr_se,
                         TileItem::from_bitvec(
                             vec![
                                 TileBit::new(0, 1, 12),
@@ -2216,7 +2262,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         ),
                     ),
                     (
-                        ll,
+                        cnr_sw,
                         TileItem::from_bitvec(
                             vec![
                                 TileBit::new(0, 1, 31),
@@ -2254,7 +2300,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             } else {
                 vec![
                     (
-                        ul,
+                        cnr_nw,
                         TileItem::from_bitvec(
                             vec![
                                 TileBit::new(0, 1, 62),
@@ -2291,7 +2337,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         ),
                     ),
                     (
-                        ll,
+                        cnr_sw,
                         TileItem::from_bitvec(
                             vec![
                                 TileBit::new(0, 1, 32),
@@ -2338,7 +2384,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 };
                 let kind = edev.db.get_tile_class(tile);
                 let tcrd = edev.tile_index[kind][0];
-                let btile = edev.btile_lrterm(tcrd.cell);
+                let btile = edev.btile_term_h(tcrd.cell);
                 let base: BitVec = lvdsbias_0
                     .bits
                     .iter()
@@ -2377,10 +2423,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
 
         if edev.chip.kind.is_spartan3ea() {
             for (tile, btile) in [
-                (ll, edev.btile_lrterm(edev.chip.corner(DirHV::SW).cell)),
-                (ul, edev.btile_lrterm(edev.chip.corner(DirHV::NW).cell)),
-                (lr, edev.btile_lrterm(edev.chip.corner(DirHV::SE).cell)),
-                (ur, edev.btile_lrterm(edev.chip.corner(DirHV::NE).cell)),
+                (cnr_sw, edev.btile_term_h(edev.chip.corner(DirHV::SW).cell)),
+                (cnr_nw, edev.btile_term_h(edev.chip.corner(DirHV::NW).cell)),
+                (cnr_se, edev.btile_term_h(edev.chip.corner(DirHV::SE).cell)),
+                (cnr_ne, edev.btile_term_h(edev.chip.corner(DirHV::NE).cell)),
             ] {
                 let bel = "MISC";
                 let mut diff = Diff::default();
@@ -2404,7 +2450,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         }
                     }
                 }
-                if tile == ll {
+                if tile == cnr_sw {
                     for attr in ["SEND_VGG", "VGG_SENDMAX"] {
                         diff.discard_bits(ctx.tiledb.item(tile, bel, attr));
                     }

@@ -27,7 +27,7 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
             tile_orientation
         }
     };
-    for kind in ["virtex2", "spartan3", "fpgacore"] {
+    for kind in ["virtex2", "spartan3"] {
         let db = prjcombine_virtex2::db::Database::from_file(
             ctx.ctx.root.join(format!("../databases/{kind}.zstd")),
         )
@@ -361,17 +361,6 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                     &part_names,
                     &mut devdata_used,
                     "spartan3",
-                    "config-data",
-                    &["MISC:SEND_VGG_DEFAULT", "MISC:VGG_SENDMAX_DEFAULT"],
-                );
-            }
-            "fpgacore" => {
-                gen_devdata_table(
-                    ctx,
-                    &db.bsdata,
-                    &part_names,
-                    &mut devdata_used,
-                    "fpgacore",
                     "config-data",
                     &["MISC:SEND_VGG_DEFAULT", "MISC:VGG_SENDMAX_DEFAULT"],
                 );

@@ -2,4 +2,4 @@
 
 TODO: document
 
-{{tile virtex2 GCLKH}}
+{{tile virtex2 HCLK}}

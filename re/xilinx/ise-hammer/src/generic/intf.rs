@@ -223,9 +223,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             prjcombine_virtex4::chip::ChipKind::Virtex4 => {
                                 for (_, mux_inps) in &mut test_muxes {
                                     for (in_name, diff) in mux_inps {
-                                        if in_name.starts_with("IMUX.CLK")
-                                            || in_name.starts_with("IMUX.SR")
-                                            || in_name.starts_with("IMUX.CE")
+                                        if in_name.starts_with("IMUX_CLK")
+                                            || in_name.starts_with("IMUX_SR")
+                                            || in_name.starts_with("IMUX_CE")
                                         {
                                             diff.discard_bits(ctx.tiledb.item(
                                                 "INT",
@@ -304,11 +304,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             };
                             let mut diff = ctx.state.get_diff(tcname, bname, &mux_name, &in_name);
 
-                            if in_name.contains("IMUX.SR") || in_name.contains("IMUX.CE") {
+                            if in_name.contains("IMUX_SR") || in_name.contains("IMUX_CE") {
                                 let mut item = ctx
                                     .tiledb
                                     .item(
-                                        "INT.BRAM.S3ADSP",
+                                        "INT_BRAM_S3ADSP",
                                         "INT",
                                         &format!(
                                             "INV.{in_name}",

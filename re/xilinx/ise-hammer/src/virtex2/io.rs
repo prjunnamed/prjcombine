@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet, hash_map};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelSlotId, CellSlotId},
+    db::{BelSlotId, CellSlotId, TileClassId},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{
@@ -19,10 +19,11 @@ use prjcombine_types::{
     bsdata::{TileBit, TileItem, TileItemKind},
 };
 use prjcombine_virtex2::{
-    bels,
     chip::{ChipKind, IoDiffKind},
+    defs,
+    defs::spartan3::tcls as tcls_s3,
+    defs::virtex2::tcls as tcls_v2,
     iob::{IobData, IobDiff, IobKind, get_iob_data},
-    tslots,
 };
 
 use crate::{
@@ -392,7 +393,7 @@ struct IobRelation(CellSlotId);
 impl TileRelation for IobRelation {
     fn resolve(&self, backend: &IseBackend, tcrd: TileCoord) -> Option<TileCoord> {
         let cell = backend.edev.tile_cell(tcrd, self.0);
-        Some(cell.tile(tslots::BEL))
+        Some(cell.tile(defs::tslots::BEL))
     }
 }
 
@@ -407,7 +408,7 @@ impl TileRelation for IobBrefclkClkBT {
         if tcrd.col != edev.chip.col_clk && tcrd.col != edev.chip.col_clk - 1 {
             return None;
         }
-        Some(tcrd.with_col(edev.chip.col_clk).tile(tslots::CLK))
+        Some(tcrd.with_col(edev.chip.col_clk).tile(defs::tslots::CLK))
     }
 }
 
@@ -429,7 +430,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Iobify {
             unreachable!()
         };
         assert_eq!(id.bel, *backend.edev.db.bel_slots.key(self.0.bel));
-        id.bel = format!("IOB{}", self.0.index);
+        id.bel = format!("IOB[{}]", self.0.index);
         Some((fuzzer, false))
     }
 }
@@ -454,11 +455,10 @@ fn has_any_vref<'a>(
     edev: &prjcombine_virtex2::expanded::ExpandedDevice,
     device: &'a Device,
     db: &GeomDb,
-    tile: &str,
+    tcid: TileClassId,
     iob_idx: usize,
 ) -> Option<&'a str> {
-    let tcls = edev.db.get_tile_class(tile);
-    let iobs = get_iob_data(tile).iobs;
+    let iobs = get_iob_data(edev.chip.kind, tcid).iobs;
     let ioi_cell = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
     let mut bonded_ios = HashMap::new();
@@ -471,7 +471,7 @@ fn has_any_vref<'a>(
             bonded_ios.insert(io, &devbond.name[..]);
         }
     }
-    for &tcrd in &edev.tile_index[tcls] {
+    for &tcrd in &edev.tile_index[tcid] {
         let cell = edev.tile_cell(tcrd, ioi_cell);
         let crd = edev.chip.get_io_crd(cell.bel(ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
@@ -485,11 +485,10 @@ fn has_any_vr<'a>(
     edev: &prjcombine_virtex2::expanded::ExpandedDevice,
     device: &'a Device,
     db: &GeomDb,
-    tile: &str,
+    tcid: TileClassId,
     iob_idx: usize,
 ) -> Option<(&'a str, Option<bool>)> {
-    let tcls = edev.db.get_tile_class(tile);
-    let iobs = get_iob_data(tile).iobs;
+    let iobs = get_iob_data(edev.chip.kind, tcid).iobs;
     let ioi_cell = iobs[iob_idx].tile;
     let ioi_bel = iobs[iob_idx].bel;
     let mut bonded_ios = HashMap::new();
@@ -504,7 +503,7 @@ fn has_any_vr<'a>(
             }
         }
     }
-    for &tcrd in &edev.tile_index[tcls] {
+    for &tcrd in &edev.tile_index[tcid] {
         let cell = edev.tile_cell(tcrd, ioi_cell);
         let crd = edev.chip.get_io_crd(cell.bel(ioi_bel));
         if let Some(&pkg) = bonded_ios.get(&crd) {
@@ -531,17 +530,17 @@ fn has_any_vr<'a>(
 
 fn has_any_brefclk(
     edev: &prjcombine_virtex2::expanded::ExpandedDevice,
-    tile: &str,
+    tcid: TileClassId,
     iob_idx: usize,
 ) -> Option<(usize, usize)> {
     if edev.chip.kind != ChipKind::Virtex2P {
         return None;
     }
-    match (tile, iob_idx) {
-        ("IOBS.V2P.B.L2", 5) => Some((1, 0)),
-        ("IOBS.V2P.B.R2", 1) => Some((0, 6)),
-        ("IOBS.V2P.T.L2", 1) => Some((1, 2)),
-        ("IOBS.V2P.T.R2", 5) => Some((0, 4)),
+    match (tcid, iob_idx) {
+        (tcls_v2::IOB_V2P_SW2, 5) => Some((1, 0)),
+        (tcls_v2::IOB_V2P_SE2, 1) => Some((0, 6)),
+        (tcls_v2::IOB_V2P_NW2, 1) => Some((1, 2)),
+        (tcls_v2::IOB_V2P_NE2, 5) => Some((0, 4)),
         _ => None,
     }
 }
@@ -883,7 +882,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .unwrap();
 
     // IOI
-    for (_, name, tcls) in &intdb.tile_classes {
+    for (tcid, name, tcls) in &intdb.tile_classes {
         if !name.starts_with("IOI") {
             continue;
         }
@@ -891,13 +890,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         for bel in tcls.bels.ids() {
-            let Some(idx) = bels::IO.into_iter().position(|x| x == bel) else {
+            let Some(idx) = defs::bslots::IOI.index_of(bel) else {
                 continue;
             };
-            if name == "IOI.CLK_T" && matches!(idx, 0 | 1) {
+            if name == "IOI_CLK_S" && matches!(idx, 2 | 3) {
                 continue;
             }
-            if name == "IOI.CLK_B" && matches!(idx, 2 | 3) {
+            if name == "IOI_CLK_N" && matches!(idx, 0 | 1) {
                 continue;
             }
             let mut bctx = ctx.bel(bel);
@@ -1085,7 +1084,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr_diff("OMUX", "OFFDDR", val)
                         .commit();
                     if idx != 2 {
-                        let obel = bels::IO[idx ^ 1];
+                        let obel = defs::bslots::IOI[idx ^ 1];
                         bctx.mode(mode)
                             .bel_unused(obel)
                             .attr("OFF1", "#FF")
@@ -1142,7 +1141,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr_diff("OMUX", "OFFDDR", val)
                         .commit();
                     if idx != 2 {
-                        let obel = bels::IO[idx ^ 1];
+                        let obel = defs::bslots::IOI[idx ^ 1];
                         bctx.mode(mode)
                             .bel_unused(obel)
                             .attr("OFF1", "#FF")
@@ -1457,7 +1456,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("T")
                     .test_enum("TSMUX", &["0", "1"]);
             } else {
-                if name.ends_with("T") || name.ends_with("B") {
+                if tcid != tcls_s3::IOI_S3A_WE {
                     bctx.mode(mode)
                         .attr("IFD_DELAY_VALUE", "DLY0")
                         .attr("IMUX", "1")
@@ -1684,17 +1683,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     // IOB
-    for tile in intdb.tile_classes.keys() {
-        let is_s3a_lr = tile.starts_with("IOBS.S3A.L") || tile.starts_with("IOBS.S3A.R");
+    for (tcid, tile, _) in &intdb.tile_classes {
+        let is_s3a_lr = !edev.chip.kind.is_virtex2()
+            && (matches!(tcid, tcls_s3::IOB_S3A_W4 | tcls_s3::IOB_S3A_E4));
         if !tile.starts_with("IOB") {
             continue;
         }
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let iob_data = get_iob_data(tile);
+        let iob_data = get_iob_data(edev.chip.kind, tcid);
         for &iob in &iob_data.iobs {
-            let ioi = bels::IO.into_iter().position(|x| x == iob.bel).unwrap();
+            let ioi = defs::bslots::IOI.index_of(iob.bel).unwrap();
             let ibuf_mode = if edev.chip.kind.is_spartan3ea() {
                 "IBUF"
             } else {
@@ -1985,7 +1985,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     // noop relation — mind the iob_commit at the end.
                     .extra_tile_attr(
                         NoopRelation,
-                        format!("IO{ioi}"),
+                        format!("IOI[{ioi}]"),
                         "SEL_MUX",
                         if iob.kind == IobKind::Ibuf {
                             "OMUX_IBUF"
@@ -2021,7 +2021,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .pin("I")
                     .iob_commit(iob);
             }
-            if let Some(pkg) = has_any_vref(edev, backend.device, backend.db, tile, iob.index) {
+            if let Some(pkg) = has_any_vref(edev, backend.device, backend.db, tcid, iob.index) {
                 bctx.build()
                     .raw(Key::Package, pkg)
                     .global_mutex("VREF", "YES")
@@ -2031,7 +2031,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mode(ibuf_mode)
                     .iob_commit(iob);
             }
-            if let Some((pkg, alt)) = has_any_vr(edev, backend.device, backend.db, tile, iob.index)
+            if let Some((pkg, alt)) = has_any_vr(edev, backend.device, backend.db, tcid, iob.index)
             {
                 let mut builder = bctx
                     .build()
@@ -2114,7 +2114,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .attr("IMUX", "#OFF")
                     .attr("IFFDMUX", "#OFF")
                     // noop relation — mind the iob_commit at the end.
-                    .extra_tile_attr(NoopRelation, format!("IO{ioi}"), "OUTPUT_ENABLE", "1")
+                    .extra_tile_attr(NoopRelation, format!("IOI[{ioi}]"), "OUTPUT_ENABLE", "1")
                     .test_manual("OUTPUT_ENABLE", "1")
                     .attr("IOATTRBOX", "LVCMOS33")
                     .attr("OMUX", "O1")
@@ -2402,9 +2402,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .iob_commit(iob);
                 }
             }
-            if let Some((brefclk, bufg)) = has_any_brefclk(edev, tile, iob.index) {
-                let bufg_bel_id = bels::BUFGMUX[bufg];
-                let brefclk_bel_id = bels::BREFCLK;
+            if let Some((brefclk, bufg)) = has_any_brefclk(edev, tcid, iob.index) {
+                let bufg_bel_id = defs::bslots::BUFGMUX[bufg];
+                let brefclk_bel_id = defs::bslots::BREFCLK;
                 let brefclk_pin = ["BREFCLK", "BREFCLK2"][brefclk];
 
                 bctx.test_manual("BREFCLK_ENABLE", "1")
@@ -2418,9 +2418,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         if tile.ends_with("CLK") {
             // Virtex 2 Pro X special!
-            let bel_id = bels::BREFCLK_INT;
-            let clk_bel_id = bels::IO[if tile == "IOBS.V2P.B.R2.CLK" { 2 } else { 0 }];
-            let mut bctx = ctx.bel(bels::BREFCLK_INT);
+            let bel_id = defs::bslots::BREFCLK_INT;
+            let clk_bel_id = defs::bslots::IOI[if tcid == tcls_v2::IOB_V2P_SE2_CLK {
+                2
+            } else {
+                0
+            }];
+            let mut bctx = ctx.bel(defs::bslots::BREFCLK_INT);
             bctx.test_manual("ENABLE", "1")
                 .related_pip(
                     IobRelation(CellSlotId::from_idx(1)),
@@ -2448,30 +2452,30 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let int_tiles = &[match edev.chip.kind {
             ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => match &tile[..] {
-                "IOI.CLK_B" => "INT.IOI.CLK_B",
-                "IOI.CLK_T" => "INT.IOI.CLK_T",
-                _ => "INT.IOI",
+                "IOI_CLK_S" => "INT_IOI_CLK_S",
+                "IOI_CLK_N" => "INT_IOI_CLK_N",
+                _ => "INT_IOI",
             },
-            ChipKind::Spartan3 => "INT.IOI.S3",
+            ChipKind::Spartan3 => "INT_IOI_S3",
             ChipKind::FpgaCore => unreachable!(),
-            ChipKind::Spartan3E => "INT.IOI.S3E",
+            ChipKind::Spartan3E => "INT_IOI_S3E",
             ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
-                if tile == "IOI.S3A.LR" {
-                    "INT.IOI.S3A.LR"
+                if tile == "IOI_S3A_WE" {
+                    "INT_IOI_S3A_WE"
                 } else {
-                    "INT.IOI.S3A.TB"
+                    "INT_IOI_S3A_SN"
                 }
             }
         }];
 
         for (slot, _) in &tcls.bels {
-            let Some(idx) = bels::IO.into_iter().position(|x| x == slot) else {
+            let Some(idx) = defs::bslots::IOI.index_of(slot) else {
                 continue;
             };
-            if tile == "IOI.CLK_T" && matches!(idx, 0 | 1) {
+            if tile == "IOI_CLK_N" && matches!(idx, 0 | 1) {
                 continue;
             }
-            if tile == "IOI.CLK_B" && matches!(idx, 2 | 3) {
+            if tile == "IOI_CLK_S" && matches!(idx, 2 | 3) {
                 continue;
             }
             let bel = intdb.bel_slots.key(slot);
@@ -2583,7 +2587,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             } else {
                 let item_i = ctx.extract_enum_bool(tile, bel, "IBUF_DELAY_VALUE", "DLY0", "DLY16");
                 let item_iff = ctx.extract_enum_bool(tile, bel, "IFD_DELAY_VALUE", "DLY0", "DLY8");
-                if tile.ends_with("L") || tile.ends_with("R") {
+                if tcid == tcls_s3::IOI_S3A_WE {
                     let en_i = Diff::from_bool_item(&item_i);
                     let en_iff = Diff::from_bool_item(&item_iff);
                     let common = ctx
@@ -2749,7 +2753,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .insert(tile, bel, "READBACK_I", TileItem::from_bit(bit, false));
 
             // discard detritus from IOB testing
-            if !edev.chip.kind.is_spartan3a() || slot != bels::IO2 {
+            if !edev.chip.kind.is_spartan3a() || slot != defs::bslots::IOI[2] {
                 let mut diff = ctx.state.get_diff(tile, bel, "OUTPUT_ENABLE", "1");
                 diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.T1"), true, false);
                 diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "OMUX"), "O1", "NONE");
@@ -2757,12 +2761,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diff.assert_empty();
             }
             if edev.chip.kind.is_spartan3a() {
-                if slot != bels::IO2 {
+                if slot != defs::bslots::IOI[2] {
                     ctx.state
                         .get_diff(tile, bel, "SEL_MUX", "OMUX")
                         .assert_empty();
                 }
-                if slot == bels::IO2 || tile == "IOI.S3A.LR" {
+                if slot == defs::bslots::IOI[2] || tile == "IOI_S3A_WE" {
                     let mut diff = ctx.state.get_diff(tile, bel, "SEL_MUX", "OMUX_IBUF");
                     diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "OMUX"), "O1", "NONE");
                     diff.assert_empty();
@@ -2771,8 +2775,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         // specials. need cross-bel discard.
         if edev.chip.kind.is_spartan3ea() {
-            for bel in ["IO0", "IO1"] {
-                let obel = if bel == "IO0" { "IO1" } else { "IO0" };
+            for bel in ["IOI[0]", "IOI[1]"] {
+                let obel = if bel == "IOI[0]" { "IOI[1]" } else { "IOI[0]" };
                 ctx.state
                     .get_diff(tile, bel, "O1_DDRMUX", "1")
                     .assert_empty();
@@ -2800,17 +2804,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     // IOB
-    for (tcls, tile, _) in &intdb.tile_classes {
+    for (tcid, tile, _) in &intdb.tile_classes {
         if !tile.starts_with("IOB") {
             continue;
         }
-        if ctx.edev.tile_index[tcls].is_empty() {
+        if ctx.edev.tile_index[tcid].is_empty() {
             continue;
         }
-        let iob_data = get_iob_data(tile);
-        let is_s3a_lr = matches!(&tile[..], "IOBS.S3A.L4" | "IOBS.S3A.R4");
+        let iob_data = get_iob_data(edev.chip.kind, tcid);
+        let is_s3a_lr = !edev.chip.kind.is_virtex2()
+            && (matches!(tcid, tcls_s3::IOB_S3A_W4 | tcls_s3::IOB_S3A_E4));
         for &iob in &iob_data.iobs {
-            let bel = &format!("IOB{}", iob.index);
+            let bel = &format!("IOB[{}]", iob.index);
             if iob.kind == IobKind::Clk {
                 continue;
             }
@@ -2838,7 +2843,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
             }
             if edev.chip.kind == ChipKind::Spartan3E {
-                if tile.starts_with("IOBS.S3E.R") {
+                if tile.starts_with("IOB_S3E_E") {
                     for val in ["DLY13", "DLY14", "DLY15", "DLY16"] {
                         ctx.state
                             .get_diff(tile, bel, "IBUF_DELAY_VALUE", val)
@@ -3048,7 +3053,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
             }
             if edev.chip.kind.is_spartan3a()
-                && (tile.starts_with("IOBS.S3A.B") || tile.starts_with("IOBS.S3A.T"))
+                && (tile.starts_with("IOB_S3A_S") || tile.starts_with("IOB_S3A_N"))
             {
                 let common = ctx.state.get_diff(tile, bel, "IBUF_DELAY_VALUE", "DLY8");
                 assert_eq!(
@@ -3203,7 +3208,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state.get_diff(tile, bel, "DIFF_TERM", "1");
                 }
             }
-            if has_any_vref(edev, ctx.device, ctx.db, tile, iob.index).is_some() {
+            if has_any_vref(edev, ctx.device, ctx.db, tcid, iob.index).is_some() {
                 let present_vref = ctx.state.get_diff(tile, bel, "PRESENT", "NOTVREF");
                 let present = ctx.state.peek_diff(
                     tile,
@@ -3416,7 +3421,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     );
                 }
                 let mut vr_slew = None;
-                if has_any_vr(edev, ctx.device, ctx.db, tile, iob.index).is_some() {
+                if has_any_vr(edev, ctx.device, ctx.db, tcid, iob.index).is_some() {
                     let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "NOTVR");
                     let item = ctx.tiledb.item(tile, bel, "DCI_MODE");
                     diff.apply_enum_diff(item, "NONE", "TERM_SPLIT");
@@ -3681,7 +3686,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 // True differential output path.
                 if let IobDiff::True(other) = iob.diff {
                     let bel_n = [
-                        "IOB0", "IOB1", "IOB2", "IOB3", "IOB4", "IOB5", "IOB6", "IOB7",
+                        "IOB[0]", "IOB[1]", "IOB[2]", "IOB[3]", "IOB[4]", "IOB[5]", "IOB[6]",
+                        "IOB[7]",
                     ][other];
                     if !is_s3a_lr {
                         let mut group_diff = None;
@@ -3754,13 +3760,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff));
                 }
             }
-            if has_any_brefclk(edev, tile, iob.index).is_some() {
+            if has_any_brefclk(edev, tcid, iob.index).is_some() {
                 ctx.collect_bit(tile, bel, "BREFCLK_ENABLE", "1");
             }
         }
         // second loop for stuff involving inter-bel dependencies
         for &iob in &iob_data.iobs {
-            let bel = &format!("IOB{}", iob.index);
+            let bel = &format!("IOB[{}]", iob.index);
             if iob.kind == IobKind::Clk {
                 continue;
             }
@@ -3840,7 +3846,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     {
                         let bel_p = if let IobDiff::Comp(other) = iob.diff {
                             [
-                                "IOB0", "IOB1", "IOB2", "IOB3", "IOB4", "IOB5", "IOB6", "IOB7",
+                                "IOB[0]", "IOB[1]", "IOB[2]", "IOB[3]", "IOB[4]", "IOB[5]",
+                                "IOB[6]", "IOB[7]",
                             ][other]
                         } else {
                             bel
@@ -3855,7 +3862,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         && let IobDiff::Comp(other) = iob.diff
                     {
                         let bel_p = [
-                            "IOB0", "IOB1", "IOB2", "IOB3", "IOB4", "IOB5", "IOB6", "IOB7",
+                            "IOB[0]", "IOB[1]", "IOB[2]", "IOB[3]", "IOB[4]", "IOB[5]", "IOB[6]",
+                            "IOB[7]",
                         ][other];
                         diff.discard_bits(ctx.tiledb.item(tile, bel_p, "OUTPUT_DIFF"));
                     }
@@ -3868,7 +3876,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     {
                         let bel_p = if let IobDiff::Comp(other) = iob.diff {
                             [
-                                "IOB0", "IOB1", "IOB2", "IOB3", "IOB4", "IOB5", "IOB6", "IOB7",
+                                "IOB[0]", "IOB[1]", "IOB[2]", "IOB[3]", "IOB[4]", "IOB[5]",
+                                "IOB[6]", "IOB[7]",
                             ][other]
                         } else {
                             bel

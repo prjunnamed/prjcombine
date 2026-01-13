@@ -7,10 +7,10 @@ use prjcombine_interconnect::grid::{
 };
 use std::collections::BTreeMap;
 
+use crate::defs;
 use crate::iob::{
     IobKind, IobTileData, get_iob_data_e, get_iob_data_n, get_iob_data_s, get_iob_data_w,
 };
-use crate::{bels, tslots};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ChipKind {
@@ -61,7 +61,7 @@ pub struct Chip {
     pub col_clk: ColId,
     // For Spartan 3* other than 3s50a
     pub cols_clkv: Option<(ColId, ColId)>,
-    // column -> (bottom bank, top bank)
+    // column -> (south bank, north bank)
     pub cols_gt: BTreeMap<ColId, (u32, u32)>,
     pub rows: EntityVec<RowId, RowIoKind>,
     // For Spartan 3E: range of rows containing RAMs
@@ -114,13 +114,13 @@ pub enum ColumnIoKind {
     Double(u8),
     Triple(u8),
     Quad(u8),
-    SingleLeft,
-    SingleRight,
-    SingleLeftAlt,
-    SingleRightAlt,
-    DoubleLeft(u8),
-    DoubleRight(u8),
-    DoubleRightClk(u8),
+    SingleW,
+    SingleE,
+    SingleWAlt,
+    SingleEAlt,
+    DoubleW(u8),
+    DoubleE(u8),
+    DoubleEClk(u8),
 }
 
 impl std::fmt::Display for ColumnIoKind {
@@ -131,13 +131,13 @@ impl std::fmt::Display for ColumnIoKind {
             ColumnIoKind::Double(i) => write!(f, "DOUBLE:{i}"),
             ColumnIoKind::Triple(i) => write!(f, "TRIPLE:{i}"),
             ColumnIoKind::Quad(i) => write!(f, "QUAD:{i}"),
-            ColumnIoKind::SingleLeft => write!(f, "SINGLE_LEFT"),
-            ColumnIoKind::SingleRight => write!(f, "SINGLE_RIGHT"),
-            ColumnIoKind::SingleLeftAlt => write!(f, "SINGLE_LEFT_ALT"),
-            ColumnIoKind::SingleRightAlt => write!(f, "SINGLE_RIGHT_ALT"),
-            ColumnIoKind::DoubleLeft(i) => write!(f, "DOUBLE_LEFT:{i}"),
-            ColumnIoKind::DoubleRight(i) => write!(f, "DOUBLE_RIGHT:{i}"),
-            ColumnIoKind::DoubleRightClk(i) => write!(f, "DOUBLE_RIGHT_CLK:{i}"),
+            ColumnIoKind::SingleW => write!(f, "SINGLE_W"),
+            ColumnIoKind::SingleE => write!(f, "SINGLE_E"),
+            ColumnIoKind::SingleWAlt => write!(f, "SINGLE_W_ALT"),
+            ColumnIoKind::SingleEAlt => write!(f, "SINGLE_E_ALT"),
+            ColumnIoKind::DoubleW(i) => write!(f, "DOUBLE_W:{i}"),
+            ColumnIoKind::DoubleE(i) => write!(f, "DOUBLE_E:{i}"),
+            ColumnIoKind::DoubleEClk(i) => write!(f, "DOUBLE_E_CLK:{i}"),
         }
     }
 }
@@ -149,8 +149,8 @@ pub enum RowIoKind {
     Double(u8),
     Triple(u8),
     Quad(u8),
-    DoubleBot(u8),
-    DoubleTop(u8),
+    DoubleS(u8),
+    DoubleN(u8),
 }
 
 impl std::fmt::Display for RowIoKind {
@@ -161,8 +161,8 @@ impl std::fmt::Display for RowIoKind {
             RowIoKind::Double(i) => write!(f, "DOUBLE:{i}"),
             RowIoKind::Triple(i) => write!(f, "TRIPLE:{i}"),
             RowIoKind::Quad(i) => write!(f, "QUAD:{i}"),
-            RowIoKind::DoubleBot(i) => write!(f, "DOUBLE_BOT:{i}"),
-            RowIoKind::DoubleTop(i) => write!(f, "DOUBLE_TOP:{i}"),
+            RowIoKind::DoubleS(i) => write!(f, "DOUBLE_S:{i}"),
+            RowIoKind::DoubleN(i) => write!(f, "DOUBLE_N:{i}"),
         }
     }
 }
@@ -224,13 +224,13 @@ impl std::fmt::Display for SharedCfgPad {
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Encode, Decode)]
 pub enum DcmPairKind {
-    Bot,
-    BotSingle,
-    Top,
-    TopSingle,
+    S,
+    SingleS,
+    N,
+    SingleN,
     // S3E
-    Left,
-    Right,
+    W,
+    E,
     // S3A
     Bram,
 }
@@ -301,7 +301,7 @@ impl Chip {
             self.col_edge(dir.h),
             self.row_edge(dir.v),
         )
-        .tile(tslots::BEL)
+        .tile(defs::tslots::BEL)
     }
 
     pub fn row_mid(&self) -> RowId {
@@ -332,28 +332,28 @@ impl Chip {
                 if self.kind == ChipKind::Spartan3E {
                     res.extend([
                         DcmPair {
-                            kind: DcmPairKind::BotSingle,
+                            kind: DcmPairKind::SingleS,
                             cell: CellCoord::new(die, self.col_clk, self.row_s() + 1),
                         },
                         DcmPair {
-                            kind: DcmPairKind::TopSingle,
+                            kind: DcmPairKind::SingleN,
                             cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
                         },
                     ]);
                 } else {
                     res.extend([DcmPair {
-                        kind: DcmPairKind::Top,
+                        kind: DcmPairKind::N,
                         cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
                     }]);
                 }
             } else {
                 res.extend([
                     DcmPair {
-                        kind: DcmPairKind::Bot,
+                        kind: DcmPairKind::S,
                         cell: CellCoord::new(die, self.col_clk, self.row_s() + 1),
                     },
                     DcmPair {
-                        kind: DcmPairKind::Top,
+                        kind: DcmPairKind::N,
                         cell: CellCoord::new(die, self.col_clk, self.row_n() - 1),
                     },
                 ]);
@@ -362,11 +362,11 @@ impl Chip {
                 if self.kind == ChipKind::Spartan3E {
                     res.extend([
                         DcmPair {
-                            kind: DcmPairKind::Left,
+                            kind: DcmPairKind::W,
                             cell: CellCoord::new(die, self.col_w() + 9, self.row_mid()),
                         },
                         DcmPair {
-                            kind: DcmPairKind::Right,
+                            kind: DcmPairKind::E,
                             cell: CellCoord::new(die, self.col_e() - 9, self.row_mid()),
                         },
                     ]);
@@ -435,7 +435,7 @@ impl Chip {
                 let is_single = if let EdgeIoCoord::S(col, _) | EdgeIoCoord::N(col, _) = io {
                     matches!(
                         self.columns[col].io,
-                        ColumnIoKind::SingleLeftAlt | ColumnIoKind::SingleRightAlt
+                        ColumnIoKind::SingleWAlt | ColumnIoKind::SingleEAlt
                     )
                 } else {
                     false
@@ -572,24 +572,23 @@ impl Chip {
         };
         let slot = if self.kind == ChipKind::FpgaCore {
             if iob.to_idx() < 4 {
-                bels::IBUF[iob.to_idx()]
+                defs::bslots::IBUF[iob.to_idx()]
             } else {
-                bels::OBUF[iob.to_idx() - 4]
+                defs::bslots::OBUF[iob.to_idx() - 4]
             }
         } else {
-            bels::IO[iob.to_idx()]
+            defs::bslots::IOI[iob.to_idx()]
         };
         CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         let iob = TileIobId::from_idx(if self.kind == ChipKind::FpgaCore {
-            bels::IBUF
-                .iter()
-                .position(|&x| x == bel.slot)
-                .unwrap_or_else(|| bels::OBUF.iter().position(|&x| x == bel.slot).unwrap() + 4)
+            defs::bslots::IBUF
+                .index_of(bel.slot)
+                .unwrap_or_else(|| defs::bslots::OBUF.index_of(bel.slot).unwrap() + 4)
         } else {
-            bels::IO.iter().position(|&x| x == bel.slot).unwrap()
+            defs::bslots::IOI.index_of(bel.slot).unwrap()
         });
         if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, iob)
@@ -883,13 +882,13 @@ impl Chip {
                 ColumnIoKind::Double(i) => write!(o, " + io double {i}")?,
                 ColumnIoKind::Triple(i) => write!(o, " + io triple {i}")?,
                 ColumnIoKind::Quad(i) => write!(o, " + io quad {i}")?,
-                ColumnIoKind::SingleLeft => write!(o, " + io single left")?,
-                ColumnIoKind::SingleRight => write!(o, " + io single right")?,
-                ColumnIoKind::SingleLeftAlt => write!(o, " + io single left alt")?,
-                ColumnIoKind::SingleRightAlt => write!(o, " + io single right alt")?,
-                ColumnIoKind::DoubleLeft(i) => write!(o, " + io double left {i}")?,
-                ColumnIoKind::DoubleRight(i) => write!(o, " + io double right {i}")?,
-                ColumnIoKind::DoubleRightClk(i) => write!(o, " + io double right clock {i}")?,
+                ColumnIoKind::SingleW => write!(o, " + io single w")?,
+                ColumnIoKind::SingleE => write!(o, " + io single e")?,
+                ColumnIoKind::SingleWAlt => write!(o, " + io single w alt")?,
+                ColumnIoKind::SingleEAlt => write!(o, " + io single e alt")?,
+                ColumnIoKind::DoubleW(i) => write!(o, " + io double w {i}")?,
+                ColumnIoKind::DoubleE(i) => write!(o, " + io double e {i}")?,
+                ColumnIoKind::DoubleEClk(i) => write!(o, " + io double e clock {i}")?,
             }
             if let Some(&(bb, bt)) = self.cols_gt.get(&col) {
                 write!(o, " + gt [{bb}, {bt}]")?;
@@ -924,16 +923,16 @@ impl Chip {
                 RowIoKind::Double(i) => write!(o, "io double {i}")?,
                 RowIoKind::Triple(i) => write!(o, "io triple {i}")?,
                 RowIoKind::Quad(i) => write!(o, "io quad {i}")?,
-                RowIoKind::DoubleBot(i) => write!(o, "io double bottom {i}")?,
-                RowIoKind::DoubleTop(i) => write!(o, "io double top {i}")?,
+                RowIoKind::DoubleS(i) => write!(o, "io double s {i}")?,
+                RowIoKind::DoubleN(i) => write!(o, "io double n {i}")?,
             }
             write!(o, ", // {row}")?;
-            if let Some((rb, rt)) = self.rows_ram {
-                if row == rb {
-                    write!(o, " BRAM BOT TERM")?;
+            if let Some((row_s, row_n)) = self.rows_ram {
+                if row == row_s {
+                    write!(o, " BRAM S TERM")?;
                 }
-                if row == rt {
-                    write!(o, " BRAM TOP TERM")?;
+                if row == row_n {
+                    write!(o, " BRAM N TERM")?;
                 }
             }
             writeln!(o)?;

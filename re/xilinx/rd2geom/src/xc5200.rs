@@ -1,3 +1,4 @@
+use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip};
 use prjcombine_re_xilinx_naming_xc2000::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -28,6 +29,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         BTreeSet::new(),
         "xc5200",
+        IntDb::default(),
         intdb,
         ndb,
     )

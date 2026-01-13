@@ -1,4 +1,5 @@
 use prjcombine_entity::EntityVec;
+use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip};
 use prjcombine_re_xilinx_naming_virtex4::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -31,6 +32,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         BTreeSet::new(),
         "virtex5",
+        IntDb::default(),
         intdb,
         ndb,
     )

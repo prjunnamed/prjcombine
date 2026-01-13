@@ -2,11 +2,11 @@
 
 TODO: document
 
-{{tile spartan3 GCLKH}}
-{{tile spartan3 GCLKH.S}}
-{{tile spartan3 GCLKH.N}}
-{{tile spartan3 GCLKH.UNI}}
-{{tile spartan3 GCLKH.UNI.S}}
-{{tile spartan3 GCLKH.UNI.N}}
-{{tile spartan3 GCLKH.0}}
-{{tile spartan3 GCLKH.DSP}}
+{{tile spartan3 HCLK}}
+{{tile spartan3 HCLK_S}}
+{{tile spartan3 HCLK_N}}
+{{tile spartan3 HCLK_UNI}}
+{{tile spartan3 HCLK_UNI_S}}
+{{tile spartan3 HCLK_UNI_N}}
+{{tile spartan3 HCLK_0}}
+{{tile spartan3 HCLK_DSP}}

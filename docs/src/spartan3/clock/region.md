@@ -17,19 +17,19 @@ TODO: document
 {{tile spartan3 CLKC_50A}}
 
 
-## The `GCLKVM` secondary clock center tiles
+## The `CLKQC` secondary clock center tiles
 
-The `GCLKVM` tiles are located on the intersection of secondary vertical clock spines and the horizontal clock spine.
+The `CLKQC` tiles are located on the intersection of secondary vertical clock spines and the horizontal clock spine.
 
 TODO: document 
 
 
-{{tile spartan3 GCLKVM.S3}}
-{{tile spartan3 GCLKVM.S3E}}
+{{tile spartan3 CLKQC_S3}}
+{{tile spartan3 CLKQC_S3E}}
 
 
-## The `GCLKVC` clock spine distribution tiles
+## The `HROW` clock spine distribution tiles
 
 TODO: document
 
-{{tile spartan3 GCLKVC}}
+{{tile spartan3 HROW}}

@@ -2,14 +2,14 @@
 
 TODO: document
 
-{{tile spartan3 DCM.S3E.BL}}
-{{tile spartan3 DCM.S3E.BR}}
-{{tile spartan3 DCM.S3E.TL}}
-{{tile spartan3 DCM.S3E.TR}}
-{{tile spartan3 DCM.S3E.LB}}
-{{tile spartan3 DCM.S3E.LT}}
-{{tile spartan3 DCM.S3E.RB}}
-{{tile spartan3 DCM.S3E.RT}}
+{{tile spartan3 DCM_S3E_SW}}
+{{tile spartan3 DCM_S3E_SE}}
+{{tile spartan3 DCM_S3E_NW}}
+{{tile spartan3 DCM_S3E_NE}}
+{{tile spartan3 DCM_S3E_WS}}
+{{tile spartan3 DCM_S3E_WN}}
+{{tile spartan3 DCM_S3E_ES}}
+{{tile spartan3 DCM_S3E_EN}}
 
 
 ## Device data

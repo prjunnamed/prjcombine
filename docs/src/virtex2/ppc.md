@@ -2,5 +2,5 @@
 
 TODO: reverse, document
 
-{{tile virtex2 LBPPC}}
-{{tile virtex2 RBPPC}}
+{{tile virtex2 PPC_W}}
+{{tile virtex2 PPC_E}}

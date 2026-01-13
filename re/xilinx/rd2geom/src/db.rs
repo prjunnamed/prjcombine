@@ -21,6 +21,7 @@ pub struct PreDevice {
     pub disabled: BTreeSet<DisabledPart>,
     pub naming: DeviceNaming,
     pub intdb_name: String,
+    pub intdb_init: IntDb,
     pub intdb: IntDb,
     pub ndb: NamingDb,
     pub gtz: GtzDb,
@@ -36,6 +37,7 @@ pub fn make_device_multi(
     disabled: BTreeSet<DisabledPart>,
     naming: DeviceNaming,
     intdb_name: impl Into<String>,
+    intdb_init: IntDb,
     intdb: IntDb,
     ndb: NamingDb,
 ) -> PreDevice {
@@ -63,17 +65,20 @@ pub fn make_device_multi(
         disabled,
         naming,
         intdb_name: intdb_name.into(),
+        intdb_init,
         intdb,
         ndb,
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn make_device(
     rd: &Part,
     grid: Chip,
     bonds: Vec<(String, Bond)>,
     disabled: BTreeSet<DisabledPart>,
     intdb_name: impl Into<String>,
+    intdb_init: IntDb,
     intdb: IntDb,
     ndb: NamingDb,
 ) -> PreDevice {
@@ -88,6 +93,7 @@ pub fn make_device(
         disabled,
         DeviceNaming::Dummy,
         intdb_name,
+        intdb_init,
         intdb,
         ndb,
     )
@@ -179,10 +185,10 @@ impl DbBuilder {
                 self.gtz.gtz.insert(name, gtz);
             }
         }
-        self.ingest_int(pre.intdb_name, pre.intdb, pre.ndb);
+        self.ingest_int(pre.intdb_name, pre.intdb_init, pre.intdb, pre.ndb);
     }
 
-    fn ingest_int(&mut self, name: String, int: IntDb, naming: NamingDb) {
+    fn ingest_int(&mut self, name: String, intdb_init: IntDb, int: IntDb, naming: NamingDb) {
         match self.ints.entry(name.clone()) {
             btree_map::Entry::Vacant(x) => {
                 x.insert(int);
@@ -190,29 +196,47 @@ impl DbBuilder {
             btree_map::Entry::Occupied(mut tgt) => {
                 let tgt = tgt.get_mut();
                 assert_eq!(tgt.wires, int.wires);
-                for (_, k, v) in int.tile_classes {
-                    match tgt.tile_classes.get(&k) {
+                for (_, tcname, tcls) in int.tile_classes {
+                    match tgt.tile_classes.get_mut(&tcname) {
                         None => {
-                            tgt.tile_classes.insert(k, v);
+                            tgt.tile_classes.insert(tcname, tcls);
                         }
-                        Some((_, v2)) => {
-                            if v != *v2 {
-                                println!("FAIL at {k}");
+                        Some((_, cur_tcls)) => {
+                            if let Some((_, init)) = intdb_init.tile_classes.get(&tcname) {
+                                if tcls == *init {
+                                    continue;
+                                }
+                                if cur_tcls == init {
+                                    *cur_tcls = tcls;
+                                    continue;
+                                }
                             }
-                            assert_eq!(&v, v2);
+                            if tcls != *cur_tcls {
+                                println!("FAIL at {tcname}");
+                            }
+                            assert_eq!(&tcls, cur_tcls);
                         }
                     }
                 }
-                for (_, k, v) in int.conn_classes {
-                    match tgt.conn_classes.get(&k) {
+                for (_, ccname, ccls) in int.conn_classes {
+                    match tgt.conn_classes.get_mut(&ccname) {
                         None => {
-                            tgt.conn_classes.insert(k, v);
+                            tgt.conn_classes.insert(ccname, ccls);
                         }
-                        Some((_, v2)) => {
-                            if v != *v2 {
-                                println!("FAIL at {k}");
+                        Some((_, cur_ccls)) => {
+                            if let Some((_, init)) = intdb_init.conn_classes.get(&ccname) {
+                                if ccls == *init {
+                                    continue;
+                                }
+                                if cur_ccls == init {
+                                    *cur_ccls = ccls;
+                                    continue;
+                                }
                             }
-                            assert_eq!(&v, v2);
+                            if ccls != *cur_ccls {
+                                println!("FAIL at {ccname}");
+                            }
+                            assert_eq!(&ccls, cur_ccls);
                         }
                     }
                 }

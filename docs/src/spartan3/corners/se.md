@@ -3,22 +3,29 @@
 TODO: document
 
 
-## `LR.S3`
+## `CNR_SE_S3`
 
 This tile is used on Spartan 3.
 
-{{tile spartan3 LR.S3}}
+{{tile spartan3 CNR_SE_S3}}
 
 
-## `LR.S3E`
+## `CNR_SE_FC`
+
+This tile is used on FPGAcore.
+
+{{tile spartan3 CNR_SE_FC}}
+
+
+## `CNR_SE_S3E`
 
 This tile is used on Spartan 3E.
 
-{{tile spartan3 LR.S3E}}
+{{tile spartan3 CNR_SE_S3E}}
 
 
-## `LR.S3A`
+## `CNR_SE_S3A`
 
 This tile is used on Spartan 3A.
 
-{{tile spartan3 LR.S3A}}
+{{tile spartan3 CNR_SE_S3A}}
