@@ -6,7 +6,7 @@ use prjcombine_re_fpga_hammer::{
     xlat_enum_default, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
-use prjcombine_spartan6::bels;
+use prjcombine_spartan6::defs;
 use prjcombine_types::{
     bits,
     bitvec::BitVec,
@@ -59,7 +59,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllOtherDcms {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "CMT_DCM");
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::DCM[i]);
+        let mut bctx = ctx.bel(defs::bslots::DCM[i]);
         bctx.build()
             .global_mutex("CMT", "PRESENT")
             .global_mutex_here("CMT_PRESENT")
@@ -108,7 +108,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual("BG", "")
             .multi_global_xy("CFG_BG_*", MultiValue::Bin, 11);
 
-        let obel_dcm = bels::DCM[i ^ 1];
+        let obel_dcm = defs::bslots::DCM[i ^ 1];
         for opin in ["CLKIN", "CLKIN_TEST"] {
             for (val, pin) in [
                 ("CKINT0", "CLKIN_CKINT0"),
@@ -116,7 +116,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ("CLK_FROM_PLL", "CLK_FROM_PLL"),
             ] {
                 let related_pll = Delta::new(0, 16, "CMT_PLL");
-                let bel_pll = bels::PLL;
+                let bel_pll = defs::bslots::PLL;
                 bctx.mode("DCM")
                     .global_mutex("CMT", "TEST")
                     .mutex("CLKIN_OUT", opin)
@@ -139,9 +139,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .mutex("CLKIN_OUT", opin)
                         .mutex("CLKIN_IN", format!("BUFIO2_{btlr}{j}"))
                         .tile_mutex("CLKIN_BEL", format!("DCM{i}"))
-                        .pip((obel_dcm, opin), (bels::CMT, format!("BUFIO2_{btlr}{j}")))
+                        .pip(
+                            (obel_dcm, opin),
+                            (defs::bslots::CMT, format!("BUFIO2_{btlr}{j}")),
+                        )
                         .test_manual(format!("MUX.{opin}"), format!("BUFIO2_{btlr}{j}"))
-                        .pip(opin, (bels::CMT, format!("BUFIO2_{btlr}{j}")))
+                        .pip(opin, (defs::bslots::CMT, format!("BUFIO2_{btlr}{j}")))
                         .commit();
                 }
             }
@@ -165,9 +168,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .mutex("CLKIN_OUT", opin)
                         .mutex("CLKIN_IN", format!("BUFIO2FB_{btlr}{j}"))
                         .tile_mutex("CLKIN_BEL", format!("DCM{i}"))
-                        .pip((obel_dcm, opin), (bels::CMT, format!("BUFIO2FB_{btlr}{j}")))
+                        .pip(
+                            (obel_dcm, opin),
+                            (defs::bslots::CMT, format!("BUFIO2FB_{btlr}{j}")),
+                        )
                         .test_manual(format!("MUX.{opin}"), format!("BUFIO2FB_{btlr}{j}"))
-                        .pip(opin, (bels::CMT, format!("BUFIO2FB_{btlr}{j}")))
+                        .pip(opin, (defs::bslots::CMT, format!("BUFIO2FB_{btlr}{j}")))
                         .commit();
                 }
             }
@@ -431,7 +437,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         // TODO: CLKIN_PERIOD?
     }
 
-    let mut bctx = ctx.bel(bels::CMT);
+    let mut bctx = ctx.bel(defs::bslots::CMT);
     for i in 0..16 {
         bctx.build()
             .mutex(format!("MUX.CASC{i}"), "PASS")
@@ -449,7 +455,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pip(format!("HCLK{i}"), format!("HCLK{i}_CKINT"))
             .commit();
         for j in 0..2 {
-            let bel_dcm = bels::DCM[j];
+            let bel_dcm = defs::bslots::DCM[j];
             for out in [
                 "CLK0", "CLK90", "CLK180", "CLK270", "CLK2X", "CLK2X180", "CLKDV", "CLKFX",
                 "CLKFX180", "CONCUR",
@@ -466,7 +472,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CMT_DCM";
-    for bel in ["DCM0", "DCM1"] {
+    for bel in ["DCM[0]", "DCM[1]"] {
         let mut present_dcm = ctx.state.get_diff(tile, bel, "PRESENT", "DCM");
         let mut present_dcm_clkgen = ctx.state.get_diff(tile, bel, "PRESENT", "DCM_CLKGEN");
 

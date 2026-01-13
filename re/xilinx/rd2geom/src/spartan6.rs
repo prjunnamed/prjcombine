@@ -1,7 +1,7 @@
-use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip, DisabledPart};
 use prjcombine_re_xilinx_naming_spartan6::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
+use prjcombine_spartan6::defs;
 
 use crate::db::{PreDevice, make_device};
 use prjcombine_re_xilinx_rd2db_spartan6::{bond, grid, int};
@@ -28,7 +28,9 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         disabled,
         "spartan6",
-        IntDb::default(),
+        bincode::decode_from_slice(defs::INIT, bincode::config::standard())
+            .unwrap()
+            .0,
         intdb,
         ndb,
     )

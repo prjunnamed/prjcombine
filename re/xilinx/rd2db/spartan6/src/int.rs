@@ -1,249 +1,408 @@
 use prjcombine_interconnect::{
-    db::{IntDb, WireKind},
-    dir::Dir,
+    db::IntDb,
+    dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_rawdump::Part;
 
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_spartan6::{bels, cslots, regions, tslots};
+use prjcombine_spartan6::defs;
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(
         rd,
-        IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
+        bincode::decode_from_slice(defs::INIT, bincode::config::standard())
+            .unwrap()
+            .0,
     );
 
-    builder.wire("PULLUP", WireKind::TiePullup, &["KEEP1_WIRE"]);
-    builder.wire("GND", WireKind::Tie0, &["GND_WIRE"]);
-    builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
+    builder.inject_main_passes(DirMap::from_fn(|dir| match dir {
+        Dir::W => defs::ccls::PASS_W,
+        Dir::E => defs::ccls::PASS_E,
+        Dir::S => defs::ccls::PASS_S,
+        Dir::N => defs::ccls::PASS_N,
+    }));
+
+    builder.wire_names(defs::wires::PULLUP, &["KEEP1_WIRE"]);
+    builder.wire_names(defs::wires::TIE_0, &["GND_WIRE"]);
+    builder.wire_names(defs::wires::TIE_1, &["VCC_WIRE"]);
 
     for i in 0..16 {
-        builder.wire(
-            format!("GCLK{i}"),
-            WireKind::Regional(regions::LEAF),
+        builder.wire_names(
+            defs::wires::GCLK[i],
             &[format!("GCLK{i}"), format!("GCLK{i}_BRK")],
         );
     }
 
-    for (lr, dir, dend) in [
-        ("L", Dir::E, Some((0, Dir::S))),
-        ("R", Dir::E, Some((3, Dir::N))),
-        ("L", Dir::W, Some((3, Dir::N))),
-        ("R", Dir::W, Some((0, Dir::S))),
-        ("L", Dir::N, Some((0, Dir::S))),
-        ("R", Dir::N, None),
-        ("L", Dir::S, None),
-        ("R", Dir::S, Some((3, Dir::N))),
+    for (lr, w0, w1, dir, dend) in [
+        (
+            "L",
+            defs::wires::SNG_E0,
+            defs::wires::SNG_E1,
+            Dir::E,
+            Some((0, Dir::S, defs::wires::SNG_E1_S0)),
+        ),
+        (
+            "R",
+            defs::wires::SNG_E0,
+            defs::wires::SNG_E1,
+            Dir::E,
+            Some((3, Dir::N, defs::wires::SNG_E1_N7)),
+        ),
+        (
+            "L",
+            defs::wires::SNG_W0,
+            defs::wires::SNG_W1,
+            Dir::W,
+            Some((3, Dir::N, defs::wires::SNG_W1_N3)),
+        ),
+        (
+            "R",
+            defs::wires::SNG_W0,
+            defs::wires::SNG_W1,
+            Dir::W,
+            Some((0, Dir::S, defs::wires::SNG_W1_S4)),
+        ),
+        (
+            "L",
+            defs::wires::SNG_N0,
+            defs::wires::SNG_N1,
+            Dir::N,
+            Some((0, Dir::S, defs::wires::SNG_N1_S0)),
+        ),
+        ("R", defs::wires::SNG_N0, defs::wires::SNG_N1, Dir::N, None),
+        ("L", defs::wires::SNG_S0, defs::wires::SNG_S1, Dir::S, None),
+        (
+            "R",
+            defs::wires::SNG_S0,
+            defs::wires::SNG_S1,
+            Dir::S,
+            Some((3, Dir::N, defs::wires::SNG_S1_N7)),
+        ),
     ] {
         for i in 0..4 {
-            let b = builder.mux_out(format!("SNG.{dir}{lr}{i}.0"), &[format!("{dir}{lr}1B{i}")]);
-            let e = builder.branch(
-                b,
-                dir,
-                format!("SNG.{dir}{lr}{i}.1"),
-                &[format!("{dir}{lr}1E{i}")],
-            );
-            if let Some((xi, dend)) = dend
+            let ii = if lr == "L" { i } else { i + 4 };
+            builder.wire_names(w0[ii], &[format!("{dir}{lr}1B{i}")]);
+            builder.wire_names(w1[ii], &[format!("{dir}{lr}1E{i}")]);
+            if let Some((xi, dend, wend)) = dend
                 && i == xi
             {
-                builder.branch(
-                    e,
-                    dend,
-                    format!("SNG.{dir}{lr}{i}.2"),
-                    &[format!("{dir}{lr}1E_{dend}{i}")],
-                );
+                builder.wire_names(wend, &[format!("{dir}{lr}1E_{dend}{i}")]);
             }
         }
     }
 
-    for (da, db, dend) in [
-        (Dir::E, Dir::E, None),
-        (Dir::W, Dir::W, Some((3, Dir::N))),
-        (Dir::N, Dir::N, Some((0, Dir::S))),
-        (Dir::N, Dir::E, Some((0, Dir::S))),
-        (Dir::N, Dir::W, Some((0, Dir::S))),
-        (Dir::S, Dir::S, Some((3, Dir::N))),
-        (Dir::S, Dir::E, None),
-        (Dir::S, Dir::W, Some((3, Dir::N))),
+    for (da, db, w0, w1, w2, dend) in [
+        (
+            Dir::E,
+            Dir::E,
+            defs::wires::DBL_EE0,
+            defs::wires::DBL_EE1,
+            defs::wires::DBL_EE2,
+            None,
+        ),
+        (
+            Dir::W,
+            Dir::W,
+            defs::wires::DBL_WW0,
+            defs::wires::DBL_WW1,
+            defs::wires::DBL_WW2,
+            Some((3, Dir::N, defs::wires::DBL_WW2_N3)),
+        ),
+        (
+            Dir::N,
+            Dir::N,
+            defs::wires::DBL_NN0,
+            defs::wires::DBL_NN1,
+            defs::wires::DBL_NN2,
+            Some((0, Dir::S, defs::wires::DBL_NN2_S0)),
+        ),
+        (
+            Dir::N,
+            Dir::E,
+            defs::wires::DBL_NE0,
+            defs::wires::DBL_NE1,
+            defs::wires::DBL_NE2,
+            Some((0, Dir::S, defs::wires::DBL_NE2_S0)),
+        ),
+        (
+            Dir::N,
+            Dir::W,
+            defs::wires::DBL_NW0,
+            defs::wires::DBL_NW1,
+            defs::wires::DBL_NW2,
+            Some((0, Dir::S, defs::wires::DBL_NW2_S0)),
+        ),
+        (
+            Dir::S,
+            Dir::S,
+            defs::wires::DBL_SS0,
+            defs::wires::DBL_SS1,
+            defs::wires::DBL_SS2,
+            Some((3, Dir::N, defs::wires::DBL_SS2_N3)),
+        ),
+        (
+            Dir::S,
+            Dir::E,
+            defs::wires::DBL_SE0,
+            defs::wires::DBL_SE1,
+            defs::wires::DBL_SE2,
+            None,
+        ),
+        (
+            Dir::S,
+            Dir::W,
+            defs::wires::DBL_SW0,
+            defs::wires::DBL_SW1,
+            defs::wires::DBL_SW2,
+            Some((3, Dir::N, defs::wires::DBL_SW2_N3)),
+        ),
     ] {
         for i in 0..4 {
-            let b = builder.mux_out(format!("DBL.{da}{db}{i}.0"), &[format!("{da}{db}2B{i}")]);
-            let m = builder.branch(
-                b,
-                da,
-                format!("DBL.{da}{db}{i}.1"),
-                &[format!("{da}{db}2M{i}")],
-            );
-            let e = builder.branch(
-                m,
-                db,
-                format!("DBL.{da}{db}{i}.2"),
-                &[format!("{da}{db}2E{i}")],
-            );
-            if let Some((xi, dend)) = dend
+            builder.wire_names(w0[i], &[format!("{da}{db}2B{i}")]);
+            builder.wire_names(w1[i], &[format!("{da}{db}2M{i}")]);
+            builder.wire_names(w2[i], &[format!("{da}{db}2E{i}")]);
+            if let Some((xi, dend, wend)) = dend
                 && i == xi
             {
-                builder.branch(
-                    e,
-                    dend,
-                    format!("DBL.{da}{db}{i}.3"),
-                    &[format!("{da}{db}2E_{dend}{i}")],
-                );
+                builder.wire_names(wend, &[format!("{da}{db}2E_{dend}{i}")]);
             }
         }
     }
 
-    for (da, db, dend) in [
-        (Dir::E, Dir::E, None),
-        (Dir::W, Dir::W, Some((0, Dir::S))),
-        (Dir::N, Dir::N, None),
-        (Dir::N, Dir::E, None),
-        (Dir::N, Dir::W, Some((0, Dir::S))),
-        (Dir::S, Dir::S, Some((3, Dir::N))),
-        (Dir::S, Dir::E, None),
-        (Dir::S, Dir::W, Some((3, Dir::N))),
+    for (da, db, w0, w1, w2, w3, w4, dend) in [
+        (
+            Dir::E,
+            Dir::E,
+            defs::wires::QUAD_EE0,
+            defs::wires::QUAD_EE1,
+            defs::wires::QUAD_EE2,
+            defs::wires::QUAD_EE3,
+            defs::wires::QUAD_EE4,
+            None,
+        ),
+        (
+            Dir::W,
+            Dir::W,
+            defs::wires::QUAD_WW0,
+            defs::wires::QUAD_WW1,
+            defs::wires::QUAD_WW2,
+            defs::wires::QUAD_WW3,
+            defs::wires::QUAD_WW4,
+            Some((0, Dir::S, defs::wires::QUAD_WW4_S0)),
+        ),
+        (
+            Dir::N,
+            Dir::N,
+            defs::wires::QUAD_NN0,
+            defs::wires::QUAD_NN1,
+            defs::wires::QUAD_NN2,
+            defs::wires::QUAD_NN3,
+            defs::wires::QUAD_NN4,
+            None,
+        ),
+        (
+            Dir::N,
+            Dir::E,
+            defs::wires::QUAD_NE0,
+            defs::wires::QUAD_NE1,
+            defs::wires::QUAD_NE2,
+            defs::wires::QUAD_NE3,
+            defs::wires::QUAD_NE4,
+            None,
+        ),
+        (
+            Dir::N,
+            Dir::W,
+            defs::wires::QUAD_NW0,
+            defs::wires::QUAD_NW1,
+            defs::wires::QUAD_NW2,
+            defs::wires::QUAD_NW3,
+            defs::wires::QUAD_NW4,
+            Some((0, Dir::S, defs::wires::QUAD_NW4_S0)),
+        ),
+        (
+            Dir::S,
+            Dir::S,
+            defs::wires::QUAD_SS0,
+            defs::wires::QUAD_SS1,
+            defs::wires::QUAD_SS2,
+            defs::wires::QUAD_SS3,
+            defs::wires::QUAD_SS4,
+            Some((3, Dir::N, defs::wires::QUAD_SS4_N3)),
+        ),
+        (
+            Dir::S,
+            Dir::E,
+            defs::wires::QUAD_SE0,
+            defs::wires::QUAD_SE1,
+            defs::wires::QUAD_SE2,
+            defs::wires::QUAD_SE3,
+            defs::wires::QUAD_SE4,
+            None,
+        ),
+        (
+            Dir::S,
+            Dir::W,
+            defs::wires::QUAD_SW0,
+            defs::wires::QUAD_SW1,
+            defs::wires::QUAD_SW2,
+            defs::wires::QUAD_SW3,
+            defs::wires::QUAD_SW4,
+            Some((3, Dir::N, defs::wires::QUAD_SW4_N3)),
+        ),
     ] {
         for i in 0..4 {
-            let b = builder.mux_out(format!("QUAD.{da}{db}{i}.0"), &[format!("{da}{db}4B{i}")]);
-            let a = builder.branch(
-                b,
-                da,
-                format!("QUAD.{da}{db}{i}.1"),
-                &[format!("{da}{db}4A{i}")],
-            );
-            let m = builder.branch(
-                a,
-                da,
-                format!("QUAD.{da}{db}{i}.2"),
-                &[format!("{da}{db}4M{i}")],
-            );
-            let c = builder.branch(
-                m,
-                db,
-                format!("QUAD.{da}{db}{i}.3"),
-                &[format!("{da}{db}4C{i}")],
-            );
-            let e = builder.branch(
-                c,
-                db,
-                format!("QUAD.{da}{db}{i}.4"),
-                &[format!("{da}{db}4E{i}")],
-            );
-            if let Some((xi, dend)) = dend
+            builder.wire_names(w0[i], &[format!("{da}{db}4B{i}")]);
+            builder.wire_names(w1[i], &[format!("{da}{db}4A{i}")]);
+            builder.wire_names(w2[i], &[format!("{da}{db}4M{i}")]);
+            builder.wire_names(w3[i], &[format!("{da}{db}4C{i}")]);
+            builder.wire_names(w4[i], &[format!("{da}{db}4E{i}")]);
+            if let Some((xi, dend, wend)) = dend
                 && i == xi
             {
-                builder.branch(
-                    e,
-                    dend,
-                    format!("QUAD.{da}{db}{i}.5"),
-                    &[format!("{da}{db}4E_{dend}{i}")],
-                );
+                builder.wire_names(wend, &[format!("{da}{db}4E_{dend}{i}")]);
             }
         }
     }
 
     for i in 0..2 {
-        builder.mux_out(
-            format!("IMUX.GFAN{i}"),
+        builder.wire_names(
+            defs::wires::IMUX_GFAN[i],
             &[format!("GFAN{i}"), format!("INT_IOI_GFAN{i}")],
         );
     }
     for i in 0..2 {
-        builder.mux_out(
-            format!("IMUX.CLK{i}"),
+        builder.wire_names(
+            defs::wires::IMUX_CLK[i],
             &[format!("CLK{i}"), format!("INT_TERM_CLK{i}")],
         );
     }
     for i in 0..2 {
-        builder.mux_out(
-            format!("IMUX.SR{i}"),
+        builder.wire_names(
+            defs::wires::IMUX_SR[i],
             &[format!("SR{i}"), format!("INT_TERM_SR{i}")],
         );
     }
     for i in 0..63 {
-        builder.mux_out(
-            format!("IMUX.LOGICIN{i}"),
+        builder.wire_names(
+            defs::wires::IMUX_LOGICIN[i],
             &[format!("LOGICIN_B{i}"), format!("INT_TERM_LOGICIN_B{i}")],
         );
-        let dir = match i {
-            20 | 36 | 44 | 62 => Dir::S,
-            21 | 28 | 52 | 60 => Dir::N,
+        let (dir, bounce, sn) = match i {
+            20 => (
+                Dir::S,
+                defs::wires::IMUX_LOGICIN20_BOUNCE,
+                defs::wires::IMUX_LOGICIN20_S,
+            ),
+            36 => (
+                Dir::S,
+                defs::wires::IMUX_LOGICIN36_BOUNCE,
+                defs::wires::IMUX_LOGICIN36_S,
+            ),
+            44 => (
+                Dir::S,
+                defs::wires::IMUX_LOGICIN44_BOUNCE,
+                defs::wires::IMUX_LOGICIN44_S,
+            ),
+            62 => (
+                Dir::S,
+                defs::wires::IMUX_LOGICIN62_BOUNCE,
+                defs::wires::IMUX_LOGICIN62_S,
+            ),
+            21 => (
+                Dir::N,
+                defs::wires::IMUX_LOGICIN21_BOUNCE,
+                defs::wires::IMUX_LOGICIN21_N,
+            ),
+            28 => (
+                Dir::N,
+                defs::wires::IMUX_LOGICIN28_BOUNCE,
+                defs::wires::IMUX_LOGICIN28_N,
+            ),
+            52 => (
+                Dir::N,
+                defs::wires::IMUX_LOGICIN52_BOUNCE,
+                defs::wires::IMUX_LOGICIN52_N,
+            ),
+            60 => (
+                Dir::N,
+                defs::wires::IMUX_LOGICIN60_BOUNCE,
+                defs::wires::IMUX_LOGICIN60_N,
+            ),
             _ => continue,
         };
-        let b = builder.permabuf(format!("IMUX.LOGICIN{i}.BOUNCE"), &[format!("LOGICIN{i}")]);
-        builder.branch(
-            b,
-            dir,
-            format!("IMUX.LOGICIN{i}.BOUNCE.{dir}"),
-            &[&format!("LOGICIN_{dir}{i}")],
-        );
+        builder.mark_permabuf(bounce);
+        builder.wire_names(bounce, &[format!("LOGICIN{i}")]);
+        builder.wire_names(sn, &[&format!("LOGICIN_{dir}{i}")]);
     }
-    builder.mux_out("IMUX.LOGICIN63", &["FAN_B"]);
+    builder.wire_names(defs::wires::IMUX_LOGICIN[63], &["FAN_B"]);
 
     for i in 0..24 {
-        let w = builder.logic_out(
-            format!("OUT{i}"),
+        builder.wire_names(
+            defs::wires::OUT[i],
             &[format!("LOGICOUT{i}"), format!("INT_TERM_LOGICOUT{i}")],
         );
-        builder.test_mux_in(format!("OUT{i}.TMIN"), w);
+        builder.mark_test_mux_in(defs::wires::OUT_TMIN[i], defs::wires::OUT[i]);
     }
 
-    let regb_clk: Vec<_> = (0..2)
-        .map(|i| {
-            builder.mux_out(
-                format!("IMUX.REGB.GCLK{i}"),
-                &[format!("BUFPLL_BOT_GCLK{i}")],
-            )
-        })
-        .collect();
-    let regt_clk: Vec<_> = (0..2)
-        .map(|i| {
-            builder.mux_out(
-                format!("IMUX.REGT.GCLK{i}"),
-                &[format!("BUFPLL_TOP_GCLK{i}")],
-            )
-        })
-        .collect();
+    for i in 0..2 {
+        builder.wire_names(
+            defs::wires::IMUX_CLK_GCLK[i],
+            &[format!("BUFPLL_BOT_GCLK{i}"), format!("BUFPLL_TOP_GCLK{i}")],
+        );
+    }
 
-    builder.extract_main_passes();
-
-    builder.extract_int(tslots::INT, bels::INT, "INT", "INT", "INT", &[]);
-    builder.extract_int(tslots::INT, bels::INT, "INT_BRK", "INT", "INT.BRK", &[]);
-    builder.extract_int(tslots::INT, bels::INT, "INT_BRAM", "INT", "INT", &[]);
-    builder.extract_int(
-        tslots::INT,
-        bels::INT,
+    builder.extract_int_id(defs::tcls::INT, defs::bslots::INT, "INT", "INT", &[]);
+    builder.extract_int_id(
+        defs::tcls::INT,
+        defs::bslots::INT,
+        "INT_BRK",
+        "INT_BRK",
+        &[],
+    );
+    builder.extract_int_id(defs::tcls::INT, defs::bslots::INT, "INT_BRAM", "INT", &[]);
+    builder.extract_int_id(
+        defs::tcls::INT,
+        defs::bslots::INT,
         "INT_BRAM_BRK",
-        "INT",
-        "INT.BRK",
+        "INT_BRK",
         &[],
     );
-    builder.extract_int(tslots::INT, bels::INT, "INT_GCLK", "INT", "INT", &[]);
-    builder.extract_int(tslots::INT, bels::INT, "INT_TERM", "INT", "INT.TERM", &[]);
-    builder.extract_int(
-        tslots::INT,
-        bels::INT,
+    builder.extract_int_id(defs::tcls::INT, defs::bslots::INT, "INT_GCLK", "INT", &[]);
+    builder.extract_int_id(
+        defs::tcls::INT,
+        defs::bslots::INT,
+        "INT_TERM",
+        "INT_TERM",
+        &[],
+    );
+    builder.extract_int_id(
+        defs::tcls::INT,
+        defs::bslots::INT,
         "INT_TERM_BRK",
-        "INT",
-        "INT.TERM.BRK",
+        "INT_TERM_BRK",
         &[],
     );
-    builder.extract_int(tslots::INT, bels::INT, "IOI_INT", "INT.IOI", "INT.IOI", &[]);
-    builder.extract_int(
-        tslots::INT,
-        bels::INT,
+    builder.extract_int_id(
+        defs::tcls::INT_IOI,
+        defs::bslots::INT,
+        "IOI_INT",
+        "INT_IOI",
+        &[],
+    );
+    builder.extract_int_id(
+        defs::tcls::INT_IOI,
+        defs::bslots::INT,
         "LIOI_INT",
-        "INT.IOI",
-        "INT.IOI",
+        "INT_IOI",
         &[],
     );
-    builder.extract_int(
-        tslots::INT,
-        bels::INT,
+    builder.extract_int_id(
+        defs::tcls::INT_IOI,
+        defs::bslots::INT,
         "LIOI_INT_BRK",
-        "INT.IOI",
-        "INT.IOI.BRK",
+        "INT_IOI_BRK",
         &[],
     );
 
@@ -255,9 +414,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IOI_LTERM_UPPER_BOT",
         "IOI_LTERM_UPPER_TOP",
     ] {
-        builder.extract_term_buf("TERM.W", Dir::W, tkn, "TERM.W", &[]);
+        builder.extract_term_buf_id(defs::ccls::TERM_W, Dir::W, tkn, "TERM_W", &[]);
     }
-    builder.extract_term_buf("TERM.W", Dir::W, "INT_INTERFACE_LTERM", "TERM.W.INTF", &[]);
+    builder.extract_term_buf_id(
+        defs::ccls::TERM_W,
+        Dir::W,
+        "INT_INTERFACE_LTERM",
+        "TERM_W_INTF",
+        &[],
+    );
 
     for &term_xy in rd.tiles_by_kind_name("INT_LTERM") {
         let int_xy = builder.walk_to_int(term_xy, Dir::E, false).unwrap();
@@ -265,7 +430,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         if int_xy.x == term_xy.x + 3 {
             continue;
         }
-        builder.extract_term_buf_tile("TERM.W", Dir::W, term_xy, "TERM.W.INTF", int_xy, &[]);
+        builder.extract_term_buf_tile_id(
+            defs::ccls::TERM_W,
+            Dir::W,
+            term_xy,
+            "TERM_W_INTF",
+            int_xy,
+            &[],
+        );
     }
     for tkn in [
         "CNR_TL_RTERM",
@@ -275,10 +447,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IOI_RTERM_UPPER_BOT",
         "IOI_RTERM_UPPER_TOP",
     ] {
-        builder.extract_term_buf("TERM.E", Dir::E, tkn, "TERM.E", &[]);
+        builder.extract_term_buf_id(defs::ccls::TERM_E, Dir::E, tkn, "TERM_E", &[]);
     }
     for tkn in ["INT_RTERM", "INT_INTERFACE_RTERM"] {
-        builder.extract_term_buf("TERM.E", Dir::E, tkn, "TERM.E.INTF", &[]);
+        builder.extract_term_buf_id(defs::ccls::TERM_E, Dir::E, tkn, "TERM_E_INTF", &[]);
     }
     for tkn in [
         "CNR_BR_BTERM",
@@ -288,7 +460,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "DSP_INT_BTERM",
         // NOTE: RAMB_BOT_BTERM is *not* a terminator — it's empty
     ] {
-        builder.extract_term_buf("TERM.S", Dir::S, tkn, "TERM.S", &[]);
+        builder.extract_term_buf_id(defs::ccls::TERM_S, Dir::S, tkn, "TERM_S", &[]);
     }
     for tkn in [
         "CNR_TR_TTERM",
@@ -297,50 +469,47 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "DSP_INT_TTERM",
         "RAMB_TOP_TTERM",
     ] {
-        builder.extract_term_buf("TERM.N", Dir::N, tkn, "TERM.N", &[]);
+        builder.extract_term_buf_id(defs::ccls::TERM_N, Dir::N, tkn, "TERM_N", &[]);
     }
 
     for (dir, tkn, naming) in [
         (Dir::E, "INT_INTERFACE", "INTF"),
-        (Dir::E, "INT_INTERFACE_REGC", "INTF.REGC"),
-        (Dir::W, "INT_INTERFACE_LTERM", "INTF.LTERM"),
-        (Dir::E, "INT_INTERFACE_RTERM", "INTF.RTERM"),
-        (Dir::E, "LL", "INTF.CNR"),
-        (Dir::E, "UL", "INTF.CNR"),
-        (Dir::E, "LR_LOWER", "INTF.CNR"),
-        (Dir::E, "LR_UPPER", "INTF.CNR"),
-        (Dir::E, "UR_LOWER", "INTF.CNR"),
-        (Dir::E, "UR_UPPER", "INTF.CNR"),
+        (Dir::E, "INT_INTERFACE_REGC", "INTF_REGC"),
+        (Dir::W, "INT_INTERFACE_LTERM", "INTF_LTERM"),
+        (Dir::E, "INT_INTERFACE_RTERM", "INTF_RTERM"),
+        (Dir::E, "LL", "INTF_CNR"),
+        (Dir::E, "UL", "INTF_CNR"),
+        (Dir::E, "LR_LOWER", "INTF_CNR"),
+        (Dir::E, "LR_UPPER", "INTF_CNR"),
+        (Dir::E, "UR_LOWER", "INTF_CNR"),
+        (Dir::E, "UR_UPPER", "INTF_CNR"),
     ] {
-        builder.extract_intf(
-            tslots::INTF,
-            "INTF",
+        builder.extract_intf_id(
+            defs::tcls::INTF,
             dir,
             tkn,
             naming,
-            bels::INTF_TESTMUX,
+            defs::bslots::INTF_TESTMUX,
             true,
             None,
         );
     }
-    builder.extract_intf(
-        tslots::INTF,
-        "INTF.CMT",
+    builder.extract_intf_id(
+        defs::tcls::INTF_CMT,
         Dir::E,
         "INT_INTERFACE_CARRY",
         "INTF",
-        bels::INTF_TESTMUX,
+        defs::bslots::INTF_TESTMUX,
         true,
         None,
     );
     for tkn in ["INT_INTERFACE_IOI", "INT_INTERFACE_IOI_DCMBOT"] {
-        builder.extract_intf(
-            tslots::INTF,
-            "INTF.CMT.IOI",
+        builder.extract_intf_id(
+            defs::tcls::INTF_CMT_IOI,
             Dir::E,
             tkn,
             "INTF",
-            bels::INTF_TESTMUX,
+            defs::bslots::INTF_TESTMUX,
             true,
             None,
         );
@@ -355,33 +524,31 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "BIOI_INNER",
         "BIOI_OUTER",
     ] {
-        builder.extract_intf(
-            tslots::INTF,
-            "INTF.IOI",
+        builder.extract_intf_id(
+            defs::tcls::INTF_IOI,
             Dir::E,
             tkn,
-            "INTF.IOI",
-            bels::INTF_TESTMUX,
+            "INTF_IOI",
+            defs::bslots::INTF_TESTMUX,
             true,
             None,
         );
     }
 
-    for tkn in ["CLEXL", "CLEXM"] {
+    for (tcid, tkn) in [(defs::tcls::CLEXL, "CLEXL"), (defs::tcls::CLEXM, "CLEXM")] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            builder.extract_xtile_bels(
-                tslots::BEL,
-                tkn,
+            builder.extract_xtile_bels_id(
+                tcid,
                 xy,
                 &[],
                 &[xy.delta(-1, 0)],
                 tkn,
                 &[
                     builder
-                        .bel_xy(bels::SLICE0, "SLICE", 0, 0)
+                        .bel_xy(defs::bslots::SLICE[0], "SLICE", 0, 0)
                         .pins_name_only(&["CIN"])
                         .pin_name_only("COUT", 1),
-                    builder.bel_xy(bels::SLICE1, "SLICE", 1, 0),
+                    builder.bel_xy(defs::bslots::SLICE[1], "SLICE", 1, 0),
                 ],
                 false,
             );
@@ -394,18 +561,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for dy in 0..4 {
             intf_xy.push((xy.delta(-1, dy), n));
         }
-        builder.extract_xtile_bels_intf(
-            tslots::BEL,
-            "BRAM",
+        builder.extract_xtile_bels_intf_id(
+            defs::tcls::BRAM,
             xy,
             &[],
             &[],
             &intf_xy,
             "BRAM",
             &[
-                builder.bel_xy(bels::BRAM_F, "RAMB16", 0, 0),
-                builder.bel_xy(bels::BRAM_H0, "RAMB8", 0, 0),
-                builder.bel_xy(bels::BRAM_H1, "RAMB8", 0, 1),
+                builder.bel_xy(defs::bslots::BRAM_F, "RAMB16", 0, 0),
+                builder.bel_xy(defs::bslots::BRAM_H[0], "RAMB8", 0, 0),
+                builder.bel_xy(defs::bslots::BRAM_H[1], "RAMB8", 0, 1),
             ],
         );
     }
@@ -417,7 +583,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             intf_xy.push((xy.delta(-1, dy), n));
         }
         let mut bel_dsp = builder
-            .bel_xy(bels::DSP, "DSP48", 0, 0)
+            .bel_xy(defs::bslots::DSP, "DSP48", 0, 0)
             .pin_name_only("CARRYIN", 0)
             .pin_name_only("CARRYOUT", 1);
         for i in 0..18 {
@@ -428,9 +594,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bel_dsp = bel_dsp.pin_name_only(&format!("PCIN{i}"), 0);
             bel_dsp = bel_dsp.pin_name_only(&format!("PCOUT{i}"), 1);
         }
-        builder.extract_xtile_bels_intf(
-            tslots::BEL,
-            "DSP",
+        builder.extract_xtile_bels_intf_id(
+            defs::tcls::DSP,
             xy,
             &[],
             &[],
@@ -440,28 +605,32 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
 
-    let intf_cnr = builder.ndb.get_tile_class_naming("INTF.CNR");
-    for (tkn, bels) in [
+    let intf_cnr = builder.ndb.get_tile_class_naming("INTF_CNR");
+    for (tcid, naming, tkn, bels) in [
         (
+            defs::tcls::CNR_SW,
+            "CNR_SW",
             "LL",
             vec![
-                builder.bel_xy(bels::OCT_CAL2, "OCT_CAL", 0, 0),
-                builder.bel_xy(bels::OCT_CAL3, "OCT_CAL", 0, 1),
+                builder.bel_xy(defs::bslots::OCT_CAL[2], "OCT_CAL", 0, 0),
+                builder.bel_xy(defs::bslots::OCT_CAL[3], "OCT_CAL", 0, 1),
             ],
         ),
         (
+            defs::tcls::CNR_NW,
+            "CNR_NW",
             "UL",
             vec![
-                builder.bel_xy(bels::OCT_CAL0, "OCT_CAL", 0, 0),
-                builder.bel_xy(bels::OCT_CAL4, "OCT_CAL", 0, 1),
-                builder.bel_single(bels::PMV, "PMV"),
-                builder.bel_single(bels::DNA_PORT, "DNA_PORT"),
+                builder.bel_xy(defs::bslots::OCT_CAL[0], "OCT_CAL", 0, 0),
+                builder.bel_xy(defs::bslots::OCT_CAL[4], "OCT_CAL", 0, 1),
+                builder.bel_single(defs::bslots::PMV, "PMV"),
+                builder.bel_single(defs::bslots::DNA_PORT, "DNA_PORT"),
             ],
         ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             builder
-                .xtile(tslots::BEL, tkn, tkn, xy)
+                .xtile_id(tcid, naming, xy)
                 .ref_single(xy, 0, intf_cnr)
                 .bels(bels)
                 .extract();
@@ -469,20 +638,24 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
     if let Some(&xy) = rd.tiles_by_kind_name("LR_LOWER").iter().next() {
         let bels = vec![
-            builder.bel_xy(bels::OCT_CAL1, "OCT_CAL", 0, 0),
-            builder.bel_xy(bels::ICAP, "ICAP", 0, 0),
-            builder.bel_single(bels::SPI_ACCESS, "SPI_ACCESS"),
+            builder.bel_xy(defs::bslots::OCT_CAL[1], "OCT_CAL", 0, 0),
+            builder.bel_xy(defs::bslots::ICAP, "ICAP", 0, 0),
+            builder.bel_single(defs::bslots::SPI_ACCESS, "SPI_ACCESS"),
             builder
-                .bel_single(bels::SUSPEND_SYNC, "SUSPEND_SYNC")
+                .bel_single(defs::bslots::SUSPEND_SYNC, "SUSPEND_SYNC")
                 .raw_tile(1),
             builder
-                .bel_single(bels::POST_CRC_INTERNAL, "POST_CRC_INTERNAL")
+                .bel_single(defs::bslots::POST_CRC_INTERNAL, "POST_CRC_INTERNAL")
                 .raw_tile(1),
-            builder.bel_single(bels::STARTUP, "STARTUP").raw_tile(1),
-            builder.bel_single(bels::SLAVE_SPI, "SLAVE_SPI").raw_tile(1),
+            builder
+                .bel_single(defs::bslots::STARTUP, "STARTUP")
+                .raw_tile(1),
+            builder
+                .bel_single(defs::bslots::SLAVE_SPI, "SLAVE_SPI")
+                .raw_tile(1),
         ];
         builder
-            .xtile(tslots::BEL, "LR", "LR", xy)
+            .xtile_id(defs::tcls::CNR_SE, "CNR_SE", xy)
             .num_tiles(2)
             .raw_tile(xy.delta(0, 1))
             .ref_single(xy, 0, intf_cnr)
@@ -492,14 +665,18 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
     if let Some(&xy) = rd.tiles_by_kind_name("UR_LOWER").iter().next() {
         let bels = vec![
-            builder.bel_xy(bels::OCT_CAL5, "OCT_CAL", 0, 0),
-            builder.bel_xy(bels::BSCAN0, "BSCAN", 0, 0).raw_tile(1),
-            builder.bel_xy(bels::BSCAN1, "BSCAN", 0, 1).raw_tile(1),
-            builder.bel_xy(bels::BSCAN2, "BSCAN", 0, 0),
-            builder.bel_xy(bels::BSCAN3, "BSCAN", 0, 1),
+            builder.bel_xy(defs::bslots::OCT_CAL[5], "OCT_CAL", 0, 0),
+            builder
+                .bel_xy(defs::bslots::BSCAN[0], "BSCAN", 0, 0)
+                .raw_tile(1),
+            builder
+                .bel_xy(defs::bslots::BSCAN[1], "BSCAN", 0, 1)
+                .raw_tile(1),
+            builder.bel_xy(defs::bslots::BSCAN[2], "BSCAN", 0, 0),
+            builder.bel_xy(defs::bslots::BSCAN[3], "BSCAN", 0, 1),
         ];
         builder
-            .xtile(tslots::BEL, "UR", "UR", xy)
+            .xtile_id(defs::tcls::CNR_NE, "CNR_NE", xy)
             .num_tiles(2)
             .raw_tile(xy.delta(0, 1))
             .ref_single(xy, 0, intf_cnr)
@@ -508,19 +685,34 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extract();
     }
 
-    let intf_ioi = builder.ndb.get_tile_class_naming("INTF.IOI");
-    for (nn, tkn, naming, is_bt) in [
-        ("IOI.LR", "LIOI", "LIOI", false),
-        ("IOI.LR", "LIOI_BRK", "LIOI", false),
-        ("IOI.LR", "RIOI", "RIOI", false),
-        ("IOI.LR", "RIOI_BRK", "RIOI", false),
-        ("IOI.BT", "BIOI_INNER", "BIOI_INNER", true),
-        ("IOI.BT", "BIOI_OUTER", "BIOI_OUTER", true),
-        ("IOI.BT", "TIOI_INNER", "TIOI_INNER", true),
-        ("IOI.BT", "TIOI_OUTER", "TIOI_OUTER", true),
-        ("IOI.BT", "BIOI_INNER_UNUSED", "BIOI_INNER_UNUSED", true),
-        ("IOI.BT", "BIOI_OUTER_UNUSED", "BIOI_OUTER_UNUSED", true),
-        ("IOI.BT", "TIOI_INNER_UNUSED", "TIOI_INNER_UNUSED", true),
+    let intf_ioi = builder.ndb.get_tile_class_naming("INTF_IOI");
+    for (tcid, tkn, naming, is_bt) in [
+        (defs::tcls::IOI_WE, "LIOI", "LIOI", false),
+        (defs::tcls::IOI_WE, "LIOI_BRK", "LIOI", false),
+        (defs::tcls::IOI_WE, "RIOI", "RIOI", false),
+        (defs::tcls::IOI_WE, "RIOI_BRK", "RIOI", false),
+        (defs::tcls::IOI_SN, "BIOI_INNER", "BIOI_INNER", true),
+        (defs::tcls::IOI_SN, "BIOI_OUTER", "BIOI_OUTER", true),
+        (defs::tcls::IOI_SN, "TIOI_INNER", "TIOI_INNER", true),
+        (defs::tcls::IOI_SN, "TIOI_OUTER", "TIOI_OUTER", true),
+        (
+            defs::tcls::IOI_SN,
+            "BIOI_INNER_UNUSED",
+            "BIOI_INNER_UNUSED",
+            true,
+        ),
+        (
+            defs::tcls::IOI_SN,
+            "BIOI_OUTER_UNUSED",
+            "BIOI_OUTER_UNUSED",
+            true,
+        ),
+        (
+            defs::tcls::IOI_SN,
+            "TIOI_INNER_UNUSED",
+            "TIOI_INNER_UNUSED",
+            true,
+        ),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let unused = tkn.contains("UNUSED");
@@ -532,7 +724,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_xy(bels::ILOGIC[i], "ILOGIC", 0, i)
+                    .bel_xy(defs::bslots::ILOGIC[i], "ILOGIC", 0, i)
                     .pins_name_only(&[
                         "D", "DDLY", "DDLY2", "CLK0", "CLK1", "IOCE", "DFB", "CFB0", "CFB1", "OFB",
                         "TFB", "SHIFTIN", "SHIFTOUT", "SR",
@@ -611,7 +803,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     _ => unreachable!(),
                 };
                 let bel = builder
-                    .bel_xy(bels::OLOGIC[i], "OLOGIC", 0, i)
+                    .bel_xy(defs::bslots::OLOGIC[i], "OLOGIC", 0, i)
                     .pins_name_only(&[
                         "CLK0",
                         "CLK1",
@@ -660,7 +852,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_xy(bels::IODELAY[i], "IODELAY", 0, i)
+                    .bel_xy(defs::bslots::IODELAY[i], "IODELAY", 0, i)
                     .pins_name_only(&[
                         "IOCLK0",
                         "IOCLK1",
@@ -715,7 +907,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(
                 builder
-                    .bel_xy(bels::TIEOFF_IOI, "TIEOFF", 0, 0)
+                    .bel_xy(defs::bslots::TIEOFF_IOI, "TIEOFF", 0, 0)
                     .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
             );
             for i in 0..2 {
@@ -725,7 +917,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     _ => unreachable!(),
                 };
                 let bel = builder
-                    .bel_virtual(bels::IOICLK[i])
+                    .bel_virtual(defs::bslots::IOICLK[i])
                     .extra_wire("CLK0INTER", &[format!("IOI_CLK0INTER_{ms}")])
                     .extra_wire("CLK1INTER", &[format!("IOI_CLK1INTER_{ms}")])
                     .extra_wire("CLK2INTER", &[format!("IOI_CLK2INTER_{ms}")])
@@ -739,7 +931,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 bels.push(bel);
             }
             let mut bel_ioi = builder
-                .bel_virtual(bels::IOI)
+                .bel_virtual(defs::bslots::IOI)
                 .extra_wire("MCB_DRPADD", &["IOI_MCB_DRPADD"])
                 .extra_wire("MCB_DRPBROADCAST", &["IOI_MCB_DRPBROADCAST"])
                 .extra_wire("MCB_DRPCLK", &["IOI_MCB_DRPCLK"])
@@ -806,7 +998,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(bel_ioi);
             builder
-                .xtile(tslots::BEL, nn, tkn, xy)
+                .xtile_id(tcid, tkn, xy)
                 .ref_single(xy, 0, intf_ioi)
                 .bels(bels)
                 .extract();
@@ -832,7 +1024,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let mut bels = vec![];
             for i in 0..2 {
                 let mut bel = builder
-                    .bel_indexed(bels::IOB[i], "IOB", idx[i])
+                    .bel_indexed(defs::bslots::IOB[i], "IOB", idx[i])
                     .pins_name_only(&["PADOUT", "DIFFI_IN", "DIFFO_OUT", "DIFFO_IN", "PCI_RDY"])
                     .pin_name_only("I", 1)
                     .pin_name_only("O", 1)
@@ -843,7 +1035,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 bels.push(bel);
             }
             builder
-                .xtile(tslots::IOB, "IOB", naming, xy)
+                .xtile_id(defs::tcls::IOB, naming, xy)
                 .num_tiles(0)
                 .bels(bels)
                 .extract();
@@ -853,12 +1045,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for tkn in ["REGH_LIOI_INT", "REGH_LIOI_INT_BOT25"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
-                .bel_xy(bels::PCILOGICSE, "PCILOGIC", 0, 0)
+                .bel_xy(defs::bslots::PCILOGICSE, "PCILOGIC", 0, 0)
                 .pin_name_only("PCI_CE", 1)
                 .pin_name_only("IRDY", 1)
                 .pin_name_only("TRDY", 1);
             builder
-                .xtile(tslots::BEL, "PCILOGICSE", "PCILOGICSE_L", xy)
+                .xtile_id(defs::tcls::PCILOGICSE, "PCILOGICSE_L", xy)
                 .raw_tile(xy.delta(-2, 0))
                 .raw_tile(xy.delta(1, 0))
                 .raw_tile(xy.delta(0, 1))
@@ -871,12 +1063,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for tkn in ["REGH_RIOI", "REGH_RIOI_BOT25"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
-                .bel_xy(bels::PCILOGICSE, "PCILOGIC", 0, 0)
+                .bel_xy(defs::bslots::PCILOGICSE, "PCILOGIC", 0, 0)
                 .pin_name_only("PCI_CE", 1)
                 .pin_name_only("IRDY", 1)
                 .pin_name_only("TRDY", 1);
             builder
-                .xtile(tslots::BEL, "PCILOGICSE", "PCILOGICSE_R", xy)
+                .xtile_id(defs::tcls::PCILOGICSE, "PCILOGICSE_R", xy)
                 .raw_tile(xy.delta(3, 0))
                 .raw_tile(xy.delta(-1, 1))
                 .ref_int(xy.delta(-1, 1), 0)
@@ -886,14 +1078,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for (tkn, naming) in [
-        ("IOI_BTERM_CLB", "BIOI_CLK"),
-        ("IOI_BTERM_REGB", "BIOI_CLK"),
-        ("IOI_TTERM_CLB", "TIOI_CLK"),
-        ("IOI_TTERM_REGT", "TIOI_CLK"),
+        ("IOI_BTERM_CLB", "IOI_CLK_S"),
+        ("IOI_BTERM_REGB", "IOI_CLK_S"),
+        ("IOI_TTERM_CLB", "IOI_CLK_N"),
+        ("IOI_TTERM_REGT", "IOI_CLK_N"),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let mut bel = builder
-                .bel_virtual(bels::BTIOI_CLK)
+                .bel_virtual(defs::bslots::IOI_CLK_SN)
                 .extra_wire("PCI_CE_I", &["BTERM_CLB_PCICE", "TTERM_CLB_PCICE"])
                 .extra_wire("PCI_CE_O", &["BTERM_CLB_PCICE_N", "TTERM_CLB_PCICE_S"]);
             for i in 0..4 {
@@ -956,7 +1148,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     );
             }
             builder
-                .xtile(tslots::IOI_CLK, "BTIOI_CLK", naming, xy)
+                .xtile_id(defs::tcls::IOI_CLK_SN, naming, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1023,7 +1215,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
-                .bel_virtual(bels::PCI_CE_TRUNK_BUF)
+                .bel_virtual(defs::bslots::PCI_CE_TRUNK_BUF)
                 .extra_wire(
                     "PCI_CE_I",
                     &[if is_trunk_b {
@@ -1041,17 +1233,12 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     }],
                 );
             builder
-                .xtile(
-                    tslots::PCI_CE_TRUNK_BUF,
-                    "PCI_CE_TRUNK_BUF",
-                    trunk_naming,
-                    xy,
-                )
+                .xtile_id(defs::tcls::PCI_CE_TRUNK_BUF, trunk_naming, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
             let bel = builder
-                .bel_virtual(bels::PCI_CE_V_BUF)
+                .bel_virtual(defs::bslots::PCI_CE_V_BUF)
                 .extra_wire(
                     "PCI_CE_I",
                     &[if is_v_dn {
@@ -1069,7 +1256,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     }],
                 );
             builder
-                .xtile(tslots::PCI_CE_BUF, "PCI_CE_V_BUF", v_naming, xy)
+                .xtile_id(defs::tcls::PCI_CE_V_BUF, v_naming, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1084,11 +1271,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
-                .bel_virtual(bels::PCI_CE_SPLIT)
+                .bel_virtual(defs::bslots::PCI_CE_SPLIT)
                 .extra_wire("PCI_CE_I", &["HCLK_PCI_CE_SPLIT"])
                 .extra_wire("PCI_CE_O", &["HCLK_PCI_CE_INOUT"]);
             builder
-                .xtile(tslots::PCI_CE_BUF, "PCI_CE_SPLIT", "PCI_CE_SPLIT", xy)
+                .xtile_id(defs::tcls::PCI_CE_SPLIT, "PCI_CE_SPLIT", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1096,21 +1283,21 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for (tkn, naming, lr) in [
-        ("HCLK_IOIL_BOT_DN", "LRIOI_CLK.L", 'L'),
-        ("HCLK_IOIL_BOT_SPLIT", "LRIOI_CLK.L", 'L'),
-        ("HCLK_IOIL_BOT_UP", "LRIOI_CLK.L", 'L'),
-        ("HCLK_IOIL_TOP_DN", "LRIOI_CLK.L", 'L'),
-        ("HCLK_IOIL_TOP_SPLIT", "LRIOI_CLK.L", 'L'),
-        ("HCLK_IOIL_TOP_UP", "LRIOI_CLK.L", 'L'),
-        ("HCLK_IOIR_BOT_DN", "LRIOI_CLK.R", 'R'),
-        ("HCLK_IOIR_BOT_SPLIT", "LRIOI_CLK.R", 'R'),
-        ("HCLK_IOIR_BOT_UP", "LRIOI_CLK.R", 'R'),
-        ("HCLK_IOIR_TOP_DN", "LRIOI_CLK.R", 'R'),
-        ("HCLK_IOIR_TOP_SPLIT", "LRIOI_CLK.R", 'R'),
-        ("HCLK_IOIR_TOP_UP", "LRIOI_CLK.R", 'R'),
+        ("HCLK_IOIL_BOT_DN", "IOI_CLK_W", 'L'),
+        ("HCLK_IOIL_BOT_SPLIT", "IOI_CLK_W", 'L'),
+        ("HCLK_IOIL_BOT_UP", "IOI_CLK_W", 'L'),
+        ("HCLK_IOIL_TOP_DN", "IOI_CLK_W", 'L'),
+        ("HCLK_IOIL_TOP_SPLIT", "IOI_CLK_W", 'L'),
+        ("HCLK_IOIL_TOP_UP", "IOI_CLK_W", 'L'),
+        ("HCLK_IOIR_BOT_DN", "IOI_CLK_E", 'R'),
+        ("HCLK_IOIR_BOT_SPLIT", "IOI_CLK_E", 'R'),
+        ("HCLK_IOIR_BOT_UP", "IOI_CLK_E", 'R'),
+        ("HCLK_IOIR_TOP_DN", "IOI_CLK_E", 'R'),
+        ("HCLK_IOIR_TOP_SPLIT", "IOI_CLK_E", 'R'),
+        ("HCLK_IOIR_TOP_UP", "IOI_CLK_E", 'R'),
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel = builder.bel_virtual(bels::LRIOI_CLK);
+            let mut bel = builder.bel_virtual(defs::bslots::IOI_CLK_WE);
             for i in 0..4 {
                 bel = bel
                     .extra_wire_force(format!("IOCLK{i}_I"), format!("HCLK_IOIL_IOCLK{i}"))
@@ -1132,7 +1319,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire_force(format!("PLLCE{i}_O_D"), format!("HCLK_IOIL_PLLCE{i}_DOWN"))
                     .extra_wire_force(format!("PLLCE{i}_O_U"), format!("HCLK_IOIL_PLLCE{i}_UP"));
             }
-            let mut bel_term = builder.bel_virtual(bels::LRIOI_CLK_TERM).raw_tile(1);
+            let mut bel_term = builder
+                .bel_virtual(defs::bslots::IOI_CLK_WE_TERM)
+                .raw_tile(1);
             for i in 0..4 {
                 if lr == 'L' {
                     bel_term = bel_term
@@ -1197,7 +1386,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
             }
             builder
-                .xtile(tslots::IOI_CLK, "LRIOI_CLK", naming, xy)
+                .xtile_id(defs::tcls::IOI_CLK_WE, naming, xy)
                 .raw_tile(xy) // dummy
                 .num_tiles(0)
                 .bel(bel)
@@ -1220,7 +1409,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
-                .bel_virtual(bels::PCI_CE_H_BUF)
+                .bel_virtual(defs::bslots::PCI_CE_H_BUF)
                 .extra_wire(
                     "PCI_CE_I",
                     &[
@@ -1238,7 +1427,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     ],
                 );
             builder
-                .xtile(tslots::PCI_CE_BUF, "PCI_CE_H_BUF", naming, xy)
+                .xtile_id(defs::tcls::PCI_CE_H_BUF, naming, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1250,7 +1439,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let intf = builder.ndb.get_tile_class_naming("INTF");
             let mut bels = vec![];
             let mut bel = builder
-                .bel_xy(bels::MCB, "MCB", 0, 0)
+                .bel_xy(defs::bslots::MCB, "MCB", 0, 0)
                 .pin_name_only("IOIDRPSDI", 1)
                 .pin_name_only("IOIDRPSDO", 1)
                 .pin_name_only("IOIDRPTRAIN", 1)
@@ -1299,33 +1488,33 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             bels.extend([
                 builder
-                    .bel_xy(bels::TIEOFF_CLK, "TIEOFF", 0, 0)
+                    .bel_xy(defs::bslots::TIEOFF_CLK, "TIEOFF", 0, 0)
                     .raw_tile(2)
                     .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
                 builder
-                    .bel_xy(bels::TIEOFF_DQS0, "TIEOFF", 0, 0)
+                    .bel_xy(defs::bslots::TIEOFF_DQS0, "TIEOFF", 0, 0)
                     .raw_tile(3)
                     .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
                 builder
-                    .bel_xy(bels::TIEOFF_DQS1, "TIEOFF", 0, 0)
+                    .bel_xy(defs::bslots::TIEOFF_DQS1, "TIEOFF", 0, 0)
                     .raw_tile(4)
                     .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
                 builder
-                    .bel_virtual(bels::MCB_TIE_CLK)
+                    .bel_virtual(defs::bslots::MCB_TIE_CLK)
                     .raw_tile(2)
                     .extra_wire("OUTP0", &["MCB_BOT_MOUTP_GND"])
                     .extra_wire("OUTN0", &["MCB_BOT_MOUTN_VCC"])
                     .extra_wire("OUTP1", &["MCB_BOT_SOUTP_VCC"])
                     .extra_wire("OUTN1", &["MCB_BOT_SOUTN_GND"]),
                 builder
-                    .bel_virtual(bels::MCB_TIE_DQS0)
+                    .bel_virtual(defs::bslots::MCB_TIE_DQS0)
                     .raw_tile(3)
                     .extra_wire("OUTP0", &["MCB_BOT_MOUTP_GND"])
                     .extra_wire("OUTN0", &["MCB_BOT_MOUTN_VCC"])
                     .extra_wire("OUTP1", &["MCB_BOT_SOUTP_VCC"])
                     .extra_wire("OUTN1", &["MCB_BOT_SOUTN_GND"]),
                 builder
-                    .bel_virtual(bels::MCB_TIE_DQS1)
+                    .bel_virtual(defs::bslots::MCB_TIE_DQS1)
                     .raw_tile(4)
                     .extra_wire("OUTP0", &["MCB_BOT_MOUTP_GND"])
                     .extra_wire("OUTN0", &["MCB_BOT_MOUTN_VCC"])
@@ -1349,7 +1538,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 muis.push(mui_xy);
             }
             let mut xn = builder
-                .xtile(tslots::BEL, "MCB", tkn, xy)
+                .xtile_id(defs::tcls::MCB, tkn, xy)
                 .num_tiles(28)
                 .raw_tile(xy.delta(0, -7))
                 .raw_tile(clk_xy.unwrap())
@@ -1391,7 +1580,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             if !rd.tile_kinds.key(rd.tiles[&xy_n].kind).starts_with("INT") {
                 continue;
             }
-            let mut bel = builder.bel_virtual(bels::HCLK);
+            let mut bel = builder.bel_virtual(defs::bslots::HCLK);
             for i in 0..16 {
                 bel = bel
                     .extra_int_out(
@@ -1411,7 +1600,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     );
             }
             builder
-                .xtile(tslots::HCLK, "HCLK", naming, xy)
+                .xtile_id(defs::tcls::HCLK, naming, xy)
                 .num_tiles(2)
                 .ref_int(xy.delta(0, -1), 0)
                 .ref_int(xy.delta(0, 1), 1)
@@ -1423,7 +1612,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for tkn in ["DSP_HCLK_GCLK_FOLD", "GTPDUAL_DSP_FEEDTHRU"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel = builder.bel_virtual(bels::HCLK_H_MIDBUF);
+            let mut bel = builder.bel_virtual(defs::bslots::HCLK_H_MIDBUF);
             for i in 0..16 {
                 bel = bel
                     .extra_wire(
@@ -1449,7 +1638,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     );
             }
             builder
-                .xtile(tslots::CLK_BUF, "HCLK_H_MIDBUF", tkn, xy)
+                .xtile_id(defs::tcls::HCLK_H_MIDBUF, tkn, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1459,7 +1648,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     if let Some(&xy) = rd.tiles_by_kind_name("REG_V_HCLK").iter().next() {
         let mut bels = vec![];
         for i in 0..2 {
-            let slots = if i == 0 { bels::BUFH_W } else { bels::BUFH_E };
+            let slots = if i == 0 {
+                defs::bslots::BUFH_W
+            } else {
+                defs::bslots::BUFH_E
+            };
             for j in 0..16 {
                 bels.push(
                     builder
@@ -1469,7 +1662,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             }
         }
-        let mut bel = builder.bel_virtual(bels::HCLK_ROW);
+        let mut bel = builder.bel_virtual(defs::bslots::HCLK_ROW);
         for i in 0..16 {
             bel = bel
                 .extra_wire(format!("BUFG{i}"), &[format!("CLKV_GCLKH_MAIN{i}_FOLD")])
@@ -1477,7 +1670,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         bels.push(bel);
         builder
-            .xtile(tslots::HCLK_ROW, "HCLK_ROW", "HCLK_ROW", xy)
+            .xtile_id(defs::tcls::HCLK_ROW, "HCLK_ROW", xy)
             .num_tiles(0)
             .bels(bels)
             .extract();
@@ -1485,7 +1678,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for tkn in ["REG_V_HCLKBUF_BOT", "REG_V_HCLKBUF_TOP"] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel = builder.bel_virtual(bels::HCLK_V_MIDBUF);
+            let mut bel = builder.bel_virtual(defs::bslots::HCLK_V_MIDBUF);
             for i in 0..16 {
                 bel = bel
                     .extra_wire(format!("GCLK{i}_O"), &[format!("CLKV_GCLK_MAIN{i}_BUF")])
@@ -1493,7 +1686,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("GCLK{i}_I"), &[format!("CLKV_GCLK_MAIN{i}")])
             }
             builder
-                .xtile(tslots::CLK_BUF, "HCLK_V_MIDBUF", "HCLK_V_MIDBUF", xy)
+                .xtile_id(defs::tcls::HCLK_V_MIDBUF, "HCLK_V_MIDBUF", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1505,12 +1698,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         for i in 0..16 {
             bels.push(
                 builder
-                    .bel_xy(bels::BUFGMUX[i], "BUFGMUX", usize::from((i & 4) != 0), i)
+                    .bel_xy(
+                        defs::bslots::BUFGMUX[i],
+                        "BUFGMUX",
+                        usize::from((i & 4) != 0),
+                        i,
+                    )
                     .pin_name_only("O", 1)
                     .pins_name_only(&["I0", "I1"]),
             );
         }
-        let mut bel = builder.bel_virtual(bels::CLKC);
+        let mut bel = builder.bel_virtual(defs::bslots::CLKC);
         for i in 0..16 {
             bel = bel
                 .extra_wire(format!("MUX{i}"), &[format!("CLKC_GCLK{i}")])
@@ -1521,7 +1719,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         bels.push(bel);
         let bel = builder
-            .bel_virtual(bels::CLKC_BUFPLL)
+            .bel_virtual(defs::bslots::CLKC_BUFPLL)
             .raw_tile(1)
             .extra_wire("PLL0D_CLKOUT0", &["REGC_PLLCLK_DN_IN0"])
             .extra_wire("PLL0D_CLKOUT1", &["REGC_PLLCLK_DN_IN1"])
@@ -1551,16 +1749,19 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire("OUTR_LOCKED1", &["CLK_PLL_LOCK_RT1"]);
         bels.push(bel);
         builder
-            .xtile(tslots::BEL, "CLKC", "CLKC", xy)
+            .xtile_id(defs::tcls::CLKC, "CLKC", xy)
             .raw_tile(xy.delta(-1, 0))
             .ref_int(xy.delta(-3, 1), 0)
             .bels(bels)
             .extract();
     }
 
-    for tkn in ["REG_V_MIDBUF_BOT", "REG_V_MIDBUF_TOP"] {
+    for (naming, tkn) in [
+        ("REG_V_MIDBUF_S", "REG_V_MIDBUF_BOT"),
+        ("REG_V_MIDBUF_N", "REG_V_MIDBUF_TOP"),
+    ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel = builder.bel_virtual(bels::CKPIN_V_MIDBUF);
+            let mut bel = builder.bel_virtual(defs::bslots::CKPIN_V_MIDBUF);
             for i in 0..8 {
                 bel = bel
                     .extra_wire(
@@ -1579,7 +1780,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     )
             }
             builder
-                .xtile(tslots::CLK_BUF, "CKPIN_V_MIDBUF", tkn, xy)
+                .xtile_id(defs::tcls::CKPIN_V_MIDBUF, naming, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -1595,22 +1796,24 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "REGH_BRAM_FEEDTHRU_R_GCLK",
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let mut bel = builder.bel_virtual(bels::CKPIN_H_MIDBUF);
+            let mut bel = builder.bel_virtual(defs::bslots::CKPIN_H_MIDBUF);
             for i in 0..8 {
                 bel = bel
                     .extra_wire(format!("CKPIN{i}_O"), &[format!("REGH_DSP_OUT_CKPIN{i}")])
                     .extra_wire(format!("CKPIN{i}_I"), &[format!("REGH_DSP_IN_CKPIN{i}")])
             }
             builder
-                .xtile(tslots::CLK_BUF, "CKPIN_H_MIDBUF", "CKPIN_H_MIDBUF", xy)
+                .xtile_id(defs::tcls::CKPIN_H_MIDBUF, "CKPIN_H_MIDBUF", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
         }
     }
 
-    for (tkn, e, bio2, bpll) in [
+    for (tcid, naming, tkn, e, bio2, bpll) in [
         (
+            defs::tcls::CLK_W,
+            "CLK_W",
             "REG_L",
             'L',
             [
@@ -1626,6 +1829,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             [1, 0],
         ),
         (
+            defs::tcls::CLK_E,
+            "CLK_E",
             "REG_R",
             'R',
             [
@@ -1641,6 +1846,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             [1, 0],
         ),
         (
+            defs::tcls::CLK_S,
+            "CLK_S",
             "REG_B",
             'B',
             [
@@ -1656,6 +1863,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             [0, 1],
         ),
         (
+            defs::tcls::CLK_N,
+            "CLK_N",
             "REG_T",
             'T',
             [
@@ -1676,7 +1885,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..8 {
                 bels.push(
                     builder
-                        .bel_xy(bels::BUFIO2[i], "BUFIO2", bio2[i].0, bio2[i].1)
+                        .bel_xy(defs::bslots::BUFIO2[i], "BUFIO2", bio2[i].0, bio2[i].1)
                         .pins_name_only(&["I", "IB"])
                         .pin_name_only("DIVCLK", 1)
                         .pin_name_only("IOCLK", 1)
@@ -1688,7 +1897,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..8 {
                 bels.push(
                     builder
-                        .bel_xy(bels::BUFIO2FB[i], "BUFIO2FB", bio2[i].0, bio2[i].1)
+                        .bel_xy(defs::bslots::BUFIO2FB[i], "BUFIO2FB", bio2[i].0, bio2[i].1)
                         .pins_name_only(&["I", "IB", "O"])
                         .extra_wire("CMT", &[format!("REG{e}_CLK_FEEDBACK{i}")]),
                 );
@@ -1696,7 +1905,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(bels::BUFPLL[i], "BUFPLL", 0, bpll[i])
+                        .bel_xy(defs::bslots::BUFPLL[i], "BUFPLL", 0, bpll[i])
                         .pins_name_only(&[
                             "PLLIN",
                             "IOCLK",
@@ -1709,7 +1918,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(
                 builder
-                    .bel_xy(bels::BUFPLL_MCB, "BUFPLL_MCB", 0, 0)
+                    .bel_xy(defs::bslots::BUFPLL_MCB, "BUFPLL_MCB", 0, 0)
                     .pins_name_only(&[
                         "PLLIN0",
                         "PLLIN1",
@@ -1725,10 +1934,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
             bels.push(
                 builder
-                    .bel_xy(bels::TIEOFF_REG, "TIEOFF", 0, 0)
+                    .bel_xy(defs::bslots::TIEOFF_REG, "TIEOFF", 0, 0)
                     .pins_name_only(&["HARD0", "HARD1", "KEEP1"]),
             );
-            let mut bel = builder.bel_virtual(bels::BUFIO2_INS);
+            let mut bel = builder.bel_virtual(defs::bslots::BUFIO2_INS);
             for i in 0..8 {
                 bel = bel
                     .extra_wire(format!("CLKPIN{i}"), &[format!("REG{e}_CLKPIN{i}")])
@@ -1744,7 +1953,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire(format!("DQSN{i}"), &[format!("REG{e}_DQSN{i}")]);
             }
             bels.push(bel);
-            let mut bel = builder.bel_virtual(bels::BUFIO2_CKPIN).raw_tile(1);
+            let mut bel = builder.bel_virtual(defs::bslots::BUFIO2_CKPIN).raw_tile(1);
             for i in 0..8 {
                 bel = bel
                     .extra_wire(
@@ -1769,7 +1978,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             bels.push(
                 builder
-                    .bel_virtual(bels::BUFPLL_BUF)
+                    .bel_virtual(defs::bslots::BUFPLL_BUF)
                     .raw_tile(1)
                     .extra_wire(
                         "PLLCE0_O",
@@ -1846,7 +2055,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             );
             bels.push(
                 builder
-                    .bel_virtual(bels::BUFPLL_OUT)
+                    .bel_virtual(defs::bslots::BUFPLL_OUT)
                     .extra_wire(
                         "PLLCE0",
                         &[
@@ -1889,7 +2098,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             if matches!(e, 'L' | 'R') {
                 bels.push(
                     builder
-                        .bel_virtual(bels::BUFPLL_INS_LR)
+                        .bel_virtual(defs::bslots::BUFPLL_INS_WE)
                         .extra_int_in("GCLK0", &[format!("REG{e}_GCLK0")])
                         .extra_int_in("GCLK1", &[format!("REG{e}_GCLK1")])
                         .extra_int_in("PLLIN0_GCLK", &[format!("REG{e}_GCLK2")])
@@ -1901,7 +2110,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             } else {
                 let mut bel = builder
-                    .bel_virtual(bels::BUFPLL_INS_BT)
+                    .bel_virtual(defs::bslots::BUFPLL_INS_SN)
                     .extra_int_in("GCLK0", &[format!("REG{e}_GCLK0")])
                     .extra_int_in("GCLK1", &[format!("REG{e}_GCLK1")]);
                 for i in 0..6 {
@@ -1918,7 +2127,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 bels.push(bel);
                 let mut bel = builder
-                    .bel_virtual(bels::GTP_H_BUF)
+                    .bel_virtual(defs::bslots::GTP_H_BUF)
                     .raw_tile(1)
                     .extra_wire("CLKINEAST_L", &[format!("REG{e}_{e}TERM_GTP_CLKINEAST0")])
                     .extra_wire("CLKINWEST_L", &[format!("REG{e}_{e}TERM_GTP_CLKINWEST0")])
@@ -1964,7 +2173,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 bels.push(bel);
             }
-            let mut xn = builder.xtile(tslots::REG, tkn, tkn, xy);
+            let mut xn = builder.xtile_id(tcid, naming, xy);
             match tkn {
                 "REG_L" => {
                     xn = xn
@@ -1985,16 +2194,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .raw_tile(xy.delta(0, 1))
                         .raw_tile(xy.delta(2, 1)) // BUFPLL mux
                         .raw_tile_single(xy.delta(2, 3), 0)
-                        .switchbox(bels::REG_INT)
-                        .optin_muxes(&regb_clk);
+                        .switchbox(defs::bslots::REG_INT)
+                        .optin_muxes(&defs::wires::IMUX_CLK_GCLK[..]);
                 }
                 "REG_T" => {
                     xn = xn
                         .raw_tile(xy.delta(0, -1))
                         .raw_tile(xy.delta(2, -1)) // BUFPLL mux
                         .raw_tile_single(xy.delta(2, -2), 0)
-                        .switchbox(bels::REG_INT)
-                        .optin_muxes(&regt_clk);
+                        .switchbox(defs::bslots::REG_INT)
+                        .optin_muxes(&defs::wires::IMUX_CLK_GCLK[..]);
                 }
                 _ => unreachable!(),
             }
@@ -2003,14 +2212,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     for (tkn, naming, lr, is_top) in [
-        ("IOI_LTERM_LOWER_BOT", "CLKPIN_BUF.L.BOT", 'L', false),
-        ("IOI_LTERM_LOWER_TOP", "CLKPIN_BUF.L.TOP", 'L', true),
-        ("IOI_LTERM_UPPER_BOT", "CLKPIN_BUF.L.BOT", 'L', false),
-        ("IOI_LTERM_UPPER_TOP", "CLKPIN_BUF.L.TOP", 'L', true),
-        ("IOI_RTERM_LOWER_BOT", "CLKPIN_BUF.R.BOT", 'R', false),
-        ("IOI_RTERM_LOWER_TOP", "CLKPIN_BUF.R.TOP", 'R', true),
-        ("IOI_RTERM_UPPER_BOT", "CLKPIN_BUF.R.BOT", 'R', false),
-        ("IOI_RTERM_UPPER_TOP", "CLKPIN_BUF.R.TOP", 'R', true),
+        ("IOI_LTERM_LOWER_BOT", "CLKPIN_BUF_W_S", 'L', false),
+        ("IOI_LTERM_LOWER_TOP", "CLKPIN_BUF_W_N", 'L', true),
+        ("IOI_LTERM_UPPER_BOT", "CLKPIN_BUF_W_S", 'L', false),
+        ("IOI_LTERM_UPPER_TOP", "CLKPIN_BUF_W_N", 'L', true),
+        ("IOI_RTERM_LOWER_BOT", "CLKPIN_BUF_E_S", 'R', false),
+        ("IOI_RTERM_LOWER_TOP", "CLKPIN_BUF_E_N", 'R', true),
+        ("IOI_RTERM_UPPER_BOT", "CLKPIN_BUF_E_S", 'R', false),
+        ("IOI_RTERM_UPPER_TOP", "CLKPIN_BUF_E_N", 'R', true),
     ] {
         let ew = match lr {
             'L' => 'E',
@@ -2025,7 +2234,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         let bt = if is_top { "TOP" } else { "BOT" };
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
-                .bel_virtual(bels::CLKPIN_BUF)
+                .bel_virtual(defs::bslots::CLKPIN_BUF)
                 .extra_wire(
                     "CLKPIN0_O",
                     &[format!("IOI_{lr}TERM_CLKPIN{ii}", ii = bi * 2)],
@@ -2089,7 +2298,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("DQSN_O", &[format!("IOI_{lr}TERM_{bt}_DQSN{bi}")])
                 .extra_wire("DQSN_I", &[format!("IOI_{lr}TERM_{bt}_DQSN{bi}_{ew}")]);
             builder
-                .xtile(tslots::CLK_BUF, "CLKPIN_BUF", naming, xy)
+                .xtile_id(defs::tcls::CLKPIN_BUF, naming, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -2099,7 +2308,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     for (tkn, naming, prefix, ibuf_prefix, bi, ns) in [
         (
             "IOI_BTERM_REGB",
-            "CLKPIN_BUF.B.BOT",
+            "CLKPIN_BUF_S_S",
             "BTERM_CLB",
             "BTERM_IOIBOT",
             2,
@@ -2107,7 +2316,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ),
         (
             "IOI_BTERM_REGB",
-            "CLKPIN_BUF.B.TOP",
+            "CLKPIN_BUF_S_N",
             "BTERM_CLB",
             "BTERM_IOIUP",
             3,
@@ -2115,7 +2324,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ),
         (
             "IOI_TTERM_REGT",
-            "CLKPIN_BUF.T.BOT",
+            "CLKPIN_BUF_N_S",
             "IOI_REGT",
             "TTERM_IOIBOT",
             1,
@@ -2123,7 +2332,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ),
         (
             "IOI_TTERM_REGT",
-            "CLKPIN_BUF.T.TOP",
+            "CLKPIN_BUF_N_N",
             "IOI_REGT",
             "TTERM_IOIUP",
             0,
@@ -2132,7 +2341,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel = builder
-                .bel_virtual(bels::CLKPIN_BUF)
+                .bel_virtual(defs::bslots::CLKPIN_BUF)
                 .extra_wire("CLKPIN0_O", &[format!("{prefix}_CLKPIN{ii}", ii = bi * 2)])
                 .extra_wire(
                     "CLKPIN1_O",
@@ -2229,7 +2438,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("DQSN_O", &[format!("{prefix}_DQSN{bi}")])
                 .extra_wire("DQSN_I", &[format!("{prefix}_DQSN{bi}_{ns}")]);
             builder
-                .xtile(tslots::CLK_BUF, "CLKPIN_BUF", naming, xy)
+                .xtile_id(defs::tcls::CLKPIN_BUF, naming, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -2237,12 +2446,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
 
     let intf = builder.ndb.get_tile_class_naming("INTF");
-    for (tkn, bt, kind, slot, d0, d1, d2) in [
+    for (tkn, bt, tcid, kind, slot, d0, d1, d2) in [
         (
             "CMT_DCM_BOT",
             'B',
+            defs::tcls::DCM_BUFPLL_BUF_S,
             "DCM_BUFPLL_BUF_S",
-            bels::DCM_BUFPLL_BUF_S,
+            defs::bslots::DCM_BUFPLL_BUF_S,
             'D',
             'D',
             'D',
@@ -2250,8 +2460,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         (
             "CMT_DCM2_BOT",
             'B',
+            defs::tcls::DCM_BUFPLL_BUF_S_MID,
             "DCM_BUFPLL_BUF_S_MID",
-            bels::DCM_BUFPLL_BUF_S_MID,
+            defs::bslots::DCM_BUFPLL_BUF_S_MID,
             'D',
             'U',
             'D',
@@ -2259,8 +2470,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         (
             "CMT_DCM_TOP",
             'T',
+            defs::tcls::DCM_BUFPLL_BUF_N,
             "DCM_BUFPLL_BUF_N",
-            bels::DCM_BUFPLL_BUF_N,
+            defs::bslots::DCM_BUFPLL_BUF_N,
             'D',
             'D',
             'U',
@@ -2268,8 +2480,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         (
             "CMT_DCM2_TOP",
             'T',
+            defs::tcls::DCM_BUFPLL_BUF_N_MID,
             "DCM_BUFPLL_BUF_N_MID",
-            bels::DCM_BUFPLL_BUF_N_MID,
+            defs::bslots::DCM_BUFPLL_BUF_N_MID,
             'U',
             'D',
             'U',
@@ -2280,7 +2493,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             for i in 0..2 {
                 let ii = 2 - i;
                 let mut bel = builder
-                    .bel_xy(bels::DCM[i], "DCM", 0, i)
+                    .bel_xy(defs::bslots::DCM[i], "DCM", 0, i)
                     .pins_name_only(&["CLKIN", "CLKFB", "SKEWCLKIN1", "SKEWCLKIN2"])
                     .extra_int_in("CLKFB_CKINT0", &[format!("DCM{ii}_CLK_FROM_BUFG0")])
                     .extra_int_in("CLKIN_CKINT0", &[format!("DCM{ii}_CLK_FROM_BUFG1")])
@@ -2304,7 +2517,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 bels.push(bel);
             }
-            let mut bel = builder.bel_virtual(bels::CMT);
+            let mut bel = builder.bel_virtual(defs::bslots::CMT);
             for i in 0..16 {
                 bel = bel
                     .extra_int_in(format!("HCLK{i}_CKINT"), &[format!("DCM_FABRIC_CLK{i}")])
@@ -2387,7 +2600,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(bel);
             builder
-                .xtile(tslots::BEL, "CMT_DCM", tkn, xy)
+                .xtile_id(defs::tcls::CMT_DCM, tkn, xy)
                 .num_tiles(2)
                 .ref_single(xy.delta(-1, -2), 0, intf)
                 .ref_single(xy.delta(-1, 0), 1, intf)
@@ -2448,7 +2661,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
 
             builder
-                .xtile(tslots::CMT_BUF, kind, kind, xy)
+                .xtile_id(tcid, kind, xy)
                 .num_tiles(0)
                 .bel(bel)
                 .extract();
@@ -2465,7 +2678,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     ] {
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
             let bel_pll = builder
-                .bel_xy(bels::PLL, "PLL_ADV", 0, 0)
+                .bel_xy(defs::bslots::PLL, "PLL_ADV", 0, 0)
                 .pins_name_only(&[
                     "REL",
                     "SKEWCLKIN1",
@@ -2507,9 +2720,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("DCM1_CLKIN_TEST", &["CMT_DCM1_CLKIN"])
                 .extra_wire("DCM1_CLKFB_TEST", &["CMT_DCM1_CLKFB"]);
             let bel_tie = builder
-                .bel_xy(bels::TIEOFF_PLL, "TIEOFF", 0, 0)
+                .bel_xy(defs::bslots::TIEOFF_PLL, "TIEOFF", 0, 0)
                 .pins_name_only(&["HARD0", "HARD1", "KEEP1"]);
-            let mut bel = builder.bel_virtual(bels::CMT);
+            let mut bel = builder.bel_virtual(defs::bslots::CMT);
             for i in 0..16 {
                 bel = bel
                     .extra_int_in(format!("HCLK{i}_CKINT"), &[format!("CMT_FABRIC_CLK{i}")])
@@ -2579,7 +2792,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
             }
             builder
-                .xtile(tslots::BEL, "CMT_PLL", tkn, xy)
+                .xtile_id(defs::tcls::CMT_PLL, tkn, xy)
                 .num_tiles(2)
                 .ref_single(xy.delta(-1, -2), 0, intf)
                 .ref_single(xy.delta(-1, 0), 1, intf)
@@ -2588,13 +2801,13 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .bel(bel)
                 .extract();
             if let Some(out) = out {
-                let tcname = match out {
-                    0 => "PLL_BUFPLL_OUT0",
-                    1 => "PLL_BUFPLL_OUT1",
+                let (tcid, tcname) = match out {
+                    0 => (defs::tcls::PLL_BUFPLL_OUT0, "PLL_BUFPLL_OUT0"),
+                    1 => (defs::tcls::PLL_BUFPLL_OUT1, "PLL_BUFPLL_OUT1"),
                     _ => unreachable!(),
                 };
                 let mut bel = builder
-                    .bel_virtual(bels::PLL_BUFPLL)
+                    .bel_virtual(defs::bslots::PLL_BUFPLL)
                     .extra_wire("CLKOUT0", &["PLLCASC_CLKOUT0"])
                     .extra_wire("CLKOUT1", &["PLLCASC_CLKOUT1"])
                     .extra_wire("LOCKED", &["CMT_PLL_LOCKED"]);
@@ -2616,17 +2829,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         .extra_wire("LOCKED_U", &["CMT_PLL_LOCK_UP1"]);
                 }
                 builder
-                    .xtile(tslots::CMT_BUF, tcname, tcname, xy)
+                    .xtile_id(tcid, tcname, xy)
                     .num_tiles(0)
                     .bel(bel)
                     .extract();
             } else {
                 builder
-                    .xtile(tslots::CMT_BUF, "PLL_BUFPLL_B", "PLL_BUFPLL_B", xy)
+                    .xtile_id(defs::tcls::PLL_BUFPLL_S, "PLL_BUFPLL_S", xy)
                     .num_tiles(0)
                     .extract();
                 builder
-                    .xtile(tslots::CMT_BUF, "PLL_BUFPLL_T", "PLL_BUFPLL_T", xy)
+                    .xtile_id(defs::tcls::PLL_BUFPLL_N, "PLL_BUFPLL_N", xy)
                     .num_tiles(0)
                     .extract();
             }
@@ -2635,31 +2848,30 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     if let Some(&xy) = rd.tiles_by_kind_name("PCIE_TOP").iter().next() {
         let mut intf_xy = Vec::new();
-        let nr = builder.ndb.get_tile_class_naming("INTF.RTERM");
-        let nl = builder.ndb.get_tile_class_naming("INTF.LTERM");
+        let nr = builder.ndb.get_tile_class_naming("INTF_RTERM");
+        let nl = builder.ndb.get_tile_class_naming("INTF_LTERM");
         for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
             intf_xy.push((xy.delta(-5, -9 + dy), nr));
         }
         for dy in [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16] {
             intf_xy.push((xy.delta(2, -9 + dy), nl));
         }
-        builder.extract_xtile_bels_intf(
-            tslots::BEL,
-            "PCIE",
+        builder.extract_xtile_bels_intf_id(
+            defs::tcls::PCIE,
             xy,
             &[],
             &[],
             &intf_xy,
             "PCIE",
-            &[builder.bel_xy(bels::PCIE, "PCIE", 0, 0)],
+            &[builder.bel_xy(defs::bslots::PCIE, "PCIE", 0, 0)],
         );
     }
 
     for tkn in ["GTPDUAL_BOT", "GTPDUAL_TOP"] {
         let is_b = tkn == "GTPDUAL_BOT";
         if let Some(&xy) = rd.tiles_by_kind_name(tkn).iter().next() {
-            let intf_rterm = builder.ndb.get_tile_class_naming("INTF.RTERM");
-            let intf_lterm = builder.ndb.get_tile_class_naming("INTF.LTERM");
+            let intf_rterm = builder.ndb.get_tile_class_naming("INTF_RTERM");
+            let intf_lterm = builder.ndb.get_tile_class_naming("INTF_LTERM");
             let by = if is_b { 0 } else { -9 };
             let intfs_l: [_; 8] = core::array::from_fn(|i| {
                 builder
@@ -2675,34 +2887,34 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             });
             let mut bels = vec![];
             for (i, slot) in [
-                (2, bels::IPAD_RXP0),
-                (0, bels::IPAD_RXN0),
-                (3, bels::IPAD_RXP1),
-                (1, bels::IPAD_RXN1),
-                (5, bels::IPAD_CLKP0),
-                (4, bels::IPAD_CLKN0),
-                (7, bels::IPAD_CLKP1),
-                (6, bels::IPAD_CLKN1),
+                (2, defs::bslots::IPAD_RXP[0]),
+                (0, defs::bslots::IPAD_RXN[0]),
+                (3, defs::bslots::IPAD_RXP[1]),
+                (1, defs::bslots::IPAD_RXN[1]),
+                (5, defs::bslots::IPAD_CLKP[0]),
+                (4, defs::bslots::IPAD_CLKN[0]),
+                (7, defs::bslots::IPAD_CLKP[1]),
+                (6, defs::bslots::IPAD_CLKN[1]),
             ] {
                 bels.push(builder.bel_xy(slot, "IPAD", 0, i).pins_name_only(&["O"]));
             }
             for (i, slot) in [
-                (1, bels::OPAD_TXP0),
-                (3, bels::OPAD_TXN0),
-                (0, bels::OPAD_TXP1),
-                (2, bels::OPAD_TXN1),
+                (1, defs::bslots::OPAD_TXP[0]),
+                (3, defs::bslots::OPAD_TXN[0]),
+                (0, defs::bslots::OPAD_TXP[1]),
+                (2, defs::bslots::OPAD_TXN[1]),
             ] {
                 bels.push(builder.bel_xy(slot, "OPAD", 0, i).pins_name_only(&["I"]));
             }
             for i in 0..2 {
                 bels.push(
                     builder
-                        .bel_xy(bels::BUFDS[i], "BUFDS", 0, i)
+                        .bel_xy(defs::bslots::BUFDS[i], "BUFDS", 0, i)
                         .pins_name_only(&["I", "IB", "O"]),
                 );
             }
             let mut bel = builder
-                .bel_xy(bels::GTP, "GTPA1_DUAL", 0, 0)
+                .bel_xy(defs::bslots::GTP, "GTPA1_DUAL", 0, 0)
                 .pins_name_only(&[
                     "RXP0",
                     "RXN0",
@@ -2779,7 +2991,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(bel);
             let mut bel = builder
-                .bel_virtual(bels::GTP_BUF)
+                .bel_virtual(defs::bslots::GTP_BUF)
                 .raw_tile(1)
                 .extra_wire(
                     "PLLCLK0_O",
@@ -2923,7 +3135,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             bels.push(bel);
             let mut xn = builder
-                .xtile(tslots::BEL, "GTP", tkn, xy)
+                .xtile_id(defs::tcls::GTP, tkn, xy)
                 .num_tiles(16)
                 .raw_tile(xy.delta(
                     0,

@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
 };
 use std::collections::BTreeMap;
 
-use crate::bels;
+use crate::defs;
 
 pub struct RegTag;
 impl EntityTag for RegTag {
@@ -97,8 +97,8 @@ impl std::fmt::Display for SharedCfgPad {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Column {
     pub kind: ColumnKind,
-    pub bio: ColumnIoKind,
-    pub tio: ColumnIoKind,
+    pub io_s: ColumnIoKind,
+    pub io_n: ColumnIoKind,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -147,8 +147,8 @@ impl std::fmt::Display for ColumnIoKind {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Row {
-    pub lio: bool,
-    pub rio: bool,
+    pub io_w: bool,
+    pub io_e: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -244,27 +244,19 @@ impl Chip {
         }
     }
 
-    pub fn row_bot(&self) -> RowId {
+    pub fn row_s(&self) -> RowId {
         RowId::from_idx(0)
     }
 
-    pub fn row_top(&self) -> RowId {
-        self.rows.next_id()
-    }
-
-    pub fn row_bio_outer(&self) -> RowId {
-        RowId::from_idx(0)
-    }
-
-    pub fn row_bio_inner(&self) -> RowId {
+    pub fn row_s_inner(&self) -> RowId {
         RowId::from_idx(1)
     }
 
-    pub fn row_tio_outer(&self) -> RowId {
+    pub fn row_n(&self) -> RowId {
         RowId::from_idx(self.rows.len() - 1)
     }
 
-    pub fn row_tio_inner(&self) -> RowId {
+    pub fn row_n_inner(&self) -> RowId {
         RowId::from_idx(self.rows.len() - 2)
     }
 
@@ -287,13 +279,13 @@ impl Chip {
     }
 
     #[inline]
-    pub fn row_reg_bot(&self, reg: RegId) -> RowId {
+    pub fn row_reg_s(&self, reg: RegId) -> RowId {
         RowId::from_idx(reg.to_idx() * 16)
     }
 
     #[inline]
     pub fn row_reg_hclk(&self, reg: RegId) -> RowId {
-        self.row_reg_bot(reg) + 8
+        self.row_reg_s(reg) + 8
     }
 
     pub fn regs(&self) -> EntityRange<RegId> {
@@ -312,22 +304,22 @@ impl Chip {
     pub fn get_dcms(&self) -> Vec<(RowId, DcmKind)> {
         match self.rows.len() {
             64 | 80 => vec![
-                (self.row_bot() + 8, DcmKind::Bot),
-                (self.row_top() - 24, DcmKind::Top),
+                (self.row_s() + 8, DcmKind::Bot),
+                (self.row_n() - 23, DcmKind::Top),
             ],
             128 => vec![
-                (self.row_bot() + 8, DcmKind::Bot),
-                (self.row_bot() + 40, DcmKind::BotMid),
-                (self.row_top() - 56, DcmKind::Top),
-                (self.row_top() - 24, DcmKind::TopMid),
+                (self.row_s() + 8, DcmKind::Bot),
+                (self.row_s() + 40, DcmKind::BotMid),
+                (self.row_n() - 55, DcmKind::Top),
+                (self.row_n() - 23, DcmKind::TopMid),
             ],
             192 => vec![
-                (self.row_bot() + 8, DcmKind::Bot),
-                (self.row_bot() + 40, DcmKind::BotMid),
-                (self.row_bot() + 72, DcmKind::BotMid),
-                (self.row_top() - 88, DcmKind::Top),
-                (self.row_top() - 56, DcmKind::TopMid),
-                (self.row_top() - 24, DcmKind::TopMid),
+                (self.row_s() + 8, DcmKind::Bot),
+                (self.row_s() + 40, DcmKind::BotMid),
+                (self.row_s() + 72, DcmKind::BotMid),
+                (self.row_n() - 87, DcmKind::Top),
+                (self.row_n() - 55, DcmKind::TopMid),
+                (self.row_n() - 23, DcmKind::TopMid),
             ],
             _ => unreachable!(),
         }
@@ -336,40 +328,40 @@ impl Chip {
     pub fn get_plls(&self) -> Vec<(RowId, PllKind)> {
         match self.rows.len() {
             64 | 80 => vec![
-                (self.row_bot() + 24, PllKind::BotOut1),
-                (self.row_top() - 8, PllKind::TopOut1),
+                (self.row_s() + 24, PllKind::BotOut1),
+                (self.row_n() - 7, PllKind::TopOut1),
             ],
             128 => vec![
-                (self.row_bot() + 24, PllKind::BotOut1),
-                (self.row_bot() + 56, PllKind::BotOut0),
-                (self.row_top() - 40, PllKind::TopOut0),
-                (self.row_top() - 8, PllKind::TopOut1),
+                (self.row_s() + 24, PllKind::BotOut1),
+                (self.row_s() + 56, PllKind::BotOut0),
+                (self.row_n() - 39, PllKind::TopOut0),
+                (self.row_n() - 7, PllKind::TopOut1),
             ],
             192 => vec![
-                (self.row_bot() + 24, PllKind::BotOut1),
-                (self.row_bot() + 56, PllKind::BotNoOut),
-                (self.row_bot() + 88, PllKind::BotOut0),
-                (self.row_top() - 72, PllKind::TopOut0),
-                (self.row_top() - 40, PllKind::TopNoOut),
-                (self.row_top() - 8, PllKind::TopOut1),
+                (self.row_s() + 24, PllKind::BotOut1),
+                (self.row_s() + 56, PllKind::BotNoOut),
+                (self.row_s() + 88, PllKind::BotOut0),
+                (self.row_n() - 71, PllKind::TopOut0),
+                (self.row_n() - 39, PllKind::TopNoOut),
+                (self.row_n() - 7, PllKind::TopOut1),
             ],
             _ => unreachable!(),
         }
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let iob = bels::IOB.iter().position(|&x| x == bel.slot).unwrap();
+        let iob = defs::bslots::IOB.index_of(bel.slot).unwrap();
         if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, TileIobId::from_idx(iob))
         } else if bel.col == self.col_e() {
             EdgeIoCoord::E(bel.row, TileIobId::from_idx(iob))
-        } else if bel.row == self.row_bio_inner() {
+        } else if bel.row == self.row_s_inner() {
             EdgeIoCoord::S(bel.col, TileIobId::from_idx(iob))
-        } else if bel.row == self.row_bio_outer() {
+        } else if bel.row == self.row_s() {
             EdgeIoCoord::S(bel.col, TileIobId::from_idx(iob + 2))
-        } else if bel.row == self.row_tio_inner() {
+        } else if bel.row == self.row_n_inner() {
             EdgeIoCoord::N(bel.col, TileIobId::from_idx(iob))
-        } else if bel.row == self.row_tio_outer() {
+        } else if bel.row == self.row_n() {
             EdgeIoCoord::N(bel.col, TileIobId::from_idx(iob + 2))
         } else {
             unreachable!()
@@ -381,23 +373,25 @@ impl Chip {
         match io {
             EdgeIoCoord::N(col, iob) => {
                 if iob.to_idx() < 2 {
-                    CellCoord::new(die, col, self.row_tio_inner()).bel(bels::IOB[iob.to_idx()])
+                    CellCoord::new(die, col, self.row_n_inner())
+                        .bel(defs::bslots::IOB[iob.to_idx()])
                 } else {
-                    CellCoord::new(die, col, self.row_tio_outer()).bel(bels::IOB[iob.to_idx() - 2])
+                    CellCoord::new(die, col, self.row_n()).bel(defs::bslots::IOB[iob.to_idx() - 2])
                 }
             }
             EdgeIoCoord::E(row, iob) => {
-                CellCoord::new(die, self.col_e(), row).bel(bels::IOB[iob.to_idx()])
+                CellCoord::new(die, self.col_e(), row).bel(defs::bslots::IOB[iob.to_idx()])
             }
             EdgeIoCoord::S(col, iob) => {
                 if iob.to_idx() < 2 {
-                    CellCoord::new(die, col, self.row_bio_inner()).bel(bels::IOB[iob.to_idx()])
+                    CellCoord::new(die, col, self.row_s_inner())
+                        .bel(defs::bslots::IOB[iob.to_idx()])
                 } else {
-                    CellCoord::new(die, col, self.row_bio_outer()).bel(bels::IOB[iob.to_idx() - 2])
+                    CellCoord::new(die, col, self.row_s()).bel(defs::bslots::IOB[iob.to_idx() - 2])
                 }
             }
             EdgeIoCoord::W(row, iob) => {
-                CellCoord::new(die, self.col_w(), row).bel(bels::IOB[iob.to_idx()])
+                CellCoord::new(die, self.col_w(), row).bel(defs::bslots::IOB[iob.to_idx()])
             }
         }
     }
@@ -427,16 +421,16 @@ impl Chip {
         let mut res = vec![];
         // TIO
         for (col, &cd) in &self.columns {
-            if cd.tio == ColumnIoKind::None {
+            if cd.io_n == ColumnIoKind::None {
                 continue;
             }
             for (iob, unused) in [
                 // outer
-                (3, cd.tio == ColumnIoKind::Inner),
-                (2, cd.tio == ColumnIoKind::Inner),
+                (3, cd.io_n == ColumnIoKind::Inner),
+                (2, cd.io_n == ColumnIoKind::Inner),
                 // inner
-                (1, cd.tio == ColumnIoKind::Outer),
-                (0, cd.tio == ColumnIoKind::Outer),
+                (1, cd.io_n == ColumnIoKind::Outer),
+                (0, cd.io_n == ColumnIoKind::Outer),
             ] {
                 if !unused {
                     res.push(EdgeIoCoord::N(col, TileIobId::from_idx(iob)));
@@ -445,7 +439,7 @@ impl Chip {
         }
         // RIO
         for (row, &rd) in self.rows.iter().rev() {
-            if rd.rio {
+            if rd.io_e {
                 for iob in [1, 0] {
                     res.push(EdgeIoCoord::E(row, TileIobId::from_idx(iob)));
                 }
@@ -453,16 +447,16 @@ impl Chip {
         }
         // BIO
         for (col, &cd) in self.columns.iter().rev() {
-            if cd.bio == ColumnIoKind::None {
+            if cd.io_s == ColumnIoKind::None {
                 continue;
             }
             for (iob, unused) in [
                 // outer
-                (3, cd.bio == ColumnIoKind::Inner),
-                (2, cd.bio == ColumnIoKind::Inner),
+                (3, cd.io_s == ColumnIoKind::Inner),
+                (2, cd.io_s == ColumnIoKind::Inner),
                 // inner
-                (1, cd.bio == ColumnIoKind::Outer),
-                (0, cd.bio == ColumnIoKind::Outer),
+                (1, cd.io_s == ColumnIoKind::Outer),
+                (0, cd.io_s == ColumnIoKind::Outer),
             ] {
                 if !unused {
                     res.push(EdgeIoCoord::S(col, TileIobId::from_idx(iob)));
@@ -471,7 +465,7 @@ impl Chip {
         }
         // LIO
         for (row, &rd) in &self.rows {
-            if rd.lio {
+            if rd.io_w {
                 for iob in [1, 0] {
                     res.push(EdgeIoCoord::W(row, TileIobId::from_idx(iob)));
                 }
@@ -482,22 +476,22 @@ impl Chip {
 
     pub fn bel_pcilogicse(&self, edge: DirH) -> BelCoord {
         CellCoord::new(DieId::from_idx(0), self.col_edge(edge), self.row_clk())
-            .bel(bels::PCILOGICSE)
+            .bel(defs::bslots::PCILOGICSE)
     }
 
     pub fn bel_gtp(&self, side: DirHV) -> Option<BelCoord> {
         match (self.gts, side) {
             (Gts::Single(col) | Gts::Double(col, _) | Gts::Quad(col, _), DirHV::NW) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_tio_outer()).bel(bels::GTP))
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_n()).bel(defs::bslots::GTP))
             }
             (Gts::Double(_, col) | Gts::Quad(_, col), DirHV::NE) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_tio_outer()).bel(bels::GTP))
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_n()).bel(defs::bslots::GTP))
             }
             (Gts::Quad(col, _), DirHV::SW) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_bio_outer()).bel(bels::GTP))
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_s()).bel(defs::bslots::GTP))
             }
             (Gts::Quad(_, col), DirHV::SE) => {
-                Some(CellCoord::new(DieId::from_idx(0), col, self.row_bio_outer()).bel(bels::GTP))
+                Some(CellCoord::new(DieId::from_idx(0), col, self.row_s()).bel(defs::bslots::GTP))
             }
             _ => None,
         }
@@ -506,7 +500,8 @@ impl Chip {
     pub fn bel_pcie(&self) -> Option<BelCoord> {
         match self.gts {
             Gts::Single(col) | Gts::Double(col, _) | Gts::Quad(col, _) => Some(
-                CellCoord::new(DieId::from_idx(0), col - 2, self.row_top() - 32).bel(bels::PCIE),
+                CellCoord::new(DieId::from_idx(0), col - 2, self.row_n() - 31)
+                    .bel(defs::bslots::PCIE),
             ),
             Gts::None => None,
         }
@@ -527,17 +522,17 @@ impl Chip {
                 ColumnKind::Dsp => write!(o, "dsp")?,
                 ColumnKind::DspPlus => write!(o, "dsp_gt")?,
             }
-            match cd.bio {
+            match cd.io_s {
                 ColumnIoKind::None => (),
-                ColumnIoKind::Inner => write!(o, " + bio_inner")?,
-                ColumnIoKind::Outer => write!(o, " + bio_outer")?,
-                ColumnIoKind::Both => write!(o, " + bio")?,
+                ColumnIoKind::Inner => write!(o, " + io_s_inner")?,
+                ColumnIoKind::Outer => write!(o, " + io_s_outer")?,
+                ColumnIoKind::Both => write!(o, " + io_s")?,
             }
-            match cd.tio {
+            match cd.io_n {
                 ColumnIoKind::None => (),
-                ColumnIoKind::Inner => write!(o, " + tio_inner")?,
-                ColumnIoKind::Outer => write!(o, " + tio_outer")?,
-                ColumnIoKind::Both => write!(o, " + tio")?,
+                ColumnIoKind::Inner => write!(o, " + io_n_inner")?,
+                ColumnIoKind::Outer => write!(o, " + io_n_outer")?,
+                ColumnIoKind::Both => write!(o, " + io_n")?,
             }
             write!(o, ", // {col}")?;
             if let Some((cl, cr)) = self.cols_clk_fold
@@ -593,10 +588,10 @@ impl Chip {
                 writeln!(o, "\t\t// MCB split")?;
             }
             write!(o, "\t\t")?;
-            match (rd.lio, rd.rio) {
-                (true, true) => write!(o, "lio + rio")?,
-                (true, false) => write!(o, "lio")?,
-                (false, true) => write!(o, "rio")?,
+            match (rd.io_w, rd.io_e) {
+                (true, true) => write!(o, "io_w + io_e")?,
+                (true, false) => write!(o, "io_w")?,
+                (false, true) => write!(o, "io_e")?,
                 (false, false) => write!(o, "null")?,
             }
             write!(o, ", // {row}")?;

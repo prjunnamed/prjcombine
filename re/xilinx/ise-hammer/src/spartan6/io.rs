@@ -10,7 +10,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
-use prjcombine_spartan6::{bels, tslots};
+use prjcombine_spartan6::defs;
 use prjcombine_types::{
     bits,
     bitvec::BitVec,
@@ -32,7 +32,7 @@ use crate::{
     },
 };
 
-const IOSTDS_LR: &[Iostd] = &[
+const IOSTDS_WE: &[Iostd] = &[
     Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
     Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
     Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16", "24"]),
@@ -94,7 +94,7 @@ const IOSTDS_LR: &[Iostd] = &[
     Iostd::true_diff_input("TMDS_33", 3300),
 ];
 
-const IOSTDS_BT: &[Iostd] = &[
+const IOSTDS_SN: &[Iostd] = &[
     Iostd::cmos("LVTTL", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
     Iostd::cmos("LVCMOS33", 3300, &["2", "4", "6", "8", "12", "16", "24"]),
     Iostd::cmos("LVCMOS25", 2500, &["2", "4", "6", "8", "12", "16"]),
@@ -182,11 +182,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllMcbIoi {
             }
             if let Some(ntcrd) = backend
                 .edev
-                .find_tile_by_class(tcrd.with_row(row), |kind| kind == "IOI.LR")
+                .find_tile_by_class(tcrd.with_row(row), |kind| kind == "IOI_WE")
             {
                 fuzzer.info.features.push(FuzzerFeature {
                     key: DiffKey::Legacy(FeatureId {
-                        tile: "IOI.LR".to_string(),
+                        tile: "IOI_WE".to_string(),
                         bel: self.0.into(),
                         attr: self.1.into(),
                         val: self.2.into(),
@@ -332,13 +332,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bdata.pins.len()
         })
         .unwrap();
-    for tile in ["IOI.LR", "IOI.BT"] {
+    for tile in ["IOI_WE", "IOI_SN"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::ILOGIC[i]);
-            let bel_other = bels::ILOGIC[i ^ 1];
-            let bel_ologic = bels::OLOGIC[i];
-            let bel_ioiclk = bels::IOICLK[i];
+            let mut bctx = ctx.bel(defs::bslots::ILOGIC[i]);
+            let bel_other = defs::bslots::ILOGIC[i ^ 1];
+            let bel_ologic = defs::bslots::OLOGIC[i];
+            let bel_ioiclk = defs::bslots::IOICLK[i];
             for mode in ["ILOGIC2", "ISERDES2"] {
                 bctx.build()
                     .tile_mutex("CLK", "TEST_LOGIC")
@@ -462,10 +462,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::OLOGIC[i]);
-            let bel_iodelay = bels::IODELAY[i];
-            let bel_ioiclk = bels::IOICLK[i];
-            let bel_ioi = bels::IOI;
+            let mut bctx = ctx.bel(defs::bslots::OLOGIC[i]);
+            let bel_iodelay = defs::bslots::IODELAY[i];
+            let bel_ioiclk = defs::bslots::IOICLK[i];
+            let bel_ioi = defs::bslots::IOI;
             for mode in ["OLOGIC2", "OSERDES2"] {
                 bctx.build()
                     .has_related(Delta::new(0, 0, "IOB"))
@@ -655,11 +655,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::IODELAY[i]);
-            let bel_other = bels::IODELAY[i ^ 1];
-            let bel_ilogic = bels::ILOGIC[i];
-            let bel_ologic = bels::OLOGIC[i];
-            let bel_ioiclk = bels::IOICLK[i];
+            let mut bctx = ctx.bel(defs::bslots::IODELAY[i]);
+            let bel_other = defs::bslots::IODELAY[i ^ 1];
+            let bel_ilogic = defs::bslots::ILOGIC[i];
+            let bel_ologic = defs::bslots::OLOGIC[i];
+            let bel_ioiclk = defs::bslots::IOICLK[i];
             for mode in ["IODELAY2", "IODRP2", "IODRP2_MCB"] {
                 bctx.build()
                     .has_related(Delta::new(0, 0, "IOB"))
@@ -806,10 +806,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum("DELAYCHAIN_OSC", &["FALSE", "TRUE"]);
         }
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::IOICLK[i]);
-            let bel_ilogic = bels::ILOGIC[i];
-            let bel_ologic = bels::OLOGIC[i];
-            let bel_ioi = bels::IOI;
+            let mut bctx = ctx.bel(defs::bslots::IOICLK[i]);
+            let bel_ilogic = defs::bslots::ILOGIC[i];
+            let bel_ologic = defs::bslots::OLOGIC[i];
+            let bel_ioi = defs::bslots::IOI;
             for (j, pin) in [(0, "CKINT0"), (0, "CKINT1"), (1, "CKINT0"), (1, "CKINT1")] {
                 bctx.build()
                     .has_related(Delta::new(0, 0, "IOB"))
@@ -960,9 +960,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
             }
         }
-        let mut bctx = ctx.bel(bels::IOI);
-        if tile == "IOI.BT" {
-            let bel_iodelay = bels::IODELAY[0];
+        let mut bctx = ctx.bel(defs::bslots::IOI);
+        if tile == "IOI_SN" {
+            let bel_iodelay = defs::bslots::IODELAY[0];
             bctx.build()
                 .has_related(Delta::new(0, 0, "IOB"))
                 .global_mutex("MCB", "NONE")
@@ -993,7 +993,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "MCB") {
-        let mut bctx = ctx.bel(bels::MCB);
+        let mut bctx = ctx.bel(defs::bslots::MCB);
         bctx.build()
             .null_bits()
             .prop(AllMcbIoi("IOI", "DRPSDO", "1"))
@@ -1027,9 +1027,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     let mut ctx = FuzzCtx::new(session, backend, "IOB");
     for i in 0..2 {
-        let bel = bels::IOB[i];
+        let bel = defs::bslots::IOB[i];
         let mut bctx = ctx.bel(bel);
-        let bel_other = bels::IOB[i ^ 1];
+        let bel_other = defs::bslots::IOB[i ^ 1];
         bctx.build()
             .global_mutex("IOB", "SHARED")
             .global_mutex("VREF", "NO")
@@ -1041,10 +1041,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .global_mutex("IOB", "SHARED")
                 .global_mutex("VREF", "YES")
-                .global_mutex("VCCO.LR", "1800")
-                .global_mutex("VREF.LR", "1800")
-                .global_mutex("VCCO.BT", "1800")
-                .global_mutex("VREF.BT", "1800")
+                .global_mutex("VCCO.WE", "1800")
+                .global_mutex("VREF.WE", "1800")
+                .global_mutex("VCCO.SN", "1800")
+                .global_mutex("VREF.SN", "1800")
                 .raw(Key::Package, package.name.clone())
                 .prop(IsVref(bel))
                 .bel_mode(bel_other, "IOB")
@@ -1111,30 +1111,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pin("O")
             .commit();
 
-        let cnr_ll = CellCoord::new(
-            DieId::from_idx(0),
-            edev.chip.col_w(),
-            edev.chip.row_bio_outer(),
-        )
-        .tile(tslots::BEL);
-        let cnr_ul = CellCoord::new(
-            DieId::from_idx(0),
-            edev.chip.col_w(),
-            edev.chip.row_tio_outer(),
-        )
-        .tile(tslots::BEL);
-        let cnr_lr = CellCoord::new(
-            DieId::from_idx(0),
-            edev.chip.col_e(),
-            edev.chip.row_bio_outer(),
-        )
-        .tile(tslots::BEL);
+        let cnr_ll = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_s())
+            .tile(defs::tslots::BEL);
+        let cnr_ul = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
+            .tile(defs::tslots::BEL);
+        let cnr_lr = CellCoord::new(DieId::from_idx(0), edev.chip.col_e(), edev.chip.row_s())
+            .tile(defs::tslots::BEL);
         let cnr_ur = CellCoord::new(
             DieId::from_idx(0),
             edev.chip.col_e(),
-            edev.chip.row_tio_inner(),
+            edev.chip.row_n_inner(),
         )
-        .tile(tslots::BEL);
+        .tile(defs::tslots::BEL);
 
         bctx.build()
             .global("GLUTMASK", "YES")
@@ -1177,7 +1165,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .attr("OUSED", "0")
                 .attr("OSTANDARD", "SSTL2_I")
                 .extra_tile_attr_fixed(banks[bank], format!("OCT_CAL{bank}"), "INTERNAL_VREF", "1")
-                .test_manual("ISTD", "SSTL2_I:3.3:LR")
+                .test_manual("ISTD", "SSTL2_I:3.3:WE")
                 .pin("I")
                 .attr("IMUX", "I")
                 .attr("BYPASS_MUX", "I")
@@ -1190,8 +1178,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
 
-        for (kind, ioi, iostds) in [("LR", "IOI.LR", IOSTDS_LR), ("BT", "IOI.BT", IOSTDS_BT)] {
-            let bel_ologic = bels::OLOGIC[i];
+        for (kind, ioi, iostds) in [("WE", "IOI_WE", IOSTDS_WE), ("SN", "IOI_SN", IOSTDS_SN)] {
+            let bel_ologic = defs::bslots::OLOGIC[i];
             for vccaux in ["2.5", "3.3"] {
                 for std in iostds {
                     if matches!(std.name, "PCI33_3" | "PCI66_3" | "TMDS_33" | "LVPECL_33")
@@ -1275,7 +1263,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     ))
                                     .extra_tile_attr(
                                         Delta::new(0, 0, ioi),
-                                        format!("OLOGIC{i}"),
+                                        format!("OLOGIC[{i}]"),
                                         "IN_TERM",
                                         "1",
                                     )
@@ -1335,7 +1323,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 ))
                                 .extra_tile_attr(
                                     Delta::new(0, 0, ioi),
-                                    format!("OLOGIC{i}"),
+                                    format!("OLOGIC[{i}]"),
                                     "IN_TERM",
                                     "1",
                                 )
@@ -1389,7 +1377,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     ))
                                     .extra_tile_attr(
                                         Delta::new(0, 0, ioi),
-                                        format!("OLOGIC{i}"),
+                                        format!("OLOGIC[{i}]"),
                                         "IN_TERM",
                                         "1",
                                     )
@@ -1417,9 +1405,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         None => "3300".to_string(),
                     };
                     if std.diff == DiffKind::True {
-                        for (dir, corner, corner_name, dx) in
-                            [(DirV::S, cnr_ll, "LL", 1), (DirV::N, cnr_ul, "UL", -1)]
-                        {
+                        for (dir, corner, corner_name, dx) in [
+                            (DirV::S, cnr_ll, "CNR_SW", 1),
+                            (DirV::N, cnr_ul, "CNR_NW", -1),
+                        ] {
                             bctx.build()
                                 .global_mutex("IOB", "SHARED")
                                 .global_mutex_here(format!("IOB_DIFF_{corner_name}"))
@@ -1606,9 +1595,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Spartan6(edev) = ctx.edev else {
         unreachable!()
     };
-    for tile in ["IOI.LR", "IOI.BT"] {
+    for tile in ["IOI_WE", "IOI_SN"] {
         for i in 0..2 {
-            let bel = &format!("ILOGIC{i}");
+            let bel = &format!("ILOGIC[{i}]");
             ctx.state
                 .get_diff(tile, bel, "MODE", "ILOGIC2")
                 .assert_empty();
@@ -1857,7 +1846,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb.insert(tile, bel, "DDR", xlat_bit(diff_ddr));
         }
         for i in 0..2 {
-            let bel = &format!("OLOGIC{i}");
+            let bel = &format!("OLOGIC[{i}]");
             ctx.state
                 .get_diff(tile, bel, "MODE", "OLOGIC2")
                 .assert_empty();
@@ -2072,18 +2061,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let (_, _, diff) = Diff::split(
             ctx.state
-                .peek_diff(tile, "IODELAY0", "MODE", "IODRP2")
+                .peek_diff(tile, "IODELAY[0]", "MODE", "IODRP2")
                 .clone(),
             ctx.state
-                .peek_diff(tile, "IODELAY1", "MODE", "IODRP2")
+                .peek_diff(tile, "IODELAY[1]", "MODE", "IODRP2")
                 .clone(),
         );
         let (_, _, diff_mcb) = Diff::split(
             ctx.state
-                .peek_diff(tile, "IODELAY0", "MODE", "IODRP2_MCB")
+                .peek_diff(tile, "IODELAY[0]", "MODE", "IODRP2_MCB")
                 .clone(),
             ctx.state
-                .peek_diff(tile, "IODELAY1", "MODE", "IODRP2_MCB")
+                .peek_diff(tile, "IODELAY[1]", "MODE", "IODRP2_MCB")
                 .clone(),
         );
         let diff_mcb = diff_mcb.combine(&!&diff);
@@ -2093,7 +2082,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .insert(tile, "IODELAY_COMMON", "DRP_FROM_MCB", xlat_bit(diff_mcb));
 
         for i in 0..2 {
-            let bel = &format!("IODELAY{i}");
+            let bel = &format!("IODELAY[{i}]");
             let diffs = ctx.state.get_diffs(tile, bel, "ODELAY_VALUE", "");
             let mut diffs_p = vec![];
             let mut diffs_n = vec![];
@@ -2335,27 +2324,27 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         {
             let mut diff0 =
                 ctx.state
-                    .get_diff(tile, "IODELAY0", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
+                    .get_diff(tile, "IODELAY[0]", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
             let mut diff1 =
                 ctx.state
-                    .get_diff(tile, "IODELAY1", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
+                    .get_diff(tile, "IODELAY[1]", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
             diff0.apply_bit_diff(
-                ctx.tiledb.item(tile, "IODELAY0", "DIFF_PHASE_DETECTOR"),
+                ctx.tiledb.item(tile, "IODELAY[0]", "DIFF_PHASE_DETECTOR"),
                 true,
                 false,
             );
             diff1.apply_bit_diff(
-                ctx.tiledb.item(tile, "IODELAY1", "DIFF_PHASE_DETECTOR"),
+                ctx.tiledb.item(tile, "IODELAY[1]", "DIFF_PHASE_DETECTOR"),
                 true,
                 false,
             );
             diff0.apply_bit_diff(
-                ctx.tiledb.item(tile, "IODELAY1", "IDELAY_FROM_HALF_MAX"),
+                ctx.tiledb.item(tile, "IODELAY[1]", "IDELAY_FROM_HALF_MAX"),
                 true,
                 false,
             );
             diff1.apply_bit_diff(
-                ctx.tiledb.item(tile, "IODELAY1", "IDELAY_FROM_HALF_MAX"),
+                ctx.tiledb.item(tile, "IODELAY[1]", "IDELAY_FROM_HALF_MAX"),
                 true,
                 false,
             );
@@ -2373,7 +2362,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
         for i in 0..2 {
-            let bel = &format!("IOICLK{i}");
+            let bel = &format!("IOICLK[{i}]");
             ctx.collect_bit(tile, bel, "INV.CLK0", "1");
             ctx.collect_bit(tile, bel, "INV.CLK1", "1");
             ctx.collect_bit(tile, bel, "INV.CLK2", "1");
@@ -2511,7 +2500,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
         let bel = "IOI";
-        if tile == "IOI.BT" || ctx.has_tile("MCB") {
+        if tile == "IOI_SN" || ctx.has_tile("MCB") {
             let mut diff = ctx.state.get_diff(tile, bel, "DRPSDO", "1");
             let diff_de = ctx
                 .state
@@ -2542,7 +2531,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for i in 0..2 {
         let tile = "IOB";
-        let bel = &format!("IOB{i}");
+        let bel = &format!("IOB[{i}]");
         ctx.collect_bit(tile, bel, "OUTPUT_ENABLE", "0");
         ctx.collect_enum_default(
             tile,
@@ -2674,18 +2663,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         let (_, _, diff) = Diff::split(
             ctx.state
-                .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:BT")
+                .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:SN")
                 .clone(),
             ctx.state
-                .peek_diff(tile, bel, "OSTD", "PCI33_3:3.3:BT")
+                .peek_diff(tile, bel, "OSTD", "PCI33_3:3.3:SN")
                 .clone(),
         );
         ctx.tiledb.insert(tile, bel, "PCI_CLAMP", xlat_bit(diff));
 
         let mut diff = ctx
             .state
-            .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:BT")
-            .combine(&!ctx.state.peek_diff(tile, bel, "ISTD", "MOBILE_DDR:3.3:BT"));
+            .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:SN")
+            .combine(&!ctx.state.peek_diff(tile, bel, "ISTD", "MOBILE_DDR:3.3:SN"));
         diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PCI_CLAMP"), true, false);
         ctx.tiledb.insert(tile, bel, "PCI_INPUT", xlat_bit(diff));
 
@@ -2699,31 +2688,31 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             (
                 "CMOS_VCCINT",
                 ctx.state
-                    .peek_diff(tile, bel, "ISTD", "LVCMOS12:3.3:BT")
+                    .peek_diff(tile, bel, "ISTD", "LVCMOS12:3.3:SN")
                     .clone(),
             ),
             (
                 "CMOS_VCCO",
                 ctx.state
-                    .peek_diff(tile, bel, "ISTD", "LVCMOS12_JEDEC:3.3:BT")
+                    .peek_diff(tile, bel, "ISTD", "LVCMOS12_JEDEC:3.3:SN")
                     .clone(),
             ),
             (
                 "VREF",
                 ctx.state
-                    .peek_diff(tile, bel, "ISTD", "SSTL18_I:3.3:BT")
+                    .peek_diff(tile, bel, "ISTD", "SSTL18_I:3.3:SN")
                     .clone(),
             ),
             (
                 "DIFF",
                 ctx.state
-                    .peek_diff(tile, bel, "ISTD", "DIFF_SSTL18_I:3.3:BT")
+                    .peek_diff(tile, bel, "ISTD", "DIFF_SSTL18_I:3.3:SN")
                     .clone(),
             ),
             (
                 "CMOS_VCCAUX",
                 ctx.state
-                    .peek_diff(tile, bel, "ISTD", "LVTTL:3.3:BT")
+                    .peek_diff(tile, bel, "ISTD", "LVTTL:3.3:SN")
                     .clone(),
             ),
         ]);
@@ -2788,7 +2777,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb.insert(tile, bel, "DIFF_TERM", xlat_bit(diff));
         }
 
-        for (kind, iostds) in [("LR", IOSTDS_LR), ("BT", IOSTDS_BT)] {
+        for (kind, iostds) in [("WE", IOSTDS_WE), ("SN", IOSTDS_SN)] {
             for vccaux in ["2.5", "3.3"] {
                 for std in iostds {
                     if matches!(std.name, "PCI33_3" | "PCI66_3" | "TMDS_33" | "LVPECL_33")
@@ -2876,7 +2865,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
             }
         }
-        for (kind, iostds) in [("LR", IOSTDS_LR), ("BT", IOSTDS_BT)] {
+        for (kind, iostds) in [("WE", IOSTDS_WE), ("SN", IOSTDS_SN)] {
             for vccaux in ["2.5", "3.3"] {
                 for std in iostds {
                     let stdname = if std.name == "DIFF_MOBILE_DDR" {
@@ -3098,7 +3087,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     {
-        let tile = "LL";
+        let tile = "CNR_SW";
         let bel = "BANK";
         ctx.tiledb.insert(
             tile,
@@ -3120,12 +3109,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
     {
-        let tile = "LR";
+        let tile = "CNR_SE";
         let bel = "MISC";
         ctx.collect_bit(tile, bel, "GLUTMASK_IOB", "1");
     }
     {
-        let tile = "UL";
+        let tile = "CNR_NW";
         let bel = "MISC";
         ctx.collect_bit_wide(tile, bel, "VREF_LV", "1");
         let bel = "BANK";
@@ -3174,9 +3163,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ),
         );
     }
-    for tile in ["LL", "UL"] {
+    for tile in ["CNR_SW", "CNR_NW"] {
         let bel = "BANK";
-        for std in IOSTDS_BT {
+        for std in IOSTDS_SN {
             if std.diff != DiffKind::True {
                 continue;
             }
@@ -3193,12 +3182,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     for (tile, bank, bit_25, bit_75) in [
-        ("LL", 2, TileBit::new(0, 23, 27), TileBit::new(0, 23, 28)),
-        ("LL", 3, TileBit::new(0, 23, 24), TileBit::new(0, 23, 25)),
-        ("UL", 0, TileBit::new(0, 22, 43), TileBit::new(0, 22, 42)),
-        ("UL", 4, TileBit::new(0, 22, 46), TileBit::new(0, 22, 45)),
-        ("LR", 1, TileBit::new(0, 22, 52), TileBit::new(0, 22, 53)),
-        ("UR", 5, TileBit::new(1, 22, 51), TileBit::new(1, 22, 52)),
+        (
+            "CNR_SW",
+            2,
+            TileBit::new(0, 23, 27),
+            TileBit::new(0, 23, 28),
+        ),
+        (
+            "CNR_SW",
+            3,
+            TileBit::new(0, 23, 24),
+            TileBit::new(0, 23, 25),
+        ),
+        (
+            "CNR_NW",
+            0,
+            TileBit::new(0, 22, 43),
+            TileBit::new(0, 22, 42),
+        ),
+        (
+            "CNR_NW",
+            4,
+            TileBit::new(0, 22, 46),
+            TileBit::new(0, 22, 45),
+        ),
+        (
+            "CNR_SE",
+            1,
+            TileBit::new(0, 22, 52),
+            TileBit::new(0, 22, 53),
+        ),
+        (
+            "CNR_NE",
+            5,
+            TileBit::new(1, 22, 51),
+            TileBit::new(1, 22, 52),
+        ),
     ] {
         let bel = &format!("OCT_CAL{bank}");
         let item = TileItem {

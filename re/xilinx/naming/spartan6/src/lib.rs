@@ -9,10 +9,9 @@ use prjcombine_re_xilinx_naming::{
     grid::{BelGrid, ExpandedGridNaming},
 };
 use prjcombine_spartan6::{
-    bels,
     chip::{Chip, ColumnIoKind, ColumnKind, DcmKind, DisabledPart, Gts, PllKind},
+    defs,
     expanded::ExpandedDevice,
-    tslots,
 };
 
 pub struct ExpandedNamedDevice<'a> {
@@ -53,16 +52,34 @@ impl<'a> ExpandedNamedDevice<'a> {
                 }
             },
             pads_clk: vec![
-                (get_name(bels::IPAD_CLKP0), get_name(bels::IPAD_CLKN0)),
-                (get_name(bels::IPAD_CLKP1), get_name(bels::IPAD_CLKN1)),
+                (
+                    get_name(defs::bslots::IPAD_CLKP[0]),
+                    get_name(defs::bslots::IPAD_CLKN[0]),
+                ),
+                (
+                    get_name(defs::bslots::IPAD_CLKP[1]),
+                    get_name(defs::bslots::IPAD_CLKN[1]),
+                ),
             ],
             pads_tx: vec![
-                (get_name(bels::OPAD_TXP0), get_name(bels::OPAD_TXN0)),
-                (get_name(bels::OPAD_TXP1), get_name(bels::OPAD_TXN1)),
+                (
+                    get_name(defs::bslots::OPAD_TXP[0]),
+                    get_name(defs::bslots::OPAD_TXN[0]),
+                ),
+                (
+                    get_name(defs::bslots::OPAD_TXP[1]),
+                    get_name(defs::bslots::OPAD_TXN[1]),
+                ),
             ],
             pads_rx: vec![
-                (get_name(bels::IPAD_RXP0), get_name(bels::IPAD_RXN0)),
-                (get_name(bels::IPAD_RXP1), get_name(bels::IPAD_RXN1)),
+                (
+                    get_name(defs::bslots::IPAD_RXP[0]),
+                    get_name(defs::bslots::IPAD_RXN[0]),
+                ),
+                (
+                    get_name(defs::bslots::IPAD_RXP[1]),
+                    get_name(defs::bslots::IPAD_RXN[1]),
+                ),
             ],
         }
     }
@@ -74,45 +91,17 @@ impl<'a> ExpandedNamedDevice<'a> {
             match self.chip.gts {
                 Gts::None => vec![],
                 Gts::Single(cl) => {
-                    vec![self.get_gt(CellCoord::new(
-                        DieId::from_idx(0),
-                        cl,
-                        self.chip.row_tio_outer(),
-                    ))]
+                    vec![self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_n()))]
                 }
                 Gts::Double(cl, cr) => vec![
-                    self.get_gt(CellCoord::new(
-                        DieId::from_idx(0),
-                        cl,
-                        self.chip.row_tio_outer(),
-                    )),
-                    self.get_gt(CellCoord::new(
-                        DieId::from_idx(0),
-                        cr,
-                        self.chip.row_tio_outer(),
-                    )),
+                    self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_n())),
+                    self.get_gt(CellCoord::new(DieId::from_idx(0), cr, self.chip.row_n())),
                 ],
                 Gts::Quad(cl, cr) => vec![
-                    self.get_gt(CellCoord::new(
-                        DieId::from_idx(0),
-                        cl,
-                        self.chip.row_tio_outer(),
-                    )),
-                    self.get_gt(CellCoord::new(
-                        DieId::from_idx(0),
-                        cr,
-                        self.chip.row_tio_outer(),
-                    )),
-                    self.get_gt(CellCoord::new(
-                        DieId::from_idx(0),
-                        cl,
-                        self.chip.row_bio_outer(),
-                    )),
-                    self.get_gt(CellCoord::new(
-                        DieId::from_idx(0),
-                        cr,
-                        self.chip.row_bio_outer(),
-                    )),
+                    self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_n())),
+                    self.get_gt(CellCoord::new(DieId::from_idx(0), cr, self.chip.row_n())),
+                    self.get_gt(CellCoord::new(DieId::from_idx(0), cl, self.chip.row_s())),
+                    self.get_gt(CellCoord::new(DieId::from_idx(0), cr, self.chip.row_s())),
                 ],
             }
         }
@@ -165,8 +154,8 @@ impl Namer<'_> {
         for &cd in self.grid.columns.values() {
             self.ioxlut.push(iox);
             if cd.kind == ColumnKind::Io
-                || cd.bio != ColumnIoKind::None
-                || cd.tio != ColumnIoKind::None
+                || cd.io_s != ColumnIoKind::None
+                || cd.io_n != ColumnIoKind::None
             {
                 iox += 1;
             }
@@ -177,12 +166,12 @@ impl Namer<'_> {
         let mut ioy = 0;
         for (row, &rd) in &self.grid.rows {
             self.ioylut.push(ioy);
-            if row == self.grid.row_bio_outer()
-                || row == self.grid.row_bio_inner()
-                || row == self.grid.row_tio_inner()
-                || row == self.grid.row_tio_outer()
-                || rd.lio
-                || rd.rio
+            if row == self.grid.row_s()
+                || row == self.grid.row_s_inner()
+                || row == self.grid.row_n_inner()
+                || row == self.grid.row_n()
+                || rd.io_w
+                || rd.io_e
             {
                 ioy += 1;
             }
@@ -195,8 +184,8 @@ impl Namer<'_> {
             self.tiexlut.push(tie_x);
             tie_x += 1;
             if cd.kind == ColumnKind::Io
-                || cd.tio != ColumnIoKind::None
-                || cd.bio != ColumnIoKind::None
+                || cd.io_n != ColumnIoKind::None
+                || cd.io_s != ColumnIoKind::None
             {
                 tie_x += 1;
             }
@@ -213,26 +202,26 @@ impl Namer<'_> {
             if is_brk { "LIOI_BRK" } else { "LIOI" }
         } else if col == self.grid.col_e() {
             if is_brk { "RIOI_BRK" } else { "RIOI" }
-        } else if row == self.grid.row_bio_outer() {
-            if cd.bio == ColumnIoKind::Inner {
+        } else if row == self.grid.row_s() {
+            if cd.io_s == ColumnIoKind::Inner {
                 "BIOI_OUTER_UNUSED"
             } else {
                 "BIOI_OUTER"
             }
-        } else if row == self.grid.row_bio_inner() {
-            if cd.bio == ColumnIoKind::Outer {
+        } else if row == self.grid.row_s_inner() {
+            if cd.io_s == ColumnIoKind::Outer {
                 "BIOI_INNER_UNUSED"
             } else {
                 "BIOI_INNER"
             }
-        } else if row == self.grid.row_tio_inner() {
-            if cd.tio == ColumnIoKind::Outer {
+        } else if row == self.grid.row_n_inner() {
+            if cd.io_n == ColumnIoKind::Outer {
                 "TIOI_INNER_UNUSED"
             } else {
                 "TIOI_INNER"
             }
-        } else if row == self.grid.row_tio_outer() {
-            if cd.tio == ColumnIoKind::Inner {
+        } else if row == self.grid.row_n() {
+            if cd.io_n == ColumnIoKind::Inner {
                 "TIOI_OUTER_UNUSED"
             } else {
                 "TIOI_OUTER"
@@ -249,7 +238,7 @@ impl Namer<'_> {
         if col == self.grid.col_w() {
             let rx = self.rxlut[col];
             let ry = self.rylut[row];
-            let ltt = if row == self.grid.row_bio_outer() || row == self.grid.row_tio_outer() {
+            let ltt = if row == self.grid.row_s() || row == self.grid.row_n() {
                 "CNR_TL_LTERM"
             } else {
                 "IOI_LTERM"
@@ -266,9 +255,9 @@ impl Namer<'_> {
                 ""
             };
             let name = format!("{ltt}{txtra}_X{rx}Y{ry}", rx = rx - 1);
-            ("TERM.W", name)
+            ("TERM_W", name)
         } else {
-            let name = if row < self.grid.row_bot() + 8 || row >= self.grid.row_top() - 8 {
+            let name = if row < self.grid.row_s() + 8 || row >= self.grid.row_n() - 7 {
                 let ry = self.rylut[row];
                 let rx = if col < self.grid.col_clk {
                     self.rxlut[col] - 1
@@ -281,7 +270,7 @@ impl Namer<'_> {
                 let ry = self.rylut[row];
                 format!("INT_INTERFACE_LTERM_X{rx}Y{ry}")
             };
-            ("TERM.W.INTF", name)
+            ("TERM_W_INTF", name)
         }
     }
 
@@ -289,10 +278,10 @@ impl Namer<'_> {
         if col == self.grid.col_e() {
             let rx = self.rxlut[col];
             let ry = self.rylut[row];
-            let rtt = if row == self.grid.row_bio_outer()
-                || row == self.grid.row_bio_inner()
-                || row == self.grid.row_tio_inner()
-                || row == self.grid.row_tio_outer()
+            let rtt = if row == self.grid.row_s()
+                || row == self.grid.row_s_inner()
+                || row == self.grid.row_n_inner()
+                || row == self.grid.row_n()
             {
                 "CNR_TR_RTERM"
             } else {
@@ -310,9 +299,9 @@ impl Namer<'_> {
                 ""
             };
             let name = format!("{rtt}{txtra}_X{rx}Y{ry}", rx = rx + 3);
-            ("TERM.E", name)
+            ("TERM_E", name)
         } else {
-            let name = if row < self.grid.row_bot() + 8 || row >= self.grid.row_top() - 8 {
+            let name = if row < self.grid.row_s() + 8 || row >= self.grid.row_n() - 7 {
                 let ry = self.rylut[row];
                 let rx = if col < self.grid.col_clk {
                     self.rxlut[col] + 6
@@ -325,12 +314,12 @@ impl Namer<'_> {
                 let ry = self.rylut[row];
                 format!("INT_INTERFACE_RTERM_X{rx}Y{ry}")
             };
-            ("TERM.E.INTF", name)
+            ("TERM_E_INTF", name)
         }
     }
 
     fn get_ioi_bterm_name(&self, col: ColId) -> String {
-        let row = self.grid.row_bio_outer();
+        let row = self.grid.row_s();
         let rx = self.rxlut[col] + 1;
         let ry = self.rylut[row] - 1;
         if col == self.grid.col_clk || col == self.grid.col_clk + 1 {
@@ -341,7 +330,7 @@ impl Namer<'_> {
     }
 
     fn get_ioi_tterm_name(&self, col: ColId) -> String {
-        let row = self.grid.row_tio_outer();
+        let row = self.grid.row_n();
         let rx = self.rxlut[col] + 1;
         let ry = self.rylut[row] + 1;
         if col == self.grid.col_clk || col == self.grid.col_clk + 1 {
@@ -407,8 +396,8 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let cell = tcrd.cell;
         let CellCoord { col, row, .. } = cell;
         let kind = edev.db.tile_classes.key(tile.class);
-        match &kind[..] {
-            "INT" => {
+        match tile.class {
+            defs::tcls::INT => {
                 let cd = grid.columns[col];
                 let x = col.to_idx();
                 let y = row.to_idx();
@@ -430,12 +419,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ""
                 };
                 let name = format!("INT{bram}_X{x}Y{y}");
-                let mut naming = if is_brk { "INT.BRK" } else { "INT" };
+                let mut naming = if is_brk { "INT_BRK" } else { "INT" };
                 for &hole in &edev.site_holes {
                     if hole.contains(cell) && col == hole.col_e - 1 && hole.col_w != hole.col_e - 1
                     {
                         let is_brk = y.is_multiple_of(16) && y != 0;
-                        naming = if is_brk { "INT.TERM.BRK" } else { "INT.TERM" };
+                        naming = if is_brk { "INT_TERM_BRK" } else { "INT_TERM" };
                     }
                 }
                 let ntile = namer.ngrid.name_tile(tcrd, naming, [name]);
@@ -443,7 +432,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let tie_y = y * 2;
                 ntile.tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
             }
-            "INT.IOI" => {
+            defs::tcls::INT_IOI => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let is_brk = y.is_multiple_of(16) && row != grid.row_clk() && y != 0;
@@ -454,42 +443,42 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 } else {
                     format!("IOI_INT_X{x}Y{y}")
                 };
-                let naming = if is_brk { "INT.IOI.BRK" } else { "INT.IOI" };
+                let naming = if is_brk { "INT_IOI_BRK" } else { "INT_IOI" };
                 let ntile = namer.ngrid.name_tile(tcrd, naming, [name]);
                 let tie_x = namer.tiexlut[col];
                 let tie_y = y * 2;
                 ntile.tie_name = Some(format!("TIEOFF_X{tie_x}Y{tie_y}"));
             }
-            "INTF" => {
+            defs::tcls::INTF => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let mut name = format!("INT_INTERFACE_X{x}Y{y}");
                 let mut naming = "INTF";
                 if col == grid.col_w() {
-                    if row == grid.row_bio_outer() {
+                    if row == grid.row_s() {
                         name = format!("LL_X{x}Y{y}");
-                        naming = "INTF.CNR";
-                    } else if row == grid.row_tio_outer() {
+                        naming = "INTF_CNR";
+                    } else if row == grid.row_n() {
                         name = format!("UL_X{x}Y{y}");
-                        naming = "INTF.CNR";
+                        naming = "INTF_CNR";
                     } else {
                         let is_brk = y.is_multiple_of(16) && row != grid.row_clk();
                         let carry = if is_brk { "_CARRY" } else { "" };
                         name = format!("INT_INTERFACE{carry}_X{x}Y{y}");
                     }
                 } else if col == grid.col_e() {
-                    if row == grid.row_bio_outer() {
+                    if row == grid.row_s() {
                         name = format!("LR_LOWER_X{x}Y{y}");
-                        naming = "INTF.CNR";
-                    } else if row == grid.row_bio_inner() {
+                        naming = "INTF_CNR";
+                    } else if row == grid.row_s_inner() {
                         name = format!("LR_UPPER_X{x}Y{y}");
-                        naming = "INTF.CNR";
-                    } else if row == grid.row_tio_inner() {
+                        naming = "INTF_CNR";
+                    } else if row == grid.row_n_inner() {
                         name = format!("UR_LOWER_X{x}Y{y}");
-                        naming = "INTF.CNR";
-                    } else if row == grid.row_tio_outer() {
+                        naming = "INTF_CNR";
+                    } else if row == grid.row_n() {
                         name = format!("UR_UPPER_X{x}Y{y}");
-                        naming = "INTF.CNR";
+                        naming = "INTF_CNR";
                     } else {
                         let is_brk = y.is_multiple_of(16) && row != grid.row_clk();
                         let carry = if is_brk { "_CARRY" } else { "" };
@@ -497,7 +486,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     }
                 } else if col == grid.col_clk && row == grid.row_clk() {
                     name = format!("INT_INTERFACE_REGC_X{x}Y{y}");
-                    naming = "INTF.REGC";
+                    naming = "INTF_REGC";
                 }
                 for &hole in &edev.site_holes {
                     if hole.contains(cell) && hole.col_w != hole.col_e - 1 {
@@ -505,36 +494,36 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         if col == hole.col_w {
                             let rx = namer.rxlut[col] + 1;
                             name = format!("INT_INTERFACE_RTERM_X{rx}Y{ry}");
-                            naming = "INTF.RTERM";
+                            naming = "INTF_RTERM";
                         } else if col == hole.col_e - 1 {
                             let rx = namer.rxlut[col] - 1;
                             name = format!("INT_INTERFACE_LTERM_X{rx}Y{ry}");
-                            naming = "INTF.LTERM";
+                            naming = "INTF_LTERM";
                         }
                     }
                 }
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "INTF.IOI" => {
+            defs::tcls::INTF_IOI => {
                 let (_, name) = namer.get_ioi_name(col, row);
-                let naming = "INTF.IOI";
+                let naming = "INTF_IOI";
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "INTF.CMT" => {
+            defs::tcls::INTF_CMT => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("INT_INTERFACE_CARRY_X{x}Y{y}");
                 let naming = "INTF";
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "INTF.CMT.IOI" => {
+            defs::tcls::INTF_CMT_IOI => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let name = format!("INT_INTERFACE_IOI_X{x}Y{y}");
                 let naming = "INTF";
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "CLEXL" | "CLEXM" => {
+            defs::tcls::CLEXL | defs::tcls::CLEXM => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let ntile = namer
@@ -542,10 +531,13 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, kind, [format!("{kind}_X{x}Y{y}")]);
                 let sx = namer.slice_grid.xlut[col] * 2;
                 let sy = namer.slice_grid.ylut[row];
-                ntile.add_bel(bels::SLICE0, format!("SLICE_X{sx}Y{sy}"));
-                ntile.add_bel(bels::SLICE1, format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1));
+                ntile.add_bel(defs::bslots::SLICE[0], format!("SLICE_X{sx}Y{sy}"));
+                ntile.add_bel(
+                    defs::bslots::SLICE[1],
+                    format!("SLICE_X{sx1}Y{sy}", sx1 = sx + 1),
+                );
             }
-            "BRAM" => {
+            defs::tcls::BRAM => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let ntile = namer
@@ -553,11 +545,14 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, "BRAM", [format!("BRAMSITE2_X{x}Y{y}")]);
                 let bx = namer.bram_grid.xlut[col];
                 let by = namer.bram_grid.ylut[row] * 2;
-                ntile.add_bel(bels::BRAM_F, format!("RAMB16_X{bx}Y{by}"));
-                ntile.add_bel(bels::BRAM_H0, format!("RAMB8_X{bx}Y{by}"));
-                ntile.add_bel(bels::BRAM_H1, format!("RAMB8_X{bx}Y{by}", by = by + 1));
+                ntile.add_bel(defs::bslots::BRAM_F, format!("RAMB16_X{bx}Y{by}"));
+                ntile.add_bel(defs::bslots::BRAM_H[0], format!("RAMB8_X{bx}Y{by}"));
+                ntile.add_bel(
+                    defs::bslots::BRAM_H[1],
+                    format!("RAMB8_X{bx}Y{by}", by = by + 1),
+                );
             }
-            "DSP" => {
+            defs::tcls::DSP => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let ntile = namer
@@ -565,35 +560,50 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, "DSP", [format!("MACCSITE2_X{x}Y{y}")]);
                 let dx = namer.dsp_grid.xlut[col];
                 let dy = namer.dsp_grid.ylut[row];
-                ntile.add_bel(bels::DSP, format!("DSP48_X{dx}Y{dy}"));
+                ntile.add_bel(defs::bslots::DSP, format!("DSP48_X{dx}Y{dy}"));
             }
-            "PCIE" => {
+            defs::tcls::PCIE => {
                 let x = col.to_idx() + 2;
                 let y = row.to_idx() - 1;
                 let ntile = namer
                     .ngrid
                     .name_tile(tcrd, "PCIE", [format!("PCIE_TOP_X{x}Y{y}")]);
-                ntile.add_bel(bels::PCIE, "PCIE_X0Y0".to_string());
+                ntile.add_bel(defs::bslots::PCIE, "PCIE_X0Y0".to_string());
             }
-            "IOI.LR" | "IOI.BT" => {
+            defs::tcls::IOI_WE | defs::tcls::IOI_SN => {
                 let (naming, name) = namer.get_ioi_name(col, row);
                 let ntile = namer.ngrid.name_tile(tcrd, naming, [name]);
                 let iox = namer.ioxlut[col];
                 let ioy = namer.ioylut[row];
                 let tiex = namer.tiexlut[col] + 1;
                 let tiey = row.to_idx() * 2;
-                ntile.add_bel(bels::ILOGIC0, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2));
-                ntile.add_bel(bels::ILOGIC1, format!("ILOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
-                ntile.add_bel(bels::OLOGIC0, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2));
-                ntile.add_bel(bels::OLOGIC1, format!("OLOGIC_X{iox}Y{y}", y = ioy * 2 + 1));
-                ntile.add_bel(bels::IODELAY0, format!("IODELAY_X{iox}Y{y}", y = ioy * 2));
                 ntile.add_bel(
-                    bels::IODELAY1,
+                    defs::bslots::ILOGIC[0],
+                    format!("ILOGIC_X{iox}Y{y}", y = ioy * 2),
+                );
+                ntile.add_bel(
+                    defs::bslots::ILOGIC[1],
+                    format!("ILOGIC_X{iox}Y{y}", y = ioy * 2 + 1),
+                );
+                ntile.add_bel(
+                    defs::bslots::OLOGIC[0],
+                    format!("OLOGIC_X{iox}Y{y}", y = ioy * 2),
+                );
+                ntile.add_bel(
+                    defs::bslots::OLOGIC[1],
+                    format!("OLOGIC_X{iox}Y{y}", y = ioy * 2 + 1),
+                );
+                ntile.add_bel(
+                    defs::bslots::IODELAY[0],
+                    format!("IODELAY_X{iox}Y{y}", y = ioy * 2),
+                );
+                ntile.add_bel(
+                    defs::bslots::IODELAY[1],
                     format!("IODELAY_X{iox}Y{y}", y = ioy * 2 + 1),
                 );
-                ntile.add_bel(bels::TIEOFF_IOI, format!("TIEOFF_X{tiex}Y{tiey}"));
+                ntile.add_bel(defs::bslots::TIEOFF_IOI, format!("TIEOFF_X{tiex}Y{tiey}"));
             }
-            "IOB" => {
+            defs::tcls::IOB => {
                 let cd = grid.columns[col];
                 let (naming, kind) = if col == grid.col_w() {
                     if row == grid.row_clk() - 1 {
@@ -611,37 +621,37 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     } else {
                         ("RIOB", "RIOB")
                     }
-                } else if row == grid.row_bio_outer() {
+                } else if row == grid.row_s() {
                     (
                         "BIOB_OUTER",
-                        if cd.bio == ColumnIoKind::Outer {
+                        if cd.io_s == ColumnIoKind::Outer {
                             "BIOB_SINGLE_ALT"
                         } else {
                             "BIOB"
                         },
                     )
-                } else if row == grid.row_bio_inner() {
+                } else if row == grid.row_s_inner() {
                     (
                         "BIOB_INNER",
-                        if cd.bio == ColumnIoKind::Inner {
+                        if cd.io_s == ColumnIoKind::Inner {
                             "BIOB_SINGLE"
                         } else {
                             "BIOB"
                         },
                     )
-                } else if row == grid.row_tio_inner() {
+                } else if row == grid.row_n_inner() {
                     (
                         "TIOB_INNER",
-                        if cd.tio == ColumnIoKind::Inner {
+                        if cd.io_n == ColumnIoKind::Inner {
                             unreachable!()
                         } else {
                             "TIOB"
                         },
                     )
-                } else if row == grid.row_tio_outer() {
+                } else if row == grid.row_n() {
                     (
                         "TIOB_OUTER",
-                        if cd.tio == ColumnIoKind::Outer {
+                        if cd.io_n == ColumnIoKind::Outer {
                             "TIOB_SINGLE"
                         } else {
                             "TIOB"
@@ -653,7 +663,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let x = col.to_idx();
                 let mut y = row.to_idx();
                 if kind.starts_with('T') {
-                    y = grid.row_tio_outer().to_idx();
+                    y = grid.row_n().to_idx();
                 }
                 if kind.starts_with('B') {
                     y = 0;
@@ -661,7 +671,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let name = format!("{kind}_X{x}Y{y}");
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "CMT_DCM" => {
+            defs::tcls::CMT_DCM => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let (dy, (_, kind)) = grid
@@ -678,26 +688,26 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 let name = format!("{naming}_X{x}Y{y}");
                 let ntile = namer.ngrid.name_tile(tcrd, naming, [name]);
-                ntile.add_bel(bels::DCM0, format!("DCM_X0Y{y}", y = dy * 2));
-                ntile.add_bel(bels::DCM1, format!("DCM_X0Y{y}", y = dy * 2 + 1));
+                ntile.add_bel(defs::bslots::DCM[0], format!("DCM_X0Y{y}", y = dy * 2));
+                ntile.add_bel(defs::bslots::DCM[1], format!("DCM_X0Y{y}", y = dy * 2 + 1));
             }
-            "DCM_BUFPLL_BUF_S"
-            | "DCM_BUFPLL_BUF_S_MID"
-            | "DCM_BUFPLL_BUF_N"
-            | "DCM_BUFPLL_BUF_N_MID" => {
+            defs::tcls::DCM_BUFPLL_BUF_S
+            | defs::tcls::DCM_BUFPLL_BUF_S_MID
+            | defs::tcls::DCM_BUFPLL_BUF_N
+            | defs::tcls::DCM_BUFPLL_BUF_N_MID => {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let naming = match &kind[..] {
-                    "DCM_BUFPLL_BUF_S" => "CMT_DCM_BOT",
-                    "DCM_BUFPLL_BUF_S_MID" => "CMT_DCM2_BOT",
-                    "DCM_BUFPLL_BUF_N" => "CMT_DCM_TOP",
-                    "DCM_BUFPLL_BUF_N_MID" => "CMT_DCM2_TOP",
+                let naming = match tile.class {
+                    defs::tcls::DCM_BUFPLL_BUF_S => "CMT_DCM_BOT",
+                    defs::tcls::DCM_BUFPLL_BUF_S_MID => "CMT_DCM2_BOT",
+                    defs::tcls::DCM_BUFPLL_BUF_N => "CMT_DCM_TOP",
+                    defs::tcls::DCM_BUFPLL_BUF_N_MID => "CMT_DCM2_TOP",
                     _ => unreachable!(),
                 };
                 let name = format!("{naming}_X{x}Y{y}");
                 namer.ngrid.name_tile(tcrd, kind, [name]);
             }
-            "CMT_PLL" => {
+            defs::tcls::CMT_PLL => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let (py, (_, kind)) = grid
@@ -722,9 +732,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 let name = format!("{naming}_X{x}Y{y}");
                 let ntile = namer.ngrid.name_tile(tcrd, naming, [name]);
-                ntile.add_bel(bels::PLL, format!("PLL_ADV_X0Y{py}"));
+                ntile.add_bel(defs::bslots::PLL, format!("PLL_ADV_X0Y{py}"));
                 ntile.add_bel(
-                    bels::TIEOFF_PLL,
+                    defs::bslots::TIEOFF_PLL,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 2,
@@ -732,7 +742,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
             }
-            "PLL_BUFPLL_B" | "PLL_BUFPLL_T" | "PLL_BUFPLL_OUT0" | "PLL_BUFPLL_OUT1" => {
+            defs::tcls::PLL_BUFPLL_S
+            | defs::tcls::PLL_BUFPLL_N
+            | defs::tcls::PLL_BUFPLL_OUT0
+            | defs::tcls::PLL_BUFPLL_OUT1 => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let (_, pllkind) = grid
@@ -757,55 +770,62 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let name = format!("{naming}_X{x}Y{y}");
                 namer.ngrid.name_tile(tcrd, kind, [name]);
             }
-            "LL" => {
+            defs::tcls::CNR_SW => {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let ntile = namer.ngrid.name_tile(tcrd, "LL", [format!("LL_X{x}Y{y}")]);
-                ntile.add_bel(bels::OCT_CAL2, "OCT_CAL_X0Y0".to_string());
-                ntile.add_bel(bels::OCT_CAL3, "OCT_CAL_X0Y1".to_string());
+                let ntile = namer
+                    .ngrid
+                    .name_tile(tcrd, "CNR_SW", [format!("LL_X{x}Y{y}")]);
+                ntile.add_bel(defs::bslots::OCT_CAL[2], "OCT_CAL_X0Y0".to_string());
+                ntile.add_bel(defs::bslots::OCT_CAL[3], "OCT_CAL_X0Y1".to_string());
             }
-            "UL" => {
+            defs::tcls::CNR_NW => {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let ntile = namer.ngrid.name_tile(tcrd, "UL", [format!("UL_X{x}Y{y}")]);
-                ntile.add_bel(bels::OCT_CAL0, "OCT_CAL_X0Y2".to_string());
-                ntile.add_bel(bels::OCT_CAL4, "OCT_CAL_X0Y3".to_string());
-                ntile.add_bel(bels::PMV, "PMV".to_string());
-                ntile.add_bel(bels::DNA_PORT, "DNA_PORT".to_string());
+                let ntile = namer
+                    .ngrid
+                    .name_tile(tcrd, "CNR_NW", [format!("UL_X{x}Y{y}")]);
+                ntile.add_bel(defs::bslots::OCT_CAL[0], "OCT_CAL_X0Y2".to_string());
+                ntile.add_bel(defs::bslots::OCT_CAL[4], "OCT_CAL_X0Y3".to_string());
+                ntile.add_bel(defs::bslots::PMV, "PMV".to_string());
+                ntile.add_bel(defs::bslots::DNA_PORT, "DNA_PORT".to_string());
             }
-            "LR" => {
+            defs::tcls::CNR_SE => {
                 let x = col.to_idx();
                 let y0 = row.to_idx();
                 let y1 = row.to_idx() + 1;
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
-                    "LR",
+                    "CNR_SE",
                     [format!("LR_LOWER_X{x}Y{y0}"), format!("LR_UPPER_X{x}Y{y1}")],
                 );
-                ntile.add_bel(bels::OCT_CAL1, "OCT_CAL_X1Y0".to_string());
-                ntile.add_bel(bels::ICAP, "ICAP_X0Y0".to_string());
-                ntile.add_bel(bels::SPI_ACCESS, "SPI_ACCESS".to_string());
-                ntile.add_bel(bels::SUSPEND_SYNC, "SUSPEND_SYNC".to_string());
-                ntile.add_bel(bels::POST_CRC_INTERNAL, "POST_CRC_INTERNAL".to_string());
-                ntile.add_bel(bels::STARTUP, "STARTUP".to_string());
-                ntile.add_bel(bels::SLAVE_SPI, "SLAVE_SPI".to_string());
+                ntile.add_bel(defs::bslots::OCT_CAL[1], "OCT_CAL_X1Y0".to_string());
+                ntile.add_bel(defs::bslots::ICAP, "ICAP_X0Y0".to_string());
+                ntile.add_bel(defs::bslots::SPI_ACCESS, "SPI_ACCESS".to_string());
+                ntile.add_bel(defs::bslots::SUSPEND_SYNC, "SUSPEND_SYNC".to_string());
+                ntile.add_bel(
+                    defs::bslots::POST_CRC_INTERNAL,
+                    "POST_CRC_INTERNAL".to_string(),
+                );
+                ntile.add_bel(defs::bslots::STARTUP, "STARTUP".to_string());
+                ntile.add_bel(defs::bslots::SLAVE_SPI, "SLAVE_SPI".to_string());
             }
-            "UR" => {
+            defs::tcls::CNR_NE => {
                 let x = col.to_idx();
                 let y0 = row.to_idx();
                 let y1 = row.to_idx() + 1;
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
-                    "UR",
+                    "CNR_NE",
                     [format!("UR_LOWER_X{x}Y{y0}"), format!("UR_UPPER_X{x}Y{y1}")],
                 );
-                ntile.add_bel(bels::OCT_CAL5, "OCT_CAL_X1Y1".to_string());
-                ntile.add_bel(bels::BSCAN0, "BSCAN_X0Y0".to_string());
-                ntile.add_bel(bels::BSCAN1, "BSCAN_X0Y1".to_string());
-                ntile.add_bel(bels::BSCAN2, "BSCAN_X0Y2".to_string());
-                ntile.add_bel(bels::BSCAN3, "BSCAN_X0Y3".to_string());
+                ntile.add_bel(defs::bslots::OCT_CAL[5], "OCT_CAL_X1Y1".to_string());
+                ntile.add_bel(defs::bslots::BSCAN[0], "BSCAN_X0Y0".to_string());
+                ntile.add_bel(defs::bslots::BSCAN[1], "BSCAN_X0Y1".to_string());
+                ntile.add_bel(defs::bslots::BSCAN[2], "BSCAN_X0Y2".to_string());
+                ntile.add_bel(defs::bslots::BSCAN[3], "BSCAN_X0Y3".to_string());
             }
-            "GTP" => {
+            defs::tcls::GTP => {
                 let (naming, name, name_buf) = if row < grid.row_clk() {
                     if col < grid.col_clk {
                         (
@@ -870,29 +890,65 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let ntile = namer.ngrid.name_tile(tcrd, naming, [name, name_buf]);
                 let gx = namer.gtp_grid.xlut[col];
                 let gy = namer.gtp_grid.ylut[row];
-                ntile.add_bel(bels::IPAD_RXP0, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 2));
-                ntile.add_bel(bels::IPAD_RXN0, format!("IPAD_X{gx}Y{y}", y = gy * 8));
-                ntile.add_bel(bels::IPAD_RXP1, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 3));
-                ntile.add_bel(bels::IPAD_RXN1, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 1));
-                ntile.add_bel(bels::IPAD_CLKP0, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 5));
-                ntile.add_bel(bels::IPAD_CLKN0, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 4));
-                ntile.add_bel(bels::IPAD_CLKP1, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 7));
-                ntile.add_bel(bels::IPAD_CLKN1, format!("IPAD_X{gx}Y{y}", y = gy * 8 + 6));
-                ntile.add_bel(bels::OPAD_TXP0, format!("OPAD_X{gx}Y{y}", y = gy * 4 + 1));
-                ntile.add_bel(bels::OPAD_TXN0, format!("OPAD_X{gx}Y{y}", y = gy * 4 + 3));
-                ntile.add_bel(bels::OPAD_TXP1, format!("OPAD_X{gx}Y{y}", y = gy * 4));
-                ntile.add_bel(bels::OPAD_TXN1, format!("OPAD_X{gx}Y{y}", y = gy * 4 + 2));
                 ntile.add_bel(
-                    bels::BUFDS0,
+                    defs::bslots::IPAD_RXP[0],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8 + 2),
+                );
+                ntile.add_bel(
+                    defs::bslots::IPAD_RXN[0],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8),
+                );
+                ntile.add_bel(
+                    defs::bslots::IPAD_RXP[1],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8 + 3),
+                );
+                ntile.add_bel(
+                    defs::bslots::IPAD_RXN[1],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8 + 1),
+                );
+                ntile.add_bel(
+                    defs::bslots::IPAD_CLKP[0],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8 + 5),
+                );
+                ntile.add_bel(
+                    defs::bslots::IPAD_CLKN[0],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8 + 4),
+                );
+                ntile.add_bel(
+                    defs::bslots::IPAD_CLKP[1],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8 + 7),
+                );
+                ntile.add_bel(
+                    defs::bslots::IPAD_CLKN[1],
+                    format!("IPAD_X{gx}Y{y}", y = gy * 8 + 6),
+                );
+                ntile.add_bel(
+                    defs::bslots::OPAD_TXP[0],
+                    format!("OPAD_X{gx}Y{y}", y = gy * 4 + 1),
+                );
+                ntile.add_bel(
+                    defs::bslots::OPAD_TXN[0],
+                    format!("OPAD_X{gx}Y{y}", y = gy * 4 + 3),
+                );
+                ntile.add_bel(
+                    defs::bslots::OPAD_TXP[1],
+                    format!("OPAD_X{gx}Y{y}", y = gy * 4),
+                );
+                ntile.add_bel(
+                    defs::bslots::OPAD_TXN[1],
+                    format!("OPAD_X{gx}Y{y}", y = gy * 4 + 2),
+                );
+                ntile.add_bel(
+                    defs::bslots::BUFDS[0],
                     format!("BUFDS_X{x}Y{y}", x = gx + 1, y = 2 + gy * 2),
                 );
                 ntile.add_bel(
-                    bels::BUFDS1,
+                    defs::bslots::BUFDS[1],
                     format!("BUFDS_X{x}Y{y}", x = gx + 1, y = 2 + gy * 2 + 1),
                 );
-                ntile.add_bel(bels::GTP, format!("GTPA1_DUAL_X{gx}Y{gy}"));
+                ntile.add_bel(defs::bslots::GTP, format!("GTPA1_DUAL_X{gx}Y{gy}"));
             }
-            "MCB" => {
+            defs::tcls::MCB => {
                 let x = col.to_idx();
                 let mx = if col == grid.col_e() { 1 } else { 0 };
                 let (my, mcb) = grid
@@ -921,9 +977,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         format!("MCB_MUI5_X{x}Y{y}", y = mcb.row_mui[7].to_idx()),
                     ],
                 );
-                ntile.add_bel(bels::MCB, format!("MCB_X{mx}Y{my}", my = my * 2 + 1));
                 ntile.add_bel(
-                    bels::TIEOFF_CLK,
+                    defs::bslots::MCB,
+                    format!("MCB_X{mx}Y{my}", my = my * 2 + 1),
+                );
+                ntile.add_bel(
+                    defs::bslots::TIEOFF_CLK,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 1,
@@ -931,7 +990,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
                 ntile.add_bel(
-                    bels::TIEOFF_DQS0,
+                    defs::bslots::TIEOFF_DQS0,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 1,
@@ -939,7 +998,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
                 ntile.add_bel(
-                    bels::TIEOFF_DQS1,
+                    defs::bslots::TIEOFF_DQS1,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 1,
@@ -947,7 +1006,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
             }
-            "PCILOGICSE" => {
+            defs::tcls::PCILOGICSE => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let ry = namer.rylut[row] - 1;
@@ -971,7 +1030,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             format!("INT_X{x}Y{y}"),
                         ],
                     );
-                    ntile.add_bel(bels::PCILOGICSE, "PCILOGIC_X0Y0".to_string());
+                    ntile.add_bel(defs::bslots::PCILOGICSE, "PCILOGIC_X0Y0".to_string());
                 } else {
                     let rx = namer.rxlut[col] + 3;
                     let ntile = namer.ngrid.name_tile(
@@ -987,10 +1046,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             format!("INT_X{x}Y{y}"),
                         ],
                     );
-                    ntile.add_bel(bels::PCILOGICSE, "PCILOGIC_X1Y0".to_string());
+                    ntile.add_bel(defs::bslots::PCILOGICSE, "PCILOGIC_X1Y0".to_string());
                 }
             }
-            "CLKC" => {
+            defs::tcls::CLKC => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let ntile = namer.ngrid.name_tile(
@@ -1006,7 +1065,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 );
                 for i in 0..16 {
                     ntile.add_bel(
-                        bels::BUFGMUX[i],
+                        defs::bslots::BUFGMUX[i],
                         format!(
                             "BUFGMUX_X{x}Y{y}",
                             x = if (i & 4) != 0 { 3 } else { 2 },
@@ -1015,7 +1074,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     );
                 }
             }
-            "HCLK_ROW" => {
+            defs::tcls::HCLK_ROW => {
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
                     "HCLK_ROW",
@@ -1036,18 +1095,21 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let hy = row.to_idx() / 16;
                 for i in 0..16 {
                     ntile.add_bel(
-                        bels::BUFH_W[i],
+                        defs::bslots::BUFH_W[i],
                         format!("BUFH_X0Y{y}", y = 16 + 32 * hy + i),
                     );
                 }
                 for i in 0..16 {
-                    ntile.add_bel(bels::BUFH_E[i], format!("BUFH_X3Y{y}", y = 32 * hy + i));
+                    ntile.add_bel(
+                        defs::bslots::BUFH_E[i],
+                        format!("BUFH_X3Y{y}", y = 32 * hy + i),
+                    );
                 }
             }
-            "REG_B" => {
+            defs::tcls::CLK_S => {
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
-                    "REG_B",
+                    "CLK_S",
                     [
                         format!(
                             "REG_B_X{rx}Y{ry}",
@@ -1071,27 +1133,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         ),
                     ],
                 );
-                ntile.add_bel(bels::BUFIO2_0, "BUFIO2_X3Y0".to_string());
-                ntile.add_bel(bels::BUFIO2_1, "BUFIO2_X3Y1".to_string());
-                ntile.add_bel(bels::BUFIO2_2, "BUFIO2_X3Y6".to_string());
-                ntile.add_bel(bels::BUFIO2_3, "BUFIO2_X3Y7".to_string());
-                ntile.add_bel(bels::BUFIO2_4, "BUFIO2_X1Y0".to_string());
-                ntile.add_bel(bels::BUFIO2_5, "BUFIO2_X1Y1".to_string());
-                ntile.add_bel(bels::BUFIO2_6, "BUFIO2_X1Y6".to_string());
-                ntile.add_bel(bels::BUFIO2_7, "BUFIO2_X1Y7".to_string());
-                ntile.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X3Y0".to_string());
-                ntile.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X3Y1".to_string());
-                ntile.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X3Y6".to_string());
-                ntile.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X3Y7".to_string());
-                ntile.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X1Y0".to_string());
-                ntile.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X1Y1".to_string());
-                ntile.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X1Y6".to_string());
-                ntile.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X1Y7".to_string());
-                ntile.add_bel(bels::BUFPLL0, "BUFPLL_X1Y0".to_string());
-                ntile.add_bel(bels::BUFPLL1, "BUFPLL_X1Y1".to_string());
-                ntile.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X1Y5".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[0], "BUFIO2_X3Y0".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[1], "BUFIO2_X3Y1".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[2], "BUFIO2_X3Y6".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[3], "BUFIO2_X3Y7".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[4], "BUFIO2_X1Y0".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[5], "BUFIO2_X1Y1".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[6], "BUFIO2_X1Y6".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[7], "BUFIO2_X1Y7".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[0], "BUFIO2FB_X3Y0".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[1], "BUFIO2FB_X3Y1".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[2], "BUFIO2FB_X3Y6".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[3], "BUFIO2FB_X3Y7".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[4], "BUFIO2FB_X1Y0".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[5], "BUFIO2FB_X1Y1".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[6], "BUFIO2FB_X1Y6".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[7], "BUFIO2FB_X1Y7".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[0], "BUFPLL_X1Y0".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[1], "BUFPLL_X1Y1".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL_MCB, "BUFPLL_MCB_X1Y5".to_string());
                 ntile.add_bel(
-                    bels::TIEOFF_REG,
+                    defs::bslots::TIEOFF_REG,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 4,
@@ -1099,10 +1161,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
             }
-            "REG_T" => {
+            defs::tcls::CLK_N => {
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
-                    "REG_T",
+                    "CLK_N",
                     [
                         format!(
                             "REG_T_X{rx}Y{ry}",
@@ -1122,27 +1184,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         format!("IOI_INT_X{x}Y{y}", x = col.to_idx() + 1, y = row.to_idx()),
                     ],
                 );
-                ntile.add_bel(bels::BUFIO2_0, "BUFIO2_X2Y28".to_string());
-                ntile.add_bel(bels::BUFIO2_1, "BUFIO2_X2Y29".to_string());
-                ntile.add_bel(bels::BUFIO2_2, "BUFIO2_X2Y26".to_string());
-                ntile.add_bel(bels::BUFIO2_3, "BUFIO2_X2Y27".to_string());
-                ntile.add_bel(bels::BUFIO2_4, "BUFIO2_X4Y28".to_string());
-                ntile.add_bel(bels::BUFIO2_5, "BUFIO2_X4Y29".to_string());
-                ntile.add_bel(bels::BUFIO2_6, "BUFIO2_X4Y26".to_string());
-                ntile.add_bel(bels::BUFIO2_7, "BUFIO2_X4Y27".to_string());
-                ntile.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X2Y28".to_string());
-                ntile.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X2Y29".to_string());
-                ntile.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X2Y26".to_string());
-                ntile.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X2Y27".to_string());
-                ntile.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X4Y28".to_string());
-                ntile.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X4Y29".to_string());
-                ntile.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X4Y26".to_string());
-                ntile.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X4Y27".to_string());
-                ntile.add_bel(bels::BUFPLL0, "BUFPLL_X1Y5".to_string());
-                ntile.add_bel(bels::BUFPLL1, "BUFPLL_X1Y4".to_string());
-                ntile.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X1Y9".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[0], "BUFIO2_X2Y28".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[1], "BUFIO2_X2Y29".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[2], "BUFIO2_X2Y26".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[3], "BUFIO2_X2Y27".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[4], "BUFIO2_X4Y28".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[5], "BUFIO2_X4Y29".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[6], "BUFIO2_X4Y26".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[7], "BUFIO2_X4Y27".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[0], "BUFIO2FB_X2Y28".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[1], "BUFIO2FB_X2Y29".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[2], "BUFIO2FB_X2Y26".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[3], "BUFIO2FB_X2Y27".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[4], "BUFIO2FB_X4Y28".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[5], "BUFIO2FB_X4Y29".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[6], "BUFIO2FB_X4Y26".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[7], "BUFIO2FB_X4Y27".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[0], "BUFPLL_X1Y5".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[1], "BUFPLL_X1Y4".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL_MCB, "BUFPLL_MCB_X1Y9".to_string());
                 ntile.add_bel(
-                    bels::TIEOFF_REG,
+                    defs::bslots::TIEOFF_REG,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 1,
@@ -1150,10 +1212,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
             }
-            "REG_L" => {
+            defs::tcls::CLK_W => {
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
-                    "REG_L",
+                    "CLK_W",
                     [
                         format!(
                             "REG_L_X{rx}Y{ry}",
@@ -1169,27 +1231,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1),
                     ],
                 );
-                ntile.add_bel(bels::BUFIO2_0, "BUFIO2_X1Y8".to_string());
-                ntile.add_bel(bels::BUFIO2_1, "BUFIO2_X1Y9".to_string());
-                ntile.add_bel(bels::BUFIO2_2, "BUFIO2_X1Y14".to_string());
-                ntile.add_bel(bels::BUFIO2_3, "BUFIO2_X1Y15".to_string());
-                ntile.add_bel(bels::BUFIO2_4, "BUFIO2_X0Y16".to_string());
-                ntile.add_bel(bels::BUFIO2_5, "BUFIO2_X0Y17".to_string());
-                ntile.add_bel(bels::BUFIO2_6, "BUFIO2_X0Y22".to_string());
-                ntile.add_bel(bels::BUFIO2_7, "BUFIO2_X0Y23".to_string());
-                ntile.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X1Y8".to_string());
-                ntile.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X1Y9".to_string());
-                ntile.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X1Y14".to_string());
-                ntile.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X1Y15".to_string());
-                ntile.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X0Y16".to_string());
-                ntile.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X0Y17".to_string());
-                ntile.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X0Y22".to_string());
-                ntile.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X0Y23".to_string());
-                ntile.add_bel(bels::BUFPLL0, "BUFPLL_X0Y3".to_string());
-                ntile.add_bel(bels::BUFPLL1, "BUFPLL_X0Y2".to_string());
-                ntile.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X0Y5".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[0], "BUFIO2_X1Y8".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[1], "BUFIO2_X1Y9".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[2], "BUFIO2_X1Y14".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[3], "BUFIO2_X1Y15".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[4], "BUFIO2_X0Y16".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[5], "BUFIO2_X0Y17".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[6], "BUFIO2_X0Y22".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[7], "BUFIO2_X0Y23".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[0], "BUFIO2FB_X1Y8".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[1], "BUFIO2FB_X1Y9".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[2], "BUFIO2FB_X1Y14".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[3], "BUFIO2FB_X1Y15".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[4], "BUFIO2FB_X0Y16".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[5], "BUFIO2FB_X0Y17".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[6], "BUFIO2FB_X0Y22".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[7], "BUFIO2FB_X0Y23".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[0], "BUFPLL_X0Y3".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[1], "BUFPLL_X0Y2".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL_MCB, "BUFPLL_MCB_X0Y5".to_string());
                 ntile.add_bel(
-                    bels::TIEOFF_REG,
+                    defs::bslots::TIEOFF_REG,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 1,
@@ -1197,10 +1259,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
             }
-            "REG_R" => {
+            defs::tcls::CLK_E => {
                 let ntile = namer.ngrid.name_tile(
                     tcrd,
-                    "REG_R",
+                    "CLK_E",
                     [
                         format!(
                             "REG_R_X{rx}Y{ry}",
@@ -1216,27 +1278,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         format!("INT_X{x}Y{y}", x = col.to_idx(), y = row.to_idx() + 1),
                     ],
                 );
-                ntile.add_bel(bels::BUFIO2_0, "BUFIO2_X4Y20".to_string());
-                ntile.add_bel(bels::BUFIO2_1, "BUFIO2_X4Y21".to_string());
-                ntile.add_bel(bels::BUFIO2_2, "BUFIO2_X4Y18".to_string());
-                ntile.add_bel(bels::BUFIO2_3, "BUFIO2_X4Y19".to_string());
-                ntile.add_bel(bels::BUFIO2_4, "BUFIO2_X3Y12".to_string());
-                ntile.add_bel(bels::BUFIO2_5, "BUFIO2_X3Y13".to_string());
-                ntile.add_bel(bels::BUFIO2_6, "BUFIO2_X3Y10".to_string());
-                ntile.add_bel(bels::BUFIO2_7, "BUFIO2_X3Y11".to_string());
-                ntile.add_bel(bels::BUFIO2FB_0, "BUFIO2FB_X4Y20".to_string());
-                ntile.add_bel(bels::BUFIO2FB_1, "BUFIO2FB_X4Y21".to_string());
-                ntile.add_bel(bels::BUFIO2FB_2, "BUFIO2FB_X4Y18".to_string());
-                ntile.add_bel(bels::BUFIO2FB_3, "BUFIO2FB_X4Y19".to_string());
-                ntile.add_bel(bels::BUFIO2FB_4, "BUFIO2FB_X3Y12".to_string());
-                ntile.add_bel(bels::BUFIO2FB_5, "BUFIO2FB_X3Y13".to_string());
-                ntile.add_bel(bels::BUFIO2FB_6, "BUFIO2FB_X3Y10".to_string());
-                ntile.add_bel(bels::BUFIO2FB_7, "BUFIO2FB_X3Y11".to_string());
-                ntile.add_bel(bels::BUFPLL0, "BUFPLL_X2Y3".to_string());
-                ntile.add_bel(bels::BUFPLL1, "BUFPLL_X2Y2".to_string());
-                ntile.add_bel(bels::BUFPLL_MCB, "BUFPLL_MCB_X2Y5".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[0], "BUFIO2_X4Y20".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[1], "BUFIO2_X4Y21".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[2], "BUFIO2_X4Y18".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[3], "BUFIO2_X4Y19".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[4], "BUFIO2_X3Y12".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[5], "BUFIO2_X3Y13".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[6], "BUFIO2_X3Y10".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2[7], "BUFIO2_X3Y11".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[0], "BUFIO2FB_X4Y20".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[1], "BUFIO2FB_X4Y21".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[2], "BUFIO2FB_X4Y18".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[3], "BUFIO2FB_X4Y19".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[4], "BUFIO2FB_X3Y12".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[5], "BUFIO2FB_X3Y13".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[6], "BUFIO2FB_X3Y10".to_string());
+                ntile.add_bel(defs::bslots::BUFIO2FB[7], "BUFIO2FB_X3Y11".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[0], "BUFPLL_X2Y3".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL[1], "BUFPLL_X2Y2".to_string());
+                ntile.add_bel(defs::bslots::BUFPLL_MCB, "BUFPLL_MCB_X2Y5".to_string());
                 ntile.add_bel(
-                    bels::TIEOFF_REG,
+                    defs::bslots::TIEOFF_REG,
                     format!(
                         "TIEOFF_X{x}Y{y}",
                         x = namer.tiexlut[col] + 1,
@@ -1244,7 +1306,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ),
                 );
             }
-            "HCLK_V_MIDBUF" => {
+            defs::tcls::HCLK_V_MIDBUF => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let kind = if row < grid.row_clk() {
@@ -1256,19 +1318,19 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .ngrid
                     .name_tile(tcrd, "HCLK_V_MIDBUF", [format!("{kind}_X{x}Y{y}")]);
             }
-            "CKPIN_V_MIDBUF" => {
+            defs::tcls::CKPIN_V_MIDBUF => {
                 let x = col.to_idx();
                 let y = row.to_idx();
-                let naming = if row < grid.row_clk() {
-                    "REG_V_MIDBUF_BOT"
+                let (naming, tkn) = if row < grid.row_clk() {
+                    ("REG_V_MIDBUF_S", "REG_V_MIDBUF_BOT")
                 } else {
-                    "REG_V_MIDBUF_TOP"
+                    ("REG_V_MIDBUF_N", "REG_V_MIDBUF_TOP")
                 };
                 namer
                     .ngrid
-                    .name_tile(tcrd, naming, [format!("{naming}_X{x}Y{y}")]);
+                    .name_tile(tcrd, naming, [format!("{tkn}_X{x}Y{y}")]);
             }
-            "CKPIN_H_MIDBUF" => {
+            defs::tcls::CKPIN_H_MIDBUF => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let lr = if col < grid.col_clk { 'L' } else { 'R' };
@@ -1288,7 +1350,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, "CKPIN_H_MIDBUF", [name]);
             }
-            "HCLK" => {
+            defs::tcls::HCLK => {
                 let fold = if grid.cols_clk_fold.is_some() {
                     "_FOLD"
                 } else {
@@ -1324,21 +1386,21 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     }
                 };
                 if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = grid.gts {
-                    if col == cl + 2 && row == grid.row_top() - 24 {
+                    if col == cl + 2 && row == grid.row_n() - 23 {
                         name = format!("HCLK_CLB_XM_INT{fold}_X{x}Y{y}", y = y - 1);
                     }
-                    if col == cl + 3 && row == grid.row_top() - 8 {
+                    if col == cl + 3 && row == grid.row_n() - 7 {
                         name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
                     }
                 }
                 if let Gts::Double(_, cr) | Gts::Quad(_, cr) = grid.gts
                     && col == cr + 6
-                    && row == grid.row_top() - 8
+                    && row == grid.row_n() - 7
                 {
                     name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}", y = y - 1);
                 }
                 if let Gts::Quad(cl, cr) = grid.gts {
-                    if col == cl - 6 && row == grid.row_bio_outer() + 8 {
+                    if col == cl - 6 && row == grid.row_s() + 8 {
                         name = format!("DSP_INT_HCLK_FEEDTHRU{fold}_X{x}Y{y}");
                     }
                     if (col == cl - 5
@@ -1346,17 +1408,17 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         || col == cl + 4
                         || col == cr - 3
                         || col == cr + 6)
-                        && row == grid.row_bio_outer() + 8
+                        && row == grid.row_s() + 8
                     {
                         name = format!("HCLK_CLB_XL_INT{fold}_X{x}Y{y}");
                     }
-                    if col == cr - 4 && row == grid.row_bio_outer() + 8 {
+                    if col == cr - 4 && row == grid.row_s() + 8 {
                         name = format!("HCLK_CLB_XM_INT{fold}_X{x}Y{y}");
                     }
                 }
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "HCLK_H_MIDBUF" => {
+            defs::tcls::HCLK_H_MIDBUF => {
                 let x = col.to_idx();
                 let y = row.to_idx();
                 let rx = namer.rxlut[col];
@@ -1365,33 +1427,33 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let mut naming = "DSP_HCLK_GCLK_FOLD";
                 if let Gts::Double(_, cr) | Gts::Quad(_, cr) = grid.gts
                     && col == cr + 6
-                    && row == grid.row_top() - 8
+                    && row == grid.row_n() - 7
                 {
                     name = format!("GTPDUAL_DSP_FEEDTHRU_X{rx}Y{ry}", rx = rx + 1);
                     naming = "GTPDUAL_DSP_FEEDTHRU";
                 }
                 if let Gts::Quad(cl, cr) = grid.gts {
-                    if col == cl - 6 && row == grid.row_bio_outer() + 8 {
+                    if col == cl - 6 && row == grid.row_s() + 8 {
                         name = format!("DSP_HCLK_GCLK_FOLD_X{x}Y{y}");
                     }
-                    if col == cr + 6 && row == grid.row_bio_outer() + 8 {
+                    if col == cr + 6 && row == grid.row_s() + 8 {
                         name = format!("GTPDUAL_DSP_FEEDTHRU_X{x}Y{y}");
                         naming = "GTPDUAL_DSP_FEEDTHRU";
                     }
                 }
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "CLKPIN_BUF" => {
+            defs::tcls::CLKPIN_BUF => {
                 if col == grid.col_w() {
                     let (_, name) = namer.get_lterm_name(col, row);
                     let naming = if row == grid.row_clk() - 2 {
-                        "CLKPIN_BUF.L.BOT"
+                        "CLKPIN_BUF_W_S"
                     } else if row == grid.row_clk() - 1 {
-                        "CLKPIN_BUF.L.TOP"
+                        "CLKPIN_BUF_W_N"
                     } else if row == grid.row_clk() + 2 {
-                        "CLKPIN_BUF.L.BOT"
+                        "CLKPIN_BUF_W_S"
                     } else if row == grid.row_clk() + 3 {
-                        "CLKPIN_BUF.L.TOP"
+                        "CLKPIN_BUF_W_N"
                     } else {
                         unreachable!()
                     };
@@ -1399,43 +1461,43 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 } else if col == grid.col_e() {
                     let (_, name) = namer.get_rterm_name(col, row);
                     let naming = if row == grid.row_clk() - 2 {
-                        "CLKPIN_BUF.R.BOT"
+                        "CLKPIN_BUF_E_S"
                     } else if row == grid.row_clk() - 1 {
-                        "CLKPIN_BUF.R.TOP"
+                        "CLKPIN_BUF_E_N"
                     } else if row == grid.row_clk() + 2 {
-                        "CLKPIN_BUF.R.BOT"
+                        "CLKPIN_BUF_E_S"
                     } else if row == grid.row_clk() + 3 {
-                        "CLKPIN_BUF.R.TOP"
+                        "CLKPIN_BUF_E_N"
                     } else {
                         unreachable!()
                     };
                     namer.ngrid.name_tile(tcrd, naming, [name]);
-                } else if row == grid.row_bio_outer() {
+                } else if row == grid.row_s() {
                     let name = namer.get_ioi_bterm_name(col);
-                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF.B.BOT", [name]);
-                } else if row == grid.row_bio_inner() {
+                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF_S_S", [name]);
+                } else if row == grid.row_s_inner() {
                     let name = namer.get_ioi_bterm_name(col);
-                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF.B.TOP", [name]);
-                } else if row == grid.row_tio_inner() {
+                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF_S_N", [name]);
+                } else if row == grid.row_n_inner() {
                     let name = namer.get_ioi_tterm_name(col);
-                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF.T.BOT", [name]);
-                } else if row == grid.row_tio_outer() {
+                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF_N_S", [name]);
+                } else if row == grid.row_n() {
                     let name = namer.get_ioi_tterm_name(col);
-                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF.T.TOP", [name]);
+                    namer.ngrid.name_tile(tcrd, "CLKPIN_BUF_N_N", [name]);
                 } else {
                     unreachable!()
                 }
             }
-            "BTIOI_CLK" => {
+            defs::tcls::IOI_CLK_SN => {
                 if row < grid.row_clk() {
                     let name = namer.get_ioi_bterm_name(col);
-                    namer.ngrid.name_tile(tcrd, "BIOI_CLK", [name]);
+                    namer.ngrid.name_tile(tcrd, "IOI_CLK_S", [name]);
                 } else {
                     let name = namer.get_ioi_tterm_name(col);
-                    namer.ngrid.name_tile(tcrd, "TIOI_CLK", [name]);
+                    namer.ngrid.name_tile(tcrd, "IOI_CLK_N", [name]);
                 }
             }
-            "LRIOI_CLK" => {
+            defs::tcls::IOI_CLK_WE => {
                 let name = namer.get_hclk_ioi_name(col, row);
                 if col == grid.col_w() {
                     let name_term = if row == grid.row_clk() {
@@ -1451,9 +1513,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             ry = namer.rylut[row] - 1
                         )
                     };
-                    namer
-                        .ngrid
-                        .name_tile(tcrd, "LRIOI_CLK.L", [name, name_term]);
+                    namer.ngrid.name_tile(tcrd, "IOI_CLK_W", [name, name_term]);
                 } else if col == grid.col_e() {
                     let name_term = if row == grid.row_clk() {
                         format!(
@@ -1468,18 +1528,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                             ry = namer.rylut[row] - 1
                         )
                     };
-                    namer
-                        .ngrid
-                        .name_tile(tcrd, "LRIOI_CLK.R", [name, name_term]);
+                    namer.ngrid.name_tile(tcrd, "IOI_CLK_E", [name, name_term]);
                 } else {
                     unreachable!()
                 }
             }
-            "PCI_CE_SPLIT" => {
+            defs::tcls::PCI_CE_SPLIT => {
                 let name = namer.get_hclk_ioi_name(col, row);
                 namer.ngrid.name_tile(tcrd, "PCI_CE_SPLIT", [name]);
             }
-            "PCI_CE_V_BUF" => {
+            defs::tcls::PCI_CE_V_BUF => {
                 let name = namer.get_hclk_ioi_name(col, row);
                 let naming = if row <= grid.row_clk() {
                     if row < grid.rows_pci_ce_split.0 {
@@ -1496,7 +1554,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "PCI_CE_TRUNK_BUF" => {
+            defs::tcls::PCI_CE_TRUNK_BUF => {
                 let name = namer.get_hclk_ioi_name(col, row);
                 let naming = if row <= grid.row_clk() {
                     "PCI_CE_TRUNK_BUF_BOT"
@@ -1505,12 +1563,12 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 };
                 namer.ngrid.name_tile(tcrd, naming, [name]);
             }
-            "PCI_CE_H_BUF" => match grid.columns[col].kind {
+            defs::tcls::PCI_CE_H_BUF => match grid.columns[col].kind {
                 ColumnKind::Io => {
                     let rx = namer.rxlut[col];
-                    let ry = if row == grid.row_bio_outer() {
+                    let ry = if row == grid.row_s() {
                         namer.rylut[row] - 1
-                    } else if row == grid.row_tio_outer() {
+                    } else if row == grid.row_n() {
                         namer.rylut[row] + 1
                     } else {
                         unreachable!()
@@ -1527,10 +1585,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ColumnKind::Bram => {
                     let rx = namer.rxlut[col];
                     let lr = if col < grid.col_clk { 'L' } else { 'R' };
-                    let name = if row == grid.row_bio_outer() {
+                    let name = if row == grid.row_s() {
                         let ry = namer.rylut[row];
                         format!("BRAM_BOT_BTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1)
-                    } else if row == grid.row_tio_outer() {
+                    } else if row == grid.row_n() {
                         let ry = namer.rylut[row];
                         format!("BRAM_TOP_TTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry + 1)
                     } else {
@@ -1541,10 +1599,10 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ColumnKind::Dsp | ColumnKind::DspPlus => {
                     let rx = namer.rxlut[col];
                     let lr = if col < grid.col_clk { 'L' } else { 'R' };
-                    let name = if row == grid.row_bio_outer() {
+                    let name = if row == grid.row_s() {
                         let ry = namer.rylut[row];
                         format!("DSP_BOT_BTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry - 1)
-                    } else if row == grid.row_tio_outer() {
+                    } else if row == grid.row_n() {
                         let ry = namer.rylut[row];
                         format!("DSP_TOP_TTERM_{lr}_X{rx}Y{ry}", rx = rx + 2, ry = ry + 1)
                     } else {
@@ -1554,24 +1612,27 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 }
                 _ => unreachable!(),
             },
+            defs::tcls::HCLK_CLEXL => (),
+            defs::tcls::HCLK_CLEXM => (),
+            defs::tcls::HCLK_IOI => (),
+            defs::tcls::HCLK_GTP => (),
             _ => unreachable!(),
         }
     }
     for (ccrd, conn) in edev.connectors() {
         let cell = ccrd.cell;
         let CellCoord { col, row, .. } = cell;
-        let kind = edev.db.conn_classes.key(conn.class);
 
-        match &kind[..] {
-            "TERM.W" => {
+        match conn.class {
+            defs::ccls::TERM_W => {
                 let (naming, name) = namer.get_lterm_name(col, row);
                 namer.ngrid.name_conn_tile(ccrd, naming, name);
             }
-            "TERM.E" => {
+            defs::ccls::TERM_E => {
                 let (naming, name) = namer.get_rterm_name(col, row);
                 namer.ngrid.name_conn_tile(ccrd, naming, name);
             }
-            "TERM.S" => {
+            defs::ccls::TERM_S => {
                 let kind = match grid.columns[col].kind {
                     ColumnKind::Io => "CNR_BR_BTERM",
                     ColumnKind::Bram => unreachable!(),
@@ -1579,7 +1640,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     _ => {
                         if col == grid.col_clk + 1 {
                             "IOI_BTERM_BUFPLL"
-                        } else if grid.columns[col].bio == ColumnIoKind::None {
+                        } else if grid.columns[col].io_s == ColumnIoKind::None {
                             "CLB_INT_BTERM"
                         } else {
                             "IOI_BTERM"
@@ -1587,11 +1648,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     }
                 };
                 let rx = namer.rxlut[col];
-                let ry = namer.rylut[grid.row_bio_outer()] - 1;
+                let ry = namer.rylut[grid.row_s()] - 1;
                 let name = format!("{kind}_X{rx}Y{ry}");
-                namer.ngrid.name_conn_tile(ccrd, "TERM.S", name);
+                namer.ngrid.name_conn_tile(ccrd, "TERM_S", name);
             }
-            "TERM.N" => {
+            defs::ccls::TERM_N => {
                 let kind = match grid.columns[col].kind {
                     ColumnKind::Io => "CNR_TR_TTERM",
                     ColumnKind::Bram => "RAMB_TOP_TTERM",
@@ -1605,9 +1666,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     }
                 };
                 let rx = namer.rxlut[col];
-                let ry = namer.rylut[grid.row_tio_outer()] + 1;
+                let ry = namer.rylut[grid.row_n()] + 1;
                 let name = format!("{kind}_X{rx}Y{ry}");
-                namer.ngrid.name_conn_tile(ccrd, "TERM.N", name);
+                namer.ngrid.name_conn_tile(ccrd, "TERM_N", name);
             }
             _ => (),
         }
@@ -1616,7 +1677,11 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     let mut pad_cnt = 1;
     for io in edev.chip.get_bonded_ios() {
         let bel = grid.get_io_loc(io);
-        let ntile = namer.ngrid.tiles.get_mut(&bel.tile(tslots::IOB)).unwrap();
+        let ntile = namer
+            .ngrid
+            .tiles
+            .get_mut(&bel.tile(defs::tslots::IOB))
+            .unwrap();
         ntile.add_bel(bel.slot, format!("PAD{pad_cnt}"));
         pad_cnt += 1;
     }

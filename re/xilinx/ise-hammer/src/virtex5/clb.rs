@@ -58,7 +58,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         _ => unreachable!(),
     };
     let bels = if mode == Mode::Spartan6 {
-        prjcombine_spartan6::bels::SLICE
+        [
+            prjcombine_spartan6::defs::bslots::SLICE[0],
+            prjcombine_spartan6::defs::bslots::SLICE[1],
+        ]
     } else {
         [
             prjcombine_virtex4::bels::SLICE0,
@@ -769,7 +772,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if ctx.edev.tile_index[tcls].is_empty() {
             continue;
         }
-        for (idx, bel) in ["SLICE0", "SLICE1"].into_iter().enumerate() {
+        for (idx, bel) in if mode == Mode::Spartan6 {
+            ["SLICE[0]", "SLICE[1]"]
+        } else {
+            ["SLICE0", "SLICE1"]
+        }
+        .into_iter()
+        .enumerate()
+        {
             let is_x = idx == 1 && mode == Mode::Spartan6;
             let is_m = idx == 0 && tile.ends_with('M');
 

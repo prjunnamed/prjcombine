@@ -12,6 +12,7 @@ prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
 prjcombine-virtex2.workspace = true
+prjcombine-spartan6.workspace = true
 prjcombine-virtex4.workspace = true
 prjcombine-ultrascale.workspace = true
 prjcombine-versal.workspace = true

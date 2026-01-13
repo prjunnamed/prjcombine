@@ -36,7 +36,7 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, Column> {
     }
     res.map(|col, kind| Column {
         kind: kind.unwrap(),
-        bio: {
+        io_s: {
             let co = Coord {
                 x: int.cols[col] as u16 + 1,
                 y: 2,
@@ -54,7 +54,7 @@ fn make_columns(rd: &Part, int: &IntGrid) -> EntityVec<ColId, Column> {
                 (true, true) => ColumnIoKind::Both,
             }
         },
-        tio: {
+        io_n: {
             let co = Coord {
                 x: int.cols[col] as u16 + 1,
                 y: rd.height - 3,
@@ -83,11 +83,11 @@ fn make_rows(rd: &Part, int: &IntGrid) -> EntityVec<RowId, Row> {
             y: y as u16,
         };
         Row {
-            lio: matches!(
+            io_w: matches!(
                 &rd.tile_kinds.key(rd.tiles[&c_l].kind)[..],
                 "LIOI" | "LIOI_BRK"
             ),
-            rio: matches!(
+            io_e: matches!(
                 &rd.tile_kinds.key(rd.tiles[&c_r].kind)[..],
                 "RIOI" | "RIOI_BRK"
             ),

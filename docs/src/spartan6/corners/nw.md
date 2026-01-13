@@ -1,3 +1,3 @@
 # North-west
 
-{{tile spartan6 UL}}
+{{tile spartan6 CNR_NW}}

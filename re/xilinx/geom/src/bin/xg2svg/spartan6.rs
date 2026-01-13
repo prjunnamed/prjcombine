@@ -85,8 +85,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                     }
                     drawer.bel_rect(col_x[col].0, col_x[col].1, row_y[row].0, row_y[row].1, kind);
                 }
-                if cd.bio != ColumnIoKind::None {
-                    for row in [edev.chip.row_bio_outer(), edev.chip.row_bio_inner()] {
+                if cd.io_s != ColumnIoKind::None {
+                    for row in [edev.chip.row_s(), edev.chip.row_s_inner()] {
                         drawer.bel_rect(
                             col_x[col].0,
                             col_x[col].1,
@@ -95,8 +95,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             "ioi",
                         )
                     }
-                    let row = edev.chip.row_bio_outer();
-                    if cd.bio != ColumnIoKind::Inner {
+                    let row = edev.chip.row_s();
+                    if cd.io_s != ColumnIoKind::Inner {
                         drawer.bel_rect(
                             col_x[col].0 + W_CLB / 2.,
                             col_x[col].1,
@@ -105,7 +105,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             "iob",
                         );
                     }
-                    if cd.bio != ColumnIoKind::Outer {
+                    if cd.io_s != ColumnIoKind::Outer {
                         drawer.bel_rect(
                             col_x[col].0,
                             col_x[col].0 + W_CLB / 2.,
@@ -115,8 +115,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                         );
                     }
                 }
-                if cd.tio != ColumnIoKind::None {
-                    for row in [edev.chip.row_tio_outer(), edev.chip.row_tio_inner()] {
+                if cd.io_n != ColumnIoKind::None {
+                    for row in [edev.chip.row_n(), edev.chip.row_n_inner()] {
                         drawer.bel_rect(
                             col_x[col].0,
                             col_x[col].1,
@@ -125,8 +125,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             "ioi",
                         )
                     }
-                    let row = edev.chip.row_tio_outer();
-                    if cd.bio != ColumnIoKind::Inner {
+                    let row = edev.chip.row_n();
+                    if cd.io_s != ColumnIoKind::Inner {
                         drawer.bel_rect(
                             col_x[col].0,
                             col_x[col].0 + W_CLB / 2.,
@@ -135,7 +135,7 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
                             "iob",
                         );
                     }
-                    if cd.bio != ColumnIoKind::Outer {
+                    if cd.io_s != ColumnIoKind::Outer {
                         drawer.bel_rect(
                             col_x[col].0 + W_CLB / 2.,
                             col_x[col].1,
@@ -167,7 +167,8 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
             }
             ColumnKind::Io => {
                 for (row, rd) in &edev.chip.rows {
-                    if (col == edev.chip.col_w() && rd.lio) || (col == edev.chip.col_e() && rd.rio)
+                    if (col == edev.chip.col_w() && rd.io_w)
+                        || (col == edev.chip.col_e() && rd.io_e)
                     {
                         drawer.bel_rect(
                             col_x[col].0,
@@ -260,36 +261,36 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
     drawer.bel_rect(
         col_x[edev.chip.col_w()].0,
         col_x[edev.chip.col_w()].1,
-        row_y[edev.chip.row_bio_outer()].0,
-        row_y[edev.chip.row_bio_outer()].1,
+        row_y[edev.chip.row_s()].0,
+        row_y[edev.chip.row_s()].1,
         "cfg",
     );
     drawer.bel_rect(
         col_x[edev.chip.col_w()].0,
         col_x[edev.chip.col_w()].1,
-        row_y[edev.chip.row_tio_outer()].0,
-        row_y[edev.chip.row_tio_outer()].1,
+        row_y[edev.chip.row_n()].0,
+        row_y[edev.chip.row_n()].1,
         "cfg",
     );
     drawer.bel_rect(
         col_x[edev.chip.col_e()].0,
         col_x[edev.chip.col_e()].1,
-        row_y[edev.chip.row_bio_outer()].0,
-        row_y[edev.chip.row_bio_inner()].1,
+        row_y[edev.chip.row_s()].0,
+        row_y[edev.chip.row_s_inner()].1,
         "cfg",
     );
     drawer.bel_rect(
         col_x[edev.chip.col_e()].0,
         col_x[edev.chip.col_e()].1,
-        row_y[edev.chip.row_tio_inner()].0,
-        row_y[edev.chip.row_tio_outer()].1,
+        row_y[edev.chip.row_n_inner()].0,
+        row_y[edev.chip.row_n()].1,
         "cfg",
     );
 
     if let Gts::Single(cl) | Gts::Double(cl, _) | Gts::Quad(cl, _) = edev.chip.gts {
-        let row_b = edev.chip.row_top() - 16;
-        let row_m = edev.chip.row_top() - 8;
-        let row_t = edev.chip.row_top();
+        let row_b = edev.chip.row_n() - 15;
+        let row_m = edev.chip.row_n() - 7;
+        let row_t = edev.chip.row_n() + 1;
         drawer.bel_poly(
             vec![
                 (col_x[cl - 5].0, row_y[row_b].0),
@@ -306,15 +307,15 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         drawer.bel_rect(
             col_x[cl - 2].0,
             col_x[cl + 2].1,
-            row_y[edev.chip.row_top() - 32].0,
-            row_y[edev.chip.row_top() - 17].1,
+            row_y[edev.chip.row_n() - 31].0,
+            row_y[edev.chip.row_n() - 16].1,
             "pcie",
         );
     }
     if let Gts::Double(_, cr) | Gts::Quad(_, cr) = edev.chip.gts {
-        let row_b = edev.chip.row_top() - 16;
-        let row_m = edev.chip.row_top() - 8;
-        let row_t = edev.chip.row_top();
+        let row_b = edev.chip.row_n() - 15;
+        let row_m = edev.chip.row_n() - 7;
+        let row_t = edev.chip.row_n() + 1;
         drawer.bel_poly(
             vec![
                 (col_x[cr - 3].0, row_y[row_b].0),
@@ -328,9 +329,9 @@ pub fn draw_device(name: &str, edev: ExpandedDevice) -> Drawer {
         );
     }
     if let Gts::Quad(cl, cr) = edev.chip.gts {
-        let row_b = edev.chip.row_bot();
-        let row_m = edev.chip.row_bot() + 8;
-        let row_t = edev.chip.row_bot() + 16;
+        let row_b = edev.chip.row_s();
+        let row_m = edev.chip.row_s() + 8;
+        let row_t = edev.chip.row_s() + 16;
         drawer.bel_poly(
             vec![
                 (col_x[cl - 6].0, row_y[row_b].0 - H_TERM),

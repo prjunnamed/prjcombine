@@ -1,6 +1,6 @@
 use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
-use prjcombine_spartan6::bels;
+use prjcombine_spartan6::defs;
 use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem},
@@ -17,12 +17,12 @@ use crate::{
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "CMT_PLL");
-    let mut bctx = ctx.bel(bels::PLL);
+    let mut bctx = ctx.bel(defs::bslots::PLL);
     let mode = "PLL_ADV";
     bctx.build()
         .global_mutex("CMT", "PRESENT_PLL")
         .global_mutex_here("CMT_PRESENT")
-        .extra_tiles_attr_by_bel(bels::DCM0, "CMT", "PRESENT_ANY_PLL", "1")
+        .extra_tiles_attr_by_bel(defs::bslots::DCM[0], "CMT", "PRESENT_ANY_PLL", "1")
         .test_manual("PRESENT", "PLL")
         .mode(mode)
         .global_xy("PLLADV_*_USE_CALC", "NO")
@@ -44,7 +44,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_xy("PLLADV_*_USE_CALC", "NO")
             .test_inv(pin);
     }
-    let obel_tie = bels::TIEOFF_PLL;
+    let obel_tie = defs::bslots::TIEOFF_PLL;
     bctx.mode(mode)
         .global_mutex("CMT", "INV")
         .global_xy("PLLADV_*_USE_CALC", "NO")
@@ -218,10 +218,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    let obel_dcm0 = bels::DCM0;
-    let obel_dcm1 = bels::DCM1;
-    let obel_dcm_cmt = bels::CMT;
-    let bel_cmt = bels::CMT;
+    let obel_dcm0 = defs::bslots::DCM[0];
+    let obel_dcm1 = defs::bslots::DCM[1];
+    let obel_dcm_cmt = defs::bslots::CMT;
+    let bel_cmt = defs::bslots::CMT;
     let relation_dcm = Delta::new(0, -16, "CMT_DCM");
 
     for (opin, val, ipin) in [
@@ -380,7 +380,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
 
-    let mut bctx = ctx.bel(bels::CMT);
+    let mut bctx = ctx.bel(defs::bslots::CMT);
     for i in 0..16 {
         bctx.build()
             .mutex(format!("MUX.CASC{i}"), "PASS")
@@ -397,7 +397,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual(format!("MUX.HCLK{i}"), "CKINT")
             .pip(format!("HCLK{i}"), format!("HCLK{i}_CKINT"))
             .commit();
-        let bel_pll = bels::PLL;
+        let bel_pll = defs::bslots::PLL;
         for out in [
             "CLKOUT0",
             "CLKOUT1",

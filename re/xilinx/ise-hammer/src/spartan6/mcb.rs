@@ -1,7 +1,7 @@
 use prjcombine_entity::EntityId;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_spartan6::bels;
+use prjcombine_spartan6::defs;
 use prjcombine_types::bsdata::{BitRectId, TileBit, TileItem};
 
 use crate::{
@@ -14,7 +14,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, "MCB") else {
         return;
     };
-    let mut bctx = ctx.bel(bels::MCB);
+    let mut bctx = ctx.bel(defs::bslots::MCB);
     let mode = "MCB";
     bctx.build()
         .global_mutex("MCB", "TEST")

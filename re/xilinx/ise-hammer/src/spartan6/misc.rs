@@ -1,7 +1,7 @@
 use prjcombine_re_fpga_hammer::{OcdMode, concat_bitvec, xlat_bit};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_spartan6::bels;
+use prjcombine_spartan6::defs;
 use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
@@ -18,7 +18,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Spartan6(edev) = backend.edev else {
         unreachable!()
     };
-    for (tile, n) in [("LL", "BL"), ("UL", "TL"), ("LR", "BR"), ("UR", "TR")] {
+    for (tile, n) in [("CNR_SW", "BL"), ("CNR_NW", "TL"), ("CNR_SE", "BR"), ("CNR_NE", "TR")] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for vh in ['V', 'H'] {
             ctx.build()
@@ -37,7 +37,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "LL");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_SW");
         ctx.build()
             .test_manual("MISC", "LEAKER_SLOPE_OPTIONS", "")
             .multi_global("LEAKERSLOPEOPTIONS", MultiValue::Dec(0), 4);
@@ -66,7 +66,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("MISO2PIN", val)
                 .commit();
         }
-        for bel in [bels::OCT_CAL2, bels::OCT_CAL3] {
+        for bel in [defs::bslots::OCT_CAL[2], defs::bslots::OCT_CAL[3]] {
             let mut bctx = ctx.bel(bel);
             bctx.test_manual("PRESENT", "1")
                 .mode("OCT_CALIBRATE")
@@ -79,7 +79,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "UL");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_NW");
         for val in ["READ", "PROGRAM"] {
             ctx.test_manual("MISC", "DNA_OPTIONS", val)
                 .global("DNAOPTIONS", val)
@@ -93,13 +93,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 ctx.test_manual("MISC", opt, val).global(opt, val).commit();
             }
         }
-        let mut bctx = ctx.bel(bels::DNA_PORT);
+        let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
         bctx.test_manual("ENABLE", "1").mode("DNA_PORT").commit();
-        let mut bctx = ctx.bel(bels::PMV);
+        let mut bctx = ctx.bel(defs::bslots::PMV);
         bctx.test_manual("PRESENT", "1").mode("PMV").commit();
         bctx.mode("PMV").test_multi_attr_dec("PSLEW", 4);
         bctx.mode("PMV").test_multi_attr_dec("NSLEW", 4);
-        for bel in [bels::OCT_CAL0, bels::OCT_CAL4] {
+        for bel in [defs::bslots::OCT_CAL[0], defs::bslots::OCT_CAL[4]] {
             let mut bctx = ctx.bel(bel);
             bctx.test_manual("PRESENT", "1")
                 .mode("OCT_CALIBRATE")
@@ -112,7 +112,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "LR");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_SE");
         for val in ["PULLUP", "PULLNONE", "PULLDOWN"] {
             for opt in ["CCLK2PIN", "MOSI2PIN", "SS_BPIN"] {
                 ctx.test_manual("MISC", opt, val).global(opt, val).commit();
@@ -123,7 +123,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("DONEPIN", val)
                 .commit();
         }
-        let mut bctx = ctx.bel(bels::OCT_CAL1);
+        let mut bctx = ctx.bel(defs::bslots::OCT_CAL[1]);
         bctx.test_manual("PRESENT", "1")
             .mode("OCT_CALIBRATE")
             .commit();
@@ -131,20 +131,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum("ACCESS_MODE", &["STATIC", "USER"]);
         bctx.mode("OCT_CALIBRATE")
             .test_enum("VREF_VALUE", &["0.25", "0.5", "0.75"]);
-        let mut bctx = ctx.bel(bels::ICAP);
+        let mut bctx = ctx.bel(defs::bslots::ICAP);
         bctx.test_manual("ENABLE", "1").mode("ICAP").commit();
-        let mut bctx = ctx.bel(bels::SPI_ACCESS);
+        let mut bctx = ctx.bel(defs::bslots::SPI_ACCESS);
         bctx.test_manual("ENABLE", "1").mode("SPI_ACCESS").commit();
 
-        let mut bctx = ctx.bel(bels::SUSPEND_SYNC);
+        let mut bctx = ctx.bel(defs::bslots::SUSPEND_SYNC);
         bctx.test_manual("ENABLE", "1")
             .mode("SUSPEND_SYNC")
             .commit();
-        let mut bctx = ctx.bel(bels::POST_CRC_INTERNAL);
+        let mut bctx = ctx.bel(defs::bslots::POST_CRC_INTERNAL);
         bctx.test_manual("PRESENT", "1")
             .mode("POST_CRC_INTERNAL")
             .commit();
-        let mut bctx = ctx.bel(bels::STARTUP);
+        let mut bctx = ctx.bel(defs::bslots::STARTUP);
         bctx.test_manual("PRESENT", "1").mode("STARTUP").commit();
         for attr in ["GTS_SYNC", "GSR_SYNC"] {
             for val in ["NO", "YES"] {
@@ -186,18 +186,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
 
-        let mut bctx = ctx.bel(bels::SLAVE_SPI);
+        let mut bctx = ctx.bel(defs::bslots::SLAVE_SPI);
         bctx.test_manual("PRESENT", "1").mode("SLAVE_SPI").commit();
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "UR");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_NE");
         for val in ["PULLUP", "PULLNONE", "PULLDOWN"] {
             for opt in ["TCKPIN", "TDIPIN", "TMSPIN", "TDOPIN", "CSO2PIN"] {
                 ctx.test_manual("MISC", opt, val).global(opt, val).commit();
             }
         }
-        let mut bctx = ctx.bel(bels::OCT_CAL5);
+        let mut bctx = ctx.bel(defs::bslots::OCT_CAL[5]);
         bctx.test_manual("PRESENT", "1")
             .mode("OCT_CALIBRATE")
             .commit();
@@ -206,7 +206,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("OCT_CALIBRATE")
             .test_enum("VREF_VALUE", &["0.25", "0.5", "0.75"]);
         for i in 0..4 {
-            let mut bctx = ctx.bel(bels::BSCAN[i]);
+            let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
             bctx.test_manual("ENABLE", "1").mode("BSCAN").commit();
             bctx.mode("BSCAN").test_enum("JTAG_TEST", &["0", "1"]);
         }
@@ -511,12 +511,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         unreachable!()
     };
     for (tile, bel) in [
-        ("LL", "OCT_CAL2"),
-        ("LL", "OCT_CAL3"),
-        ("UL", "OCT_CAL0"),
-        ("UL", "OCT_CAL4"),
-        ("LR", "OCT_CAL1"),
-        ("UR", "OCT_CAL5"),
+        ("CNR_SW", "OCT_CAL[2]"),
+        ("CNR_SW", "OCT_CAL[3]"),
+        ("CNR_NW", "OCT_CAL[0]"),
+        ("CNR_NW", "OCT_CAL[4]"),
+        ("CNR_SE", "OCT_CAL[1]"),
+        ("CNR_NE", "OCT_CAL[5]"),
     ] {
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.state
@@ -532,7 +532,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     {
-        let tile = "LL";
+        let tile = "CNR_SW";
         let bel = "MISC";
         ctx.collect_bitvec(tile, bel, "LEAKER_SLOPE_OPTIONS", "");
         ctx.collect_bitvec(tile, bel, "LEAKER_GAIN_OPTIONS", "");
@@ -543,7 +543,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "PROGPIN", &["PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "MISO2PIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
     }
-    for tile in ["LL", "UL", "LR", "UR"] {
+    for tile in ["CNR_SW", "CNR_NW", "CNR_SE", "CNR_NE"] {
         let bel = "MISC";
         ctx.collect_bit(tile, bel, "MISR_H_ENABLE", "1");
         ctx.collect_bit(tile, bel, "MISR_V_ENABLE", "1");
@@ -556,7 +556,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     {
-        let tile = "UL";
+        let tile = "CNR_NW";
         let bel = "MISC";
         ctx.collect_enum(
             tile,
@@ -573,12 +573,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
     {
-        let tile = "UL";
+        let tile = "CNR_NW";
         let bel = "DNA_PORT";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
     }
     {
-        let tile = "UL";
+        let tile = "CNR_NW";
         let bel = "PMV";
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_bitvec(tile, bel, "PSLEW", "");
@@ -586,7 +586,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     {
-        let tile = "LR";
+        let tile = "CNR_SE";
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "CCLK2PIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
         ctx.collect_enum(tile, bel, "MOSI2PIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
@@ -603,7 +603,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .assert_empty();
     }
     {
-        let tile = "LR";
+        let tile = "CNR_SE";
         let bel = "STARTUP";
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_enum_bool(tile, bel, "GTS_SYNC", "NO", "YES");
@@ -618,21 +618,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     {
-        let tile = "UR";
+        let tile = "CNR_NE";
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "TCKPIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
         ctx.collect_enum(tile, bel, "TDIPIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
         ctx.collect_enum(tile, bel, "TMSPIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
         ctx.collect_enum(tile, bel, "TDOPIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
         ctx.collect_enum(tile, bel, "CSO2PIN", &["PULLUP", "PULLNONE", "PULLDOWN"]);
-        ctx.collect_bit(tile, "BSCAN0", "ENABLE", "1");
-        ctx.collect_bit(tile, "BSCAN1", "ENABLE", "1");
-        ctx.collect_bit(tile, "BSCAN2", "ENABLE", "1");
-        ctx.collect_bit(tile, "BSCAN3", "ENABLE", "1");
+        ctx.collect_bit(tile, "BSCAN[0]", "ENABLE", "1");
+        ctx.collect_bit(tile, "BSCAN[1]", "ENABLE", "1");
+        ctx.collect_bit(tile, "BSCAN[2]", "ENABLE", "1");
+        ctx.collect_bit(tile, "BSCAN[3]", "ENABLE", "1");
         ctx.collect_bitvec(tile, "BSCAN_COMMON", "USERID", "");
-        let item = ctx.extract_enum_bool(tile, "BSCAN0", "JTAG_TEST", "0", "1");
+        let item = ctx.extract_enum_bool(tile, "BSCAN[0]", "JTAG_TEST", "0", "1");
         ctx.tiledb.insert(tile, "BSCAN_COMMON", "JTAG_TEST", item);
-        for bel in ["BSCAN1", "BSCAN2", "BSCAN3"] {
+        for bel in ["BSCAN[1]", "BSCAN[2]", "BSCAN[3]"] {
             ctx.state
                 .get_diff(tile, bel, "JTAG_TEST", "0")
                 .assert_empty();

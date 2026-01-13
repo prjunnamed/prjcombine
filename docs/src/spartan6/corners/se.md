@@ -1,3 +1,3 @@
 # South-east
 
-{{tile spartan6 LR}}
+{{tile spartan6 CNR_SE}}

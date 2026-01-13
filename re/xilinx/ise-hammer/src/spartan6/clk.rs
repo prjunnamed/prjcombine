@@ -8,7 +8,7 @@ use prjcombine_re_fpga_hammer::{
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_spartan6::{bels, chip::Gts};
+use prjcombine_spartan6::{chip::Gts, defs};
 use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
@@ -127,7 +127,7 @@ pub fn add_fuzzers<'a>(
 ) {
     if devdata_only {
         let mut ctx = FuzzCtx::new(session, backend, "PCILOGICSE");
-        let mut bctx = ctx.bel(bels::PCILOGICSE);
+        let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
             .test_manual("PRESENT", "1")
@@ -140,7 +140,7 @@ pub fn add_fuzzers<'a>(
     };
     {
         let mut ctx = FuzzCtx::new(session, backend, "HCLK");
-        let mut bctx = ctx.bel(bels::HCLK);
+        let mut bctx = ctx.bel(defs::bslots::HCLK);
         for i in 0..16 {
             let gclk_i = format!("GCLK{i}_I");
             let gclk_o_d = format!("GCLK{i}_O_D");
@@ -158,7 +158,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "HCLK_H_MIDBUF") {
-        let mut bctx = ctx.bel(bels::HCLK_H_MIDBUF);
+        let mut bctx = ctx.bel(defs::bslots::HCLK_H_MIDBUF);
         for i in 0..16 {
             bctx.build()
                 .null_bits()
@@ -174,10 +174,10 @@ pub fn add_fuzzers<'a>(
     }
     {
         let mut ctx = FuzzCtx::new(session, backend, "HCLK_ROW");
-        for slots in [bels::BUFH_W, bels::BUFH_E] {
+        for slots in [defs::bslots::BUFH_W, defs::bslots::BUFH_E] {
             for i in 0..16 {
                 let mut bctx = ctx.bel(slots[i]);
-                let obel = bels::HCLK_ROW;
+                let obel = defs::bslots::HCLK_ROW;
                 bctx.build()
                     .mutex("I", "BUFG")
                     .test_manual("I", "BUFG")
@@ -209,7 +209,7 @@ pub fn add_fuzzers<'a>(
     }
     {
         let mut ctx = FuzzCtx::new(session, backend, "HCLK_V_MIDBUF");
-        let mut bctx = ctx.bel(bels::HCLK_V_MIDBUF);
+        let mut bctx = ctx.bel(defs::bslots::HCLK_V_MIDBUF);
         for i in 0..16 {
             bctx.build()
                 .null_bits()
@@ -226,7 +226,7 @@ pub fn add_fuzzers<'a>(
     {
         let mut ctx = FuzzCtx::new(session, backend, "CLKC");
         for i in 0..16 {
-            let mut bctx = ctx.bel(bels::BUFGMUX[i]);
+            let mut bctx = ctx.bel(defs::bslots::BUFGMUX[i]);
             bctx.test_manual("PRESENT", "1").mode("BUFGMUX").commit();
             bctx.mode("BUFGMUX").test_inv("S");
             bctx.mode("BUFGMUX")
@@ -234,7 +234,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode("BUFGMUX")
                 .test_enum("DISABLE_ATTR", &["LOW", "HIGH"]);
         }
-        let mut bctx = ctx.bel(bels::CLKC);
+        let mut bctx = ctx.bel(defs::bslots::CLKC);
         for i in 0..16 {
             for inp in [
                 format!("CKPIN_H{i}"),
@@ -249,7 +249,7 @@ pub fn add_fuzzers<'a>(
                     .commit();
             }
         }
-        let mut bctx = ctx.bel(bels::CLKC_BUFPLL);
+        let mut bctx = ctx.bel(defs::bslots::CLKC_BUFPLL);
         for (out, altout) in [
             ("OUTL_CLKOUT0", "OUTL_CLKOUT1"),
             ("OUTL_CLKOUT1", "OUTL_CLKOUT0"),
@@ -338,7 +338,7 @@ pub fn add_fuzzers<'a>(
         .enumerate()
     {
         if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
-            let mut bctx = ctx.bel(bels::PLL_BUFPLL);
+            let mut bctx = ctx.bel(defs::bslots::PLL_BUFPLL);
             for out in ["CLKOUT0", "CLKOUT1", "LOCKED"] {
                 for ud in ['U', 'D'] {
                     bctx.build()
@@ -350,10 +350,10 @@ pub fn add_fuzzers<'a>(
         }
     }
     for (tile, bel) in [
-        ("DCM_BUFPLL_BUF_S", bels::DCM_BUFPLL_BUF_S),
-        ("DCM_BUFPLL_BUF_S_MID", bels::DCM_BUFPLL_BUF_S_MID),
-        ("DCM_BUFPLL_BUF_N", bels::DCM_BUFPLL_BUF_N),
-        ("DCM_BUFPLL_BUF_N_MID", bels::DCM_BUFPLL_BUF_N_MID),
+        ("DCM_BUFPLL_BUF_S", defs::bslots::DCM_BUFPLL_BUF_S),
+        ("DCM_BUFPLL_BUF_S_MID", defs::bslots::DCM_BUFPLL_BUF_S_MID),
+        ("DCM_BUFPLL_BUF_N", defs::bslots::DCM_BUFPLL_BUF_N),
+        ("DCM_BUFPLL_BUF_N_MID", defs::bslots::DCM_BUFPLL_BUF_N_MID),
     ] {
         if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
             let mut bctx = ctx.bel(bel);
@@ -364,8 +364,8 @@ pub fn add_fuzzers<'a>(
                         (vec!["PLL_BUFPLL_OUT1"], vec!["PLL_BUFPLL_OUT0"])
                     }
                     ("DCM_BUFPLL_BUF_S_MID", 3) => (
-                        vec!["PLL_BUFPLL_OUT1", "PLL_BUFPLL_B"],
-                        vec!["PLL_BUFPLL_OUT0", "PLL_BUFPLL_B"],
+                        vec!["PLL_BUFPLL_OUT1", "PLL_BUFPLL_S"],
+                        vec!["PLL_BUFPLL_OUT0", "PLL_BUFPLL_S"],
                     ),
                     ("DCM_BUFPLL_BUF_N", 1) => (vec![], vec!["PLL_BUFPLL_OUT1"]),
                     ("DCM_BUFPLL_BUF_N", 2 | 3) => (vec![], vec!["PLL_BUFPLL_OUT0"]),
@@ -373,8 +373,8 @@ pub fn add_fuzzers<'a>(
                         (vec!["PLL_BUFPLL_OUT0"], vec!["PLL_BUFPLL_OUT1"])
                     }
                     ("DCM_BUFPLL_BUF_N_MID", 3) => (
-                        vec!["PLL_BUFPLL_OUT0", "PLL_BUFPLL_T"],
-                        vec!["PLL_BUFPLL_OUT1", "PLL_BUFPLL_T"],
+                        vec!["PLL_BUFPLL_OUT0", "PLL_BUFPLL_N"],
+                        vec!["PLL_BUFPLL_OUT1", "PLL_BUFPLL_N"],
                     ),
                     _ => unreachable!(),
                 };
@@ -411,14 +411,14 @@ pub fn add_fuzzers<'a>(
         }
     }
     for (tile, is_lr) in [
-        ("REG_B", false),
-        ("REG_T", false),
-        ("REG_L", true),
-        ("REG_R", true),
+        ("CLK_S", false),
+        ("CLK_N", false),
+        ("CLK_W", true),
+        ("CLK_E", true),
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for i in 0..8 {
-            let mut bctx = ctx.bel(bels::BUFIO2[i]);
+            let mut bctx = ctx.bel(defs::bslots::BUFIO2[i]);
             bctx.test_manual("PRESENT", "BUFIO2")
                 .mode("BUFIO2")
                 .commit();
@@ -470,14 +470,14 @@ pub fn add_fuzzers<'a>(
                         "GTPCLK{ii}",
                         ii = match (tile, i) {
                             // ???
-                            ("REG_L" | "REG_R", 1) => 0,
-                            ("REG_L" | "REG_R", 3) => 2,
+                            ("CLK_W" | "CLK_E", 1) => 0,
+                            ("CLK_W" | "CLK_E", 3) => 2,
                             _ => i,
                         }
                     ),
                 ),
             ] {
-                let obel = bels::BUFIO2_INS;
+                let obel = defs::bslots::BUFIO2_INS;
                 bctx.mode("BUFIO2")
                     .mutex("I", val)
                     .test_manual("I", val)
@@ -500,7 +500,7 @@ pub fn add_fuzzers<'a>(
                 ),
                 ("DFB", format!("DFB{ii}", ii = i ^ 1)),
             ] {
-                let obel = bels::BUFIO2_INS;
+                let obel = defs::bslots::BUFIO2_INS;
                 bctx.mode("BUFIO2_2CLK")
                     .mutex("IB", val)
                     .test_manual("IB", val)
@@ -529,20 +529,20 @@ pub fn add_fuzzers<'a>(
                 .pip((PinFar, "DIVCLK"), "DIVCLK")
                 .pip("CKPIN", (PinFar, "DIVCLK"))
                 .commit();
-            let obel = bels::BUFIO2_CKPIN;
+            let obel = defs::bslots::BUFIO2_CKPIN;
             bctx.build()
                 .mutex("CKPIN", "CLKPIN")
                 .test_manual("CKPIN", "CLKPIN")
                 .pip((obel, format!("CKPIN{i}")), (obel, format!("CLKPIN{i}")))
                 .commit();
-            let obel_tie = bels::TIEOFF_REG;
+            let obel_tie = defs::bslots::TIEOFF_REG;
             bctx.build()
                 .mutex("CKPIN", "VCC")
                 .test_manual("CKPIN", "VCC")
                 .pip("CKPIN", (obel_tie, "HARD1"))
                 .commit();
 
-            let mut bctx = ctx.bel(bels::BUFIO2FB[i]);
+            let mut bctx = ctx.bel(defs::bslots::BUFIO2FB[i]);
             bctx.test_manual("PRESENT", "BUFIO2FB")
                 .mode("BUFIO2FB")
                 .commit();
@@ -552,7 +552,7 @@ pub fn add_fuzzers<'a>(
             bctx.mode("BUFIO2FB")
                 .test_enum("DIVIDE_BYPASS", &["FALSE", "TRUE"]);
 
-            let obel = bels::BUFIO2_INS;
+            let obel = defs::bslots::BUFIO2_INS;
             for (val, pin) in [
                 ("CLKPIN", format!("CLKPIN{ii}", ii = i ^ 1)),
                 ("DFB", format!("DFB{i}")),
@@ -583,7 +583,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::BUFPLL[i]);
+            let mut bctx = ctx.bel(defs::bslots::BUFPLL[i]);
             bctx.build()
                 .tile_mutex("BUFPLL", "PLAIN")
                 .test_manual("PRESENT", "1")
@@ -601,11 +601,11 @@ pub fn add_fuzzers<'a>(
                 .no_pin("IOCLK")
                 .test_enum("ENABLE_SYNC", &["FALSE", "TRUE"]);
 
-            let obel_out = bels::BUFPLL_OUT;
+            let obel_out = defs::bslots::BUFPLL_OUT;
             let obel_ins = if is_lr {
-                bels::BUFPLL_INS_LR
+                defs::bslots::BUFPLL_INS_WE
             } else {
-                bels::BUFPLL_INS_BT
+                defs::bslots::BUFPLL_INS_SN
             };
             bctx.mode("BUFPLL")
                 .tile_mutex("BUFPLL", format!("SINGLE{i}"))
@@ -638,7 +638,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
 
             if !is_lr {
-                let obel = bels::BUFPLL[i ^ 1];
+                let obel = defs::bslots::BUFPLL[i ^ 1];
                 for i in 0..6 {
                     bctx.mode("BUFPLL")
                         .tile_mutex("BUFPLL", "PLAIN")
@@ -671,7 +671,7 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
         {
-            let mut bctx = ctx.bel(bels::BUFPLL_MCB);
+            let mut bctx = ctx.bel(defs::bslots::BUFPLL_MCB);
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB")
                 .test_manual("PRESENT", "1")
@@ -687,7 +687,7 @@ pub fn add_fuzzers<'a>(
                 .test_enum("LOCK_SRC", &["LOCK_TO_0", "LOCK_TO_1"]);
 
             if is_lr {
-                let obel = bels::BUFPLL_INS_LR;
+                let obel = defs::bslots::BUFPLL_INS_WE;
                 bctx.build()
                     .tile_mutex("BUFPLL", "MCB")
                     .mutex("PLLIN", "GCLK")
@@ -710,7 +710,7 @@ pub fn add_fuzzers<'a>(
                     .commit();
             }
 
-            let obel = bels::BUFPLL_OUT;
+            let obel = defs::bslots::BUFPLL_OUT;
             bctx.build()
                 .tile_mutex("BUFPLL", "MCB_OUT0")
                 .mode("BUFPLL_MCB")
@@ -727,7 +727,13 @@ pub fn add_fuzzers<'a>(
                 .commit();
         }
         if !is_lr {
-            let n = &tile[4..];
+            let n = match tile {
+                "CLK_W" => "L",
+                "CLK_E" => "R",
+                "CLK_S" => "B",
+                "CLK_N" => "T",
+                _ => unreachable!(),
+            };
             ctx.build()
                 .global("ENABLEMISR", "Y")
                 .global("MISRRESET", "N")
@@ -744,7 +750,7 @@ pub fn add_fuzzers<'a>(
     }
     {
         let mut ctx = FuzzCtx::new(session, backend, "PCILOGICSE");
-        let mut bctx = ctx.bel(bels::PCILOGICSE);
+        let mut bctx = ctx.bel(defs::bslots::PCILOGICSE);
         bctx.build()
             .no_global("PCI_CE_DELAY_LEFT")
             .test_manual("PRESENT", "1")
@@ -759,10 +765,10 @@ pub fn add_fuzzers<'a>(
         }
     }
     for (tile, bel) in [
-        ("PCI_CE_TRUNK_BUF", bels::PCI_CE_TRUNK_BUF),
-        ("PCI_CE_V_BUF", bels::PCI_CE_V_BUF),
-        ("PCI_CE_SPLIT", bels::PCI_CE_SPLIT),
-        ("PCI_CE_H_BUF", bels::PCI_CE_H_BUF),
+        ("PCI_CE_TRUNK_BUF", defs::bslots::PCI_CE_TRUNK_BUF),
+        ("PCI_CE_V_BUF", defs::bslots::PCI_CE_V_BUF),
+        ("PCI_CE_SPLIT", defs::bslots::PCI_CE_SPLIT),
+        ("PCI_CE_H_BUF", defs::bslots::PCI_CE_H_BUF),
     ] {
         if let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) {
             let mut bctx = ctx.bel(bel);
@@ -813,7 +819,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         let tile = "HCLK_ROW";
         for i in 0..16 {
             for we in ['W', 'E'] {
-                let bel = format!("BUFH_{we}{i}");
+                let bel = format!("BUFH_{we}[{i}]");
                 ctx.collect_enum_default(tile, &bel, "I", &["BUFG", "CMT"], "NONE");
             }
         }
@@ -821,7 +827,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     {
         let tile = "CLKC";
         for i in 0..16 {
-            let bel = format!("BUFGMUX{i}");
+            let bel = format!("BUFGMUX[{i}]");
             ctx.state
                 .get_diff(tile, &bel, "PRESENT", "1")
                 .assert_empty();
@@ -991,7 +997,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ctx.state.get_diff(tile, bel, attr, "1").assert_empty();
         }
     }
-    for tile in ["PLL_BUFPLL_B", "PLL_BUFPLL_T"] {
+    for tile in ["PLL_BUFPLL_S", "PLL_BUFPLL_N"] {
         if ctx.has_tile(tile) {
             let bel = "PLL_BUFPLL";
             for attr in [
@@ -1007,14 +1013,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
     for (tile, is_lr) in [
-        ("REG_B", false),
-        ("REG_T", false),
-        ("REG_L", true),
-        ("REG_R", true),
+        ("CLK_S", false),
+        ("CLK_N", false),
+        ("CLK_W", true),
+        ("CLK_E", true),
     ] {
         for i in 0..8 {
-            let bel = format!("BUFIO2_{i}");
-            let bel_fb = format!("BUFIO2FB_{i}");
+            let bel = format!("BUFIO2[{i}]");
+            let bel_fb = format!("BUFIO2FB[{i}]");
             let bel = &bel;
             let bel_fb = &bel_fb;
             ctx.state
@@ -1116,12 +1122,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
         for val in ["1", "2", "3", "4", "5", "6", "7", "8"] {
             let diff = ctx.state.get_diff(tile, "BUFPLL_MCB", "DIVIDE", val);
-            let diff0 = ctx.state.peek_diff(tile, "BUFPLL0", "DIVIDE", val);
-            let diff1 = ctx.state.peek_diff(tile, "BUFPLL1", "DIVIDE", val);
+            let diff0 = ctx.state.peek_diff(tile, "BUFPLL[0]", "DIVIDE", val);
+            let diff1 = ctx.state.peek_diff(tile, "BUFPLL[1]", "DIVIDE", val);
             assert_eq!(diff, diff0.combine(diff1));
         }
         for i in 0..2 {
-            let bel = format!("BUFPLL{i}");
+            let bel = format!("BUFPLL[{i}]");
             let bel = &bel;
             ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
             ctx.collect_enum(tile, bel, "DATA_RATE", &["SDR", "DDR"]);
@@ -1165,9 +1171,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.tiledb.insert(tile, "BUFPLL_COMMON", "PLLIN", item);
             }
             let mut diff0 = ctx.state.get_diff(tile, bel, "LOCK_SRC", "LOCK_TO_0");
-            diff0.apply_bit_diff(ctx.tiledb.item(tile, "BUFPLL1", "ENABLE_SYNC"), false, true);
+            diff0.apply_bit_diff(ctx.tiledb.item(tile, "BUFPLL[1]", "ENABLE_SYNC"), false, true);
             let mut diff1 = ctx.state.get_diff(tile, bel, "LOCK_SRC", "LOCK_TO_1");
-            diff1.apply_bit_diff(ctx.tiledb.item(tile, "BUFPLL0", "ENABLE_SYNC"), false, true);
+            diff1.apply_bit_diff(ctx.tiledb.item(tile, "BUFPLL[0]", "ENABLE_SYNC"), false, true);
             ctx.tiledb.insert(
                 tile,
                 bel,
@@ -1175,15 +1181,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 xlat_enum(vec![("LOCK_TO_0", diff0), ("LOCK_TO_1", diff1)]),
             );
             let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL0", "ENABLE_BOTH_SYNC"), 7, 0);
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL1", "ENABLE_BOTH_SYNC"), 7, 0);
+            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL[0]", "ENABLE_BOTH_SYNC"), 7, 0);
+            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL[1]", "ENABLE_BOTH_SYNC"), 7, 0);
             diff.assert_empty();
         }
         if !is_lr {
             let bel = "MISC";
             let has_gt = match tile {
-                "REG_B" => matches!(edev.chip.gts, Gts::Quad(_, _)),
-                "REG_T" => edev.chip.gts != Gts::None,
+                "CLK_S" => matches!(edev.chip.gts, Gts::Quad(_, _)),
+                "CLK_N" => edev.chip.gts != Gts::None,
                 _ => unreachable!(),
             };
             if has_gt && !ctx.device.name.starts_with("xa") {

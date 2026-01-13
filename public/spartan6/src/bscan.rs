@@ -23,16 +23,16 @@ impl Chip {
         let mut builder = BScanBuilder::new();
         // TIO
         for (col, &cd) in self.columns.iter().rev() {
-            if cd.tio == ColumnIoKind::None {
+            if cd.io_n == ColumnIoKind::None {
                 continue;
             }
             for (iob, unused) in [
                 // inner
-                (0, cd.tio == ColumnIoKind::Outer),
-                (1, cd.tio == ColumnIoKind::Outer),
+                (0, cd.io_n == ColumnIoKind::Outer),
+                (1, cd.io_n == ColumnIoKind::Outer),
                 // outer
-                (2, cd.tio == ColumnIoKind::Inner),
-                (3, cd.tio == ColumnIoKind::Inner),
+                (2, cd.io_n == ColumnIoKind::Inner),
+                (3, cd.io_n == ColumnIoKind::Inner),
             ] {
                 if !unused {
                     let crd = EdgeIoCoord::N(col, TileIobId::from_idx(iob));
@@ -42,7 +42,7 @@ impl Chip {
         }
         // LIO
         for (row, &rd) in self.rows.iter().rev() {
-            if rd.lio {
+            if rd.io_w {
                 for iob in [0, 1] {
                     let crd = EdgeIoCoord::W(row, TileIobId::from_idx(iob));
                     io.insert(crd, builder.get_toi());
@@ -52,16 +52,16 @@ impl Chip {
         cfg.insert(CfgPad::ProgB, builder.get_toi());
         // BIO
         for (col, &cd) in &self.columns {
-            if cd.bio == ColumnIoKind::None {
+            if cd.io_s == ColumnIoKind::None {
                 continue;
             }
             for (iob, unused) in [
                 // inner
-                (0, cd.bio == ColumnIoKind::Outer),
-                (1, cd.bio == ColumnIoKind::Outer),
+                (0, cd.io_s == ColumnIoKind::Outer),
+                (1, cd.io_s == ColumnIoKind::Outer),
                 // outer
-                (2, cd.bio == ColumnIoKind::Inner),
-                (3, cd.bio == ColumnIoKind::Inner),
+                (2, cd.io_s == ColumnIoKind::Inner),
+                (3, cd.io_s == ColumnIoKind::Inner),
             ] {
                 if !unused {
                     let crd = EdgeIoCoord::S(col, TileIobId::from_idx(iob));
@@ -74,7 +74,7 @@ impl Chip {
         cfg.insert(CfgPad::Suspend, builder.get_toi());
         // RIO
         for (row, &rd) in &self.rows {
-            if rd.rio {
+            if rd.io_e {
                 for iob in [0, 1] {
                     let crd = EdgeIoCoord::E(row, TileIobId::from_idx(iob));
                     io.insert(crd, builder.get_toi());

@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use prjcombine_interconnect::grid::TileCoord;
 use prjcombine_re_fpga_hammer::{DiffKey, FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
-use prjcombine_spartan6::bels;
+use prjcombine_spartan6::defs;
 use prjcombine_types::{
     bits,
     bsdata::{TileItem, TileItemKind},
@@ -51,7 +51,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for ExtraBramFixup {
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "BRAM");
     {
-        let mut bctx = ctx.bel(bels::BRAM_F);
+        let mut bctx = ctx.bel(defs::bslots::BRAM_F);
         let mode = "RAMB16BWER";
 
         bctx.build()
@@ -189,7 +189,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
     }
-    for bel in [bels::BRAM_H0, bels::BRAM_H1] {
+    for bel in defs::bslots::BRAM_H {
         let mut bctx = ctx.bel(bel);
         let mode = "RAMB8BWER";
         let bel_name = backend.edev.db.bel_slots.key(bel).as_str();
@@ -296,7 +296,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     for attr in ["BW_EN_A_D", "BW_EN_A_U", "BW_EN_B_D", "BW_EN_B_U"] {
         ctx.build()
             .global_mutex("BRAM", "NONE")
-            .extra_tiles_by_bel(bels::BRAM_F, "BRAM_F")
+            .extra_tiles_by_bel(defs::bslots::BRAM_F, "BRAM_F")
             .test_manual("BRAM", attr, "1")
             .global(attr, "1")
             .commit();
@@ -307,14 +307,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "BRAM";
 
     for (fpin, hbel, hpin) in [
-        ("WEA0", "BRAM_H0", "WEAWEL0"),
-        ("WEA1", "BRAM_H0", "WEAWEL1"),
-        ("WEA2", "BRAM_H1", "WEAWEL0"),
-        ("WEA3", "BRAM_H1", "WEAWEL1"),
-        ("WEB0", "BRAM_H0", "WEBWEU0"),
-        ("WEB1", "BRAM_H0", "WEBWEU1"),
-        ("WEB2", "BRAM_H1", "WEBWEU0"),
-        ("WEB3", "BRAM_H1", "WEBWEU1"),
+        ("WEA0", "BRAM_H[0]", "WEAWEL0"),
+        ("WEA1", "BRAM_H[0]", "WEAWEL1"),
+        ("WEA2", "BRAM_H[1]", "WEAWEL0"),
+        ("WEA3", "BRAM_H[1]", "WEAWEL1"),
+        ("WEB0", "BRAM_H[0]", "WEBWEU0"),
+        ("WEB1", "BRAM_H[0]", "WEBWEU1"),
+        ("WEB2", "BRAM_H[1]", "WEBWEU0"),
+        ("WEB3", "BRAM_H[1]", "WEBWEU1"),
     ] {
         let item = ctx.extract_enum_bool(
             tile,
@@ -351,30 +351,30 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .get_diff(tile, "BRAM_F", format!("{fpin}INV"), fpin);
         let diff0_h0 = ctx
             .state
-            .get_diff(tile, "BRAM_H0", format!("{hpin}INV"), hpin);
+            .get_diff(tile, "BRAM_H[0]", format!("{hpin}INV"), hpin);
         let diff0_h1 = ctx
             .state
-            .get_diff(tile, "BRAM_H1", format!("{hpin}INV"), hpin);
+            .get_diff(tile, "BRAM_H[1]", format!("{hpin}INV"), hpin);
         assert_eq!(diff0_f, diff0_h0.combine(&diff0_h1));
         let diff1_f = ctx
             .state
             .get_diff(tile, "BRAM_F", format!("{fpin}INV"), format!("{fpin}_B"));
         let diff1_h0 =
             ctx.state
-                .get_diff(tile, "BRAM_H0", format!("{hpin}INV"), format!("{hpin}_B"));
+                .get_diff(tile, "BRAM_H[0]", format!("{hpin}INV"), format!("{hpin}_B"));
         let diff1_h1 =
             ctx.state
-                .get_diff(tile, "BRAM_H1", format!("{hpin}INV"), format!("{hpin}_B"));
+                .get_diff(tile, "BRAM_H[1]", format!("{hpin}INV"), format!("{hpin}_B"));
         assert_eq!(diff1_f, diff1_h0.combine(&diff1_h1));
         ctx.tiledb.insert(
             tile,
-            "BRAM_H0",
+            "BRAM_H[0]",
             format!("INV.{hpin}"),
             xlat_bool(diff0_h0, diff1_h0),
         );
         ctx.tiledb.insert(
             tile,
-            "BRAM_H1",
+            "BRAM_H[1]",
             format!("INV.{hpin}"),
             xlat_bool(diff0_h1, diff1_h1),
         );
@@ -396,33 +396,33 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diffs_h1 = vec![];
         for &val in vals {
             let diff_f = ctx.state.get_diff(tile, "BRAM_F", attr, val);
-            let diff_h0 = ctx.state.get_diff(tile, "BRAM_H0", attr, val);
-            let diff_h1 = ctx.state.get_diff(tile, "BRAM_H1", attr, val);
+            let diff_h0 = ctx.state.get_diff(tile, "BRAM_H[0]", attr, val);
+            let diff_h1 = ctx.state.get_diff(tile, "BRAM_H[1]", attr, val);
             assert_eq!(diff_f, diff_h0.combine(&diff_h1));
             diffs_h0.push((val, diff_h0));
             diffs_h1.push((val, diff_h1));
         }
         ctx.tiledb
-            .insert(tile, "BRAM_H0", attr, xlat_enum(diffs_h0));
+            .insert(tile, "BRAM_H[0]", attr, xlat_enum(diffs_h0));
         ctx.tiledb
-            .insert(tile, "BRAM_H1", attr, xlat_enum(diffs_h1));
+            .insert(tile, "BRAM_H[1]", attr, xlat_enum(diffs_h1));
     }
     for (attr, val0, val1) in [
         ("EN_RSTRAM_A", "FALSE", "TRUE"),
         ("EN_RSTRAM_B", "FALSE", "TRUE"),
     ] {
         let diff0_f = ctx.state.get_diff(tile, "BRAM_F", attr, val0);
-        let diff0_h0 = ctx.state.get_diff(tile, "BRAM_H0", attr, val0);
-        let diff0_h1 = ctx.state.get_diff(tile, "BRAM_H1", attr, val0);
+        let diff0_h0 = ctx.state.get_diff(tile, "BRAM_H[0]", attr, val0);
+        let diff0_h1 = ctx.state.get_diff(tile, "BRAM_H[1]", attr, val0);
         assert_eq!(diff0_f, diff0_h0.combine(&diff0_h1));
         let diff1_f = ctx.state.get_diff(tile, "BRAM_F", attr, val1);
-        let diff1_h0 = ctx.state.get_diff(tile, "BRAM_H0", attr, val1);
-        let diff1_h1 = ctx.state.get_diff(tile, "BRAM_H1", attr, val1);
+        let diff1_h0 = ctx.state.get_diff(tile, "BRAM_H[0]", attr, val1);
+        let diff1_h1 = ctx.state.get_diff(tile, "BRAM_H[1]", attr, val1);
         assert_eq!(diff1_f, diff1_h0.combine(&diff1_h1));
         ctx.tiledb
-            .insert(tile, "BRAM_H0", attr, xlat_bool(diff0_h0, diff1_h0));
+            .insert(tile, "BRAM_H[0]", attr, xlat_bool(diff0_h0, diff1_h0));
         ctx.tiledb
-            .insert(tile, "BRAM_H1", attr, xlat_bool(diff0_h1, diff1_h1));
+            .insert(tile, "BRAM_H[1]", attr, xlat_bool(diff0_h1, diff1_h1));
     }
     for (attr, val1) in [
         ("ENWEAKWRITEA", "ENABLE"),
@@ -431,27 +431,29 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("WEAKWRITEVALB", "1"),
     ] {
         let diff1_f = ctx.state.get_diff(tile, "BRAM_F", attr, val1);
-        let diff1_h0 = ctx.state.get_diff(tile, "BRAM_H0", attr, val1);
-        let diff1_h1 = ctx.state.get_diff(tile, "BRAM_H1", attr, val1);
+        let diff1_h0 = ctx.state.get_diff(tile, "BRAM_H[0]", attr, val1);
+        let diff1_h1 = ctx.state.get_diff(tile, "BRAM_H[1]", attr, val1);
         assert_eq!(diff1_f, diff1_h0.combine(&diff1_h1));
-        ctx.tiledb.insert(tile, "BRAM_H0", attr, xlat_bit(diff1_h0));
-        ctx.tiledb.insert(tile, "BRAM_H1", attr, xlat_bit(diff1_h1));
+        ctx.tiledb
+            .insert(tile, "BRAM_H[0]", attr, xlat_bit(diff1_h0));
+        ctx.tiledb
+            .insert(tile, "BRAM_H[1]", attr, xlat_bit(diff1_h1));
     }
     for (attr, bel, sattr) in [
-        ("BW_EN_A", "BRAM_H0", "BW_EN_A_D"),
-        ("BW_EN_B", "BRAM_H0", "BW_EN_B_D"),
-        ("BW_EN_A", "BRAM_H1", "BW_EN_A_U"),
-        ("BW_EN_B", "BRAM_H1", "BW_EN_B_U"),
+        ("BW_EN_A", "BRAM_H[0]", "BW_EN_A_D"),
+        ("BW_EN_B", "BRAM_H[0]", "BW_EN_B_D"),
+        ("BW_EN_A", "BRAM_H[1]", "BW_EN_A_U"),
+        ("BW_EN_B", "BRAM_H[1]", "BW_EN_B_U"),
     ] {
         let diff = ctx.state.get_diff(tile, "BRAM_F", sattr, "1");
         ctx.tiledb.insert(tile, bel, attr, xlat_bit(diff));
     }
 
     for (attr, bel, sattr) in [
-        ("DDEL_A", "BRAM_H0", "BRAM_DDEL_A_D"),
-        ("DDEL_B", "BRAM_H0", "BRAM_DDEL_B_D"),
-        ("DDEL_A", "BRAM_H1", "BRAM_DDEL_A_U"),
-        ("DDEL_B", "BRAM_H1", "BRAM_DDEL_B_U"),
+        ("DDEL_A", "BRAM_H[0]", "BRAM_DDEL_A_D"),
+        ("DDEL_B", "BRAM_H[0]", "BRAM_DDEL_B_D"),
+        ("DDEL_A", "BRAM_H[1]", "BRAM_DDEL_A_U"),
+        ("DDEL_B", "BRAM_H[1]", "BRAM_DDEL_B_U"),
     ] {
         let diff0 = ctx.state.get_diff(tile, "BRAM_F", sattr, "0");
         let diff1 = ctx.state.get_diff(tile, "BRAM_F", sattr, "1");
@@ -469,10 +471,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
     for (attr, bel, sattr) in [
-        ("WDEL_A", "BRAM_H0", "BRAM_WDEL_A_D"),
-        ("WDEL_B", "BRAM_H0", "BRAM_WDEL_B_D"),
-        ("WDEL_A", "BRAM_H1", "BRAM_WDEL_A_U"),
-        ("WDEL_B", "BRAM_H1", "BRAM_WDEL_B_U"),
+        ("WDEL_A", "BRAM_H[0]", "BRAM_WDEL_A_D"),
+        ("WDEL_B", "BRAM_H[0]", "BRAM_WDEL_B_D"),
+        ("WDEL_A", "BRAM_H[1]", "BRAM_WDEL_A_U"),
+        ("WDEL_B", "BRAM_H[1]", "BRAM_WDEL_B_U"),
     ] {
         let diff0 = ctx.state.get_diff(tile, "BRAM_F", sattr, "0");
         let diff1 = ctx.state.get_diff(tile, "BRAM_F", sattr, "1");
@@ -495,8 +497,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     let mut present_f = ctx.state.get_diff(tile, "BRAM_F", "PRESENT", "1");
-    let mut present_h0 = ctx.state.get_diff(tile, "BRAM_H0", "PRESENT", "1");
-    let mut present_h1 = ctx.state.get_diff(tile, "BRAM_H1", "PRESENT", "1");
+    let mut present_h0 = ctx.state.get_diff(tile, "BRAM_H[0]", "PRESENT", "1");
+    let mut present_h1 = ctx.state.get_diff(tile, "BRAM_H[1]", "PRESENT", "1");
 
     for pin in [
         "WEAWEL0",
@@ -509,42 +511,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "ENAWREN",
         "ENBRDEN",
     ] {
-        let item = ctx.tiledb.item(tile, "BRAM_H0", &format!("INV.{pin}"));
+        let item = ctx.tiledb.item(tile, "BRAM_H[0]", &format!("INV.{pin}"));
         present_f.apply_bit_diff(item, false, true);
         present_h0.apply_bit_diff(item, false, true);
-        let item = ctx.tiledb.item(tile, "BRAM_H1", &format!("INV.{pin}"));
+        let item = ctx.tiledb.item(tile, "BRAM_H[1]", &format!("INV.{pin}"));
         present_f.apply_bit_diff(item, false, true);
         present_h1.apply_bit_diff(item, false, true);
     }
 
     for attr in ["BW_EN_A", "BW_EN_B"] {
-        let item = ctx.tiledb.item(tile, "BRAM_H0", attr);
+        let item = ctx.tiledb.item(tile, "BRAM_H[0]", attr);
         present_f.apply_bit_diff(item, true, false);
         present_h0.apply_bit_diff(item, true, false);
-        let item = ctx.tiledb.item(tile, "BRAM_H1", attr);
+        let item = ctx.tiledb.item(tile, "BRAM_H[1]", attr);
         present_f.apply_bit_diff(item, true, false);
         present_h1.apply_bit_diff(item, true, false);
     }
     for attr in ["DDEL_A", "DDEL_B"] {
         let val = if ctx.device.name.ends_with("l") { 7 } else { 3 };
-        let item = ctx.tiledb.item(tile, "BRAM_H0", attr);
+        let item = ctx.tiledb.item(tile, "BRAM_H[0]", attr);
         present_f.apply_bitvec_diff_int(item, val, 0);
         present_h0.apply_bitvec_diff_int(item, val, 0);
-        let item = ctx.tiledb.item(tile, "BRAM_H1", attr);
+        let item = ctx.tiledb.item(tile, "BRAM_H[1]", attr);
         present_f.apply_bitvec_diff_int(item, val, 0);
         present_h1.apply_bitvec_diff_int(item, val, 0);
     }
 
     assert_eq!(present_h0, present_h1);
     assert_eq!(present_h0, present_f);
-    let present_h0_fixup = ctx.state.get_diff(tile, "BRAM_H0", "PRESENT.FIXUP", "1");
-    let present_h1_fixup = ctx.state.get_diff(tile, "BRAM_H1", "PRESENT.FIXUP", "1");
+    let present_h0_fixup = ctx.state.get_diff(tile, "BRAM_H[0]", "PRESENT.FIXUP", "1");
+    let present_h1_fixup = ctx.state.get_diff(tile, "BRAM_H[1]", "PRESENT.FIXUP", "1");
     assert_eq!(present_h0_fixup, present_h1_fixup);
     assert_eq!(present_h0_fixup, present_f);
     assert!(present_f.bits.values().all(|x| *x));
     let mut bits: Vec<_> = present_f.bits.keys().copied().collect();
     bits.sort();
-    for (bel, bit) in [("BRAM_H0", bits[0]), ("BRAM_H1", bits[1])] {
+    for (bel, bit) in [("BRAM_H[0]", bits[0]), ("BRAM_H[1]", bits[1])] {
         ctx.tiledb.insert(
             tile,
             bel,
@@ -563,16 +565,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     for attr in ["SRVAL_A", "SRVAL_B", "INIT_A", "INIT_B"] {
         let diffs_f = ctx.state.get_diffs(tile, "BRAM_F", attr, "");
-        let diffs_h0 = ctx.state.get_diffs(tile, "BRAM_H0", attr, "");
-        let diffs_h1 = ctx.state.get_diffs(tile, "BRAM_H1", attr, "");
+        let diffs_h0 = ctx.state.get_diffs(tile, "BRAM_H[0]", attr, "");
+        let diffs_h1 = ctx.state.get_diffs(tile, "BRAM_H[1]", attr, "");
         assert_eq!(diffs_f[0..16], diffs_h0[0..16]);
         assert_eq!(diffs_f[16..32], diffs_h1[0..16]);
         assert_eq!(diffs_f[32..34], diffs_h0[16..18]);
         assert_eq!(diffs_f[34..36], diffs_h1[16..18]);
         ctx.tiledb
-            .insert(tile, "BRAM_H0", attr, xlat_bitvec(diffs_h0));
+            .insert(tile, "BRAM_H[0]", attr, xlat_bitvec(diffs_h0));
         ctx.tiledb
-            .insert(tile, "BRAM_H1", attr, xlat_bitvec(diffs_h1));
+            .insert(tile, "BRAM_H[1]", attr, xlat_bitvec(diffs_h1));
     }
 
     let mut diffs_n = vec![];
@@ -592,11 +594,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..0x20 {
         diffs_h0.extend(
             ctx.state
-                .get_diffs(tile, "BRAM_H0", format!("INIT_{i:02X}"), ""),
+                .get_diffs(tile, "BRAM_H[0]", format!("INIT_{i:02X}"), ""),
         );
         diffs_h1.extend(
             ctx.state
-                .get_diffs(tile, "BRAM_H1", format!("INIT_{i:02X}"), ""),
+                .get_diffs(tile, "BRAM_H[1]", format!("INIT_{i:02X}"), ""),
         );
     }
     assert_eq!(diffs_n[..0x2000], diffs_h0);
@@ -606,9 +608,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         assert_eq!(diffs_n[i], diffs_w[iw]);
     }
     ctx.tiledb
-        .insert(tile, "BRAM_H0", "DATA", xlat_bitvec(diffs_h0));
+        .insert(tile, "BRAM_H[0]", "DATA", xlat_bitvec(diffs_h0));
     ctx.tiledb
-        .insert(tile, "BRAM_H1", "DATA", xlat_bitvec(diffs_h1));
+        .insert(tile, "BRAM_H[1]", "DATA", xlat_bitvec(diffs_h1));
 
     let mut diffs_n = vec![];
     let mut diffs_w = vec![];
@@ -627,11 +629,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         diffs_h0.extend(
             ctx.state
-                .get_diffs(tile, "BRAM_H0", format!("INITP_{i:02X}"), ""),
+                .get_diffs(tile, "BRAM_H[0]", format!("INITP_{i:02X}"), ""),
         );
         diffs_h1.extend(
             ctx.state
-                .get_diffs(tile, "BRAM_H1", format!("INITP_{i:02X}"), ""),
+                .get_diffs(tile, "BRAM_H[1]", format!("INITP_{i:02X}"), ""),
         );
     }
     assert_eq!(diffs_n[..0x400], diffs_h0);
@@ -641,7 +643,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         assert_eq!(diffs_n[i], diffs_w[iw]);
     }
     ctx.tiledb
-        .insert(tile, "BRAM_H0", "DATAP", xlat_bitvec(diffs_h0));
+        .insert(tile, "BRAM_H[0]", "DATAP", xlat_bitvec(diffs_h0));
     ctx.tiledb
-        .insert(tile, "BRAM_H1", "DATAP", xlat_bitvec(diffs_h1));
+        .insert(tile, "BRAM_H[1]", "DATAP", xlat_bitvec(diffs_h1));
 }

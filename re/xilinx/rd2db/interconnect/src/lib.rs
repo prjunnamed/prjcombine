@@ -2748,9 +2748,9 @@ impl<'a> IntBuilder<'a> {
         self.extract_term_tile_id(ccls, tcls, dir, term_xy, naming, int_xy);
     }
 
-    pub fn extract_term_buf_tile(
+    pub fn extract_term_buf_tile_id(
         &mut self,
-        name: impl AsRef<str>,
+        ccid: ConnectorClassId,
         dir: Dir,
         term_xy: Coord,
         naming: impl AsRef<str>,
@@ -2829,7 +2829,20 @@ impl<'a> IntBuilder<'a> {
             slot: self.term_slots[dir],
             wires,
         };
-        self.insert_term_merge(name.as_ref(), term);
+        self.insert_connector(ccid, term);
+    }
+
+    pub fn extract_term_buf_tile(
+        &mut self,
+        name: impl AsRef<str>,
+        dir: Dir,
+        term_xy: Coord,
+        naming: impl AsRef<str>,
+        int_xy: Coord,
+        forced: &[(WireSlotId, WireSlotId)],
+    ) {
+        let ccls = self.make_ccls(self.term_slots[dir], name.as_ref());
+        self.extract_term_buf_tile_id(ccls, dir, term_xy, naming, int_xy, forced);
     }
 
     pub fn extract_term_conn_tile(
@@ -2963,6 +2976,21 @@ impl<'a> IntBuilder<'a> {
                     int_xy,
                     forced,
                 );
+            }
+        }
+    }
+
+    pub fn extract_term_buf_id(
+        &mut self,
+        ccls: ConnectorClassId,
+        dir: Dir,
+        tkn: impl AsRef<str>,
+        naming: impl AsRef<str>,
+        forced: &[(WireSlotId, WireSlotId)],
+    ) {
+        for &term_xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
+            if let Some(int_xy) = self.walk_to_int(term_xy, !dir, false) {
+                self.extract_term_buf_tile_id(ccls, dir, term_xy, naming.as_ref(), int_xy, forced);
             }
         }
     }
@@ -3795,6 +3823,34 @@ impl<'a> IntBuilder<'a> {
     ) {
         let mut x = self
             .xtile(slot, name, naming, xy)
+            .num_tiles(Ord::max(int_xy.len(), intf_xy.len()));
+        for &xy in buf_xy {
+            x = x.raw_tile(xy);
+        }
+        for (i, &xy) in int_xy.iter().enumerate() {
+            x = x.ref_int(xy, i);
+        }
+        for (i, &(xy, naming)) in intf_xy.iter().enumerate() {
+            x = x.ref_single(xy, i, naming);
+        }
+        for bel in bels {
+            x = x.bel(bel.clone());
+        }
+        x.extract();
+    }
+
+    pub fn extract_xtile_bels_intf_id(
+        &mut self,
+        tcid: TileClassId,
+        xy: Coord,
+        buf_xy: &[Coord],
+        int_xy: &[Coord],
+        intf_xy: &[(Coord, TileClassNamingId)],
+        naming: &str,
+        bels: &[ExtrBelInfo],
+    ) {
+        let mut x = self
+            .xtile_id(tcid, naming, xy)
             .num_tiles(Ord::max(int_xy.len(), intf_xy.len()));
         for &xy in buf_xy {
             x = x.raw_tile(xy);

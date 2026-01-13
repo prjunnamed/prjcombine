@@ -38,7 +38,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new(session, backend, "DSP");
     let (bel_kind, slot) = match mode {
         Mode::Spartan3ADsp => ("DSP48A", prjcombine_virtex2::defs::bslots::DSP),
-        Mode::Spartan6 => ("DSP48A1", prjcombine_spartan6::bels::DSP),
+        Mode::Spartan6 => ("DSP48A1", prjcombine_spartan6::defs::bslots::DSP),
     };
     let mut bctx = ctx.bel(slot);
     bctx.test_manual("PRESENT", "1").mode(bel_kind).commit();

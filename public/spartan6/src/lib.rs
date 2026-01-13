@@ -1,11 +1,7 @@
-#![recursion_limit = "1024"]
-pub mod bels;
 pub mod bond;
 pub mod bscan;
 pub mod chip;
-pub mod cslots;
 pub mod db;
+pub mod defs;
 mod expand;
 pub mod expanded;
-pub mod regions;
-pub mod tslots;

@@ -2,4 +2,4 @@
 
 
 {{tile spartan6 INT}}
-{{tile spartan6 INT.IOI}}
+{{tile spartan6 INT_IOI}}

@@ -4,7 +4,7 @@ use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_spartan6::{bels, chip::Gts};
+use prjcombine_spartan6::{chip::Gts, defs};
 use prjcombine_types::bsdata::{TileBit, TileItem};
 
 use crate::{
@@ -247,7 +247,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTP") else {
         return;
     };
-    let mut bctx = ctx.bel(bels::GTP);
+    let mut bctx = ctx.bel(defs::bslots::GTP);
     let mode = "GTPA1_DUAL";
 
     bctx.build()
@@ -309,7 +309,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pip(format!("{pin}{i}"), pin)
                 .commit();
         }
-        for (pin, obel) in [("CLK0", bels::BUFDS0), ("CLK1", bels::BUFDS1)] {
+        for (pin, obel) in [
+            ("CLK0", defs::bslots::BUFDS[0]),
+            ("CLK1", defs::bslots::BUFDS[1]),
+        ] {
             bctx.build()
                 .mutex(format!("REFSELPLL{i}"), pin)
                 .test_manual(format!("REFSELPLL{i}"), pin)
