@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-b5179b2b.js"></script>
+        <script src="toc-a1e2f5e9.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -161,7 +161,7 @@
 <p>Each individual database file is provided in two forms:</p>
 <ul>
 <li>zstd-compressed bincode-serialized Rust structures, suitable for use with the provided Rust crates</li>
-<li>JSON</li>
+<li>text format dump</li>
 </ul>
 <p>The database format is target-dependent, though there are broad similarities.</p>
 <p>One of the project goals is providing highly compact databases, via aggressive deduplication.  For instance, the databases do not contain the full list of primitives and nets for a given FPGA — instead, they contain just enough information to allow recreating the full geometry via target-specific means.  You can use the provided Rust code to expand and navigate this information.</p>
@@ -248,7 +248,7 @@
 </ul>
 </li>
 <li>
-<p><code>prjcombine-virtex2</code>: Xilinx Virtex-II and Spartan-3; has three databases:</p>
+<p><code>prjcombine-virtex2</code>: Xilinx Virtex-II and Spartan-3; has two databases:</p>
 <ul>
 <li><code>virtex2</code>:
 <ul>
@@ -259,14 +259,10 @@
 <li><code>spartan3</code>:
 <ul>
 <li>Spartan-3</li>
+<li>FPGAcore eFPGA</li>
 <li>Spartan-3E</li>
 <li>Spartan-3A and Spartan-3AN</li>
 <li>Spartan-3A DSP</li>
-</ul>
-</li>
-<li><code>fpgacore</code>:
-<ul>
-<li>FPGAcore eFPGA</li>
 </ul>
 </li>
 </ul>

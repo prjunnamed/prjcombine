@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-b5179b2b.js"></script>
+        <script src="../../toc-a1e2f5e9.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -155,162 +155,114 @@
 <p>Used for <code>LLH</code> tiles that split horizontal long lines, physically located on the primary vertical clock spine. Such tiles are located on the intersection of frames 2-3 of the clock spines bitstream column and interconnect rows, making them 2×64 in size.</p>
 <h2 id="llh"><a class="header" href="#llh"><code>LLH</code></a></h2>
 <p>This type of tile is used for all horizontal splitters on Spartan 3E, and for horizontal splitters in general rows on Spartan 3A and Spartan 3A DSP. On Spartan 3A and 3A DSP, the horizontal splitters in IO rows have special tile types.</p>
-<p>On Spartan 3E, the bitstream area is also used by <code>CLKB.S3E</code> and <code>CLKT.S3E</code> in the bottom and top rows.</p>
+<p>On Spartan 3E, the bitstream area is also used by <code>CLK_S_S3E</code> and <code>CLK_N_S3E</code> in the bottom and top rows.</p>
 <h2 id="tile-llh"><a class="header" href="#tile-llh">Tile LLH</a></h2>
 <p>Cells: 2</p>
 <h3 id="switchbox-llh"><a class="header" href="#switchbox-llh">Switchbox LLH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 LLH switchbox LLH</caption>
+<caption>spartan3 LLH switchbox LLH programmable buffers</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="1">CELL0.LH.0</td><td>CELL1.LH.1</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[0]-E.LH[1]"><td>W.LH[0]</td><td>E.LH[1]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.1</td><td>CELL1.LH.2</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[1]-E.LH[2]"><td>W.LH[1]</td><td>E.LH[2]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.2</td><td>CELL1.LH.3</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[2]-E.LH[3]"><td>W.LH[2]</td><td>E.LH[3]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.3</td><td>CELL1.LH.4</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[3]-E.LH[4]"><td>W.LH[3]</td><td>E.LH[4]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.4</td><td>CELL1.LH.5</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[4]-E.LH[5]"><td>W.LH[4]</td><td>E.LH[5]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.5</td><td>CELL1.LH.6</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[5]-E.LH[6]"><td>W.LH[5]</td><td>E.LH[6]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.6</td><td>CELL1.LH.7</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[6]-E.LH[7]"><td>W.LH[6]</td><td>E.LH[7]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.7</td><td>CELL1.LH.8</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[7]-E.LH[8]"><td>W.LH[7]</td><td>E.LH[8]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.8</td><td>CELL1.LH.9</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[8]-E.LH[9]"><td>W.LH[8]</td><td>E.LH[9]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.9</td><td>CELL1.LH.10</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[9]-E.LH[10]"><td>W.LH[9]</td><td>E.LH[10]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.10</td><td>CELL1.LH.11</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[10]-E.LH[11]"><td>W.LH[10]</td><td>E.LH[11]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.11</td><td>CELL1.LH.12</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[11]-E.LH[12]"><td>W.LH[11]</td><td>E.LH[12]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.12</td><td>CELL1.LH.13</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[12]-E.LH[13]"><td>W.LH[12]</td><td>E.LH[13]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.13</td><td>CELL1.LH.14</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[13]-E.LH[14]"><td>W.LH[13]</td><td>E.LH[14]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.14</td><td>CELL1.LH.15</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[14]-E.LH[15]"><td>W.LH[14]</td><td>E.LH[15]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.15</td><td>CELL1.LH.16</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[15]-E.LH[16]"><td>W.LH[15]</td><td>E.LH[16]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.16</td><td>CELL1.LH.17</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[16]-E.LH[17]"><td>W.LH[16]</td><td>E.LH[17]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.17</td><td>CELL1.LH.18</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[17]-E.LH[18]"><td>W.LH[17]</td><td>E.LH[18]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.18</td><td>CELL1.LH.19</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[18]-E.LH[19]"><td>W.LH[18]</td><td>E.LH[19]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.19</td><td>CELL1.LH.20</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[19]-E.LH[20]"><td>W.LH[19]</td><td>E.LH[20]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.20</td><td>CELL1.LH.21</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[20]-E.LH[21]"><td>W.LH[20]</td><td>E.LH[21]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.21</td><td>CELL1.LH.22</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[21]-E.LH[22]"><td>W.LH[21]</td><td>E.LH[22]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.22</td><td>CELL1.LH.23</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[22]-E.LH[23]"><td>W.LH[22]</td><td>E.LH[23]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.23</td><td>CELL1.LH.0</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-W.LH[23]-E.LH[0]"><td>W.LH[23]</td><td>E.LH[0]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.0</td><td>CELL0.LH.23</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[0]-W.LH[23]"><td>E.LH[0]</td><td>W.LH[23]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.1</td><td>CELL0.LH.0</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[1]-W.LH[0]"><td>E.LH[1]</td><td>W.LH[0]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.2</td><td>CELL0.LH.1</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[2]-W.LH[1]"><td>E.LH[2]</td><td>W.LH[1]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.3</td><td>CELL0.LH.2</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[3]-W.LH[2]"><td>E.LH[3]</td><td>W.LH[2]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.4</td><td>CELL0.LH.3</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[4]-W.LH[3]"><td>E.LH[4]</td><td>W.LH[3]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.5</td><td>CELL0.LH.4</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[5]-W.LH[4]"><td>E.LH[5]</td><td>W.LH[4]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.6</td><td>CELL0.LH.5</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[6]-W.LH[5]"><td>E.LH[6]</td><td>W.LH[5]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.7</td><td>CELL0.LH.6</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[7]-W.LH[6]"><td>E.LH[7]</td><td>W.LH[6]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.8</td><td>CELL0.LH.7</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[8]-W.LH[7]"><td>E.LH[8]</td><td>W.LH[7]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.9</td><td>CELL0.LH.8</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[9]-W.LH[8]"><td>E.LH[9]</td><td>W.LH[8]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.10</td><td>CELL0.LH.9</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[10]-W.LH[9]"><td>E.LH[10]</td><td>W.LH[9]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.11</td><td>CELL0.LH.10</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[11]-W.LH[10]"><td>E.LH[11]</td><td>W.LH[10]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.12</td><td>CELL0.LH.11</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[12]-W.LH[11]"><td>E.LH[12]</td><td>W.LH[11]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.13</td><td>CELL0.LH.12</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[13]-W.LH[12]"><td>E.LH[13]</td><td>W.LH[12]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.14</td><td>CELL0.LH.13</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[14]-W.LH[13]"><td>E.LH[14]</td><td>W.LH[13]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.15</td><td>CELL0.LH.14</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[15]-W.LH[14]"><td>E.LH[15]</td><td>W.LH[14]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.16</td><td>CELL0.LH.15</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[16]-W.LH[15]"><td>E.LH[16]</td><td>W.LH[15]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.17</td><td>CELL0.LH.16</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[17]-W.LH[16]"><td>E.LH[17]</td><td>W.LH[16]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.18</td><td>CELL0.LH.17</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[18]-W.LH[17]"><td>E.LH[18]</td><td>W.LH[17]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.19</td><td>CELL0.LH.18</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[19]-W.LH[18]"><td>E.LH[19]</td><td>W.LH[18]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.20</td><td>CELL0.LH.19</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[20]-W.LH[19]"><td>E.LH[20]</td><td>W.LH[19]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.21</td><td>CELL0.LH.20</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[21]-W.LH[20]"><td>E.LH[21]</td><td>W.LH[20]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.22</td><td>CELL0.LH.21</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[22]-W.LH[21]"><td>E.LH[22]</td><td>W.LH[21]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.23</td><td>CELL0.LH.22</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH-LLH-progbuf-E.LH[23]-W.LH[22]"><td>E.LH[23]</td><td>W.LH[22]</td><td><a href="#spartan3-LLH-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
 </tbody>
 
@@ -318,6 +270,346 @@
 </div>
 
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 LLH rect CLK</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
+
+<tr>
+<th>F0</th>
+<th>F1</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B63</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B62</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B61</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B60</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B59</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B58</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B57</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B56</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B55</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B54</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B53</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B52</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B51</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B50</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B49</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B48</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B47</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B46</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B45</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B44</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B43</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B42</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B41</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B40</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B39</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B38</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B37</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B36</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B35</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B34</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B33</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B32</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B31</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B30</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B29</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B28</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B27</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B26</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B25</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B24</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B23</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B22</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B21</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B20</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B19</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B18</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B17</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B16</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B15</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B9</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+### Bitstream
 <div class="table-wrapper">
 <table>
 <caption>spartan3 LLH rect R0</caption>
@@ -335,42 +627,42 @@
 <tr><td>B62</td>
 <td>-</td>
 <td title="R0.F1.B62">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.23.1.LH.0">LLH:BUF.0.LH.23.1.LH.0</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[23].1.LH[0]">LLH:BUF.0.LH[23].1.LH[0]</a>
 </td>
 </tr>
 
 <tr><td>B61</td>
 <td>-</td>
 <td title="R0.F1.B61">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.0.0.LH.23">LLH:BUF.1.LH.0.0.LH.23</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[0].0.LH[23]">LLH:BUF.1.LH[0].0.LH[23]</a>
 </td>
 </tr>
 
 <tr><td>B60</td>
 <td>-</td>
 <td title="R0.F1.B60">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.22.1.LH.23">LLH:BUF.0.LH.22.1.LH.23</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[22].1.LH[23]">LLH:BUF.0.LH[22].1.LH[23]</a>
 </td>
 </tr>
 
 <tr><td>B59</td>
 <td>-</td>
 <td title="R0.F1.B59">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.23.0.LH.22">LLH:BUF.1.LH.23.0.LH.22</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[23].0.LH[22]">LLH:BUF.1.LH[23].0.LH[22]</a>
 </td>
 </tr>
 
 <tr><td>B58</td>
 <td>-</td>
 <td title="R0.F1.B58">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.21.1.LH.22">LLH:BUF.0.LH.21.1.LH.22</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[21].1.LH[22]">LLH:BUF.0.LH[21].1.LH[22]</a>
 </td>
 </tr>
 
 <tr><td>B57</td>
 <td>-</td>
 <td title="R0.F1.B57">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.22.0.LH.21">LLH:BUF.1.LH.22.0.LH.21</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[22].0.LH[21]">LLH:BUF.1.LH[22].0.LH[21]</a>
 </td>
 </tr>
 
@@ -387,42 +679,42 @@
 <tr><td>B54</td>
 <td>-</td>
 <td title="R0.F1.B54">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.20.1.LH.21">LLH:BUF.0.LH.20.1.LH.21</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[20].1.LH[21]">LLH:BUF.0.LH[20].1.LH[21]</a>
 </td>
 </tr>
 
 <tr><td>B53</td>
 <td>-</td>
 <td title="R0.F1.B53">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.21.0.LH.20">LLH:BUF.1.LH.21.0.LH.20</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[21].0.LH[20]">LLH:BUF.1.LH[21].0.LH[20]</a>
 </td>
 </tr>
 
 <tr><td>B52</td>
 <td>-</td>
 <td title="R0.F1.B52">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.19.1.LH.20">LLH:BUF.0.LH.19.1.LH.20</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[19].1.LH[20]">LLH:BUF.0.LH[19].1.LH[20]</a>
 </td>
 </tr>
 
 <tr><td>B51</td>
 <td>-</td>
 <td title="R0.F1.B51">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.20.0.LH.19">LLH:BUF.1.LH.20.0.LH.19</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[20].0.LH[19]">LLH:BUF.1.LH[20].0.LH[19]</a>
 </td>
 </tr>
 
 <tr><td>B50</td>
 <td>-</td>
 <td title="R0.F1.B50">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.18.1.LH.19">LLH:BUF.0.LH.18.1.LH.19</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[18].1.LH[19]">LLH:BUF.0.LH[18].1.LH[19]</a>
 </td>
 </tr>
 
 <tr><td>B49</td>
 <td>-</td>
 <td title="R0.F1.B49">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.19.0.LH.18">LLH:BUF.1.LH.19.0.LH.18</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[19].0.LH[18]">LLH:BUF.1.LH[19].0.LH[18]</a>
 </td>
 </tr>
 
@@ -439,42 +731,42 @@
 <tr><td>B46</td>
 <td>-</td>
 <td title="R0.F1.B46">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.17.1.LH.18">LLH:BUF.0.LH.17.1.LH.18</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[17].1.LH[18]">LLH:BUF.0.LH[17].1.LH[18]</a>
 </td>
 </tr>
 
 <tr><td>B45</td>
 <td>-</td>
 <td title="R0.F1.B45">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.18.0.LH.17">LLH:BUF.1.LH.18.0.LH.17</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[18].0.LH[17]">LLH:BUF.1.LH[18].0.LH[17]</a>
 </td>
 </tr>
 
 <tr><td>B44</td>
 <td>-</td>
 <td title="R0.F1.B44">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.16.1.LH.17">LLH:BUF.0.LH.16.1.LH.17</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[16].1.LH[17]">LLH:BUF.0.LH[16].1.LH[17]</a>
 </td>
 </tr>
 
 <tr><td>B43</td>
 <td>-</td>
 <td title="R0.F1.B43">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.17.0.LH.16">LLH:BUF.1.LH.17.0.LH.16</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[17].0.LH[16]">LLH:BUF.1.LH[17].0.LH[16]</a>
 </td>
 </tr>
 
 <tr><td>B42</td>
 <td>-</td>
 <td title="R0.F1.B42">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.15.1.LH.16">LLH:BUF.0.LH.15.1.LH.16</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[15].1.LH[16]">LLH:BUF.0.LH[15].1.LH[16]</a>
 </td>
 </tr>
 
 <tr><td>B41</td>
 <td>-</td>
 <td title="R0.F1.B41">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.16.0.LH.15">LLH:BUF.1.LH.16.0.LH.15</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[16].0.LH[15]">LLH:BUF.1.LH[16].0.LH[15]</a>
 </td>
 </tr>
 
@@ -491,42 +783,42 @@
 <tr><td>B38</td>
 <td>-</td>
 <td title="R0.F1.B38">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.14.1.LH.15">LLH:BUF.0.LH.14.1.LH.15</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[14].1.LH[15]">LLH:BUF.0.LH[14].1.LH[15]</a>
 </td>
 </tr>
 
 <tr><td>B37</td>
 <td>-</td>
 <td title="R0.F1.B37">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.15.0.LH.14">LLH:BUF.1.LH.15.0.LH.14</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[15].0.LH[14]">LLH:BUF.1.LH[15].0.LH[14]</a>
 </td>
 </tr>
 
 <tr><td>B36</td>
 <td>-</td>
 <td title="R0.F1.B36">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.13.1.LH.14">LLH:BUF.0.LH.13.1.LH.14</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[13].1.LH[14]">LLH:BUF.0.LH[13].1.LH[14]</a>
 </td>
 </tr>
 
 <tr><td>B35</td>
 <td>-</td>
 <td title="R0.F1.B35">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.14.0.LH.13">LLH:BUF.1.LH.14.0.LH.13</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[14].0.LH[13]">LLH:BUF.1.LH[14].0.LH[13]</a>
 </td>
 </tr>
 
 <tr><td>B34</td>
 <td>-</td>
 <td title="R0.F1.B34">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.12.1.LH.13">LLH:BUF.0.LH.12.1.LH.13</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[12].1.LH[13]">LLH:BUF.0.LH[12].1.LH[13]</a>
 </td>
 </tr>
 
 <tr><td>B33</td>
 <td>-</td>
 <td title="R0.F1.B33">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.13.0.LH.12">LLH:BUF.1.LH.13.0.LH.12</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[13].0.LH[12]">LLH:BUF.1.LH[13].0.LH[12]</a>
 </td>
 </tr>
 
@@ -543,42 +835,42 @@
 <tr><td>B30</td>
 <td>-</td>
 <td title="R0.F1.B30">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.11.1.LH.12">LLH:BUF.0.LH.11.1.LH.12</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[11].1.LH[12]">LLH:BUF.0.LH[11].1.LH[12]</a>
 </td>
 </tr>
 
 <tr><td>B29</td>
 <td>-</td>
 <td title="R0.F1.B29">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.12.0.LH.11">LLH:BUF.1.LH.12.0.LH.11</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[12].0.LH[11]">LLH:BUF.1.LH[12].0.LH[11]</a>
 </td>
 </tr>
 
 <tr><td>B28</td>
 <td>-</td>
 <td title="R0.F1.B28">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.10.1.LH.11">LLH:BUF.0.LH.10.1.LH.11</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[10].1.LH[11]">LLH:BUF.0.LH[10].1.LH[11]</a>
 </td>
 </tr>
 
 <tr><td>B27</td>
 <td>-</td>
 <td title="R0.F1.B27">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.11.0.LH.10">LLH:BUF.1.LH.11.0.LH.10</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[11].0.LH[10]">LLH:BUF.1.LH[11].0.LH[10]</a>
 </td>
 </tr>
 
 <tr><td>B26</td>
 <td>-</td>
 <td title="R0.F1.B26">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.9.1.LH.10">LLH:BUF.0.LH.9.1.LH.10</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[9].1.LH[10]">LLH:BUF.0.LH[9].1.LH[10]</a>
 </td>
 </tr>
 
 <tr><td>B25</td>
 <td>-</td>
 <td title="R0.F1.B25">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.10.0.LH.9">LLH:BUF.1.LH.10.0.LH.9</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[10].0.LH[9]">LLH:BUF.1.LH[10].0.LH[9]</a>
 </td>
 </tr>
 
@@ -595,42 +887,42 @@
 <tr><td>B22</td>
 <td>-</td>
 <td title="R0.F1.B22">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.8.1.LH.9">LLH:BUF.0.LH.8.1.LH.9</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[8].1.LH[9]">LLH:BUF.0.LH[8].1.LH[9]</a>
 </td>
 </tr>
 
 <tr><td>B21</td>
 <td>-</td>
 <td title="R0.F1.B21">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.9.0.LH.8">LLH:BUF.1.LH.9.0.LH.8</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[9].0.LH[8]">LLH:BUF.1.LH[9].0.LH[8]</a>
 </td>
 </tr>
 
 <tr><td>B20</td>
 <td>-</td>
 <td title="R0.F1.B20">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.7.1.LH.8">LLH:BUF.0.LH.7.1.LH.8</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[7].1.LH[8]">LLH:BUF.0.LH[7].1.LH[8]</a>
 </td>
 </tr>
 
 <tr><td>B19</td>
 <td>-</td>
 <td title="R0.F1.B19">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.8.0.LH.7">LLH:BUF.1.LH.8.0.LH.7</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[8].0.LH[7]">LLH:BUF.1.LH[8].0.LH[7]</a>
 </td>
 </tr>
 
 <tr><td>B18</td>
 <td>-</td>
 <td title="R0.F1.B18">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.6.1.LH.7">LLH:BUF.0.LH.6.1.LH.7</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[6].1.LH[7]">LLH:BUF.0.LH[6].1.LH[7]</a>
 </td>
 </tr>
 
 <tr><td>B17</td>
 <td>-</td>
 <td title="R0.F1.B17">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.7.0.LH.6">LLH:BUF.1.LH.7.0.LH.6</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[7].0.LH[6]">LLH:BUF.1.LH[7].0.LH[6]</a>
 </td>
 </tr>
 
@@ -647,42 +939,42 @@
 <tr><td>B14</td>
 <td>-</td>
 <td title="R0.F1.B14">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.5.1.LH.6">LLH:BUF.0.LH.5.1.LH.6</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[5].1.LH[6]">LLH:BUF.0.LH[5].1.LH[6]</a>
 </td>
 </tr>
 
 <tr><td>B13</td>
 <td>-</td>
 <td title="R0.F1.B13">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.6.0.LH.5">LLH:BUF.1.LH.6.0.LH.5</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[6].0.LH[5]">LLH:BUF.1.LH[6].0.LH[5]</a>
 </td>
 </tr>
 
 <tr><td>B12</td>
 <td>-</td>
 <td title="R0.F1.B12">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.4.1.LH.5">LLH:BUF.0.LH.4.1.LH.5</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[4].1.LH[5]">LLH:BUF.0.LH[4].1.LH[5]</a>
 </td>
 </tr>
 
 <tr><td>B11</td>
 <td>-</td>
 <td title="R0.F1.B11">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.5.0.LH.4">LLH:BUF.1.LH.5.0.LH.4</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[5].0.LH[4]">LLH:BUF.1.LH[5].0.LH[4]</a>
 </td>
 </tr>
 
 <tr><td>B10</td>
 <td>-</td>
 <td title="R0.F1.B10">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.3.1.LH.4">LLH:BUF.0.LH.3.1.LH.4</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[3].1.LH[4]">LLH:BUF.0.LH[3].1.LH[4]</a>
 </td>
 </tr>
 
 <tr><td>B9</td>
 <td>-</td>
 <td title="R0.F1.B9">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.4.0.LH.3">LLH:BUF.1.LH.4.0.LH.3</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[4].0.LH[3]">LLH:BUF.1.LH[4].0.LH[3]</a>
 </td>
 </tr>
 
@@ -699,42 +991,42 @@
 <tr><td>B6</td>
 <td>-</td>
 <td title="R0.F1.B6">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.2.1.LH.3">LLH:BUF.0.LH.2.1.LH.3</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[2].1.LH[3]">LLH:BUF.0.LH[2].1.LH[3]</a>
 </td>
 </tr>
 
 <tr><td>B5</td>
 <td>-</td>
 <td title="R0.F1.B5">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.3.0.LH.2">LLH:BUF.1.LH.3.0.LH.2</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[3].0.LH[2]">LLH:BUF.1.LH[3].0.LH[2]</a>
 </td>
 </tr>
 
 <tr><td>B4</td>
 <td>-</td>
 <td title="R0.F1.B4">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.1.1.LH.2">LLH:BUF.0.LH.1.1.LH.2</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[1].1.LH[2]">LLH:BUF.0.LH[1].1.LH[2]</a>
 </td>
 </tr>
 
 <tr><td>B3</td>
 <td>-</td>
 <td title="R0.F1.B3">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.2.0.LH.1">LLH:BUF.1.LH.2.0.LH.1</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[2].0.LH[1]">LLH:BUF.1.LH[2].0.LH[1]</a>
 </td>
 </tr>
 
 <tr><td>B2</td>
 <td>-</td>
 <td title="R0.F1.B2">
-<a href="#tile-spartan3-LLH-LLH:BUF.0.LH.0.1.LH.1">LLH:BUF.0.LH.0.1.LH.1</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.0.LH[0].1.LH[1]">LLH:BUF.0.LH[0].1.LH[1]</a>
 </td>
 </tr>
 
 <tr><td>B1</td>
 <td>-</td>
 <td title="R0.F1.B1">
-<a href="#tile-spartan3-LLH-LLH:BUF.1.LH.1.0.LH.0">LLH:BUF.1.LH.1.0.LH.0</a>
+<a href="#tile-spartan3-LLH-LLH:BUF.1.LH[1].0.LH[0]">LLH:BUF.1.LH[1].0.LH[0]</a>
 </td>
 </tr>
 
@@ -751,195 +1043,195 @@
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.0.1.LH.1">LLH:BUF.0.LH.0.1.LH.1</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[0].1.LH[1]">LLH:BUF.0.LH[0].1.LH[1]</th>
 <th>0.F1.B2</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.1.1.LH.2">LLH:BUF.0.LH.1.1.LH.2</th>
-<th>0.F1.B4</th>
-</tr>
-
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.10.1.LH.11">LLH:BUF.0.LH.10.1.LH.11</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[10].1.LH[11]">LLH:BUF.0.LH[10].1.LH[11]</th>
 <th>0.F1.B28</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.11.1.LH.12">LLH:BUF.0.LH.11.1.LH.12</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[11].1.LH[12]">LLH:BUF.0.LH[11].1.LH[12]</th>
 <th>0.F1.B30</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.12.1.LH.13">LLH:BUF.0.LH.12.1.LH.13</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[12].1.LH[13]">LLH:BUF.0.LH[12].1.LH[13]</th>
 <th>0.F1.B34</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.13.1.LH.14">LLH:BUF.0.LH.13.1.LH.14</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[13].1.LH[14]">LLH:BUF.0.LH[13].1.LH[14]</th>
 <th>0.F1.B36</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.14.1.LH.15">LLH:BUF.0.LH.14.1.LH.15</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[14].1.LH[15]">LLH:BUF.0.LH[14].1.LH[15]</th>
 <th>0.F1.B38</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.15.1.LH.16">LLH:BUF.0.LH.15.1.LH.16</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[15].1.LH[16]">LLH:BUF.0.LH[15].1.LH[16]</th>
 <th>0.F1.B42</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.16.1.LH.17">LLH:BUF.0.LH.16.1.LH.17</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[16].1.LH[17]">LLH:BUF.0.LH[16].1.LH[17]</th>
 <th>0.F1.B44</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.17.1.LH.18">LLH:BUF.0.LH.17.1.LH.18</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[17].1.LH[18]">LLH:BUF.0.LH[17].1.LH[18]</th>
 <th>0.F1.B46</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.18.1.LH.19">LLH:BUF.0.LH.18.1.LH.19</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[18].1.LH[19]">LLH:BUF.0.LH[18].1.LH[19]</th>
 <th>0.F1.B50</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.19.1.LH.20">LLH:BUF.0.LH.19.1.LH.20</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[19].1.LH[20]">LLH:BUF.0.LH[19].1.LH[20]</th>
 <th>0.F1.B52</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.2.1.LH.3">LLH:BUF.0.LH.2.1.LH.3</th>
-<th>0.F1.B6</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[1].1.LH[2]">LLH:BUF.0.LH[1].1.LH[2]</th>
+<th>0.F1.B4</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.20.1.LH.21">LLH:BUF.0.LH.20.1.LH.21</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[20].1.LH[21]">LLH:BUF.0.LH[20].1.LH[21]</th>
 <th>0.F1.B54</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.21.1.LH.22">LLH:BUF.0.LH.21.1.LH.22</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[21].1.LH[22]">LLH:BUF.0.LH[21].1.LH[22]</th>
 <th>0.F1.B58</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.22.1.LH.23">LLH:BUF.0.LH.22.1.LH.23</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[22].1.LH[23]">LLH:BUF.0.LH[22].1.LH[23]</th>
 <th>0.F1.B60</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.23.1.LH.0">LLH:BUF.0.LH.23.1.LH.0</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[23].1.LH[0]">LLH:BUF.0.LH[23].1.LH[0]</th>
 <th>0.F1.B62</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.3.1.LH.4">LLH:BUF.0.LH.3.1.LH.4</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[2].1.LH[3]">LLH:BUF.0.LH[2].1.LH[3]</th>
+<th>0.F1.B6</th>
+</tr>
+
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[3].1.LH[4]">LLH:BUF.0.LH[3].1.LH[4]</th>
 <th>0.F1.B10</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.4.1.LH.5">LLH:BUF.0.LH.4.1.LH.5</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[4].1.LH[5]">LLH:BUF.0.LH[4].1.LH[5]</th>
 <th>0.F1.B12</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.5.1.LH.6">LLH:BUF.0.LH.5.1.LH.6</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[5].1.LH[6]">LLH:BUF.0.LH[5].1.LH[6]</th>
 <th>0.F1.B14</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.6.1.LH.7">LLH:BUF.0.LH.6.1.LH.7</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[6].1.LH[7]">LLH:BUF.0.LH[6].1.LH[7]</th>
 <th>0.F1.B18</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.7.1.LH.8">LLH:BUF.0.LH.7.1.LH.8</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[7].1.LH[8]">LLH:BUF.0.LH[7].1.LH[8]</th>
 <th>0.F1.B20</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.8.1.LH.9">LLH:BUF.0.LH.8.1.LH.9</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[8].1.LH[9]">LLH:BUF.0.LH[8].1.LH[9]</th>
 <th>0.F1.B22</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH.9.1.LH.10">LLH:BUF.0.LH.9.1.LH.10</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.0.LH[9].1.LH[10]">LLH:BUF.0.LH[9].1.LH[10]</th>
 <th>0.F1.B26</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.0.0.LH.23">LLH:BUF.1.LH.0.0.LH.23</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[0].0.LH[23]">LLH:BUF.1.LH[0].0.LH[23]</th>
 <th>0.F1.B61</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.1.0.LH.0">LLH:BUF.1.LH.1.0.LH.0</th>
-<th>0.F1.B1</th>
-</tr>
-
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.10.0.LH.9">LLH:BUF.1.LH.10.0.LH.9</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[10].0.LH[9]">LLH:BUF.1.LH[10].0.LH[9]</th>
 <th>0.F1.B25</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.11.0.LH.10">LLH:BUF.1.LH.11.0.LH.10</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[11].0.LH[10]">LLH:BUF.1.LH[11].0.LH[10]</th>
 <th>0.F1.B27</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.12.0.LH.11">LLH:BUF.1.LH.12.0.LH.11</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[12].0.LH[11]">LLH:BUF.1.LH[12].0.LH[11]</th>
 <th>0.F1.B29</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.13.0.LH.12">LLH:BUF.1.LH.13.0.LH.12</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[13].0.LH[12]">LLH:BUF.1.LH[13].0.LH[12]</th>
 <th>0.F1.B33</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.14.0.LH.13">LLH:BUF.1.LH.14.0.LH.13</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[14].0.LH[13]">LLH:BUF.1.LH[14].0.LH[13]</th>
 <th>0.F1.B35</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.15.0.LH.14">LLH:BUF.1.LH.15.0.LH.14</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[15].0.LH[14]">LLH:BUF.1.LH[15].0.LH[14]</th>
 <th>0.F1.B37</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.16.0.LH.15">LLH:BUF.1.LH.16.0.LH.15</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[16].0.LH[15]">LLH:BUF.1.LH[16].0.LH[15]</th>
 <th>0.F1.B41</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.17.0.LH.16">LLH:BUF.1.LH.17.0.LH.16</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[17].0.LH[16]">LLH:BUF.1.LH[17].0.LH[16]</th>
 <th>0.F1.B43</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.18.0.LH.17">LLH:BUF.1.LH.18.0.LH.17</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[18].0.LH[17]">LLH:BUF.1.LH[18].0.LH[17]</th>
 <th>0.F1.B45</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.19.0.LH.18">LLH:BUF.1.LH.19.0.LH.18</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[19].0.LH[18]">LLH:BUF.1.LH[19].0.LH[18]</th>
 <th>0.F1.B49</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.2.0.LH.1">LLH:BUF.1.LH.2.0.LH.1</th>
-<th>0.F1.B3</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[1].0.LH[0]">LLH:BUF.1.LH[1].0.LH[0]</th>
+<th>0.F1.B1</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.20.0.LH.19">LLH:BUF.1.LH.20.0.LH.19</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[20].0.LH[19]">LLH:BUF.1.LH[20].0.LH[19]</th>
 <th>0.F1.B51</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.21.0.LH.20">LLH:BUF.1.LH.21.0.LH.20</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[21].0.LH[20]">LLH:BUF.1.LH[21].0.LH[20]</th>
 <th>0.F1.B53</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.22.0.LH.21">LLH:BUF.1.LH.22.0.LH.21</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[22].0.LH[21]">LLH:BUF.1.LH[22].0.LH[21]</th>
 <th>0.F1.B57</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.23.0.LH.22">LLH:BUF.1.LH.23.0.LH.22</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[23].0.LH[22]">LLH:BUF.1.LH[23].0.LH[22]</th>
 <th>0.F1.B59</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.3.0.LH.2">LLH:BUF.1.LH.3.0.LH.2</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[2].0.LH[1]">LLH:BUF.1.LH[2].0.LH[1]</th>
+<th>0.F1.B3</th>
+</tr>
+
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[3].0.LH[2]">LLH:BUF.1.LH[3].0.LH[2]</th>
 <th>0.F1.B5</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.4.0.LH.3">LLH:BUF.1.LH.4.0.LH.3</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[4].0.LH[3]">LLH:BUF.1.LH[4].0.LH[3]</th>
 <th>0.F1.B9</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.5.0.LH.4">LLH:BUF.1.LH.5.0.LH.4</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[5].0.LH[4]">LLH:BUF.1.LH[5].0.LH[4]</th>
 <th>0.F1.B11</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.6.0.LH.5">LLH:BUF.1.LH.6.0.LH.5</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[6].0.LH[5]">LLH:BUF.1.LH[6].0.LH[5]</th>
 <th>0.F1.B13</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.7.0.LH.6">LLH:BUF.1.LH.7.0.LH.6</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[7].0.LH[6]">LLH:BUF.1.LH[7].0.LH[6]</th>
 <th>0.F1.B17</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.8.0.LH.7">LLH:BUF.1.LH.8.0.LH.7</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[8].0.LH[7]">LLH:BUF.1.LH[8].0.LH[7]</th>
 <th>0.F1.B19</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH.9.0.LH.8">LLH:BUF.1.LH.9.0.LH.8</th>
+<tr><th id="tile-spartan3-LLH-LLH:BUF.1.LH[9].0.LH[8]">LLH:BUF.1.LH[9].0.LH[8]</th>
 <th>0.F1.B21</th>
 </tr>
 
@@ -957,163 +1249,115 @@ non-inverted
 </table>
 </div>
 
-<h2 id="llhclkbs3a"><a class="header" href="#llhclkbs3a"><code>LLH.CLKB.S3A</code></a></h2>
-<p>This type of tile is used for horizontal splitters in the bottom IO row on Spartan 3A and Spartan 3A DSP. The same bitstream area is also used for <code>CLKB.S3A</code>.</p>
-<h2 id="tile-llhclkbs3a"><a class="header" href="#tile-llhclkbs3a">Tile LLH.CLKB.S3A</a></h2>
+<h2 id="llh_s_s3a"><a class="header" href="#llh_s_s3a"><code>LLH_S_S3A</code></a></h2>
+<p>This type of tile is used for horizontal splitters in the bottom IO row on Spartan 3A and Spartan 3A DSP. The same bitstream area is also used for <code>CLK_S_S3A</code>.</p>
+<h2 id="tile-llh_s_s3a"><a class="header" href="#tile-llh_s_s3a">Tile LLH_S_S3A</a></h2>
 <p>Cells: 2</p>
 <h3 id="switchbox-llh-1"><a class="header" href="#switchbox-llh-1">Switchbox LLH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 LLH.CLKB.S3A switchbox LLH</caption>
+<caption>spartan3 LLH_S_S3A switchbox LLH programmable buffers</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="1">CELL0.LH.0</td><td>CELL1.LH.1</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[0]-E.LH[1]"><td>W.LH[0]</td><td>E.LH[1]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.1</td><td>CELL1.LH.2</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[1]-E.LH[2]"><td>W.LH[1]</td><td>E.LH[2]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.2</td><td>CELL1.LH.3</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[2]-E.LH[3]"><td>W.LH[2]</td><td>E.LH[3]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.3</td><td>CELL1.LH.4</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[3]-E.LH[4]"><td>W.LH[3]</td><td>E.LH[4]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.4</td><td>CELL1.LH.5</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[4]-E.LH[5]"><td>W.LH[4]</td><td>E.LH[5]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.5</td><td>CELL1.LH.6</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[5]-E.LH[6]"><td>W.LH[5]</td><td>E.LH[6]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.6</td><td>CELL1.LH.7</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[6]-E.LH[7]"><td>W.LH[6]</td><td>E.LH[7]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.7</td><td>CELL1.LH.8</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[7]-E.LH[8]"><td>W.LH[7]</td><td>E.LH[8]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.8</td><td>CELL1.LH.9</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[8]-E.LH[9]"><td>W.LH[8]</td><td>E.LH[9]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.9</td><td>CELL1.LH.10</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[9]-E.LH[10]"><td>W.LH[9]</td><td>E.LH[10]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.10</td><td>CELL1.LH.11</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[10]-E.LH[11]"><td>W.LH[10]</td><td>E.LH[11]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.11</td><td>CELL1.LH.12</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[11]-E.LH[12]"><td>W.LH[11]</td><td>E.LH[12]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.12</td><td>CELL1.LH.13</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[12]-E.LH[13]"><td>W.LH[12]</td><td>E.LH[13]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.13</td><td>CELL1.LH.14</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[13]-E.LH[14]"><td>W.LH[13]</td><td>E.LH[14]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.14</td><td>CELL1.LH.15</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[14]-E.LH[15]"><td>W.LH[14]</td><td>E.LH[15]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.15</td><td>CELL1.LH.16</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[15]-E.LH[16]"><td>W.LH[15]</td><td>E.LH[16]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.16</td><td>CELL1.LH.17</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[16]-E.LH[17]"><td>W.LH[16]</td><td>E.LH[17]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.17</td><td>CELL1.LH.18</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[17]-E.LH[18]"><td>W.LH[17]</td><td>E.LH[18]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.18</td><td>CELL1.LH.19</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[18]-E.LH[19]"><td>W.LH[18]</td><td>E.LH[19]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.19</td><td>CELL1.LH.20</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[19]-E.LH[20]"><td>W.LH[19]</td><td>E.LH[20]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.20</td><td>CELL1.LH.21</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[20]-E.LH[21]"><td>W.LH[20]</td><td>E.LH[21]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.21</td><td>CELL1.LH.22</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[21]-E.LH[22]"><td>W.LH[21]</td><td>E.LH[22]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.22</td><td>CELL1.LH.23</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[22]-E.LH[23]"><td>W.LH[22]</td><td>E.LH[23]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.23</td><td>CELL1.LH.0</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-W.LH[23]-E.LH[0]"><td>W.LH[23]</td><td>E.LH[0]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.0</td><td>CELL0.LH.23</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[0]-W.LH[23]"><td>E.LH[0]</td><td>W.LH[23]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.1</td><td>CELL0.LH.0</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[1]-W.LH[0]"><td>E.LH[1]</td><td>W.LH[0]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.2</td><td>CELL0.LH.1</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[2]-W.LH[1]"><td>E.LH[2]</td><td>W.LH[1]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.3</td><td>CELL0.LH.2</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[3]-W.LH[2]"><td>E.LH[3]</td><td>W.LH[2]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.4</td><td>CELL0.LH.3</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[4]-W.LH[3]"><td>E.LH[4]</td><td>W.LH[3]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.5</td><td>CELL0.LH.4</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[5]-W.LH[4]"><td>E.LH[5]</td><td>W.LH[4]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.6</td><td>CELL0.LH.5</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[6]-W.LH[5]"><td>E.LH[6]</td><td>W.LH[5]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.7</td><td>CELL0.LH.6</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[7]-W.LH[6]"><td>E.LH[7]</td><td>W.LH[6]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.8</td><td>CELL0.LH.7</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[8]-W.LH[7]"><td>E.LH[8]</td><td>W.LH[7]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.9</td><td>CELL0.LH.8</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[9]-W.LH[8]"><td>E.LH[9]</td><td>W.LH[8]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.10</td><td>CELL0.LH.9</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[10]-W.LH[9]"><td>E.LH[10]</td><td>W.LH[9]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.11</td><td>CELL0.LH.10</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[11]-W.LH[10]"><td>E.LH[11]</td><td>W.LH[10]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.12</td><td>CELL0.LH.11</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[12]-W.LH[11]"><td>E.LH[12]</td><td>W.LH[11]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.13</td><td>CELL0.LH.12</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[13]-W.LH[12]"><td>E.LH[13]</td><td>W.LH[12]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.14</td><td>CELL0.LH.13</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[14]-W.LH[13]"><td>E.LH[14]</td><td>W.LH[13]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.15</td><td>CELL0.LH.14</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[15]-W.LH[14]"><td>E.LH[15]</td><td>W.LH[14]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.16</td><td>CELL0.LH.15</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[16]-W.LH[15]"><td>E.LH[16]</td><td>W.LH[15]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.17</td><td>CELL0.LH.16</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[17]-W.LH[16]"><td>E.LH[17]</td><td>W.LH[16]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.18</td><td>CELL0.LH.17</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[18]-W.LH[17]"><td>E.LH[18]</td><td>W.LH[17]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.19</td><td>CELL0.LH.18</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[19]-W.LH[18]"><td>E.LH[19]</td><td>W.LH[18]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.20</td><td>CELL0.LH.19</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[20]-W.LH[19]"><td>E.LH[20]</td><td>W.LH[19]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.21</td><td>CELL0.LH.20</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[21]-W.LH[20]"><td>E.LH[21]</td><td>W.LH[20]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.22</td><td>CELL0.LH.21</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[22]-W.LH[21]"><td>E.LH[22]</td><td>W.LH[21]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.23</td><td>CELL0.LH.22</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_S_S3A-LLH-progbuf-E.LH[23]-W.LH[22]"><td>E.LH[23]</td><td>W.LH[22]</td><td><a href="#spartan3-LLH_S_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
 </tbody>
 
@@ -1123,7 +1367,347 @@ non-inverted
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 LLH.CLKB.S3A rect R0</caption>
+<caption>spartan3 LLH_S_S3A rect CLK</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
+
+<tr>
+<th>F0</th>
+<th>F1</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B63</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B62</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B61</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B60</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B59</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B58</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B57</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B56</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B55</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B54</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B53</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B52</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B51</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B50</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B49</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B48</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B47</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B46</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B45</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B44</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B43</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B42</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B41</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B40</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B39</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B38</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B37</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B36</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B35</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B34</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B33</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B32</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B31</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B30</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B29</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B28</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B27</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B26</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B25</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B24</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B23</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B22</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B21</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B20</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B19</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B18</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B17</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B16</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B15</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B9</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+### Bitstream
+<div class="table-wrapper">
+<table>
+<caption>spartan3 LLH_S_S3A rect R0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
 
@@ -1138,28 +1722,28 @@ non-inverted
 <tr><td>B59</td>
 <td>-</td>
 <td title="R0.F1.B59">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.22.1.LH.23">LLH:BUF.0.LH.22.1.LH.23</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[22].1.LH[23]">LLH:BUF.0.LH[22].1.LH[23]</a>
 </td>
 </tr>
 
 <tr><td>B58</td>
 <td>-</td>
 <td title="R0.F1.B58">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.0.0.LH.23">LLH:BUF.1.LH.0.0.LH.23</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[0].0.LH[23]">LLH:BUF.1.LH[0].0.LH[23]</a>
 </td>
 </tr>
 
 <tr><td>B57</td>
 <td>-</td>
 <td title="R0.F1.B57">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.23.0.LH.22">LLH:BUF.1.LH.23.0.LH.22</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[23].0.LH[22]">LLH:BUF.1.LH[23].0.LH[22]</a>
 </td>
 </tr>
 
 <tr><td>B56</td>
 <td>-</td>
 <td title="R0.F1.B56">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.23.1.LH.0">LLH:BUF.0.LH.23.1.LH.0</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[23].1.LH[0]">LLH:BUF.0.LH[23].1.LH[0]</a>
 </td>
 </tr>
 
@@ -1201,28 +1785,28 @@ non-inverted
 <tr><td>B48</td>
 <td>-</td>
 <td title="R0.F1.B48">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.20.1.LH.21">LLH:BUF.0.LH.20.1.LH.21</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[20].1.LH[21]">LLH:BUF.0.LH[20].1.LH[21]</a>
 </td>
 </tr>
 
 <tr><td>B47</td>
 <td>-</td>
 <td title="R0.F1.B47">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.22.0.LH.21">LLH:BUF.1.LH.22.0.LH.21</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[22].0.LH[21]">LLH:BUF.1.LH[22].0.LH[21]</a>
 </td>
 </tr>
 
 <tr><td>B46</td>
 <td>-</td>
 <td title="R0.F1.B46">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.21.1.LH.22">LLH:BUF.0.LH.21.1.LH.22</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[21].1.LH[22]">LLH:BUF.0.LH[21].1.LH[22]</a>
 </td>
 </tr>
 
 <tr><td>B45</td>
 <td>-</td>
 <td title="R0.F1.B45">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.21.0.LH.20">LLH:BUF.1.LH.21.0.LH.20</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[21].0.LH[20]">LLH:BUF.1.LH[21].0.LH[20]</a>
 </td>
 </tr>
 
@@ -1254,280 +1838,280 @@ non-inverted
 <tr><td>B39</td>
 <td>-</td>
 <td title="R0.F1.B39">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.20.0.LH.19">LLH:BUF.1.LH.20.0.LH.19</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[20].0.LH[19]">LLH:BUF.1.LH[20].0.LH[19]</a>
 </td>
 </tr>
 
 <tr><td>B38</td>
 <td>-</td>
 <td title="R0.F1.B38">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.19.1.LH.20">LLH:BUF.0.LH.19.1.LH.20</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[19].1.LH[20]">LLH:BUF.0.LH[19].1.LH[20]</a>
 </td>
 </tr>
 
 <tr><td>B37</td>
 <td>-</td>
 <td title="R0.F1.B37">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.18.1.LH.19">LLH:BUF.0.LH.18.1.LH.19</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[18].1.LH[19]">LLH:BUF.0.LH[18].1.LH[19]</a>
 </td>
 </tr>
 
 <tr><td>B36</td>
 <td>-</td>
 <td title="R0.F1.B36">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.19.0.LH.18">LLH:BUF.1.LH.19.0.LH.18</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[19].0.LH[18]">LLH:BUF.1.LH[19].0.LH[18]</a>
 </td>
 </tr>
 
 <tr><td>B35</td>
 <td>-</td>
 <td title="R0.F1.B35">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.18.0.LH.17">LLH:BUF.1.LH.18.0.LH.17</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[18].0.LH[17]">LLH:BUF.1.LH[18].0.LH[17]</a>
 </td>
 </tr>
 
 <tr><td>B34</td>
 <td>-</td>
 <td title="R0.F1.B34">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.17.1.LH.18">LLH:BUF.0.LH.17.1.LH.18</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[17].1.LH[18]">LLH:BUF.0.LH[17].1.LH[18]</a>
 </td>
 </tr>
 
 <tr><td>B33</td>
 <td>-</td>
 <td title="R0.F1.B33">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.16.1.LH.17">LLH:BUF.0.LH.16.1.LH.17</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[16].1.LH[17]">LLH:BUF.0.LH[16].1.LH[17]</a>
 </td>
 </tr>
 
 <tr><td>B32</td>
 <td>-</td>
 <td title="R0.F1.B32">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.17.0.LH.16">LLH:BUF.1.LH.17.0.LH.16</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[17].0.LH[16]">LLH:BUF.1.LH[17].0.LH[16]</a>
 </td>
 </tr>
 
 <tr><td>B31</td>
 <td>-</td>
 <td title="R0.F1.B31">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.14.1.LH.15">LLH:BUF.0.LH.14.1.LH.15</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[14].1.LH[15]">LLH:BUF.0.LH[14].1.LH[15]</a>
 </td>
 </tr>
 
 <tr><td>B30</td>
 <td>-</td>
 <td title="R0.F1.B30">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.15.0.LH.14">LLH:BUF.1.LH.15.0.LH.14</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[15].0.LH[14]">LLH:BUF.1.LH[15].0.LH[14]</a>
 </td>
 </tr>
 
 <tr><td>B29</td>
 <td>-</td>
 <td title="R0.F1.B29">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.8.0.LH.7">LLH:BUF.1.LH.8.0.LH.7</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[8].0.LH[7]">LLH:BUF.1.LH[8].0.LH[7]</a>
 </td>
 </tr>
 
 <tr><td>B28</td>
 <td>-</td>
 <td title="R0.F1.B28">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.7.1.LH.8">LLH:BUF.0.LH.7.1.LH.8</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[7].1.LH[8]">LLH:BUF.0.LH[7].1.LH[8]</a>
 </td>
 </tr>
 
 <tr><td>B27</td>
 <td>-</td>
 <td title="R0.F1.B27">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.3.1.LH.4">LLH:BUF.0.LH.3.1.LH.4</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[3].1.LH[4]">LLH:BUF.0.LH[3].1.LH[4]</a>
 </td>
 </tr>
 
 <tr><td>B26</td>
 <td>-</td>
 <td title="R0.F1.B26">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.9.1.LH.10">LLH:BUF.0.LH.9.1.LH.10</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[9].1.LH[10]">LLH:BUF.0.LH[9].1.LH[10]</a>
 </td>
 </tr>
 
 <tr><td>B25</td>
 <td>-</td>
 <td title="R0.F1.B25">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.3.0.LH.2">LLH:BUF.1.LH.3.0.LH.2</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[3].0.LH[2]">LLH:BUF.1.LH[3].0.LH[2]</a>
 </td>
 </tr>
 
 <tr><td>B24</td>
 <td>-</td>
 <td title="R0.F1.B24">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.2.0.LH.1">LLH:BUF.1.LH.2.0.LH.1</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[2].0.LH[1]">LLH:BUF.1.LH[2].0.LH[1]</a>
 </td>
 </tr>
 
 <tr><td>B23</td>
 <td>-</td>
 <td title="R0.F1.B23">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.11.1.LH.12">LLH:BUF.0.LH.11.1.LH.12</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[11].1.LH[12]">LLH:BUF.0.LH[11].1.LH[12]</a>
 </td>
 </tr>
 
 <tr><td>B22</td>
 <td>-</td>
 <td title="R0.F1.B22">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.12.0.LH.11">LLH:BUF.1.LH.12.0.LH.11</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[12].0.LH[11]">LLH:BUF.1.LH[12].0.LH[11]</a>
 </td>
 </tr>
 
 <tr><td>B21</td>
 <td>-</td>
 <td title="R0.F1.B21">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.10.0.LH.9">LLH:BUF.1.LH.10.0.LH.9</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[10].0.LH[9]">LLH:BUF.1.LH[10].0.LH[9]</a>
 </td>
 </tr>
 
 <tr><td>B20</td>
 <td>-</td>
 <td title="R0.F1.B20">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.11.0.LH.10">LLH:BUF.1.LH.11.0.LH.10</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[11].0.LH[10]">LLH:BUF.1.LH[11].0.LH[10]</a>
 </td>
 </tr>
 
 <tr><td>B19</td>
 <td>-</td>
 <td title="R0.F1.B19">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.10.1.LH.11">LLH:BUF.0.LH.10.1.LH.11</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[10].1.LH[11]">LLH:BUF.0.LH[10].1.LH[11]</a>
 </td>
 </tr>
 
 <tr><td>B18</td>
 <td>-</td>
 <td title="R0.F1.B18">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.8.1.LH.9">LLH:BUF.0.LH.8.1.LH.9</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[8].1.LH[9]">LLH:BUF.0.LH[8].1.LH[9]</a>
 </td>
 </tr>
 
 <tr><td>B17</td>
 <td>-</td>
 <td title="R0.F1.B17">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.9.0.LH.8">LLH:BUF.1.LH.9.0.LH.8</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[9].0.LH[8]">LLH:BUF.1.LH[9].0.LH[8]</a>
 </td>
 </tr>
 
 <tr><td>B16</td>
 <td>-</td>
 <td title="R0.F1.B16">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.12.1.LH.13">LLH:BUF.0.LH.12.1.LH.13</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[12].1.LH[13]">LLH:BUF.0.LH[12].1.LH[13]</a>
 </td>
 </tr>
 
 <tr><td>B15</td>
 <td>-</td>
 <td title="R0.F1.B15">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.16.0.LH.15">LLH:BUF.1.LH.16.0.LH.15</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[16].0.LH[15]">LLH:BUF.1.LH[16].0.LH[15]</a>
 </td>
 </tr>
 
 <tr><td>B14</td>
 <td>-</td>
 <td title="R0.F1.B14">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.15.1.LH.16">LLH:BUF.0.LH.15.1.LH.16</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[15].1.LH[16]">LLH:BUF.0.LH[15].1.LH[16]</a>
 </td>
 </tr>
 
 <tr><td>B13</td>
 <td>-</td>
 <td title="R0.F1.B13">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.6.1.LH.7">LLH:BUF.0.LH.6.1.LH.7</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[6].1.LH[7]">LLH:BUF.0.LH[6].1.LH[7]</a>
 </td>
 </tr>
 
 <tr><td>B12</td>
 <td>-</td>
 <td title="R0.F1.B12">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.7.0.LH.6">LLH:BUF.1.LH.7.0.LH.6</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[7].0.LH[6]">LLH:BUF.1.LH[7].0.LH[6]</a>
 </td>
 </tr>
 
 <tr><td>B11</td>
 <td>-</td>
 <td title="R0.F1.B11">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.5.0.LH.4">LLH:BUF.1.LH.5.0.LH.4</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[5].0.LH[4]">LLH:BUF.1.LH[5].0.LH[4]</a>
 </td>
 </tr>
 
 <tr><td>B10</td>
 <td>-</td>
 <td title="R0.F1.B10">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.5.1.LH.6">LLH:BUF.0.LH.5.1.LH.6</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[5].1.LH[6]">LLH:BUF.0.LH[5].1.LH[6]</a>
 </td>
 </tr>
 
 <tr><td>B9</td>
 <td>-</td>
 <td title="R0.F1.B9">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.6.0.LH.5">LLH:BUF.1.LH.6.0.LH.5</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[6].0.LH[5]">LLH:BUF.1.LH[6].0.LH[5]</a>
 </td>
 </tr>
 
 <tr><td>B8</td>
 <td>-</td>
 <td title="R0.F1.B8">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.4.1.LH.5">LLH:BUF.0.LH.4.1.LH.5</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[4].1.LH[5]">LLH:BUF.0.LH[4].1.LH[5]</a>
 </td>
 </tr>
 
 <tr><td>B7</td>
 <td>-</td>
 <td title="R0.F1.B7">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.4.0.LH.3">LLH:BUF.1.LH.4.0.LH.3</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[4].0.LH[3]">LLH:BUF.1.LH[4].0.LH[3]</a>
 </td>
 </tr>
 
 <tr><td>B6</td>
 <td>-</td>
 <td title="R0.F1.B6">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.2.1.LH.3">LLH:BUF.0.LH.2.1.LH.3</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[2].1.LH[3]">LLH:BUF.0.LH[2].1.LH[3]</a>
 </td>
 </tr>
 
 <tr><td>B5</td>
 <td>-</td>
 <td title="R0.F1.B5">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.14.0.LH.13">LLH:BUF.1.LH.14.0.LH.13</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[14].0.LH[13]">LLH:BUF.1.LH[14].0.LH[13]</a>
 </td>
 </tr>
 
 <tr><td>B4</td>
 <td>-</td>
 <td title="R0.F1.B4">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.13.0.LH.12">LLH:BUF.1.LH.13.0.LH.12</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[13].0.LH[12]">LLH:BUF.1.LH[13].0.LH[12]</a>
 </td>
 </tr>
 
 <tr><td>B3</td>
 <td>-</td>
 <td title="R0.F1.B3">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.13.1.LH.14">LLH:BUF.0.LH.13.1.LH.14</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[13].1.LH[14]">LLH:BUF.0.LH[13].1.LH[14]</a>
 </td>
 </tr>
 
 <tr><td>B2</td>
 <td>-</td>
 <td title="R0.F1.B2">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.0.1.LH.1">LLH:BUF.0.LH.0.1.LH.1</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[0].1.LH[1]">LLH:BUF.0.LH[0].1.LH[1]</a>
 </td>
 </tr>
 
 <tr><td>B1</td>
 <td>-</td>
 <td title="R0.F1.B1">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.1.1.LH.2">LLH:BUF.0.LH.1.1.LH.2</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[1].1.LH[2]">LLH:BUF.0.LH[1].1.LH[2]</a>
 </td>
 </tr>
 
 <tr><td>B0</td>
 <td>-</td>
 <td title="R0.F1.B0">
-<a href="#tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.1.0.LH.0">LLH:BUF.1.LH.1.0.LH.0</a>
+<a href="#tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[1].0.LH[0]">LLH:BUF.1.LH[1].0.LH[0]</a>
 </td>
 </tr>
 
@@ -1539,195 +2123,195 @@ non-inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.0.1.LH.1">LLH:BUF.0.LH.0.1.LH.1</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[0].1.LH[1]">LLH:BUF.0.LH[0].1.LH[1]</th>
 <th>0.F1.B2</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.1.1.LH.2">LLH:BUF.0.LH.1.1.LH.2</th>
-<th>0.F1.B1</th>
-</tr>
-
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.10.1.LH.11">LLH:BUF.0.LH.10.1.LH.11</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[10].1.LH[11]">LLH:BUF.0.LH[10].1.LH[11]</th>
 <th>0.F1.B19</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.11.1.LH.12">LLH:BUF.0.LH.11.1.LH.12</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[11].1.LH[12]">LLH:BUF.0.LH[11].1.LH[12]</th>
 <th>0.F1.B23</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.12.1.LH.13">LLH:BUF.0.LH.12.1.LH.13</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[12].1.LH[13]">LLH:BUF.0.LH[12].1.LH[13]</th>
 <th>0.F1.B16</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.13.1.LH.14">LLH:BUF.0.LH.13.1.LH.14</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[13].1.LH[14]">LLH:BUF.0.LH[13].1.LH[14]</th>
 <th>0.F1.B3</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.14.1.LH.15">LLH:BUF.0.LH.14.1.LH.15</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[14].1.LH[15]">LLH:BUF.0.LH[14].1.LH[15]</th>
 <th>0.F1.B31</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.15.1.LH.16">LLH:BUF.0.LH.15.1.LH.16</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[15].1.LH[16]">LLH:BUF.0.LH[15].1.LH[16]</th>
 <th>0.F1.B14</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.16.1.LH.17">LLH:BUF.0.LH.16.1.LH.17</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[16].1.LH[17]">LLH:BUF.0.LH[16].1.LH[17]</th>
 <th>0.F1.B33</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.17.1.LH.18">LLH:BUF.0.LH.17.1.LH.18</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[17].1.LH[18]">LLH:BUF.0.LH[17].1.LH[18]</th>
 <th>0.F1.B34</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.18.1.LH.19">LLH:BUF.0.LH.18.1.LH.19</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[18].1.LH[19]">LLH:BUF.0.LH[18].1.LH[19]</th>
 <th>0.F1.B37</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.19.1.LH.20">LLH:BUF.0.LH.19.1.LH.20</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[19].1.LH[20]">LLH:BUF.0.LH[19].1.LH[20]</th>
 <th>0.F1.B38</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.2.1.LH.3">LLH:BUF.0.LH.2.1.LH.3</th>
-<th>0.F1.B6</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[1].1.LH[2]">LLH:BUF.0.LH[1].1.LH[2]</th>
+<th>0.F1.B1</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.20.1.LH.21">LLH:BUF.0.LH.20.1.LH.21</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[20].1.LH[21]">LLH:BUF.0.LH[20].1.LH[21]</th>
 <th>0.F1.B48</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.21.1.LH.22">LLH:BUF.0.LH.21.1.LH.22</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[21].1.LH[22]">LLH:BUF.0.LH[21].1.LH[22]</th>
 <th>0.F1.B46</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.22.1.LH.23">LLH:BUF.0.LH.22.1.LH.23</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[22].1.LH[23]">LLH:BUF.0.LH[22].1.LH[23]</th>
 <th>0.F1.B59</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.23.1.LH.0">LLH:BUF.0.LH.23.1.LH.0</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[23].1.LH[0]">LLH:BUF.0.LH[23].1.LH[0]</th>
 <th>0.F1.B56</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.3.1.LH.4">LLH:BUF.0.LH.3.1.LH.4</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[2].1.LH[3]">LLH:BUF.0.LH[2].1.LH[3]</th>
+<th>0.F1.B6</th>
+</tr>
+
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[3].1.LH[4]">LLH:BUF.0.LH[3].1.LH[4]</th>
 <th>0.F1.B27</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.4.1.LH.5">LLH:BUF.0.LH.4.1.LH.5</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[4].1.LH[5]">LLH:BUF.0.LH[4].1.LH[5]</th>
 <th>0.F1.B8</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.5.1.LH.6">LLH:BUF.0.LH.5.1.LH.6</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[5].1.LH[6]">LLH:BUF.0.LH[5].1.LH[6]</th>
 <th>0.F1.B10</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.6.1.LH.7">LLH:BUF.0.LH.6.1.LH.7</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[6].1.LH[7]">LLH:BUF.0.LH[6].1.LH[7]</th>
 <th>0.F1.B13</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.7.1.LH.8">LLH:BUF.0.LH.7.1.LH.8</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[7].1.LH[8]">LLH:BUF.0.LH[7].1.LH[8]</th>
 <th>0.F1.B28</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.8.1.LH.9">LLH:BUF.0.LH.8.1.LH.9</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[8].1.LH[9]">LLH:BUF.0.LH[8].1.LH[9]</th>
 <th>0.F1.B18</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.0.LH.9.1.LH.10">LLH:BUF.0.LH.9.1.LH.10</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.0.LH[9].1.LH[10]">LLH:BUF.0.LH[9].1.LH[10]</th>
 <th>0.F1.B26</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.0.0.LH.23">LLH:BUF.1.LH.0.0.LH.23</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[0].0.LH[23]">LLH:BUF.1.LH[0].0.LH[23]</th>
 <th>0.F1.B58</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.1.0.LH.0">LLH:BUF.1.LH.1.0.LH.0</th>
-<th>0.F1.B0</th>
-</tr>
-
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.10.0.LH.9">LLH:BUF.1.LH.10.0.LH.9</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[10].0.LH[9]">LLH:BUF.1.LH[10].0.LH[9]</th>
 <th>0.F1.B21</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.11.0.LH.10">LLH:BUF.1.LH.11.0.LH.10</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[11].0.LH[10]">LLH:BUF.1.LH[11].0.LH[10]</th>
 <th>0.F1.B20</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.12.0.LH.11">LLH:BUF.1.LH.12.0.LH.11</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[12].0.LH[11]">LLH:BUF.1.LH[12].0.LH[11]</th>
 <th>0.F1.B22</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.13.0.LH.12">LLH:BUF.1.LH.13.0.LH.12</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[13].0.LH[12]">LLH:BUF.1.LH[13].0.LH[12]</th>
 <th>0.F1.B4</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.14.0.LH.13">LLH:BUF.1.LH.14.0.LH.13</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[14].0.LH[13]">LLH:BUF.1.LH[14].0.LH[13]</th>
 <th>0.F1.B5</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.15.0.LH.14">LLH:BUF.1.LH.15.0.LH.14</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[15].0.LH[14]">LLH:BUF.1.LH[15].0.LH[14]</th>
 <th>0.F1.B30</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.16.0.LH.15">LLH:BUF.1.LH.16.0.LH.15</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[16].0.LH[15]">LLH:BUF.1.LH[16].0.LH[15]</th>
 <th>0.F1.B15</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.17.0.LH.16">LLH:BUF.1.LH.17.0.LH.16</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[17].0.LH[16]">LLH:BUF.1.LH[17].0.LH[16]</th>
 <th>0.F1.B32</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.18.0.LH.17">LLH:BUF.1.LH.18.0.LH.17</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[18].0.LH[17]">LLH:BUF.1.LH[18].0.LH[17]</th>
 <th>0.F1.B35</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.19.0.LH.18">LLH:BUF.1.LH.19.0.LH.18</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[19].0.LH[18]">LLH:BUF.1.LH[19].0.LH[18]</th>
 <th>0.F1.B36</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.2.0.LH.1">LLH:BUF.1.LH.2.0.LH.1</th>
-<th>0.F1.B24</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[1].0.LH[0]">LLH:BUF.1.LH[1].0.LH[0]</th>
+<th>0.F1.B0</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.20.0.LH.19">LLH:BUF.1.LH.20.0.LH.19</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[20].0.LH[19]">LLH:BUF.1.LH[20].0.LH[19]</th>
 <th>0.F1.B39</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.21.0.LH.20">LLH:BUF.1.LH.21.0.LH.20</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[21].0.LH[20]">LLH:BUF.1.LH[21].0.LH[20]</th>
 <th>0.F1.B45</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.22.0.LH.21">LLH:BUF.1.LH.22.0.LH.21</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[22].0.LH[21]">LLH:BUF.1.LH[22].0.LH[21]</th>
 <th>0.F1.B47</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.23.0.LH.22">LLH:BUF.1.LH.23.0.LH.22</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[23].0.LH[22]">LLH:BUF.1.LH[23].0.LH[22]</th>
 <th>0.F1.B57</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.3.0.LH.2">LLH:BUF.1.LH.3.0.LH.2</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[2].0.LH[1]">LLH:BUF.1.LH[2].0.LH[1]</th>
+<th>0.F1.B24</th>
+</tr>
+
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[3].0.LH[2]">LLH:BUF.1.LH[3].0.LH[2]</th>
 <th>0.F1.B25</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.4.0.LH.3">LLH:BUF.1.LH.4.0.LH.3</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[4].0.LH[3]">LLH:BUF.1.LH[4].0.LH[3]</th>
 <th>0.F1.B7</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.5.0.LH.4">LLH:BUF.1.LH.5.0.LH.4</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[5].0.LH[4]">LLH:BUF.1.LH[5].0.LH[4]</th>
 <th>0.F1.B11</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.6.0.LH.5">LLH:BUF.1.LH.6.0.LH.5</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[6].0.LH[5]">LLH:BUF.1.LH[6].0.LH[5]</th>
 <th>0.F1.B9</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.7.0.LH.6">LLH:BUF.1.LH.7.0.LH.6</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[7].0.LH[6]">LLH:BUF.1.LH[7].0.LH[6]</th>
 <th>0.F1.B12</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.8.0.LH.7">LLH:BUF.1.LH.8.0.LH.7</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[8].0.LH[7]">LLH:BUF.1.LH[8].0.LH[7]</th>
 <th>0.F1.B29</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKB.S3A-LLH:BUF.1.LH.9.0.LH.8">LLH:BUF.1.LH.9.0.LH.8</th>
+<tr><th id="tile-spartan3-LLH_S_S3A-LLH:BUF.1.LH[9].0.LH[8]">LLH:BUF.1.LH[9].0.LH[8]</th>
 <th>0.F1.B17</th>
 </tr>
 
@@ -1745,163 +2329,115 @@ non-inverted
 </table>
 </div>
 
-<h2 id="llhclkts3a"><a class="header" href="#llhclkts3a"><code>LLH.CLKT.S3A</code></a></h2>
-<p>This type of tile is used for horizontal splitters in the top IO row on Spartan 3A and Spartan 3A DSP. The same bitstream area is also used for <code>CLKT.S3A</code>.</p>
-<h2 id="tile-llhclkts3a"><a class="header" href="#tile-llhclkts3a">Tile LLH.CLKT.S3A</a></h2>
+<h2 id="llh_n_s3a"><a class="header" href="#llh_n_s3a"><code>LLH_N_S3A</code></a></h2>
+<p>This type of tile is used for horizontal splitters in the top IO row on Spartan 3A and Spartan 3A DSP. The same bitstream area is also used for <code>CLK_N_S3A</code>.</p>
+<h2 id="tile-llh_n_s3a"><a class="header" href="#tile-llh_n_s3a">Tile LLH_N_S3A</a></h2>
 <p>Cells: 2</p>
 <h3 id="switchbox-llh-2"><a class="header" href="#switchbox-llh-2">Switchbox LLH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 LLH.CLKT.S3A switchbox LLH</caption>
+<caption>spartan3 LLH_N_S3A switchbox LLH programmable buffers</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th>Destination</th><th>Source</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="1">CELL0.LH.0</td><td>CELL1.LH.1</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[0]-E.LH[1]"><td>W.LH[0]</td><td>E.LH[1]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.1</td><td>CELL1.LH.2</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[1]-E.LH[2]"><td>W.LH[1]</td><td>E.LH[2]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.2</td><td>CELL1.LH.3</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[2]-E.LH[3]"><td>W.LH[2]</td><td>E.LH[3]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.3</td><td>CELL1.LH.4</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[3]-E.LH[4]"><td>W.LH[3]</td><td>E.LH[4]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.4</td><td>CELL1.LH.5</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[4]-E.LH[5]"><td>W.LH[4]</td><td>E.LH[5]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.5</td><td>CELL1.LH.6</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[5]-E.LH[6]"><td>W.LH[5]</td><td>E.LH[6]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.6</td><td>CELL1.LH.7</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[6]-E.LH[7]"><td>W.LH[6]</td><td>E.LH[7]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.7</td><td>CELL1.LH.8</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[7]-E.LH[8]"><td>W.LH[7]</td><td>E.LH[8]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.8</td><td>CELL1.LH.9</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[8]-E.LH[9]"><td>W.LH[8]</td><td>E.LH[9]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.9</td><td>CELL1.LH.10</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[9]-E.LH[10]"><td>W.LH[9]</td><td>E.LH[10]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.10</td><td>CELL1.LH.11</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[10]-E.LH[11]"><td>W.LH[10]</td><td>E.LH[11]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.11</td><td>CELL1.LH.12</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[11]-E.LH[12]"><td>W.LH[11]</td><td>E.LH[12]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.12</td><td>CELL1.LH.13</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[12]-E.LH[13]"><td>W.LH[12]</td><td>E.LH[13]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.13</td><td>CELL1.LH.14</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[13]-E.LH[14]"><td>W.LH[13]</td><td>E.LH[14]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.14</td><td>CELL1.LH.15</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[14]-E.LH[15]"><td>W.LH[14]</td><td>E.LH[15]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.15</td><td>CELL1.LH.16</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[15]-E.LH[16]"><td>W.LH[15]</td><td>E.LH[16]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.16</td><td>CELL1.LH.17</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[16]-E.LH[17]"><td>W.LH[16]</td><td>E.LH[17]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.17</td><td>CELL1.LH.18</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[17]-E.LH[18]"><td>W.LH[17]</td><td>E.LH[18]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.18</td><td>CELL1.LH.19</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[18]-E.LH[19]"><td>W.LH[18]</td><td>E.LH[19]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.19</td><td>CELL1.LH.20</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[19]-E.LH[20]"><td>W.LH[19]</td><td>E.LH[20]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.20</td><td>CELL1.LH.21</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[20]-E.LH[21]"><td>W.LH[20]</td><td>E.LH[21]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.21</td><td>CELL1.LH.22</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[21]-E.LH[22]"><td>W.LH[21]</td><td>E.LH[22]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.22</td><td>CELL1.LH.23</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[22]-E.LH[23]"><td>W.LH[22]</td><td>E.LH[23]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LH.23</td><td>CELL1.LH.0</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-W.LH[23]-E.LH[0]"><td>W.LH[23]</td><td>E.LH[0]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.0</td><td>CELL0.LH.23</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[0]-W.LH[23]"><td>E.LH[0]</td><td>W.LH[23]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.1</td><td>CELL0.LH.0</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[1]-W.LH[0]"><td>E.LH[1]</td><td>W.LH[0]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.2</td><td>CELL0.LH.1</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[2]-W.LH[1]"><td>E.LH[2]</td><td>W.LH[1]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.3</td><td>CELL0.LH.2</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[3]-W.LH[2]"><td>E.LH[3]</td><td>W.LH[2]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.4</td><td>CELL0.LH.3</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[4]-W.LH[3]"><td>E.LH[4]</td><td>W.LH[3]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.5</td><td>CELL0.LH.4</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[5]-W.LH[4]"><td>E.LH[5]</td><td>W.LH[4]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.6</td><td>CELL0.LH.5</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[6]-W.LH[5]"><td>E.LH[6]</td><td>W.LH[5]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.7</td><td>CELL0.LH.6</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[7]-W.LH[6]"><td>E.LH[7]</td><td>W.LH[6]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.8</td><td>CELL0.LH.7</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[8]-W.LH[7]"><td>E.LH[8]</td><td>W.LH[7]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.9</td><td>CELL0.LH.8</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[9]-W.LH[8]"><td>E.LH[9]</td><td>W.LH[8]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.10</td><td>CELL0.LH.9</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[10]-W.LH[9]"><td>E.LH[10]</td><td>W.LH[9]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.11</td><td>CELL0.LH.10</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[11]-W.LH[10]"><td>E.LH[11]</td><td>W.LH[10]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.12</td><td>CELL0.LH.11</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[12]-W.LH[11]"><td>E.LH[12]</td><td>W.LH[11]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.13</td><td>CELL0.LH.12</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[13]-W.LH[12]"><td>E.LH[13]</td><td>W.LH[12]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.14</td><td>CELL0.LH.13</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[14]-W.LH[13]"><td>E.LH[14]</td><td>W.LH[13]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.15</td><td>CELL0.LH.14</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[15]-W.LH[14]"><td>E.LH[15]</td><td>W.LH[14]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.16</td><td>CELL0.LH.15</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[16]-W.LH[15]"><td>E.LH[16]</td><td>W.LH[15]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.17</td><td>CELL0.LH.16</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[17]-W.LH[16]"><td>E.LH[17]</td><td>W.LH[16]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.18</td><td>CELL0.LH.17</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[18]-W.LH[17]"><td>E.LH[18]</td><td>W.LH[17]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.19</td><td>CELL0.LH.18</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[19]-W.LH[18]"><td>E.LH[19]</td><td>W.LH[18]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.20</td><td>CELL0.LH.19</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[20]-W.LH[19]"><td>E.LH[20]</td><td>W.LH[19]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.21</td><td>CELL0.LH.20</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[21]-W.LH[20]"><td>E.LH[21]</td><td>W.LH[20]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.22</td><td>CELL0.LH.21</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[22]-W.LH[21]"><td>E.LH[22]</td><td>W.LH[21]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
-<tr><td rowspan="1">CELL1.LH.23</td><td>CELL0.LH.22</td><td>buffer</td>
-</tr>
+<tr id="spartan3-LLH_N_S3A-LLH-progbuf-E.LH[23]-W.LH[22]"><td>E.LH[23]</td><td>W.LH[22]</td><td><a href="#spartan3-LLH_N_S3A-bit-XXX57005[57005][57005]">XXX57005[57005][57005]</a></td></tr>
 
 </tbody>
 
@@ -1911,7 +2447,347 @@ non-inverted
 <h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>spartan3 LLH.CLKT.S3A rect R0</caption>
+<caption>spartan3 LLH_N_S3A rect CLK</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
+
+<tr>
+<th>F0</th>
+<th>F1</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B63</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B62</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B61</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B60</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B59</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B58</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B57</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B56</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B55</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B54</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B53</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B52</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B51</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B50</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B49</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B48</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B47</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B46</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B45</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B44</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B43</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B42</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B41</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B40</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B39</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B38</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B37</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B36</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B35</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B34</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B33</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B32</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B31</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B30</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B29</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B28</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B27</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B26</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B25</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B24</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B23</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B22</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B21</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B20</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B19</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B18</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B17</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B16</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B15</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B13</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B11</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B9</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+### Bitstream
+<div class="table-wrapper">
+<table>
+<caption>spartan3 LLH_N_S3A rect R0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="2">Frame</th></tr>
 
@@ -1926,280 +2802,280 @@ non-inverted
 <tr><td>B63</td>
 <td>-</td>
 <td title="R0.F1.B63">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.0.0.LH.23">LLH:BUF.1.LH.0.0.LH.23</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[0].0.LH[23]">LLH:BUF.1.LH[0].0.LH[23]</a>
 </td>
 </tr>
 
 <tr><td>B62</td>
 <td>-</td>
 <td title="R0.F1.B62">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.22.1.LH.23">LLH:BUF.0.LH.22.1.LH.23</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[22].1.LH[23]">LLH:BUF.0.LH[22].1.LH[23]</a>
 </td>
 </tr>
 
 <tr><td>B61</td>
 <td>-</td>
 <td title="R0.F1.B61">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.23.1.LH.0">LLH:BUF.0.LH.23.1.LH.0</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[23].1.LH[0]">LLH:BUF.0.LH[23].1.LH[0]</a>
 </td>
 </tr>
 
 <tr><td>B60</td>
 <td>-</td>
 <td title="R0.F1.B60">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.10.1.LH.11">LLH:BUF.0.LH.10.1.LH.11</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[10].1.LH[11]">LLH:BUF.0.LH[10].1.LH[11]</a>
 </td>
 </tr>
 
 <tr><td>B59</td>
 <td>-</td>
 <td title="R0.F1.B59">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.12.0.LH.11">LLH:BUF.1.LH.12.0.LH.11</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[12].0.LH[11]">LLH:BUF.1.LH[12].0.LH[11]</a>
 </td>
 </tr>
 
 <tr><td>B58</td>
 <td>-</td>
 <td title="R0.F1.B58">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.11.0.LH.10">LLH:BUF.1.LH.11.0.LH.10</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[11].0.LH[10]">LLH:BUF.1.LH[11].0.LH[10]</a>
 </td>
 </tr>
 
 <tr><td>B57</td>
 <td>-</td>
 <td title="R0.F1.B57">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.21.1.LH.22">LLH:BUF.0.LH.21.1.LH.22</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[21].1.LH[22]">LLH:BUF.0.LH[21].1.LH[22]</a>
 </td>
 </tr>
 
 <tr><td>B56</td>
 <td>-</td>
 <td title="R0.F1.B56">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.21.0.LH.20">LLH:BUF.1.LH.21.0.LH.20</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[21].0.LH[20]">LLH:BUF.1.LH[21].0.LH[20]</a>
 </td>
 </tr>
 
 <tr><td>B55</td>
 <td>-</td>
 <td title="R0.F1.B55">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.19.1.LH.20">LLH:BUF.0.LH.19.1.LH.20</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[19].1.LH[20]">LLH:BUF.0.LH[19].1.LH[20]</a>
 </td>
 </tr>
 
 <tr><td>B54</td>
 <td>-</td>
 <td title="R0.F1.B54">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.19.0.LH.18">LLH:BUF.1.LH.19.0.LH.18</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[19].0.LH[18]">LLH:BUF.1.LH[19].0.LH[18]</a>
 </td>
 </tr>
 
 <tr><td>B53</td>
 <td>-</td>
 <td title="R0.F1.B53">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.18.1.LH.19">LLH:BUF.0.LH.18.1.LH.19</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[18].1.LH[19]">LLH:BUF.0.LH[18].1.LH[19]</a>
 </td>
 </tr>
 
 <tr><td>B52</td>
 <td>-</td>
 <td title="R0.F1.B52">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.20.0.LH.19">LLH:BUF.1.LH.20.0.LH.19</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[20].0.LH[19]">LLH:BUF.1.LH[20].0.LH[19]</a>
 </td>
 </tr>
 
 <tr><td>B51</td>
 <td>-</td>
 <td title="R0.F1.B51">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.18.0.LH.17">LLH:BUF.1.LH.18.0.LH.17</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[18].0.LH[17]">LLH:BUF.1.LH[18].0.LH[17]</a>
 </td>
 </tr>
 
 <tr><td>B50</td>
 <td>-</td>
 <td title="R0.F1.B50">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.17.1.LH.18">LLH:BUF.0.LH.17.1.LH.18</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[17].1.LH[18]">LLH:BUF.0.LH[17].1.LH[18]</a>
 </td>
 </tr>
 
 <tr><td>B49</td>
 <td>-</td>
 <td title="R0.F1.B49">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.8.1.LH.9">LLH:BUF.0.LH.8.1.LH.9</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[8].1.LH[9]">LLH:BUF.0.LH[8].1.LH[9]</a>
 </td>
 </tr>
 
 <tr><td>B48</td>
 <td>-</td>
 <td title="R0.F1.B48">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.9.0.LH.8">LLH:BUF.1.LH.9.0.LH.8</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[9].0.LH[8]">LLH:BUF.1.LH[9].0.LH[8]</a>
 </td>
 </tr>
 
 <tr><td>B47</td>
 <td>-</td>
 <td title="R0.F1.B47">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.11.1.LH.12">LLH:BUF.0.LH.11.1.LH.12</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[11].1.LH[12]">LLH:BUF.0.LH[11].1.LH[12]</a>
 </td>
 </tr>
 
 <tr><td>B46</td>
 <td>-</td>
 <td title="R0.F1.B46">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.16.0.LH.15">LLH:BUF.1.LH.16.0.LH.15</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[16].0.LH[15]">LLH:BUF.1.LH[16].0.LH[15]</a>
 </td>
 </tr>
 
 <tr><td>B45</td>
 <td>-</td>
 <td title="R0.F1.B45">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.15.1.LH.16">LLH:BUF.0.LH.15.1.LH.16</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[15].1.LH[16]">LLH:BUF.0.LH[15].1.LH[16]</a>
 </td>
 </tr>
 
 <tr><td>B44</td>
 <td>-</td>
 <td title="R0.F1.B44">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.13.1.LH.14">LLH:BUF.0.LH.13.1.LH.14</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[13].1.LH[14]">LLH:BUF.0.LH[13].1.LH[14]</a>
 </td>
 </tr>
 
 <tr><td>B43</td>
 <td>-</td>
 <td title="R0.F1.B43">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.14.0.LH.13">LLH:BUF.1.LH.14.0.LH.13</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[14].0.LH[13]">LLH:BUF.1.LH[14].0.LH[13]</a>
 </td>
 </tr>
 
 <tr><td>B42</td>
 <td>-</td>
 <td title="R0.F1.B42">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.15.0.LH.14">LLH:BUF.1.LH.15.0.LH.14</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[15].0.LH[14]">LLH:BUF.1.LH[15].0.LH[14]</a>
 </td>
 </tr>
 
 <tr><td>B41</td>
 <td>-</td>
 <td title="R0.F1.B41">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.13.0.LH.12">LLH:BUF.1.LH.13.0.LH.12</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[13].0.LH[12]">LLH:BUF.1.LH[13].0.LH[12]</a>
 </td>
 </tr>
 
 <tr><td>B40</td>
 <td>-</td>
 <td title="R0.F1.B40">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.12.1.LH.13">LLH:BUF.0.LH.12.1.LH.13</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[12].1.LH[13]">LLH:BUF.0.LH[12].1.LH[13]</a>
 </td>
 </tr>
 
 <tr><td>B39</td>
 <td>-</td>
 <td title="R0.F1.B39">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.23.0.LH.22">LLH:BUF.1.LH.23.0.LH.22</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[23].0.LH[22]">LLH:BUF.1.LH[23].0.LH[22]</a>
 </td>
 </tr>
 
 <tr><td>B38</td>
 <td>-</td>
 <td title="R0.F1.B38">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.22.0.LH.21">LLH:BUF.1.LH.22.0.LH.21</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[22].0.LH[21]">LLH:BUF.1.LH[22].0.LH[21]</a>
 </td>
 </tr>
 
 <tr><td>B37</td>
 <td>-</td>
 <td title="R0.F1.B37">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.14.1.LH.15">LLH:BUF.0.LH.14.1.LH.15</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[14].1.LH[15]">LLH:BUF.0.LH[14].1.LH[15]</a>
 </td>
 </tr>
 
 <tr><td>B36</td>
 <td>-</td>
 <td title="R0.F1.B36">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.20.1.LH.21">LLH:BUF.0.LH.20.1.LH.21</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[20].1.LH[21]">LLH:BUF.0.LH[20].1.LH[21]</a>
 </td>
 </tr>
 
 <tr><td>B35</td>
 <td>-</td>
 <td title="R0.F1.B35">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.16.1.LH.17">LLH:BUF.0.LH.16.1.LH.17</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[16].1.LH[17]">LLH:BUF.0.LH[16].1.LH[17]</a>
 </td>
 </tr>
 
 <tr><td>B34</td>
 <td>-</td>
 <td title="R0.F1.B34">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.17.0.LH.16">LLH:BUF.1.LH.17.0.LH.16</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[17].0.LH[16]">LLH:BUF.1.LH[17].0.LH[16]</a>
 </td>
 </tr>
 
 <tr><td>B33</td>
 <td>-</td>
 <td title="R0.F1.B33">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.10.0.LH.9">LLH:BUF.1.LH.10.0.LH.9</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[10].0.LH[9]">LLH:BUF.1.LH[10].0.LH[9]</a>
 </td>
 </tr>
 
 <tr><td>B32</td>
 <td>-</td>
 <td title="R0.F1.B32">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.9.1.LH.10">LLH:BUF.0.LH.9.1.LH.10</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[9].1.LH[10]">LLH:BUF.0.LH[9].1.LH[10]</a>
 </td>
 </tr>
 
 <tr><td>B31</td>
 <td>-</td>
 <td title="R0.F1.B31">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.8.0.LH.7">LLH:BUF.1.LH.8.0.LH.7</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[8].0.LH[7]">LLH:BUF.1.LH[8].0.LH[7]</a>
 </td>
 </tr>
 
 <tr><td>B30</td>
 <td>-</td>
 <td title="R0.F1.B30">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.7.1.LH.8">LLH:BUF.0.LH.7.1.LH.8</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[7].1.LH[8]">LLH:BUF.0.LH[7].1.LH[8]</a>
 </td>
 </tr>
 
 <tr><td>B29</td>
 <td>-</td>
 <td title="R0.F1.B29">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.6.1.LH.7">LLH:BUF.0.LH.6.1.LH.7</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[6].1.LH[7]">LLH:BUF.0.LH[6].1.LH[7]</a>
 </td>
 </tr>
 
 <tr><td>B28</td>
 <td>-</td>
 <td title="R0.F1.B28">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.7.0.LH.6">LLH:BUF.1.LH.7.0.LH.6</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[7].0.LH[6]">LLH:BUF.1.LH[7].0.LH[6]</a>
 </td>
 </tr>
 
 <tr><td>B27</td>
 <td>-</td>
 <td title="R0.F1.B27">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.6.0.LH.5">LLH:BUF.1.LH.6.0.LH.5</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[6].0.LH[5]">LLH:BUF.1.LH[6].0.LH[5]</a>
 </td>
 </tr>
 
 <tr><td>B26</td>
 <td>-</td>
 <td title="R0.F1.B26">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.5.1.LH.6">LLH:BUF.0.LH.5.1.LH.6</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[5].1.LH[6]">LLH:BUF.0.LH[5].1.LH[6]</a>
 </td>
 </tr>
 
 <tr><td>B25</td>
 <td>-</td>
 <td title="R0.F1.B25">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.4.1.LH.5">LLH:BUF.0.LH.4.1.LH.5</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[4].1.LH[5]">LLH:BUF.0.LH[4].1.LH[5]</a>
 </td>
 </tr>
 
 <tr><td>B24</td>
 <td>-</td>
 <td title="R0.F1.B24">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.5.0.LH.4">LLH:BUF.1.LH.5.0.LH.4</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[5].0.LH[4]">LLH:BUF.1.LH[5].0.LH[4]</a>
 </td>
 </tr>
 
@@ -2231,28 +3107,28 @@ non-inverted
 <tr><td>B18</td>
 <td>-</td>
 <td title="R0.F1.B18">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.4.0.LH.3">LLH:BUF.1.LH.4.0.LH.3</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[4].0.LH[3]">LLH:BUF.1.LH[4].0.LH[3]</a>
 </td>
 </tr>
 
 <tr><td>B17</td>
 <td>-</td>
 <td title="R0.F1.B17">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.2.1.LH.3">LLH:BUF.0.LH.2.1.LH.3</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[2].1.LH[3]">LLH:BUF.0.LH[2].1.LH[3]</a>
 </td>
 </tr>
 
 <tr><td>B16</td>
 <td>-</td>
 <td title="R0.F1.B16">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.3.0.LH.2">LLH:BUF.1.LH.3.0.LH.2</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[3].0.LH[2]">LLH:BUF.1.LH[3].0.LH[2]</a>
 </td>
 </tr>
 
 <tr><td>B15</td>
 <td>-</td>
 <td title="R0.F1.B15">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.3.1.LH.4">LLH:BUF.0.LH.3.1.LH.4</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[3].1.LH[4]">LLH:BUF.0.LH[3].1.LH[4]</a>
 </td>
 </tr>
 
@@ -2294,28 +3170,28 @@ non-inverted
 <tr><td>B7</td>
 <td>-</td>
 <td title="R0.F1.B7">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.0.1.LH.1">LLH:BUF.0.LH.0.1.LH.1</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[0].1.LH[1]">LLH:BUF.0.LH[0].1.LH[1]</a>
 </td>
 </tr>
 
 <tr><td>B6</td>
 <td>-</td>
 <td title="R0.F1.B6">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.2.0.LH.1">LLH:BUF.1.LH.2.0.LH.1</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[2].0.LH[1]">LLH:BUF.1.LH[2].0.LH[1]</a>
 </td>
 </tr>
 
 <tr><td>B5</td>
 <td>-</td>
 <td title="R0.F1.B5">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.1.0.LH.0">LLH:BUF.1.LH.1.0.LH.0</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[1].0.LH[0]">LLH:BUF.1.LH[1].0.LH[0]</a>
 </td>
 </tr>
 
 <tr><td>B4</td>
 <td>-</td>
 <td title="R0.F1.B4">
-<a href="#tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.1.1.LH.2">LLH:BUF.0.LH.1.1.LH.2</a>
+<a href="#tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[1].1.LH[2]">LLH:BUF.0.LH[1].1.LH[2]</a>
 </td>
 </tr>
 
@@ -2347,195 +3223,195 @@ non-inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.0.1.LH.1">LLH:BUF.0.LH.0.1.LH.1</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[0].1.LH[1]">LLH:BUF.0.LH[0].1.LH[1]</th>
 <th>0.F1.B7</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.1.1.LH.2">LLH:BUF.0.LH.1.1.LH.2</th>
-<th>0.F1.B4</th>
-</tr>
-
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.10.1.LH.11">LLH:BUF.0.LH.10.1.LH.11</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[10].1.LH[11]">LLH:BUF.0.LH[10].1.LH[11]</th>
 <th>0.F1.B60</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.11.1.LH.12">LLH:BUF.0.LH.11.1.LH.12</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[11].1.LH[12]">LLH:BUF.0.LH[11].1.LH[12]</th>
 <th>0.F1.B47</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.12.1.LH.13">LLH:BUF.0.LH.12.1.LH.13</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[12].1.LH[13]">LLH:BUF.0.LH[12].1.LH[13]</th>
 <th>0.F1.B40</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.13.1.LH.14">LLH:BUF.0.LH.13.1.LH.14</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[13].1.LH[14]">LLH:BUF.0.LH[13].1.LH[14]</th>
 <th>0.F1.B44</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.14.1.LH.15">LLH:BUF.0.LH.14.1.LH.15</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[14].1.LH[15]">LLH:BUF.0.LH[14].1.LH[15]</th>
 <th>0.F1.B37</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.15.1.LH.16">LLH:BUF.0.LH.15.1.LH.16</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[15].1.LH[16]">LLH:BUF.0.LH[15].1.LH[16]</th>
 <th>0.F1.B45</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.16.1.LH.17">LLH:BUF.0.LH.16.1.LH.17</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[16].1.LH[17]">LLH:BUF.0.LH[16].1.LH[17]</th>
 <th>0.F1.B35</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.17.1.LH.18">LLH:BUF.0.LH.17.1.LH.18</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[17].1.LH[18]">LLH:BUF.0.LH[17].1.LH[18]</th>
 <th>0.F1.B50</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.18.1.LH.19">LLH:BUF.0.LH.18.1.LH.19</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[18].1.LH[19]">LLH:BUF.0.LH[18].1.LH[19]</th>
 <th>0.F1.B53</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.19.1.LH.20">LLH:BUF.0.LH.19.1.LH.20</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[19].1.LH[20]">LLH:BUF.0.LH[19].1.LH[20]</th>
 <th>0.F1.B55</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.2.1.LH.3">LLH:BUF.0.LH.2.1.LH.3</th>
-<th>0.F1.B17</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[1].1.LH[2]">LLH:BUF.0.LH[1].1.LH[2]</th>
+<th>0.F1.B4</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.20.1.LH.21">LLH:BUF.0.LH.20.1.LH.21</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[20].1.LH[21]">LLH:BUF.0.LH[20].1.LH[21]</th>
 <th>0.F1.B36</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.21.1.LH.22">LLH:BUF.0.LH.21.1.LH.22</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[21].1.LH[22]">LLH:BUF.0.LH[21].1.LH[22]</th>
 <th>0.F1.B57</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.22.1.LH.23">LLH:BUF.0.LH.22.1.LH.23</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[22].1.LH[23]">LLH:BUF.0.LH[22].1.LH[23]</th>
 <th>0.F1.B62</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.23.1.LH.0">LLH:BUF.0.LH.23.1.LH.0</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[23].1.LH[0]">LLH:BUF.0.LH[23].1.LH[0]</th>
 <th>0.F1.B61</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.3.1.LH.4">LLH:BUF.0.LH.3.1.LH.4</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[2].1.LH[3]">LLH:BUF.0.LH[2].1.LH[3]</th>
+<th>0.F1.B17</th>
+</tr>
+
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[3].1.LH[4]">LLH:BUF.0.LH[3].1.LH[4]</th>
 <th>0.F1.B15</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.4.1.LH.5">LLH:BUF.0.LH.4.1.LH.5</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[4].1.LH[5]">LLH:BUF.0.LH[4].1.LH[5]</th>
 <th>0.F1.B25</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.5.1.LH.6">LLH:BUF.0.LH.5.1.LH.6</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[5].1.LH[6]">LLH:BUF.0.LH[5].1.LH[6]</th>
 <th>0.F1.B26</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.6.1.LH.7">LLH:BUF.0.LH.6.1.LH.7</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[6].1.LH[7]">LLH:BUF.0.LH[6].1.LH[7]</th>
 <th>0.F1.B29</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.7.1.LH.8">LLH:BUF.0.LH.7.1.LH.8</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[7].1.LH[8]">LLH:BUF.0.LH[7].1.LH[8]</th>
 <th>0.F1.B30</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.8.1.LH.9">LLH:BUF.0.LH.8.1.LH.9</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[8].1.LH[9]">LLH:BUF.0.LH[8].1.LH[9]</th>
 <th>0.F1.B49</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.0.LH.9.1.LH.10">LLH:BUF.0.LH.9.1.LH.10</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.0.LH[9].1.LH[10]">LLH:BUF.0.LH[9].1.LH[10]</th>
 <th>0.F1.B32</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.0.0.LH.23">LLH:BUF.1.LH.0.0.LH.23</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[0].0.LH[23]">LLH:BUF.1.LH[0].0.LH[23]</th>
 <th>0.F1.B63</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.1.0.LH.0">LLH:BUF.1.LH.1.0.LH.0</th>
-<th>0.F1.B5</th>
-</tr>
-
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.10.0.LH.9">LLH:BUF.1.LH.10.0.LH.9</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[10].0.LH[9]">LLH:BUF.1.LH[10].0.LH[9]</th>
 <th>0.F1.B33</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.11.0.LH.10">LLH:BUF.1.LH.11.0.LH.10</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[11].0.LH[10]">LLH:BUF.1.LH[11].0.LH[10]</th>
 <th>0.F1.B58</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.12.0.LH.11">LLH:BUF.1.LH.12.0.LH.11</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[12].0.LH[11]">LLH:BUF.1.LH[12].0.LH[11]</th>
 <th>0.F1.B59</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.13.0.LH.12">LLH:BUF.1.LH.13.0.LH.12</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[13].0.LH[12]">LLH:BUF.1.LH[13].0.LH[12]</th>
 <th>0.F1.B41</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.14.0.LH.13">LLH:BUF.1.LH.14.0.LH.13</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[14].0.LH[13]">LLH:BUF.1.LH[14].0.LH[13]</th>
 <th>0.F1.B43</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.15.0.LH.14">LLH:BUF.1.LH.15.0.LH.14</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[15].0.LH[14]">LLH:BUF.1.LH[15].0.LH[14]</th>
 <th>0.F1.B42</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.16.0.LH.15">LLH:BUF.1.LH.16.0.LH.15</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[16].0.LH[15]">LLH:BUF.1.LH[16].0.LH[15]</th>
 <th>0.F1.B46</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.17.0.LH.16">LLH:BUF.1.LH.17.0.LH.16</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[17].0.LH[16]">LLH:BUF.1.LH[17].0.LH[16]</th>
 <th>0.F1.B34</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.18.0.LH.17">LLH:BUF.1.LH.18.0.LH.17</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[18].0.LH[17]">LLH:BUF.1.LH[18].0.LH[17]</th>
 <th>0.F1.B51</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.19.0.LH.18">LLH:BUF.1.LH.19.0.LH.18</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[19].0.LH[18]">LLH:BUF.1.LH[19].0.LH[18]</th>
 <th>0.F1.B54</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.2.0.LH.1">LLH:BUF.1.LH.2.0.LH.1</th>
-<th>0.F1.B6</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[1].0.LH[0]">LLH:BUF.1.LH[1].0.LH[0]</th>
+<th>0.F1.B5</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.20.0.LH.19">LLH:BUF.1.LH.20.0.LH.19</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[20].0.LH[19]">LLH:BUF.1.LH[20].0.LH[19]</th>
 <th>0.F1.B52</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.21.0.LH.20">LLH:BUF.1.LH.21.0.LH.20</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[21].0.LH[20]">LLH:BUF.1.LH[21].0.LH[20]</th>
 <th>0.F1.B56</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.22.0.LH.21">LLH:BUF.1.LH.22.0.LH.21</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[22].0.LH[21]">LLH:BUF.1.LH[22].0.LH[21]</th>
 <th>0.F1.B38</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.23.0.LH.22">LLH:BUF.1.LH.23.0.LH.22</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[23].0.LH[22]">LLH:BUF.1.LH[23].0.LH[22]</th>
 <th>0.F1.B39</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.3.0.LH.2">LLH:BUF.1.LH.3.0.LH.2</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[2].0.LH[1]">LLH:BUF.1.LH[2].0.LH[1]</th>
+<th>0.F1.B6</th>
+</tr>
+
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[3].0.LH[2]">LLH:BUF.1.LH[3].0.LH[2]</th>
 <th>0.F1.B16</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.4.0.LH.3">LLH:BUF.1.LH.4.0.LH.3</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[4].0.LH[3]">LLH:BUF.1.LH[4].0.LH[3]</th>
 <th>0.F1.B18</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.5.0.LH.4">LLH:BUF.1.LH.5.0.LH.4</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[5].0.LH[4]">LLH:BUF.1.LH[5].0.LH[4]</th>
 <th>0.F1.B24</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.6.0.LH.5">LLH:BUF.1.LH.6.0.LH.5</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[6].0.LH[5]">LLH:BUF.1.LH[6].0.LH[5]</th>
 <th>0.F1.B27</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.7.0.LH.6">LLH:BUF.1.LH.7.0.LH.6</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[7].0.LH[6]">LLH:BUF.1.LH[7].0.LH[6]</th>
 <th>0.F1.B28</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.8.0.LH.7">LLH:BUF.1.LH.8.0.LH.7</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[8].0.LH[7]">LLH:BUF.1.LH[8].0.LH[7]</th>
 <th>0.F1.B31</th>
 </tr>
 
-<tr><th id="tile-spartan3-LLH.CLKT.S3A-LLH:BUF.1.LH.9.0.LH.8">LLH:BUF.1.LH.9.0.LH.8</th>
+<tr><th id="tile-spartan3-LLH_N_S3A-LLH:BUF.1.LH[9].0.LH[8]">LLH:BUF.1.LH[9].0.LH[8]</th>
 <th>0.F1.B48</th>
 </tr>
 
