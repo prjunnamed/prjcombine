@@ -1,5 +1,4 @@
 use prjcombine_entity::EntityVec;
-use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip};
 use prjcombine_re_xilinx_naming_virtex4::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -8,7 +7,7 @@ use std::collections::BTreeSet;
 use crate::db::{PreDevice, make_device};
 use prjcombine_re_xilinx_rd2db_virtex4::{bond, grid, int};
 use prjcombine_re_xilinx_rdverify_virtex4::verify_device;
-use prjcombine_virtex4::{expand_grid, gtz::GtzDb};
+use prjcombine_virtex4::{defs, expand_grid, gtz::GtzDb};
 
 pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let grid = grid::make_grid(rd);
@@ -32,7 +31,9 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         BTreeSet::new(),
         "virtex4",
-        IntDb::default(),
+        bincode::decode_from_slice(defs::virtex4::INIT, bincode::config::standard())
+            .unwrap()
+            .0,
         intdb,
         ndb,
     )

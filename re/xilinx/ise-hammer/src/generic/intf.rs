@@ -42,7 +42,7 @@ fn resolve_intf_test_pip<'a>(
         .resolve_wire(backend.edev.tile_wire(tcrd, wire_from))?;
     if let ExpandedDevice::Virtex4(edev) = backend.edev
         && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex5
-        && ndb.tile_class_namings.key(ntile.naming) == "INTF.PPC_R"
+        && ndb.tile_class_namings.key(ntile.naming) == "INTF_PPC_R"
         && intdb.wires.key(wire_from.wire).starts_with("TEST")
     {
         // ISE.

@@ -1,11 +1,10 @@
 use prjcombine_re_fpga_hammer::{OcdMode, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
-use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -18,9 +17,6 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let ExpandedDevice::Virtex4(edev) = backend.edev else {
-        unreachable!()
-    };
     let mut ctx = FuzzCtx::new(session, backend, "CFG");
     for attr in ["CCLKPIN", "DONEPIN", "PROGPIN", "INITPIN"] {
         for val in ["PULLUP", "PULLNONE"] {
@@ -50,79 +46,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
 
-    for i in 0..32 {
-        let mut bctx = ctx.bel(bels::BUFGCTRL[i]);
-        bctx.build()
-            .test_manual("PRESENT", "1")
-            .mode("BUFGCTRL")
-            .commit();
-        for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-            bctx.mode("BUFGCTRL").test_inv(pin);
-        }
-        bctx.mode("BUFGCTRL")
-            .test_enum("PRESELECT_I0", &["FALSE", "TRUE"]);
-        bctx.mode("BUFGCTRL")
-            .test_enum("PRESELECT_I1", &["FALSE", "TRUE"]);
-        bctx.mode("BUFGCTRL")
-            .test_enum("CREATE_EDGE", &["FALSE", "TRUE"]);
-        bctx.mode("BUFGCTRL").test_enum("INIT_OUT", &["0", "1"]);
-
-        for j in 0..2 {
-            for val in ["CKINT0", "CKINT1"] {
-                bctx.build()
-                    .mutex(format!("MUX.I{j}"), val)
-                    .test_manual(format!("MUX.I{j}"), val)
-                    .pip(format!("I{j}MUX"), val)
-                    .commit();
-            }
-            bctx.build()
-                .mutex(format!("MUX.I{j}"), "MUXBUS")
-                .test_manual(format!("MUX.I{j}"), "MUXBUS")
-                .pip(format!("I{j}MUX"), format!("MUXBUS{j}"))
-                .commit();
-            for k in 0..16 {
-                let obel = bels::BUFGCTRL[if i < 16 { k } else { k + 16 }];
-                let val = format!("GFB{k}");
-                bctx.build()
-                    .mutex(format!("MUX.I{j}"), &val)
-                    .test_manual(format!("MUX.I{j}"), val)
-                    .pip(format!("I{j}MUX"), (obel, "GFB"))
-                    .commit();
-            }
-            for k in 0..5 {
-                for lr in ['L', 'R'] {
-                    let val = format!("MGT_{lr}{k}");
-                    let pin = format!("MGT_O_{lr}{k}");
-                    let obel = if i < 16 {
-                        bels::BUFG_MGTCLK_S
-                    } else {
-                        bels::BUFG_MGTCLK_N
-                    };
-                    bctx.build()
-                        .mutex(format!("MUX.I{j}"), &val)
-                        .test_manual(format!("MUX.I{j}"), &val)
-                        .pip(format!("I{j}MUX"), (obel, pin))
-                        .commit();
-                }
-            }
-        }
-        bctx.build()
-            .test_manual("I0_FABRIC_OUT", "1")
-            .pin_pips("I0MUX")
-            .commit();
-        bctx.build()
-            .test_manual("I1_FABRIC_OUT", "1")
-            .pin_pips("I1MUX")
-            .commit();
-    }
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::BSCAN[i]);
+        let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
         bctx.test_manual("ENABLE", "1").mode("BSCAN").commit();
     }
     ctx.test_manual("BSCAN_COMMON", "USERID", "")
         .multi_global("USERID", MultiValue::HexPrefix, 32);
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::ICAP[i]);
+        let mut bctx = ctx.bel(defs::bslots::ICAP[i]);
         bctx.build()
             .test_manual("ENABLE", "1")
             .mode("ICAP")
@@ -132,7 +63,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum("ICAP_WIDTH", &["X8", "X16", "X32"]);
     }
     {
-        let mut bctx = ctx.bel(bels::PMV0);
+        let mut bctx = ctx.bel(defs::bslots::PMV_CFG[0]);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -140,7 +71,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::STARTUP);
+        let mut bctx = ctx.bel(defs::bslots::STARTUP);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -176,7 +107,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::JTAGPPC);
+        let mut bctx = ctx.bel(defs::bslots::JTAGPPC);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -186,7 +117,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_enum("NUM_PPC", &["0", "1", "2", "3", "4"]);
     }
     {
-        let mut bctx = ctx.bel(bels::FRAME_ECC);
+        let mut bctx = ctx.bel(defs::bslots::FRAME_ECC);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -194,14 +125,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::DCIRESET);
+        let mut bctx = ctx.bel(defs::bslots::DCIRESET);
         bctx.build()
             .test_manual("ENABLE", "1")
             .mode("DCIRESET")
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::CAPTURE);
+        let mut bctx = ctx.bel(defs::bslots::CAPTURE);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -217,7 +148,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::USR_ACCESS);
+        let mut bctx = ctx.bel(defs::bslots::USR_ACCESS);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -225,7 +156,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::KEY_CLEAR);
+        let mut bctx = ctx.bel(defs::bslots::KEY_CLEAR);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -233,7 +164,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::EFUSE_USR);
+        let mut bctx = ctx.bel(defs::bslots::EFUSE_USR);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -241,15 +172,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::SYSMON);
+        let mut bctx = ctx.bel(defs::bslots::SYSMON);
         bctx.build()
             .null_bits()
-            .extra_tile_attr(
-                Delta::new(0, 20, "HCLK_IOI_TOPCEN"),
-                "SYSMON",
-                "ENABLE",
-                "1",
-            )
+            .extra_tile_attr(Delta::new(0, 20, "HCLK_IO_CFG_N"), "SYSMON", "ENABLE", "1")
             .test_manual("ENABLE", "1")
             .mode("SYSMON")
             .commit();
@@ -273,21 +199,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual("JTAG_SYSMON", "DISABLE")
             .global("JTAG_SYSMON", "DISABLE")
             .commit();
-    }
-
-    for bel in [bels::BUFG_MGTCLK_S, bels::BUFG_MGTCLK_N] {
-        let mut bctx = ctx.bel(bel);
-        for i in 0..5 {
-            for lr in ['L', 'R'] {
-                if lr == 'L' && edev.col_lgt.is_none() {
-                    continue;
-                }
-                bctx.build()
-                    .test_manual(format!("BUF.MGT_{lr}{i}"), "1")
-                    .pip(format!("MGT_O_{lr}{i}"), format!("MGT_I_{lr}{i}"))
-                    .commit();
-            }
-        }
     }
 
     let mut ctx = FuzzCtx::new_null(session, backend);
@@ -472,9 +383,6 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Virtex4(edev) = ctx.edev else {
-        unreachable!()
-    };
     let tile = "CFG";
     let bel = "MISC";
     for attr in ["CCLKPIN", "DONEPIN", "PROGPIN", "INITPIN"] {
@@ -497,40 +405,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, attr, &["PULLUP", "PULLDOWN", "PULLNONE"]);
     }
 
-    for i in 0..32 {
-        let bel = format!("BUFGCTRL{i}");
-        let bel = &bel;
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-        for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
-            ctx.collect_inv(tile, bel, pin);
-        }
-        ctx.collect_enum_bool(tile, bel, "PRESELECT_I0", "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, "PRESELECT_I1", "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, "CREATE_EDGE", "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, "INIT_OUT", "0", "1");
-
-        for attr in ["MUX.I0", "MUX.I1"] {
-            ctx.collect_enum_default_ocd(
-                tile,
-                bel,
-                attr,
-                &[
-                    "MUXBUS", "CKINT0", "CKINT1", "GFB0", "GFB1", "GFB2", "GFB3", "GFB4", "GFB5",
-                    "GFB6", "GFB7", "GFB8", "GFB9", "GFB10", "GFB11", "GFB12", "GFB13", "GFB14",
-                    "GFB15", "MGT_L0", "MGT_L1", "MGT_L2", "MGT_L3", "MGT_L4", "MGT_R0", "MGT_R1",
-                    "MGT_R2", "MGT_R3", "MGT_R4",
-                ],
-                "NONE",
-                OcdMode::Mux,
-            );
-        }
-
-        ctx.collect_bit(tile, bel, "I0_FABRIC_OUT", "1");
-        ctx.collect_bit(tile, bel, "I1_FABRIC_OUT", "1");
-    }
-
     for bel in [
-        "BSCAN0", "BSCAN1", "BSCAN2", "BSCAN3", "DCIRESET", "ICAP0", "ICAP1",
+        "BSCAN[0]", "BSCAN[1]", "BSCAN[2]", "BSCAN[3]", "DCIRESET", "ICAP[0]", "ICAP[1]",
     ] {
         ctx.collect_bit(tile, bel, "ENABLE", "1");
     }
@@ -548,8 +424,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item = ctx.extract_bit(tile, bel, "PIN.USRCCLKO", "1");
     ctx.tiledb.insert(tile, bel, "USRCCLK_ENABLE", item);
 
-    let item0 = ctx.extract_enum(tile, "ICAP0", "ICAP_WIDTH", &["X8", "X16", "X32"]);
-    let item1 = ctx.extract_enum(tile, "ICAP1", "ICAP_WIDTH", &["X8", "X16", "X32"]);
+    let item0 = ctx.extract_enum(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
+    let item1 = ctx.extract_enum(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
     assert_eq!(item0, item1);
     ctx.tiledb.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
 
@@ -577,20 +453,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     {
-        let tile = "HCLK_IOI_TOPCEN";
+        let tile = "HCLK_IO_CFG_N";
         let bel = "SYSMON";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-    }
-
-    for bel in ["BUFG_MGTCLK_S", "BUFG_MGTCLK_N"] {
-        for i in 0..5 {
-            for lr in ['L', 'R'] {
-                if lr == 'L' && edev.col_lgt.is_none() {
-                    continue;
-                }
-                ctx.collect_bit(tile, bel, &format!("BUF.MGT_{lr}{i}"), "1");
-            }
-        }
     }
 
     let tile = "REG.COR";

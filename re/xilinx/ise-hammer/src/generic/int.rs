@@ -200,7 +200,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
             ExpandedDevice::Virtex4(edev) => {
                 if edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4 {
                     // avoid CLK in center column — using it on DCM tiles causes the inverter bit to be auto-set
-                    if intdb.wires.key(self.wire.wire).starts_with("IMUX.CLK")
+                    if intdb.wires.key(self.wire.wire).starts_with("IMUX_CLK")
                         && tcrd.col == edev.col_clk
                     {
                         return None;
@@ -834,7 +834,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                             || in_name.starts_with("IMUX_FAN")
                                             || in_name.starts_with("OMUX"))
                                     {
-                                        // ISE is kind of bad. fill these from INT.CLB and verify later?
+                                        // ISE is kind of bad. fill these from INT_CLB and verify later?
                                         continue;
                                     }
                                     println!("UMMMMM PIP {tcname} {mux_name} {in_name} is empty");

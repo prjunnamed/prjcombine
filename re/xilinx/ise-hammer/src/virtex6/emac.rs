@@ -1,5 +1,5 @@
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -56,7 +56,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, "EMAC") else {
         return;
     };
-    let mut bctx = ctx.bel(bels::EMAC);
+    let mut bctx = ctx.bel(defs::bslots::EMAC);
     let mode = "TEMAC_SINGLE";
 
     bctx.test_manual("PRESENT", "1").mode(mode).commit();

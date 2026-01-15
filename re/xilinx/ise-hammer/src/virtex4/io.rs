@@ -15,7 +15,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::{bels, expanded::IoCoord, tslots};
+use prjcombine_virtex4::{defs, expanded::IoCoord};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -135,7 +135,7 @@ fn get_vrefs(backend: &IseBackend, tcrd: TileCoord) -> Vec<TileCoord> {
         vec![edev.row_iobdcm.unwrap() - 4]
     };
     rows.into_iter()
-        .map(|vref_row| tcrd.with_row(vref_row).tile(tslots::BEL))
+        .map(|vref_row| tcrd.with_row(vref_row).tile(defs::tslots::BEL))
         .collect()
 }
 
@@ -166,7 +166,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for IsBonded {
 
         let io = edev.get_io_info(IoCoord {
             cell: tcrd.cell,
-            iob: TileIobId::from_idx(bels::IOB.into_iter().position(|x| x == self.0).unwrap()),
+            iob: TileIobId::from_idx(
+                defs::bslots::IOB
+                    .into_iter()
+                    .position(|x| x == self.0)
+                    .unwrap(),
+            ),
         });
         if !ebond.ios.contains_key(&(io.bank, io.biob)) {
             return None;
@@ -197,13 +202,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Vref {
             fuzzer = fuzzer.fuzz(Key::TileMutex(tcrd_vref, "VREF".into()), None, "EXCLUSIVE");
             let site = backend
                 .ngrid
-                .get_bel_name(tcrd_vref.cell.bel(bels::IOB0))
+                .get_bel_name(tcrd_vref.cell.bel(defs::bslots::IOB[0]))
                 .unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
             fuzzer.info.features.push(FuzzerFeature {
                 key: DiffKey::Legacy(FeatureId {
                     tile: "IO".into(),
-                    bel: "IOB0".into(),
+                    bel: "IOB[0]".into(),
                     attr: "PRESENT".into(),
                     val: "VREF".into(),
                 }),
@@ -243,8 +248,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         let cell_vr = tcrd
             .cell
             .with_row(RowId::from_idx(tcrd.row.to_idx() / 32 * 32 + 9));
-        let tile_vr = cell_vr.tile(tslots::BEL);
-        for bel in [bels::IOB0, bels::IOB1] {
+        let tile_vr = cell_vr.tile(defs::tslots::BEL);
+        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
             let site = backend.ngrid.get_bel_name(cell_vr.bel(bel)).unwrap();
             fuzzer = fuzzer.base(Key::SiteMode(site), None);
         }
@@ -259,7 +264,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
             rects: edev.tile_bits(tile_vr),
         });
         // Take exclusive mutex on bank DCI.
-        let hclk_iois_dci = cell_vr.delta(0, -1).tile(tslots::HCLK_BEL);
+        let hclk_iois_dci = cell_vr.delta(0, -1).tile(defs::tslots::HCLK_BEL);
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_iois_dci, "BANK_DCI".to_string()),
             None,
@@ -268,7 +273,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         // Test bank DCI.
         fuzzer.info.features.push(FuzzerFeature {
             key: DiffKey::Legacy(FeatureId {
-                tile: "HCLK_IOIS_DCI".into(),
+                tile: "HCLK_IO_DCI".into(),
                 bel: "DCI".into(),
                 attr: "STD".into(),
                 val: self.0.into(),
@@ -281,14 +286,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Dci {
         let iob_center = tcrd
             .cell
             .with_cr(edev.col_cfg, edev.row_dcmiob.unwrap())
-            .bel(bels::IOB0);
+            .bel(defs::bslots::IOB[0]);
         let site = backend.ngrid.get_bel_name(iob_center).unwrap();
         fuzzer = fuzzer.base(Key::SiteMode(site), "IOB");
         fuzzer = fuzzer.base(Key::SitePin(site, "O".into()), true);
         fuzzer = fuzzer.base(Key::SiteAttr(site, "OUSED".into()), "0");
         fuzzer = fuzzer.base(Key::SiteAttr(site, "IOATTRBOX".into()), "LVDCI_33");
         // Ensure anchor VR IOBs are free.
-        for bel in [bels::IOB0, bels::IOB1] {
+        for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
             let iob_center_vr = tcrd
                 .cell
                 .with_cr(edev.col_cfg, edev.row_dcmiob.unwrap() + 1)
@@ -327,7 +332,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
         let hclk_iois_lvds = tcrd
             .cell
             .with_row(RowId::from_idx(tcrd.row.to_idx() / 32 * 32 + 24))
-            .tile(tslots::HCLK_BEL);
+            .tile(defs::tslots::HCLK_BEL);
         fuzzer = fuzzer.fuzz(
             Key::TileMutex(hclk_iois_lvds, "BANK_LVDS".to_string()),
             None,
@@ -336,7 +341,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DiffOut {
         if let Some(std) = self.0 {
             fuzzer.info.features.push(FuzzerFeature {
                 key: DiffKey::Legacy(FeatureId {
-                    tile: "HCLK_IOIS_LVDS".into(),
+                    tile: "HCLK_IO_LVDS".into(),
                     bel: "LVDS".into(),
                     attr: "STD".into(),
                     val: std.into(),
@@ -368,8 +373,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new(session, backend, "IO");
 
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::ILOGIC[i]);
-        let bel_ologic = bels::OLOGIC[i];
+        let mut bctx = ctx.bel(defs::bslots::ILOGIC[i]);
+        let bel_ologic = defs::bslots::OLOGIC[i];
         bctx.build()
             .bel_unused(bel_ologic)
             .test_manual("PRESENT", "ILOGIC")
@@ -721,13 +726,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .mutex("MUX.CLK", ipin)
                 .test_manual("MUX.CLK", ipin)
-                .pip("CLKMUX", (bels::IOI, ipin))
+                .pip("CLKMUX", (defs::bslots::IOI, ipin))
                 .commit();
         }
     }
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::OLOGIC[i]);
-        let bel_ilogic = bels::ILOGIC[i];
+        let mut bctx = ctx.bel(defs::bslots::OLOGIC[i]);
+        let bel_ilogic = defs::bslots::ILOGIC[i];
         bctx.build()
             .bel_unused(bel_ilogic)
             .test_manual("PRESENT", "OLOGIC")
@@ -970,12 +975,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.build()
                 .mutex("MUX.CLK", ipin)
                 .test_manual("MUX.CLK", ipin)
-                .pip("CLKMUX", (bels::IOI, ipin))
+                .pip("CLKMUX", (defs::bslots::IOI, ipin))
                 .commit();
         }
     }
     for i in 0..2 {
-        let bel = bels::IOB[i];
+        let bel = defs::bslots::IOB[i];
         let mut bctx = ctx.bel(bel);
         bctx.build()
             .global("DCIUPDATEMODE", "ASREQUIRED")
@@ -1156,7 +1161,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
     let mut ctx = FuzzCtx::new_null(session, backend);
     ctx.build()
-        .extra_tiles_by_bel(bels::DCI, "DCI")
+        .extra_tiles_by_bel(defs::bslots::DCI, "DCI")
         .test_manual("DCI", "QUIET", "1")
         .global_diff("DCIUPDATEMODE", "CONTINUOUS", "QUIET")
         .commit();
@@ -1174,7 +1179,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             1 => {
                 let mut row = chip.row_bufg() + 8;
                 while row != edev.row_iobdcm.unwrap() - 16 {
-                    let hclk_center = CellCoord::new(die, edev.col_cfg, row).tile(tslots::HCLK_BEL);
+                    let hclk_center =
+                        CellCoord::new(die, edev.col_cfg, row).tile(defs::tslots::HCLK_BEL);
                     builder = builder.extra_tile_attr_fixed(
                         hclk_center,
                         "DCI",
@@ -1183,7 +1189,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     );
                     row += 16;
                 }
-                let hclk_center = CellCoord::new(die, edev.col_cfg, row).tile(tslots::HCLK_BEL);
+                let hclk_center =
+                    CellCoord::new(die, edev.col_cfg, row).tile(defs::tslots::HCLK_BEL);
                 builder = builder.extra_tile_attr_fixed(hclk_center, "DCI", "ENABLE", "1");
                 (
                     if chip.row_bufg() == edev.row_iobdcm.unwrap() - 24 {
@@ -1197,7 +1204,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             2 => {
                 let mut row = chip.row_bufg() - 8;
                 while row != edev.row_dcmiob.unwrap() + 16 {
-                    let hclk_center = CellCoord::new(die, edev.col_cfg, row).tile(tslots::HCLK_BEL);
+                    let hclk_center =
+                        CellCoord::new(die, edev.col_cfg, row).tile(defs::tslots::HCLK_BEL);
                     builder = builder.extra_tile_attr_fixed(
                         hclk_center,
                         "DCI",
@@ -1206,7 +1214,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     );
                     row -= 16;
                 }
-                let hclk_center = CellCoord::new(die, edev.col_cfg, row).tile(tslots::HCLK_BEL);
+                let hclk_center =
+                    CellCoord::new(die, edev.col_cfg, row).tile(defs::tslots::HCLK_BEL);
                 builder = builder.extra_tile_attr_fixed(hclk_center, "DCI", "ENABLE", "1");
                 (
                     if chip.row_bufg() == edev.row_dcmiob.unwrap() + 24 {
@@ -1219,7 +1228,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             3 => {
                 let hclk_iobdcm = CellCoord::new(die, edev.col_cfg, edev.row_iobdcm.unwrap())
-                    .tile(tslots::HCLK_BEL);
+                    .tile(defs::tslots::HCLK_BEL);
                 builder = builder.extra_tile_attr_fixed(hclk_iobdcm, "DCI", "ENABLE", "1");
                 (
                     Some(edev.row_iobdcm.unwrap() - 2),
@@ -1228,18 +1237,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             4 => {
                 let hclk_dcmiob = CellCoord::new(die, edev.col_cfg, edev.row_dcmiob.unwrap())
-                    .tile(tslots::HCLK_BEL);
+                    .tile(defs::tslots::HCLK_BEL);
                 builder = builder.extra_tile_attr_fixed(hclk_dcmiob, "DCI", "ENABLE", "1");
                 (Some(edev.row_dcmiob.unwrap() + 1), edev.row_dcmiob.unwrap())
             }
             _ => unreachable!(),
         };
-        let vr_tile = vr_row.map(|row| CellCoord::new(die, edev.col_cfg, row).tile(tslots::BEL));
-        let io_tile = CellCoord::new(die, edev.col_cfg, io_row).tile(tslots::BEL);
+        let vr_tile =
+            vr_row.map(|row| CellCoord::new(die, edev.col_cfg, row).tile(defs::tslots::BEL));
+        let io_tile = CellCoord::new(die, edev.col_cfg, io_row).tile(defs::tslots::BEL);
 
         // Ensure nothing is placed in VR.  Set up VR diff.
         if let Some(vr_tile) = vr_tile {
-            for bel in [bels::IOB0, bels::IOB1] {
+            for bel in [defs::bslots::IOB[0], defs::bslots::IOB[1]] {
                 let site = backend.ngrid.get_bel_name(vr_tile.cell.bel(bel)).unwrap();
                 builder = builder.raw(Key::SiteMode(site), None);
             }
@@ -1249,7 +1259,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         // Set up the IO and fire.
         let site = backend
             .ngrid
-            .get_bel_name(io_tile.cell.bel(bels::IOB0))
+            .get_bel_name(io_tile.cell.bel(defs::bslots::IOB[0]))
             .unwrap();
         builder
             .raw(Key::SiteMode(site), "IOB")
@@ -1263,20 +1273,20 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .raw_diff(Key::GlobalMutex("GLOBAL_DCI".into()), None, "EXCLUSIVE")
             // Avoid interference.
             .raw(Key::GlobalOpt("MATCH_CYCLE".into()), "NOWAIT")
-            .extra_tile_attr_fixed(io_tile, "IOB0", "OSTD", "LVDCI_33")
+            .extra_tile_attr_fixed(io_tile, "IOB[0]", "OSTD", "LVDCI_33")
             .test_manual("MISC", format!("CENTER_DCI.{bank}"), "1")
             .commit();
     }
 
     for tile in [
-        "HCLK_IOIS_DCI",
-        "HCLK_CENTER",
-        "HCLK_CENTER_ABOVE_CFG",
-        "HCLK_DCMIOB",
-        "HCLK_IOBDCM",
+        "HCLK_IO_DCI",
+        "HCLK_IO_CENTER",
+        "HCLK_IO_CFG_N",
+        "HCLK_IO_DCM_S",
+        "HCLK_IO_DCM_N",
     ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let mut bctx = ctx.bel(bels::DCI);
+        let mut bctx = ctx.bel(defs::bslots::DCI);
         bctx.build()
             .global_mutex("GLOBAL_DCI", "NOPE")
             .test_manual("TEST_ENABLE", "1")
@@ -1288,7 +1298,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "IO";
     for i in 0..2 {
-        let bel = &format!("ILOGIC{i}");
+        let bel = &format!("ILOGIC[{i}]");
 
         let mut present_ilogic = ctx.state.get_diff(tile, bel, "PRESENT", "ILOGIC");
         let mut present_iserdes = ctx.state.get_diff(tile, bel, "PRESENT", "ISERDES");
@@ -1628,7 +1638,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
     for i in 0..2 {
-        let bel = &format!("OLOGIC{i}");
+        let bel = &format!("OLOGIC[{i}]");
         ctx.collect_enum_default_ocd(
             tile,
             bel,
@@ -1863,7 +1873,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.state
         .get_diff(tile, "IOB_COMMON", "PRESENT", "VR_CENTER");
     for i in 0..2 {
-        let bel = &format!("IOB{i}");
+        let bel = &format!("IOB[{i}]");
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "IOB");
         ctx.collect_enum_default(tile, bel, "PULL", &["PULLDOWN", "PULLUP", "KEEPER"], "NONE");
         let item = ctx.extract_bit_wide(tile, bel, "OUSED", "0");
@@ -2201,10 +2211,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present.assert_empty();
     }
     let diff1 = present_vr.split_bits_by(|bit| bit.bit.to_idx() >= 40);
-    ctx.tiledb.insert(tile, "IOB0", "VR", xlat_bit(present_vr));
-    ctx.tiledb.insert(tile, "IOB1", "VR", xlat_bit(diff1));
+    ctx.tiledb
+        .insert(tile, "IOB[0]", "VR", xlat_bit(present_vr));
+    ctx.tiledb.insert(tile, "IOB[1]", "VR", xlat_bit(diff1));
 
-    let tile = "HCLK_IOIS_LVDS";
+    let tile = "HCLK_IO_LVDS";
     let bel = "LVDS";
     let item = TileItem::from_bitvec(
         vec![
@@ -2233,13 +2244,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.tiledb
         .insert_misc_data("IOSTD:LVDSBIAS:OFF", bits![0; 10]);
 
-    let hclk_center_cnt = ctx.edev.tile_index[ctx.edev.db.get_tile_class("HCLK_CENTER")].len();
+    let hclk_center_cnt = ctx.edev.tile_index[ctx.edev.db.get_tile_class("HCLK_IO_CENTER")].len();
     for tile in [
-        "HCLK_IOIS_DCI",
-        "HCLK_CENTER",
-        "HCLK_CENTER_ABOVE_CFG",
-        "HCLK_IOBDCM",
-        "HCLK_DCMIOB",
+        "HCLK_IO_DCI",
+        "HCLK_IO_CENTER",
+        "HCLK_IO_CFG_N",
+        "HCLK_IO_DCM_S",
+        "HCLK_IO_DCM_N",
     ] {
         let bel = "DCI";
         ctx.tiledb.insert(
@@ -2321,9 +2332,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         ctx.collect_bit(tile, bel, "QUIET", "1");
 
-        let enable = if (tile == "HCLK_CENTER_ABOVE_CFG" && hclk_center_cnt != 1)
-            || tile == "HCLK_IOIS_DCI"
-        {
+        let enable = if (tile == "HCLK_IO_CFG_N" && hclk_center_cnt != 1) || tile == "HCLK_IO_DCI" {
             TileItem::from_bit(TileBit::new(0, 0, 14), false)
         } else {
             ctx.extract_bit(tile, bel, "ENABLE", "1")
@@ -2333,7 +2342,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "ENABLE", enable);
         ctx.tiledb
             .insert(tile, bel, "TEST_ENABLE", xlat_bit_wide(test_enable));
-        if tile == "HCLK_CENTER" {
+        if tile == "HCLK_IO_CENTER" {
             if hclk_center_cnt > 1 {
                 ctx.collect_bit(tile, bel, "CASCADE_FROM_BELOW", "1");
             }
@@ -2341,11 +2350,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bit(tile, bel, "CASCADE_FROM_ABOVE", "1");
             }
         }
-        if tile == "HCLK_CENTER_ABOVE_CFG" && hclk_center_cnt > 1 {
+        if tile == "HCLK_IO_CFG_N" && hclk_center_cnt > 1 {
             ctx.collect_bit(tile, bel, "CASCADE_FROM_ABOVE", "1");
         }
     }
-    let tile = "HCLK_IOIS_DCI";
+    let tile = "HCLK_IO_DCI";
     let bel = "DCI";
     for std in IOSTDS {
         if std.dci == DciKind::None {

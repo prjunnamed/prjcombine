@@ -2,7 +2,7 @@ use core::ops::Range;
 
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -499,7 +499,10 @@ const GTX_HEX_ATTRS: &[(&str, usize)] = &[
 ];
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for (tile, bel) in [("GTP", bels::GTP_DUAL), ("GTX", bels::GTX_DUAL)] {
+    for (tile, bel) in [
+        ("GTP", defs::bslots::GTP_DUAL),
+        ("GTX", defs::bslots::GTX_DUAL),
+    ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
@@ -520,8 +523,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for &attr in GTP_BOOL_ATTRS {
                 if attr == "CLKINDC_B" {
                     bctx.mode(mode)
-                        .pip((bels::BUFDS0, "IP"), (bels::IPAD_CLKP0, "O"))
-                        .pip((bels::BUFDS0, "IN"), (bels::IPAD_CLKN0, "O"))
+                        .pip(
+                            (defs::bslots::BUFDS[0], "IP"),
+                            (defs::bslots::IPAD_CLKP[0], "O"),
+                        )
+                        .pip(
+                            (defs::bslots::BUFDS[0], "IN"),
+                            (defs::bslots::IPAD_CLKN[0], "O"),
+                        )
                         .test_enum(attr, &["FALSE", "TRUE"]);
                 } else {
                     bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
@@ -573,7 +582,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .mutex("MUX.CLKIN", "CLKPN")
             .test_manual("MUX.CLKIN", "CLKPN")
-            .pip("CLKIN", (bels::BUFDS0, "O"))
+            .pip("CLKIN", (defs::bslots::BUFDS[0], "O"))
             .commit();
         bctx.build()
             .mutex("MUX.CLKIN", "CLKOUT_NORTH_S")
@@ -589,7 +598,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .mutex("MUX.CLKOUT_SOUTH", "CLKPN")
             .test_manual("MUX.CLKOUT_SOUTH", "CLKPN")
-            .pip("CLKOUT_SOUTH", (bels::BUFDS0, "O"))
+            .pip("CLKOUT_SOUTH", (defs::bslots::BUFDS[0], "O"))
             .commit();
         bctx.build()
             .mutex("MUX.CLKOUT_SOUTH", "CLKOUT_SOUTH_N")
@@ -600,7 +609,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.build()
             .mutex("MUX.CLKOUT_NORTH", "CLKPN")
             .test_manual("MUX.CLKOUT_NORTH", "CLKPN")
-            .pip("CLKOUT_NORTH", (bels::BUFDS0, "O"))
+            .pip("CLKOUT_NORTH", (defs::bslots::BUFDS[0], "O"))
             .commit();
         bctx.build()
             .mutex("MUX.CLKOUT_NORTH", "CLKOUT_NORTH_S")
@@ -608,7 +617,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .pip("CLKOUT_NORTH", "CLKOUT_NORTH_S")
             .commit();
 
-        let mut bctx = ctx.bel(bels::BUFDS0);
+        let mut bctx = ctx.bel(defs::bslots::BUFDS[0]);
         bctx.build()
             .null_bits()
             .test_manual("BUFDS", "1")
@@ -616,7 +625,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
 
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::CRC64[i]);
+            let mut bctx = ctx.bel(defs::bslots::CRC64[i]);
             bctx.build()
                 .tile_mutex("CRC_MODE", "64")
                 .test_manual("PRESENT", "1")
@@ -631,7 +640,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         for i in 0..4 {
-            let mut bctx = ctx.bel(bels::CRC32[i]);
+            let mut bctx = ctx.bel(defs::bslots::CRC32[i]);
             bctx.build()
                 .tile_mutex("CRC_MODE", "32")
                 .test_manual("PRESENT", "1")
@@ -733,14 +742,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.tiledb.insert(tile, bel, "USRCLK1", item_rx);
 
         for i in 0..4 {
-            let bel = &format!("CRC32_{i}");
+            let bel = &format!("CRC32[{i}]");
             ctx.collect_inv(tile, bel, "CRCCLK");
             ctx.collect_bitvec(tile, bel, "CRC_INIT", "");
             ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         }
         for i in 0..2 {
-            let bel = &format!("CRC64_{i}");
-            let bel32 = &format!("CRC32_{ii}", ii = i * 3);
+            let bel = &format!("CRC64[{i}]");
+            let bel32 = &format!("CRC32[{ii}]", ii = i * 3);
             let item = ctx.extract_inv(tile, bel, "CRCCLK");
             ctx.tiledb.insert(tile, bel32, "INV.CRCCLK", item);
             let item = ctx.extract_bitvec(tile, bel, "CRC_INIT", "");

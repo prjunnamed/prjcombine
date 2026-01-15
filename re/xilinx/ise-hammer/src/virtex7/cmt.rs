@@ -9,7 +9,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{BitRectId, TileBit, TileItem},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -28,7 +28,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     let mut ctx = FuzzCtx::new(session, backend, "CMT_FIFO");
     {
-        let mut bctx = ctx.bel(bels::IN_FIFO);
+        let mut bctx = ctx.bel(defs::bslots::IN_FIFO);
         let mode = "IN_FIFO";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
 
@@ -64,7 +64,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::OUT_FIFO);
+        let mut bctx = ctx.bel(defs::bslots::OUT_FIFO);
         let mode = "OUT_FIFO";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
 
@@ -105,7 +105,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new(session, backend, "CMT");
 
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::PHASER_IN[i]);
+        let mut bctx = ctx.bel(defs::bslots::PHASER_IN[i]);
         bctx.mode("PHASER_IN_ADV").test_inv("RST");
         for attr in [
             "BURST_MODE",
@@ -169,7 +169,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_manual("MUX.PHASEREFCLK", "DQS_PAD")
             .pip((PinFar, "PHASEREFCLK"), "DQS_PAD")
             .commit();
-        let bel_cmt = if i < 2 { bels::CMT_B } else { bels::CMT_C };
+        let bel_cmt = if i < 2 {
+            defs::bslots::CMT_B
+        } else {
+            defs::bslots::CMT_C
+        };
         for pin in [
             "MRCLK0", "MRCLK1", "MRCLK0_S", "MRCLK1_S", "MRCLK0_N", "MRCLK1_N",
         ] {
@@ -181,7 +185,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::PHASER_OUT[i]);
+        let mut bctx = ctx.bel(defs::bslots::PHASER_OUT[i]);
         bctx.mode("PHASER_OUT_ADV").test_inv("RST");
         for attr in [
             "COARSE_BYPASS",
@@ -222,7 +226,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for (attr, width) in [("COARSE_DELAY", 6), ("FINE_DELAY", 6), ("OCLK_DELAY", 6)] {
             bctx.mode("PHASER_OUT_ADV").test_multi_attr_dec(attr, width);
         }
-        let bel_cmt = if i < 2 { bels::CMT_B } else { bels::CMT_C };
+        let bel_cmt = if i < 2 {
+            defs::bslots::CMT_B
+        } else {
+            defs::bslots::CMT_C
+        };
         for pin in [
             "MRCLK0", "MRCLK1", "MRCLK0_S", "MRCLK1_S", "MRCLK0_N", "MRCLK1_N",
         ] {
@@ -234,7 +242,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::PHASER_REF);
+        let mut bctx = ctx.bel(defs::bslots::PHASER_REF);
         for pin in ["RST", "PWRDWN"] {
             bctx.mode("PHASER_REF").test_inv(pin);
         }
@@ -273,7 +281,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::PHY_CONTROL);
+        let mut bctx = ctx.bel(defs::bslots::PHY_CONTROL);
         for attr in [
             "BURST_MODE",
             "DATA_CTL_A_N",
@@ -320,14 +328,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode("PHY_CONTROL").test_multi_attr_bin(attr, width);
         }
     }
-    for (bel, bel_name) in [(bels::MMCM0, "MMCM"), (bels::PLL, "PLL")] {
+    for (bel, bel_name) in [(defs::bslots::MMCM[0], "MMCM"), (defs::bslots::PLL, "PLL")] {
         let mut bctx = ctx.bel(bel);
-        let use_calc = if bel == bels::MMCM0 {
+        let use_calc = if bel == defs::bslots::MMCM[0] {
             "MMCMADV_*_USE_CALC"
         } else {
             "PLLADV_*_USE_CALC"
         };
-        let mode = if bel == bels::MMCM0 {
+        let mode = if bel == defs::bslots::MMCM[0] {
             "MMCME2_ADV"
         } else {
             "PLLE2_ADV"
@@ -338,7 +346,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .mode(mode)
             .commit();
         for pin in ["CLKINSEL", "PSEN", "PSINCDEC", "PWRDWN", "RST"] {
-            if matches!(pin, "PSEN" | "PSINCDEC") && bel == bels::PLL {
+            if matches!(pin, "PSEN" | "PSINCDEC") && bel == defs::bslots::PLL {
                 continue;
             }
             bctx.mode(mode).mutex("MODE", "INV").test_inv(pin);
@@ -380,7 +388,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_xy(use_calc, "NO")
                 .test_enum(attr, &["FALSE", "TRUE"]);
         }
-        if bel == bels::MMCM0 {
+        if bel == defs::bslots::MMCM[0] {
             for attr in [
                 "SEL_SLIPD",
                 "CLKBURST_ENABLE",
@@ -506,7 +514,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_xy(use_calc, "NO")
                 .test_multi_attr_bin(attr, width);
         }
-        if bel == bels::MMCM0 {
+        if bel == defs::bslots::MMCM[0] {
             for (attr, width) in [
                 ("SS_STEPS", 3),
                 ("SS_STEPS_INIT", 3),
@@ -570,7 +578,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_xy(use_calc, "NO")
                 .test_multi_attr_dec(attr, width);
         }
-        if bel == bels::MMCM0 {
+        if bel == defs::bslots::MMCM[0] {
             bctx.mode(mode)
                 .mutex("MODE", "TEST")
                 .global_xy(use_calc, "NO")
@@ -590,7 +598,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
 
         for mult in 1..=64 {
-            if bel == bels::MMCM0 {
+            if bel == defs::bslots::MMCM[0] {
                 for bandwidth in ["LOW", "HIGH"] {
                     bctx.mode(mode)
                         .mutex("MODE", "CALC")
@@ -669,13 +677,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex(format!("MUX.{pin}_HCLK"), format!("CCIO{i}"))
                     .mutex(format!("MUX.{opin}_HCLK"), format!("CCIO{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{opin}")),
-                        (bels::HCLK_CMT, format!("CCIO{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{opin}")),
+                        (defs::bslots::HCLK_CMT, format!("CCIO{i}")),
                     )
                     .test_manual(format!("MUX.{pin}_HCLK"), format!("PHASER_REF_BOUNCE{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{pin}")),
-                        (bels::HCLK_CMT, format!("CCIO{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{pin}")),
+                        (defs::bslots::HCLK_CMT, format!("CCIO{i}")),
                     )
                     .commit();
             }
@@ -685,13 +693,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex(format!("MUX.{pin}_HCLK"), format!("PHASER_REF_BOUNCE{i}"))
                     .mutex(format!("MUX.{opin}_HCLK"), format!("PHASER_REF_BOUNCE{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{opin}")),
-                        (bels::HCLK_CMT, format!("PHASER_REF_BOUNCE{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{opin}")),
+                        (defs::bslots::HCLK_CMT, format!("PHASER_REF_BOUNCE{i}")),
                     )
                     .test_manual(format!("MUX.{pin}_HCLK"), format!("PHASER_REF_BOUNCE{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{pin}")),
-                        (bels::HCLK_CMT, format!("PHASER_REF_BOUNCE{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{pin}")),
+                        (defs::bslots::HCLK_CMT, format!("PHASER_REF_BOUNCE{i}")),
                     )
                     .commit();
             }
@@ -701,13 +709,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex(format!("MUX.{pin}_HCLK"), format!("HCLK{i}"))
                     .mutex(format!("MUX.{opin}_HCLK"), format!("HCLK{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{opin}")),
-                        (bels::HCLK_CMT, format!("HCLK{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{opin}")),
+                        (defs::bslots::HCLK_CMT, format!("HCLK{i}")),
                     )
                     .test_manual(format!("MUX.{pin}_HCLK"), format!("HCLK{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{pin}")),
-                        (bels::HCLK_CMT, format!("HCLK{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{pin}")),
+                        (defs::bslots::HCLK_CMT, format!("HCLK{i}")),
                     )
                     .commit();
             }
@@ -717,13 +725,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex(format!("MUX.{pin}_HCLK"), format!("RCLK{i}"))
                     .mutex(format!("MUX.{opin}_HCLK"), format!("RCLK{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{opin}")),
-                        (bels::HCLK_CMT, format!("RCLK{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{opin}")),
+                        (defs::bslots::HCLK_CMT, format!("RCLK{i}")),
                     )
                     .test_manual(format!("MUX.{pin}_HCLK"), format!("RCLK{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{pin}")),
-                        (bels::HCLK_CMT, format!("RCLK{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{pin}")),
+                        (defs::bslots::HCLK_CMT, format!("RCLK{i}")),
                     )
                     .commit();
             }
@@ -733,13 +741,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .mutex(format!("MUX.{pin}_HCLK"), format!("HIN{i}"))
                     .mutex(format!("MUX.{opin}_HCLK"), format!("HIN{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{opin}")),
-                        (bels::HCLK_CMT, format!("HIN{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{opin}")),
+                        (defs::bslots::HCLK_CMT, format!("HIN{i}")),
                     )
                     .test_manual(format!("MUX.{pin}_HCLK"), format!("HIN{i}"))
                     .pip(
-                        (bels::HCLK_CMT, format!("{bel_name}_{pin}")),
-                        (bels::HCLK_CMT, format!("HIN{i}")),
+                        (defs::bslots::HCLK_CMT, format!("{bel_name}_{pin}")),
+                        (defs::bslots::HCLK_CMT, format!("HIN{i}")),
                     )
                     .commit();
             }
@@ -756,15 +764,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
 
-        if bel == bels::MMCM0 {
+        if bel == defs::bslots::MMCM[0] {
             for i in 0..4 {
                 for pin in ["CLKOUT0", "CLKOUT1", "CLKOUT2", "CLKOUT3", "CLKFBOUT"] {
                     bctx.build()
                         .tile_mutex("PERF", "TEST")
                         .mutex(format!("MUX.PERF{i}"), pin)
                         .pip(
-                            (bels::HCLK_CMT, format!("PERF{i}")),
-                            (bels::HCLK_CMT, format!("MMCM_PERF{i}")),
+                            (defs::bslots::HCLK_CMT, format!("PERF{i}")),
+                            (defs::bslots::HCLK_CMT, format!("MMCM_PERF{i}")),
                         )
                         .test_manual(format!("MUX.PERF{i}"), pin)
                         .pip(format!("PERF{i}"), pin)
@@ -774,21 +782,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::BUFMRCE[i]);
+        let mut bctx = ctx.bel(defs::bslots::BUFMRCE[i]);
         bctx.test_manual("ENABLE", "1").mode("BUFMRCE").commit();
         bctx.mode("BUFMRCE").test_inv("CE");
         bctx.mode("BUFMRCE").test_enum("INIT_OUT", &["0", "1"]);
         bctx.mode("BUFMRCE")
             .test_enum("CE_TYPE", &["SYNC", "ASYNC"]);
-        let bel_other = bels::BUFMRCE[i ^ 1];
+        let bel_other = defs::bslots::BUFMRCE[i ^ 1];
         for j in 4..14 {
             bctx.build()
                 .tile_mutex("HIN", "USE")
                 .mutex("MUX.I", format!("HIN{j}"))
                 .bel_mutex(bel_other, "MUX.I", format!("HIN{j}"))
-                .pip((bel_other, "I"), (bels::HCLK_CMT, format!("HIN{j}")))
+                .pip(
+                    (bel_other, "I"),
+                    (defs::bslots::HCLK_CMT, format!("HIN{j}")),
+                )
                 .test_manual("MUX.I", format!("HIN{j}"))
-                .pip("I", (bels::HCLK_CMT, format!("HIN{j}")))
+                .pip("I", (defs::bslots::HCLK_CMT, format!("HIN{j}")))
                 .commit();
         }
         for j in 0..2 {
@@ -796,9 +807,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .tile_mutex("CKINT", "USE")
                 .mutex("MUX.I", format!("CKINT{j}"))
                 .bel_mutex(bel_other, "MUX.I", format!("CKINT{j}"))
-                .pip((bel_other, "I"), (bels::HCLK_CMT, format!("CKINT{j}")))
+                .pip(
+                    (bel_other, "I"),
+                    (defs::bslots::HCLK_CMT, format!("CKINT{j}")),
+                )
                 .test_manual("MUX.I", format!("CKINT{j}"))
-                .pip("I", (bels::HCLK_CMT, format!("CKINT{j}")))
+                .pip("I", (defs::bslots::HCLK_CMT, format!("CKINT{j}")))
                 .commit();
         }
         let ccio = i * 3;
@@ -806,23 +820,23 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .tile_mutex("CCIO", "USE")
             .mutex("MUX.I", format!("CCIO{ccio}"))
             .prop(TouchHout(0))
-            .bel_mutex(bels::HCLK_CMT, "MUX.HOUT0", format!("CCIO{ccio}"))
+            .bel_mutex(defs::bslots::HCLK_CMT, "MUX.HOUT0", format!("CCIO{ccio}"))
             .pip(
-                (bels::HCLK_CMT, "HOUT0"),
-                (bels::HCLK_CMT, format!("CCIO{ccio}")),
+                (defs::bslots::HCLK_CMT, "HOUT0"),
+                (defs::bslots::HCLK_CMT, format!("CCIO{ccio}")),
             )
             .test_manual("MUX.I", format!("CCIO{ccio}"))
-            .pip("I", (bels::HCLK_CMT, format!("CCIO{ccio}")))
+            .pip("I", (defs::bslots::HCLK_CMT, format!("CCIO{ccio}")))
             .commit();
     }
     if edev.chips.first().unwrap().regs > 1 {
-        let mut bctx = ctx.bel(bels::CMT_A);
+        let mut bctx = ctx.bel(defs::bslots::CMT_A);
         bctx.build()
             .force_bel_name("CMT_BOT")
             .tile_mutex("SYNC_BB", "DRIVE")
             .pip(
-                (bels::PHY_CONTROL, "SYNC_BB"),
-                (PinFar, bels::PHY_CONTROL, "PHYCTLEMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
             .related_tile_mutex(Delta::new(0, -50, "CMT"), "SYNC_BB", "TEST_SOURCE_DUMMY")
             .extra_tile_attr(
@@ -840,17 +854,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .related_tile_mutex(Delta::new(0, -50, "CMT"), "SYNC_BB", "DRIVE")
             .related_pip(
                 Delta::new(0, -50, "CMT"),
-                (bels::PHY_CONTROL, "SYNC_BB"),
-                (PinFar, bels::PHY_CONTROL, "PHYCTLEMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
             .related_pip(
                 Delta::new(0, -50, "CMT"),
-                (bels::CMT_D, "SYNC_BB_N"),
-                (bels::CMT_D, "SYNC_BB"),
+                (defs::bslots::CMT_D, "SYNC_BB_N"),
+                (defs::bslots::CMT_D, "SYNC_BB"),
             )
             .pip(
-                (PinFar, bels::PHY_CONTROL, "PHYCTLMSTREMPTY"),
-                (bels::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLMSTREMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
             )
             .test_manual("BUF.SYNC_BB.U", "1")
             .pip("SYNC_BB", "SYNC_BB_S")
@@ -860,8 +874,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("CMT_BOT")
                 .tile_mutex("FREQ_BB", "DRIVE")
                 .pip(
-                    (bels::CMT_B, format!("FREQ_BB{i}")),
-                    (bels::CMT_B, format!("FREQ_BB{i}_MUX")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
                 .related_tile_mutex(Delta::new(0, -50, "CMT"), "FREQ_BB", "TEST_SOURCE_DUMMY")
                 .extra_tile_attr(
@@ -879,17 +893,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .related_tile_mutex(Delta::new(0, -50, "CMT"), "FREQ_BB", "DRIVE")
                 .related_pip(
                     Delta::new(0, -50, "CMT"),
-                    (bels::CMT_B, format!("FREQ_BB{i}")),
-                    (bels::CMT_B, format!("FREQ_BB{i}_MUX")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
                 .related_pip(
                     Delta::new(0, -50, "CMT"),
-                    (bels::CMT_D, format!("FREQ_BB{i}_N")),
-                    (bels::CMT_D, format!("FREQ_BB{i}")),
+                    (defs::bslots::CMT_D, format!("FREQ_BB{i}_N")),
+                    (defs::bslots::CMT_D, format!("FREQ_BB{i}")),
                 )
                 .pip(
-                    (bels::MMCM0, format!("FREQ_BB{i}_IN")),
-                    (bels::CMT_A, format!("FREQ_BB{i}")),
+                    (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                    (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .test_manual(format!("BUF.FREQ_BB{i}.U"), "1")
                 .pip(format!("FREQ_BB{i}"), format!("FREQ_BB{i}_S"))
@@ -897,13 +911,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if edev.chips.first().unwrap().regs > 1 {
-        let mut bctx = ctx.bel(bels::CMT_D);
+        let mut bctx = ctx.bel(defs::bslots::CMT_D);
         bctx.build()
             .force_bel_name("CMT_TOP")
             .tile_mutex("SYNC_BB", "DRIVE")
             .pip(
-                (bels::PHY_CONTROL, "SYNC_BB"),
-                (PinFar, bels::PHY_CONTROL, "PHYCTLEMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
             .related_tile_mutex(Delta::new(0, 50, "CMT"), "SYNC_BB", "TEST_SOURCE_DUMMY")
             .extra_tile_attr(Delta::new(0, 50, "CMT"), "CMT_BOT", "ENABLE.SYNC_BB_S", "1")
@@ -916,17 +930,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .related_tile_mutex(Delta::new(0, 50, "CMT"), "SYNC_BB", "DRIVE")
             .related_pip(
                 Delta::new(0, 50, "CMT"),
-                (bels::PHY_CONTROL, "SYNC_BB"),
-                (PinFar, bels::PHY_CONTROL, "PHYCTLEMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
             .related_pip(
                 Delta::new(0, 50, "CMT"),
-                (bels::CMT_A, "SYNC_BB_S"),
-                (bels::CMT_A, "SYNC_BB"),
+                (defs::bslots::CMT_A, "SYNC_BB_S"),
+                (defs::bslots::CMT_A, "SYNC_BB"),
             )
             .pip(
-                (PinFar, bels::PHY_CONTROL, "PHYCTLMSTREMPTY"),
-                (bels::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLMSTREMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
             )
             .test_manual("BUF.SYNC_BB.D", "1")
             .pip("SYNC_BB", "SYNC_BB_N")
@@ -936,8 +950,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("CMT_TOP")
                 .tile_mutex("FREQ_BB", "DRIVE")
                 .pip(
-                    (bels::CMT_B, format!("FREQ_BB{i}")),
-                    (bels::CMT_B, format!("FREQ_BB{i}_MUX")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
                 .related_tile_mutex(Delta::new(0, 50, "CMT"), "FREQ_BB", "TEST_SOURCE_DUMMY")
                 .extra_tile_attr(
@@ -955,17 +969,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .related_tile_mutex(Delta::new(0, 50, "CMT"), "FREQ_BB", "DRIVE")
                 .related_pip(
                     Delta::new(0, 50, "CMT"),
-                    (bels::CMT_B, format!("FREQ_BB{i}")),
-                    (bels::CMT_B, format!("FREQ_BB{i}_MUX")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}")),
+                    (defs::bslots::CMT_B, format!("FREQ_BB{i}_MUX")),
                 )
                 .related_pip(
                     Delta::new(0, 50, "CMT"),
-                    (bels::CMT_A, format!("FREQ_BB{i}_S")),
-                    (bels::CMT_A, format!("FREQ_BB{i}")),
+                    (defs::bslots::CMT_A, format!("FREQ_BB{i}_S")),
+                    (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .pip(
-                    (bels::MMCM0, format!("FREQ_BB{i}_IN")),
-                    (bels::CMT_A, format!("FREQ_BB{i}")),
+                    (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                    (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .test_manual(format!("BUF.FREQ_BB{i}.D"), "1")
                 .pip(format!("FREQ_BB{i}"), format!("FREQ_BB{i}_N"))
@@ -973,15 +987,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::CMT_B);
+        let mut bctx = ctx.bel(defs::bslots::CMT_B);
         for i in 0..4 {
             bctx.build()
                 .force_bel_name("CMT_BOT")
                 .tile_mutex("FREQ_BB", "TEST")
                 .test_manual(format!("ENABLE.FREQ_BB{i}"), "1")
                 .pip(
-                    (bels::MMCM0, format!("FREQ_BB{i}_IN")),
-                    (bels::CMT_A, format!("FREQ_BB{i}")),
+                    (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                    (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                 )
                 .commit();
             for j in 0..4 {
@@ -990,12 +1004,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .tile_mutex("FREQ_BB", "DRIVE_MMCM")
                     .mutex(format!("MUX.FREQ_BB{i}"), format!("MMCM_CLKOUT{j}"))
                     .pip(
-                        (bels::MMCM0, format!("FREQ_BB_OUT{j}")),
-                        (bels::MMCM0, format!("CLKOUT{j}")),
+                        (defs::bslots::MMCM[0], format!("FREQ_BB_OUT{j}")),
+                        (defs::bslots::MMCM[0], format!("CLKOUT{j}")),
                     )
                     .pip(
-                        (bels::MMCM0, format!("FREQ_BB{i}_IN")),
-                        (bels::CMT_A, format!("FREQ_BB{i}")),
+                        (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                        (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                     )
                     .test_manual(format!("MUX.FREQ_BB{i}"), format!("MMCM_CLKOUT{j}"))
                     .pip(format!("FREQ_BB{i}_MUX"), format!("MMCM_FREQ_BB{j}"))
@@ -1005,18 +1019,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::CMT_C);
+        let mut bctx = ctx.bel(defs::bslots::CMT_C);
         bctx.build()
             .force_bel_name("CMT_TOP")
             .tile_mutex("SYNC_BB", "USE")
             .pip(
-                (PinFar, bels::PHY_CONTROL, "PHYCTLMSTREMPTY"),
-                (bels::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLMSTREMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
             )
             .test_manual("DRIVE.SYNC_BB", "1")
             .pip(
-                (bels::PHY_CONTROL, "SYNC_BB"),
-                (PinFar, bels::PHY_CONTROL, "PHYCTLEMPTY"),
+                (defs::bslots::PHY_CONTROL, "SYNC_BB"),
+                (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLEMPTY"),
             )
             .commit();
         if edev.chips.first().unwrap().regs > 1 {
@@ -1027,8 +1041,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .has_related(Delta::new(0, 50, "CMT"))
                 .test_manual("ENABLE.SYNC_BB", "BOT")
                 .pip(
-                    (PinFar, bels::PHY_CONTROL, "PHYCTLMSTREMPTY"),
-                    (bels::PHY_CONTROL, "SYNC_BB"),
+                    (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLMSTREMPTY"),
+                    (defs::bslots::PHY_CONTROL, "SYNC_BB"),
                 )
                 .commit();
             bctx.build()
@@ -1038,8 +1052,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .has_related(Delta::new(0, -50, "CMT"))
                 .test_manual("ENABLE.SYNC_BB", "TOP")
                 .pip(
-                    (PinFar, bels::PHY_CONTROL, "PHYCTLMSTREMPTY"),
-                    (bels::PHY_CONTROL, "SYNC_BB"),
+                    (PinFar, defs::bslots::PHY_CONTROL, "PHYCTLMSTREMPTY"),
+                    (defs::bslots::PHY_CONTROL, "SYNC_BB"),
                 )
                 .commit();
         }
@@ -1050,12 +1064,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .tile_mutex("FREQ_BB", "DRIVE_PLL")
                     .mutex(format!("MUX.FREQ_BB{i}"), format!("PLL_CLKOUT{j}"))
                     .pip(
-                        (bels::PLL, format!("FREQ_BB_OUT{j}")),
-                        (bels::PLL, format!("CLKOUT{j}")),
+                        (defs::bslots::PLL, format!("FREQ_BB_OUT{j}")),
+                        (defs::bslots::PLL, format!("CLKOUT{j}")),
                     )
                     .pip(
-                        (bels::MMCM0, format!("FREQ_BB{i}_IN")),
-                        (bels::CMT_A, format!("FREQ_BB{i}")),
+                        (defs::bslots::MMCM[0], format!("FREQ_BB{i}_IN")),
+                        (defs::bslots::CMT_A, format!("FREQ_BB{i}")),
                     )
                     .test_manual(format!("MUX.FREQ_BB{i}"), format!("PLL_CLKOUT{j}"))
                     .pip(format!("FREQ_BB{i}_MUX"), format!("PLL_FREQ_BB{j}"))
@@ -1079,8 +1093,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .force_bel_name("CMT_TOP")
                 .mutex(format!("MUX.{pin}"), "PLL")
                 .pip(
-                    (bels::PLL, format!("FREQ_BB_OUT{i}")),
-                    (bels::PLL, format!("CLKOUT{i}")),
+                    (defs::bslots::PLL, format!("FREQ_BB_OUT{i}")),
+                    (defs::bslots::PLL, format!("CLKOUT{i}")),
                 )
                 .test_manual(format!("MUX.{pin}"), format!("PLL_CLKOUT{i}"))
                 .pip(pin, format!("PLL_FREQ_BB{i}"))
@@ -1088,15 +1102,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::HCLK_CMT);
+        let mut bctx = ctx.bel(defs::bslots::HCLK_CMT);
         for i in 0..4 {
             let mut props: Vec<Box<DynProp>> = vec![];
-            for tile in ["HCLK_IOI_HP", "HCLK_IOI_HR"] {
+            for tile in ["HCLK_IO_HP", "HCLK_IO_HR"] {
                 let tcid = backend.edev.db.get_tile_class(tile);
                 if !backend.edev.tile_index[tcid].is_empty() {
                     props.push(Box::new(ExtraTileMaybe::new(
                         ColPair(tile),
-                        Some("HCLK_IOI".into()),
+                        Some("HCLK_IO".into()),
                         Some(format!("ENABLE.PERF{i}")),
                         Some("1".into()),
                     )));
@@ -1345,7 +1359,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for i in 0..4 {
         let tile = "CMT";
-        let bel = &format!("PHASER_IN{i}");
+        let bel = &format!("PHASER_IN[{i}]");
         ctx.collect_inv(tile, bel, "RST");
         for attr in [
             "BURST_MODE",
@@ -1427,7 +1441,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for i in 0..4 {
         let tile = "CMT";
-        let bel = &format!("PHASER_OUT{i}");
+        let bel = &format!("PHASER_OUT[{i}]");
 
         ctx.collect_inv(tile, bel, "RST");
         for attr in [
@@ -1562,11 +1576,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec(tile, bel, attr, "");
         }
     }
-    for bel in ["MMCM0", "PLL"] {
+    for bel in ["MMCM[0]", "PLL"] {
         let tile = "CMT";
 
         fn drp_bit(which: &'static str, reg: usize, bit: usize) -> TileBit {
-            if which == "MMCM0" {
+            if which == "MMCM[0]" {
                 let tile = 15 - (reg >> 3);
                 let frame = 29 - (bit & 1);
                 let bit = 63 - ((bit >> 1) | (reg & 7) << 3);
@@ -1578,7 +1592,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 TileBit::new(tile, frame, bit)
             }
         }
-        for reg in 0..(if bel == "MMCM0" { 0x80 } else { 0x68 }) {
+        for reg in 0..(if bel == "MMCM[0]" { 0x80 } else { 0x68 }) {
             ctx.tiledb.insert(
                 tile,
                 bel,
@@ -1590,7 +1604,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for pin in ["CLKINSEL", "PWRDWN", "RST"] {
             ctx.collect_inv(tile, bel, pin);
         }
-        if bel == "MMCM0" {
+        if bel == "MMCM[0]" {
             for pin in ["PSEN", "PSINCDEC"] {
                 ctx.collect_inv(tile, bel, pin);
             }
@@ -1629,7 +1643,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
         }
-        if bel == "MMCM0" {
+        if bel == "MMCM[0]" {
             for attr in [
                 "SS_EN",
                 "CLKBURST_ENABLE",
@@ -1731,7 +1745,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             ctx.collect_bitvec(tile, bel, attr, "");
         }
-        if bel == "MMCM0" {
+        if bel == "MMCM[0]" {
             for attr in [
                 "SS_STEPS",
                 "SS_STEPS_INIT",
@@ -1803,7 +1817,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 TileItem::from_bit(drp_bit(bel, addr, 7), false),
             );
         }
-        if bel == "MMCM0" {
+        if bel == "MMCM[0]" {
             for (reg, bit, attr) in [
                 (0x07, 10, "CLKOUT0_FRAC_WF_FALL"),
                 (0x09, 10, "CLKOUT0_FRAC_WF_RISE"),
@@ -1834,7 +1848,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
 
-        if bel == "MMCM0" {
+        if bel == "MMCM[0]" {
             ctx.tiledb.insert(
                 tile,
                 bel,
@@ -1852,8 +1866,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         let mut enable = ctx.state.get_diff(tile, bel, "ENABLE", "1");
         enable.apply_bit_diff(
-            ctx.tiledb
-                .item(tile, bel, if bel == "MMCM0" { "MMCM_EN" } else { "PLL_EN" }),
+            ctx.tiledb.item(
+                tile,
+                bel,
+                if bel == "MMCM[0]" {
+                    "MMCM_EN"
+                } else {
+                    "PLL_EN"
+                },
+            ),
             true,
             false,
         );
@@ -1875,7 +1896,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "CLKOUT4_LT"), 0x3f, 0);
         enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "CLKOUT5_HT"), 1, 0);
         enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "CLKOUT5_LT"), 0x3f, 0);
-        if bel == "MMCM0" {
+        if bel == "MMCM[0]" {
             enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "INTERP_EN"), 0x10, 0);
             enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "SS_STEPS_INIT"), 4, 0);
             enable.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "SS_STEPS"), 7, 0);
@@ -1884,12 +1905,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         enable.assert_empty();
 
-        let modes = if bel == "MMCM0" {
+        let modes = if bel == "MMCM[0]" {
             &["LOW", "HIGH", "SS"][..]
         } else {
             &["LOW", "HIGH"][..]
         };
-        let bel_kind = if bel == "MMCM0" { "MMCM" } else { "PLL" };
+        let bel_kind = if bel == "MMCM[0]" { "MMCM" } else { "PLL" };
         for mode in modes {
             for mult in 1..=64 {
                 let mut diff = ctx
@@ -1931,7 +1952,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diff.discard_bits(ctx.tiledb.item(tile, bel, "CLKFBOUT_EDGE"));
                 diff.discard_bits(ctx.tiledb.item(tile, bel, "CLKFBOUT_LT"));
                 diff.discard_bits(ctx.tiledb.item(tile, bel, "CLKFBOUT_HT"));
-                if bel == "MMCM0" {
+                if bel == "MMCM[0]" {
                     diff.discard_bits(ctx.tiledb.item(tile, bel, "CLKFBOUT_PM_RISE"));
                     diff.discard_bits(ctx.tiledb.item(tile, bel, "CLKFBOUT_PM_FALL"));
                     diff.discard_bits(ctx.tiledb.item(tile, bel, "CLKFBOUT_FRAC_WF_RISE"));
@@ -1998,7 +2019,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 OcdMode::Mux,
             );
         }
-        if bel == "MMCM0" {
+        if bel == "MMCM[0]" {
             for i in 0..4 {
                 ctx.collect_enum_default_ocd(
                     tile,
@@ -2036,7 +2057,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for i in 0..2 {
         let tile = "CMT";
-        let bel = &format!("BUFMRCE{i}");
+        let bel = &format!("BUFMRCE[{i}]");
         ctx.collect_bit(tile, bel, "ENABLE", "1");
         ctx.collect_inv(tile, bel, "CE");
         ctx.collect_enum_bool(tile, bel, "INIT_OUT", "0", "1");
@@ -2342,7 +2363,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .clone();
             let (_, _, diff) = Diff::split(diff_a, diff_b);
             ctx.tiledb
-                .insert(tile, "MMCM0", format!("ENABLE.PERF{i}"), xlat_bit(diff));
+                .insert(tile, "MMCM[0]", format!("ENABLE.PERF{i}"), xlat_bit(diff));
             let diff_a = ctx
                 .state
                 .peek_diff(
@@ -2362,8 +2383,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 )
                 .clone();
             let (_, _, diff) = Diff::split(diff_a, diff_b);
-            ctx.tiledb
-                .insert(tile, format!("PHASER_IN{i}"), "ENABLE.RCLK", xlat_bit(diff));
+            ctx.tiledb.insert(
+                tile,
+                format!("PHASER_IN[{i}]"),
+                "ENABLE.RCLK",
+                xlat_bit(diff),
+            );
         }
         for i in 0..4 {
             let mut diffs = vec![("NONE".to_string(), Diff::default())];
@@ -2376,7 +2401,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
                 diff.apply_bit_diff(
                     ctx.tiledb
-                        .item(tile, &format!("PHASER_IN{j}"), "ENABLE.RCLK"),
+                        .item(tile, &format!("PHASER_IN[{j}]"), "ENABLE.RCLK"),
                     true,
                     false,
                 );
@@ -2387,7 +2412,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state
                         .get_diff(tile, bel, format!("MUX.PERF{i}"), format!("MMCM_PERF{j}"));
                 diff.apply_bit_diff(
-                    ctx.tiledb.item(tile, "MMCM0", &format!("ENABLE.PERF{j}")),
+                    ctx.tiledb.item(tile, "MMCM[0]", &format!("ENABLE.PERF{j}")),
                     true,
                     false,
                 );
@@ -2401,9 +2426,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
     }
-    for tile in ["HCLK_IOI_HR", "HCLK_IOI_HP"] {
+    for tile in ["HCLK_IO_HR", "HCLK_IO_HP"] {
         if ctx.has_tile(tile) {
-            let bel = "HCLK_IOI";
+            let bel = "HCLK_IO";
             ctx.collect_bit(tile, bel, "ENABLE.PERF0", "1");
             ctx.collect_bit(tile, bel, "ENABLE.PERF1", "1");
             ctx.collect_bit(tile, bel, "ENABLE.PERF2", "1");

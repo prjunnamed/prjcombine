@@ -1,8 +1,8 @@
 # Clock spine multiplexers
 
-{{tile virtex5 CLK_IOB_B}}
-{{tile virtex5 CLK_IOB_T}}
-{{tile virtex5 CLK_CMT_B}}
-{{tile virtex5 CLK_CMT_T}}
-{{tile virtex5 CLK_MGT_B}}
-{{tile virtex5 CLK_MGT_T}}
+{{tile virtex5 CLK_IOB_S}}
+{{tile virtex5 CLK_IOB_N}}
+{{tile virtex5 CLK_CMT_S}}
+{{tile virtex5 CLK_CMT_N}}
+{{tile virtex5 CLK_MGT_S}}
+{{tile virtex5 CLK_MGT_N}}

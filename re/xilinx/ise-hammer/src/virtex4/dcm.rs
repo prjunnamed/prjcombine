@@ -6,7 +6,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::{IseBackend, PinFromKind},
@@ -16,7 +16,7 @@ use crate::{
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "DCM");
-    let mut bctx = ctx.bel(bels::DCM0);
+    let mut bctx = ctx.bel(defs::bslots::DCM[0]);
     let mode = "DCM_ADV";
 
     bctx.build().test_manual("PRESENT", "1").mode(mode).commit();
@@ -465,7 +465,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DCM";
-    let bel = "DCM0";
+    let bel = "DCM[0]";
 
     let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
 

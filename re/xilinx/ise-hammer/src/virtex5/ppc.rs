@@ -1,7 +1,7 @@
 use prjcombine_re_fpga_hammer::extract_bitvec_val;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -111,7 +111,7 @@ pub fn add_fuzzers<'a>(
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PPC") else {
         return;
     };
-    let mut bctx = ctx.bel(bels::PPC);
+    let mut bctx = ctx.bel(defs::bslots::PPC);
     let mode = "PPC440";
 
     if !devdata_only {

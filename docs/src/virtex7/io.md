@@ -177,13 +177,13 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 
 
 {{tile virtex7 IO_HP_PAIR}}
-{{tile virtex7 IO_HP_BOT}}
-{{tile virtex7 IO_HP_TOP}}
+{{tile virtex7 IO_HP_S}}
+{{tile virtex7 IO_HP_N}}
 {{tile virtex7 IO_HR_PAIR}}
-{{tile virtex7 IO_HR_BOT}}
-{{tile virtex7 IO_HR_TOP}}
-{{tile virtex7 HCLK_IOI_HP}}
-{{tile virtex7 HCLK_IOI_HR}}
+{{tile virtex7 IO_HR_S}}
+{{tile virtex7 IO_HR_N}}
+{{tile virtex7 HCLK_IO_HP}}
+{{tile virtex7 HCLK_IO_HR}}
 
 
 ## Tables — HP IO

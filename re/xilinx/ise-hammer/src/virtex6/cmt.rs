@@ -8,7 +8,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{BitRectId, TileBit, TileItem},
 };
-use prjcombine_virtex4::{bels, tslots};
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -32,7 +32,7 @@ impl TileRelation for HclkIoiInnerSide {
             DirH::E => edev.col_rcio.unwrap(),
         };
         let row = edev.chips[tcrd.die].row_hclk(tcrd.row);
-        Some(tcrd.with_cr(col, row).tile(tslots::HCLK_BEL))
+        Some(tcrd.with_cr(col, row).tile(defs::tslots::HCLK_BEL))
     }
 }
 
@@ -44,7 +44,7 @@ pub fn add_fuzzers<'a>(
     let mut ctx = FuzzCtx::new(session, backend, "CMT");
     if devdata_only {
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::MMCM[i]);
+            let mut bctx = ctx.bel(defs::bslots::MMCM[i]);
             bctx.mode("MMCM_ADV")
                 .mutex("MODE", "COMP")
                 .global_xy("MMCMADV_*_USE_CALC", "NO")
@@ -53,7 +53,7 @@ pub fn add_fuzzers<'a>(
         }
         return;
     }
-    for (lr, slots) in [('L', bels::BUFHCE_W), ('R', bels::BUFHCE_E)] {
+    for (lr, slots) in [('L', defs::bslots::BUFHCE_W), ('R', defs::bslots::BUFHCE_E)] {
         for i in 0..12 {
             let bel_other = slots[if i < 6 { i + 6 } else { i - 6 }];
             let mut bctx = ctx.bel(slots[i]);
@@ -66,7 +66,7 @@ pub fn add_fuzzers<'a>(
                 bctx.build()
                     .mutex("MUX.I", pin)
                     .test_manual("MUX.I", pin)
-                    .pip("I", (bels::CMT, pin))
+                    .pip("I", (defs::bslots::CMT, pin))
                     .commit();
             }
             for j in 0..4 {
@@ -75,16 +75,19 @@ pub fn add_fuzzers<'a>(
                         .tile_mutex("CCIO", "USE")
                         .mutex("MUX.I", format!("CCIO{j}_{ilr}"))
                         .bel_mutex(bel_other, "MUX.I", format!("CCIO{j}_{ilr}"))
-                        .pip((bel_other, "I"), (bels::CMT, format!("CCIO{j}_{ilr}")))
+                        .pip(
+                            (bel_other, "I"),
+                            (defs::bslots::CMT, format!("CCIO{j}_{ilr}")),
+                        )
                         .test_manual("MUX.I", format!("CCIO{j}_{ilr}"))
-                        .pip("I", (bels::CMT, format!("CCIO{j}_{ilr}")))
+                        .pip("I", (defs::bslots::CMT, format!("CCIO{j}_{ilr}")))
                         .commit();
                     if i == 0 && lr == 'L' {
                         bctx.build()
                             .tile_mutex("CCIO", "TEST")
                             .mutex("MUX.I", format!("CCIO{j}_{ilr}"))
                             .test_manual("MUX.I", format!("CCIO{j}_{ilr}.EXCL"))
-                            .pip("I", (bels::CMT, format!("CCIO{j}_{ilr}")))
+                            .pip("I", (defs::bslots::CMT, format!("CCIO{j}_{ilr}")))
                             .commit();
                     }
                 }
@@ -94,9 +97,9 @@ pub fn add_fuzzers<'a>(
                     .global_mutex("GCLK", "USE")
                     .mutex("MUX.I", format!("GCLK{j}"))
                     .bel_mutex(bel_other, "MUX.I", format!("GCLK{j}"))
-                    .pip((bel_other, "I"), (bels::CMT, format!("GCLK{j}")))
+                    .pip((bel_other, "I"), (defs::bslots::CMT, format!("GCLK{j}")))
                     .test_manual("MUX.I", format!("GCLK{j}"))
-                    .pip("I", (bels::CMT, format!("GCLK{j}")))
+                    .pip("I", (defs::bslots::CMT, format!("GCLK{j}")))
                     .commit();
             }
             for j in 0..2 {
@@ -122,7 +125,7 @@ pub fn add_fuzzers<'a>(
                     bctx.build()
                         .mutex("MUX.I", format!("MMCM{j}_{pin}"))
                         .test_manual("MUX.I", format!("MMCM{j}_{pin}"))
-                        .pip("I", (bels::CMT, format!("MMCM{j}_OUT{k}")))
+                        .pip("I", (defs::bslots::CMT, format!("MMCM{j}_OUT{k}")))
                         .commit();
                 }
             }
@@ -131,16 +134,19 @@ pub fn add_fuzzers<'a>(
                     .tile_mutex("BUFHCE_CKINT", "USE")
                     .mutex("MUX.I", pin)
                     .bel_mutex(bel_other, "MUX.I", pin)
-                    .pip((bel_other, "I"), (bels::CMT, format!("BUFHCE_{lr}_{pin}")))
+                    .pip(
+                        (bel_other, "I"),
+                        (defs::bslots::CMT, format!("BUFHCE_{lr}_{pin}")),
+                    )
                     .test_manual("MUX.I", pin)
-                    .pip("I", (bels::CMT, format!("BUFHCE_{lr}_{pin}")))
+                    .pip("I", (defs::bslots::CMT, format!("BUFHCE_{lr}_{pin}")))
                     .commit();
                 if i == 0 {
                     bctx.build()
                         .tile_mutex("BUFHCE_CKINT", "TEST")
                         .mutex("MUX.I", pin)
                         .test_manual("MUX.I", format!("{pin}.EXCL"))
-                        .pip("I", (bels::CMT, format!("BUFHCE_{lr}_{pin}")))
+                        .pip("I", (defs::bslots::CMT, format!("BUFHCE_{lr}_{pin}")))
                         .commit();
                 }
             }
@@ -148,8 +154,8 @@ pub fn add_fuzzers<'a>(
     }
     for i in 0..2 {
         let oi = 1 - i;
-        let bel_other = bels::MMCM[i ^ 1];
-        let mut bctx = ctx.bel(bels::MMCM[i]);
+        let bel_other = defs::bslots::MMCM[i ^ 1];
+        let mut bctx = ctx.bel(defs::bslots::MMCM[i]);
         let mode = "MMCM_ADV";
 
         bctx.build()
@@ -370,13 +376,13 @@ pub fn add_fuzzers<'a>(
                     .mutex(format!("MUX.{pin}_IO"), format!("GIO{j}"))
                     .bel_mutex(bel_other, format!("MUX.{pin}_IO"), format!("GIO{j}"))
                     .pip(
-                        (bels::CMT, format!("MMCM{oi}_{pin}_IO")),
-                        (bels::CMT, format!("GIO{j}")),
+                        (defs::bslots::CMT, format!("MMCM{oi}_{pin}_IO")),
+                        (defs::bslots::CMT, format!("GIO{j}")),
                     )
                     .test_manual(format!("MUX.{pin}_IO"), format!("GIO{j}"))
                     .pip(
-                        (bels::CMT, format!("MMCM{i}_{pin}_IO")),
-                        (bels::CMT, format!("GIO{j}")),
+                        (defs::bslots::CMT, format!("MMCM{i}_{pin}_IO")),
+                        (defs::bslots::CMT, format!("GIO{j}")),
                     )
                     .commit();
             }
@@ -387,13 +393,13 @@ pub fn add_fuzzers<'a>(
                         .mutex(format!("MUX.{pin}_IO"), format!("CCIO{j}_{lr}"))
                         .bel_mutex(bel_other, format!("MUX.{pin}_IO"), format!("CCIO{j}_{lr}"))
                         .pip(
-                            (bels::CMT, format!("MMCM{oi}_{pin}_IO")),
-                            (bels::CMT, format!("CCIO{j}_{lr}")),
+                            (defs::bslots::CMT, format!("MMCM{oi}_{pin}_IO")),
+                            (defs::bslots::CMT, format!("CCIO{j}_{lr}")),
                         )
                         .test_manual(format!("MUX.{pin}_IO"), format!("CCIO{j}_{lr}"))
                         .pip(
-                            (bels::CMT, format!("MMCM{i}_{pin}_IO")),
-                            (bels::CMT, format!("CCIO{j}_{lr}")),
+                            (defs::bslots::CMT, format!("MMCM{i}_{pin}_IO")),
+                            (defs::bslots::CMT, format!("CCIO{j}_{lr}")),
                         )
                         .commit();
                 }
@@ -407,13 +413,13 @@ pub fn add_fuzzers<'a>(
                         .mutex(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}"))
                         .bel_mutex(bel_other, format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}"))
                         .pip(
-                            (bels::CMT, format!("MMCM{oi}_{pin}_MGT")),
-                            (bels::CMT, format!("MGT{j}_{lr}")),
+                            (defs::bslots::CMT, format!("MMCM{oi}_{pin}_MGT")),
+                            (defs::bslots::CMT, format!("MGT{j}_{lr}")),
                         )
                         .test_manual(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}"))
                         .pip(
-                            (bels::CMT, format!("MMCM{i}_{pin}_MGT")),
-                            (bels::CMT, format!("MGT{j}_{lr}")),
+                            (defs::bslots::CMT, format!("MMCM{i}_{pin}_MGT")),
+                            (defs::bslots::CMT, format!("MGT{j}_{lr}")),
                         )
                         .commit();
                     if i == 0 && pin == "CLKIN1" {
@@ -422,8 +428,8 @@ pub fn add_fuzzers<'a>(
                             .mutex(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}"))
                             .test_manual(format!("MUX.{pin}_MGT"), format!("MGT{j}_{lr}.EXCL"))
                             .pip(
-                                (bels::CMT, format!("MMCM{i}_{pin}_MGT")),
-                                (bels::CMT, format!("MGT{j}_{lr}")),
+                                (defs::bslots::CMT, format!("MMCM{i}_{pin}_MGT")),
+                                (defs::bslots::CMT, format!("MGT{j}_{lr}")),
                             )
                             .commit();
                     }
@@ -436,8 +442,8 @@ pub fn add_fuzzers<'a>(
                     .mutex(format!("MUX.{pin}_HCLK"), format!("{pin}_HCLK_{lr}"))
                     .test_manual(format!("MUX.{pin}_HCLK"), format!("{pin}_HCLK_{lr}"))
                     .pip(
-                        (bels::CMT, format!("MMCM{i}_{pin}_HCLK")),
-                        (bels::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
+                        (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK")),
+                        (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
                     )
                     .commit();
                 for j in 0..12 {
@@ -450,13 +456,13 @@ pub fn add_fuzzers<'a>(
                             format!("HCLK{j}_{lr}"),
                         )
                         .pip(
-                            (bels::CMT, format!("MMCM{oi}_{pin}_HCLK_{lr}")),
-                            (bels::CMT, format!("HCLK{j}_{lr}_I")),
+                            (defs::bslots::CMT, format!("MMCM{oi}_{pin}_HCLK_{lr}")),
+                            (defs::bslots::CMT, format!("HCLK{j}_{lr}_I")),
                         )
                         .test_manual(format!("MUX.{pin}_HCLK_{lr}"), format!("HCLK{j}_{lr}"))
                         .pip(
-                            (bels::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
-                            (bels::CMT, format!("HCLK{j}_{lr}_I")),
+                            (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
+                            (defs::bslots::CMT, format!("HCLK{j}_{lr}_I")),
                         )
                         .commit();
                 }
@@ -470,13 +476,13 @@ pub fn add_fuzzers<'a>(
                             format!("RCLK{j}_{lr}"),
                         )
                         .pip(
-                            (bels::CMT, format!("MMCM{oi}_{pin}_HCLK_{lr}")),
-                            (bels::CMT, format!("RCLK{j}_{lr}_I")),
+                            (defs::bslots::CMT, format!("MMCM{oi}_{pin}_HCLK_{lr}")),
+                            (defs::bslots::CMT, format!("RCLK{j}_{lr}_I")),
                         )
                         .test_manual(format!("MUX.{pin}_HCLK_{lr}"), format!("RCLK{j}_{lr}"))
                         .pip(
-                            (bels::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
-                            (bels::CMT, format!("RCLK{j}_{lr}_I")),
+                            (defs::bslots::CMT, format!("MMCM{i}_{pin}_HCLK_{lr}")),
+                            (defs::bslots::CMT, format!("RCLK{j}_{lr}_I")),
                         )
                         .commit();
                 }
@@ -541,7 +547,7 @@ pub fn add_fuzzers<'a>(
         }
     }
     {
-        let mut bctx = ctx.bel(bels::PPR_FRAME);
+        let mut bctx = ctx.bel(defs::bslots::PPR_FRAME);
         bctx.build()
             .null_bits()
             .test_manual("ENABLE", "1")
@@ -549,10 +555,10 @@ pub fn add_fuzzers<'a>(
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::CMT);
+        let mut bctx = ctx.bel(defs::bslots::CMT);
 
         for i in 0..32 {
-            let bel_bufhce = bels::BUFHCE_W[i % 12];
+            let bel_bufhce = defs::bslots::BUFHCE_W[i % 12];
             bctx.build()
                 .global_mutex("GCLK", "USE")
                 .mutex(format!("GCLK{i}_TEST"), "BUF")
@@ -590,7 +596,7 @@ pub fn add_fuzzers<'a>(
                     .row_mutex("BUFH_TEST", "NOPE")
                     .mutex(format!("MUX.BUFH_TEST_{lr}"), format!("HCLK{i}_{lr}"))
                     .bel_mutex(
-                        bels::MMCM0,
+                        defs::bslots::MMCM[0],
                         format!("MUX.CLKIN1_HCLK_{lr}"),
                         format!("HCLK{i}_L"),
                     )
@@ -605,7 +611,7 @@ pub fn add_fuzzers<'a>(
                     .row_mutex("BUFH_TEST", "NOPE")
                     .mutex(format!("MUX.BUFH_TEST_{lr}"), format!("RCLK{i}_{lr}"))
                     .bel_mutex(
-                        bels::MMCM0,
+                        defs::bslots::MMCM[0],
                         format!("MUX.CLKIN1_HCLK_{lr}"),
                         format!("RCLK{i}_L"),
                     )
@@ -630,7 +636,7 @@ pub fn add_fuzzers<'a>(
                     .mutex(format!("MUX.BUFH_TEST_{lr}"), format!("RCLK{i}_{lr}"))
                     .extra_tile_attr(
                         HclkIoiInnerSide(if lr == 'L' { DirH::W } else { DirH::E }),
-                        "HCLK_IOI",
+                        "HCLK_IO",
                         format!("ENABLE.RCLK{i}"),
                         "1",
                     )
@@ -722,7 +728,7 @@ pub fn add_fuzzers<'a>(
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let tile = "CMT";
     if devdata_only {
-        for bel in ["MMCM0", "MMCM1"] {
+        for bel in ["MMCM[0]", "MMCM[1]"] {
             let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "ZHOLD");
             let dly_val = extract_bitvec_val_part(
                 ctx.tiledb.item(tile, bel, "IN_DLY_SET"),
@@ -735,7 +741,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
     for i in 0..12 {
         for (lr, dir) in [('L', DirH::W), ('R', DirH::E)] {
-            let bel = &format!("BUFHCE_{dir}{i}");
+            let bel = &format!("BUFHCE_{dir}[{i}]");
             ctx.collect_bit(tile, bel, "ENABLE", "1");
             ctx.collect_inv(tile, bel, "CE");
             ctx.collect_enum_bool(tile, bel, "INIT_OUT", "0", "1");
@@ -813,7 +819,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
     for i in 0..2 {
-        let bel = &format!("MMCM{i}");
+        let bel = &format!("MMCM[{i}]");
 
         fn mmcm_drp_bit(which: usize, reg: usize, bit: usize) -> TileBit {
             let tile = if which == 0 {
@@ -1472,8 +1478,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
     }
     {
-        let tile = "HCLK_IOI";
-        let bel = "HCLK_IOI";
+        let tile = "HCLK_IO";
+        let bel = "HCLK_IO";
         let diffs: [_; 6] = core::array::from_fn(|i| {
             ctx.state
                 .get_diff(tile, bel, format!("ENABLE.RCLK{i}"), "1")

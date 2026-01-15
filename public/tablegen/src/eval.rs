@@ -41,6 +41,7 @@ enum BranchKind {
 enum IfContext {
     Top,
     TileClass(TileClassId),
+    ConnectorClass(ConnectorClassId),
     Bel(TileClassId, BelSlotId),
 }
 
@@ -103,7 +104,7 @@ impl Context {
     fn eval_index(&self, index: &ast::Index) -> Result<usize> {
         match index {
             ast::Index::Ident(ident, offset) => match self.for_vars.get(&ident.to_string()) {
-                Some(&n) => Ok(n + offset),
+                Some(&n) => Ok(n.strict_add_signed(*offset)),
                 None => error_at(ident.span(), "undefined variable")?,
             },
             ast::Index::Literal(n) => Ok(*n),
@@ -299,6 +300,23 @@ impl Context {
                     _ => error_at(span, "not in tile class")?,
                 };
                 let name = self.db.db.tile_classes.key(tcls);
+                for id in ids {
+                    let ok = match self.eval_templ_wildcard(id)? {
+                        WildCard::Ident(ident) => name == &ident.to_string(),
+                        WildCard::Prefix(ident) => name.starts_with(&ident.to_string()),
+                    };
+                    if ok {
+                        return Ok(true);
+                    }
+                }
+                Ok(false)
+            }
+            ast::IfCond::ConnectorClass(ids) => {
+                let ccls = match ictx {
+                    IfContext::ConnectorClass(ccls) => ccls,
+                    _ => error_at(span, "not in connector class")?,
+                };
+                let name = self.db.db.conn_classes.key(ccls);
                 for id in ids {
                     let ok = match self.eval_templ_wildcard(id)? {
                         WildCard::Ident(ident) => name == &ident.to_string(),
@@ -998,7 +1016,7 @@ impl Context {
                     ctx.eval_connector_class(ccls, subitem)
                 })?,
             ast::ConnectorClassItem::If(if_) => {
-                self.eval_if(IfContext::Top, if_, |ctx, subitem| {
+                self.eval_if(IfContext::ConnectorClass(ccls), if_, |ctx, subitem| {
                     ctx.eval_connector_class(ccls, subitem)
                 })?
             }
@@ -1048,6 +1066,54 @@ impl Context {
             })?,
         }
         Ok(())
+    }
+
+    fn eval_wire_kind(
+        &self,
+        kind: &ast::WireKind,
+    ) -> Result<(WireKind, Option<(Ident, BranchKind)>)> {
+        match kind {
+            ast::WireKind::Tie0 => Ok((WireKind::Tie0, None)),
+            ast::WireKind::Tie1 => Ok((WireKind::Tie1, None)),
+            ast::WireKind::TiePullup => Ok((WireKind::TiePullup, None)),
+            ast::WireKind::Regional(id) => {
+                let id = self.eval_templ_id(id)?;
+                let Some(rslot) = self.db.db.region_slots.get(&id.to_string()) else {
+                    error_at(id.span(), "unknown region slot")?
+                };
+                Ok((WireKind::Regional(rslot), None))
+            }
+            ast::WireKind::Mux => Ok((WireKind::MuxOut, None)),
+            ast::WireKind::Bel => Ok((WireKind::BelOut, None)),
+            ast::WireKind::Test => Ok((WireKind::TestOut, None)),
+            ast::WireKind::MultiRoot => Ok((WireKind::MultiRoot, None)),
+            ast::WireKind::MultiBranch(id) => {
+                Ok((WireKind::Tie0, Some((id.clone(), BranchKind::MultiBranch))))
+            }
+            ast::WireKind::Branch(id) => {
+                Ok((WireKind::Tie0, Some((id.clone(), BranchKind::Branch))))
+            }
+        }
+    }
+
+    fn eval_wire_kinds(
+        &self,
+        span: Span,
+        kind: &ast::WireKinds,
+        idx: Option<usize>,
+    ) -> Result<(WireKind, Option<(Ident, BranchKind)>)> {
+        match kind {
+            ast::WireKinds::Single(kind) => self.eval_wire_kind(kind),
+            ast::WireKinds::Multi(kinds) => {
+                let idx = idx.unwrap();
+                for (range, kind) in kinds {
+                    if range.contains(&idx) {
+                        return self.eval_wire_kind(kind);
+                    }
+                }
+                error_at(span, "index not in match")?
+            }
+        }
     }
 
     fn eval_top(&mut self, item: &ast::TopItem) -> Result<()> {
@@ -1145,31 +1211,6 @@ impl Context {
                     ast::ArrayIdDef::Array(id, n) => (id, Some(*n)),
                 };
                 let name = self.eval_templ_id(name)?;
-                let mut defer_branch = None;
-                let kind = match &wire.kind {
-                    ast::WireKind::Tie0 => WireKind::Tie0,
-                    ast::WireKind::Tie1 => WireKind::Tie1,
-                    ast::WireKind::TiePullup => WireKind::TiePullup,
-                    ast::WireKind::Regional(id) => {
-                        let id = self.eval_templ_id(id)?;
-                        let Some(rslot) = self.db.db.region_slots.get(&id.to_string()) else {
-                            error_at(id.span(), "unknown region slot")?
-                        };
-                        WireKind::Regional(rslot)
-                    }
-                    ast::WireKind::Mux => WireKind::MuxOut,
-                    ast::WireKind::Bel => WireKind::BelOut,
-                    ast::WireKind::Test => WireKind::TestOut,
-                    ast::WireKind::MultiRoot => WireKind::MultiRoot,
-                    ast::WireKind::MultiBranch(id) => {
-                        defer_branch = Some((id.clone(), BranchKind::MultiBranch));
-                        WireKind::Tie0
-                    }
-                    ast::WireKind::Branch(id) => {
-                        defer_branch = Some((id.clone(), BranchKind::Branch));
-                        WireKind::Tie0
-                    }
-                };
                 if let Some(num) = num {
                     let Some(range) =
                         self.db
@@ -1180,9 +1221,11 @@ impl Context {
                     };
                     assert_eq!(range.first().unwrap(), self.db.db.wires.next_id());
                     for i in 0..num {
+                        let (kind, defer_branch) =
+                            self.eval_wire_kinds(name.span(), &wire.kinds, Some(i))?;
                         let (id, _) = self.db.db.wires.insert(format!("{name}[{i}]"), kind);
-                        if let Some(ref defer) = defer_branch {
-                            self.defer_branch.insert(id, defer.clone());
+                        if let Some(defer) = defer_branch {
+                            self.defer_branch.insert(id, defer);
                         }
                     }
                 } else {
@@ -1190,6 +1233,8 @@ impl Context {
                         error_at(name.span(), "wire redefined")?
                     };
                     assert_eq!(id, self.db.db.wires.next_id());
+                    let (kind, defer_branch) =
+                        self.eval_wire_kinds(name.span(), &wire.kinds, None)?;
                     let (id, _) = self.db.db.wires.insert(name.to_string(), kind);
                     if let Some(defer) = defer_branch {
                         self.defer_branch.insert(id, defer);

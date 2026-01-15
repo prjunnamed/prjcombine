@@ -1,6 +1,6 @@
 use prjcombine_re_fpga_hammer::{Diff, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -56,8 +56,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let tile = "DSP";
     let mut ctx = FuzzCtx::new(session, backend, tile);
     for i in 0..2 {
-        let bel_other = bels::DSP[i ^ 1];
-        let mut bctx = ctx.bel(bels::DSP[i]);
+        let bel_other = defs::bslots::DSP[i ^ 1];
+        let mut bctx = ctx.bel(defs::bslots::DSP[i]);
         let mode = "DSP48E1";
         bctx.build()
             .bel_unused(bel_other)
@@ -67,7 +67,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for &pin in DSP48E1_INVPINS {
             bctx.mode(mode).test_inv(pin);
         }
-        let bel_tie = bels::TIEOFF_DSP;
+        let bel_tie = defs::bslots::TIEOFF_DSP;
         for &pin in DSP48E1_TIEPINS {
             let name = format!("MUX.{pin}");
             bctx.mode(mode)
@@ -163,7 +163,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DSP";
-    for bel in ["DSP0", "DSP1"] {
+    for bel in ["DSP[0]", "DSP[1]"] {
         for &pin in DSP48E1_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }

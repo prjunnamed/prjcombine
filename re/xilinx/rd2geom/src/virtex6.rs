@@ -1,5 +1,4 @@
 use prjcombine_entity::EntityVec;
-use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip, DisabledPart};
 use prjcombine_re_xilinx_naming_virtex4::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -7,7 +6,7 @@ use prjcombine_re_xilinx_rawdump::Part;
 use crate::db::{PreDevice, make_device};
 use prjcombine_re_xilinx_rd2db_virtex6::{bond, grid, int};
 use prjcombine_re_xilinx_rdverify_virtex6::verify_device;
-use prjcombine_virtex4::{expand_grid, gtz::GtzDb};
+use prjcombine_virtex4::{defs, expand_grid, gtz::GtzDb};
 
 pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let (grid, disabled) = grid::make_grid(rd);
@@ -31,7 +30,9 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         disabled,
         "virtex6",
-        IntDb::default(),
+        bincode::decode_from_slice(defs::virtex6::INIT, bincode::config::standard())
+            .unwrap()
+            .0,
         intdb,
         ndb,
     )

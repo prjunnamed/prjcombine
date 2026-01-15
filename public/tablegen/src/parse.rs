@@ -152,7 +152,11 @@ impl Tokenizer {
             if inner.try_punct('+') {
                 let offset = inner.usize()?;
                 inner.finish()?;
-                ast::Index::Ident(id, offset)
+                ast::Index::Ident(id, offset as isize)
+            } else if inner.try_punct('-') {
+                let offset = inner.usize()?;
+                inner.finish()?;
+                ast::Index::Ident(id, -(offset as isize))
             } else {
                 inner.finish()?;
                 ast::Index::Ident(id, 0)
@@ -393,12 +397,7 @@ impl Item for ast::TopItem {
                 }
                 ast::TopItem::RegionSlot(parse_region_slot(tokenizer)?)
             }
-            "wire" => {
-                if block.is_some() {
-                    error_at(keyword.span(), "wire does not accept a block")?;
-                }
-                ast::TopItem::Wire(parse_wire(tokenizer)?)
-            }
+            "wire" => ast::TopItem::Wire(parse_wire(tokenizer, block)?),
             "table" => {
                 let Some(block) = block else {
                     error_at(keyword.span(), "table requires a block")?
@@ -870,11 +869,9 @@ impl Item for ast::ConnectorClassItem {
     }
 }
 
-fn parse_wire(mut tokenizer: Tokenizer) -> Result<ast::Wire> {
-    let name = tokenizer.array_id_def()?;
-    tokenizer.punct(':')?;
+fn parse_wire_kind(tokenizer: &mut Tokenizer) -> Result<ast::WireKind> {
     let kind = tokenizer.ident()?;
-    let kind = match kind.to_string().as_str() {
+    Ok(match kind.to_string().as_str() {
         "tie" => {
             let val = tokenizer.usize()?;
             match val {
@@ -892,10 +889,37 @@ fn parse_wire(mut tokenizer: Tokenizer) -> Result<ast::Wire> {
         "branch" => ast::WireKind::Branch(tokenizer.ident()?),
         "multi_branch" => ast::WireKind::MultiBranch(tokenizer.ident()?),
         _ => error_at(kind.span(), &format!("unknown wire kind {kind}"))?,
+    })
+}
+
+fn parse_wire(mut tokenizer: Tokenizer, block: Option<TokenStream>) -> Result<ast::Wire> {
+    let name = tokenizer.array_id_def()?;
+    let kinds = if let Some(block) = block {
+        let mut inner = Tokenizer::new(name.span(), Vec::from_iter(block));
+        let mut kinds = vec![];
+        while !inner.is_empty() {
+            let n = inner.usize()?;
+            let range = if inner.try_punct('.') {
+                inner.punct('.')?;
+                let m = inner.usize()?;
+                n..m
+            } else {
+                n..n + 1
+            };
+            inner.punct('=')?;
+            inner.punct('>')?;
+            let kind = parse_wire_kind(&mut inner)?;
+            inner.punct(',')?;
+            kinds.push((range, kind));
+        }
+        ast::WireKinds::Multi(kinds)
+    } else {
+        tokenizer.punct(':')?;
+        ast::WireKinds::Single(parse_wire_kind(&mut tokenizer)?)
     };
     tokenizer.finish()?;
 
-    Ok(ast::Wire { name, kind })
+    Ok(ast::Wire { name, kinds })
 }
 
 // endregion
@@ -1000,6 +1024,17 @@ fn parse_if<T: Item>(pre_branches: Vec<IfBranch>, else_block: Option<TokenStream
                     inner.finish()?;
                 }
                 IfCond::TileClass(ids)
+            }
+            "connector_class" => {
+                let mut ids = vec![];
+                if let Some(id) = tokenizer.try_template_id() {
+                    ids.push(id);
+                } else {
+                    let mut inner = tokenizer.brackets()?;
+                    ids = inner.list(Tokenizer::template_id)?;
+                    inner.finish()?;
+                }
+                IfCond::ConnectorClass(ids)
             }
             "bel_slot" => {
                 let mut ids = vec![];

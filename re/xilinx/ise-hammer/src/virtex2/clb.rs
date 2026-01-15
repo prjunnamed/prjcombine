@@ -87,7 +87,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new(session, backend, "CLB");
     let slots = match mode {
         Mode::Virtex2 | Mode::Spartan3 => Vec::from_iter(prjcombine_virtex2::defs::bslots::SLICE),
-        Mode::Virtex4 => Vec::from_iter(prjcombine_virtex4::bels::SLICE),
+        Mode::Virtex4 => Vec::from_iter(prjcombine_virtex4::defs::bslots::SLICE),
     };
     for i in 0..4 {
         let mut bctx = ctx.bel(slots[i]);
@@ -620,12 +620,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         _ => unreachable!(),
     };
 
-    for (idx, bel) in match mode {
-        Mode::Virtex2 | Mode::Spartan3 => ["SLICE[0]", "SLICE[1]", "SLICE[2]", "SLICE[3]"],
-        Mode::Virtex4 => ["SLICE0", "SLICE1", "SLICE2", "SLICE3"],
-    }
-    .into_iter()
-    .enumerate()
+    for (idx, bel) in ["SLICE[0]", "SLICE[1]", "SLICE[2]", "SLICE[3]"]
+        .into_iter()
+        .enumerate()
     {
         ctx.collect_bitvec("CLB", bel, "F", "#LUT");
         ctx.collect_bitvec("CLB", bel, "G", "#LUT");

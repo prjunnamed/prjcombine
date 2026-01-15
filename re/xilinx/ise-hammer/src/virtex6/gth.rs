@@ -1,7 +1,7 @@
 use prjcombine_re_fpga_hammer::{xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -357,7 +357,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTH") else {
         return;
     };
-    let mut bctx = ctx.bel(bels::GTH_QUAD);
+    let mut bctx = ctx.bel(defs::bslots::GTH_QUAD);
     let mode = "GTHE1_QUAD";
     bctx.build()
         .extra_tile_attr(Delta::new(0, 0, "HCLK"), "HCLK", "DRP_MASK_BOTH", "GTH")
@@ -386,7 +386,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
 
-    let mut bctx = ctx.bel(bels::BUFDS0);
+    let mut bctx = ctx.bel(defs::bslots::BUFDS[0]);
     bctx.build()
         .null_bits()
         .test_manual("ENABLE", "1")

@@ -2,7 +2,7 @@ use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::{bels, tslots};
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -648,13 +648,13 @@ impl TileRelation for PcieHclkPair {
             DirH::E => tcrd.col - 1,
         };
         let row = tcrd.row + edev.chips[tcrd.die].rows_per_reg() / 2;
-        Some(tcrd.with_cr(col, row).tile(tslots::HCLK))
+        Some(tcrd.with_cr(col, row).tile(defs::tslots::HCLK))
     }
 }
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE") {
-        let mut bctx = ctx.bel(bels::PCIE);
+        let mut bctx = ctx.bel(defs::bslots::PCIE);
         let mode = "PCIE_2_1";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         // always appears in left column even when DRP is in right column — bug or intentional?
@@ -675,7 +675,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE3") {
-        let mut bctx = ctx.bel(bels::PCIE3);
+        let mut bctx = ctx.bel(defs::bslots::PCIE3);
         let mode = "PCIE_3_0";
         // always turns on the "bottom" bit even in the lower region — bug or intentional?
         bctx.test_manual("PRESENT", "1").mode(mode).commit();

@@ -8,7 +8,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::{bels, tslots};
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -1467,11 +1467,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for TouchHout {
             return None;
         } else {
             let lr = if tcrd.col < edev.col_clk { 'L' } else { 'R' };
-            let clk_hrow = tcrd.with_col(edev.col_clk).tile(tslots::BEL);
-            let clk_hrow_bel = clk_hrow.cell.bel(bels::CLK_HROW);
-            let (ta, wa) = PipWire::BelPinNear(bels::CLK_HROW, format!("HIN{idx}_{lr}"))
+            let clk_hrow = tcrd.with_col(edev.col_clk).tile(defs::tslots::BEL);
+            let clk_hrow_bel = clk_hrow.cell.bel(defs::bslots::CLK_HROW_V7);
+            let (ta, wa) = PipWire::BelPinNear(defs::bslots::CLK_HROW_V7, format!("HIN{idx}_{lr}"))
                 .resolve(backend, clk_hrow)?;
-            let (tb, wb) = PipWire::BelPinNear(bels::CLK_HROW, format!("CASCO{idx}"))
+            let (tb, wb) = PipWire::BelPinNear(defs::bslots::CLK_HROW_V7, format!("CASCO{idx}"))
                 .resolve(backend, clk_hrow)?;
             assert_eq!(ta, tb);
 
@@ -1494,7 +1494,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let mut bctx = ctx.bel(bels::GTP_COMMON);
+        let mut bctx = ctx.bel(defs::bslots::GTP_COMMON);
         let mode = "GTPE2_COMMON";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         for &pin in GTP_COMMON_INVPINS {
@@ -1511,7 +1511,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTX_COMMON") {
-        let mut bctx = ctx.bel(bels::GTX_COMMON);
+        let mut bctx = ctx.bel(defs::bslots::GTX_COMMON);
         let mode = "GTXE2_COMMON";
 
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
@@ -1529,7 +1529,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTH_COMMON") {
-        let mut bctx = ctx.bel(bels::GTH_COMMON);
+        let mut bctx = ctx.bel(defs::bslots::GTH_COMMON);
         let mode = "GTHE2_COMMON";
 
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
@@ -1547,8 +1547,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     for (tile, bel) in [
-        ("GTX_COMMON", bels::GTX_COMMON),
-        ("GTH_COMMON", bels::GTH_COMMON),
+        ("GTX_COMMON", defs::bslots::GTX_COMMON),
+        ("GTH_COMMON", defs::bslots::GTH_COMMON),
     ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
@@ -1584,8 +1584,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .test_manual(format!("MUX.NORTHREFCLK{i}_N"), format!("NORTHREFCLK{i}"))
                     .related_pip(
                         Delta::new(0, 25, "BRKH_GTX"),
-                        (bels::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
-                        (bels::BRKH_GTX, format!("NORTHREFCLK{i}_D")),
+                        (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
+                        (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_D")),
                     )
                     .commit();
                 for j in 0..2 {
@@ -1595,8 +1595,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .test_manual(format!("MUX.NORTHREFCLK{i}_N"), format!("REFCLK{j}"))
                         .related_pip(
                             Delta::new(0, 25, "BRKH_GTX"),
-                            (bels::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
-                            (bels::BRKH_GTX, format!("REFCLK{j}_D")),
+                            (defs::bslots::BRKH_GTX, format!("NORTHREFCLK{i}_U")),
+                            (defs::bslots::BRKH_GTX, format!("REFCLK{j}_D")),
                         )
                         .commit();
                 }
@@ -1606,8 +1606,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .test_manual(format!("MUX.SOUTHREFCLK{i}_S"), format!("SOUTHREFCLK{i}"))
                     .related_pip(
                         Delta::new(0, -25, "BRKH_GTX"),
-                        (bels::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
-                        (bels::BRKH_GTX, format!("SOUTHREFCLK{i}_U")),
+                        (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
+                        (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_U")),
                     )
                     .commit();
                 for j in 0..2 {
@@ -1617,8 +1617,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .test_manual(format!("MUX.SOUTHREFCLK{i}_S"), format!("REFCLK{j}"))
                         .related_pip(
                             Delta::new(0, -25, "BRKH_GTX"),
-                            (bels::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
-                            (bels::BRKH_GTX, format!("REFCLK{j}_U")),
+                            (defs::bslots::BRKH_GTX, format!("SOUTHREFCLK{i}_D")),
+                            (defs::bslots::BRKH_GTX, format!("REFCLK{j}_U")),
                         )
                         .commit();
                 }
@@ -1630,7 +1630,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
                 continue;
             };
-            let mut bctx = ctx.bel(bels::BUFDS[i]);
+            let mut bctx = ctx.bel(defs::bslots::BUFDS[i]);
             let mode = "IBUFDS_GTE2";
             bctx.test_manual("PRESENT", "1").mode(mode).commit();
             bctx.mode(mode).test_inv("CLKTESTSIG");
@@ -1654,7 +1654,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTP_COMMON_MID") {
-        let mut bctx = ctx.bel(bels::GTP_COMMON);
+        let mut bctx = ctx.bel(defs::bslots::GTP_COMMON);
         for i in 0..14 {
             let oi = i ^ 1;
             for j in [i, oi] {
@@ -1717,7 +1717,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let mut bctx = ctx.bel(bels::GTP_CHANNEL);
+        let mut bctx = ctx.bel(defs::bslots::GTP_CHANNEL);
         let mode = "GTPE2_CHANNEL";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         for &pin in GTP_CHANNEL_INVPINS {
@@ -1744,7 +1744,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTX_CHANNEL") {
-        let mut bctx = ctx.bel(bels::GTX_CHANNEL);
+        let mut bctx = ctx.bel(defs::bslots::GTX_CHANNEL);
         let mode = "GTXE2_CHANNEL";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         for &pin in GTX_CHANNEL_INVPINS {
@@ -1771,7 +1771,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     if let Some(mut ctx) = FuzzCtx::try_new(session, backend, "GTH_CHANNEL") {
-        let mut bctx = ctx.bel(bels::GTH_CHANNEL);
+        let mut bctx = ctx.bel(defs::bslots::GTH_CHANNEL);
         let mode = "GTHE2_CHANNEL";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         for &pin in GTH_CHANNEL_INVPINS {
@@ -1798,8 +1798,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     for (tile, bel) in [
-        ("GTX_CHANNEL", bels::GTX_CHANNEL),
-        ("GTH_CHANNEL", bels::GTH_CHANNEL),
+        ("GTX_CHANNEL", defs::bslots::GTX_CHANNEL),
+        ("GTH_CHANNEL", defs::bslots::GTH_CHANNEL),
     ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
@@ -2088,7 +2088,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ),
             );
         }
-        for bel in ["BUFDS0", "BUFDS1"] {
+        for bel in ["BUFDS[0]", "BUFDS[1]"] {
             ctx.collect_inv(tile, bel, "CLKTESTSIG");
             ctx.collect_enum_bool(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
             ctx.collect_enum_bool(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");

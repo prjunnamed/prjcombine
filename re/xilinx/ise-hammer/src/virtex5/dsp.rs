@@ -1,5 +1,5 @@
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -12,8 +12,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let tile = "DSP";
     let mut ctx = FuzzCtx::new(session, backend, tile);
     for i in 0..2 {
-        let bel_other = bels::DSP[i ^ 1];
-        let mut bctx = ctx.bel(bels::DSP[i]);
+        let bel_other = defs::bslots::DSP[i ^ 1];
+        let mut bctx = ctx.bel(defs::bslots::DSP[i]);
         let mode = "DSP48E";
         bctx.build()
             .bel_unused(bel_other)
@@ -106,7 +106,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DSP";
-    for bel in ["DSP0", "DSP1"] {
+    for bel in ["DSP[0]", "DSP[1]"] {
         for &pin in DSP48E_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -163,15 +163,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "PATTERN", "");
         ctx.collect_bitvec(tile, bel, "MASK", "");
     }
-    for bel in ["DSP0", "DSP1"] {
+    for bel in ["DSP[0]", "DSP[1]"] {
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
         present.discard_bits(ctx.tiledb.item(tile, bel, "SCAN_IN_SET_M"));
         present.discard_bits(ctx.tiledb.item(tile, bel, "SCAN_IN_SET_P"));
         present.discard_bits(ctx.tiledb.item(tile, bel, "TEST_SET_M"));
         present.discard_bits(ctx.tiledb.item(tile, bel, "TEST_SET_P"));
-        if bel == "DSP0" {
-            present.discard_bits(ctx.tiledb.item(tile, "DSP0", "LFSR_EN_SET"));
-            present.discard_bits(ctx.tiledb.item(tile, "DSP1", "LFSR_EN_SET"));
+        if bel == "DSP[0]" {
+            present.discard_bits(ctx.tiledb.item(tile, "DSP[0]", "LFSR_EN_SET"));
+            present.discard_bits(ctx.tiledb.item(tile, "DSP[1]", "LFSR_EN_SET"));
         }
         present.assert_empty();
     }

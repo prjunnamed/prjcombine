@@ -6,4 +6,4 @@ TODO: document
 
 {{tile virtex6 INT}}
 {{tile virtex6 INTF}}
-{{tile virtex6 INTF.DELAY}}
+{{tile virtex6 INTF_DELAY}}

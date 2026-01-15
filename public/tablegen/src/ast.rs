@@ -41,6 +41,7 @@ pub struct If<T> {
 pub enum IfCond {
     Variant(Vec<Ident>),
     TileClass(Vec<TemplateId>),
+    ConnectorClass(Vec<TemplateId>),
     BelSlot(Vec<ArrayIdRef>),
 }
 
@@ -234,7 +235,13 @@ pub enum ConnectorClassItem {
 #[derive(Debug)]
 pub struct Wire {
     pub name: ArrayIdDef,
-    pub kind: WireKind,
+    pub kinds: WireKinds,
+}
+
+#[derive(Debug)]
+pub enum WireKinds {
+    Single(WireKind),
+    Multi(Vec<(core::ops::Range<usize>, WireKind)>),
 }
 
 #[derive(Debug)]
@@ -305,7 +312,7 @@ impl ArrayIdRef {
 
 #[derive(Debug)]
 pub enum Index {
-    Ident(Ident, usize),
+    Ident(Ident, isize),
     Literal(usize),
 }
 
@@ -313,6 +320,15 @@ pub enum Index {
 pub enum ArrayIdDef {
     Plain(TemplateId),
     Array(TemplateId, usize),
+}
+
+impl ArrayIdDef {
+    pub fn span(&self) -> Span {
+        match self {
+            ArrayIdDef::Plain(id) => id.span(),
+            ArrayIdDef::Array(id, _) => id.span(),
+        }
+    }
 }
 
 #[derive(Debug)]

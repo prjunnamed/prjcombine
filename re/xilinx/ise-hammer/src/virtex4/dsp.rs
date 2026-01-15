@@ -1,6 +1,6 @@
 use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -36,8 +36,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let tile = "DSP";
     let mut ctx = FuzzCtx::new(session, backend, tile);
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::DSP[i]);
-        let bel_other = bels::DSP[i ^ 1];
+        let mut bctx = ctx.bel(defs::bslots::DSP[i]);
+        let bel_other = defs::bslots::DSP[i ^ 1];
         let mode = "DSP48";
         bctx.build()
             .bel_unused(bel_other)
@@ -74,15 +74,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DSP";
     for (pininv, pin, pin_b) in [("CECINV", "CEC", "CEC_B"), ("RSTCINV", "RSTC", "RSTC_B")] {
-        let ti0 = ctx.extract_enum_bool(tile, "DSP0", pininv, pin, pin_b);
-        let ti1 = ctx.extract_enum_bool(tile, "DSP1", pininv, pin, pin_b);
+        let ti0 = ctx.extract_enum_bool(tile, "DSP[0]", pininv, pin, pin_b);
+        let ti1 = ctx.extract_enum_bool(tile, "DSP[1]", pininv, pin, pin_b);
         assert_eq!(ti0, ti1);
-        ctx.insert_int_inv(&["INT"; 4], tile, "DSP0", pin, ti0);
+        ctx.insert_int_inv(&["INT"; 4], tile, "DSP[0]", pin, ti0);
     }
-    let d0_0 = ctx.state.get_diff(tile, "DSP0", "CREG", "0");
-    let d0_1 = ctx.state.get_diff(tile, "DSP0", "CREG", "1");
-    let d1_0 = ctx.state.get_diff(tile, "DSP1", "CREG", "0");
-    let d1_1 = ctx.state.get_diff(tile, "DSP1", "CREG", "1");
+    let d0_0 = ctx.state.get_diff(tile, "DSP[0]", "CREG", "0");
+    let d0_1 = ctx.state.get_diff(tile, "DSP[0]", "CREG", "1");
+    let d1_0 = ctx.state.get_diff(tile, "DSP[1]", "CREG", "0");
+    let d1_1 = ctx.state.get_diff(tile, "DSP[1]", "CREG", "1");
     let (d0_0, d1_0, dc_0) = Diff::split(d0_0, d1_0);
     let (d0_1, d1_1, dc_1) = Diff::split(d0_1, d1_1);
     ctx.tiledb.insert(
@@ -99,7 +99,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "CLKC_MUX",
         xlat_enum(vec![("DSP0", d0_1), ("DSP1", d1_1)]),
     );
-    for bel in ["DSP0", "DSP1"] {
+    for bel in ["DSP[0]", "DSP[1]"] {
         for &pin in DSP48_INVPINS {
             if pin.starts_with("CLK") || pin.starts_with("RST") || pin.starts_with("CE") {
                 ctx.collect_int_inv(&["INT"; 4], tile, bel, pin, false);

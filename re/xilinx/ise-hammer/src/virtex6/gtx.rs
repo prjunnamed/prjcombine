@@ -3,7 +3,7 @@ use core::ops::Range;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -344,8 +344,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         return;
     };
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::GTX[i]);
-        let bel_other = bels::GTX[i ^ 1];
+        let mut bctx = ctx.bel(defs::bslots::GTX[i]);
+        let bel_other = defs::bslots::GTX[i ^ 1];
         let mode = "GTXE1";
         bctx.build()
             .bel_unused(bel_other)
@@ -385,7 +385,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             bctx.mode(mode).test_multi_attr_hex(attr, width);
         }
 
-        let bel_hclk_gtx = bels::HCLK_GTX;
+        let bel_hclk_gtx = defs::bslots::HCLK_GTX;
         for (val, orx, otx, pin) in [
             ("PERFCLK", "PERFCLKRX", "PERFCLKTX", "PERFCLK"),
             (
@@ -470,7 +470,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::BUFDS[i]);
+        let mut bctx = ctx.bel(defs::bslots::BUFDS[i]);
         let mode = "IBUFDS_GTXE1";
         bctx.mode(mode).test_enum("CLKCM_CFG", &["FALSE", "TRUE"]);
         bctx.mode(mode).test_enum("CLKRCV_TRST", &["FALSE", "TRUE"]);
@@ -487,7 +487,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
     }
-    let mut bctx = ctx.bel(bels::HCLK_GTX);
+    let mut bctx = ctx.bel(defs::bslots::HCLK_GTX);
     for i in 0..4 {
         bctx.build()
             .tile_mutex("PERFCLK", format!("PERF{i}"))
@@ -541,7 +541,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         return;
     }
     for i in 0..4 {
-        let bel = &format!("GTX{i}");
+        let bel = &format!("GTX[{i}]");
         fn drp_bit(which: usize, idx: usize, bit: usize) -> TileBit {
             let tile = which * 10 + (idx >> 3);
             let frame = 28 + (bit & 1);
@@ -631,7 +631,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .insert(tile, bel, "PMA_CAS_CLK_EN", xlat_bit(diff_cas_clk));
     }
     for i in 0..2 {
-        let bel = &format!("BUFDS{i}");
+        let bel = &format!("BUFDS[{i}]");
         ctx.collect_enum_bool(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
         ctx.collect_enum_bool(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");
         ctx.collect_bitvec(tile, bel, "REFCLKOUT_DLY", "");

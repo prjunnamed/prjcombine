@@ -9,7 +9,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::{bels, tslots};
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::{IseBackend, PinFromKind},
@@ -30,7 +30,7 @@ impl TileRelation for HclkCmt {
         };
         let chip = edev.chips[tcrd.die];
         let row = chip.row_hclk(tcrd.row);
-        Some(tcrd.with_row(row).tile(tslots::HCLK_CMT))
+        Some(tcrd.with_row(row).tile(defs::tslots::HCLK_CMT))
     }
 }
 
@@ -44,7 +44,7 @@ pub fn add_fuzzers<'a>(
     let mut ctx = FuzzCtx::new(session, backend, "CMT");
 
     if devdata_only {
-        let mut bctx = ctx.bel(bels::PLL);
+        let mut bctx = ctx.bel(defs::bslots::PLL);
         bctx.build()
             .global_xy("PLLADV_*_USE_CALC", "NO")
             .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
@@ -57,7 +57,7 @@ pub fn add_fuzzers<'a>(
 
     if !skip_dcm {
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::DCM[i]);
+            let mut bctx = ctx.bel(defs::bslots::DCM[i]);
             let mode = "DCM_ADV";
             bctx.build()
                 .related_tile_mutex_exclusive(HclkCmt, "ENABLE")
@@ -421,9 +421,9 @@ pub fn add_fuzzers<'a>(
                         .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                         .attr("CLK_FEEDBACK", "1X")
                         .mutex("MUX.CLK", format!("{pin}.HCLK{i}"))
-                        .pip(opin, (bels::CMT, format!("HCLK{i}")))
+                        .pip(opin, (defs::bslots::CMT, format!("HCLK{i}")))
                         .test_manual(format!("MUX.{pin}"), format!("HCLK{i}"))
-                        .pip(pin, (bels::CMT, format!("HCLK{i}")))
+                        .pip(pin, (defs::bslots::CMT, format!("HCLK{i}")))
                         .commit();
                 }
                 for i in 0..10 {
@@ -432,9 +432,9 @@ pub fn add_fuzzers<'a>(
                         .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                         .attr("CLK_FEEDBACK", "1X")
                         .mutex("MUX.CLK", format!("{pin}.GIOB{i}"))
-                        .pip(opin, (bels::CMT, format!("GIOB{i}")))
+                        .pip(opin, (defs::bslots::CMT, format!("GIOB{i}")))
                         .test_manual(format!("MUX.{pin}"), format!("GIOB{i}"))
-                        .pip(pin, (bels::CMT, format!("GIOB{i}")))
+                        .pip(pin, (defs::bslots::CMT, format!("GIOB{i}")))
                         .commit();
                 }
                 for i in 0..3 {
@@ -451,10 +451,10 @@ pub fn add_fuzzers<'a>(
                     .global_mutex("HCLK_CMT", "USE")
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                     .attr("CLK_FEEDBACK", "1X")
-                    .bel_unused(bels::PLL)
+                    .bel_unused(defs::bslots::PLL)
                     .mutex("MUX.CLK", format!("{pin}.CLK_FROM_PLL"))
                     .test_manual(format!("MUX.{pin}"), "CLK_FROM_PLL")
-                    .pip(pin, (bels::PLL, format!("CLK_TO_DCM{i}")))
+                    .pip(pin, (defs::bslots::PLL, format!("CLK_TO_DCM{i}")))
                     .commit();
             }
 
@@ -469,18 +469,18 @@ pub fn add_fuzzers<'a>(
                 bctx.build()
                     .mutex("MUX.CLK_TO_PLL", pin)
                     .test_manual("MUX.CLK_TO_PLL", pin)
-                    .pip("MUXED_CLK", (bels::CMT, format!("OUT{idx}")))
+                    .pip("MUXED_CLK", (defs::bslots::CMT, format!("OUT{idx}")))
                     .commit();
                 bctx.build()
                     .mutex("MUX.SKEWCLKIN2", pin)
                     .test_manual("MUX.SKEWCLKIN2", pin)
-                    .pip("SKEWCLKIN2", (bels::CMT, format!("OUT{idx}_TEST")))
+                    .pip("SKEWCLKIN2", (defs::bslots::CMT, format!("OUT{idx}_TEST")))
                     .commit();
             }
         }
     }
     if !skip_pll {
-        let mut bctx = ctx.bel(bels::PLL);
+        let mut bctx = ctx.bel(defs::bslots::PLL);
         let mode = "PLL_ADV";
         bctx.build()
             .global_xy("PLLADV_*_USE_CALC", "NO")
@@ -696,9 +696,9 @@ pub fn add_fuzzers<'a>(
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                     .mutex("MODE", "CALC")
                     .mutex("MUX.CLK", format!("{pin}.HCLK{i}"))
-                    .pip(opin, (bels::CMT, format!("HCLK{i}")))
+                    .pip(opin, (defs::bslots::CMT, format!("HCLK{i}")))
                     .test_manual(format!("MUX.{pin}"), format!("HCLK{i}"))
-                    .pip(pin, (bels::CMT, format!("HCLK{i}")))
+                    .pip(pin, (defs::bslots::CMT, format!("HCLK{i}")))
                     .commit();
             }
             for i in 0..10 {
@@ -707,9 +707,9 @@ pub fn add_fuzzers<'a>(
                     .related_tile_mutex(HclkCmt, "ENABLE", "USE")
                     .mutex("MODE", "CALC")
                     .mutex("MUX.CLK", format!("{pin}.GIOB{i}"))
-                    .pip(opin, (bels::CMT, format!("GIOB{i}")))
+                    .pip(opin, (defs::bslots::CMT, format!("GIOB{i}")))
                     .test_manual(format!("MUX.{pin}"), format!("GIOB{i}"))
-                    .pip(pin, (bels::CMT, format!("GIOB{i}")))
+                    .pip(pin, (defs::bslots::CMT, format!("GIOB{i}")))
                     .commit();
             }
             bctx.mode(mode)
@@ -736,7 +736,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MUX.CLK", "CLKIN1.CLK_FROM_DCM0")
             .pip("CLKFBIN", "CLKFBDCM")
             .test_manual("MUX.CLKIN1", "CLK_FROM_DCM0")
-            .pip("CLK_DCM_MUX", (bels::DCM0, "MUXED_CLK"))
+            .pip("CLK_DCM_MUX", (defs::bslots::DCM[0], "MUXED_CLK"))
             .pip("CLKIN1", "CLK_DCM_MUX")
             .commit();
         bctx.mode(mode)
@@ -745,7 +745,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MUX.CLK", "CLKIN1.CLK_FROM_DCM1")
             .pip("CLKFBIN", "CLKFBDCM")
             .test_manual("MUX.CLKIN1", "CLK_FROM_DCM1")
-            .pip("CLK_DCM_MUX", (bels::DCM1, "MUXED_CLK"))
+            .pip("CLK_DCM_MUX", (defs::bslots::DCM[1], "MUXED_CLK"))
             .pip("CLKIN1", "CLK_DCM_MUX")
             .commit();
         bctx.mode(mode)
@@ -763,7 +763,7 @@ pub fn add_fuzzers<'a>(
             .mutex("MUX.CLK", "CLKFBIN.CLKFBOUT")
             .pip("CLKIN1", "CLKFBDCM")
             .test_manual("MUX.CLKFBIN", "CLKFBOUT")
-            .pip("CLK_FB_FROM_DCM", (bels::CMT, "OUT11"))
+            .pip("CLK_FB_FROM_DCM", (defs::bslots::CMT, "OUT11"))
             .pip("CLKFBIN", "CLK_FB_FROM_DCM")
             .commit();
         bctx.mode(mode)
@@ -771,9 +771,9 @@ pub fn add_fuzzers<'a>(
             .related_tile_mutex(HclkCmt, "ENABLE", "USE")
             .mutex("MODE", "CALC")
             .mutex("MUX.CLK", "CLKIN2")
-            .pip("CLKFBIN", (bels::CMT, "GIOB5"))
+            .pip("CLKFBIN", (defs::bslots::CMT, "GIOB5"))
             .test_manual("CLKINSEL_MODE", "DYNAMIC")
-            .pip("CLKIN2", (bels::CMT, "GIOB5"))
+            .pip("CLKIN2", (defs::bslots::CMT, "GIOB5"))
             .commit();
 
         for opin in ["CLK_TO_DCM0", "CLK_TO_DCM1"] {
@@ -794,18 +794,18 @@ pub fn add_fuzzers<'a>(
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::CMT);
+        let mut bctx = ctx.bel(defs::bslots::CMT);
         for (name, bel, pin) in [
-            ("DCM0_CLKFB", bels::DCM0, "CLKFB_TEST"),
-            ("DCM0_CLKIN", bels::DCM0, "CLKIN_TEST"),
-            ("DCM1_CLKFB", bels::DCM1, "CLKFB_TEST"),
-            ("DCM1_CLKIN", bels::DCM1, "CLKIN_TEST"),
-            ("PLL_CLKIN", bels::PLL, "CLKIN1_TEST"),
-            ("PLL_CLKINFB", bels::PLL, "CLKINFB_TEST"),
+            ("DCM0_CLKFB", defs::bslots::DCM[0], "CLKFB_TEST"),
+            ("DCM0_CLKIN", defs::bslots::DCM[0], "CLKIN_TEST"),
+            ("DCM1_CLKFB", defs::bslots::DCM[1], "CLKFB_TEST"),
+            ("DCM1_CLKIN", defs::bslots::DCM[1], "CLKIN_TEST"),
+            ("PLL_CLKIN", defs::bslots::PLL, "CLKIN1_TEST"),
+            ("PLL_CLKINFB", defs::bslots::PLL, "CLKINFB_TEST"),
         ] {
             bctx.build()
                 .related_tile_mutex(HclkCmt, "ENABLE", "USE")
-                .bel_mode(bels::PLL, "PLL_ADV")
+                .bel_mode(defs::bslots::PLL, "PLL_ADV")
                 .mutex("MUX.OUT10", name)
                 .test_manual("MUX.OUT10", name)
                 .pip("OUT10", (bel, pin))
@@ -850,7 +850,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool, skip_pll: bool, d
     }
     if !skip_dcm {
         for i in 0..2 {
-            let bel = &format!("DCM{i}");
+            let bel = &format!("DCM[{i}]");
             fn dcm_drp_bit(which: usize, reg: usize, bit: usize) -> TileBit {
                 let reg = reg & 0x3f;
                 let tile = which * 7 + (reg >> 3);

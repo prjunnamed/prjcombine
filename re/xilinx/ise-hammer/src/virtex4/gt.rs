@@ -7,7 +7,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::{bels, tslots};
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -347,11 +347,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for MgtRepeaterMgt {
         for &col in &edev.chips[tcrd.die].cols_vbrk {
             if (col < edev.col_cfg) == is_w {
                 let rcol = if is_w { col } else { col - 1 };
-                let ntcrd = tcrd.with_cr(rcol, row).tile(tslots::CLK);
+                let ntcrd = tcrd.with_cr(rcol, row).tile(defs::tslots::CLK);
                 fuzzer.info.features.push(FuzzerFeature {
                     key: DiffKey::Legacy(FeatureId {
-                        tile: "HCLK_MGT_REPEATER".into(),
-                        bel: "HCLK_MGT_REPEATER".into(),
+                        tile: "HCLK_MGT_BUF".into(),
+                        bel: "HCLK_MGT_BUF".into(),
                         attr: self.1.clone(),
                         val: self.2.clone(),
                     }),
@@ -376,7 +376,7 @@ impl TileRelation for ClkHrow {
             tcrd.cell
                 .with_col(edev.col_clk)
                 .delta(0, self.0)
-                .tile(tslots::HROW),
+                .tile(defs::tslots::HROW),
         )
     }
 }
@@ -386,8 +386,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         return;
     };
     for i in 0..2 {
-        let bel = format!("GT11_{i}");
-        let mut bctx = ctx.bel(bels::GT11[i]);
+        let bel = format!("GT11[{i}]");
+        let mut bctx = ctx.bel(defs::bslots::GT11[i]);
         let mode = "GT11";
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
         for &pin in GT11_INVPINS {
@@ -450,7 +450,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         };
         for pin in ["REFCLK", "PMACLK"] {
             for i in 0..8 {
-                let obel = bels::CLK_HROW;
+                let obel = defs::bslots::CLK_HROW;
                 bctx.build()
                     .mutex("HCLK_IN", format!("HCLK{i}"))
                     .mutex("HCLK_OUT", pin)
@@ -509,7 +509,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .pip("SYNCLK_OUT", format!("SYNCLK{i}_OUT"))
                 .commit();
         }
-        let obel_clk = bels::GT11CLK;
+        let obel_clk = defs::bslots::GT11CLK;
         let (ab, ba, ns, sn) = match i {
             0 => ('B', 'A', 'S', 'N'),
             1 => ('A', 'B', 'N', 'S'),
@@ -559,7 +559,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
     }
-    let mut bctx = ctx.bel(bels::GT11CLK);
+    let mut bctx = ctx.bel(defs::bslots::GT11CLK);
     let mode = "GT11CLK";
     bctx.test_manual("PRESENT", "1").mode(mode).commit();
     bctx.mode(mode).test_enum(
@@ -649,14 +649,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let (_, _, synclk_enable) = Diff::split(
         ctx.state
-            .peek_diff(tile, "GT11_1", "MUX.SYNCLK_OUT", "SYNCLK1")
+            .peek_diff(tile, "GT11[1]", "MUX.SYNCLK_OUT", "SYNCLK1")
             .clone(),
         ctx.state
-            .peek_diff(tile, "GT11_0", "MUX.SYNCLK_OUT", "SYNCLK1")
+            .peek_diff(tile, "GT11[0]", "MUX.SYNCLK_OUT", "SYNCLK1")
             .clone(),
     );
     for idx in 0..2 {
-        let bel = &format!("GT11_{idx}");
+        let bel = &format!("GT11[{idx}]");
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
         for i in 0x40..0x80 {
             ctx.tiledb.insert(
@@ -926,8 +926,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     if !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
-        let tile = "HCLK_MGT_REPEATER";
-        let bel = "HCLK_MGT_REPEATER";
+        let tile = "HCLK_MGT_BUF";
+        let bel = "HCLK_MGT_BUF";
         let item = ctx.extract_bit(tile, bel, "BUF.MGT0.MGT", "1");
         ctx.tiledb.insert(tile, bel, "BUF.MGT0", item);
         let item = ctx.extract_bit(tile, bel, "BUF.MGT1.MGT", "1");

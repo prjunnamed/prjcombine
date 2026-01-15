@@ -1,7 +1,7 @@
 use prjcombine_re_fpga_hammer::{OcdMode, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::IseBackend,
@@ -14,7 +14,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         return;
     };
     for idx in 0..2 {
-        let mut bctx = ctx.bel(bels::PMCD[idx]);
+        let mut bctx = ctx.bel(defs::bslots::PMCD[idx]);
         bctx.test_manual("PRESENT", "1").mode("PMCD").commit();
         for pin in ["CLKA", "CLKB", "CLKC", "CLKD"] {
             bctx.mode("PMCD")
@@ -48,8 +48,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             ("CLKD", 'B'),
             ("REL", 'C'),
         ] {
-            let bel_ccm = bels::CCM;
-            let bel_other = bels::PMCD[idx ^ 1];
+            let bel_ccm = defs::bslots::CCM;
+            let bel_other = defs::bslots::PMCD[idx ^ 1];
             let opin = if pin == "REL" { "CLKA" } else { "REL" };
             for rpin in [pin.to_string(), format!("{pin}_TEST")] {
                 for i in 0..8 {
@@ -137,7 +137,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
     }
     {
-        let mut bctx = ctx.bel(bels::DPM);
+        let mut bctx = ctx.bel(defs::bslots::DPM);
         bctx.build()
             .test_manual("PRESENT", "1")
             .mode("DPM")
@@ -162,7 +162,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .test_multi_attr_bin("CCM_VREG_PHASE_MARGIN", 3);
 
         for (pin, abc) in [("REFCLK", 'A'), ("TESTCLK1", 'B'), ("TESTCLK2", 'B')] {
-            let bel_ccm = bels::CCM;
+            let bel_ccm = defs::bslots::CCM;
             let opin = if pin == "REFCLK" {
                 "TESTCLK1"
             } else {
@@ -234,28 +234,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(bels::CCM);
+        let mut bctx = ctx.bel(defs::bslots::CCM);
         for i in 0..12 {
             let opin = format!("TO_BUFG{i}");
             for (name, bel, pin) in [
-                ("PMCD0_CLKA1", bels::PMCD0, "CLKA1"),
-                ("PMCD0_CLKA1D2", bels::PMCD0, "CLKA1D2"),
-                ("PMCD0_CLKA1D4", bels::PMCD0, "CLKA1D4"),
-                ("PMCD0_CLKA1D8", bels::PMCD0, "CLKA1D8"),
-                ("PMCD0_CLKB1", bels::PMCD0, "CLKB1"),
-                ("PMCD0_CLKC1", bels::PMCD0, "CLKC1"),
-                ("PMCD0_CLKD1", bels::PMCD0, "CLKD1"),
-                ("PMCD1_CLKA1", bels::PMCD1, "CLKA1"),
-                ("PMCD1_CLKA1D2", bels::PMCD1, "CLKA1D2"),
-                ("PMCD1_CLKA1D4", bels::PMCD1, "CLKA1D4"),
-                ("PMCD1_CLKA1D8", bels::PMCD1, "CLKA1D8"),
-                ("PMCD1_CLKB1", bels::PMCD1, "CLKB1"),
-                ("PMCD1_CLKC1", bels::PMCD1, "CLKC1"),
-                ("PMCD1_CLKD1", bels::PMCD1, "CLKD1"),
-                ("DPM_REFCLKOUT", bels::DPM, "REFCLKOUT"),
-                ("DPM_OSCOUT1", bels::DPM, "OSCOUT1"),
-                ("DPM_OSCOUT2", bels::DPM, "OSCOUT2"),
-                ("CKINT", bels::CCM, "CKINT"),
+                ("PMCD0_CLKA1", defs::bslots::PMCD[0], "CLKA1"),
+                ("PMCD0_CLKA1D2", defs::bslots::PMCD[0], "CLKA1D2"),
+                ("PMCD0_CLKA1D4", defs::bslots::PMCD[0], "CLKA1D4"),
+                ("PMCD0_CLKA1D8", defs::bslots::PMCD[0], "CLKA1D8"),
+                ("PMCD0_CLKB1", defs::bslots::PMCD[0], "CLKB1"),
+                ("PMCD0_CLKC1", defs::bslots::PMCD[0], "CLKC1"),
+                ("PMCD0_CLKD1", defs::bslots::PMCD[0], "CLKD1"),
+                ("PMCD1_CLKA1", defs::bslots::PMCD[1], "CLKA1"),
+                ("PMCD1_CLKA1D2", defs::bslots::PMCD[1], "CLKA1D2"),
+                ("PMCD1_CLKA1D4", defs::bslots::PMCD[1], "CLKA1D4"),
+                ("PMCD1_CLKA1D8", defs::bslots::PMCD[1], "CLKA1D8"),
+                ("PMCD1_CLKB1", defs::bslots::PMCD[1], "CLKB1"),
+                ("PMCD1_CLKC1", defs::bslots::PMCD[1], "CLKC1"),
+                ("PMCD1_CLKD1", defs::bslots::PMCD[1], "CLKD1"),
+                ("DPM_REFCLKOUT", defs::bslots::DPM, "REFCLKOUT"),
+                ("DPM_OSCOUT1", defs::bslots::DPM, "OSCOUT1"),
+                ("DPM_OSCOUT2", defs::bslots::DPM, "OSCOUT2"),
+                ("CKINT", defs::bslots::CCM, "CKINT"),
             ] {
                 bctx.build()
                     .tile_mutex(&opin, name)
@@ -276,7 +276,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         return;
     }
     let tile = "CCM";
-    for bel in ["PMCD0", "PMCD1"] {
+    for bel in ["PMCD[0]", "PMCD[1]"] {
         ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_int_inv(&["INT"; 4], tile, bel, "RST", false);
         ctx.collect_inv(tile, bel, "REL");
@@ -438,7 +438,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
     }
-    for bel in ["PMCD0", "PMCD1", "DPM"] {
+    for bel in ["PMCD[0]", "PMCD[1]", "DPM"] {
         let vreg_enable = ctx.extract_enum_bool(tile, bel, "CCM_VREG_ENABLE", "FALSE", "TRUE");
         ctx.tiledb.insert(tile, "CCM", "VREG_ENABLE", vreg_enable);
         // ???

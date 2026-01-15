@@ -1,9 +1,9 @@
 use prjcombine_entity::{EntityId, EntityVec};
-use prjcombine_interconnect::grid::{ColId, DieId, RowId};
+use prjcombine_interconnect::{dir::DirH, grid::{ColId, DieId, RowId}};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex4::chip::{
     Chip, ChipKind, ColumnKind, DisabledPart, GtColumn, GtKind, Interposer, IoColumn, IoKind,
-    Pcie2, Pcie2Kind, RegId,
+    Pcie2, RegId,
 };
 use std::collections::BTreeSet;
 
@@ -112,7 +112,7 @@ fn get_holes_pcie2(int: &IntGrid) -> Vec<Pcie2> {
         let row = int.lookup_row(y - 10);
         assert_eq!(row.to_idx() % 50, 0);
         res.push(Pcie2 {
-            kind: Pcie2Kind::Right,
+            side: DirH::E,
             col,
             row,
         });
@@ -122,7 +122,7 @@ fn get_holes_pcie2(int: &IntGrid) -> Vec<Pcie2> {
         let row = int.lookup_row(y - 10);
         assert_eq!(row.to_idx() % 50, 0);
         res.push(Pcie2 {
-            kind: Pcie2Kind::Left,
+            side: DirH::W,
             col,
             row,
         });

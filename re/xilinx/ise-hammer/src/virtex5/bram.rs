@@ -2,7 +2,7 @@ use prjcombine_entity::EntityId;
 use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -12,7 +12,7 @@ use crate::{
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "BRAM");
-    let mut bctx = ctx.bel(bels::BRAM);
+    let mut bctx = ctx.bel(defs::bslots::BRAM);
 
     bctx.build()
         .global_mutex("BRAM_OPT", "NONE")

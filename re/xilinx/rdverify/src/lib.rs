@@ -1436,7 +1436,7 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn get_bel(&self, bel: BelCoord) -> BelContext<'a> {
-        self.find_bel(bel).unwrap()
+        self.find_bel(bel).unwrap_or_else(|| panic!("{}", bel.to_string(self.db)))
     }
 
     pub fn find_bel(&self, bel: BelCoord) -> Option<BelContext<'a>> {
@@ -1705,8 +1705,8 @@ pub fn verify(
     vrf.prep_int_wires();
     vrf.handle_int();
     for (tcrd, tile) in grid.egrid.tiles() {
-        let nk = &grid.egrid.db[tile.class];
-        for (slot, bel) in &nk.bels {
+        let tcls = &grid.egrid.db[tile.class];
+        for (slot, bel) in &tcls.bels {
             if matches!(bel, BelInfo::Legacy(_)) {
                 let ctx = vrf.get_bel(tcrd.bel(slot));
                 bel_handler(&mut vrf, &ctx);

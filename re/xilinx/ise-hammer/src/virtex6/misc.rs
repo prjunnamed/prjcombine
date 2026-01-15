@@ -4,7 +4,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -47,7 +47,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::BSCAN[i]);
+        let mut bctx = ctx.bel(defs::bslots::BSCAN[i]);
         bctx.test_manual("ENABLE", "1").mode("BSCAN").commit();
         bctx.mode("BSCAN")
             .global_mutex_here("DISABLE_JTAG")
@@ -57,7 +57,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         .multi_global("USERID", MultiValue::HexPrefix, 32);
 
     {
-        let mut bctx = ctx.bel(bels::ICAP1);
+        let mut bctx = ctx.bel(defs::bslots::ICAP[1]);
         bctx.test_manual("ENABLE", "1").mode("ICAP").commit();
         bctx.mode("ICAP")
             .global_mutex_here("ICAP")
@@ -66,24 +66,24 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .global_mutex_here("ICAP")
             .test_enum("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
 
-        let mut bctx = ctx.bel(bels::ICAP0);
+        let mut bctx = ctx.bel(defs::bslots::ICAP[0]);
         bctx.build()
-            .bel_mode(bels::ICAP1, "ICAP")
+            .bel_mode(defs::bslots::ICAP[1], "ICAP")
             .test_manual("ENABLE", "1")
             .mode("ICAP")
             .commit();
         bctx.mode("ICAP")
-            .bel_mode(bels::ICAP1, "ICAP")
+            .bel_mode(defs::bslots::ICAP[1], "ICAP")
             .global_mutex_here("ICAP")
             .test_enum("ICAP_WIDTH", &["X8", "X16", "X32"]);
         bctx.mode("ICAP")
-            .bel_mode(bels::ICAP1, "ICAP")
+            .bel_mode(defs::bslots::ICAP[1], "ICAP")
             .global_mutex_here("ICAP")
             .test_enum("ICAP_AUTO_SWITCH", &["DISABLE", "ENABLE"]);
     }
 
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::PMV[i]);
+        let mut bctx = ctx.bel(defs::bslots::PMV_CFG[i]);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -92,7 +92,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut bctx = ctx.bel(bels::STARTUP);
+        let mut bctx = ctx.bel(defs::bslots::STARTUP);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -136,7 +136,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut bctx = ctx.bel(bels::FRAME_ECC);
+        let mut bctx = ctx.bel(defs::bslots::FRAME_ECC);
         bctx.build()
             .null_bits()
             .extra_tile_reg(Reg::Ctl0, "REG.CTL", "FRAME_ECC")
@@ -151,12 +151,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut bctx = ctx.bel(bels::DCIRESET);
+        let mut bctx = ctx.bel(defs::bslots::DCIRESET);
         bctx.test_manual("ENABLE", "1").mode("DCIRESET").commit();
     }
 
     {
-        let mut bctx = ctx.bel(bels::CAPTURE);
+        let mut bctx = ctx.bel(defs::bslots::CAPTURE);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -169,7 +169,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut bctx = ctx.bel(bels::USR_ACCESS);
+        let mut bctx = ctx.bel(defs::bslots::USR_ACCESS);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -178,7 +178,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut bctx = ctx.bel(bels::EFUSE_USR);
+        let mut bctx = ctx.bel(defs::bslots::EFUSE_USR);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -187,19 +187,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut bctx = ctx.bel(bels::DNA_PORT);
+        let mut bctx = ctx.bel(defs::bslots::DNA_PORT);
         bctx.test_manual("ENABLE", "1").mode("DNA_PORT").commit();
     }
 
     {
-        let mut bctx = ctx.bel(bels::CFG_IO_ACCESS);
+        let mut bctx = ctx.bel(defs::bslots::CFG_IO_ACCESS);
         bctx.test_manual("ENABLE", "1")
             .mode("CFG_IO_ACCESS")
             .commit();
     }
 
     {
-        let mut bctx = ctx.bel(bels::SYSMON);
+        let mut bctx = ctx.bel(defs::bslots::SYSMON);
         bctx.build()
             .null_bits()
             .extra_tile_attr(Delta::new(0, 20, "HCLK"), "HCLK", "DRP_MASK_SYSMON", "1")
@@ -521,7 +521,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, attr, &["PULLUP", "PULLDOWN", "PULLNONE"]);
     }
 
-    for bel in ["BSCAN0", "BSCAN1", "BSCAN2", "BSCAN3"] {
+    for bel in ["BSCAN[0]", "BSCAN[1]", "BSCAN[2]", "BSCAN[3]"] {
         ctx.collect_bit(tile, bel, "ENABLE", "1");
         let item = ctx.extract_enum_bool_wide(tile, bel, "DISABLE_JTAG", "FALSE", "TRUE");
         ctx.tiledb
@@ -531,10 +531,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item = xlat_bitvec(ctx.state.get_diffs(tile, bel, "USERID", ""));
     ctx.tiledb.insert(tile, bel, "USERID", item);
 
-    for bel in ["ICAP0", "ICAP1", "DCIRESET", "DNA_PORT", "CFG_IO_ACCESS"] {
+    for bel in [
+        "ICAP[0]",
+        "ICAP[1]",
+        "DCIRESET",
+        "DNA_PORT",
+        "CFG_IO_ACCESS",
+    ] {
         ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
     }
-    for bel in ["ICAP0", "ICAP1"] {
+    for bel in ["ICAP[0]", "ICAP[1]"] {
         // ???
         ctx.state
             .get_diff(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
@@ -557,8 +563,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item = ctx.extract_bit_wide(tile, bel, "PIN.KEYCLEARB", "1");
     ctx.tiledb.insert(tile, bel, "KEY_CLEAR_ENABLE", item);
 
-    let item0 = ctx.extract_enum(tile, "ICAP0", "ICAP_WIDTH", &["X8", "X16", "X32"]);
-    let item1 = ctx.extract_enum(tile, "ICAP1", "ICAP_WIDTH", &["X8", "X16", "X32"]);
+    let item0 = ctx.extract_enum(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
+    let item1 = ctx.extract_enum(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
     assert_eq!(item0, item1);
     ctx.tiledb.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
 

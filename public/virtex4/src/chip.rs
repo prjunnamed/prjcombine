@@ -158,23 +158,8 @@ pub struct HardColumn {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
-pub enum Pcie2Kind {
-    Left,
-    Right,
-}
-
-impl std::fmt::Display for Pcie2Kind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Pcie2Kind::Left => write!(f, "LEFT"),
-            Pcie2Kind::Right => write!(f, "RIGHT"),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct Pcie2 {
-    pub kind: Pcie2Kind,
+    pub side: DirH,
     pub col: ColId,
     pub row: RowId,
 }
@@ -207,8 +192,8 @@ pub struct Interposer {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Encode, Decode)]
 pub enum XadcIoLoc {
-    Left,
-    Right,
+    W,
+    E,
     Both,
 }
 
@@ -281,9 +266,9 @@ impl Chip {
         assert_eq!(self.kind, ChipKind::Virtex7);
         assert!(self.regs > 1);
         if self.has_ps {
-            XadcIoLoc::Right
+            XadcIoLoc::E
         } else if self.cols_io.len() == 1 || self.cols_io[1].regs[self.reg_cfg].is_none() {
-            XadcIoLoc::Left
+            XadcIoLoc::W
         } else {
             XadcIoLoc::Both
         }
@@ -409,11 +394,8 @@ impl Chip {
         for pcie in &self.holes_pcie2 {
             writeln!(
                 o,
-                "\tpcie2_{lr} {col_l}:{col_r} {row_b}:{row_t};",
-                lr = match pcie.kind {
-                    Pcie2Kind::Left => 'l',
-                    Pcie2Kind::Right => 'r',
-                },
+                "\tpcie2 {side} {col_l}:{col_r} {row_b}:{row_t};",
+                side = pcie.side,
                 col_l = pcie.col,
                 col_r = pcie.col + 4,
                 row_b = pcie.row,

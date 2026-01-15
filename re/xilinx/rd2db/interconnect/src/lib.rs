@@ -1615,6 +1615,10 @@ impl<'a> IntBuilder<'a> {
         w
     }
 
+    pub fn mark_delay(&mut self, wire: WireSlotId, delay: WireSlotId) {
+        self.delay_wires.insert(wire, delay);
+    }
+
     pub fn logic_out(
         &mut self,
         name: impl Into<String>,
@@ -2272,6 +2276,10 @@ impl<'a> IntBuilder<'a> {
         self.extract_int(slot, sb, tile_kind, kind, naming, &[]);
     }
 
+    pub fn int_type_id(&mut self, tcid: TileClassId, sb: BelSlotId, tile_kind: &str, naming: &str) {
+        self.extract_int_id(tcid, sb, tile_kind, naming, &[]);
+    }
+
     pub fn inject_int_type(&mut self, tile_kind: &str) {
         if let Some((tki, _)) = self.rd.tile_kinds.get(tile_kind) {
             self.injected_int_types.push(tki);
@@ -2861,6 +2869,22 @@ impl<'a> IntBuilder<'a> {
         self.insert_term_merge(name.as_ref(), term);
     }
 
+    pub fn extract_term_conn_tile_id(
+        &mut self,
+        ccls: ConnectorClassId,
+        dir: Dir,
+        int_xy: Coord,
+        forced: &[(WireSlotId, WireSlotId)],
+    ) {
+        let forced: HashMap<_, _> = forced.iter().copied().collect();
+        let wires = self.extract_term_tile_conn(dir, int_xy, &forced);
+        let term = ConnectorClass {
+            slot: self.term_slots[dir],
+            wires,
+        };
+        self.insert_connector(ccls, term);
+    }
+
     pub fn walk_to_int(&self, mut xy: Coord, mut dir: Dir, mut step: bool) -> Option<Coord> {
         if self.is_mirror_square {
             if matches!(dir, Dir::E | Dir::W) && xy.x >= self.rd.width / 2 {
@@ -3005,6 +3029,20 @@ impl<'a> IntBuilder<'a> {
         for &term_xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             if let Some(int_xy) = self.walk_to_int(term_xy, !dir, false) {
                 self.extract_term_conn_tile(name.as_ref(), dir, int_xy, forced);
+            }
+        }
+    }
+
+    pub fn extract_term_conn_id(
+        &mut self,
+        ccls: ConnectorClassId,
+        dir: Dir,
+        tkn: impl AsRef<str>,
+        forced: &[(WireSlotId, WireSlotId)],
+    ) {
+        for &term_xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
+            if let Some(int_xy) = self.walk_to_int(term_xy, !dir, false) {
+                self.extract_term_conn_tile_id(ccls, dir, int_xy, forced);
             }
         }
     }
@@ -3537,6 +3575,48 @@ impl<'a> IntBuilder<'a> {
                     Some(xy),
                     None,
                     Some(&naming_fwd),
+                    None,
+                    None,
+                    int_bwd_xy,
+                    force_pass,
+                );
+            }
+        }
+    }
+
+    pub fn extract_pass_buf_id(
+        &mut self,
+        ccid_a: ConnectorClassId,
+        ccid_b: ConnectorClassId,
+        dir: Dir,
+        tkn: impl AsRef<str>,
+        naming_a: impl AsRef<str>,
+        naming_b: impl AsRef<str>,
+        force_pass: &[WireSlotId],
+    ) {
+        for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
+            if let Some(int_fwd_xy) = self.walk_to_int(xy, dir, false)
+                && let Some(int_bwd_xy) = self.walk_to_int(xy, !dir, false)
+            {
+                self.extract_pass_tile_id(
+                    ccid_a,
+                    dir,
+                    int_bwd_xy,
+                    Some(xy),
+                    None,
+                    Some(naming_a.as_ref()),
+                    None,
+                    None,
+                    int_fwd_xy,
+                    force_pass,
+                );
+                self.extract_pass_tile_id(
+                    ccid_b,
+                    !dir,
+                    int_fwd_xy,
+                    Some(xy),
+                    None,
+                    Some(naming_b.as_ref()),
                     None,
                     None,
                     int_bwd_xy,

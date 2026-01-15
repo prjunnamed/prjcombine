@@ -1,5 +1,3 @@
-#![recursion_limit = "1024"]
-
 use std::cmp::Ordering;
 
 use prjcombine_entity::{EntityId, EntityVec};

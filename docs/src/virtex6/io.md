@@ -123,7 +123,7 @@ The devices also have dedicated configuration bank 0, which has no user I/O and 
 
 
 {{tile virtex6 IO}}
-{{tile virtex6 HCLK_IOI}}
+{{tile virtex6 HCLK_IO}}
 
 
 ## Tables

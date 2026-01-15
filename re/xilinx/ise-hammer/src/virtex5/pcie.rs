@@ -1,5 +1,5 @@
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::bels;
+use prjcombine_virtex4::defs;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -229,7 +229,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let Some(mut ctx) = FuzzCtx::try_new(session, backend, "PCIE") else {
         return;
     };
-    let mut bctx = ctx.bel(bels::PCIE);
+    let mut bctx = ctx.bel(defs::bslots::PCIE);
     let mode = "PCIE";
 
     bctx.test_manual("PRESENT", "1").mode(mode).commit();
