@@ -152,107 +152,63 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="hard-pci-logic"><a class="header" href="#hard-pci-logic">Hard PCI logic</a></h1>
-<h2 id="tile-clkl"><a class="header" href="#tile-clkl">Tile CLKL</a></h2>
+<h2 id="tile-pci_w"><a class="header" href="#tile-pci_w">Tile PCI_W</a></h2>
 <p>Cells: 1</p>
 <h3 id="switchbox-pci_int"><a class="header" href="#switchbox-pci_int">Switchbox PCI_INT</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKL switchbox PCI_INT</caption>
+<caption>virtex PCI_W switchbox PCI_INT muxes IMUX_PCI_I1</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th colspan="0">Bits</th><th colspan="1">Destination</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="12">PCI.IMUX.I1</td><td>HEX.V2.3</td><td>mux</td>
-</tr>
+<tr><td>IMUX_PCI_I1</td></tr>
 
-<tr><td>HEX.V2.2</td><td>mux</td>
-</tr>
+<tr><th colspan="0"></th><th colspan="1">Source</th></tr>
 
-<tr><td>HEX.V2.1</td><td>mux</td>
-</tr>
+<tr><td>HEX_V6[3]</td></tr>
 
-<tr><td>HEX.V2.4</td><td>mux</td>
-</tr>
+</tbody>
 
-<tr><td>HEX.V2.5</td><td>mux</td>
-</tr>
+</table>
+</div>
 
-<tr><td>HEX.V2.6</td><td>mux</td>
-</tr>
+<div class="table-wrapper">
+<table>
+<caption>virtex PCI_W switchbox PCI_INT muxes IMUX_PCI_I2</caption>
+<thead>
+<tr><th colspan="0">Bits</th><th colspan="1">Destination</th></tr>
 
-<tr><td>HEX.V3.3</td><td>mux</td>
-</tr>
+</thead>
 
-<tr><td>HEX.V3.2</td><td>mux</td>
-</tr>
+<tbody>
+<tr><td>IMUX_PCI_I2</td></tr>
 
-<tr><td>HEX.V3.1</td><td>mux</td>
-</tr>
+<tr><th colspan="0"></th><th colspan="1">Source</th></tr>
 
-<tr><td>HEX.V3.4</td><td>mux</td>
-</tr>
+<tr><td>HEX_V6[3]</td></tr>
 
-<tr><td>HEX.V3.5</td><td>mux</td>
-</tr>
+</tbody>
 
-<tr><td>HEX.V3.6</td><td>mux</td>
-</tr>
+</table>
+</div>
 
-<tr><td rowspan="12">PCI.IMUX.I2</td><td>HEX.V2.3</td><td>mux</td>
-</tr>
+<div class="table-wrapper">
+<table>
+<caption>virtex PCI_W switchbox PCI_INT muxes IMUX_PCI_I3</caption>
+<thead>
+<tr><th colspan="0">Bits</th><th colspan="1">Destination</th></tr>
 
-<tr><td>HEX.V2.2</td><td>mux</td>
-</tr>
+</thead>
 
-<tr><td>HEX.V2.1</td><td>mux</td>
-</tr>
+<tbody>
+<tr><td>IMUX_PCI_I3</td></tr>
 
-<tr><td>HEX.V2.4</td><td>mux</td>
-</tr>
+<tr><th colspan="0"></th><th colspan="1">Source</th></tr>
 
-<tr><td>HEX.V2.5</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V2.6</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.3</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.2</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.1</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.4</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.5</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.6</td><td>mux</td>
-</tr>
-
-<tr><td rowspan="6">PCI.IMUX.I3</td><td>HEX.V1.3</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.2</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.1</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.4</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.5</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.6</td><td>mux</td>
-</tr>
+<tr><td>HEX_V6[1]</td></tr>
 
 </tbody>
 
@@ -262,18 +218,18 @@
 <h3 id="bel-pcilogic"><a class="header" href="#bel-pcilogic">Bel PCILOGIC</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKL bel PCILOGIC</caption>
+<caption>virtex PCI_W bel PCILOGIC</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>I1</td><td>input</td><td>PCI.IMUX.I1</td></tr>
+<tr><td>I1</td><td>input</td><td>IMUX_PCI_I1</td></tr>
 
-<tr><td>I2</td><td>input</td><td>PCI.IMUX.I2</td></tr>
+<tr><td>I2</td><td>input</td><td>IMUX_PCI_I2</td></tr>
 
-<tr><td>I3</td><td>input</td><td>PCI.IMUX.I3</td></tr>
+<tr><td>I3</td><td>input</td><td>IMUX_PCI_I3</td></tr>
 
 <tr><td>PCI_CE</td><td>output</td><td>PCI_CE</td></tr>
 
@@ -285,7 +241,7 @@
 <h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKL bel wires</caption>
+<caption>virtex PCI_W bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
 
@@ -294,11 +250,11 @@
 <tbody>
 <tr><td>PCI_CE</td><td>PCILOGIC.PCI_CE</td></tr>
 
-<tr><td>PCI.IMUX.I1</td><td>PCILOGIC.I1</td></tr>
+<tr><td>IMUX_PCI_I1</td><td>PCILOGIC.I1</td></tr>
 
-<tr><td>PCI.IMUX.I2</td><td>PCILOGIC.I2</td></tr>
+<tr><td>IMUX_PCI_I2</td><td>PCILOGIC.I2</td></tr>
 
-<tr><td>PCI.IMUX.I3</td><td>PCILOGIC.I3</td></tr>
+<tr><td>IMUX_PCI_I3</td><td>PCILOGIC.I3</td></tr>
 
 </tbody>
 
@@ -308,7 +264,1105 @@
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKL rect R0</caption>
+<caption>virtex PCI_W rect MAIN</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
+
+<tr>
+<th>F0</th>
+<th>F1</th>
+<th>F2</th>
+<th>F3</th>
+<th>F4</th>
+<th>F5</th>
+<th>F6</th>
+<th>F7</th>
+<th>F8</th>
+<th>F9</th>
+<th>F10</th>
+<th>F11</th>
+<th>F12</th>
+<th>F13</th>
+<th>F14</th>
+<th>F15</th>
+<th>F16</th>
+<th>F17</th>
+<th>F18</th>
+<th>F19</th>
+<th>F20</th>
+<th>F21</th>
+<th>F22</th>
+<th>F23</th>
+<th>F24</th>
+<th>F25</th>
+<th>F26</th>
+<th>F27</th>
+<th>F28</th>
+<th>F29</th>
+<th>F30</th>
+<th>F31</th>
+<th>F32</th>
+<th>F33</th>
+<th>F34</th>
+<th>F35</th>
+<th>F36</th>
+<th>F37</th>
+<th>F38</th>
+<th>F39</th>
+<th>F40</th>
+<th>F41</th>
+<th>F42</th>
+<th>F43</th>
+<th>F44</th>
+<th>F45</th>
+<th>F46</th>
+<th>F47</th>
+<th>F48</th>
+<th>F49</th>
+<th>F50</th>
+<th>F51</th>
+<th>F52</th>
+<th>F53</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+### Bitstream
+<div class="table-wrapper">
+<table>
+<caption>virtex PCI_W rect R0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
 
@@ -379,15 +1433,15 @@
 <td>-</td>
 <td>-</td>
 <td title="R0.F5.B4">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[0]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[2]</a>
 </td>
 <td title="R0.F6.B4">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[1]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[1]</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td title="R0.F9.B4">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[3]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[3]</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -428,7 +1482,7 @@
 <td>-</td>
 <td>-</td>
 <td title="R0.F48.B4">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[2]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[0]</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -439,40 +1493,40 @@
 
 <tr><td>B3</td>
 <td title="R0.F0.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[3]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[3]</a>
 </td>
 <td title="R0.F1.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[0]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[2]</a>
 </td>
 <td title="R0.F2.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[0]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[2]</a>
 </td>
 <td title="R0.F3.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[1]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[1]</a>
 </td>
 <td title="R0.F4.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[3]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[3]</a>
 </td>
 <td title="R0.F5.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[4]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[4]</a>
 </td>
 <td title="R0.F6.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[5]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[5]</a>
 </td>
 <td title="R0.F7.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[6]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[6]</a>
 </td>
 <td title="R0.F8.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[1]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[1]</a>
 </td>
 <td title="R0.F9.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[2]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[0]</a>
 </td>
 <td title="R0.F10.B3">
-<a href="#tile-virtex-CLKL-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[0]</a>
+<a href="#tile-virtex-PCI_W-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[0]</a>
 </td>
 <td title="R0.F11.B3">
-<a href="#tile-virtex-CLKL-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[1]</a>
+<a href="#tile-virtex-PCI_W-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[1]</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -511,22 +1565,22 @@
 <td>-</td>
 <td>-</td>
 <td title="R0.F48.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[4]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[4]</a>
 </td>
 <td title="R0.F49.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[2]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[0]</a>
 </td>
 <td title="R0.F50.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[5]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[5]</a>
 </td>
 <td title="R0.F51.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[6]</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[6]</a>
 </td>
 <td title="R0.F52.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I1">~PCI_INT:INV.PCI.IMUX.I1</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I1">~PCI_INT:INV.IMUX_PCI_I1</a>
 </td>
 <td title="R0.F53.B3">
-<a href="#tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I2">~PCI_INT:INV.PCI.IMUX.I2</a>
+<a href="#tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I2">~PCI_INT:INV.IMUX_PCI_I2</a>
 </td>
 </tr>
 
@@ -709,7 +1763,7 @@
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKL-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
+<tr><th id="tile-virtex-PCI_W-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
 <th>0.F11.B3</th>
 <th>0.F10.B3</th>
 </tr>
@@ -732,11 +1786,11 @@ non-inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I1">PCI_INT:INV.PCI.IMUX.I1</th>
+<tr><th id="tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I1">PCI_INT:INV.IMUX_PCI_I1</th>
 <th>0.F52.B3</th>
 </tr>
 
-<tr><th id="tile-virtex-CLKL-PCI_INT:INV.PCI.IMUX.I2">PCI_INT:INV.PCI.IMUX.I2</th>
+<tr><th id="tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I2">PCI_INT:INV.IMUX_PCI_I2</th>
 <th>0.F53.B3</th>
 </tr>
 
@@ -757,24 +1811,24 @@ inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1</th>
+<tr><th id="tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1</th>
 <th>0.F51.B3</th>
 <th>0.F50.B3</th>
 <th>0.F5.B3</th>
 <th>0.F4.B3</th>
-<th>0.F49.B3</th>
-<th>0.F3.B3</th>
 <th>0.F2.B3</th>
+<th>0.F3.B3</th>
+<th>0.F49.B3</th>
 </tr>
 
-<tr><th id="tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2</th>
+<tr><th id="tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2</th>
 <th>0.F7.B3</th>
 <th>0.F6.B3</th>
 <th>0.F48.B3</th>
 <th>0.F0.B3</th>
-<th>0.F9.B3</th>
-<th>0.F8.B3</th>
 <th>0.F1.B3</th>
+<th>0.F8.B3</th>
+<th>0.F9.B3</th>
 </tr>
 
 </thead>
@@ -790,7 +1844,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.3</td>
+<tr><td>HEX_V1[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -800,7 +1854,7 @@ inverted
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V2.2</td>
+<tr><td>HEX_V2[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -810,7 +1864,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.1</td>
+<tr><td>HEX_V3[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -820,7 +1874,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.4</td>
+<tr><td>HEX_V4[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -830,7 +1884,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.5</td>
+<tr><td>HEX_V5[2]</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
@@ -840,7 +1894,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.6</td>
+<tr><td>HEX_V6[2]</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
@@ -850,7 +1904,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.3</td>
+<tr><td>HEX_V1[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -860,7 +1914,7 @@ inverted
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V3.2</td>
+<tr><td>HEX_V2[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -870,7 +1924,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.1</td>
+<tr><td>HEX_V3[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -880,7 +1934,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.4</td>
+<tr><td>HEX_V4[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -890,7 +1944,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.5</td>
+<tr><td>HEX_V5[3]</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
@@ -900,7 +1954,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.6</td>
+<tr><td>HEX_V6[3]</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
@@ -918,11 +1972,11 @@ inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKL-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3</th>
+<tr><th id="tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3</th>
 <th>0.F9.B4</th>
-<th>0.F48.B4</th>
-<th>0.F6.B4</th>
 <th>0.F5.B4</th>
+<th>0.F6.B4</th>
+<th>0.F48.B4</th>
 </tr>
 
 </thead>
@@ -935,42 +1989,42 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.6</td>
+<tr><td>HEX_V4[1]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V1.5</td>
+<tr><td>HEX_V5[1]</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.4</td>
+<tr><td>HEX_V6[1]</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.3</td>
+<tr><td>HEX_V1[1]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V1.2</td>
+<tr><td>HEX_V2[1]</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.1</td>
+<tr><td>HEX_V3[1]</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
@@ -982,107 +2036,63 @@ inverted
 </table>
 </div>
 
-<h2 id="tile-clkr"><a class="header" href="#tile-clkr">Tile CLKR</a></h2>
+<h2 id="tile-pci_e"><a class="header" href="#tile-pci_e">Tile PCI_E</a></h2>
 <p>Cells: 1</p>
 <h3 id="switchbox-pci_int-1"><a class="header" href="#switchbox-pci_int-1">Switchbox PCI_INT</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKR switchbox PCI_INT</caption>
+<caption>virtex PCI_E switchbox PCI_INT muxes IMUX_PCI_I1</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th colspan="0">Bits</th><th colspan="1">Destination</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="12">PCI.IMUX.I1</td><td>HEX.V2.3</td><td>mux</td>
-</tr>
+<tr><td>IMUX_PCI_I1</td></tr>
 
-<tr><td>HEX.V2.2</td><td>mux</td>
-</tr>
+<tr><th colspan="0"></th><th colspan="1">Source</th></tr>
 
-<tr><td>HEX.V2.1</td><td>mux</td>
-</tr>
+<tr><td>HEX_V6[3]</td></tr>
 
-<tr><td>HEX.V2.4</td><td>mux</td>
-</tr>
+</tbody>
 
-<tr><td>HEX.V2.5</td><td>mux</td>
-</tr>
+</table>
+</div>
 
-<tr><td>HEX.V2.6</td><td>mux</td>
-</tr>
+<div class="table-wrapper">
+<table>
+<caption>virtex PCI_E switchbox PCI_INT muxes IMUX_PCI_I2</caption>
+<thead>
+<tr><th colspan="0">Bits</th><th colspan="1">Destination</th></tr>
 
-<tr><td>HEX.V3.3</td><td>mux</td>
-</tr>
+</thead>
 
-<tr><td>HEX.V3.2</td><td>mux</td>
-</tr>
+<tbody>
+<tr><td>IMUX_PCI_I2</td></tr>
 
-<tr><td>HEX.V3.1</td><td>mux</td>
-</tr>
+<tr><th colspan="0"></th><th colspan="1">Source</th></tr>
 
-<tr><td>HEX.V3.4</td><td>mux</td>
-</tr>
+<tr><td>HEX_V6[3]</td></tr>
 
-<tr><td>HEX.V3.5</td><td>mux</td>
-</tr>
+</tbody>
 
-<tr><td>HEX.V3.6</td><td>mux</td>
-</tr>
+</table>
+</div>
 
-<tr><td rowspan="12">PCI.IMUX.I2</td><td>HEX.V2.3</td><td>mux</td>
-</tr>
+<div class="table-wrapper">
+<table>
+<caption>virtex PCI_E switchbox PCI_INT muxes IMUX_PCI_I3</caption>
+<thead>
+<tr><th colspan="0">Bits</th><th colspan="1">Destination</th></tr>
 
-<tr><td>HEX.V2.2</td><td>mux</td>
-</tr>
+</thead>
 
-<tr><td>HEX.V2.1</td><td>mux</td>
-</tr>
+<tbody>
+<tr><td>IMUX_PCI_I3</td></tr>
 
-<tr><td>HEX.V2.4</td><td>mux</td>
-</tr>
+<tr><th colspan="0"></th><th colspan="1">Source</th></tr>
 
-<tr><td>HEX.V2.5</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V2.6</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.3</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.2</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.1</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.4</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.5</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V3.6</td><td>mux</td>
-</tr>
-
-<tr><td rowspan="6">PCI.IMUX.I3</td><td>HEX.V1.3</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.2</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.1</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.4</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.5</td><td>mux</td>
-</tr>
-
-<tr><td>HEX.V1.6</td><td>mux</td>
-</tr>
+<tr><td>HEX_V6[1]</td></tr>
 
 </tbody>
 
@@ -1092,18 +2102,18 @@ inverted
 <h3 id="bel-pcilogic-1"><a class="header" href="#bel-pcilogic-1">Bel PCILOGIC</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKR bel PCILOGIC</caption>
+<caption>virtex PCI_E bel PCILOGIC</caption>
 <thead>
 <tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>I1</td><td>input</td><td>PCI.IMUX.I1</td></tr>
+<tr><td>I1</td><td>input</td><td>IMUX_PCI_I1</td></tr>
 
-<tr><td>I2</td><td>input</td><td>PCI.IMUX.I2</td></tr>
+<tr><td>I2</td><td>input</td><td>IMUX_PCI_I2</td></tr>
 
-<tr><td>I3</td><td>input</td><td>PCI.IMUX.I3</td></tr>
+<tr><td>I3</td><td>input</td><td>IMUX_PCI_I3</td></tr>
 
 <tr><td>PCI_CE</td><td>output</td><td>PCI_CE</td></tr>
 
@@ -1115,7 +2125,7 @@ inverted
 <h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKR bel wires</caption>
+<caption>virtex PCI_E bel wires</caption>
 <thead>
 <tr><th>Wire</th><th>Pins</th></tr>
 
@@ -1124,11 +2134,11 @@ inverted
 <tbody>
 <tr><td>PCI_CE</td><td>PCILOGIC.PCI_CE</td></tr>
 
-<tr><td>PCI.IMUX.I1</td><td>PCILOGIC.I1</td></tr>
+<tr><td>IMUX_PCI_I1</td><td>PCILOGIC.I1</td></tr>
 
-<tr><td>PCI.IMUX.I2</td><td>PCILOGIC.I2</td></tr>
+<tr><td>IMUX_PCI_I2</td><td>PCILOGIC.I2</td></tr>
 
-<tr><td>PCI.IMUX.I3</td><td>PCILOGIC.I3</td></tr>
+<tr><td>IMUX_PCI_I3</td><td>PCILOGIC.I3</td></tr>
 
 </tbody>
 
@@ -1138,7 +2148,1105 @@ inverted
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex CLKR rect R0</caption>
+<caption>virtex PCI_E rect MAIN</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
+
+<tr>
+<th>F0</th>
+<th>F1</th>
+<th>F2</th>
+<th>F3</th>
+<th>F4</th>
+<th>F5</th>
+<th>F6</th>
+<th>F7</th>
+<th>F8</th>
+<th>F9</th>
+<th>F10</th>
+<th>F11</th>
+<th>F12</th>
+<th>F13</th>
+<th>F14</th>
+<th>F15</th>
+<th>F16</th>
+<th>F17</th>
+<th>F18</th>
+<th>F19</th>
+<th>F20</th>
+<th>F21</th>
+<th>F22</th>
+<th>F23</th>
+<th>F24</th>
+<th>F25</th>
+<th>F26</th>
+<th>F27</th>
+<th>F28</th>
+<th>F29</th>
+<th>F30</th>
+<th>F31</th>
+<th>F32</th>
+<th>F33</th>
+<th>F34</th>
+<th>F35</th>
+<th>F36</th>
+<th>F37</th>
+<th>F38</th>
+<th>F39</th>
+<th>F40</th>
+<th>F41</th>
+<th>F42</th>
+<th>F43</th>
+<th>F44</th>
+<th>F45</th>
+<th>F46</th>
+<th>F47</th>
+<th>F48</th>
+<th>F49</th>
+<th>F50</th>
+<th>F51</th>
+<th>F52</th>
+<th>F53</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B17</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B16</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B15</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B14</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B13</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+### Bitstream
+<div class="table-wrapper">
+<table>
+<caption>virtex PCI_E rect R0</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="54">Frame</th></tr>
 
@@ -1242,15 +3350,15 @@ inverted
 <td>-</td>
 <td>-</td>
 <td title="R0.F38.B4">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[3]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[3]</a>
 </td>
 <td>-</td>
 <td>-</td>
 <td title="R0.F41.B4">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[1]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[1]</a>
 </td>
 <td title="R0.F42.B4">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[0]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[2]</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -1258,7 +3366,7 @@ inverted
 <td>-</td>
 <td>-</td>
 <td title="R0.F48.B4">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3[2]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3[0]</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -1279,10 +3387,10 @@ inverted
 <td>-</td>
 <td>-</td>
 <td title="R0.F10.B3">
-<a href="#tile-virtex-CLKR-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[0]</a>
+<a href="#tile-virtex-PCI_E-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[0]</a>
 </td>
 <td title="R0.F11.B3">
-<a href="#tile-virtex-CLKR-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[1]</a>
+<a href="#tile-virtex-PCI_E-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY[1]</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -1311,52 +3419,52 @@ inverted
 <td>-</td>
 <td>-</td>
 <td title="R0.F38.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[2]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[0]</a>
 </td>
 <td title="R0.F39.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[1]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[1]</a>
 </td>
 <td title="R0.F40.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[0]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[2]</a>
 </td>
 <td title="R0.F41.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[3]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[3]</a>
 </td>
 <td title="R0.F42.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[5]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[5]</a>
 </td>
 <td title="R0.F43.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[6]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[6]</a>
 </td>
 <td title="R0.F44.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I1">~PCI_INT:INV.PCI.IMUX.I1</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I1">~PCI_INT:INV.IMUX_PCI_I1</a>
 </td>
 <td title="R0.F45.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I2">~PCI_INT:INV.PCI.IMUX.I2</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I2">~PCI_INT:INV.IMUX_PCI_I2</a>
 </td>
 <td title="R0.F46.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[4]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[4]</a>
 </td>
 <td title="R0.F47.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[5]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[5]</a>
 </td>
 <td title="R0.F48.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[6]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[6]</a>
 </td>
 <td title="R0.F49.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1[2]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[0]</a>
 </td>
 <td title="R0.F50.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[4]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[4]</a>
 </td>
 <td title="R0.F51.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[3]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[3]</a>
 </td>
 <td title="R0.F52.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[0]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[2]</a>
 </td>
 <td title="R0.F53.B3">
-<a href="#tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2[1]</a>
+<a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[1]</a>
 </td>
 </tr>
 
@@ -1539,7 +3647,7 @@ inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKR-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
+<tr><th id="tile-virtex-PCI_E-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
 <th>0.F11.B3</th>
 <th>0.F10.B3</th>
 </tr>
@@ -1562,11 +3670,11 @@ non-inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I1">PCI_INT:INV.PCI.IMUX.I1</th>
+<tr><th id="tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I1">PCI_INT:INV.IMUX_PCI_I1</th>
 <th>0.F44.B3</th>
 </tr>
 
-<tr><th id="tile-virtex-CLKR-PCI_INT:INV.PCI.IMUX.I2">PCI_INT:INV.PCI.IMUX.I2</th>
+<tr><th id="tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I2">PCI_INT:INV.IMUX_PCI_I2</th>
 <th>0.F45.B3</th>
 </tr>
 
@@ -1587,24 +3695,24 @@ inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I1">PCI_INT:MUX.PCI.IMUX.I1</th>
+<tr><th id="tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1</th>
 <th>0.F48.B3</th>
 <th>0.F47.B3</th>
 <th>0.F46.B3</th>
 <th>0.F41.B3</th>
-<th>0.F49.B3</th>
-<th>0.F39.B3</th>
 <th>0.F40.B3</th>
+<th>0.F39.B3</th>
+<th>0.F49.B3</th>
 </tr>
 
-<tr><th id="tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I2">PCI_INT:MUX.PCI.IMUX.I2</th>
+<tr><th id="tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2</th>
 <th>0.F43.B3</th>
 <th>0.F42.B3</th>
 <th>0.F50.B3</th>
 <th>0.F51.B3</th>
-<th>0.F38.B3</th>
-<th>0.F53.B3</th>
 <th>0.F52.B3</th>
+<th>0.F53.B3</th>
+<th>0.F38.B3</th>
 </tr>
 
 </thead>
@@ -1620,7 +3728,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.3</td>
+<tr><td>HEX_V1[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -1630,7 +3738,7 @@ inverted
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V2.2</td>
+<tr><td>HEX_V2[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -1640,7 +3748,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.1</td>
+<tr><td>HEX_V3[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -1650,7 +3758,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.4</td>
+<tr><td>HEX_V4[2]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
@@ -1660,7 +3768,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.5</td>
+<tr><td>HEX_V5[2]</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
@@ -1670,7 +3778,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V2.6</td>
+<tr><td>HEX_V6[2]</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
@@ -1680,7 +3788,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.3</td>
+<tr><td>HEX_V1[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -1690,7 +3798,7 @@ inverted
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V3.2</td>
+<tr><td>HEX_V2[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -1700,7 +3808,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.1</td>
+<tr><td>HEX_V3[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -1710,7 +3818,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.4</td>
+<tr><td>HEX_V4[3]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
@@ -1720,7 +3828,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.5</td>
+<tr><td>HEX_V5[3]</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
@@ -1730,7 +3838,7 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V3.6</td>
+<tr><td>HEX_V6[3]</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
@@ -1748,11 +3856,11 @@ inverted
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th id="tile-virtex-CLKR-PCI_INT:MUX.PCI.IMUX.I3">PCI_INT:MUX.PCI.IMUX.I3</th>
+<tr><th id="tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I3">PCI_INT:MUX.IMUX_PCI_I3</th>
 <th>0.F38.B4</th>
-<th>0.F48.B4</th>
-<th>0.F41.B4</th>
 <th>0.F42.B4</th>
+<th>0.F41.B4</th>
+<th>0.F48.B4</th>
 </tr>
 
 </thead>
@@ -1765,42 +3873,42 @@ inverted
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.6</td>
+<tr><td>HEX_V4[1]</td>
 <td>0</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V1.5</td>
+<tr><td>HEX_V5[1]</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.4</td>
+<tr><td>HEX_V6[1]</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.3</td>
+<tr><td>HEX_V1[1]</td>
 <td>1</td>
 <td>0</td>
 <td>0</td>
 <td>1</td>
 </tr>
 
-<tr><td>HEX.V1.2</td>
+<tr><td>HEX_V2[1]</td>
 <td>1</td>
 <td>0</td>
 <td>1</td>
 <td>0</td>
 </tr>
 
-<tr><td>HEX.V1.1</td>
+<tr><td>HEX_V3[1]</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
