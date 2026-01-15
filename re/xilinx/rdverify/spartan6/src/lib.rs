@@ -924,17 +924,9 @@ fn verify_btioi_clk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCo
     vrf.claim_pip(bel.crd(), bel.wire("PCI_CE_O"), bel.wire("PCI_CE_I"));
     verify_pci_ce_h_src(endev, vrf, bel, "PCI_CE_I");
     let bi = if bel.col <= endev.chip.col_clk {
-        if bel.row == endev.chip.row_s() {
-            4
-        } else {
-            0
-        }
+        if bel.row == endev.chip.row_s() { 4 } else { 0 }
     } else {
-        if bel.row == endev.chip.row_s() {
-            0
-        } else {
-            4
-        }
+        if bel.row == endev.chip.row_s() { 0 } else { 4 }
     };
     for i in 0..4 {
         vrf.claim_net(&[bel.fwire(&format!("IOCLK{i}_O"))]);

@@ -1436,7 +1436,8 @@ impl<'a> Verifier<'a> {
     }
 
     pub fn get_bel(&self, bel: BelCoord) -> BelContext<'a> {
-        self.find_bel(bel).unwrap_or_else(|| panic!("{}", bel.to_string(self.db)))
+        self.find_bel(bel)
+            .unwrap_or_else(|| panic!("{}", bel.to_string(self.db)))
     }
 
     pub fn find_bel(&self, bel: BelCoord) -> Option<BelContext<'a>> {

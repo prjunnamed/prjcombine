@@ -3,8 +3,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use bincode::{Decode, Encode};
 use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityRange};
-use prjcombine_interconnect::grid::{
-    BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId,
+use prjcombine_interconnect::{
+    dir::{DirH, DirV},
+    grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 
 use crate::bels;
@@ -162,20 +163,18 @@ impl Chip {
         RowId::from_idx(self.rows / 2)
     }
 
-    pub fn col_ql(&self) -> ColId {
-        ColId::from_idx((self.columns + 2) / 4)
+    pub fn col_q(&self, side: DirH) -> ColId {
+        match side {
+            DirH::W => ColId::from_idx((self.columns + 2) / 4),
+            DirH::E => ColId::from_idx(3 * self.columns / 4),
+        }
     }
 
-    pub fn col_qr(&self) -> ColId {
-        ColId::from_idx(3 * self.columns / 4)
-    }
-
-    pub fn row_qb(&self) -> RowId {
-        RowId::from_idx((self.rows + 2) / 4)
-    }
-
-    pub fn row_qt(&self) -> RowId {
-        RowId::from_idx(3 * self.rows / 4)
+    pub fn row_q(&self, side: DirV) -> RowId {
+        match side {
+            DirV::S => RowId::from_idx((self.rows + 2) / 4),
+            DirV::N => RowId::from_idx(3 * self.rows / 4),
+        }
     }
 
     pub fn columns(&self) -> EntityRange<ColId> {

@@ -1,5 +1,8 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
-use prjcombine_interconnect::grid::{ColId, DieId, ExpandedGrid, RowId, TileCoord};
+use prjcombine_interconnect::{
+    dir::{DirH, DirV},
+    grid::{ColId, DieId, ExpandedGrid, RowId, TileCoord},
+};
 use prjcombine_types::bsdata::BitRectId;
 use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 
@@ -182,7 +185,7 @@ impl ExpandedDevice<'_> {
             self.chip.btile_height_brk()
         } else if self.chip.kind.is_xc3000() || row == self.chip.row_mid() {
             self.chip.btile_height_clk()
-        } else if row == self.chip.row_qb() || row == self.chip.row_qt() {
+        } else if row == self.chip.row_q(DirV::S) || row == self.chip.row_q(DirV::N) {
             self.chip.btile_height_brk()
         } else {
             unreachable!()
@@ -203,7 +206,7 @@ impl ExpandedDevice<'_> {
             self.chip.btile_width_brk()
         } else if col == self.chip.col_mid() {
             self.chip.btile_width_clk()
-        } else if col == self.chip.col_ql() || col == self.chip.col_qr() {
+        } else if col == self.chip.col_q(DirH::W) || col == self.chip.col_q(DirH::E) {
             self.chip.btile_width_brk()
         } else {
             unreachable!()

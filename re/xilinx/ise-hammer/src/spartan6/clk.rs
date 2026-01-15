@@ -1171,9 +1171,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.tiledb.insert(tile, "BUFPLL_COMMON", "PLLIN", item);
             }
             let mut diff0 = ctx.state.get_diff(tile, bel, "LOCK_SRC", "LOCK_TO_0");
-            diff0.apply_bit_diff(ctx.tiledb.item(tile, "BUFPLL[1]", "ENABLE_SYNC"), false, true);
+            diff0.apply_bit_diff(
+                ctx.tiledb.item(tile, "BUFPLL[1]", "ENABLE_SYNC"),
+                false,
+                true,
+            );
             let mut diff1 = ctx.state.get_diff(tile, bel, "LOCK_SRC", "LOCK_TO_1");
-            diff1.apply_bit_diff(ctx.tiledb.item(tile, "BUFPLL[0]", "ENABLE_SYNC"), false, true);
+            diff1.apply_bit_diff(
+                ctx.tiledb.item(tile, "BUFPLL[0]", "ENABLE_SYNC"),
+                false,
+                true,
+            );
             ctx.tiledb.insert(
                 tile,
                 bel,
@@ -1181,8 +1189,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 xlat_enum(vec![("LOCK_TO_0", diff0), ("LOCK_TO_1", diff1)]),
             );
             let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL[0]", "ENABLE_BOTH_SYNC"), 7, 0);
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, "BUFPLL[1]", "ENABLE_BOTH_SYNC"), 7, 0);
+            diff.apply_bitvec_diff_int(
+                ctx.tiledb.item(tile, "BUFPLL[0]", "ENABLE_BOTH_SYNC"),
+                7,
+                0,
+            );
+            diff.apply_bitvec_diff_int(
+                ctx.tiledb.item(tile, "BUFPLL[1]", "ENABLE_BOTH_SYNC"),
+                7,
+                0,
+            );
             diff.assert_empty();
         }
         if !is_lr {

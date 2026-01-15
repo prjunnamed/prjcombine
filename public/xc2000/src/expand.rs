@@ -1,6 +1,7 @@
 use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::IntDb,
+    dir::{DirH, DirV},
     grid::{CellCoord, ColId, DieId, ExpandedGrid, RowId},
 };
 use prjcombine_xilinx_bitstream::{
@@ -46,13 +47,13 @@ impl Chip {
             "IO.LS.B"
         } else if row == self.row_n() - 1 {
             "IO.L.T"
-        } else if self.kind.is_xl() && row == self.row_qb() {
+        } else if self.kind.is_xl() && row == self.row_q(DirV::S) {
             if row.to_idx().is_multiple_of(2) {
                 "IO.L.FB"
             } else {
                 "IO.LS.FB"
             }
-        } else if self.kind.is_xl() && row == self.row_qt() - 1 {
+        } else if self.kind.is_xl() && row == self.row_q(DirV::N) - 1 {
             if row.to_idx().is_multiple_of(2) {
                 "IO.L.FT"
             } else {
@@ -68,14 +69,14 @@ impl Chip {
     fn get_rio_tcls(&self, row: RowId) -> &'static str {
         assert!(self.kind.is_xc4000());
         let row_f = if self.is_buff_large {
-            self.row_qb() + 1
+            self.row_q(DirV::S) + 1
         } else {
-            self.row_qb()
+            self.row_q(DirV::S)
         };
         let row_f1 = if self.is_buff_large {
-            self.row_qt() - 2
+            self.row_q(DirV::N) - 2
         } else {
-            self.row_qt() - 1
+            self.row_q(DirV::N) - 1
         };
         if row == self.row_s() + 1 {
             "IO.RS.B"
@@ -430,7 +431,7 @@ impl Chip {
                 }
 
                 if self.kind.is_xl() {
-                    for col in [self.col_ql(), self.col_qr()] {
+                    for col in [self.col_q(DirH::W), self.col_q(DirH::E)] {
                         for cell in egrid.column(die, col) {
                             if cell.row == self.row_s() || cell.row == self.row_n() {
                                 egrid.fill_conn_pair(
@@ -472,7 +473,7 @@ impl Chip {
                         egrid.add_tile(cell, kind, &[cell.delta(-1, 0), cell]);
                     }
 
-                    for (bt, row) in [('B', self.row_qb()), ('T', self.row_qt())] {
+                    for (bt, row) in [('B', self.row_q(DirV::S)), ('T', self.row_q(DirV::N))] {
                         for cell in egrid.row(die, row) {
                             egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLVQ.N", "LLVQ.S");
                             let kind = if cell.col == self.col_w() {
@@ -506,8 +507,8 @@ impl Chip {
                     }
 
                     if self.kind == ChipKind::Xc4000Xv {
-                        for row in [self.row_qb(), self.row_qt()] {
-                            for col in [self.col_ql(), self.col_qr()] {
+                        for row in [self.row_q(DirV::S), self.row_q(DirV::N)] {
+                            for col in [self.col_q(DirH::W), self.col_q(DirH::E)] {
                                 let cell = CellCoord::new(die, col, row);
                                 egrid.add_tile(cell, "CLKQ", &[cell.delta(-1, 0), cell]);
                             }
@@ -519,11 +520,11 @@ impl Chip {
                             &[],
                         );
                         egrid.add_tile_single(
-                            CellCoord::new(die, self.col_mid(), self.row_qb()),
+                            CellCoord::new(die, self.col_mid(), self.row_q(DirV::S)),
                             "CLKQC",
                         );
                         egrid.add_tile_single(
-                            CellCoord::new(die, self.col_mid(), self.row_qt()),
+                            CellCoord::new(die, self.col_mid(), self.row_q(DirV::N)),
                             "CLKQC",
                         );
                     }
@@ -574,7 +575,9 @@ impl Chip {
                 egrid.fill_conn_term(CellCoord::new(die, self.col_e(), self.row_n()), "CNR.UR.E");
 
                 for row in egrid.rows(die) {
-                    if self.kind.is_xl() && (row == self.row_qb() || row == self.row_qt()) {
+                    if self.kind.is_xl()
+                        && (row == self.row_q(DirV::S) || row == self.row_q(DirV::N))
+                    {
                         llv_framebit.insert(row, frame_len);
                         frame_len += self.btile_height_brk();
                     }
@@ -622,7 +625,9 @@ impl Chip {
                             });
                         }
                     }
-                    if self.kind.is_xl() && (col == self.col_ql() || col == self.col_qr()) {
+                    if self.kind.is_xl()
+                        && (col == self.col_q(DirH::W) || col == self.col_q(DirH::E))
+                    {
                         let minor = frame_info.len();
                         llh_frame.insert(col, frame_info.len());
                         frame_info.push(FrameInfo {

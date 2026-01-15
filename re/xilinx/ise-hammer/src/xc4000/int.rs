@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashSet, btree_map};
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, BelSlotId, CellSlotId, SwitchBoxItem, TileWireCoord},
-    dir::DirH,
+    dir::{DirH, DirV},
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum, xlat_enum_ocd};
@@ -502,21 +502,21 @@ fn drive_xc4000_wire<'a>(
             }
         } else if wname.starts_with("GCLK") {
             if cell.row == edev.chip.row_s() {
-                cell.row = edev.chip.row_qb();
+                cell.row = edev.chip.row_q(DirV::S);
             } else {
-                cell.row = edev.chip.row_qt();
+                cell.row = edev.chip.row_q(DirV::N);
             }
             tslot = tslots::EXTRA_ROW;
         } else if wname == "VCLK" {
             if cell.row == edev.chip.row_s() {
                 // OK
-            } else if cell.row == edev.chip.row_qb() {
+            } else if cell.row == edev.chip.row_q(DirV::S) {
                 cell.row = edev.chip.row_mid();
                 tslot = tslots::EXTRA_ROW;
             } else if cell.row == edev.chip.row_mid() {
                 twt = CellSlotId::from_idx(1);
                 tslot = tslots::EXTRA_ROW;
-            } else if cell.row == edev.chip.row_qt() {
+            } else if cell.row == edev.chip.row_q(DirV::N) {
                 cell.row = edev.chip.row_n();
             } else {
                 unreachable!()

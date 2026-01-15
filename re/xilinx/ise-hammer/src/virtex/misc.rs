@@ -3,7 +3,10 @@ use prjcombine_re_fpga_hammer::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex::{chip::ChipKind, defs::{self, wires}};
+use prjcombine_virtex::{
+    chip::ChipKind,
+    defs::{self, wires},
+};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{

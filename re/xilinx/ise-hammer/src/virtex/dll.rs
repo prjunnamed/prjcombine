@@ -127,9 +127,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Virtex(edev) = backend.edev else {
         unreachable!()
     };
-    for tile in [
-        "DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N",
-    ] {
+    for tile in ["DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N"] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
@@ -268,9 +266,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in [
-        "DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N",
-    ] {
+    for tile in ["DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N"] {
         if !ctx.has_tile(tile) {
             continue;
         }

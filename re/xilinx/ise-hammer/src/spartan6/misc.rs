@@ -18,7 +18,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Spartan6(edev) = backend.edev else {
         unreachable!()
     };
-    for (tile, n) in [("CNR_SW", "BL"), ("CNR_NW", "TL"), ("CNR_SE", "BR"), ("CNR_NE", "TR")] {
+    for (tile, n) in [
+        ("CNR_SW", "BL"),
+        ("CNR_NW", "TL"),
+        ("CNR_SE", "BR"),
+        ("CNR_NE", "TR"),
+    ] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
         for vh in ['V', 'H'] {
             ctx.build()

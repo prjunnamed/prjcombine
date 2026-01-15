@@ -2283,7 +2283,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present.assert_empty();
     }
     let diff1 = present_vr.split_bits_by(|bit| bit.rect.to_idx() == 1);
-    ctx.tiledb.insert(tile, "IOB[0]", "VR", xlat_bit(present_vr));
+    ctx.tiledb
+        .insert(tile, "IOB[0]", "VR", xlat_bit(present_vr));
     ctx.tiledb.insert(tile, "IOB[1]", "VR", xlat_bit(diff1));
     // ISE bug.
     let mut diff = ctx.state.get_diff(tile, "IOB[0]", "PULL_DYNAMIC", "1");

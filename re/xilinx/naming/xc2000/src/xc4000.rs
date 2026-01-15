@@ -1,7 +1,10 @@
 use std::fmt::Write;
 
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::{CellCoord, ColId, RowId};
+use prjcombine_interconnect::{
+    dir::{DirH, DirV},
+    grid::{CellCoord, ColId, RowId},
+};
 use prjcombine_re_xilinx_naming::{
     db::{NamingDb, RawTileId},
     grid::ExpandedGridNaming,
@@ -24,13 +27,13 @@ fn get_tile_kind(chip: &Chip, col: ColId, row: RowId) -> &'static str {
             "LEFTSB"
         } else if row == chip.row_n() - 1 {
             "LEFTT"
-        } else if chip.kind.is_xl() && row == chip.row_qb() {
+        } else if chip.kind.is_xl() && row == chip.row_q(DirV::S) {
             if row.to_idx().is_multiple_of(2) {
                 "LEFTF"
             } else {
                 "LEFTSF"
             }
-        } else if chip.kind.is_xl() && row == chip.row_qt() - 1 {
+        } else if chip.kind.is_xl() && row == chip.row_q(DirV::N) - 1 {
             if row.to_idx().is_multiple_of(2) {
                 "LEFTF1"
             } else {
@@ -43,14 +46,14 @@ fn get_tile_kind(chip: &Chip, col: ColId, row: RowId) -> &'static str {
         }
     } else if col == chip.col_e() {
         let row_f = if chip.is_buff_large {
-            chip.row_qb() + 1
+            chip.row_q(DirV::S) + 1
         } else {
-            chip.row_qb()
+            chip.row_q(DirV::S)
         };
         let row_f1 = if chip.is_buff_large {
-            chip.row_qt() - 2
+            chip.row_q(DirV::N) - 2
         } else {
-            chip.row_qt() - 1
+            chip.row_q(DirV::N) - 1
         };
         if row == chip.row_s() {
             "LR"
@@ -480,9 +483,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
 
             "LLHQ.IO.B" => {
-                let lr = if col == chip.col_ql() {
+                let lr = if col == chip.col_q(DirH::W) {
                     'L'
-                } else if col == chip.col_qr() {
+                } else if col == chip.col_q(DirH::E) {
                     'R'
                 } else {
                     unreachable!()
@@ -490,9 +493,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ngrid.name_tile(tcrd, "LLHQ.IO.B", [format!("BQ{lr}")]);
             }
             "LLHQ.IO.T" => {
-                let lr = if col == chip.col_ql() {
+                let lr = if col == chip.col_q(DirH::W) {
                     'L'
-                } else if col == chip.col_qr() {
+                } else if col == chip.col_q(DirH::E) {
                     'R'
                 } else {
                     unreachable!()
@@ -500,16 +503,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ngrid.name_tile(tcrd, "LLHQ.IO.T", [format!("TQ{lr}")]);
             }
             _ if kind.starts_with("LLHQ.CLB") => {
-                let lr = if col == chip.col_ql() {
+                let lr = if col == chip.col_q(DirH::W) {
                     'L'
-                } else if col == chip.col_qr() {
+                } else if col == chip.col_q(DirH::E) {
                     'R'
                 } else {
                     unreachable!()
                 };
                 let naming = if chip.kind != ChipKind::Xc4000Xv {
                     "LLHQ.CLB"
-                } else if row >= chip.row_qb() && row < chip.row_qt() {
+                } else if row >= chip.row_q(DirV::S) && row < chip.row_q(DirV::N) {
                     "LLHQ.CLB.I"
                 } else {
                     "LLHQ.CLB.O"
@@ -556,7 +559,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(bels::PULLUP_DEC3_E, format!("PULLUP_R{r}C{c}.5"));
             }
             _ if kind.starts_with("LLHC.CLB") => {
-                let naming = if row >= chip.row_qb() && row < chip.row_qt() {
+                let naming = if row >= chip.row_q(DirV::S) && row < chip.row_q(DirV::N) {
                     "LLHC.CLB.I"
                 } else {
                     "LLHC.CLB.O"
@@ -568,9 +571,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(bels::PULLUP_TBUF1_E, format!("PULLUP_R{r}C{c}.3"));
             }
             _ if kind.starts_with("LLVQ.IO.L") => {
-                let bt = if row == chip.row_qb() {
+                let bt = if row == chip.row_q(DirV::S) {
                     'B'
-                } else if row == chip.row_qt() {
+                } else if row == chip.row_q(DirV::N) {
                     'T'
                 } else {
                     unreachable!()
@@ -580,9 +583,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(bels::BUFF, format!("BUFF_{sn}W"));
             }
             _ if kind.starts_with("LLVQ.IO.R") => {
-                let bt = if row == chip.row_qb() {
+                let bt = if row == chip.row_q(DirV::S) {
                     'B'
-                } else if row == chip.row_qt() {
+                } else if row == chip.row_q(DirV::N) {
                     'T'
                 } else {
                     unreachable!()
@@ -605,9 +608,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(bels::BUFF, format!("BUFF_{sn}E"));
             }
             "LLVQ.CLB" => {
-                let bt = if row == chip.row_qb() {
+                let bt = if row == chip.row_q(DirV::S) {
                     'B'
-                } else if row == chip.row_qt() {
+                } else if row == chip.row_q(DirV::N) {
                     'T'
                 } else {
                     unreachable!()
@@ -643,16 +646,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             }
 
             "CLKQ" => {
-                let bt = if row == chip.row_qb() {
+                let bt = if row == chip.row_q(DirV::S) {
                     'B'
-                } else if row == chip.row_qt() {
+                } else if row == chip.row_q(DirV::N) {
                     'T'
                 } else {
                     unreachable!()
                 };
-                let lr = if col == chip.col_ql() {
+                let lr = if col == chip.col_q(DirH::W) {
                     'L'
-                } else if col == chip.col_qr() {
+                } else if col == chip.col_q(DirH::E) {
                     'R'
                 } else {
                     unreachable!()
@@ -664,9 +667,9 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ngrid.name_tile(tcrd, "CLKC", ["M".into()]);
             }
             "CLKQC" => {
-                let bt = if row == chip.row_qb() {
+                let bt = if row == chip.row_q(DirV::S) {
                     'B'
-                } else if row == chip.row_qt() {
+                } else if row == chip.row_q(DirV::N) {
                     'T'
                 } else {
                     unreachable!()
