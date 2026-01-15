@@ -100,14 +100,14 @@ pub fn make_device(
 }
 
 pub struct DbBuilder {
-    grids: EntityVec<ChipId, Chip>,
-    bonds: EntityVec<BondId, Bond>,
-    interposers: EntityVec<InterposerId, Interposer>,
-    dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
-    devices: Vec<Device>,
-    ints: BTreeMap<String, IntDb>,
-    namings: BTreeMap<String, NamingDb>,
-    gtz: GtzDb,
+    pub grids: EntityVec<ChipId, Chip>,
+    pub bonds: EntityVec<BondId, Bond>,
+    pub interposers: EntityVec<InterposerId, Interposer>,
+    pub dev_namings: EntityVec<DeviceNamingId, DeviceNaming>,
+    pub devices: Vec<Device>,
+    pub ints: BTreeMap<String, IntDb>,
+    pub namings: BTreeMap<String, NamingDb>,
+    pub gtz: GtzDb,
 }
 
 impl DbBuilder {
@@ -124,7 +124,7 @@ impl DbBuilder {
         }
     }
 
-    pub fn insert_grid(&mut self, grid: Chip) -> ChipId {
+    pub fn insert_chip(&mut self, grid: Chip) -> ChipId {
         for (i, g) in self.grids.iter() {
             if g == &grid {
                 return i;
@@ -161,7 +161,7 @@ impl DbBuilder {
     }
 
     pub fn ingest(&mut self, pre: PreDevice) {
-        let grids = pre.grids.into_map_values(|x| self.insert_grid(x));
+        let chips = pre.grids.into_map_values(|x| self.insert_chip(x));
         let bonds = pre.bonds.into_map_values(|(name, b)| DeviceBond {
             name,
             bond: self.insert_bond(b),
@@ -170,7 +170,7 @@ impl DbBuilder {
         let interposer = self.insert_interposer(pre.interposer);
         self.devices.push(Device {
             name: pre.name,
-            chips: grids,
+            chips,
             interposer,
             bonds,
             speeds: pre.speeds,
@@ -188,7 +188,7 @@ impl DbBuilder {
         self.ingest_int(pre.intdb_name, pre.intdb_init, pre.intdb, pre.ndb);
     }
 
-    fn ingest_int(&mut self, name: String, intdb_init: IntDb, int: IntDb, naming: NamingDb) {
+    pub fn ingest_int(&mut self, name: String, intdb_init: IntDb, int: IntDb, naming: NamingDb) {
         match self.ints.entry(name.clone()) {
             btree_map::Entry::Vacant(x) => {
                 x.insert(int);
