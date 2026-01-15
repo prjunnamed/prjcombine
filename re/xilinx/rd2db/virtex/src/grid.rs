@@ -4,8 +4,8 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, ColId, DieId, EdgeIoCoord};
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 use prjcombine_virtex::{
-    bels,
     chip::{Chip, ChipKind, DisabledPart, SharedCfgPad},
+    defs,
 };
 
 use prjcombine_re_xilinx_rd2db_grid::{IntGrid, extract_int, find_columns};
@@ -83,7 +83,8 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                 let die = DieId::from_idx(0);
                 let col = int.lookup_column(crd.x.into());
                 let row = int.lookup_row(crd.y.into());
-                let io = chip.get_io_crd(CellCoord::new(die, col, row).bel(bels::IO[idx as usize]));
+                let io = chip
+                    .get_io_crd(CellCoord::new(die, col, row).bel(defs::bslots::IO[idx as usize]));
                 io_lookup.insert(v.clone(), io);
             }
         }

@@ -1,9 +1,9 @@
 # I/O Buffers (Virtex)
 
-{{tile virtex IOB.L.V}}
-{{tile virtex IOB.R.V}}
-{{tile virtex IOB.B.V}}
-{{tile virtex IOB.T.V}}
+{{tile virtex IOB_W_V}}
+{{tile virtex IOB_E_V}}
+{{tile virtex IOB_S_V}}
+{{tile virtex IOB_N_V}}
 
 
 ## Tables

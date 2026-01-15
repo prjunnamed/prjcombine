@@ -1,8 +1,8 @@
 # Delay-locked loop
 
-{{tile virtex DLL.BOT}}
-{{tile virtex DLLP.BOT}}
-{{tile virtex DLLS.BOT}}
-{{tile virtex DLL.TOP}}
-{{tile virtex DLLP.TOP}}
-{{tile virtex DLLS.TOP}}
+{{tile virtex DLL_S}}
+{{tile virtex DLLP_S}}
+{{tile virtex DLLS_S}}
+{{tile virtex DLL_N}}
+{{tile virtex DLLP_N}}
+{{tile virtex DLLS_N}}

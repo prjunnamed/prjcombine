@@ -3,7 +3,7 @@ use prjcombine_re_fpga_hammer::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex::{bels, chip::ChipKind};
+use prjcombine_virtex::{chip::ChipKind, defs::{self, wires}};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -16,9 +16,9 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for tile in ["CLKL", "CLKR"] {
+    for tile in ["PCI_W", "PCI_E"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let mut bctx = ctx.bel(bels::PCILOGIC);
+        let mut bctx = ctx.bel(defs::bslots::PCILOGIC);
         bctx.test_manual("PRESENT", "1").mode("PCILOGIC").commit();
         bctx.mode("PCILOGIC")
             .pin("I1")
@@ -30,14 +30,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new_null(session, backend);
     for val in ["00", "01", "10", "11"] {
         ctx.build()
-            .extra_tiles_by_bel(bels::PCILOGIC, "PCILOGIC")
+            .extra_tiles_by_bel(defs::bslots::PCILOGIC, "PCILOGIC")
             .test_manual("PCILOGIC", "PCI_DELAY", val)
             .global("PCIDELAY", val)
             .commit();
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.BL");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_SW");
         for attr in ["M0PIN", "M1PIN", "M2PIN"] {
             for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
                 ctx.test_manual("MISC", attr, val)
@@ -63,7 +63,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
 
-        let mut bctx = ctx.bel(bels::CAPTURE);
+        let mut bctx = ctx.bel(defs::bslots::CAPTURE);
         bctx.test_manual("PRESENT", "1").mode("CAPTURE").commit();
         bctx.mode("CAPTURE")
             .pin("CLK")
@@ -79,7 +79,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.TL");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_NW");
         for attr in ["TMSPIN", "TCKPIN"] {
             for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
                 ctx.test_manual("MISC", attr, val)
@@ -100,7 +100,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
 
-        let mut bctx = ctx.bel(bels::STARTUP);
+        let mut bctx = ctx.bel(defs::bslots::STARTUP);
         bctx.test_manual("PRESENT", "1").mode("STARTUP").commit();
         bctx.mode("STARTUP")
             .pin("CLK")
@@ -114,9 +114,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode("STARTUP")
             .pin("GSR")
             .test_enum("GSRMUX", &["0", "1", "GSR", "GSR_B"]);
-        let wire_gwe = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.STARTUP.GWE"));
-        let wire_gts = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.STARTUP.GTS"));
-        let wire_gsr = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.STARTUP.GSR"));
+        let wire_gwe = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GWE);
+        let wire_gts = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GTS);
+        let wire_gsr = TileWireCoord::new_idx(0, wires::IMUX_STARTUP_GSR);
         bctx.mode("STARTUP")
             .no_pin("GTS")
             .no_pin("GWE")
@@ -167,7 +167,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
 
-        let mut bctx = ctx.bel(bels::BSCAN);
+        let mut bctx = ctx.bel(defs::bslots::BSCAN);
         bctx.test_manual("PRESENT", "1").mode("BSCAN").commit();
         bctx.mode("BSCAN")
             .pin("TDO1")
@@ -180,7 +180,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.BR");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_SE");
         for attr in ["DONEPIN", "PROGPIN"] {
             for val in ["PULLUP", "PULLNONE"] {
                 ctx.test_manual("MISC", attr, val)
@@ -191,7 +191,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.TR");
+        let mut ctx = FuzzCtx::new(session, backend, "CNR_NE");
         for attr in ["TDIPIN", "TDOPIN"] {
             for val in ["PULLUP", "PULLDOWN", "PULLNONE"] {
                 ctx.test_manual("MISC", attr, val)
@@ -262,7 +262,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex(edev) = ctx.edev else {
         unreachable!()
     };
-    for tile in ["CLKL", "CLKR"] {
+    for tile in ["PCI_W", "PCI_E"] {
         let bel = "PCILOGIC";
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
         for (pinmux, pin, pin_b) in [("I1MUX", "I1", "I1_B"), ("I2MUX", "I2", "I2_B")] {
@@ -298,7 +298,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
     }
     {
-        let tile = "CNR.BL";
+        let tile = "CNR_SW";
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "M0PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "M1PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
@@ -337,7 +337,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.state.get_diff(tile, bel, "ONESHOT", "1").assert_empty();
     }
     {
-        let tile = "CNR.TL";
+        let tile = "CNR_NW";
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "TMSPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "TCKPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
@@ -408,13 +408,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "USERID", "");
     }
     {
-        let tile = "CNR.BR";
+        let tile = "CNR_SE";
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "DONEPIN", &["PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "PROGPIN", &["PULLUP", "PULLNONE"]);
     }
     {
-        let tile = "CNR.TR";
+        let tile = "CNR_NE";
         let bel = "MISC";
         ctx.collect_enum(tile, bel, "CCLKPIN", &["PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "TDIPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);

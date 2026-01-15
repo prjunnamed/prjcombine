@@ -1,6 +1,6 @@
 # I/O Interface
 
-{{tile virtex IO.L}}
-{{tile virtex IO.R}}
-{{tile virtex IO.B}}
-{{tile virtex IO.T}}
+{{tile virtex IO_W}}
+{{tile virtex IO_E}}
+{{tile virtex IO_S}}
+{{tile virtex IO_N}}

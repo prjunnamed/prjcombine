@@ -5,7 +5,10 @@ use prjcombine_interconnect::grid::{ColId, DieId, EdgeIoCoord, ExpandedGrid, Row
 use prjcombine_types::bsdata::BitRectId;
 use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 
-use crate::chip::{Chip, DisabledPart};
+use crate::{
+    chip::{Chip, DisabledPart},
+    defs::{tcls, tslots},
+};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Io {
@@ -92,8 +95,9 @@ impl ExpandedDevice<'_> {
 
     pub fn tile_bits(&self, tcrd: TileCoord) -> EntityVec<BitRectId, BitRect> {
         let tile = &self[tcrd];
-        let kind = self.db.tile_classes.key(tile.class).as_str();
-        if matches!(kind, "LBRAM" | "RBRAM" | "MBRAM") {
+        if self.db[tile.class].bitrects.is_empty() {
+            EntityVec::new()
+        } else if matches!(tile.class, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M) {
             EntityVec::from_iter([
                 self.btile_main(tcrd.col, tcrd.row),
                 self.btile_main(tcrd.col, tcrd.row + 1),
@@ -101,15 +105,17 @@ impl ExpandedDevice<'_> {
                 self.btile_main(tcrd.col, tcrd.row + 3),
                 self.btile_bram(tcrd.col, tcrd.row),
             ])
-        } else if kind.starts_with("CLKB") || kind.starts_with("CLKT") {
+        } else if tcrd.slot == tslots::CLK_SN {
             if tcrd.row == self.chip.row_s() {
                 EntityVec::from_iter([self.btile_spine(tcrd.row), self.btile_spine(tcrd.row + 1)])
             } else {
                 EntityVec::from_iter([self.btile_spine(tcrd.row), self.btile_spine(tcrd.row - 1)])
             }
-        } else if matches!(kind, "CLKV.CLKV" | "CLKV.GCLKV") {
+        } else if matches!(tile.class, tcls::CLKV_CLKV | tcls::CLKV_GCLKV) {
             EntityVec::from_iter([self.btile_clkv(tcrd.col, tcrd.row)])
-        } else if kind.starts_with("DLL") || matches!(kind, "BRAM_BOT" | "BRAM_TOP") {
+        } else if matches!(tcrd.slot, tslots::DLL | tslots::IOB)
+            || matches!(tile.class, tcls::BRAM_S | tcls::BRAM_N)
+        {
             EntityVec::from_iter([self.btile_main(tcrd.col, tcrd.row)])
         } else {
             EntityVec::from_iter(

@@ -1,3 +1,3 @@
 # North-east
 
-{{tile virtex CNR.TR}}
+{{tile virtex CNR_NE}}

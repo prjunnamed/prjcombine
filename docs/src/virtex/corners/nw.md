@@ -1,3 +1,3 @@
 # North-west
 
-{{tile virtex CNR.TL}}
+{{tile virtex CNR_NW}}

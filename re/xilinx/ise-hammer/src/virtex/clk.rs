@@ -1,6 +1,6 @@
 use prjcombine_re_fpga_hammer::{Diff, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex::bels;
+use prjcombine_virtex::defs;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -13,18 +13,18 @@ use super::io::VirtexOtherIobInput;
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let package = backend.ebonds.keys().next().unwrap();
     for tile in [
-        "CLKB",
-        "CLKT",
-        "CLKB_4DLL",
-        "CLKT_4DLL",
-        "CLKB_2DLL",
-        "CLKT_2DLL",
+        "CLK_S_V",
+        "CLK_N_V",
+        "CLK_S_VE_4DLL",
+        "CLK_N_VE_4DLL",
+        "CLK_S_VE_2DLL",
+        "CLK_N_VE_2DLL",
     ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::GCLK_IO[i]);
+            let mut bctx = ctx.bel(defs::bslots::GCLK_IO[i]);
             let iostds = if !tile.ends_with("DLL") {
                 &[
                     "LVTTL", "LVCMOS2", "PCI33_3", "PCI33_5", "PCI66_3", "GTL", "GTLP", "HSTL_I",
@@ -43,14 +43,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     .global_mutex("GCLKIOB", "YES")
                     .raw(Key::Package, package)
                     .global_mutex("VREF", "YES")
-                    .prop(VirtexOtherIobInput(bels::GCLK_IO[i], "GTL".into()))
+                    .prop(VirtexOtherIobInput(defs::bslots::GCLK_IO[i], "GTL".into()))
                     .global("UNUSEDPIN", "PULLNONE")
                     .test_manual("IOATTRBOX", iostd)
                     .mode("GCLKIOB")
                     .attr("IOATTRBOX", iostd)
                     .commit();
             }
-            let idx = if tile.starts_with("CLKB") { i } else { 2 + i };
+            let idx = if tile.starts_with("CLK_S") { i } else { 2 + i };
             for val in ["11110", "11101", "11011", "10111", "01111"] {
                 bctx.mode("GCLKIOB")
                     .test_manual("DELAY", val)
@@ -60,7 +60,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
         // TODO: IOFB
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::BUFG[i]);
+            let mut bctx = ctx.bel(defs::bslots::BUFG[i]);
             bctx.mode("GCLK")
                 .pin("CE")
                 .test_enum("CEMUX", &["0", "1", "CE", "CE_B"]);
@@ -68,16 +68,16 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .test_enum("DISABLE_ATTR", &["LOW", "HIGH"]);
         }
     }
-    for tile in ["CLKV.CLKV", "CLKV.GCLKV", "CLKV.NULL"] {
+    for tile in ["CLKV_CLKV", "CLKV_GCLKV", "CLKV_NULL"] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
 
-        let mut bctx = ctx.bel(bels::CLKV);
+        let mut bctx = ctx.bel(defs::bslots::CLKV);
         for lr in ['L', 'R'] {
             for i in 0..4 {
                 let mut builder = bctx.build();
-                if tile == "CLKV.NULL" {
+                if tile == "CLKV_NULL" {
                     builder = builder.null_bits();
                 }
                 builder
@@ -91,8 +91,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     // causes a crash on xcv405e. lmao.
     if !backend.device.name.ends_with('e') {
         for (tile, slot) in [
-            ("CLKV_BRAM_S", bels::CLKV_BRAM_S),
-            ("CLKV_BRAM_N", bels::CLKV_BRAM_N),
+            ("CLKV_BRAM_S", defs::bslots::CLKV_BRAM_S),
+            ("CLKV_BRAM_N", defs::bslots::CLKV_BRAM_N),
         ] {
             let mut ctx = FuzzCtx::new(session, backend, tile);
             let mut bctx = ctx.bel(slot);
@@ -107,9 +107,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
         }
     }
-    for tile in ["LBRAM", "RBRAM"] {
+    for tile in ["BRAM_W", "BRAM_E"] {
         let mut ctx = FuzzCtx::new(session, backend, tile);
-        let mut bctx = ctx.bel(bels::CLKV_BRAM);
+        let mut bctx = ctx.bel(defs::bslots::CLKV_BRAM);
         for lr in ['L', 'R'] {
             for i in 0..4 {
                 for j in 0..4 {
@@ -122,10 +122,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     for (tile, bel) in [
-        ("CLKC", bels::CLKC),
-        ("CLKC", bels::GCLKC),
-        ("GCLKC", bels::GCLKC),
-        ("BRAM_CLKH", bels::BRAM_CLKH),
+        ("CLKC", defs::bslots::CLKC),
+        ("CLKC", defs::bslots::GCLKC),
+        ("GCLKC", defs::bslots::GCLKC),
+        ("BRAM_CLKH", defs::bslots::BRAM_CLKH),
     ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
@@ -145,18 +145,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let is_s2 = ctx.device.name.contains("2s") && !ctx.device.name.ends_with('e');
     for tile in [
-        "CLKB",
-        "CLKB_4DLL",
-        "CLKB_2DLL",
-        "CLKT",
-        "CLKT_4DLL",
-        "CLKT_2DLL",
+        "CLK_S_V",
+        "CLK_S_VE_4DLL",
+        "CLK_S_VE_2DLL",
+        "CLK_N_V",
+        "CLK_N_VE_4DLL",
+        "CLK_N_VE_2DLL",
     ] {
         if !ctx.has_tile(tile) {
             continue;
         }
         for i in 0..2 {
-            let bel = format!("GCLK_IO{i}");
+            let bel = format!("GCLK_IO[{i}]");
             let bel = &bel;
             let mut diffs = vec![];
             for val in ["11110", "11101", "11011", "10111", "01111"] {
@@ -213,7 +213,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.tiledb.insert(tile, bel, "IBUF", xlat_enum(diffs));
         }
         for i in 0..2 {
-            let bel = format!("BUFG{i}");
+            let bel = format!("BUFG[{i}]");
             let bel = &bel;
             let d0 = ctx.state.get_diff(tile, bel, "CEMUX", "CE");
             assert_eq!(d0, ctx.state.get_diff(tile, bel, "CEMUX", "1"));
@@ -224,7 +224,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_enum_bool(tile, bel, "DISABLE_ATTR", "LOW", "HIGH");
         }
     }
-    for tile in ["CLKV.CLKV", "CLKV.GCLKV"] {
+    for tile in ["CLKV_CLKV", "CLKV_GCLKV"] {
         if !ctx.has_tile(tile) {
             continue;
         }
@@ -250,12 +250,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
     }
-    for tile in ["LBRAM", "RBRAM"] {
+    for tile in ["BRAM_W", "BRAM_E"] {
         let bel = "CLKV_BRAM";
-        for lr in ['L', 'R'] {
+        for (lr, t) in [('L', "BRAM_W"), ('R', "BRAM_E")] {
             for i in 0..4 {
                 for j in 0..4 {
-                    if tile.starts_with(lr) && !is_s2 {
+                    if tile == t && !is_s2 {
                         ctx.state
                             .get_diff(tile, bel, format!("BUF.GCLK_{lr}{i}_{j}"), "1")
                             .assert_empty();

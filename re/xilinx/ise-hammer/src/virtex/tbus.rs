@@ -30,9 +30,9 @@ impl TileRelation for ClbTbusRight {
                 ExpandedDevice::Virtex(_) => {
                     if backend
                         .edev
-                        .has_bel(cell.bel(prjcombine_virtex::bels::SLICE0))
+                        .has_bel(cell.bel(prjcombine_virtex::defs::bslots::SLICE[0]))
                     {
-                        return Some(cell.tile(prjcombine_virtex::tslots::MAIN));
+                        return Some(cell.tile(prjcombine_virtex::defs::tslots::MAIN));
                     }
                 }
                 ExpandedDevice::Virtex2(edev) => {
@@ -60,13 +60,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     let (tbus, tbuf, tiles) = match mode {
         Mode::Virtex => (
-            prjcombine_virtex::bels::TBUS,
-            Vec::from_iter(prjcombine_virtex::bels::TBUF),
-            &["CLB", "IO.L", "IO.R"][..],
+            prjcombine_virtex::defs::bslots::TBUS,
+            prjcombine_virtex::defs::bslots::TBUF,
+            &["CLB", "IO_W", "IO_E"][..],
         ),
         Mode::Virtex2 => (
             prjcombine_virtex2::defs::bslots::TBUS,
-            Vec::from_iter(prjcombine_virtex2::defs::bslots::TBUF),
+            prjcombine_virtex2::defs::bslots::TBUF,
             &["CLB"][..],
         ),
     };
@@ -99,7 +99,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
         }
         let mut bctx = ctx.bel(tbus);
-        if tile == "IO.L" {
+        if tile == "IO_W" {
             bctx.build()
                 .row_mutex_here("TBUS")
                 .test_manual("JOINER", "1")
@@ -107,13 +107,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .commit();
             bctx.build()
                 .row_mutex_here("TBUS")
-                .test_manual("JOINER_R", "1")
+                .test_manual("JOINER_E", "1")
                 .related_pip(ClbTbusRight, "BUS3_E", "BUS3")
                 .commit();
         } else if tile == "CLB" {
             bctx.build()
                 .row_mutex_here("TBUS")
-                .test_manual("JOINER_R", "1")
+                .test_manual("JOINER_E", "1")
                 .related_pip(ClbTbusRight, "BUS3_E", "BUS3")
                 .commit();
         }
@@ -127,14 +127,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         _ => unreachable!(),
     };
     let tiles: &[_] = match mode {
-        Mode::Virtex => &["CLB", "IO.L", "IO.R"],
+        Mode::Virtex => &["CLB", "IO_W", "IO_E"],
         Mode::Virtex2 => &["CLB"],
     };
     for &tile in tiles {
-        for bel in match mode {
-            Mode::Virtex => ["TBUF0", "TBUF1"],
-            Mode::Virtex2 => ["TBUF[0]", "TBUF[1]"],
-        } {
+        for bel in ["TBUF[0]", "TBUF[1]"] {
             if mode == Mode::Virtex {
                 for (pinmux, pin, pin_b) in [("TMUX", "T", "T_B"), ("IMUX", "I", "I_B")] {
                     let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
@@ -153,11 +150,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
         }
         let bel = "TBUS";
-        if tile == "IO.L" {
+        if tile == "IO_W" {
             ctx.collect_bit(tile, bel, "JOINER", "1");
         }
-        if tile != "IO.R" {
-            ctx.collect_bit(tile, bel, "JOINER_R", "1");
+        if tile != "IO_E" {
+            ctx.collect_bit(tile, bel, "JOINER_E", "1");
         }
     }
 }

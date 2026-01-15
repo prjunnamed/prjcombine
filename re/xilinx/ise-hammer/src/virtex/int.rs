@@ -2,14 +2,14 @@ use std::collections::HashSet;
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, SwitchBoxItem, TileWireCoord},
+    db::{BelInfo, SwitchBoxItem, TileWireCoord, WireSlotId},
     grid::{ColId, RowId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bitrect::BitRect as _;
-use prjcombine_virtex::{bels, tslots};
+use prjcombine_virtex::{defs, defs::tcls, defs::wires};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -45,12 +45,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinBramLv {
             .resolve_wire(backend.edev.tile_wire(tcrd, self.0))?;
         let mut tcrd = tcrd;
         tcrd.row = RowId::from_idx(1);
-        tcrd.slot = tslots::MAIN;
+        tcrd.slot = defs::tslots::MAIN;
         for i in 0..12 {
-            let wire_pin = TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("LV.{i}")));
-
+            let wire_pin = TileWireCoord::new_idx(0, wires::LV[i]);
             let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
-            let wire_clk = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.BRAM.CLKA"));
+            let wire_clk = TileWireCoord::new_idx(0, wires::IMUX_BRAM_CLKA);
             let resolved_clk = backend.edev.resolve_wire(tcrd.wire(wire_clk.wire)).unwrap();
             if resolved_pin == wire {
                 let (tile, wt, wf) = resolve_int_pip(backend, tcrd, wire_clk, wire_pin).unwrap();
@@ -84,11 +83,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinLh {
             .edev
             .tile_cell(tcrd, self.0.cell)
             .with_col(ColId::from_idx(0))
-            .tile(tslots::MAIN);
+            .tile(defs::tslots::MAIN);
         let tile = &backend.edev[tcrd];
         let tcls_index = &backend.edev.db_index[tile.class];
         for i in 0..12 {
-            let wire_pin = TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("LH.{i}")));
+            let wire_pin = TileWireCoord::new_idx(0, wires::LH[i]);
             let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
             if resolved_pin != resolved_wire {
                 continue;
@@ -130,25 +129,18 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinIoLh {
             .edev
             .tile_cell(tcrd, self.0.cell)
             .with_col(ColId::from_idx(0))
-            .tile(tslots::MAIN);
+            .tile(defs::tslots::MAIN);
         loop {
             let tile = &backend.edev[tcrd];
-            if matches!(
-                &backend.edev.db.tile_classes.key(tile.class)[..],
-                "IO.B" | "IO.T"
-            ) {
-                for i in [0, 6] {
-                    let wire_pin =
-                        TileWireCoord::new_idx(0, backend.edev.db.get_wire(&format!("LH.{i}")));
+            if matches!(tile.class, tcls::IO_S | tcls::IO_N) {
+                for (i, wfake) in [(0, wires::LH_FAKE0), (6, wires::LH_FAKE6)] {
+                    let wire_pin = TileWireCoord::new_idx(0, wires::LH[i]);
                     let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
                     if resolved_pin != resolved_wire {
                         continue;
                     }
                     // FOUND
-                    let wire_buf = TileWireCoord::new_idx(
-                        0,
-                        backend.edev.db.get_wire(&format!("LH.{i}.FAKE")),
-                    );
+                    let wire_buf = TileWireCoord::new_idx(0, wfake);
                     let resolved_buf = backend.edev.resolve_wire(tcrd.wire(wire_buf.wire)).unwrap();
                     let (tile, wt, wf) =
                         resolve_int_pip(backend, tcrd, wire_buf, wire_pin).unwrap();
@@ -181,8 +173,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
             .resolve_wire(backend.edev.tile_wire(tcrd, self.0))?;
         let wire_name = backend.edev.db.wires.key(self.0.wire);
         let h = wire_name[4..5].chars().next().unwrap();
-        let i: usize = wire_name[5..6].parse().unwrap();
-        let mut tcrd = backend.edev.tile_cell(tcrd, self.0.cell).tile(tslots::MAIN);
+        let i: usize = wire_name[7..8].parse().unwrap();
+        let mut tcrd = backend
+            .edev
+            .tile_cell(tcrd, self.0.cell)
+            .tile(defs::tslots::MAIN);
         if tcrd.col.to_idx() >= 8 {
             tcrd.col -= 8;
         } else {
@@ -191,15 +186,21 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
         loop {
             if let Some(tile) = backend.edev.get_tile(tcrd)
                 && matches!(
-                    &backend.edev.db.tile_classes.key(tile.class)[..],
-                    "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB" | "CNR.BR" | "CNR.TR"
+                    tile.class,
+                    tcls::IO_W
+                        | tcls::IO_E
+                        | tcls::IO_S
+                        | tcls::IO_N
+                        | tcls::CLB
+                        | tcls::CNR_SE
+                        | tcls::CNR_NE
                 )
             {
                 let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
-                        backend.edev.db.get_wire(&format!("HEX.{h}{i}.{j}")),
+                        backend.edev.db.get_wire(&format!("HEX_{h}{j}[{i}]")),
                     );
                     let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
                     if resolved_pin != resolved_wire {
@@ -210,10 +211,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexH {
                             let out_name = backend.edev.db.wires.key(wire_out.wire);
                             if out_name.starts_with("SINGLE")
                                 || (out_name.starts_with("LV") && i >= 4)
-                                || (out_name.starts_with("HEX.E")
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.L")
-                                || (out_name.starts_with("HEX.W")
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.R")
+                                || (out_name.starts_with("HEX_E") && tile.class == tcls::IO_W)
+                                || (out_name.starts_with("HEX_W") && tile.class == tcls::IO_E)
                             {
                                 // FOUND
                                 let resolved_out =
@@ -253,8 +252,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
             .resolve_wire(backend.edev.tile_wire(tcrd, self.0))?;
         let wire_name = backend.edev.db.wires.key(self.0.wire);
         let v = wire_name[4..5].chars().next().unwrap();
-        let i: usize = wire_name[5..6].parse().unwrap();
-        let mut tcrd = backend.edev.tile_cell(tcrd, self.0.cell).tile(tslots::MAIN);
+        let i: usize = wire_name[7..8].parse().unwrap();
+        let mut tcrd = backend
+            .edev
+            .tile_cell(tcrd, self.0.cell)
+            .tile(defs::tslots::MAIN);
         if tcrd.row.to_idx() >= 6 {
             tcrd.row -= 6;
         } else {
@@ -263,15 +265,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
         loop {
             if let Some(tile) = backend.edev.get_tile(tcrd)
                 && matches!(
-                    &backend.edev.db.tile_classes.key(tile.class)[..],
-                    "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
+                    tile.class,
+                    tcls::IO_W | tcls::IO_E | tcls::CLB | tcls::IO_S | tcls::IO_N
                 )
             {
                 let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
-                        backend.edev.db.get_wire(&format!("HEX.{v}{i}.{j}")),
+                        backend.edev.db.get_wire(&format!("HEX_{v}{j}[{i}]")),
                     );
                     let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
                     if resolved_pin != resolved_wire {
@@ -281,10 +283,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexPinHexV {
                         if mux_data.contains(&wire_pin.pos()) {
                             let out_name = backend.edev.db.wires.key(wire_out.wire);
                             if out_name.starts_with("SINGLE")
-                                || (out_name.starts_with("HEX.N")
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.B")
-                                || (out_name.starts_with("HEX.S")
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.T")
+                                || (out_name.starts_with("HEX_N") && tile.class == tcls::IO_S)
+                                || (out_name.starts_with("HEX_S") && tile.class == tcls::IO_N)
                             {
                                 // FOUND
                                 let resolved_out =
@@ -324,8 +324,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
             .resolve_wire(backend.edev.tile_wire(tcrd, self.0))?;
         let wire_name = backend.edev.db.wires.key(self.0.wire);
         let h = wire_name[4..5].chars().next().unwrap();
-        let i: usize = wire_name[5..6].parse().unwrap();
-        let mut tcrd = backend.edev.tile_cell(tcrd, self.0.cell).tile(tslots::MAIN);
+        let i: usize = wire_name[7..8].parse().unwrap();
+        let mut tcrd = backend
+            .edev
+            .tile_cell(tcrd, self.0.cell)
+            .tile(defs::tslots::MAIN);
         if tcrd.col.to_idx() >= 8 {
             tcrd.col -= 8;
         } else {
@@ -334,15 +337,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
         loop {
             if let Some(tile) = backend.edev.get_tile(tcrd)
                 && matches!(
-                    &backend.edev.db.tile_classes.key(tile.class)[..],
-                    "IO.L" | "IO.R" | "IO.B" | "IO.T" | "CLB"
+                    tile.class,
+                    tcls::IO_W | tcls::IO_E | tcls::CLB | tcls::IO_S | tcls::IO_N
                 )
             {
                 let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
-                        backend.edev.db.get_wire(&format!("HEX.{h}{i}.{j}")),
+                        backend.edev.db.get_wire(&format!("HEX_{h}{j}[{i}]")),
                     );
                     let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
                     if resolved_pin != resolved_wire {
@@ -354,10 +357,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexH {
                             if inp_name.starts_with("OMUX")
                                 || inp_name.starts_with("OUT")
                                 || (h == 'E'
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.L"
+                                    && tile.class == tcls::IO_W
                                     && inp_name.starts_with("HEX"))
                                 || (h == 'W'
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.R"
+                                    && tile.class == tcls::IO_E
                                     && inp_name.starts_with("HEX"))
                             {
                                 // FOUND
@@ -400,8 +403,11 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
             .resolve_wire(backend.edev.tile_wire(tcrd, self.0))?;
         let wire_name = backend.edev.db.wires.key(self.0.wire);
         let v = wire_name[4..5].chars().next().unwrap();
-        let i: usize = wire_name[5..6].parse().unwrap();
-        let mut tcrd = backend.edev.tile_cell(tcrd, self.0.cell).tile(tslots::MAIN);
+        let i: usize = wire_name[7..8].parse().unwrap();
+        let mut tcrd = backend
+            .edev
+            .tile_cell(tcrd, self.0.cell)
+            .tile(defs::tslots::MAIN);
 
         if tcrd.row.to_idx() >= 6 {
             tcrd.row -= 6;
@@ -411,15 +417,15 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
         loop {
             if let Some(tile) = backend.edev.get_tile(tcrd)
                 && matches!(
-                    &backend.edev.db.tile_classes.key(tile.class)[..],
-                    "IO.L" | "IO.R" | "CLB" | "IO.B" | "IO.T"
+                    tile.class,
+                    tcls::IO_W | tcls::IO_E | tcls::CLB | tcls::IO_S | tcls::IO_N
                 )
             {
                 let tcls_index = &backend.edev.db_index[tile.class];
                 for j in 0..=6 {
                     let wire_pin = TileWireCoord::new_idx(
                         0,
-                        backend.edev.db.get_wire(&format!("HEX.{v}{i}.{j}")),
+                        backend.edev.db.get_wire(&format!("HEX_{v}{j}[{i}]")),
                     );
                     let resolved_pin = backend.edev.resolve_wire(tcrd.wire(wire_pin.wire)).unwrap();
                     if resolved_pin != resolved_wire {
@@ -431,10 +437,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
                             if inp_name.starts_with("OMUX")
                                 || inp_name.starts_with("OUT")
                                 || (v == 'N'
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.B"
+                                    && tile.class == tcls::IO_S
                                     && inp_name.starts_with("HEX"))
                                 || (v == 'S'
-                                    && backend.edev.db.tile_classes.key(tile.class) == "IO.T"
+                                    && tile.class == tcls::IO_N
                                     && inp_name.starts_with("HEX"))
                             {
                                 // FOUND
@@ -458,6 +464,102 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexDriveHexV {
     }
 }
 
+fn single_to_buf(wire: WireSlotId) -> WireSlotId {
+    if let Some(idx) = wires::SINGLE_W.index_of(wire) {
+        wires::SINGLE_W_BUF[idx]
+    } else if let Some(idx) = wires::SINGLE_E.index_of(wire) {
+        wires::SINGLE_E_BUF[idx]
+    } else if let Some(idx) = wires::SINGLE_S.index_of(wire) {
+        wires::SINGLE_S_BUF[idx]
+    } else if let Some(idx) = wires::SINGLE_N.index_of(wire) {
+        wires::SINGLE_N_BUF[idx]
+    } else {
+        unreachable!()
+    }
+}
+
+fn hex_to_buf(wire: WireSlotId) -> WireSlotId {
+    if let Some(idx) = wires::HEX_H0.index_of(wire) {
+        wires::HEX_H0_BUF[idx]
+    } else if let Some(idx) = wires::HEX_H1.index_of(wire) {
+        wires::HEX_H1_BUF[idx]
+    } else if let Some(idx) = wires::HEX_H2.index_of(wire) {
+        wires::HEX_H2_BUF[idx]
+    } else if let Some(idx) = wires::HEX_H3.index_of(wire) {
+        wires::HEX_H3_BUF[idx]
+    } else if let Some(idx) = wires::HEX_H4.index_of(wire) {
+        wires::HEX_H4_BUF[idx]
+    } else if let Some(idx) = wires::HEX_H5.index_of(wire) {
+        wires::HEX_H5_BUF[idx]
+    } else if let Some(idx) = wires::HEX_H6.index_of(wire) {
+        wires::HEX_H6_BUF[idx]
+    } else if let Some(idx) = wires::HEX_V0.index_of(wire) {
+        wires::HEX_V0_BUF[idx]
+    } else if let Some(idx) = wires::HEX_V1.index_of(wire) {
+        wires::HEX_V1_BUF[idx]
+    } else if let Some(idx) = wires::HEX_V2.index_of(wire) {
+        wires::HEX_V2_BUF[idx]
+    } else if let Some(idx) = wires::HEX_V3.index_of(wire) {
+        wires::HEX_V3_BUF[idx]
+    } else if let Some(idx) = wires::HEX_V4.index_of(wire) {
+        wires::HEX_V4_BUF[idx]
+    } else if let Some(idx) = wires::HEX_V5.index_of(wire) {
+        wires::HEX_V5_BUF[idx]
+    } else if let Some(idx) = wires::HEX_V6.index_of(wire) {
+        wires::HEX_V6_BUF[idx]
+    } else {
+        unreachable!()
+    }
+}
+
+fn wire_unbuf(wire: WireSlotId) -> Option<WireSlotId> {
+    if let Some(idx) = wires::GCLK_BUF.index_of(wire) {
+        Some(wires::GCLK[idx])
+    } else if let Some(idx) = wires::SINGLE_W_BUF.index_of(wire) {
+        Some(wires::SINGLE_W[idx])
+    } else if let Some(idx) = wires::SINGLE_E_BUF.index_of(wire) {
+        Some(wires::SINGLE_E[idx])
+    } else if let Some(idx) = wires::SINGLE_S_BUF.index_of(wire) {
+        Some(wires::SINGLE_S[idx])
+    } else if let Some(idx) = wires::SINGLE_N_BUF.index_of(wire) {
+        Some(wires::SINGLE_N[idx])
+    } else if let Some(idx) = wires::HEX_H0_BUF.index_of(wire) {
+        Some(wires::HEX_H0[idx])
+    } else if let Some(idx) = wires::HEX_H1_BUF.index_of(wire) {
+        Some(wires::HEX_H1[idx])
+    } else if let Some(idx) = wires::HEX_H2_BUF.index_of(wire) {
+        Some(wires::HEX_H2[idx])
+    } else if let Some(idx) = wires::HEX_H3_BUF.index_of(wire) {
+        Some(wires::HEX_H3[idx])
+    } else if let Some(idx) = wires::HEX_H4_BUF.index_of(wire) {
+        Some(wires::HEX_H4[idx])
+    } else if let Some(idx) = wires::HEX_H5_BUF.index_of(wire) {
+        Some(wires::HEX_H5[idx])
+    } else if let Some(idx) = wires::HEX_H6_BUF.index_of(wire) {
+        Some(wires::HEX_H6[idx])
+    } else if let Some(idx) = wires::HEX_V0_BUF.index_of(wire) {
+        Some(wires::HEX_V0[idx])
+    } else if let Some(idx) = wires::HEX_V1_BUF.index_of(wire) {
+        Some(wires::HEX_V1[idx])
+    } else if let Some(idx) = wires::HEX_V2_BUF.index_of(wire) {
+        Some(wires::HEX_V2[idx])
+    } else if let Some(idx) = wires::HEX_V3_BUF.index_of(wire) {
+        Some(wires::HEX_V3[idx])
+    } else if let Some(idx) = wires::HEX_V4_BUF.index_of(wire) {
+        Some(wires::HEX_V4[idx])
+    } else if let Some(idx) = wires::HEX_V5_BUF.index_of(wire) {
+        Some(wires::HEX_V5[idx])
+    } else if let Some(idx) = wires::HEX_V6_BUF.index_of(wire) {
+        Some(wires::HEX_V6[idx])
+    } else if wire == wires::LH_FAKE0 {
+        Some(wires::LH[0])
+    } else if wire == wires::LH_FAKE6 {
+        Some(wires::LH[6])
+    } else {
+        None
+    }
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
@@ -472,29 +574,37 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
             };
             let out_name = intdb.wires.key(wire_to.wire);
-            if out_name.ends_with(".BUF") || out_name.ends_with(".FAKE") {
+            if wire_unbuf(wire_to.wire).is_some() {
                 continue;
             } else if out_name.contains("OMUX") {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
-                if tcname.starts_with("IO") {
+                if matches!(tcid, tcls::IO_W | tcls::IO_E) {
                     for i in 0..4 {
                         props.push(Box::new(BaseBelMode::new(
-                            bels::IO[i],
+                            defs::bslots::IO[i],
                             ["EMPTYIOB", "IOB", "IOB", "IOB"][i].into(),
                         )));
-                        props.push(Box::new(BaseBelPin::new(bels::IO[i], "I".into())));
+                        props.push(Box::new(BaseBelPin::new(defs::bslots::IO[i], "I".into())));
                     }
                     let clb_id = intdb.get_tile_class("CLB");
                     let clb_index = &backend.edev.db_index[clb_id];
-                    let wire_name = intdb.wires.key(wire_to.wire);
-                    let clb_wire = if tcname == "IO.L" {
-                        format!("{wire_name}.W")
+                    let idx = wires::OMUX.index_of(wire_to.wire).unwrap();
+                    let clb_wire = if tcid == tcls::IO_W {
+                        match idx {
+                            0 => wires::OMUX_E0,
+                            1 => wires::OMUX_E1,
+                            _ => unreachable!(),
+                        }
                     } else {
-                        format!("{wire_name}.E")
+                        match idx {
+                            6 => wires::OMUX_W6,
+                            7 => wires::OMUX_W7,
+                            _ => unreachable!(),
+                        }
                     };
-                    let clb_wire = TileWireCoord::new_idx(0, intdb.get_wire(&clb_wire));
+                    let clb_wire = TileWireCoord::new_idx(0, clb_wire);
                     let wire_pin = clb_index.pips_fwd[&clb_wire].iter().next().unwrap().tw;
-                    let relation = if tcname == "IO.L" {
+                    let relation = if tcid == tcls::IO_W {
                         Delta::new(2, 0, "CLB")
                     } else {
                         Delta::new(-2, 0, "CLB")
@@ -528,20 +638,37 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                     builder.commit();
                 }
-            } else if out_name.starts_with("BRAM.QUAD") {
+            } else if out_name.starts_with("BRAM_QUAD") {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
-                let (is_s, wire_to_root) = if let Some(root_name) = out_name.strip_suffix(".S") {
-                    (
-                        true,
-                        TileWireCoord {
-                            cell: wire_to.cell,
-                            wire: intdb.get_wire(root_name),
-                        },
-                    )
-                } else {
-                    (false, wire_to)
-                };
+                let (is_s, wire_to_root) =
+                    if let Some(idx) = wires::BRAM_QUAD_ADDR_S.index_of(wire_to.wire) {
+                        (
+                            true,
+                            TileWireCoord {
+                                cell: wire_to.cell,
+                                wire: wires::BRAM_QUAD_ADDR[idx],
+                            },
+                        )
+                    } else if let Some(idx) = wires::BRAM_QUAD_DIN_S.index_of(wire_to.wire) {
+                        (
+                            true,
+                            TileWireCoord {
+                                cell: wire_to.cell,
+                                wire: wires::BRAM_QUAD_DIN[idx],
+                            },
+                        )
+                    } else if let Some(idx) = wires::BRAM_QUAD_DOUT_S.index_of(wire_to.wire) {
+                        (
+                            true,
+                            TileWireCoord {
+                                cell: wire_to.cell,
+                                wire: wires::BRAM_QUAD_DOUT[idx],
+                            },
+                        )
+                    } else {
+                        (false, wire_to)
+                    };
                 let wire_pin = 'quad_dst_pin: {
                     for &wire_pin in &tcls_index.pips_fwd[&wire_to_root] {
                         let wire_pin = wire_pin.tw;
@@ -566,7 +693,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         WireMutexExclusive::new(wire_pin),
                     )));
                 }
-                if !out_name.starts_with("BRAM.QUAD.DOUT") {
+                if !out_name.starts_with("BRAM_QUAD_DOUT") {
                     // pin every input
                     let mut pins = HashSet::new();
                     for &wire_from in ins {
@@ -574,12 +701,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         let in_wire_name = intdb.wires.key(wire_from.wire);
                         'quad_src_all_pin: {
                             if in_wire_name.starts_with("SINGLE") {
-                                let wire_buf = format!("{in_wire_name}.BUF");
-                                let wire_buf = TileWireCoord::new_idx(0, intdb.get_wire(&wire_buf));
+                                let wire_buf =
+                                    TileWireCoord::new_idx(0, single_to_buf(wire_from.wire));
                                 let related = Delta::new(
                                     -1,
                                     wire_from.cell.to_idx() as i32 - 4,
-                                    if tcname == "LBRAM" { "IO.L" } else { "CLB" },
+                                    if tcid == tcls::BRAM_W { "IO_W" } else { "CLB" },
                                 );
                                 props.push(Box::new(Related::new(
                                     related.clone(),
@@ -621,20 +748,41 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         format!("{:#}.{}", wire_from.cell, in_wire_name)
                     };
                     let mut props = props.clone();
-                    if in_wire_name.starts_with("BRAM.QUAD") {
+                    if in_wire_name.starts_with("BRAM_QUAD") {
                         'quad_src_pin: {
-                            let (is_s, wire_from_root) =
-                                if let Some(root_name) = in_wire_name.strip_suffix(".S") {
-                                    (
-                                        true,
-                                        TileWireCoord {
-                                            cell: wire_from.cell,
-                                            wire: intdb.get_wire(root_name),
-                                        },
-                                    )
-                                } else {
-                                    (false, wire_from)
-                                };
+                            let (is_s, wire_from_root) = if let Some(idx) =
+                                wires::BRAM_QUAD_ADDR_S.index_of(wire_from.wire)
+                            {
+                                (
+                                    true,
+                                    TileWireCoord {
+                                        cell: wire_from.cell,
+                                        wire: wires::BRAM_QUAD_ADDR[idx],
+                                    },
+                                )
+                            } else if let Some(idx) =
+                                wires::BRAM_QUAD_DIN_S.index_of(wire_from.wire)
+                            {
+                                (
+                                    true,
+                                    TileWireCoord {
+                                        cell: wire_from.cell,
+                                        wire: wires::BRAM_QUAD_DIN[idx],
+                                    },
+                                )
+                            } else if let Some(idx) =
+                                wires::BRAM_QUAD_DOUT_S.index_of(wire_from.wire)
+                            {
+                                (
+                                    true,
+                                    TileWireCoord {
+                                        cell: wire_from.cell,
+                                        wire: wires::BRAM_QUAD_DOUT[idx],
+                                    },
+                                )
+                            } else {
+                                (false, wire_from)
+                            };
 
                             for &wire_pin in &tcls_index.pips_bwd[&wire_from_root] {
                                 let wire_pin = wire_pin.tw;
@@ -677,8 +825,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             } else if out_name.starts_with("SINGLE") {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
-                let wire_buf =
-                    TileWireCoord::new_idx(0, intdb.get_wire(&format!("{out_name}.BUF")));
+                let wire_buf = TileWireCoord::new_idx(0, single_to_buf(wire_to.wire));
                 if !tcname.contains("BRAM") {
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
                     props.push(Box::new(WireMutexExclusive::new(wire_buf)));
@@ -686,7 +833,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let related = Delta::new(
                         -1,
                         wire_to.cell.to_idx() as i32 - 4,
-                        if tcname == "LBRAM" { "IO.L" } else { "CLB" },
+                        if tcid == tcls::BRAM_W { "IO_W" } else { "CLB" },
                     );
                     props.push(Box::new(Related::new(
                         related.clone(),
@@ -714,7 +861,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 let wire_pin_name = intdb.wires.key(wire_pin.wire);
                                 if intdb.wires.key(wire_pin.wire).starts_with("HEX")
                                     || wire_pin_name.starts_with("OMUX")
-                                    || wire_pin_name.starts_with("BRAM.QUAD.DOUT")
+                                    || wire_pin_name.starts_with("BRAM_QUAD_DOUT")
                                 {
                                     props.push(Box::new(BaseIntPip::new(wire_from, wire_pin)));
                                     props.push(Box::new(WireMutexExclusive::new(wire_from)));
@@ -749,27 +896,36 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
 
-                if out_name.starts_with("LH") && matches!(&tcname[..], "IO.B" | "IO.T") {
-                    let wire_buf =
-                        TileWireCoord::new_idx(0, intdb.get_wire(&format!("{out_name}.FAKE")));
+                if out_name.starts_with("LH") && matches!(tcid, tcls::IO_S | tcls::IO_N) {
+                    let wire_buf = TileWireCoord::new_idx(
+                        0,
+                        if wire_to.wire == wires::LH[0] {
+                            wires::LH_FAKE0
+                        } else if wire_to.wire == wires::LH[6] {
+                            wires::LH_FAKE6
+                        } else {
+                            unreachable!()
+                        },
+                    );
                     props.push(Box::new(BaseIntPip::new(wire_buf, wire_to)));
                     props.push(Box::new(WireMutexExclusive::new(wire_buf)));
-                } else if out_name.starts_with("LV")
-                    && matches!(&tcname[..], "BRAM_BOT" | "BRAM_TOP")
+                } else if out_name.starts_with("LV") && matches!(tcid, tcls::BRAM_S | tcls::BRAM_N)
                 {
                     props.push(Box::new(VirtexPinBramLv(wire_to)));
-                } else if out_name.starts_with("LH") && tcname.ends_with("BRAM") {
+                } else if out_name.starts_with("LH")
+                    && matches!(tcid, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M)
+                {
                     props.push(Box::new(VirtexPinLh(wire_to)));
                 } else if out_name.starts_with("LH") && tcname.starts_with("CLK") {
                     props.push(Box::new(VirtexPinIoLh(wire_to)));
-                } else if out_name.starts_with("HEX.H")
-                    || out_name.starts_with("HEX.E")
-                    || out_name.starts_with("HEX.W")
+                } else if out_name.starts_with("HEX_H")
+                    || out_name.starts_with("HEX_E")
+                    || out_name.starts_with("HEX_W")
                 {
                     props.push(Box::new(VirtexPinHexH(wire_to)));
-                } else if out_name.starts_with("HEX.V")
-                    || out_name.starts_with("HEX.S")
-                    || out_name.starts_with("HEX.N")
+                } else if out_name.starts_with("HEX_V")
+                    || out_name.starts_with("HEX_S")
+                    || out_name.starts_with("HEX_N")
                 {
                     props.push(Box::new(VirtexPinHexV(wire_to)));
                 } else {
@@ -778,7 +934,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             let wire_pin = wire_pin.tw;
                             let wire_pin_name = intdb.wires.key(wire_pin.wire);
                             if wire_pin_name.starts_with("HEX")
-                                || wire_pin_name.starts_with("IMUX.BRAM")
+                                || wire_pin_name.starts_with("IMUX_BRAM")
                             {
                                 props.push(Box::new(BaseIntPip::new(wire_pin, wire_to)));
                                 props.push(Box::new(WireMutexExclusive::new(wire_pin)));
@@ -793,13 +949,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     let wire_from = wire_from.tw;
                     let in_wire_name = intdb.wires.key(wire_from.wire);
                     'll_src_pin: {
-                        if let Some(wire_unbuf) = in_wire_name.strip_suffix(".BUF") {
-                            let wire_unbuf = TileWireCoord::new_idx(0, intdb.get_wire(wire_unbuf));
+                        if let Some(wire_unbuf) = wire_unbuf(wire_from.wire) {
+                            let wire_unbuf = TileWireCoord::new_idx(0, wire_unbuf);
                             props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                             props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                             break 'll_src_pin;
                         } else if in_wire_name.starts_with("OMUX")
-                            || in_wire_name.starts_with("BRAM.QUAD.DOUT")
+                            || in_wire_name.starts_with("BRAM_QUAD_DOUT")
                         {
                             for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
                                 let wire_pin = wire_pin.tw;
@@ -811,21 +967,21 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 }
                             }
                         } else if in_wire_name.starts_with("HEX") {
-                            if in_wire_name.starts_with("HEX.E")
-                                || in_wire_name.starts_with("HEX.W")
-                                || in_wire_name.starts_with("HEX.H")
+                            if in_wire_name.starts_with("HEX_E")
+                                || in_wire_name.starts_with("HEX_W")
+                                || in_wire_name.starts_with("HEX_H")
                             {
                                 props.push(Box::new(VirtexDriveHexH(wire_from)));
                             } else {
                                 props.push(Box::new(VirtexDriveHexV(wire_from)));
                             }
                             break 'll_src_pin;
-                        } else if let Some(wire_unbuf) = in_wire_name.strip_suffix(".FAKE") {
-                            let wire_unbuf = TileWireCoord::new_idx(0, intdb.get_wire(wire_unbuf));
-                            props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
-                            props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
-                            break 'll_src_pin;
-                        } else if in_wire_name.starts_with("LH") && tcname.starts_with("CNR") {
+                        } else if in_wire_name.starts_with("LH")
+                            && matches!(
+                                tcid,
+                                tcls::CNR_SW | tcls::CNR_SE | tcls::CNR_NW | tcls::CNR_NE
+                            )
+                        {
                             // it's fine.
                             props.push(Box::new(VirtexPinIoLh(wire_from)));
                             break 'll_src_pin;
@@ -844,15 +1000,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 }
                             }
                         } else if in_wire_name.starts_with("SINGLE") {
-                            let wire_buf = TileWireCoord::new_idx(
-                                0,
-                                intdb.get_wire(&format!("{in_wire_name}.BUF")),
-                            );
-                            if tcname.ends_with("BRAM") {
+                            let wire_buf = TileWireCoord::new_idx(0, single_to_buf(wire_from.wire));
+                            if matches!(tcid, tcls::BRAM_W | tcls::BRAM_E | tcls::BRAM_M) {
                                 let related = Delta::new(
                                     -1,
                                     wire_from.cell.to_idx() as i32 - 4,
-                                    if tcname == "LBRAM" { "IO.L" } else { "CLB" },
+                                    if tcid == tcls::BRAM_W { "IO_W" } else { "CLB" },
                                 );
                                 props.push(Box::new(Related::new(
                                     related.clone(),
@@ -872,15 +1025,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 props.push(Box::new(WireMutexExclusive::new(wire_from)));
                             }
                             break 'll_src_pin;
-                        } else if in_wire_name.starts_with("OUT.IO") {
+                        } else if in_wire_name.starts_with("OUT_IO") {
                             for i in 0..4 {
                                 props.push(Box::new(BaseBelMode::new(
-                                    bels::IO[i],
+                                    defs::bslots::IO[i],
                                     [
                                         "EMPTYIOB",
                                         "IOB",
                                         "IOB",
-                                        if tcname == "IO.L" || tcname == "IO.R" {
+                                        if matches!(tcid, tcls::IO_W | tcls::IO_E) {
                                             "IOB"
                                         } else {
                                             "EMPTYIOB"
@@ -888,17 +1041,28 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                     ][i]
                                         .into(),
                                 )));
-                                props.push(Box::new(BaseBelPin::new(bels::IO[i], "I".into())));
-                                props.push(Box::new(BaseBelPin::new(bels::IO[i], "IQ".into())));
+                                props.push(Box::new(BaseBelPin::new(
+                                    defs::bslots::IO[i],
+                                    "I".into(),
+                                )));
+                                props.push(Box::new(BaseBelPin::new(
+                                    defs::bslots::IO[i],
+                                    "IQ".into(),
+                                )));
                             }
                             break 'll_src_pin;
-                        } else if let Some(pin) = in_wire_name.strip_prefix("OUT.BSCAN.") {
-                            props.push(Box::new(BaseBelMode::new(bels::BSCAN, "BSCAN".into())));
-                            props.push(Box::new(BaseBelPin::new(bels::BSCAN, pin.into())));
+                        } else if let Some(pin) = in_wire_name.strip_prefix("OUT_BSCAN_") {
+                            props.push(Box::new(BaseBelMode::new(
+                                defs::bslots::BSCAN,
+                                "BSCAN".into(),
+                            )));
+                            props.push(Box::new(BaseBelPin::new(defs::bslots::BSCAN, pin.into())));
                             break 'll_src_pin;
-                        } else if in_wire_name.starts_with("CLK.OUT")
-                            || in_wire_name.starts_with("DLL.OUT")
-                            || in_wire_name == "PCI_CE"
+                        } else if wires::OUT_BUFGCE_O.contains(wire_from.wire)
+                            || wires::OUT_CLKPAD.contains(wire_from.wire)
+                            || wires::OUT_IOFB.contains(wire_from.wire)
+                            || in_wire_name.starts_with("OUT_DLL")
+                            || wire_from.wire == wires::PCI_CE
                         {
                             // already ok
                             break 'll_src_pin;
@@ -927,12 +1091,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
             } else if out_name.contains("IMUX") {
                 let mut props: Vec<Box<DynProp>> = vec![Box::new(WireMutexExclusive::new(wire_to))];
-                if let Some(pin) = out_name.strip_prefix("IMUX.STARTUP.") {
-                    props.push(Box::new(BaseBelMode::new(bels::STARTUP, "STARTUP".into())));
-                    props.push(Box::new(BaseBelPin::new(bels::STARTUP, pin.into())));
+                if let Some(pin) = out_name.strip_prefix("IMUX_STARTUP_") {
+                    props.push(Box::new(BaseBelMode::new(
+                        defs::bslots::STARTUP,
+                        "STARTUP".into(),
+                    )));
+                    props.push(Box::new(BaseBelPin::new(defs::bslots::STARTUP, pin.into())));
                 }
                 let mut alt_out_wire = None;
-                if out_name.starts_with("DLL.IMUX") {
+                if out_name.starts_with("IMUX_DLL") {
                     for i in 0..4 {
                         for ps in ["", "P", "S"] {
                             props.push(Box::new(BaseRaw::new(
@@ -941,43 +1108,39 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             )))
                         }
                     }
-                    if out_name == "DLL.IMUX.CLKIN" {
-                        alt_out_wire = Some(TileWireCoord::new_idx(
-                            0,
-                            backend.edev.db.get_wire("DLL.IMUX.CLKFB"),
-                        ));
+                    if wire_to.wire == wires::IMUX_DLL_CLKIN {
+                        alt_out_wire = Some(TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKFB));
                     }
-                    if out_name == "DLL.IMUX.CLKFB" {
-                        alt_out_wire = Some(TileWireCoord::new_idx(
-                            0,
-                            backend.edev.db.get_wire("DLL.IMUX.CLKIN"),
-                        ));
+                    if wire_to.wire == wires::IMUX_DLL_CLKFB {
+                        alt_out_wire = Some(TileWireCoord::new_idx(0, wires::IMUX_DLL_CLKIN));
                     }
                 }
                 if let Some(alt_out) = alt_out_wire {
                     props.push(Box::new(WireMutexExclusive::new(alt_out)));
                 }
-                if out_name.starts_with("CLK.IMUX.BUFGCE.CLK") {
-                    props.push(Box::new(if out_name.ends_with("1") {
-                        FuzzBelMode::new(bels::BUFG1, "".into(), "GCLK".into())
-                    } else {
-                        FuzzBelMode::new(bels::BUFG0, "".into(), "GCLK".into())
-                    }));
+                if let Some(idx) = wires::IMUX_BUFGCE_CLK.index_of(wire_to.wire) {
+                    props.push(Box::new(FuzzBelMode::new(
+                        defs::bslots::BUFG[idx],
+                        "".into(),
+                        "GCLK".into(),
+                    )));
                 }
-                if (out_name.starts_with("IMUX.TBUF") && out_name.ends_with("I"))
-                    || out_name.starts_with("IMUX.BRAM.DI")
+                if wires::IMUX_TBUF_I.contains(wire_to.wire)
+                    || wires::IMUX_BRAM_DIA.contains(wire_to.wire)
+                    || wires::IMUX_BRAM_DIB.contains(wire_to.wire)
                 {
                     for &wire_from in ins {
                         let wire_from = wire_from.tw;
                         let in_wire_name = intdb.wires.key(wire_from.wire);
                         'imux_pin: {
-                            if let Some(wire_unbuf) = in_wire_name.strip_suffix(".BUF") {
-                                let wire_unbuf =
-                                    TileWireCoord::new_idx(0, intdb.get_wire(wire_unbuf));
+                            if let Some(wire_unbuf) = wire_unbuf(wire_from.wire) {
+                                let wire_unbuf = TileWireCoord::new_idx(0, wire_unbuf);
                                 props.push(Box::new(BaseIntPip::new(wire_from, wire_unbuf)));
                                 props.push(Box::new(WireMutexExclusive::new(wire_unbuf)));
                                 break 'imux_pin;
-                            } else if out_name.starts_with("IMUX.BRAM.DI") {
+                            } else if wires::IMUX_BRAM_DIA.contains(wire_to.wire)
+                                || wires::IMUX_BRAM_DIB.contains(wire_to.wire)
+                            {
                                 for &wire_pin in &tcls_index.pips_bwd[&wire_from] {
                                     let wire_pin = wire_pin.tw;
                                     if intdb.wires.key(wire_pin.wire).starts_with("HEX") {
@@ -1017,19 +1180,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
                     let mut props = props.clone();
                     'imux_pin: {
-                        if in_wire_name.starts_with("GCLK") || in_wire_name.ends_with("BUF") {
+                        if in_wire_name.starts_with("GCLK") || wire_unbuf(wire_from.wire).is_some()
+                        {
                             // no need to pin
                             break 'imux_pin;
-                        } else if out_name.starts_with("IMUX.TBUF") && out_name.ends_with("I") {
+                        } else if wires::IMUX_TBUF_I.contains(wire_to.wire) {
                             // already pinned above
                             break 'imux_pin;
-                        } else if out_name == "PCI.IMUX.I3" {
-                            let wire_buf = TileWireCoord::new_idx(
-                                0,
-                                intdb.get_wire(&format!("{in_wire_name}.BUF")),
-                            );
+                        } else if wire_to.wire == wires::IMUX_PCI_I3 {
+                            let wire_buf = TileWireCoord::new_idx(0, hex_to_buf(wire_from.wire));
                             let related =
-                                Delta::new(0, 0, if tcname == "CLKL" { "IO.L" } else { "IO.R" });
+                                Delta::new(0, 0, if tcid == tcls::PCI_W { "IO_W" } else { "IO_E" });
                             props.push(Box::new(Related::new(
                                 related.clone(),
                                 BaseIntPip::new(wire_buf, wire_from),
@@ -1039,7 +1200,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 WireMutexExclusive::new(wire_buf),
                             )));
                             break 'imux_pin;
-                        } else if out_name.starts_with("DLL.IMUX") {
+                        } else if out_name.starts_with("IMUX_DLL") {
                             if in_wire_name.starts_with("HEX") {
                                 props.push(Box::new(VirtexDriveHexH(wire_from)));
                             } else {
@@ -1077,7 +1238,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
                     props.push(Box::new(FuzzIntPip::new(wire_to, wire_from)));
                     if let Some(alt_out) = alt_out_wire
-                        && in_wire_name.starts_with("CLK.OUT")
+                        && (wires::OUT_CLKPAD.contains(wire_from.wire)
+                            || wires::OUT_IOFB.contains(wire_from.wire))
                     {
                         let mut builder =
                             ctx.build()
@@ -1107,7 +1269,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         unreachable!()
     };
     let intdb = edev.db;
-    for (_, tcname, tcls) in &intdb.tile_classes {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
         if !ctx.has_tile(tcname) {
             continue;
         }
@@ -1136,7 +1298,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                             };
                             let mut diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
-                            if mux_name.contains("DLL.IMUX") && in_name.contains("CLK.OUT") {
+                            if matches!(mux.dst.wire, wires::IMUX_DLL_CLKIN | wires::IMUX_DLL_CLKFB)
+                                && (wires::OUT_CLKPAD.contains(wire_from.wire)
+                                    || wires::OUT_IOFB.contains(wire_from.wire))
+                            {
                                 let noalt_diff = ctx.state.get_diff(
                                     tcname,
                                     "INT",
@@ -1157,17 +1322,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                                 diff = common;
                             }
-                            if in_name.starts_with("OUT.IO0")
-                                || (in_name.starts_with("OUT.IO3")
-                                    && matches!(&tcname[..], "IO.B" | "IO.T"))
+                            if (in_name.starts_with("OUT_IO") && in_name.ends_with("[0]"))
+                                || (in_name.starts_with("OUT_IO")
+                                    && in_name.ends_with("[3]")
+                                    && matches!(tcid, tcls::IO_S | tcls::IO_N))
                             {
                                 diff.assert_empty();
-                            } else if (out_name.contains("BRAM.QUAD")
-                                && in_name.contains("BRAM.QUAD"))
-                                || out_name.contains("BRAM.QUAD.DOUT")
-                                || (out_name.contains("HEX.H") && in_name == "PCI_CE")
-                                || (tcname.starts_with("CNR") && out_name.contains("LV"))
-                                || (tcname.starts_with("BRAM_") && out_name.contains("LV"))
+                            } else if (out_name.contains("BRAM_QUAD")
+                                && in_name.contains("BRAM_QUAD"))
+                                || out_name.contains("BRAM_QUAD_DOUT")
+                                || (out_name.contains("HEX_H") && wire_from.wire == wires::PCI_CE)
+                                || (matches!(
+                                    tcid,
+                                    tcls::CNR_SW | tcls::CNR_SE | tcls::CNR_NW | tcls::CNR_NE
+                                ) && wires::LV.contains(mux.dst.wire))
+                                || (matches!(tcid, tcls::BRAM_S | tcls::BRAM_N)
+                                    && wires::LV.contains(mux.dst.wire))
                             {
                                 if diff.bits.is_empty() {
                                     println!("UMM {out_name} {in_name} BUF IS EMPTY");
@@ -1189,11 +1359,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         if inps.is_empty() {
                             continue;
                         }
-                        if out_name.contains("BRAM.QUAD")
-                            || out_name.contains("LV")
-                            || out_name.contains("LH")
-                            || out_name.contains("HEX.H")
-                            || out_name.contains("HEX.V")
+                        if out_name.contains("BRAM_QUAD")
+                            || wires::LV.contains(mux.dst.wire)
+                            || wires::LH.contains(mux.dst.wire)
+                            || out_name.contains("HEX_H")
+                            || out_name.contains("HEX_V")
                         {
                             let mut drive_bits: HashSet<_> =
                                 inps[0].1.bits.keys().copied().collect();
@@ -1201,7 +1371,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 drive_bits.retain(|bit| diff.bits.contains_key(bit));
                             }
                             if drive_bits.len() > 1 {
-                                if tcname.starts_with("CNR") {
+                                if matches!(
+                                    tcid,
+                                    tcls::CNR_SW | tcls::CNR_SE | tcls::CNR_NW | tcls::CNR_NE
+                                ) {
                                     // sigh. I give up. those are obtained from looking at left-hand
                                     // corners with easier-to-disambiguate muxes, and correlating with
                                     // bitstream geometry in right-hand corners. also confirmed by some
@@ -1209,11 +1382,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     drive_bits
                                         .retain(|bit| matches!(bit.frame.to_idx() % 6, 0 | 5));
                                 } else {
-                                    let btile = match &tcname[..] {
-                                        "IO.L" => {
+                                    let btile = match tcid {
+                                        tcls::IO_W => {
                                             edev.btile_main(edev.chip.col_w(), RowId::from_idx(1))
                                         }
-                                        "IO.R" => {
+                                        tcls::IO_E => {
                                             edev.btile_main(edev.chip.col_e(), RowId::from_idx(1))
                                         }
                                         _ => panic!(
@@ -1255,14 +1428,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             }
                             let item = xlat_enum_ocd(inps, OcdMode::Mux);
                             if item.bits.is_empty() {
-                                if mux_name == "MUX.IMUX.IO0.T" {
+                                if mux.dst.wire == wires::IMUX_IO_T[0] {
                                     // empty on Virtex E?
                                     continue;
                                 }
-                                if mux_name.starts_with("MUX.HEX.S") && tcname == "IO.T"
-                                    || mux_name.starts_with("MUX.HEX.N") && tcname == "IO.B"
-                                    || mux_name.starts_with("MUX.HEX.E") && tcname == "IO.L"
-                                    || mux_name.starts_with("MUX.HEX.W") && tcname == "IO.R"
+                                if mux_name.starts_with("MUX.HEX_S") && tcid == tcls::IO_N
+                                    || mux_name.starts_with("MUX.HEX_N") && tcid == tcls::IO_S
+                                    || mux_name.starts_with("MUX.HEX_E") && tcid == tcls::IO_W
+                                    || mux_name.starts_with("MUX.HEX_W") && tcid == tcls::IO_E
                                 {
                                     continue;
                                 }
@@ -1285,9 +1458,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         let diff =
                             ctx.state
                                 .get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
-                        if in_name.starts_with("OUT.IO0")
-                            || matches!(&tcname[..], "IO.B" | "IO.T")
-                                && in_name.starts_with("OUT.IO3")
+                        if (in_name.starts_with("OUT_IO") && in_name.ends_with("[0]"))
+                            || (matches!(tcid, tcls::IO_S | tcls::IO_N)
+                                && in_name.starts_with("OUT_IO")
+                                && in_name.ends_with("[3]"))
                         {
                             diff.assert_empty();
                             continue;

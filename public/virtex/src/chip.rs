@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
-use crate::bels;
+use crate::defs;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum ChipKind {
@@ -166,12 +166,12 @@ impl Chip {
             EdgeIoCoord::S(col, iob) => (col, self.row_s(), iob),
             EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
         };
-        let slot = bels::IO[iob.to_idx()];
+        let slot = defs::bslots::IO[iob.to_idx()];
         CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
     }
 
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
-        let iob = TileIobId::from_idx(bels::IO.iter().position(|&x| x == bel.slot).unwrap());
+        let iob = TileIobId::from_idx(defs::bslots::IO.index_of(bel.slot).unwrap());
         if bel.col == self.col_w() {
             EdgeIoCoord::W(bel.row, iob)
         } else if bel.col == self.col_e() {
@@ -237,7 +237,7 @@ impl Chip {
             },
             self.row_clk(),
         )
-        .bel(bels::PCILOGIC)
+        .bel(defs::bslots::PCILOGIC)
     }
 }
 

@@ -1,7 +1,7 @@
 # Block RAM
 
-{{tile virtex LBRAM}}
-{{tile virtex RBRAM}}
-{{tile virtex MBRAM}}
-{{tile virtex BRAM_BOT}}
-{{tile virtex BRAM_TOP}}
+{{tile virtex BRAM_W}}
+{{tile virtex BRAM_E}}
+{{tile virtex BRAM_M}}
+{{tile virtex BRAM_S}}
+{{tile virtex BRAM_N}}

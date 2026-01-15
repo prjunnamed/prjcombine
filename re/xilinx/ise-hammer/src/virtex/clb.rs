@@ -1,14 +1,14 @@
 use prjcombine_re_fpga_hammer::{xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex::bels;
+use prjcombine_virtex::defs;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "CLB");
     for i in 0..2 {
-        let mut bctx = ctx.bel(bels::SLICE[i]);
+        let mut bctx = ctx.bel(defs::bslots::SLICE[i]);
         let mode = "SLICE";
         // inverters
         bctx.mode(mode)
@@ -218,7 +218,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
-    for bel in ["SLICE0", "SLICE1"] {
+    for bel in ["SLICE[0]", "SLICE[1]"] {
         let item = ctx.extract_enum_bool(tile, bel, "CKINV", "1", "0");
         ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
         for (pinmux, pin, pin_b) in [
@@ -319,10 +319,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     // extracted manually from .ll
     for (bel, attr, frame, bit) in [
-        ("SLICE0", "READBACK_XQ", 45, 16),
-        ("SLICE0", "READBACK_YQ", 39, 16),
-        ("SLICE1", "READBACK_XQ", 2, 16),
-        ("SLICE1", "READBACK_YQ", 8, 16),
+        ("SLICE[0]", "READBACK_XQ", 45, 16),
+        ("SLICE[0]", "READBACK_YQ", 39, 16),
+        ("SLICE[1]", "READBACK_XQ", 2, 16),
+        ("SLICE[1]", "READBACK_YQ", 8, 16),
     ] {
         ctx.tiledb.insert(
             tile,

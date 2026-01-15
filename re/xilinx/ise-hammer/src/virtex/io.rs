@@ -14,7 +14,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex::{bels, chip::ChipKind, tslots};
+use prjcombine_virtex::{chip::ChipKind, defs};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -43,8 +43,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexIsDllIob {
             unreachable!()
         };
         let is_dll = edev.chip.kind != prjcombine_virtex::chip::ChipKind::Virtex
-            && ((tcrd.col == edev.chip.col_clk() - 1 && self.0 == bels::IO[1])
-                || (tcrd.col == edev.chip.col_clk() && self.0 == bels::IO[2]));
+            && ((tcrd.col == edev.chip.col_clk() - 1 && self.0 == defs::bslots::IO[1])
+                || (tcrd.col == edev.chip.col_clk() && self.0 == defs::bslots::IO[2]));
         if self.1 != is_dll {
             return None;
         }
@@ -141,16 +141,24 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for VirtexOtherIobInput {
         let ExpandedNamedDevice::Virtex(endev) = backend.endev else {
             unreachable!()
         };
-        let (crd, orig_bank) = if bels::IO.contains(&self.0) {
+        let (crd, orig_bank) = if defs::bslots::IO.contains(self.0) {
             let crd = edev.chip.get_io_crd(tcrd.bel(self.0));
             (Some(crd), edev.chip.get_io_bank(crd))
         } else {
             (
                 None,
                 if tcrd.row == edev.chip.row_s() {
-                    if self.0 == bels::GCLK_IO0 { 4 } else { 5 }
+                    if self.0 == defs::bslots::GCLK_IO[0] {
+                        4
+                    } else {
+                        5
+                    }
                 } else {
-                    if self.0 == bels::GCLK_IO0 { 1 } else { 0 }
+                    if self.0 == defs::bslots::GCLK_IO[0] {
+                        1
+                    } else {
+                        0
+                    }
                 },
             )
         };
@@ -213,34 +221,36 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Virtex(edev) = backend.edev else {
         unreachable!()
     };
-    for side in ['L', 'R', 'B', 'T'] {
-        let tile = format!("IO.{side}");
+    for side in ['W', 'E', 'S', 'N'] {
+        let tile = format!("IO_{side}");
         let mut ctx = FuzzCtx::new(session, backend, &tile);
         for i in 0..4 {
-            if i == 0 || (i == 3 && matches!(side, 'B' | 'T')) {
+            if i == 0 || (i == 3 && matches!(side, 'S' | 'N')) {
                 continue;
             }
-            let mut bctx = ctx.bel(bels::IO[i]);
+            let mut bctx = ctx.bel(defs::bslots::IO[i]);
             let mode = "IOB";
             bctx.build()
                 .global_mutex("VREF", "NO")
                 .global("SHORTENJTAGCHAIN", "NO")
                 .global("UNUSEDPIN", "PULLNONE")
-                .prop(VirtexIsDllIob(bels::IO[i], false))
+                .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
                 .test_manual("PRESENT", "1")
                 .mode(mode)
                 .attr("TFFATTRBOX", "HIGH")
                 .attr("OFFATTRBOX", "HIGH")
                 .commit();
-            if let Some(pkg) = has_any_vref(edev, backend.device, backend.db, &tile, bels::IO[i]) {
+            if let Some(pkg) =
+                has_any_vref(edev, backend.device, backend.db, &tile, defs::bslots::IO[i])
+            {
                 bctx.build()
                     .raw(Key::Package, pkg)
                     .global_mutex("VREF", "YES")
-                    .prop(VirtexOtherIobInput(bels::IO[i], "GTL".to_string()))
+                    .prop(VirtexOtherIobInput(defs::bslots::IO[i], "GTL".to_string()))
                     .global("SHORTENJTAGCHAIN", "NO")
                     .global("UNUSEDPIN", "PULLNONE")
-                    .prop(VirtexIsDllIob(bels::IO[i], false))
-                    .prop(IsVref(bels::IO[i]))
+                    .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
+                    .prop(IsVref(defs::bslots::IO[i]))
                     .test_manual("PRESENT", "NOT_VREF")
                     .mode(mode)
                     .attr("TFFATTRBOX", "HIGH")
@@ -251,7 +261,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global_mutex("VREF", "NO")
                 .global("SHORTENJTAGCHAIN", "YES")
                 .global("UNUSEDPIN", "PULLNONE")
-                .prop(VirtexIsDllIob(bels::IO[i], false))
+                .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
                 .test_manual("SHORTEN_JTAG_CHAIN", "0")
                 .mode(mode)
                 .attr("TFFATTRBOX", "HIGH")
@@ -385,7 +395,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode(mode)
                     .attr("OUTMUX", "")
                     .pin("I")
-                    .prop(VirtexIsDllIob(bels::IO[i], false))
+                    .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
                     .test_manual("ISTD", iostd)
                     .attr("IOATTRBOX", iostd)
                     .attr("IMUX", "1")
@@ -399,7 +409,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .attr("IFFMUX", "")
                                 .pin("O")
                                 .pin("T")
-                                .prop(VirtexIsDllIob(bels::IO[i], false))
+                                .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
                                 .test_manual("OSTD", format!("{iostd}.{drive}.{slew}"))
                                 .attr("IOATTRBOX", iostd)
                                 .attr("DRIVEATTRBOX", drive)
@@ -417,7 +427,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("IFFMUX", "")
                             .pin("O")
                             .pin("T")
-                            .prop(VirtexIsDllIob(bels::IO[i], false))
+                            .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
                             .test_manual("OSTD", format!("{iostd}.{slew}"))
                             .attr("IOATTRBOX", iostd)
                             .attr("SLEW", slew)
@@ -433,10 +443,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode(mode)
                     .global_mutex("VREF", "YES")
                     .raw(Key::Package, package)
-                    .prop(VirtexOtherIobInput(bels::IO[i], iostd.to_string()))
+                    .prop(VirtexOtherIobInput(defs::bslots::IO[i], iostd.to_string()))
                     .attr("OUTMUX", "")
                     .pin("I")
-                    .prop(VirtexIsDllIob(bels::IO[i], false))
+                    .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
                     .test_manual("ISTD", iostd)
                     .attr("IOATTRBOX", iostd)
                     .attr("IMUX", "1")
@@ -448,7 +458,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .attr("IFFMUX", "")
                         .pin("O")
                         .pin("T")
-                        .prop(VirtexIsDllIob(bels::IO[i], false))
+                        .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
                         .test_manual("OSTD", format!("{iostd}.{slew}"))
                         .attr("IOATTRBOX", iostd)
                         .attr("SLEW", slew)
@@ -466,8 +476,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                         .global("UNUSEDPIN", "PULLNONE")
                         .attr("OUTMUX", "")
                         .pin("I")
-                        .prop(VirtexIsDllIob(bels::IO[i], false))
-                        .prop(IsDiff(bels::IO[i]))
+                        .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
+                        .prop(IsDiff(defs::bslots::IO[i]))
                         .test_manual("ISTD", iostd)
                         .attr("IOATTRBOX", iostd)
                         .attr("IMUX", "1")
@@ -481,8 +491,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .attr("IFFMUX", "")
                             .pin("O")
                             .pin("T")
-                            .prop(VirtexIsDllIob(bels::IO[i], false))
-                            .prop(IsDiff(bels::IO[i]))
+                            .prop(VirtexIsDllIob(defs::bslots::IO[i], false))
+                            .prop(IsDiff(defs::bslots::IO[i]))
                             .test_manual("OSTD", format!("{iostd}.{slew}"))
                             .attr("IOATTRBOX", iostd)
                             .attr("SLEW", slew)
@@ -493,22 +503,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .commit();
                     }
                 }
-                if tile == "IO.B" || tile == "IO.T" {
-                    let row = if tile == "IO.B" {
+                if tile == "IO_S" || tile == "IO_N" {
+                    let row = if tile == "IO_S" {
                         edev.chip.row_s()
                     } else {
                         edev.chip.row_n()
                     };
-                    let bel_clk = if i == 1 { "IOFB1" } else { "IOFB0" };
+                    let bel_clk = if i == 1 { "IOFB[1]" } else { "IOFB[0]" };
                     let clkbt = CellCoord::new(DieId::from_idx(0), edev.chip.col_clk(), row)
-                        .tile(tslots::CLKBT);
+                        .tile(defs::tslots::CLK_SN);
                     for &iostd in IOSTDS_CMOS_VE {
                         bctx.mode("DLLIOB")
                             .global_mutex("GCLKIOB", "NO")
                             .attr("OUTMUX", "")
                             .pin("DLLFB")
                             .pin("I")
-                            .prop(VirtexIsDllIob(bels::IO[i], true))
+                            .prop(VirtexIsDllIob(defs::bslots::IO[i], true))
                             .extra_tile_attr_fixed(clkbt, bel_clk, "IBUF", "CMOS")
                             .test_manual("ISTD", iostd)
                             .attr("IOATTRBOX", iostd)
@@ -521,11 +531,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                             .global_mutex("GCLKIOB", "NO")
                             .global_mutex("VREF", "YES")
                             .raw(Key::Package, package)
-                            .prop(VirtexOtherIobInput(bels::IO[i], iostd.to_string()))
+                            .prop(VirtexOtherIobInput(defs::bslots::IO[i], iostd.to_string()))
                             .attr("OUTMUX", "")
                             .pin("DLLFB")
                             .pin("I")
-                            .prop(VirtexIsDllIob(bels::IO[i], true))
+                            .prop(VirtexIsDllIob(defs::bslots::IO[i], true))
                             .extra_tile_attr_fixed(clkbt, bel_clk, "IBUF", "VREF")
                             .test_manual("ISTD", iostd)
                             .attr("IOATTRBOX", iostd)
@@ -544,7 +554,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for val in ["0", "1"] {
             ctx.build()
                 .global_mutex("DRIVE", "GLOBAL")
-                .extra_tiles_by_bel(bels::IO0, "IOB_ALL")
+                .extra_tiles_by_bel(defs::bslots::IO[0], "IOB_ALL")
                 .test_manual("IOB_ALL", attr, val)
                 .global(attr, val)
                 .commit();
@@ -560,9 +570,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ChipKind::Virtex => "V",
         ChipKind::VirtexE | ChipKind::VirtexEM => "VE",
     };
-    for side in ['L', 'R', 'B', 'T'] {
-        let tile = &format!("IO.{side}");
-        let tile_iob = &format!("IOB.{side}.{kind}");
+    for side in ['W', 'E', 'S', 'N'] {
+        let tile = &format!("IO_{side}");
+        let tile_iob = &format!("IOB_{side}_{kind}");
         let mut pdrive_all = vec![];
         let mut ndrive_all = vec![];
         for attr in ["IDPD", "IDPC", "IDPB", "IDPA"] {
@@ -578,10 +588,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
         for i in 0..4 {
-            if i == 0 || (i == 3 && matches!(side, 'B' | 'T')) {
+            if i == 0 || (i == 3 && matches!(side, 'S' | 'N')) {
                 continue;
             }
-            let bel = &format!("IO{i}");
+            let bel = &format!("IO[{i}]");
 
             // IOI
 
@@ -656,9 +666,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     TileBit::new(
                         0,
                         match (side, i) {
-                            ('R', 1) => 2,
-                            ('R', 2) => 27,
-                            ('R', 3) => 32,
+                            ('E', 1) => 2,
+                            ('E', 2) => 27,
+                            ('E', 3) => 32,
                             (_, 1) => 45,
                             (_, 2) => 20,
                             (_, 3) => 15,
@@ -677,9 +687,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     TileBit::new(
                         0,
                         match (side, i) {
-                            ('R', 1) => 8,
-                            ('R', 2) => 21,
-                            ('R', 3) => 38,
+                            ('E', 1) => 8,
+                            ('E', 2) => 21,
+                            ('E', 3) => 38,
                             (_, 1) => 39,
                             (_, 2) => 26,
                             (_, 3) => 9,
@@ -698,9 +708,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     TileBit::new(
                         0,
                         match (side, i) {
-                            ('R', 1) => 12,
-                            ('R', 2) => 17,
-                            ('R', 3) => 42,
+                            ('E', 1) => 12,
+                            ('E', 2) => 17,
+                            ('E', 3) => 42,
                             (_, 1) => 35,
                             (_, 2) => 30,
                             (_, 3) => 5,
@@ -757,11 +767,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "READBACK_I",
                 TileItem::from_bit(
                     match (side, i) {
-                        ('L' | 'R', 1) => TileBit::new(0, 50, 13),
-                        ('L' | 'R', 2) => TileBit::new(0, 50, 12),
-                        ('L' | 'R', 3) => TileBit::new(0, 50, 2),
-                        ('B' | 'T', 1) => TileBit::new(0, 25, 17),
-                        ('B' | 'T', 2) => TileBit::new(0, 21, 17),
+                        ('W' | 'E', 1) => TileBit::new(0, 50, 13),
+                        ('W' | 'E', 2) => TileBit::new(0, 50, 12),
+                        ('W' | 'E', 3) => TileBit::new(0, 50, 2),
+                        ('S' | 'N', 1) => TileBit::new(0, 25, 17),
+                        ('S' | 'N', 2) => TileBit::new(0, 21, 17),
                         _ => unreachable!(),
                     },
                     false,
@@ -776,7 +786,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             ctx.tiledb.insert(tile_iob, bel, "PULL", item);
 
-            if has_any_vref(edev, ctx.device, ctx.db, tile, bels::IO[i]).is_some() {
+            if has_any_vref(edev, ctx.device, ctx.db, tile, defs::bslots::IO[i]).is_some() {
                 let diff = present.combine(&!&ctx.state.get_diff(tile, bel, "PRESENT", "NOT_VREF"));
                 ctx.tiledb.insert(tile_iob, bel, "VREF", xlat_bit(diff));
             }
@@ -992,11 +1002,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     if edev.chip.kind != ChipKind::Virtex {
         for tile in if ctx.device.name.contains("2s") {
-            ["CLKB_2DLL", "CLKT_2DLL"]
+            ["CLK_S_VE_2DLL", "CLK_N_VE_2DLL"]
         } else {
-            ["CLKB_4DLL", "CLKT_4DLL"]
+            ["CLK_S_VE_4DLL", "CLK_N_VE_4DLL"]
         } {
-            for bel in ["IOFB0", "IOFB1"] {
+            for bel in ["IOFB[0]", "IOFB[1]"] {
                 ctx.collect_enum_default(tile, bel, "IBUF", &["CMOS", "VREF"], "NONE");
             }
         }

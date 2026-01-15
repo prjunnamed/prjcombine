@@ -1,4 +1,4 @@
 # Hard PCI logic
 
-{{tile virtex CLKL}}
-{{tile virtex CLKR}}
+{{tile virtex PCI_W}}
+{{tile virtex PCI_E}}

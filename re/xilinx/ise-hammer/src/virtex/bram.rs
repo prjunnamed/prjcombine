@@ -1,17 +1,17 @@
 use prjcombine_re_fpga_hammer::{xlat_bitvec, xlat_bool};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex::bels;
+use prjcombine_virtex::defs;
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    for tile_name in ["LBRAM", "RBRAM", "MBRAM"] {
+    for tile_name in ["BRAM_W", "BRAM_E", "BRAM_M"] {
         let tcls = backend.edev.db.get_tile_class(tile_name);
         if backend.edev.tile_index[tcls].is_empty() {
             continue;
         }
         let mut ctx = FuzzCtx::new(session, backend, tile_name);
-        let mut bctx = ctx.bel(bels::BRAM);
+        let mut bctx = ctx.bel(defs::bslots::BRAM);
         let mode = "BLOCKRAM";
 
         bctx.test_manual("PRESENT", "1").mode(mode).commit();
@@ -51,7 +51,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ["LBRAM", "RBRAM", "MBRAM"] {
+    for tile in ["BRAM_W", "BRAM_E", "BRAM_M"] {
         let tcls = ctx.edev.db.get_tile_class(tile);
         if ctx.edev.tile_index[tcls].is_empty() {
             continue;

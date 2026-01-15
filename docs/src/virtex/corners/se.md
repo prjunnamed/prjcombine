@@ -1,3 +1,3 @@
 # South-east
 
-{{tile virtex CNR.BR}}
+{{tile virtex CNR_SE}}

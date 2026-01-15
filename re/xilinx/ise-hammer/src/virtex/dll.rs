@@ -14,7 +14,7 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex::{bels, tslots};
+use prjcombine_virtex::defs;
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -128,14 +128,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         unreachable!()
     };
     for tile in [
-        "DLL.BOT", "DLL.TOP", "DLLP.BOT", "DLLP.TOP", "DLLS.BOT", "DLLS.TOP",
+        "DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N",
     ] {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let mut bctx = ctx.bel(bels::DLL);
+        let mut bctx = ctx.bel(defs::bslots::DLL);
         let cnr_tl = CellCoord::new(DieId::from_idx(0), edev.chip.col_w(), edev.chip.row_n())
-            .tile(tslots::MAIN);
+            .tile(defs::tslots::MAIN);
         bctx.build()
             .extra_tile_attr_fixed(cnr_tl, "MISC", "DLL_ENABLE", "1")
             .global_mutex_here("DLL")
@@ -201,10 +201,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 }
                 bctx.mode("DLL")
                     .global_mutex("DLL", "USE")
-                    .prop(PinWireMutexShared(bels::DLL, "CLKIN"))
-                    .prop(PinWireMutexShared(bels::DLL, "CLKFB"))
+                    .prop(PinWireMutexShared(defs::bslots::DLL, "CLKIN"))
+                    .prop(PinWireMutexShared(defs::bslots::DLL, "CLKFB"))
                     .test_manual(attr, val)
-                    .prop(FuzzGlobalDll(bels::DLL, opt, val))
+                    .prop(FuzzGlobalDll(defs::bslots::DLL, opt, val))
                     .commit();
             }
         }
@@ -213,13 +213,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 bctx.mode("DLL")
                     .global_mutex("DLL", "USE")
                     .test_manual(attr, val)
-                    .prop(FuzzGlobalDll(bels::DLL, opt, val))
+                    .prop(FuzzGlobalDll(defs::bslots::DLL, opt, val))
                     .commit();
             }
         }
 
         if !(tile.starts_with("DLLS") && backend.device.name.contains('v')) {
-            if tile.ends_with("BOT") {
+            if tile.ends_with("_S") {
                 bctx.mode("DLL")
                     .global_mutex_here("DLL")
                     .prop(DeviceSide(DirH::W))
@@ -260,7 +260,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let mut ctx = FuzzCtx::new_null(session, backend);
     for val in ["90", "180", "270", "360"] {
         ctx.build()
-            .extra_tiles_by_bel(bels::DLL, "DLL")
+            .extra_tiles_by_bel(defs::bslots::DLL, "DLL")
             .test_manual("DLL", "TEST_OSC", val)
             .global("TESTOSC", val)
             .commit();
@@ -269,7 +269,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tile in [
-        "DLL.BOT", "DLL.TOP", "DLLP.BOT", "DLLP.TOP", "DLLS.BOT", "DLLS.TOP",
+        "DLL_S", "DLL_N", "DLLP_S", "DLLP_N", "DLLS_S", "DLLS_N",
     ] {
         if !ctx.has_tile(tile) {
             continue;
@@ -393,7 +393,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         ctx.collect_enum(tile, "DLL", "TEST_OSC", &["90", "180", "270", "360"]);
     }
-    ctx.collect_bit("CNR.TL", "MISC", "DLL_ENABLE", "1");
+    ctx.collect_bit("CNR_NW", "MISC", "DLL_ENABLE", "1");
     let tile = "REG.COR";
     let bel = "STARTUP";
     ctx.collect_bit(tile, bel, "DLL_WAIT_BL", "1");

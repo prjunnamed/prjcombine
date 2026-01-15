@@ -1,3 +1,3 @@
 # South-west
 
-{{tile virtex CNR.BL}}
+{{tile virtex CNR_SW}}
