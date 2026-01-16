@@ -6,7 +6,10 @@ use prjcombine_interconnect::{
 use prjcombine_types::bsdata::BitRectId;
 use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 
-use crate::chip::{Chip, ChipKind};
+use crate::{
+    chip::{Chip, ChipKind},
+    xc2000,
+};
 
 pub struct ExpandedDevice<'a> {
     pub chip: &'a Chip,
@@ -26,10 +29,12 @@ impl ExpandedDevice<'_> {
         let kind = self.db.tile_classes.key(tile.class);
         match self.chip.kind {
             ChipKind::Xc2000 => {
-                if kind.starts_with("BIDIV") {
+                if tcrd.slot == xc2000::tslots::EXTRA_ROW {
                     EntityVec::from_iter([self.btile_llv(col, row)])
-                } else if kind.starts_with("BIDIH") {
+                } else if tcrd.slot == xc2000::tslots::EXTRA_COL {
                     EntityVec::from_iter([self.btile_llh(col, row)])
+                } else if tcrd.slot == xc2000::tslots::MISC_E {
+                    EntityVec::from_iter([self.btile_main(col, row)])
                 } else {
                     let mut res = EntityVec::from_iter([self.btile_main(col, row)]);
                     if col != self.chip.col_e()
@@ -41,10 +46,10 @@ impl ExpandedDevice<'_> {
                 }
             }
             ChipKind::Xc3000 | ChipKind::Xc3000A => {
-                if kind.starts_with("LLH") || (kind.starts_with("LLV") && kind.ends_with('S')) {
+                if tcrd.slot == xc2000::tslots::EXTRA_ROW && !self.chip.is_small {
+                    EntityVec::from_iter([self.btile_llv(col, row)])
+                } else if tcrd.slot != xc2000::tslots::MAIN {
                     EntityVec::from_iter([self.btile_main(col, row)])
-                } else if kind.starts_with("LLV") {
-                    EntityVec::from_iter([self.btile_llv(col, row), self.btile_main(col, row)])
                 } else {
                     let mut res = EntityVec::from_iter([self.btile_main(col, row)]);
                     if row != self.chip.row_n() {

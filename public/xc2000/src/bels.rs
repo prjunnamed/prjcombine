@@ -1,38 +1,3 @@
-pub mod xc2000 {
-    use prjcombine_interconnect::{bels, db::BelSlotId};
-
-    use crate::tslots;
-
-    bels![
-        INT: tslots::MAIN,
-        CLB: tslots::MAIN,
-        TBUF0: tslots::MAIN,
-        TBUF1: tslots::MAIN,
-        TBUF0_E: tslots::MAIN,
-        TBUF1_E: tslots::MAIN,
-        PULLUP_TBUF0: tslots::MAIN,
-        PULLUP_TBUF1: tslots::MAIN,
-        IO_W0: tslots::MAIN,
-        IO_W1: tslots::MAIN,
-        IO_E0: tslots::MAIN,
-        IO_E1: tslots::MAIN,
-        IO_S0: tslots::MAIN,
-        IO_S1: tslots::MAIN,
-        IO_N0: tslots::MAIN,
-        IO_N1: tslots::MAIN,
-        CLKIOB: tslots::MAIN,
-        BUFG: tslots::MAIN,
-        OSC: tslots::MAIN,
-        LLH: tslots::EXTRA_COL,
-        LLV: tslots::EXTRA_ROW,
-    ];
-
-    pub const IO_W: [BelSlotId; 2] = [IO_W0, IO_W1];
-    pub const IO_E: [BelSlotId; 2] = [IO_E0, IO_E1];
-    pub const IO_S: [BelSlotId; 2] = [IO_S0, IO_S1];
-    pub const IO_N: [BelSlotId; 2] = [IO_N0, IO_N1];
-}
-
 pub mod xc4000 {
     use prjcombine_interconnect::{bels, db::BelSlotId};
 

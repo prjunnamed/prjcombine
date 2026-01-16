@@ -1,5 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
+use prjcombine_interconnect::db::TileClassId;
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_xc2000::expanded::ExpandedDevice;
@@ -28,8 +29,12 @@ impl DerefMut for CollectorCtx<'_, '_> {
 }
 
 impl CollectorCtx<'_, '_> {
+    pub fn has_tile_id(&self, tcid: TileClassId) -> bool {
+        !self.edev.tile_index[tcid].is_empty()
+    }
+
     pub fn has_tile(&self, tile: &str) -> bool {
         let tcid = self.edev.db.get_tile_class(tile);
-        !self.edev.tile_index[tcid].is_empty()
+        self.has_tile_id(tcid)
     }
 }

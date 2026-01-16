@@ -1132,16 +1132,21 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
 
     let finisher = extractor.finish();
-    finisher.finish(&mut intdb, &mut ndb, |db, _, wt, _| {
-        let wtn = db.wires.key(wt.wire);
-        if wtn.ends_with(".BUF") {
-            PipMode::PermaBuf
-        } else if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
-            PipMode::Mux
-        } else {
-            PipMode::Pass
-        }
-    });
+    finisher.finish(
+        &mut intdb,
+        &mut ndb,
+        |db, _, wt, _| {
+            let wtn = db.wires.key(wt.wire);
+            if wtn.ends_with(".BUF") {
+                PipMode::PermaBuf
+            } else if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
+                PipMode::Mux
+            } else {
+                PipMode::Pass
+            }
+        },
+        false,
+    );
     (chip, intdb, ndb)
 }
 

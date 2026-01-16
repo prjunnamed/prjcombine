@@ -8,7 +8,7 @@ use prjcombine_interconnect::{
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 
-use crate::bels;
+use crate::{bels, xc2000};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPad {
@@ -188,16 +188,16 @@ impl Chip {
     pub fn get_io_crd(&self, bel: BelCoord) -> EdgeIoCoord {
         match self.kind {
             ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => {
-                if let Some(iob) = bels::xc2000::IO_W.iter().position(|&x| x == bel.slot) {
+                if let Some(iob) = xc2000::bslots::IO_W.index_of(bel.slot) {
                     assert_eq!(bel.col, self.col_w());
                     EdgeIoCoord::W(bel.row, TileIobId::from_idx(iob))
-                } else if let Some(iob) = bels::xc2000::IO_E.iter().position(|&x| x == bel.slot) {
+                } else if let Some(iob) = xc2000::bslots::IO_E.index_of(bel.slot) {
                     assert_eq!(bel.col, self.col_e());
                     EdgeIoCoord::E(bel.row, TileIobId::from_idx(iob))
-                } else if let Some(iob) = bels::xc2000::IO_S.iter().position(|&x| x == bel.slot) {
+                } else if let Some(iob) = xc2000::bslots::IO_S.index_of(bel.slot) {
                     assert_eq!(bel.row, self.row_s());
                     EdgeIoCoord::S(bel.col, TileIobId::from_idx(iob))
-                } else if let Some(iob) = bels::xc2000::IO_N.iter().position(|&x| x == bel.slot) {
+                } else if let Some(iob) = xc2000::bslots::IO_N.index_of(bel.slot) {
                     assert_eq!(bel.row, self.row_n());
                     EdgeIoCoord::N(bel.col, TileIobId::from_idx(iob))
                 } else {
@@ -253,16 +253,16 @@ impl Chip {
         match self.kind {
             ChipKind::Xc2000 | ChipKind::Xc3000 | ChipKind::Xc3000A => match io {
                 EdgeIoCoord::N(col, iob) => {
-                    CellCoord::new(die, col, self.row_n()).bel(bels::xc2000::IO_N[iob.to_idx()])
+                    CellCoord::new(die, col, self.row_n()).bel(xc2000::bslots::IO_N[iob.to_idx()])
                 }
                 EdgeIoCoord::E(row, iob) => {
-                    CellCoord::new(die, self.col_e(), row).bel(bels::xc2000::IO_E[iob.to_idx()])
+                    CellCoord::new(die, self.col_e(), row).bel(xc2000::bslots::IO_E[iob.to_idx()])
                 }
                 EdgeIoCoord::S(col, iob) => {
-                    CellCoord::new(die, col, self.row_s()).bel(bels::xc2000::IO_S[iob.to_idx()])
+                    CellCoord::new(die, col, self.row_s()).bel(xc2000::bslots::IO_S[iob.to_idx()])
                 }
                 EdgeIoCoord::W(row, iob) => {
-                    CellCoord::new(die, self.col_w(), row).bel(bels::xc2000::IO_W[iob.to_idx()])
+                    CellCoord::new(die, self.col_w(), row).bel(xc2000::bslots::IO_W[iob.to_idx()])
                 }
             },
             ChipKind::Xc4000

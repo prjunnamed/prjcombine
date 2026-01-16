@@ -649,6 +649,15 @@ impl<'a> ExpandedGrid<'a> {
             .collect()
     }
 
+    pub fn get_bel_bidir(&self, bel: BelCoord, pin: BelBidirId) -> WireCoord {
+        let tcrd = self.get_tile_by_bel(bel);
+        let tile = &self[tcrd];
+        let BelInfo::Bel(ref bel) = self.db[tile.class].bels[bel.slot] else {
+            unreachable!()
+        };
+        self.tile_wire(tcrd, bel.bidirs[pin])
+    }
+
     pub fn finish(&mut self) {
         let mut region_root_cells: EntityVec<_, _> =
             self.db.region_slots.ids().map(|_| HashMap::new()).collect();

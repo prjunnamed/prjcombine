@@ -4,7 +4,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem},
 };
-use prjcombine_xc2000::bels::xc2000 as bels;
+use prjcombine_xc2000::xc2000::bslots;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
@@ -16,7 +16,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
             continue;
         };
-        let mut bctx = ctx.bel(bels::CLB);
+        let mut bctx = ctx.bel(bslots::CLB);
         for lut in ["F", "G"] {
             bctx.mode("FG")
                 .test_manual(lut, "ABCD")

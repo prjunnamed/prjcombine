@@ -4,6 +4,7 @@ use std::{
 };
 
 use clap::Parser;
+use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_xact_data::{
     die::Die,
     parts::{PartKind, get_parts},
@@ -47,6 +48,25 @@ fn main() {
     };
     let mut die_cache = BTreeMap::new();
     let mut devices = BTreeMap::new();
+    let base: IntDb = match args.family.as_str() {
+        "xc2000" => {
+            bincode::decode_from_slice(
+                prjcombine_xc2000::xc2000::xc2000::INIT,
+                bincode::config::standard(),
+            )
+            .unwrap()
+            .0
+        }
+        "xc3000" | "xc3000a" => {
+            bincode::decode_from_slice(
+                prjcombine_xc2000::xc2000::xc3000::INIT,
+                bincode::config::standard(),
+            )
+            .unwrap()
+            .0
+        }
+        _ => IntDb::default(),
+    };
     for part in &parts {
         if part.kind != family {
             continue;
@@ -87,7 +107,16 @@ fn main() {
                         assert_eq!(col_intdb.wires, intdb.wires);
                         assert_eq!(col_intdb.conn_classes, intdb.conn_classes);
                         for (_, tcname, tcls) in intdb.tile_classes {
-                            if let Some((_, col_tcls)) = col_intdb.tile_classes.get(&tcname) {
+                            if let Some((_, col_tcls)) = col_intdb.tile_classes.get_mut(&tcname) {
+                                if let Some((_, base_tcls)) = base.tile_classes.get(&tcname) {
+                                    if *base_tcls == tcls {
+                                        continue;
+                                    }
+                                    if *base_tcls == *col_tcls {
+                                        *col_tcls = tcls;
+                                        continue;
+                                    }
+                                }
                                 assert_eq!(*col_tcls, tcls, "mismatch for tile class {tcname}");
                             } else {
                                 col_intdb.tile_classes.insert(tcname, tcls);
