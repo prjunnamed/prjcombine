@@ -233,7 +233,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "RX_DATA_WIDTH", &["1", "2", "4"]);
         ctx.collect_enum(tile, bel, "TX_DATA_WIDTH", &["1", "2", "4"]);
         ctx.collect_bitvec(tile, bel, "RX_BUFFER_LIMIT", "");
-        let item = ctx.collector.tiledb.item(tile, bel, "RX_BUFFER_LIMIT");
+        let item = ctx.collector.data.bsdata.item(tile, bel, "RX_BUFFER_LIMIT");
         for (name, val) in [
             ("15.MASTER", bits![0, 0, 1, 1]),
             ("15.SLAVE_1_HOP", bits![0, 0, 1, 0]),

@@ -256,7 +256,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         assert_eq!(d_1, ctx.state.get_diff(tile, bel, "CY0G", "1"));
         assert_eq!(d_f1_g1, ctx.state.get_diff(tile, bel, "CY0G", "G1"));
         assert_eq!(d_prod, ctx.state.get_diff(tile, bel, "CY0G", "PROD"));
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "CY0",
@@ -271,7 +271,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         // muxes
         let yb_by = ctx.state.get_diff(tile, bel, "YBMUX", "0");
         let yb_cy = ctx.state.get_diff(tile, bel, "YBMUX", "1");
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "YBMUX",
@@ -279,7 +279,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         let dx_bx = ctx.state.get_diff(tile, bel, "DXMUX", "0");
         let dx_x = ctx.state.get_diff(tile, bel, "DXMUX", "1");
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "DXMUX",
@@ -287,7 +287,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         let dy_by = ctx.state.get_diff(tile, bel, "DYMUX", "0");
         let dy_y = ctx.state.get_diff(tile, bel, "DYMUX", "1");
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "DYMUX",
@@ -301,18 +301,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.state
             .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
             .assert_empty();
-        ctx.tiledb
-            .insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
+        ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
 
         let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
-        ctx.tiledb
-            .insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
+        ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
 
         let ff_latch = ctx.state.get_diff(tile, bel, "FFX", "#LATCH");
         assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, "FFY", "#LATCH"));
         ctx.state.get_diff(tile, bel, "FFX", "#FF").assert_empty();
         ctx.state.get_diff(tile, bel, "FFY", "#FF").assert_empty();
-        ctx.tiledb.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
+        ctx.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
 
         ctx.collect_enum_bool(tile, bel, "INITX", "LOW", "HIGH");
         ctx.collect_enum_bool(tile, bel, "INITY", "LOW", "HIGH");
@@ -324,7 +322,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("SLICE[1]", "READBACK_XQ", 2, 16),
         ("SLICE[1]", "READBACK_YQ", 8, 16),
     ] {
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             attr,

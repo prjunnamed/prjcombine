@@ -10,7 +10,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
     let grid = backend.edev.chip;
     let num_dec = if grid.kind == ChipKind::Xc4000A { 2 } else { 4 };
     for tile in ["CNR.BL", "CNR.TL", "CNR.BR", "CNR.TR"] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let tcid = backend.edev.db.get_tile_class(tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for slots in [bels::PULLUP_DEC_H, bels::PULLUP_DEC_V] {
             for i in 0..num_dec {
                 let mut bctx = ctx.bel(slots[i]);
@@ -155,7 +156,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
     }
     {
-        let mut ctx = FuzzCtx::new(session, backend, "LLV.IO.R");
+        let tcid = backend.edev.db.get_tile_class("LLV.IO.R");
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         ctx.test_cfg4000("MISC", "TLC", &["OFF", "ON"]);
     }
 }
@@ -173,30 +175,30 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if tile == "CNR.BL" {
             let bel = "MISC";
             let item = ctx.extract_enum_bool(tile, bel, "TMBOT", "OFF", "ON");
-            ctx.tiledb.insert(tile, bel, "TM_BOT", item);
+            ctx.insert(tile, bel, "TM_BOT", item);
             let item = ctx.extract_enum_bool(tile, bel, "READABORT", "DISABLE", "ENABLE");
-            ctx.tiledb.insert(tile, bel, "READ_ABORT", item);
+            ctx.insert(tile, bel, "READ_ABORT", item);
             let item = ctx.extract_enum_bool(tile, bel, "READCAPTURE", "DISABLE", "ENABLE");
-            ctx.tiledb.insert(tile, bel, "READ_CAPTURE", item);
+            ctx.insert(tile, bel, "READ_CAPTURE", item);
             let bel = "MD1";
             let item =
                 ctx.extract_enum_default(tile, bel, "M1PIN", &["PULLUP", "PULLDOWN"], "PULLNONE");
-            ctx.tiledb.insert(tile, bel, "PULL", item);
+            ctx.insert(tile, bel, "PULL", item);
         }
         if tile == "CNR.TL" {
             let bel = "MISC";
             let item = ctx.extract_enum_bool(tile, bel, "TMTOP", "OFF", "ON");
-            ctx.tiledb.insert(tile, bel, "TM_TOP", item);
+            ctx.insert(tile, bel, "TM_TOP", item);
             let item = ctx.extract_enum_bool(tile, bel, "TMLEFT", "OFF", "ON");
-            ctx.tiledb.insert(tile, bel, "TM_LEFT", item);
+            ctx.insert(tile, bel, "TM_LEFT", item);
             let item = xlat_enum(vec![
                 ("CMOS", ctx.state.get_diff(tile, bel, "TTLBAR", "ON")),
                 ("TTL", ctx.state.get_diff(tile, bel, "TTLBAR", "OFF")),
             ]);
-            ctx.tiledb.insert(tile, bel, "INPUT", item);
+            ctx.insert(tile, bel, "INPUT", item);
             let bel = "BSCAN";
             let item = ctx.extract_bit(tile, bel, "BSCAN", "USED");
-            ctx.tiledb.insert(tile, bel, "ENABLE", item);
+            ctx.insert(tile, bel, "ENABLE", item);
         }
         if tile == "CNR.BR" {
             let bel = "MISC";
@@ -205,11 +207,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bel = "STARTUP";
             ctx.collect_enum_bool(tile, bel, "CRC", "DISABLE", "ENABLE");
             let item = ctx.extract_enum(tile, bel, "CONFIGRATE", &["SLOW", "FAST"]);
-            ctx.tiledb.insert(tile, bel, "CONFIG_RATE", item);
+            ctx.insert(tile, bel, "CONFIG_RATE", item);
             let item = ctx.extract_bit(tile, bel, "GTS", "NOT");
-            ctx.tiledb.insert(tile, bel, "INV.GTS", item);
+            ctx.insert(tile, bel, "INV.GTS", item);
             let item = ctx.extract_bit(tile, bel, "GSR", "NOT");
-            ctx.tiledb.insert(tile, bel, "INV.GSR", item);
+            ctx.insert(tile, bel, "INV.GSR", item);
             let item = xlat_enum(vec![
                 ("Q0", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C1")),
                 ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C3")),
@@ -219,7 +221,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
                 ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
             ]);
-            ctx.tiledb.insert(tile, bel, "DONE_ACTIVE", item);
+            ctx.insert(tile, bel, "DONE_ACTIVE", item);
             for attr in ["OUTPUTS_ACTIVE", "GSR_INACTIVE"] {
                 let item = xlat_enum(vec![
                     ("DONE_IN", ctx.state.get_diff(tile, bel, attr, "DI")),
@@ -232,7 +234,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("Q3", ctx.state.get_diff(tile, bel, attr, "U3")),
                     ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "U4")),
                 ]);
-                ctx.tiledb.insert(tile, bel, attr, item);
+                ctx.insert(tile, bel, attr, item);
             }
             ctx.collect_enum_default(tile, bel, "STARTUP_CLK", &["USERCLK"], "CCLK");
             ctx.collect_bit(tile, bel, "SYNC_TO_DONE", "YES");
@@ -245,7 +247,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state.get_diff(tile, bel, "DONEPIN", "NOPULLUP"),
                 ),
             ]);
-            ctx.tiledb.insert(tile, bel, "PULL", item);
+            ctx.insert(tile, bel, "PULL", item);
 
             let bel = "OSC";
             let mut diffs0 = vec![];
@@ -256,26 +258,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let (diff0, diff1, diff_en) = Diff::split(diff0, diff1);
                 diffs0.push((val, diff0));
                 diffs1.push((val, diff1));
-                ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff_en));
+                ctx.insert(tile, bel, "ENABLE", xlat_bit(diff_en));
             }
-            ctx.tiledb.insert(tile, bel, "MUX.OUT0", xlat_enum(diffs0));
-            ctx.tiledb.insert(tile, bel, "MUX.OUT1", xlat_enum(diffs1));
+            ctx.insert(tile, bel, "MUX.OUT0", xlat_enum(diffs0));
+            ctx.insert(tile, bel, "MUX.OUT1", xlat_enum(diffs1));
         }
         if tile == "CNR.TR" {
             let bel = "MISC";
             let item = ctx.extract_enum_bool(tile, bel, "TMRIGHT", "OFF", "ON");
-            ctx.tiledb.insert(tile, bel, "TM_RIGHT", item);
+            ctx.insert(tile, bel, "TM_RIGHT", item);
             ctx.collect_enum_bool(tile, bel, "TAC", "OFF", "ON");
             let bel = "BSCAN";
             let item = ctx.extract_bit(tile, bel, "BSCAN", "USED");
-            ctx.tiledb.insert(tile, bel, "ENABLE", item);
+            ctx.insert(tile, bel, "ENABLE", item);
             let bel = "TDO";
             let item =
                 ctx.extract_enum_default(tile, bel, "TDOPIN", &["PULLUP", "PULLDOWN"], "PULLNONE");
-            ctx.tiledb.insert(tile, bel, "PULL", item);
+            ctx.insert(tile, bel, "PULL", item);
             let bel = "READCLK";
             let item = ctx.extract_enum(tile, bel, "READCLK", &["RDBK", "CCLK"]);
-            ctx.tiledb.insert(tile, bel, "READ_CLK", item);
+            ctx.insert(tile, bel, "READ_CLK", item);
 
             let bel = "OSC";
             for attr in ["MUX.OUT0", "MUX.OUT1"] {

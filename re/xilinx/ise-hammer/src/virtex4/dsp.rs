@@ -85,7 +85,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let d1_1 = ctx.state.get_diff(tile, "DSP[1]", "CREG", "1");
     let (d0_0, d1_0, dc_0) = Diff::split(d0_0, d1_0);
     let (d0_1, d1_1, dc_1) = Diff::split(d0_1, d1_1);
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         "DSP_COMMON",
         "CREG",
@@ -93,7 +93,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     );
     d0_0.assert_empty();
     d1_0.assert_empty();
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         "DSP_COMMON",
         "CLKC_MUX",
@@ -110,7 +110,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
         for attr in ["AREG", "BREG"] {
             ctx.collect_enum(tile, bel, attr, &["0", "1", "2"]);
-            present.discard_bits(ctx.tiledb.item(tile, bel, attr));
+            present.discard_bits(ctx.item(tile, bel, attr));
         }
         for attr in [
             "MREG",
@@ -121,12 +121,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "SUBTRACTREG",
         ] {
             ctx.collect_enum(tile, bel, attr, &["0", "1"]);
-            present.discard_bits(ctx.tiledb.item(tile, bel, attr));
+            present.discard_bits(ctx.item(tile, bel, attr));
         }
         ctx.collect_enum(tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
-        present.discard_bits(ctx.tiledb.item(tile, "DSP_COMMON", "CREG"));
-        present.discard_bits(ctx.tiledb.item(tile, "DSP_COMMON", "CLKC_MUX"));
-        ctx.tiledb.insert(
+        present.discard_bits(ctx.item(tile, "DSP_COMMON", "CREG"));
+        present.discard_bits(ctx.item(tile, "DSP_COMMON", "CLKC_MUX"));
+        ctx.insert(
             tile,
             bel,
             "UNK_PRESENT",

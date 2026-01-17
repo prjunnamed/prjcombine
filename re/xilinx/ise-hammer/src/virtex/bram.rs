@@ -58,9 +58,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "BRAM";
         let ti = ctx.extract_enum_bool(tile, bel, "CLKAMUX", "1", "0");
-        ctx.tiledb.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKA", ti);
+        ctx.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKA", ti);
         let ti = ctx.extract_enum_bool(tile, bel, "CLKBMUX", "1", "0");
-        ctx.tiledb.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKB", ti);
+        ctx.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKB", ti);
         for (wire, pinmux, pin, pin_b) in [
             ("SELA", "ENAMUX", "ENA", "ENA_B"),
             ("SELB", "ENBMUX", "ENB", "ENB_B"),
@@ -73,7 +73,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
             let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 "INT",
                 format!("INV.0.IMUX.BRAM.{wire}"),
@@ -92,11 +92,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 &["4096X1", "2048X2", "1024X4", "512X8", "256X16"],
             );
         }
-        ctx.tiledb
-            .insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
+        ctx.insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-        present.discard_bits(ctx.tiledb.item(tile, "INT", "INV.0.IMUX.BRAM.SELA"));
-        present.discard_bits(ctx.tiledb.item(tile, "INT", "INV.0.IMUX.BRAM.SELB"));
+        present.discard_bits(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELA"));
+        present.discard_bits(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELB"));
         present.assert_empty();
     }
 }

@@ -407,7 +407,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         TileBit::new(tile, frame, bit)
     }
     for addr in 0..0x140 {
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             format!("DRP{addr:03X}"),
@@ -434,7 +434,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ] {
                 diffs.push((val, ctx.state.get_diff(tile, bel, attr, sval)));
             }
-            ctx.tiledb.insert(tile, bel, attr, xlat_enum(diffs));
+            ctx.insert(tile, bel, attr, xlat_enum(diffs));
         } else {
             ctx.collect_enum(tile, bel, attr, vals);
         }
@@ -451,7 +451,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diffs[1].bits.insert(bit, true);
             assert_eq!(diffs[2].bits.remove(&bit), Some(true));
         }
-        ctx.tiledb.insert(tile, bel, attr, xlat_bitvec(diffs));
+        ctx.insert(tile, bel, attr, xlat_bitvec(diffs));
     }
     ctx.collect_enum(
         tile,
@@ -463,7 +463,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "HCLK";
     let bel = "HCLK";
     let mut diff = ctx.state.get_diff(tile, bel, "DRP_MASK_BOTH", "GTH");
-    diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "DRP_MASK_BELOW"), true, false);
-    diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "DRP_MASK_ABOVE"), true, false);
+    diff.apply_bit_diff(ctx.item(tile, bel, "DRP_MASK_BELOW"), true, false);
+    diff.apply_bit_diff(ctx.item(tile, bel, "DRP_MASK_ABOVE"), true, false);
     diff.assert_empty();
 }

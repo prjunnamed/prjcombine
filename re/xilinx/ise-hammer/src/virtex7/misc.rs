@@ -643,8 +643,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = &format!("BSCAN[{i}]");
         ctx.collect_bit(tile, bel, "ENABLE", "1");
         let item = ctx.extract_enum_bool_wide(tile, bel, "DISABLE_JTAG", "FALSE", "TRUE");
-        ctx.tiledb
-            .insert(tile, "BSCAN_COMMON", "DISABLE_JTAG", item);
+        ctx.insert(tile, "BSCAN_COMMON", "DISABLE_JTAG", item);
     }
     {
         let bel = "BSCAN_COMMON";
@@ -665,7 +664,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item0 = ctx.extract_enum(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
         let item1 = ctx.extract_enum(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
         assert_eq!(item0, item1);
-        ctx.tiledb.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
+        ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
     }
 
     {
@@ -675,13 +674,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item0 = ctx.extract_bit_wide(tile, bel, "PIN.GSR", "1");
         let item1 = ctx.extract_bit_wide(tile, bel, "PIN.GTS", "1");
         assert_eq!(item0, item1);
-        ctx.tiledb.insert(tile, bel, "GTS_GSR_ENABLE", item0);
+        ctx.insert(tile, bel, "GTS_GSR_ENABLE", item0);
         ctx.collect_enum_bool_wide(tile, bel, "PROG_USR", "FALSE", "TRUE");
         let item = ctx.extract_bit_wide(tile, bel, "PIN.USRCCLKO", "1");
-        ctx.tiledb.insert(tile, bel, "USRCCLK_ENABLE", item);
+        ctx.insert(tile, bel, "USRCCLK_ENABLE", item);
         if edev.chips.first().unwrap().regs > 1 {
             let item = ctx.extract_bit_wide(tile, bel, "PIN.KEYCLEARB", "1");
-            ctx.tiledb.insert(tile, bel, "KEY_CLEAR_ENABLE", item);
+            ctx.insert(tile, bel, "KEY_CLEAR_ENABLE", item);
         }
     }
     {
@@ -754,13 +753,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if edev.chips.len() == 1 {
             ctx.collect_enum_bool(tile, bel, "ONESHOT", "FALSE", "TRUE");
         }
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "EXTMASTERCCLK_EN",
             TileItem::from_bit(TileBit::new(0, 0, 26), false),
         );
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "EXTMASTERCCLK_DIV",
@@ -791,14 +790,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diffs = vec![];
         for val in ["1", "2", "3", "6", "13", "25", "50"] {
             let mut diff = ctx.state.get_diff(tile, bel, "POST_CRC_FREQ", val);
-            diff.apply_enum_diff(
-                ctx.tiledb.item(tile, bel, "POST_CRC_CLK"),
-                "INTERNAL",
-                "CFG_CLK",
-            );
+            diff.apply_enum_diff(ctx.item(tile, bel, "POST_CRC_CLK"), "INTERNAL", "CFG_CLK");
             diffs.push((val, diff));
         }
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "POST_CRC_FREQ",
@@ -813,7 +808,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "POST_CRC_INIT_FLAG", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "SYSMON_PARTIAL_RECONFIG", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "TRIM_BITSTREAM", "DISABLE", "ENABLE");
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "PERSIST_DEASSERT_AT_DESYNC",
@@ -825,8 +820,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .get_diff(tile, "CFG_IO_ACCESS", "TDO", "UNCONNECTED"),
         );
         assert_eq!(item, item2);
-        ctx.tiledb.insert(tile, "MISC", "CFG_IO_ACCESS_TDO", item);
-        ctx.tiledb.insert(
+        ctx.insert(tile, "MISC", "CFG_IO_ACCESS_TDO", item);
+        ctx.insert(
             tile,
             bel,
             "TRIM_REG",
@@ -852,7 +847,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bit(tile, bel, "ENCRYPT", "YES");
         }
         ctx.collect_enum_bool(tile, bel, "PERSIST", "NO", "CTLREG");
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "ICAP_SELECT",
@@ -870,7 +865,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         let bel = "FRAME_ECC";
         let item = ctx.extract_bit(tile, bel, "ENABLE", "1");
-        ctx.tiledb.insert(tile, "MISC", "GLUTMASK", item);
+        ctx.insert(tile, "MISC", "GLUTMASK", item);
         ctx.collect_enum(tile, bel, "FARSRC", &["FAR", "EFAR"]);
     }
     {
@@ -885,9 +880,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "VGG_POS_GAIN_SEL", "");
         if edev.chips.first().unwrap().regs > 1 {
             let mut diff = ctx.state.get_diff(tile, bel, "ENCRYPT", "YES");
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "VGG_NEG_GAIN_SEL"), 0xf, 0);
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "VGG_SEL"), 0xf, 0);
+            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
+            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_NEG_GAIN_SEL"), 0xf, 0);
+            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_SEL"), 0xf, 0);
             diff.assert_empty();
         }
     }
@@ -920,7 +915,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .into_iter()
             .collect(),
         };
-        ctx.tiledb.insert(tile, bel, "BPI_SYNC_MODE", item);
+        ctx.insert(tile, bel, "BPI_SYNC_MODE", item);
     }
     if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.WBSTAR";
@@ -989,21 +984,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .get_diff(tile, bel, "JTAG_XADC", "ENABLE")
             .assert_empty();
         let mut diff = ctx.state.get_diff(tile, bel, "JTAG_XADC", "DISABLE");
-        diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "SYSMON_TEST_E"), 7, 0);
+        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_E"), 7, 0);
         diff.assert_empty();
         let mut diff = ctx.state.get_diff(tile, bel, "JTAG_XADC", "STATUSONLY");
-        diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "SYSMON_TEST_E"), 0xc8, 0);
+        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_E"), 0xc8, 0);
         diff.assert_empty();
 
         let mut diff = ctx.state.get_diff(tile, bel, "XADCENHANCEDLINEARITY", "ON");
-        diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "SYSMON_TEST_C"), 0x10, 0);
+        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_C"), 0x10, 0);
         diff.assert_empty();
         ctx.state
             .get_diff(tile, bel, "XADCENHANCEDLINEARITY", "OFF")
             .assert_empty();
 
         let mut diff = ctx.state.get_diff(tile, bel, "XADCPOWERDOWN", "ENABLE");
-        diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "INIT_42"), 0x30, 0);
+        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "INIT_42"), 0x30, 0);
         diff.assert_empty();
         ctx.state
             .get_diff(tile, bel, "XADCPOWERDOWN", "DISABLE")

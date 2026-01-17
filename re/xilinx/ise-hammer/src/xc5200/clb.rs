@@ -89,16 +89,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .combine(&!ctx.state.peek_diff(tile, bel, "CKMUX", "CKNOT")),
             ),
         ]);
-        ctx.tiledb.insert(tile, bel, "FFLATCH", item);
+        ctx.insert(tile, bel, "FFLATCH", item);
         ctx.collect_enum(tile, bel, "DMUX", &["F", "DO"]);
         ctx.collect_enum_default(tile, bel, "CLRMUX", &["CLR"], "NONE");
         ctx.collect_enum_default(tile, bel, "CEMUX", &["CE"], "NONE");
         let item = ctx.extract_enum_bool(tile, bel, "CKMUX", "CK", "CKNOT");
-        ctx.tiledb.insert(tile, bel, "INV.CK", item);
+        ctx.insert(tile, bel, "INV.CK", item);
         let item = ctx.extract_enum_bool(tile, bel, "CKMUX.LATCH", "CKNOT", "CK");
-        ctx.tiledb.insert(tile, bel, "INV.CK", item);
+        ctx.insert(tile, bel, "INV.CK", item);
         ctx.state.get_diff(tile, bel, "COMUX", "CY").assert_empty();
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "READBACK",

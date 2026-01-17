@@ -517,12 +517,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_m1 = diff.split_bits_by(|bit| bit.frame.to_idx() == 22);
             let diff_m2 = diff.split_bits_by(|bit| bit.frame.to_idx() == 20);
             diff.assert_empty();
-            ctx.tiledb
-                .insert(tile, "MD0", "5V_TOLERANT_IO", xlat_bit(!diff_m0));
-            ctx.tiledb
-                .insert(tile, "MD1", "5V_TOLERANT_IO", xlat_bit(!diff_m1));
-            ctx.tiledb
-                .insert(tile, "MD2", "5V_TOLERANT_IO", xlat_bit(!diff_m2));
+            ctx.insert(tile, "MD0", "5V_TOLERANT_IO", xlat_bit(!diff_m0));
+            ctx.insert(tile, "MD1", "5V_TOLERANT_IO", xlat_bit(!diff_m1));
+            ctx.insert(tile, "MD2", "5V_TOLERANT_IO", xlat_bit(!diff_m2));
         }
     }
 
@@ -561,10 +558,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_prog = diff.split_bits_by(|bit| bit.frame.to_idx() == 8);
             let diff_done = diff.split_bits_by(|bit| bit.frame.to_idx() == 3);
             diff.assert_empty();
-            ctx.tiledb
-                .insert(tile, "PROG", "5V_TOLERANT_IO", xlat_bit(!diff_prog));
-            ctx.tiledb
-                .insert(tile, "DONE", "5V_TOLERANT_IO", xlat_bit(!diff_done));
+            ctx.insert(tile, "PROG", "5V_TOLERANT_IO", xlat_bit(!diff_prog));
+            ctx.insert(tile, "DONE", "5V_TOLERANT_IO", xlat_bit(!diff_done));
         }
 
         let bel = "STARTUP";
@@ -581,7 +576,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
             ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
         ]);
-        ctx.tiledb.insert(tile, bel, "DONE_ACTIVE", item);
+        ctx.insert(tile, bel, "DONE_ACTIVE", item);
         for attr in ["OUTPUTS_ACTIVE", "GSR_INACTIVE"] {
             let item = xlat_enum(vec![
                 ("DONE_IN", ctx.state.get_diff(tile, bel, attr, "DI")),
@@ -594,7 +589,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("Q3", ctx.state.get_diff(tile, bel, attr, "U3")),
                 ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "U4")),
             ]);
-            ctx.tiledb.insert(tile, bel, attr, item);
+            ctx.insert(tile, bel, attr, item);
         }
         ctx.collect_enum(tile, bel, "STARTUP_CLK", &["CCLK", "USERCLK"]);
         ctx.collect_enum_bool(tile, bel, "SYNC_TO_DONE", "NO", "YES");
@@ -631,10 +626,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_tdo = diff.split_bits_by(|bit| bit.frame.to_idx() == 12);
             let diff_cclk = diff.split_bits_by(|bit| bit.frame.to_idx() == 13);
             diff.assert_empty();
-            ctx.tiledb
-                .insert(tile, "TDO", "5V_TOLERANT_IO", xlat_bit(!diff_tdo));
-            ctx.tiledb
-                .insert(tile, "CCLK", "5V_TOLERANT_IO", xlat_bit(!diff_cclk));
+            ctx.insert(tile, "TDO", "5V_TOLERANT_IO", xlat_bit(!diff_tdo));
+            ctx.insert(tile, "CCLK", "5V_TOLERANT_IO", xlat_bit(!diff_cclk));
         }
         let bel = "BSCAN";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
@@ -677,10 +670,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff_iob0 = diff.split_bits_by(|bit| bit.frame.to_idx() == f0);
             let diff_iob1 = diff.split_bits_by(|bit| bit.frame.to_idx() == f1);
             diff.assert_empty();
-            ctx.tiledb
-                .insert(tile, "IO0", "5V_TOLERANT_IO", xlat_bit(!diff_iob0));
-            ctx.tiledb
-                .insert(tile, "IO1", "5V_TOLERANT_IO", xlat_bit(!diff_iob1));
+            ctx.insert(tile, "IO0", "5V_TOLERANT_IO", xlat_bit(!diff_iob0));
+            ctx.insert(tile, "IO1", "5V_TOLERANT_IO", xlat_bit(!diff_iob1));
         }
     }
     if edev.chip.kind == ChipKind::Xc4000Ex {

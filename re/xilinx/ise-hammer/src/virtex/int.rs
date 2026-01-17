@@ -1310,15 +1310,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 );
                                 let (alt, noalt, common) = Diff::split(diff, noalt_diff);
                                 if mux_name.contains("CLKIN") {
-                                    ctx.tiledb
-                                        .insert(tcname, "DLL", "CLKIN_PAD", xlat_bit(noalt));
-                                    ctx.tiledb
-                                        .insert(tcname, "DLL", "CLKFB_PAD", xlat_bit(!alt));
+                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit(noalt));
+                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit(!alt));
                                 } else {
-                                    ctx.tiledb
-                                        .insert(tcname, "DLL", "CLKFB_PAD", xlat_bit(noalt));
-                                    ctx.tiledb
-                                        .insert(tcname, "DLL", "CLKIN_PAD", xlat_bit(!alt));
+                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit(noalt));
+                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit(!alt));
                                 }
                                 diff = common;
                             }
@@ -1343,7 +1339,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     println!("UMM {out_name} {in_name} BUF IS EMPTY");
                                     continue;
                                 }
-                                ctx.tiledb.insert(
+                                ctx.insert(
                                     tcname,
                                     bel,
                                     format!("BUF.{out_name}.{in_name}"),
@@ -1415,13 +1411,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 inps.push(("NONE".to_string(), Diff::default()));
                             }
                             let item = xlat_enum_ocd(inps, OcdMode::Mux);
-                            ctx.tiledb.insert(tcname, bel, mux_name, item);
-                            ctx.tiledb.insert(
-                                tcname,
-                                bel,
-                                format!("DRIVE.{out_name}"),
-                                xlat_bit(drive),
-                            );
+                            ctx.insert(tcname, bel, mux_name, item);
+                            ctx.insert(tcname, bel, format!("DRIVE.{out_name}"), xlat_bit(drive));
                         } else {
                             if !got_empty {
                                 inps.push(("NONE".to_string(), Diff::default()));
@@ -1441,7 +1432,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                                 println!("UMMM MUX {tcname} {mux_name} is empty");
                             }
-                            ctx.tiledb.insert(tcname, bel, mux_name, item);
+                            ctx.insert(tcname, bel, mux_name, item);
                         }
                     }
                     SwitchBoxItem::Pass(pass) => {
@@ -1472,7 +1463,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         let item = xlat_bit(diff);
                         let name = format!("PASS.{out_name}.{in_name}");
-                        ctx.tiledb.insert(tcname, bel, name, item);
+                        ctx.insert(tcname, bel, name, item);
                     }
                     SwitchBoxItem::BiPass(pass) => {
                         let a_name = intdb.wires.key(pass.a.wire);
@@ -1504,7 +1495,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 &in_name,
                             );
                             let item = xlat_bit(diff);
-                            ctx.tiledb.insert(tcname, bel, &name, item);
+                            ctx.insert(tcname, bel, &name, item);
                         }
                     }
                     SwitchBoxItem::PermaBuf(_) => (),

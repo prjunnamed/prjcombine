@@ -2489,17 +2489,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_inv(tile, bel, "ICE");
             ctx.collect_inv(tile, bel, "TCE");
             let item = ctx.extract_bit(tile, bel, "ISR_USED", "0");
-            ctx.tiledb.insert(tile, bel, "IFF_SR_ENABLE", item);
+            ctx.insert(tile, bel, "IFF_SR_ENABLE", item);
             let item = ctx.extract_bit(tile, bel, "OSR_USED", "0");
-            ctx.tiledb.insert(tile, bel, "OFF_SR_ENABLE", item);
+            ctx.insert(tile, bel, "OFF_SR_ENABLE", item);
             let item = ctx.extract_bit(tile, bel, "TSR_USED", "0");
-            ctx.tiledb.insert(tile, bel, "TFF_SR_ENABLE", item);
+            ctx.insert(tile, bel, "TFF_SR_ENABLE", item);
             let item = ctx.extract_bit(tile, bel, "IREV_USED", "0");
-            ctx.tiledb.insert(tile, bel, "IFF_REV_ENABLE", item);
+            ctx.insert(tile, bel, "IFF_REV_ENABLE", item);
             let item = ctx.extract_bit(tile, bel, "OREV_USED", "0");
-            ctx.tiledb.insert(tile, bel, "OFF_REV_ENABLE", item);
+            ctx.insert(tile, bel, "OFF_REV_ENABLE", item);
             let item = ctx.extract_bit(tile, bel, "TREV_USED", "0");
-            ctx.tiledb.insert(tile, bel, "TFF_REV_ENABLE", item);
+            ctx.insert(tile, bel, "TFF_REV_ENABLE", item);
 
             if edev.chip.kind.is_spartan3ea() {
                 ctx.collect_enum_default(tile, bel, "PCICE_MUX", &["OCE", "PCICE"], "NONE");
@@ -2527,63 +2527,63 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 unreachable!()
             };
             values.insert("NONE".into(), BitVec::repeat(false, item.bits.len()));
-            ctx.tiledb.insert(tile, bel, "OMUX", item);
+            ctx.insert(tile, bel, "OMUX", item);
 
             let item = ctx.extract_enum_bool(tile, bel, "IFF1", "#FF", "#LATCH");
-            ctx.tiledb.insert(tile, bel, "IFF_LATCH", item);
+            ctx.insert(tile, bel, "IFF_LATCH", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFF2", "#FF", "#LATCH");
-            ctx.tiledb.insert(tile, bel, "IFF_LATCH", item);
+            ctx.insert(tile, bel, "IFF_LATCH", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFF1", "#FF", "#LATCH");
-            ctx.tiledb.insert(tile, bel, "OFF1_LATCH", item);
+            ctx.insert(tile, bel, "OFF1_LATCH", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFF2", "#FF", "#LATCH");
-            ctx.tiledb.insert(tile, bel, "OFF2_LATCH", item);
+            ctx.insert(tile, bel, "OFF2_LATCH", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFF1", "#FF", "#LATCH");
-            ctx.tiledb.insert(tile, bel, "TFF1_LATCH", item);
+            ctx.insert(tile, bel, "TFF1_LATCH", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFF2", "#FF", "#LATCH");
-            ctx.tiledb.insert(tile, bel, "TFF2_LATCH", item);
+            ctx.insert(tile, bel, "TFF2_LATCH", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFF1_SR_ATTR", "SRLOW", "SRHIGH");
-            ctx.tiledb.insert(tile, bel, "IFF1_SRVAL", item);
+            ctx.insert(tile, bel, "IFF1_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFF2_SR_ATTR", "SRLOW", "SRHIGH");
-            ctx.tiledb.insert(tile, bel, "IFF2_SRVAL", item);
+            ctx.insert(tile, bel, "IFF2_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFF1_SR_ATTR", "SRLOW", "SRHIGH");
-            ctx.tiledb.insert(tile, bel, "OFF1_SRVAL", item);
+            ctx.insert(tile, bel, "OFF1_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFF2_SR_ATTR", "SRLOW", "SRHIGH");
-            ctx.tiledb.insert(tile, bel, "OFF2_SRVAL", item);
+            ctx.insert(tile, bel, "OFF2_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFF1_SR_ATTR", "SRLOW", "SRHIGH");
-            ctx.tiledb.insert(tile, bel, "TFF1_SRVAL", item);
+            ctx.insert(tile, bel, "TFF1_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFF2_SR_ATTR", "SRLOW", "SRHIGH");
-            ctx.tiledb.insert(tile, bel, "TFF2_SRVAL", item);
+            ctx.insert(tile, bel, "TFF2_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFF1_INIT_ATTR", "INIT0", "INIT1");
-            ctx.tiledb.insert(tile, bel, "IFF1_INIT", item);
+            ctx.insert(tile, bel, "IFF1_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFF2_INIT_ATTR", "INIT0", "INIT1");
-            ctx.tiledb.insert(tile, bel, "IFF2_INIT", item);
+            ctx.insert(tile, bel, "IFF2_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFF1_INIT_ATTR", "INIT0", "INIT1");
-            ctx.tiledb.insert(tile, bel, "OFF_INIT", item);
+            ctx.insert(tile, bel, "OFF_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFF2_INIT_ATTR", "INIT0", "INIT1");
-            ctx.tiledb.insert(tile, bel, "OFF_INIT", item);
+            ctx.insert(tile, bel, "OFF_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFF1_INIT_ATTR", "INIT0", "INIT1");
-            ctx.tiledb.insert(tile, bel, "TFF_INIT", item);
+            ctx.insert(tile, bel, "TFF_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFF2_INIT_ATTR", "INIT0", "INIT1");
-            ctx.tiledb.insert(tile, bel, "TFF_INIT", item);
+            ctx.insert(tile, bel, "TFF_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFFATTRBOX", "ASYNC", "SYNC");
-            ctx.tiledb.insert(tile, bel, "IFF_SR_SYNC", item);
+            ctx.insert(tile, bel, "IFF_SR_SYNC", item);
             let item = ctx.extract_enum_bool(tile, bel, "OFFATTRBOX", "ASYNC", "SYNC");
-            ctx.tiledb.insert(tile, bel, "OFF_SR_SYNC", item);
+            ctx.insert(tile, bel, "OFF_SR_SYNC", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFFATTRBOX", "ASYNC", "SYNC");
-            ctx.tiledb.insert(tile, bel, "TFF_SR_SYNC", item);
+            ctx.insert(tile, bel, "TFF_SR_SYNC", item);
 
             // Input path
             let item = xlat_enum(vec![
                 ("GND", ctx.state.get_diff(tile, bel, "TSMUX", "0")),
                 ("TMUX", ctx.state.get_diff(tile, bel, "TSMUX", "1")),
             ]);
-            ctx.tiledb.insert(tile, bel, "TSBYPASS_MUX", item);
+            ctx.insert(tile, bel, "TSBYPASS_MUX", item);
 
             if !edev.chip.kind.is_spartan3a() {
                 let item = ctx.extract_enum_bool(tile, bel, "IDELMUX", "1", "0");
-                ctx.tiledb.insert(tile, bel, "I_DELAY_ENABLE", item);
+                ctx.insert(tile, bel, "I_DELAY_ENABLE", item);
                 let item = ctx.extract_enum_bool(tile, bel, "IFFDELMUX", "1", "0");
-                ctx.tiledb.insert(tile, bel, "IFF_DELAY_ENABLE", item);
+                ctx.insert(tile, bel, "IFF_DELAY_ENABLE", item);
             } else {
                 let item_i = ctx.extract_enum_bool(tile, bel, "IBUF_DELAY_VALUE", "DLY0", "DLY16");
                 let item_iff = ctx.extract_enum_bool(tile, bel, "IFD_DELAY_VALUE", "DLY0", "DLY8");
@@ -2633,8 +2633,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         diff = diff.combine(&!&en_i);
                         diff.assert_empty();
                     }
-                    ctx.tiledb
-                        .insert(tile, bel, "I_DELAY", xlat_bitvec(vec![!b0_i, !b1_i, !b2_i]));
+                    ctx.insert(tile, bel, "I_DELAY", xlat_bitvec(vec![!b0_i, !b1_i, !b2_i]));
 
                     // IFF
                     let b0_iff = ctx
@@ -2658,20 +2657,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         diff = diff.combine(&!&en_iff);
                         diff.assert_empty();
                     }
-                    ctx.tiledb
-                        .insert(tile, bel, "IFF_DELAY", xlat_bitvec(vec![!b0_iff, !b1_iff]));
-                    ctx.tiledb
-                        .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
+                    ctx.insert(tile, bel, "IFF_DELAY", xlat_bitvec(vec![!b0_iff, !b1_iff]));
+                    ctx.insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                     let item = ctx.extract_bit(tile, bel, "DELAY_ADJ_ATTRBOX", "VARIABLE");
-                    ctx.tiledb.insert(tile, bel, "DELAY_VARIABLE", item);
+                    ctx.insert(tile, bel, "DELAY_VARIABLE", item);
                 }
-                ctx.tiledb.insert(tile, bel, "I_DELAY_ENABLE", item_i);
-                ctx.tiledb.insert(tile, bel, "IFF_DELAY_ENABLE", item_iff);
+                ctx.insert(tile, bel, "I_DELAY_ENABLE", item_i);
+                ctx.insert(tile, bel, "IFF_DELAY_ENABLE", item_iff);
             }
             let item = ctx.extract_enum_bool(tile, bel, "IMUX", "1", "0");
-            ctx.tiledb.insert(tile, bel, "I_TSBYPASS_ENABLE", item);
+            ctx.insert(tile, bel, "I_TSBYPASS_ENABLE", item);
             let item = ctx.extract_enum_bool(tile, bel, "IFFDMUX", "1", "0");
-            ctx.tiledb.insert(tile, bel, "IFF_TSBYPASS_ENABLE", item);
+            ctx.insert(tile, bel, "IFF_TSBYPASS_ENABLE", item);
 
             if edev.chip.kind.is_spartan3ea() {
                 let item = xlat_enum(vec![
@@ -2680,19 +2677,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("IDDRIN2", ctx.state.get_diff(tile, bel, "IDDRIN_MUX", "0")),
                     ("NONE", Diff::default()),
                 ]);
-                ctx.tiledb.insert(tile, bel, "IDDRIN_MUX", item);
+                ctx.insert(tile, bel, "IDDRIN_MUX", item);
             }
             if edev.chip.kind == ChipKind::Spartan3E {
                 let en = ctx.state.get_diff(tile, bel, "MISR_ENABLE", "1");
                 let en_rst = ctx.state.get_diff(tile, bel, "MISR_ENABLE_RESET", "1");
                 let rst = en_rst.combine(&!&en);
-                ctx.tiledb.insert(tile, bel, "MISR_RESET", xlat_bit(rst));
+                ctx.insert(tile, bel, "MISR_RESET", xlat_bit(rst));
                 let clk1 = ctx.state.get_diff(tile, bel, "MISR_ENABLE_OTCLK1", "1");
                 let clk2 = ctx.state.get_diff(tile, bel, "MISR_ENABLE_OTCLK2", "1");
                 assert_eq!(en, clk1);
                 let (clk1, clk2, en) = Diff::split(clk1, clk2);
-                ctx.tiledb.insert(tile, bel, "MISR_ENABLE", xlat_bit(en));
-                ctx.tiledb.insert(
+                ctx.insert(tile, bel, "MISR_ENABLE", xlat_bit(en));
+                ctx.insert(
                     tile,
                     bel,
                     "MISR_CLOCK",
@@ -2707,7 +2704,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bit(tile, bel, "MISR_ENABLE", "1");
                 let clk1 = ctx.state.get_diff(tile, bel, "MISR_ENABLE_OTCLK1", "1");
                 let clk2 = ctx.state.get_diff(tile, bel, "MISR_ENABLE_OTCLK2", "1");
-                ctx.tiledb.insert(
+                ctx.insert(
                     tile,
                     bel,
                     "MISR_CLOCK",
@@ -2721,7 +2718,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 // IOIs in the device, whether they're in use or not, so we cannot easily
                 // isolate the diff to a single IOI. The bits are the same as Spartan 3E,
                 // so just cheat and inject them manually.
-                ctx.tiledb.insert(
+                ctx.insert(
                     tile,
                     bel,
                     "MISR_RESET",
@@ -2749,15 +2746,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     TileBit::new(0, 3, 40),
                 ][idx]
             };
-            ctx.tiledb
-                .insert(tile, bel, "READBACK_I", TileItem::from_bit(bit, false));
+            ctx.insert(tile, bel, "READBACK_I", TileItem::from_bit(bit, false));
 
             // discard detritus from IOB testing
             if !edev.chip.kind.is_spartan3a() || slot != defs::bslots::IOI[2] {
                 let mut diff = ctx.state.get_diff(tile, bel, "OUTPUT_ENABLE", "1");
-                diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.T1"), true, false);
-                diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "OMUX"), "O1", "NONE");
-                diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "TMUX"), "T1", "NONE");
+                diff.apply_bit_diff(ctx.item(tile, bel, "INV.T1"), true, false);
+                diff.apply_enum_diff(ctx.item(tile, bel, "OMUX"), "O1", "NONE");
+                diff.apply_enum_diff(ctx.item(tile, bel, "TMUX"), "T1", "NONE");
                 diff.assert_empty();
             }
             if edev.chip.kind.is_spartan3a() {
@@ -2768,7 +2764,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 if slot == defs::bslots::IOI[2] || tile == "IOI_S3A_WE" {
                     let mut diff = ctx.state.get_diff(tile, bel, "SEL_MUX", "OMUX_IBUF");
-                    diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "OMUX"), "O1", "NONE");
+                    diff.apply_enum_diff(ctx.item(tile, bel, "OMUX"), "O1", "NONE");
                     diff.assert_empty();
                 }
             }
@@ -2784,16 +2780,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .get_diff(tile, bel, "O2_DDRMUX", "1")
                     .assert_empty();
                 let mut diff = ctx.state.get_diff(tile, bel, "O1_DDRMUX", "0");
-                diff.discard_bits(ctx.tiledb.item(tile, obel, "OMUX"));
-                ctx.tiledb.insert(
+                diff.discard_bits(ctx.item(tile, obel, "OMUX"));
+                ctx.insert(
                     tile,
                     bel,
                     "O1_DDRMUX",
                     xlat_enum(vec![("O1", Diff::default()), ("ODDRIN1", diff)]),
                 );
                 let mut diff = ctx.state.get_diff(tile, bel, "O2_DDRMUX", "0");
-                diff.discard_bits(ctx.tiledb.item(tile, obel, "OMUX"));
-                ctx.tiledb.insert(
+                diff.discard_bits(ctx.item(tile, obel, "OMUX"));
+                ctx.insert(
                     tile,
                     bel,
                     "O2_DDRMUX",
@@ -2825,7 +2821,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .assert_empty();
             } else {
                 let item = ctx.extract_bit(tile, bel, "GTSATTRBOX", "DISABLE_GTS");
-                ctx.tiledb.insert(tile, bel, "DISABLE_GTS", item);
+                ctx.insert(tile, bel, "DISABLE_GTS", item);
             }
             ctx.collect_enum_default(tile, bel, "PULL", &["PULLDOWN", "PULLUP", "KEEPER"], "NONE");
             if edev.chip.kind.is_spartan3a() && iob.kind != IobKind::Ibuf {
@@ -2875,7 +2871,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             .get_diff(tile, bel, "IFD_DELAY_VALUE", "DLY1")
                             .combine(&common)
                     );
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tile,
                         bel,
                         "IFF_DELAY",
@@ -2924,7 +2920,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     );
                     let i6 = ctx.state.get_diff(tile, bel, "IBUF_DELAY_VALUE", "DLY6");
 
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tile,
                         bel,
                         "I_DELAY",
@@ -2939,8 +2935,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ]),
                     );
 
-                    ctx.tiledb
-                        .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
+                    ctx.insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                 } else {
                     for val in ["DLY14", "DLY15", "DLY16"] {
                         ctx.state
@@ -2975,7 +2970,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         .state
                         .get_diff(tile, bel, "IFD_DELAY_VALUE", "DLY1")
                         .combine(&common);
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tile,
                         bel,
                         "IFF_DELAY",
@@ -3032,7 +3027,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         .get_diff(tile, bel, "IBUF_DELAY_VALUE", "DLY1")
                         .combine(&common);
 
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tile,
                         bel,
                         "I_DELAY",
@@ -3048,8 +3043,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ]),
                     );
 
-                    ctx.tiledb
-                        .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
+                    ctx.insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                 }
             }
             if edev.chip.kind.is_spartan3a()
@@ -3084,8 +3078,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                     diff.assert_empty();
                 }
-                ctx.tiledb
-                    .insert(tile, bel, "I_DELAY", xlat_bitvec(vec![!b0_i, !b1_i, !b2_i]));
+                ctx.insert(tile, bel, "I_DELAY", xlat_bitvec(vec![!b0_i, !b1_i, !b2_i]));
 
                 // IFF
                 let b0_iff = ctx.state.get_diff(tile, bel, "IFD_DELAY_VALUE", "DLY7");
@@ -3103,12 +3096,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                     diff.assert_empty();
                 }
-                ctx.tiledb
-                    .insert(tile, bel, "IFF_DELAY", xlat_bitvec(vec![!b0_iff, !b1_iff]));
-                ctx.tiledb
-                    .insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
+                ctx.insert(tile, bel, "IFF_DELAY", xlat_bitvec(vec![!b0_iff, !b1_iff]));
+                ctx.insert(tile, bel, "DELAY_COMMON", xlat_bit(!common));
                 let item = ctx.extract_bit(tile, bel, "DELAY_ADJ_ATTRBOX", "VARIABLE");
-                ctx.tiledb.insert(tile, bel, "DELAY_VARIABLE", item);
+                ctx.insert(tile, bel, "DELAY_VARIABLE", item);
             }
             // Input path.
             if !edev.chip.kind.is_spartan3ea() {
@@ -3129,7 +3120,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.state.peek_diff(tile, bel, "ISTD", "BLVDS_25").clone(),
                     ));
                 }
-                ctx.tiledb.insert(tile, bel, "IBUF_MODE", xlat_enum(vals));
+                ctx.insert(tile, bel, "IBUF_MODE", xlat_enum(vals));
             } else if edev.chip.kind == ChipKind::Spartan3E {
                 let mut vals = vec![
                     ("NONE", Diff::default()),
@@ -3152,7 +3143,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.state.peek_diff(tile, bel, "ISTD", "BLVDS_25").clone(),
                     ));
                 }
-                ctx.tiledb.insert(tile, bel, "IBUF_MODE", xlat_enum(vals));
+                ctx.insert(tile, bel, "IBUF_MODE", xlat_enum(vals));
             } else {
                 let mut vals = vec![
                     ("NONE", Diff::default()),
@@ -3193,7 +3184,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.state.peek_diff(tile, bel, "ISTD", "BLVDS_25").clone(),
                     ));
                 }
-                ctx.tiledb.insert(tile, bel, "IBUF_MODE", xlat_enum(vals));
+                ctx.insert(tile, bel, "IBUF_MODE", xlat_enum(vals));
             }
             if edev.chip.kind.is_spartan3ea()
                 && !is_s3a_lr
@@ -3221,26 +3212,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     },
                 );
                 let mut vref = present.combine(&!present_vref);
-                vref.discard_bits(ctx.tiledb.item(tile, bel, "PULL"));
-                ctx.tiledb.insert(tile, bel, "VREF", xlat_bit(vref));
+                vref.discard_bits(ctx.item(tile, bel, "PULL"));
+                ctx.insert(tile, bel, "VREF", xlat_bit(vref));
             }
 
             // PCI cruft
             if edev.chip.kind.is_spartan3a() {
                 let mut ibuf_diff = ctx.state.peek_diff(tile, bel, "ISTD", "PCI33_3").clone();
-                ibuf_diff.discard_bits(ctx.tiledb.item(tile, bel, "IBUF_MODE"));
+                ibuf_diff.discard_bits(ctx.item(tile, bel, "IBUF_MODE"));
                 if iob.kind == IobKind::Ibuf {
-                    ctx.tiledb
-                        .insert(tile, bel, "PCI_INPUT", xlat_bit(ibuf_diff));
+                    ctx.insert(tile, bel, "PCI_INPUT", xlat_bit(ibuf_diff));
                 } else {
                     let obuf_diff = ctx
                         .state
                         .peek_diff(tile, bel, "OSTD", "PCI33_3.3.3")
                         .clone();
                     let (ibuf_diff, _, common) = Diff::split(ibuf_diff, obuf_diff);
-                    ctx.tiledb
-                        .insert(tile, bel, "PCI_INPUT", xlat_bit(ibuf_diff));
-                    ctx.tiledb.insert(tile, bel, "PCI_CLAMP", xlat_bit(common));
+                    ctx.insert(tile, bel, "PCI_INPUT", xlat_bit(ibuf_diff));
+                    ctx.insert(tile, bel, "PCI_CLAMP", xlat_bit(common));
                 }
             }
 
@@ -3385,7 +3374,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let ndrive_bits = drive_bits;
                 if !edev.chip.kind.is_spartan3ea() {
                     let mut dci_bits = HashSet::new();
-                    let item = ctx.tiledb.item(tile, bel, "IBUF_MODE");
+                    let item = ctx.item(tile, bel, "IBUF_MODE");
                     let mut diff_split = ctx
                         .state
                         .peek_diff(tile, bel, "ISTD", "SSTL2_I_DCI")
@@ -3407,7 +3396,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         .peek_diff(tile, bel, "OSTD", "LVDCI_DV2_25")
                         .clone();
                     let diff_output_half = diff_output_half.split_bits(&dci_bits);
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tile,
                         bel,
                         "DCI_MODE",
@@ -3423,11 +3412,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut vr_slew = None;
                 if has_any_vr(edev, ctx.device, ctx.db, tcid, iob.index).is_some() {
                     let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "NOTVR");
-                    let item = ctx.tiledb.item(tile, bel, "DCI_MODE");
+                    let item = ctx.item(tile, bel, "DCI_MODE");
                     diff.apply_enum_diff(item, "NONE", "TERM_SPLIT");
                     diff = !diff;
                     vr_slew = Some(diff.split_bits(&slew_bits));
-                    ctx.tiledb.insert(tile, bel, "VR", xlat_bit(diff));
+                    ctx.insert(tile, bel, "VR", xlat_bit(diff));
                 }
                 if matches!(
                     edev.chip.kind,
@@ -3440,15 +3429,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let diff_q = ctx.state.get_diff(tile, bel, "DCIUPDATEMODE", "QUIET");
                     assert_eq!(diff_c, diff_q);
                     let diff = diff_a.combine(&!diff_c);
-                    ctx.tiledb
-                        .insert(tile, bel, "DCIUPDATEMODE_ASREQUIRED", xlat_bit(diff));
+                    ctx.insert(tile, bel, "DCIUPDATEMODE_ASREQUIRED", xlat_bit(diff));
                 }
                 let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "IOB");
                 if edev.chip.kind.is_spartan3ea() {
                     let ibuf_present = ctx.state.get_diff(tile, bel, "PRESENT", "IBUF");
                     assert_eq!(present, ibuf_present);
                 }
-                present.discard_bits(ctx.tiledb.item(tile, bel, "PULL"));
+                present.discard_bits(ctx.item(tile, bel, "PULL"));
                 for &val in present.bits.values() {
                     assert!(val)
                 }
@@ -3520,7 +3508,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 let pdrive_diff = diff.split_bits(&pdrive_bits);
                                 let ndrive_diff = diff.split_bits(&ndrive_bits);
                                 if !edev.chip.kind.is_spartan3ea() {
-                                    let item = ctx.tiledb.item(tile, bel, "DCI_MODE");
+                                    let item = ctx.item(tile, bel, "DCI_MODE");
                                     match std.dci {
                                         DciKind::Output => {
                                             diff.apply_enum_diff(item, "OUTPUT", "NONE")
@@ -3539,7 +3527,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                                 if edev.chip.kind.is_spartan3a() && std.name.starts_with("PCI") {
                                     diff.apply_bit_diff(
-                                        ctx.tiledb.item(tile, bel, "PCI_CLAMP"),
+                                        ctx.item(tile, bel, "PCI_CLAMP"),
                                         true,
                                         false,
                                     );
@@ -3673,13 +3661,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         bits: item_enum.bits,
                         kind: TileItemKind::BitVec { invert },
                     };
-                    ctx.tiledb.insert(tile, bel, set_name, item_pdrive);
+                    ctx.insert(tile, bel, set_name, item_pdrive);
                     let TileItemKind::Enum { values } = item_enum.kind else {
                         unreachable!()
                     };
                     for (name, value) in values {
-                        ctx.tiledb
-                            .insert_misc_data(format!("IOSTD:{prefix}:{set_name}:{name}"), value);
+                        ctx.insert_misc_data(format!("IOSTD:{prefix}:{set_name}:{name}"), value);
                     }
                 }
 
@@ -3697,7 +3684,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let diff = alt.combine(&!base);
                             group_diff = Some(diff.clone());
                             let item = xlat_bit_wide(diff);
-                            ctx.tiledb.insert(tile, bel, "OUTPUT_DIFF_GROUP", item);
+                            ctx.insert(tile, bel, "OUTPUT_DIFF_GROUP", item);
                         }
                         let mut diffs = vec![("OFF", Diff::default())];
                         if edev.chip.kind.is_virtex2p() {
@@ -3737,12 +3724,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 invert: BitVec::repeat(false, l),
                             },
                         };
-                        ctx.tiledb.insert(tile, bel, "OUTPUT_DIFF", item);
+                        ctx.insert(tile, bel, "OUTPUT_DIFF", item);
                         let TileItemKind::Enum { values } = item_enum.kind else {
                             unreachable!()
                         };
                         for (name, value) in values {
-                            ctx.tiledb.insert_misc_data(
+                            ctx.insert_misc_data(
                                 format!("IOSTD:{prefix}:OUTPUT_DIFF:{name}"),
                                 value,
                             );
@@ -3752,12 +3739,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             if iob.kind == IobKind::Ibuf {
                 let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "IBUF");
-                diff.discard_bits(ctx.tiledb.item(tile, bel, "PULL"));
+                diff.discard_bits(ctx.item(tile, bel, "PULL"));
                 if edev.chip.kind.is_spartan3a() {
                     diff.assert_empty();
                 } else {
                     // ???
-                    ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(diff));
+                    ctx.insert(tile, bel, "ENABLE", xlat_bit(diff));
                 }
             }
             if has_any_brefclk(edev, tcid, iob.index).is_some() {
@@ -3792,13 +3779,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 for &attr in attrs {
                     let mut diff = ctx.state.get_diff(tile, bel, attr, std.name);
                     if edev.chip.kind.is_spartan3a() && std.name.starts_with("PCI") {
-                        diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PCI_INPUT"), true, false);
+                        diff.apply_bit_diff(ctx.item(tile, bel, "PCI_INPUT"), true, false);
                         if iob.kind != IobKind::Ibuf {
-                            diff.apply_bit_diff(
-                                ctx.tiledb.item(tile, bel, "PCI_CLAMP"),
-                                true,
-                                false,
-                            );
+                            diff.apply_bit_diff(ctx.item(tile, bel, "PCI_CLAMP"), true, false);
                         }
                     }
                     let ibuf_mode = if std.diff != DiffKind::None {
@@ -3822,11 +3805,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     } else {
                         "CMOS"
                     };
-                    diff.apply_enum_diff(
-                        ctx.tiledb.item(tile, bel, "IBUF_MODE"),
-                        ibuf_mode,
-                        "NONE",
-                    );
+                    diff.apply_enum_diff(ctx.item(tile, bel, "IBUF_MODE"), ibuf_mode, "NONE");
                     let dci_mode = match std.dci {
                         DciKind::None | DciKind::Output | DciKind::OutputHalf => "NONE",
                         DciKind::InputVcc | DciKind::BiVcc => "TERM_VCC",
@@ -3834,11 +3813,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         _ => unreachable!(),
                     };
                     if dci_mode != "NONE" {
-                        diff.apply_enum_diff(
-                            ctx.tiledb.item(tile, bel, "DCI_MODE"),
-                            dci_mode,
-                            "NONE",
-                        );
+                        diff.apply_enum_diff(ctx.item(tile, bel, "DCI_MODE"), dci_mode, "NONE");
                     }
                     if edev.chip.kind == ChipKind::Spartan3E
                         && std.name == "LVDS_25"
@@ -3852,7 +3827,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             bel
                         };
-                        diff.discard_bits(ctx.tiledb.item(tile, bel_p, "OUTPUT_DIFF_GROUP"));
+                        diff.discard_bits(ctx.item(tile, bel_p, "OUTPUT_DIFF_GROUP"));
                     }
                     diff.assert_empty();
                 }
@@ -3865,10 +3840,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             "IOB[0]", "IOB[1]", "IOB[2]", "IOB[3]", "IOB[4]", "IOB[5]", "IOB[6]",
                             "IOB[7]",
                         ][other];
-                        diff.discard_bits(ctx.tiledb.item(tile, bel_p, "OUTPUT_DIFF"));
+                        diff.discard_bits(ctx.item(tile, bel_p, "OUTPUT_DIFF"));
                     }
                     if matches!(edev.chip.kind, ChipKind::Spartan3 | ChipKind::Spartan3E) {
-                        diff.discard_bits(ctx.tiledb.item(tile, bel, "IBUF_MODE"));
+                        diff.discard_bits(ctx.item(tile, bel, "IBUF_MODE"));
                     }
                     if edev.chip.kind == ChipKind::Spartan3E
                         && std.name == "LVDS_25"
@@ -3882,7 +3857,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             bel
                         };
-                        diff.discard_bits(ctx.tiledb.item(tile, bel_p, "OUTPUT_DIFF_GROUP"));
+                        diff.discard_bits(ctx.item(tile, bel_p, "OUTPUT_DIFF_GROUP"));
                     }
                     diff.assert_empty();
                 }

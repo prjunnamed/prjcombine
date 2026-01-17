@@ -8,7 +8,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
     for tile in [
         "CLB", "CLB.L", "CLB.R", "CLB.B", "CLB.LB", "CLB.RB", "CLB.T", "CLB.LT", "CLB.RT",
     ] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let tcid = backend.edev.db.get_tile_class(tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         let mut bctx = ctx.bel(bels::CLB);
         bctx.mode("FG")
             .mutex("RAM", "")
@@ -63,43 +64,43 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         for attr in ["H1", "DIN", "SR", "EC"] {
             let item = ctx.extract_enum(tile, bel, attr, &["C1", "C2", "C3", "C4"]);
-            ctx.tiledb.insert(tile, bel, format!("MUX.{attr}"), item);
+            ctx.insert(tile, bel, format!("MUX.{attr}"), item);
         }
         let item = ctx.extract_enum(tile, bel, "X", &["F", "H"]);
-        ctx.tiledb.insert(tile, bel, "MUX.X", item);
+        ctx.insert(tile, bel, "MUX.X", item);
         let item = ctx.extract_enum(tile, bel, "Y", &["G", "H"]);
-        ctx.tiledb.insert(tile, bel, "MUX.Y", item);
+        ctx.insert(tile, bel, "MUX.Y", item);
         let item = xlat_enum(vec![
             ("DIN", ctx.state.get_diff(tile, bel, "XQ", "DIN")),
             ("FFX", ctx.state.get_diff(tile, bel, "XQ", "QX")),
         ]);
-        ctx.tiledb.insert(tile, bel, "MUX.XQ", item);
+        ctx.insert(tile, bel, "MUX.XQ", item);
         let item = xlat_enum(vec![
             ("EC", ctx.state.get_diff(tile, bel, "YQ", "EC")),
             ("FFY", ctx.state.get_diff(tile, bel, "YQ", "QY")),
         ]);
-        ctx.tiledb.insert(tile, bel, "MUX.YQ", item);
+        ctx.insert(tile, bel, "MUX.YQ", item);
         let item = ctx.extract_enum(tile, bel, "DX", &["F", "G", "H", "DIN"]);
-        ctx.tiledb.insert(tile, bel, "MUX.DX", item);
+        ctx.insert(tile, bel, "MUX.DX", item);
         let item = ctx.extract_enum(tile, bel, "DY", &["F", "G", "H", "DIN"]);
-        ctx.tiledb.insert(tile, bel, "MUX.DY", item);
+        ctx.insert(tile, bel, "MUX.DY", item);
 
         let item = ctx.extract_enum_bool(tile, bel, "FFX", "RESET", "SET");
-        ctx.tiledb.insert(tile, bel, "FFX_SRVAL", item);
+        ctx.insert(tile, bel, "FFX_SRVAL", item);
         let item = ctx.extract_enum_bool(tile, bel, "FFY", "RESET", "SET");
-        ctx.tiledb.insert(tile, bel, "FFY_SRVAL", item);
+        ctx.insert(tile, bel, "FFY_SRVAL", item);
         let item = ctx.extract_bit(tile, bel, "FFX", "EC");
-        ctx.tiledb.insert(tile, bel, "FFX_EC_ENABLE", item);
+        ctx.insert(tile, bel, "FFX_EC_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "FFX", "SR");
-        ctx.tiledb.insert(tile, bel, "FFX_SR_ENABLE", item);
+        ctx.insert(tile, bel, "FFX_SR_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "FFY", "EC");
-        ctx.tiledb.insert(tile, bel, "FFY_EC_ENABLE", item);
+        ctx.insert(tile, bel, "FFY_EC_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "FFY", "SR");
-        ctx.tiledb.insert(tile, bel, "FFY_SR_ENABLE", item);
+        ctx.insert(tile, bel, "FFY_SR_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "FFX", "NOT");
-        ctx.tiledb.insert(tile, bel, "INV.FFX_CLK", item);
+        ctx.insert(tile, bel, "INV.FFX_CLK", item);
         let item = ctx.extract_bit(tile, bel, "FFY", "NOT");
-        ctx.tiledb.insert(tile, bel, "INV.FFY_CLK", item);
+        ctx.insert(tile, bel, "INV.FFY_CLK", item);
         ctx.state.get_diff(tile, bel, "FFX", "K").assert_empty();
         ctx.state.get_diff(tile, bel, "FFY", "K").assert_empty();
 
@@ -111,7 +112,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("COUT_B", ctx.state.get_diff(tile, bel, "CDIR", "UP")),
             ("COUT_T", ctx.state.get_diff(tile, bel, "CDIR", "DOWN")),
         ]);
-        ctx.tiledb.insert(tile, bel, "MUX.CIN", item);
+        ctx.insert(tile, bel, "MUX.CIN", item);
         let bit0 = ctx.state.get_diff(tile, bel, "CARRY", "CB0");
         let bit1 = ctx.state.get_diff(tile, bel, "CARRY", "CB1");
         let item = xlat_enum(vec![
@@ -119,7 +120,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("ADDSUB", bit0),
             ("SUB", Diff::default()),
         ]);
-        ctx.tiledb.insert(tile, bel, "CARRY_ADDSUB", item);
+        ctx.insert(tile, bel, "CARRY_ADDSUB", item);
         let bit2 = ctx.state.get_diff(tile, bel, "CARRY", "CB2");
         let bit3 = ctx.state.get_diff(tile, bel, "CARRY", "CB3");
         let item = xlat_enum(vec![
@@ -127,7 +128,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("CONST_1", bit2),
             ("CONST_0", Diff::default()),
         ]);
-        ctx.tiledb.insert(tile, bel, "CARRY_FPROP", item);
+        ctx.insert(tile, bel, "CARRY_FPROP", item);
         let bit4 = ctx.state.get_diff(tile, bel, "CARRY", "CB4");
         let bit5 = ctx.state.get_diff(tile, bel, "CARRY", "CB5");
         let item = xlat_enum(vec![
@@ -135,33 +136,33 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("F3_INV", bit5),
             ("CONST_OP2_ENABLE", Diff::default()),
         ]);
-        ctx.tiledb.insert(tile, bel, "CARRY_FGEN", item);
+        ctx.insert(tile, bel, "CARRY_FGEN", item);
         let bit6 = ctx.state.get_diff(tile, bel, "CARRY", "CB6");
         let item = xlat_enum(vec![("XOR", bit6), ("CONST_1", Diff::default())]);
-        ctx.tiledb.insert(tile, bel, "CARRY_GPROP", item);
+        ctx.insert(tile, bel, "CARRY_GPROP", item);
         let item = ctx.extract_bit(tile, bel, "CARRY", "CB7");
-        ctx.tiledb.insert(tile, bel, "CARRY_OP2_ENABLE", item);
+        ctx.insert(tile, bel, "CARRY_OP2_ENABLE", item);
 
         let item = ctx.extract_bit(tile, bel, "RDBK", "X");
-        ctx.tiledb.insert(tile, bel, "READBACK_X", item);
+        ctx.insert(tile, bel, "READBACK_X", item);
         let item = ctx.extract_bit(tile, bel, "RDBK", "XQ");
-        ctx.tiledb.insert(tile, bel, "READBACK_XQ", item);
+        ctx.insert(tile, bel, "READBACK_XQ", item);
         let item = ctx.extract_bit(tile, bel, "RDBK", "Y");
-        ctx.tiledb.insert(tile, bel, "READBACK_Y", item);
+        ctx.insert(tile, bel, "READBACK_Y", item);
         let item = ctx.extract_bit(tile, bel, "RDBK", "YQ");
-        ctx.tiledb.insert(tile, bel, "READBACK_YQ", item);
+        ctx.insert(tile, bel, "READBACK_YQ", item);
 
         if !ctx.device.name.ends_with('d') {
             let item = ctx.extract_bit(tile, bel, "RAM", "F");
-            ctx.tiledb.insert(tile, bel, "F_RAM", item);
+            ctx.insert(tile, bel, "F_RAM", item);
             let item = ctx.extract_bit(tile, bel, "RAM", "G");
-            ctx.tiledb.insert(tile, bel, "G_RAM", item);
+            ctx.insert(tile, bel, "G_RAM", item);
             let mut diff = ctx.state.get_diff(tile, bel, "RAM", "FG");
-            diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "F_RAM"), true, false);
-            diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "G_RAM"), true, false);
-            diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "H"), 0xca, 0x00);
+            diff.apply_bit_diff(ctx.item(tile, bel, "F_RAM"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, bel, "G_RAM"), true, false);
+            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "H"), 0xca, 0x00);
             let item = xlat_bit(diff);
-            ctx.tiledb.insert(tile, bel, "RAM_32X1", item);
+            ctx.insert(tile, bel, "RAM_32X1", item);
         }
     }
 }

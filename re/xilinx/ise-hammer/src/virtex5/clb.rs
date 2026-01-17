@@ -787,7 +787,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, bel, "WEMUX", &["WE", "CE"]);
                 for attr in ["WA7USED", "WA8USED"] {
                     let diff = ctx.state.get_diff(tile, bel, attr, "0");
-                    ctx.tiledb.insert(tile, bel, attr, xlat_bit(diff));
+                    ctx.insert(tile, bel, attr, xlat_bit(diff));
                 }
                 let di_muxes = match mode {
                     Mode::Virtex5 | Mode::Spartan6 => [
@@ -805,7 +805,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let d_byp = ctx.state.get_diff(tile, bel, attr, byp);
                     let d_alt = ctx.state.get_diff(tile, bel, attr, alt_shift);
                     assert_eq!(d_alt, ctx.state.get_diff(tile, bel, attr, alt_ram));
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tile,
                         bel,
                         attr,
@@ -824,7 +824,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let d_srl32 = ctx.state.get_diff(tile, bel, sattr, "SRL32");
                     assert_eq!(d_ram32, ctx.state.get_diff(tile, bel, sattr, "DPRAM32"));
                     assert_eq!(d_ram64, ctx.state.get_diff(tile, bel, sattr, "DPRAM64"));
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tile,
                         bel,
                         dattr,
@@ -849,7 +849,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("CIN", ctx.state.get_diff(tile, bel, "CINUSED", "1")),
                     ("PRECYINIT", Diff::default()),
                 ]);
-                ctx.tiledb.insert(tile, bel, "CYINIT", item);
+                ctx.insert(tile, bel, "CYINIT", item);
             }
 
             // misc muxes
@@ -1020,7 +1020,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ] {
                         let d_o5 = ctx.state.get_diff(tile, bel, attr, "IN_A");
                         let d_byp = ctx.state.get_diff(tile, bel, attr, "IN_B");
-                        ctx.tiledb.insert(
+                        ctx.insert(
                             tile,
                             bel,
                             attr,
@@ -1035,21 +1035,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.state
                 .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
                 .assert_empty();
-            ctx.tiledb
-                .insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
+            ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
             ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
                 let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
-                ctx.tiledb
-                    .insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
+                ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
                 let ceused = ctx.state.get_diff(tile, bel, "CEUSED", "0");
-                ctx.tiledb
-                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
+                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
                 let srused = ctx.state.get_diff(tile, bel, "SRUSED", "0");
-                ctx.tiledb
-                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
+                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
             } else {
                 ctx.state
                     .get_diff(tile, bel, "CEUSEDMUX", "1")
@@ -1058,11 +1054,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .get_diff(tile, bel, "SRUSEDMUX", "0")
                     .assert_empty();
                 let ceused = ctx.state.get_diff(tile, bel, "CEUSEDMUX", "IN");
-                ctx.tiledb
-                    .insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
+                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
                 let srused = ctx.state.get_diff(tile, bel, "SRUSEDMUX", "IN");
-                ctx.tiledb
-                    .insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
+                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
             }
             if mode != Mode::Virtex6 {
                 let ff_latch = ctx.state.get_diff(tile, bel, "AFF", "#LATCH");
@@ -1076,15 +1070,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
                     }
                 }
-                ctx.tiledb.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
+                ctx.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
             } else {
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
                     ctx.state.get_diff(tile, bel, attr, "#FF").assert_empty();
                     let ff_latch = ctx.state.get_diff(tile, bel, attr, "#LATCH");
                     assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "AND2L"));
                     assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
-                    ctx.tiledb
-                        .insert(tile, bel, format!("{attr}_LATCH"), xlat_bit(ff_latch));
+                    ctx.insert(tile, bel, format!("{attr}_LATCH"), xlat_bit(ff_latch));
                 }
             }
             match mode {

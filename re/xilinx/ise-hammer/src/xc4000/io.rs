@@ -197,25 +197,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_enum(tile, bel, "SLEW", &["SLOW", "FAST"]);
             ctx.collect_enum_default(tile, bel, "PULL", &["PULLUP", "PULLDOWN"], "NONE");
             let item = ctx.extract_enum_bool(tile, bel, "ISR", "RESET", "SET");
-            ctx.tiledb.insert(tile, bel, "IFF_SRVAL", item);
+            ctx.insert(tile, bel, "IFF_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "OSR", "RESET", "SET");
-            ctx.tiledb.insert(tile, bel, "OFF_SRVAL", item);
+            ctx.insert(tile, bel, "OFF_SRVAL", item);
             let item = ctx.extract_enum_bool(tile, bel, "IKMUX", "IK", "IKNOT");
-            ctx.tiledb.insert(tile, bel, "INV.IFF_CLK", item);
+            ctx.insert(tile, bel, "INV.IFF_CLK", item);
             let item = ctx.extract_enum_bool(tile, bel, "OKMUX", "OK", "OKNOT");
-            ctx.tiledb.insert(tile, bel, "INV.OFF_CLK", item);
+            ctx.insert(tile, bel, "INV.OFF_CLK", item);
             let item = ctx.extract_bit(tile, bel, "OCE", "CE");
-            ctx.tiledb.insert(tile, bel, "OFF_CE_ENABLE", item);
+            ctx.insert(tile, bel, "OFF_CE_ENABLE", item);
             ctx.collect_enum(tile, bel, "I1MUX", &["I", "IQ", "IQL"]);
             ctx.collect_enum(tile, bel, "I2MUX", &["I", "IQ", "IQL"]);
             let item = ctx.extract_bit(tile, bel, "ICE", "CE");
-            ctx.tiledb.insert(tile, bel, "IFF_CE_ENABLE", item);
+            ctx.insert(tile, bel, "IFF_CE_ENABLE", item);
             ctx.collect_bit(tile, bel, "INV.T", "1");
             if edev.chip.kind == ChipKind::Xc4000E {
                 let item = ctx.extract_enum(tile, bel, "IMUX", &["I", "DELAY"]);
-                ctx.tiledb.insert(tile, bel, "IFF_D", item);
+                ctx.insert(tile, bel, "IFF_D", item);
                 let item = ctx.extract_bit(tile, bel, "ICE.IQL", "CE");
-                ctx.tiledb.insert(tile, bel, "IFF_CE_ENABLE", item);
+                ctx.insert(tile, bel, "IFF_CE_ENABLE", item);
 
                 let diff_oq = ctx.state.get_diff(tile, bel, "OUTMUX", "OQ.O.CE");
                 assert_eq!(diff_oq, ctx.state.get_diff(tile, bel, "OUTMUX", "OQ.O.O"));
@@ -231,8 +231,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff_cenot = ctx.state.get_diff(tile, bel, "OUTMUX", "O.ONOT.CE");
                 let diff_onot = diff_onot.combine(&!&diff_inv_off_d);
                 let diff_cenot = diff_cenot.combine(&!&diff_inv_off_d);
-                ctx.tiledb
-                    .insert(tile, bel, "INV.OFF_D", xlat_bit(diff_inv_off_d));
+                ctx.insert(tile, bel, "INV.OFF_D", xlat_bit(diff_inv_off_d));
                 let mut diff_off_used = diff_oq.clone();
                 diff_off_used
                     .bits
@@ -241,7 +240,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .bits
                     .retain(|bit, _| !diff_cenot.bits.contains_key(bit));
                 let diff_oq = diff_oq.combine(&!&diff_off_used);
-                ctx.tiledb.insert(
+                ctx.insert(
                     tile,
                     bel,
                     "OMUX",
@@ -253,23 +252,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ("OFF", diff_oq),
                     ]),
                 );
-                ctx.tiledb
-                    .insert(tile, bel, "OFF_USED", xlat_bit(diff_off_used));
+                ctx.insert(tile, bel, "OFF_USED", xlat_bit(diff_off_used));
             } else {
                 let item = ctx.extract_enum(tile, bel, "IMUX", &["I", "DELAY", "MEDDELAY", "SYNC"]);
-                ctx.tiledb.insert(tile, bel, "IFF_D", item);
+                ctx.insert(tile, bel, "IFF_D", item);
                 let item = ctx.extract_enum(tile, bel, "DELAYMUX", &["I", "DELAY"]);
-                ctx.tiledb.insert(tile, bel, "SYNC_D", item);
+                ctx.insert(tile, bel, "SYNC_D", item);
                 // ?!?
                 let mut diff = ctx.state.get_diff(tile, bel, "ICE.IQL", "CE");
-                diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "IFF_CE_ENABLE"), true, false);
-                ctx.tiledb
-                    .insert(tile, bel, "IFF_CE_ENABLE_NO_IQ", xlat_bit(diff));
+                diff.apply_bit_diff(ctx.item(tile, bel, "IFF_CE_ENABLE"), true, false);
+                ctx.insert(tile, bel, "IFF_CE_ENABLE_NO_IQ", xlat_bit(diff));
 
                 let item = ctx.extract_enum(tile, bel, "OCEMUX", &["O", "CE"]);
-                ctx.tiledb.insert(tile, bel, "MUX.OFF_D", item);
+                ctx.insert(tile, bel, "MUX.OFF_D", item);
                 let item = ctx.extract_enum_bool(tile, bel, "OINVMUX", "O", "ONOT");
-                ctx.tiledb.insert(tile, bel, "INV.OFF_D", item);
+                ctx.insert(tile, bel, "INV.OFF_D", item);
 
                 let mut diff_oq = ctx.state.get_diff(tile, bel, "OUTMUX", "OQ");
                 let diff_ce = ctx.state.get_diff(tile, bel, "OUTMUX", "CE");
@@ -277,16 +274,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut diff_o = ctx.state.get_diff(tile, bel, "OUTMUX", "O");
                 let mut diff_onot = ctx.state.get_diff(tile, bel, "OUTMUX", "ONOT");
                 let diff_mux = ctx.state.get_diff(tile, bel, "OUTMUX", "ACTIVE");
-                diff_cenot.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.OFF_D"), true, false);
-                diff_onot.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.OFF_D"), true, false);
-                diff_o.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.OFF_D"), "O", "CE");
-                diff_onot.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.OFF_D"), "O", "CE");
+                diff_cenot.apply_bit_diff(ctx.item(tile, bel, "INV.OFF_D"), true, false);
+                diff_onot.apply_bit_diff(ctx.item(tile, bel, "INV.OFF_D"), true, false);
+                diff_o.apply_enum_diff(ctx.item(tile, bel, "MUX.OFF_D"), "O", "CE");
+                diff_onot.apply_enum_diff(ctx.item(tile, bel, "MUX.OFF_D"), "O", "CE");
                 let mut diff_off_used = diff_oq.clone();
                 diff_off_used
                     .bits
                     .retain(|bit, _| !diff_ce.bits.contains_key(bit));
                 diff_oq = diff_oq.combine(&!&diff_off_used);
-                ctx.tiledb.insert(
+                ctx.insert(
                     tile,
                     bel,
                     "OMUX",
@@ -299,8 +296,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ("MUX", diff_mux),
                     ]),
                 );
-                ctx.tiledb
-                    .insert(tile, bel, "OFF_USED", xlat_bit(diff_off_used));
+                ctx.insert(tile, bel, "OFF_USED", xlat_bit(diff_off_used));
             }
             if matches!(
                 edev.chip.kind,
@@ -311,7 +307,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("T", ctx.state.get_diff(tile, bel, "TRIFFMUX", "TRI")),
                     ("TFF", ctx.state.get_diff(tile, bel, "TRIFFMUX", "TRIQ")),
                 ]);
-                ctx.tiledb.insert(tile, bel, "TMUX", item);
+                ctx.insert(tile, bel, "TMUX", item);
             }
             let rb_bits = match (&tile[..4], edev.chip.kind, bel) {
                 ("IO.L", ChipKind::Xc4000E | ChipKind::SpartanXl, "IO0") => [
@@ -421,8 +417,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 _ => unreachable!(),
             };
             for (attr, bit) in rb_bits {
-                ctx.tiledb
-                    .insert(tile, bel, attr, TileItem::from_bit(bit, true));
+                ctx.insert(tile, bel, attr, TileItem::from_bit(bit, true));
             }
         }
     }

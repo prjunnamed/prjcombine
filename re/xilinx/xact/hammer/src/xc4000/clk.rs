@@ -6,7 +6,8 @@ use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let grid = backend.edev.chip;
     for tile in ["LLV.CLB", "LLV.IO.L", "LLV.IO.R"] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let tcid = backend.edev.db.get_tile_class(tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         let mut bctx = ctx.bel(bels::CLKH);
         for (out, val, buf) in [
             ("O0", "I.LL.V", "bufgs_bl"),

@@ -549,7 +549,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileBit::new(tile, frame, bit)
         }
         for addr in 0..0x50 {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("DRP{addr:02X}"),
@@ -593,7 +593,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .state
                 .get_diff(tile, bel, attr_static, "PERFCLK")
                 .combine(&!&diff_grefclk);
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("{rxtx}PLLREFSEL_TESTCLK"),
@@ -618,7 +618,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diff_cas_clk.split_bits(&diff_grefclk.bits.keys().copied().collect()),
             ));
             diffs.push(("TESTCLK", diff_grefclk));
-            ctx.tiledb.insert(tile, bel, attr_static, xlat_enum(diffs));
+            ctx.insert(tile, bel, attr_static, xlat_enum(diffs));
             ctx.collect_enum_default(
                 tile,
                 bel,
@@ -627,8 +627,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "STATIC",
             );
         }
-        ctx.tiledb
-            .insert(tile, bel, "PMA_CAS_CLK_EN", xlat_bit(diff_cas_clk));
+        ctx.insert(tile, bel, "PMA_CAS_CLK_EN", xlat_bit(diff_cas_clk));
     }
     for i in 0..2 {
         let bel = &format!("BUFDS[{i}]");

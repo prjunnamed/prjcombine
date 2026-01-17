@@ -341,7 +341,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 4 => format!("MUI1W.{attr}"),
                 _ => format!("MUI{ii}.{attr}", ii = i - 5),
             };
-            ctx.tiledb.insert(tile, bel, name, item);
+            ctx.insert(tile, bel, name, item);
         }
     }
     ctx.state
@@ -354,7 +354,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("MUI5_PORT_CONFIG", "B32_B32_W32_W32_W32_R32"),
     ] {
         let diff = ctx.state.peek_diff(tile, bel, "PORT_CONFIG", val).clone();
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             attr,
@@ -364,20 +364,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut diffs = vec![("B32_B32_X32_X32_X32_X32", Diff::default())];
     for val in ["B32_B32_B32_B32", "B64_B32_B32", "B64_B64", "B128"] {
         let mut diff = ctx.state.get_diff(tile, bel, "PORT_CONFIG", val);
-        diff.apply_enum_diff(
-            ctx.tiledb.item(tile, bel, "MUI2_PORT_CONFIG"),
-            "READ",
-            "WRITE",
-        );
-        diff.apply_enum_diff(
-            ctx.tiledb.item(tile, bel, "MUI4_PORT_CONFIG"),
-            "READ",
-            "WRITE",
-        );
+        diff.apply_enum_diff(ctx.item(tile, bel, "MUI2_PORT_CONFIG"), "READ", "WRITE");
+        diff.apply_enum_diff(ctx.item(tile, bel, "MUI4_PORT_CONFIG"), "READ", "WRITE");
         diffs.push((val, diff));
     }
-    ctx.tiledb
-        .insert(tile, bel, "PORT_CONFIG", xlat_enum(diffs));
+    ctx.insert(tile, bel, "PORT_CONFIG", xlat_enum(diffs));
     for mask in 0..16 {
         let val = format!(
             "B32_B32_{p2}32_{p3}32_{p4}32_{p5}32",
@@ -390,8 +381,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for i in 0..4 {
             if (mask & (1 << i)) != 0 {
                 diff.apply_enum_diff(
-                    ctx.tiledb
-                        .item(tile, bel, &format!("MUI{ii}_PORT_CONFIG", ii = i + 2)),
+                    ctx.item(tile, bel, &format!("MUI{ii}_PORT_CONFIG", ii = i + 2)),
                     "READ",
                     "WRITE",
                 );
@@ -400,23 +390,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff.assert_empty();
     }
     for (i, mui) in ["MUI0R", "MUI0W", "MUI1R", "MUI1W"].into_iter().enumerate() {
-        let mut item = ctx.tiledb.item(tile, bel, "MUI2_PORT_CONFIG").clone();
+        let mut item = ctx.item(tile, bel, "MUI2_PORT_CONFIG").clone();
         for bit in &mut item.bits {
             bit.rect = BitRectId::from_idx(bit.rect.to_idx() - 4 * 2 + i * 2);
         }
-        ctx.tiledb
-            .insert(tile, bel, format!("{mui}_PORT_CONFIG"), item);
+        ctx.insert(tile, bel, format!("{mui}_PORT_CONFIG"), item);
     }
-    present.apply_enum_diff(
-        ctx.tiledb.item(tile, bel, "MUI0R_PORT_CONFIG"),
-        "READ",
-        "WRITE",
-    );
-    present.apply_enum_diff(
-        ctx.tiledb.item(tile, bel, "MUI1R_PORT_CONFIG"),
-        "READ",
-        "WRITE",
-    );
+    present.apply_enum_diff(ctx.item(tile, bel, "MUI0R_PORT_CONFIG"), "READ", "WRITE");
+    present.apply_enum_diff(ctx.item(tile, bel, "MUI1R_PORT_CONFIG"), "READ", "WRITE");
 
     present.assert_empty();
 
@@ -444,11 +425,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff = diff.combine(&!ctx.state.peek_diff(tile, bel, "MEM_BURST_LEN.DDR3", val));
             diffs.push((val, diff));
         }
-        ctx.tiledb
-            .insert(tile, bel, "MEM_DDR_DDR2_MDDR_BURST_LEN", xlat_enum(diffs));
+        ctx.insert(tile, bel, "MEM_DDR_DDR2_MDDR_BURST_LEN", xlat_enum(diffs));
     }
     let item = ctx.extract_enum(tile, bel, "MEM_BURST_LEN.DDR3", &["4", "8"]);
-    ctx.tiledb.insert(tile, bel, "MEM_BURST_LEN", item);
+    ctx.insert(tile, bel, "MEM_BURST_LEN", item);
 
     ctx.collect_enum(
         tile,
@@ -532,7 +512,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum(tile, bel, "MEM_MOBILE_TC_SR", &["0", "1", "2", "3"]);
 
     for (reg, bittile) in [("MR", 7), ("EMR1", 6), ("EMR2", 5), ("EMR3", 4)] {
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             reg,

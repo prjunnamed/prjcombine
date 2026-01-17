@@ -216,8 +216,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             *diff = diff.combine(&!&test_diff);
                         }
                     }
-                    ctx.tiledb
-                        .insert(tcname, bname, "TEST_ENABLE", xlat_bit(test_diff));
+                    ctx.insert(tcname, bname, "TEST_ENABLE", xlat_bit(test_diff));
                     if let ExpandedDevice::Virtex4(edev) = ctx.edev {
                         match edev.kind {
                             prjcombine_virtex4::chip::ChipKind::Virtex4 => {
@@ -227,7 +226,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                             || in_name.starts_with("IMUX_SR")
                                             || in_name.starts_with("IMUX_CE")
                                         {
-                                            diff.discard_bits(ctx.tiledb.item(
+                                            diff.discard_bits(ctx.item(
                                                 "INT",
                                                 "INT",
                                                 &format!("INV.{in_name}"),
@@ -282,7 +281,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 xlat_enum_default(diffs, "NONE")
                             };
-                            ctx.tiledb.insert(tcname, bname, mux_name, item);
+                            ctx.insert(tcname, bname, mux_name, item);
                         }
                     }
                 }
@@ -306,7 +305,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
                             if in_name.contains("IMUX_SR") || in_name.contains("IMUX_CE") {
                                 let mut item = ctx
-                                    .tiledb
                                     .item(
                                         "INT_BRAM_S3ADSP",
                                         "INT",
@@ -325,7 +323,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             diffs.push((group.to_string(), diff));
                         }
                     }
-                    ctx.tiledb.insert(
+                    ctx.insert(
                         tcname,
                         bname,
                         "TEST_GROUP",

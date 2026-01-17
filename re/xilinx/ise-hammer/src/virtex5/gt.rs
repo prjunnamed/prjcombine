@@ -672,7 +672,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileBit::new(tile, frame, bit)
         }
         for i in 0..0x50 {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("DRP{i:02X}"),
@@ -735,11 +735,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item_rx = ctx.extract_bit(tile, bel, "RXUSRCLK0", "1");
         let item_tx = ctx.extract_bit(tile, bel, "TXUSRCLK0", "1");
         assert_eq!(item_rx, item_tx);
-        ctx.tiledb.insert(tile, bel, "USRCLK0", item_rx);
+        ctx.insert(tile, bel, "USRCLK0", item_rx);
         let item_rx = ctx.extract_bit(tile, bel, "RXUSRCLK1", "1");
         let item_tx = ctx.extract_bit(tile, bel, "TXUSRCLK1", "1");
         assert_eq!(item_rx, item_tx);
-        ctx.tiledb.insert(tile, bel, "USRCLK1", item_rx);
+        ctx.insert(tile, bel, "USRCLK1", item_rx);
 
         for i in 0..4 {
             let bel = &format!("CRC32[{i}]");
@@ -751,11 +751,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bel = &format!("CRC64[{i}]");
             let bel32 = &format!("CRC32[{ii}]", ii = i * 3);
             let item = ctx.extract_inv(tile, bel, "CRCCLK");
-            ctx.tiledb.insert(tile, bel32, "INV.CRCCLK", item);
+            ctx.insert(tile, bel32, "INV.CRCCLK", item);
             let item = ctx.extract_bitvec(tile, bel, "CRC_INIT", "");
-            ctx.tiledb.insert(tile, bel32, "CRC_INIT", item);
+            ctx.insert(tile, bel32, "CRC_INIT", item);
             let item = ctx.extract_bit(tile, bel, "PRESENT", "1");
-            ctx.tiledb.insert(tile, bel32, "ENABLE64", item);
+            ctx.insert(tile, bel32, "ENABLE64", item);
         }
     }
 }

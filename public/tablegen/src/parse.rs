@@ -564,6 +564,15 @@ impl Item for ast::SwitchBoxItem {
                 tokenizer.finish()?;
                 ast::SwitchBoxItem::Mux(wire_to, wires_from)
             }
+            "bidi" => {
+                if block.is_some() {
+                    error_at(keyword.span(), "bidi does not accept a block")?;
+                }
+                let conn = tokenizer.template_id()?;
+                let wire = tokenizer.wire_ref()?;
+                tokenizer.finish()?;
+                ast::SwitchBoxItem::Bidi(conn, wire)
+            }
             _ => error_at(keyword.span(), &format!("unknown item keyword: {keyword}"))?,
         })
     }
@@ -888,6 +897,7 @@ fn parse_wire_kind(tokenizer: &mut Tokenizer) -> Result<ast::WireKind> {
         "multi_root" => ast::WireKind::MultiRoot,
         "branch" => ast::WireKind::Branch(tokenizer.ident()?),
         "multi_branch" => ast::WireKind::MultiBranch(tokenizer.ident()?),
+        "special" => ast::WireKind::Special,
         _ => error_at(kind.span(), &format!("unknown wire kind {kind}"))?,
     })
 }

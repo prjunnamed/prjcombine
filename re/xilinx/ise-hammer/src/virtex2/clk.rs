@@ -573,7 +573,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             for tile in [clkl, clkr] {
                 let bel = "PCILOGICSE";
                 let default = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-                let item = ctx.tiledb.item(tile, bel, "DELAY");
+                let item = ctx.item(tile, bel, "DELAY");
                 let val: BitVec = item
                     .bits
                     .iter()
@@ -620,7 +620,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 assert_eq!(pin.wires.len(), 1);
                 let wire = pin.wires.first().unwrap();
                 let sinv = ctx.extract_enum_bool(tile, bel, "SINV", "S", "S_B");
-                ctx.tiledb.insert(
+                ctx.insert(
                     tile,
                     "CLK_INT",
                     format!("INV.{:#}.{}", wire.cell, intdb.wires.key(wire.wire)),
@@ -676,9 +676,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.insert_device_data("PCILOGICSE:DELAY_DEFAULT", default.to_string());
                 let item = xlat_enum(diffs);
                 present.discard_bits(&item);
-                ctx.tiledb.insert(tile, bel, "DELAY", item);
+                ctx.insert(tile, bel, "DELAY", item);
             }
-            ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(present));
+            ctx.insert(tile, bel, "ENABLE", xlat_bit(present));
         }
     }
 
@@ -783,7 +783,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     format!("BUF.{out_name}")
                 };
                 let item = ctx.extract_bit(tile, bel, &out_name, &inp_name);
-                ctx.tiledb.insert(tile, bel, attr, item);
+                ctx.insert(tile, bel, attr, item);
             }
         }
     }
@@ -829,7 +829,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     }
                     diffs.push((pin_name.to_string(), diff));
                 }
-                ctx.tiledb.insert(
+                ctx.insert(
                     tile,
                     bel,
                     format!("MUX.{mux_name}"),

@@ -1,4 +1,7 @@
-use prjcombine_interconnect::{db::BelSlotId, grid::TileCoord};
+use prjcombine_interconnect::{
+    db::{BelBidirId, BelSlotId},
+    grid::TileCoord,
+};
 use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_types::bitvec::BitVec;
@@ -497,6 +500,36 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for PinMutexExclusive {
 }
 
 #[derive(Clone, Debug)]
+pub struct BidirMutexExclusive {
+    pub bel: BelSlotId,
+    pub pin: BelBidirId,
+}
+
+impl BidirMutexExclusive {
+    pub fn new(bel: BelSlotId, pin: BelBidirId) -> Self {
+        Self { bel, pin }
+    }
+}
+
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for BidirMutexExclusive {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
+        Box::new(Clone::clone(self))
+    }
+
+    fn apply<'a>(
+        &self,
+        backend: &XactBackend<'a>,
+        tcrd: TileCoord,
+        mut fuzzer: Fuzzer<XactBackend<'a>>,
+    ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
+        let wire = backend.edev.get_bel_bidir(tcrd.bel(self.bel), self.pin);
+        let rw = backend.edev.resolve_wire(wire)?;
+        fuzzer = fuzzer.fuzz(Key::WireMutex(rw), false, true);
+        Some((fuzzer, false))
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct FuzzBelPipPin {
     pub bel: BelSlotId,
     pub key: String,
@@ -602,6 +635,25 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
             }),
             rects: backend.edev.tile_bits(self.tcrd),
         });
+        Some((fuzzer, false))
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct NullBits;
+
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for NullBits {
+    fn dyn_clone(&self) -> Box<DynProp<'b>> {
+        Box::new(NullBits)
+    }
+
+    fn apply<'a>(
+        &self,
+        _backend: &XactBackend<'a>,
+        _tcrd: TileCoord,
+        mut fuzzer: Fuzzer<XactBackend<'a>>,
+    ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
+        fuzzer.info.features[0].rects.clear();
         Some((fuzzer, false))
     }
 }

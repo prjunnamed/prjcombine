@@ -659,7 +659,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = &format!("GT11[{idx}]");
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
         for i in 0x40..0x80 {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("DRP{i:02X}"),
@@ -667,8 +667,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             let item = TileItem::from_bit(drp_bit(idx, i, 17), false);
             present.apply_bit_diff(&item, true, false);
-            ctx.tiledb
-                .insert(tile, bel, format!("DRP{i:02X}_MASK"), item);
+            ctx.insert(tile, bel, format!("DRP{i:02X}_MASK"), item);
         }
         for &pin in GT11_INVPINS {
             ctx.collect_int_inv(&["INT"; 32], tile, bel, pin, false);
@@ -725,17 +724,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diffs_10 = ctx.state.get_diffs(tile, bel, "MCOMMA_10B_VALUE", "");
         let diffs_32 = ctx.state.get_diffs(tile, bel, "MCOMMA_32B_VALUE", "");
         assert!(diffs_32.starts_with(&diffs_10));
-        ctx.tiledb
-            .insert(tile, bel, "MCOMMA_VALUE", xlat_bitvec(diffs_32));
+        ctx.insert(tile, bel, "MCOMMA_VALUE", xlat_bitvec(diffs_32));
         let diffs_10 = ctx.state.get_diffs(tile, bel, "PCOMMA_10B_VALUE", "");
         let diffs_32 = ctx.state.get_diffs(tile, bel, "PCOMMA_32B_VALUE", "");
         assert!(diffs_32.starts_with(&diffs_10));
-        ctx.tiledb
-            .insert(tile, bel, "PCOMMA_VALUE", xlat_bitvec(diffs_32));
+        ctx.insert(tile, bel, "PCOMMA_VALUE", xlat_bitvec(diffs_32));
 
         for &attr in GT11_SHARED_BOOL_ATTRS {
             let item = ctx.extract_enum_bool(tile, bel, attr, "FALSE", "TRUE");
-            ctx.tiledb.insert(tile, "GT11_COMMON", attr, item);
+            ctx.insert(tile, "GT11_COMMON", attr, item);
         }
         let item = ctx.extract_enum(
             tile,
@@ -743,22 +740,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "TXABPMACLKSEL",
             &["REFCLK1", "REFCLK2", "GREFCLK"],
         );
-        ctx.tiledb
-            .insert(tile, "GT11_COMMON", "TXABPMACLKSEL", item);
+        ctx.insert(tile, "GT11_COMMON", "TXABPMACLKSEL", item);
         let item = ctx.extract_enum(
             tile,
             bel,
             "TXPLLNDIVSEL",
             &["8", "10", "16", "20", "32", "40"],
         );
-        ctx.tiledb.insert(tile, "GT11_COMMON", "TXPLLNDIVSEL", item);
+        ctx.insert(tile, "GT11_COMMON", "TXPLLNDIVSEL", item);
         for &(attr, _) in GT11_SHARED_BIN_ATTRS {
             let item = ctx.extract_bitvec(tile, bel, attr, "");
-            ctx.tiledb.insert(tile, "GT11_COMMON", attr, item);
+            ctx.insert(tile, "GT11_COMMON", attr, item);
         }
         for &(attr, _) in GT11_SHARED_HEX_ATTRS {
             let item = ctx.extract_bitvec(tile, bel, attr, "");
-            ctx.tiledb.insert(tile, "GT11_COMMON", attr, item);
+            ctx.insert(tile, "GT11_COMMON", attr, item);
         }
 
         for attr in ["MUX.PMACLK", "MUX.REFCLK"] {
@@ -816,14 +812,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diff = diff.combine(&!&fwdclk_out_enable);
                 diffs.push((format!("FWDCLK{j}"), diff));
             }
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("MUX.FWDCLK{i}_OUT"),
                 xlat_enum_ocd(diffs, OcdMode::BitOrder),
             );
         }
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             "GT11_COMMON",
             "FWDCLK_OUT_ENABLE",
@@ -846,7 +842,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff = diff.combine(&!&synclk_enable);
             diffs.push((inp.to_string(), diff));
         }
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "MUX.SYNCLK_OUT",
@@ -872,17 +868,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff = diff.combine(&!&synclk_drive_enable);
             diffs.push((val, diff));
         }
-        ctx.tiledb
-            .insert(tile, "GT11_COMMON", attr, xlat_enum(diffs));
+        ctx.insert(tile, "GT11_COMMON", attr, xlat_enum(diffs));
     }
     synclk_drive_enable = synclk_drive_enable.combine(&!&synclk_enable);
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         "GT11_COMMON",
         "SYNCLK_DRIVE_ENABLE",
         xlat_bit(synclk_drive_enable),
     );
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         "GT11_COMMON",
         "SYNCLK_ENABLE",
@@ -895,7 +890,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "REFCLKSEL",
         &["SYNCLK1IN", "SYNCLK2IN", "RXBCLK", "REFCLK", "MGTCLK"],
     );
-    ctx.tiledb.insert(tile, "GT11_COMMON", "REFCLKSEL", item);
+    ctx.insert(tile, "GT11_COMMON", "REFCLKSEL", item);
 
     let item = ctx.extract_enum_default_ocd(
         tile,
@@ -905,7 +900,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "NONE",
         OcdMode::BitOrder,
     );
-    ctx.tiledb.insert(tile, "GT11_COMMON", "MUX.REFCLK", item);
+    ctx.insert(tile, "GT11_COMMON", "MUX.REFCLK", item);
     let item = ctx.extract_enum_default_ocd(
         tile,
         "GT11CLK",
@@ -914,7 +909,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "NONE",
         OcdMode::BitOrder,
     );
-    ctx.tiledb.insert(tile, "GT11_COMMON", "MUX.PMACLK", item);
+    ctx.insert(tile, "GT11_COMMON", "MUX.PMACLK", item);
 
     let tile = "HCLK_MGT";
     let bel = "HCLK_MGT";
@@ -929,8 +924,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "HCLK_MGT_BUF";
         let bel = "HCLK_MGT_BUF";
         let item = ctx.extract_bit(tile, bel, "BUF.MGT0.MGT", "1");
-        ctx.tiledb.insert(tile, bel, "BUF.MGT0", item);
+        ctx.insert(tile, bel, "BUF.MGT0", item);
         let item = ctx.extract_bit(tile, bel, "BUF.MGT1.MGT", "1");
-        ctx.tiledb.insert(tile, bel, "BUF.MGT1", item);
+        ctx.insert(tile, bel, "BUF.MGT1", item);
     }
 }

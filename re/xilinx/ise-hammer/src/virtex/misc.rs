@@ -286,7 +286,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let d3 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "11");
             // bug? bug.
             assert_eq!(d0, d1);
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 "PCI_DELAY",
@@ -351,7 +351,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             !ctx.state.get_diff(tile, bel, "IBCLK_N16", "0"),
             !ctx.state.get_diff(tile, bel, "IBCLK_N32", "0"),
         ]);
-        ctx.tiledb.insert(tile, bel, "BCLK_DIV2", item);
+        ctx.insert(tile, bel, "BCLK_DIV2", item);
         for attr in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"] {
             ctx.state.get_diff(tile, bel, attr, "1").assert_empty();
         }
@@ -387,11 +387,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum_bool(tile, bel, "CLKINV", "1", "0");
         ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
         let item = ctx.extract_bit(tile, bel, "GSR", "1");
-        ctx.tiledb.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
+        ctx.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "GWE", "1");
-        ctx.tiledb.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
+        ctx.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "GTS", "1");
-        ctx.tiledb.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
+        ctx.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
         for val in ["JTAGCLK", "CCLK", "USERCLK"] {
             ctx.state
                 .get_diff(tile, bel, "STARTUPCLK", val)
@@ -469,7 +469,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         ctx.collect_enum_bool(tile, bel, "DRIVE_DONE", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "DONE_PIPE", "NO", "YES");
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "SHUTDOWN",
@@ -485,13 +485,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "DISPMP2", "0", "1");
         ctx.collect_enum(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
         // these are too much trouble to deal with the normal way.
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "PERSIST",
             TileItem::from_bit(TileBit::new(0, 0, 6), false),
         );
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "GTS_USR_B",

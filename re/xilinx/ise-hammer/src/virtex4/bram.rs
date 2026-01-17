@@ -187,7 +187,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let d_none = ctx.state.get_diff(tile, "BRAM", attr, "NONE");
         assert_eq!(d_none, ctx.state.get_diff(tile, "BRAM", attr, "UPPER"));
         let d_lower = ctx.state.get_diff(tile, "BRAM", attr, "LOWER");
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             "BRAM",
             attr,
@@ -224,10 +224,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .get_diffs(tile, "BRAM", format!("INITP_{i:02X}"), ""),
         );
     }
-    ctx.tiledb
-        .insert(tile, "BRAM", "DATA", xlat_bitvec(diffs_data));
-    ctx.tiledb
-        .insert(tile, "BRAM", "DATAP", xlat_bitvec(diffs_datap));
+    ctx.insert(tile, "BRAM", "DATA", xlat_bitvec(diffs_data));
+    ctx.insert(tile, "BRAM", "DATAP", xlat_bitvec(diffs_datap));
 
     for attr in ["EN_ECC_READ", "EN_ECC_WRITE", "SAVEDATA"] {
         ctx.state
@@ -236,7 +234,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff = ctx.state.get_diff(tile, "BRAM", attr, "TRUE");
         let mut bits: Vec<_> = diff.bits.into_iter().collect();
         bits.sort();
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             "BRAM",
             attr,
@@ -251,11 +249,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     let ti = ctx.extract_enum_bool(tile, "FIFO", "FIRST_WORD_FALL_THROUGH", "FALSE", "TRUE");
-    ctx.tiledb
-        .insert(tile, "BRAM", "FIRST_WORD_FALL_THROUGH", ti);
+    ctx.insert(tile, "BRAM", "FIRST_WORD_FALL_THROUGH", ti);
     let mut diffs = vec![];
-    let item_ra = ctx.collector.tiledb.item(tile, "BRAM", "READ_WIDTH_A");
-    let item_wb = ctx.collector.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B");
+    let item_ra = ctx.collector.data.bsdata.item(tile, "BRAM", "READ_WIDTH_A");
+    let item_wb = ctx
+        .collector
+        .data
+        .bsdata
+        .item(tile, "BRAM", "WRITE_WIDTH_B");
     for val in ["4", "9", "18", "36"] {
         let mut diff = ctx
             .collector
@@ -265,8 +266,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff.apply_enum_diff(item_wb, val, "1");
         diffs.push((val, diff));
     }
-    ctx.tiledb
-        .insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum(diffs));
+    ctx.insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum(diffs));
     ctx.state
         .get_diff(tile, "FIFO", "EN_ECC_READ", "FALSE")
         .assert_empty();
@@ -288,8 +288,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.state
             .get_diffs(tile, "FIFO", "ALMOST_FULL_OFFSET:FWFT", "")
     );
-    ctx.tiledb
-        .insert(tile, "BRAM", "ALMOST_FULL_OFFSET", xlat_bitvec(diffs));
+    ctx.insert(tile, "BRAM", "ALMOST_FULL_OFFSET", xlat_bitvec(diffs));
     let diffs = ctx
         .state
         .get_diffs(tile, "FIFO", "ALMOST_EMPTY_OFFSET:NFWFT", "");
@@ -298,38 +297,37 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.state
             .get_diffs(tile, "FIFO", "ALMOST_EMPTY_OFFSET:FWFT", "")
     );
-    ctx.tiledb
-        .insert(tile, "BRAM", "ALMOST_EMPTY_OFFSET", xlat_bitvec(diffs));
+    ctx.insert(tile, "BRAM", "ALMOST_EMPTY_OFFSET", xlat_bitvec(diffs));
 
     let mut present_bram = ctx.state.get_diff(tile, "BRAM", "PRESENT", "1");
     let mut present_fifo = ctx.state.get_diff(tile, "FIFO", "PRESENT", "1");
     for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
-        present_bram.discard_bits(ctx.tiledb.item(tile, "BRAM", attr));
-        present_fifo.discard_bits(ctx.tiledb.item(tile, "BRAM", attr));
+        present_bram.discard_bits(ctx.item(tile, "BRAM", attr));
+        present_fifo.discard_bits(ctx.item(tile, "BRAM", attr));
     }
     present_bram.apply_enum_diff(
-        ctx.tiledb.item(tile, "BRAM", "WRITE_MODE_A"),
+        ctx.item(tile, "BRAM", "WRITE_MODE_A"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
     present_bram.apply_enum_diff(
-        ctx.tiledb.item(tile, "BRAM", "WRITE_MODE_B"),
+        ctx.item(tile, "BRAM", "WRITE_MODE_B"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
     present_fifo.apply_enum_diff(
-        ctx.tiledb.item(tile, "BRAM", "WRITE_MODE_A"),
+        ctx.item(tile, "BRAM", "WRITE_MODE_A"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
     present_fifo.apply_enum_diff(
-        ctx.tiledb.item(tile, "BRAM", "WRITE_MODE_B"),
+        ctx.item(tile, "BRAM", "WRITE_MODE_B"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
-    present_fifo.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "DOA_REG"), "1", "0");
-    present_fifo.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "DOB_REG"), "1", "0");
-    ctx.tiledb.insert(
+    present_fifo.apply_enum_diff(ctx.item(tile, "BRAM", "DOA_REG"), "1", "0");
+    present_fifo.apply_enum_diff(ctx.item(tile, "BRAM", "DOB_REG"), "1", "0");
+    ctx.insert(
         tile,
         "BRAM",
         "MODE",
@@ -342,5 +340,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("1", ctx.state.get_diff(tile, "BRAM", "Ibram_ww_value", "1")),
     ]);
 
-    ctx.tiledb.insert(tile, "BRAM", "WW_VALUE", item);
+    ctx.insert(tile, "BRAM", "WW_VALUE", item);
 }

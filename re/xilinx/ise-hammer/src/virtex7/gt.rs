@@ -1879,7 +1879,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "EAST_REFCLK0_SEL" | "EAST_REFCLK1_SEL" | "WEST_REFCLK0_SEL" | "WEST_REFCLK1_SEL"
             ) {
                 let [diff0, diff1] = ctx.state.get_diffs(tile, bel, attr, "").try_into().unwrap();
-                ctx.tiledb.insert(
+                ctx.insert(
                     tile,
                     bel,
                     attr,
@@ -1897,7 +1897,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec(tile, bel, attr, "");
         }
         // too annoying to bother fuzzing cleanly, given that east/west clocks are only present on 7a200t
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "PLL0REFCLKSEL_STATIC",
@@ -1921,7 +1921,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 },
             },
         );
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "PLL0REFCLKSEL_MODE",
@@ -1935,7 +1935,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 },
             },
         );
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "PLL1REFCLKSEL_STATIC",
@@ -1959,7 +1959,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 },
             },
         );
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             "PLL1REFCLKSEL_MODE",
@@ -2076,7 +2076,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for reg in 0..0x60 {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel_common,
                 format!("DRP{reg:02X}"),
@@ -2093,7 +2093,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_enum_bool(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
             ctx.collect_enum_bool(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");
             let item = ctx.extract_bitvec(tile, bel, "CLKSWING_CFG", "");
-            ctx.tiledb.insert(tile, bel_common, "CLKSWING_CFG", item);
+            ctx.insert(tile, bel_common, "CLKSWING_CFG", item);
             ctx.collect_enum_default_ocd(
                 tile,
                 bel,
@@ -2103,7 +2103,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 OcdMode::BitOrderDrpV6,
             );
             let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.MGTCLKOUT"), "NONE", "O");
+            diff.apply_enum_diff(ctx.item(tile, bel, "MUX.MGTCLKOUT"), "NONE", "O");
             diff.assert_empty();
         }
     }
@@ -2120,7 +2120,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     format!("MUX.HOUT{i}"),
                     format!("HIN{i}"),
                 ));
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 "HCLK_GTP_MID",
                 format!("ENABLE.HIN{i}"),
@@ -2143,7 +2143,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .state
                 .get_diff(tile, bel, "MUX.HOUT0", format!("{pin}.EXCL"))
                 .combine(&!ctx.state.peek_diff(tile, bel, "MUX.HOUT0", pin));
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 "HCLK_GTP_MID",
                 format!("ENABLE.{pin}"),
@@ -2172,17 +2172,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "NONE",
                 OcdMode::Mux,
             );
-            ctx.tiledb
-                .insert(tile, "HCLK_GTP_MID", format!("MUX.HOUT{i}"), item);
+            ctx.insert(tile, "HCLK_GTP_MID", format!("MUX.HOUT{i}"), item);
         }
         // ... seem glued together in fuzzing? screw this. manual time.
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             "HCLK_GTP_MID",
             "DRP_MASK_BELOW",
             TileItem::from_bit(TileBit::new(6, 0, 13), false),
         );
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             "HCLK_GTP_MID",
             "DRP_MASK_ABOVE",
@@ -2199,7 +2198,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         for reg in 0..0xb0 {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("DRP{reg:02X}"),

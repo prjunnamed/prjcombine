@@ -176,10 +176,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             .assert_empty();
     }
     let diff = ctx.state.get_diff(tile, bel, "CLOCK_DELAY", "FALSE");
-    let val = extract_bitvec_val(
-        ctx.tiledb.item(tile, bel, "CLOCK_DELAY"),
-        &bits![0; 5],
-        diff,
-    );
+    let val = extract_bitvec_val(ctx.item(tile, bel, "CLOCK_DELAY"), &bits![0; 5], diff);
     ctx.insert_device_data("PPC:CLOCK_DELAY", val);
 }

@@ -276,7 +276,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         let item = ctx.extract_enum_bool_wide(tile, bel, "DUTY_ATTR", "FALSE", "TRUE");
         present.apply_bitvec_diff(&item, &BitVec::repeat(true, 4), &BitVec::repeat(false, 4));
-        ctx.tiledb.insert(tile, bel, "DUTY_CYCLE_CORRECTION", item);
+        ctx.insert(tile, bel, "DUTY_CYCLE_CORRECTION", item);
 
         ctx.collect_bit(tile, bel, "HIGH_FREQUENCY", "1");
 
@@ -302,8 +302,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             present.apply_bitvec_diff_int(item, base, 0xf0);
         }
-        ctx.tiledb.insert(tile, bel, "FACTORY_JF2", item_jf2);
-        ctx.tiledb.insert(tile, bel, "FACTORY_JF1", item_jf1);
+        ctx.insert(tile, bel, "FACTORY_JF2", item_jf2);
+        ctx.insert(tile, bel, "FACTORY_JF1", item_jf1);
 
         let clkdv_count_max =
             TileItem::from_bitvec((4..8).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
@@ -355,17 +355,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         present.apply_bitvec_diff_int(&clkdv_count_max, 1, 0);
         present.apply_enum_diff(&clkdv_mode, "INT", "HALF");
-        ctx.tiledb
-            .insert(tile, bel, "CLKDV_COUNT_MAX", clkdv_count_max);
-        ctx.tiledb
-            .insert(tile, bel, "CLKDV_COUNT_FALL", clkdv_count_fall);
-        ctx.tiledb
-            .insert(tile, bel, "CLKDV_COUNT_FALL_2", clkdv_count_fall_2);
-        ctx.tiledb
-            .insert(tile, bel, "CLKDV_PHASE_RISE", clkdv_phase_rise);
-        ctx.tiledb
-            .insert(tile, bel, "CLKDV_PHASE_FALL", clkdv_phase_fall);
-        ctx.tiledb.insert(tile, bel, "CLKDV_MODE", clkdv_mode);
+        ctx.insert(tile, bel, "CLKDV_COUNT_MAX", clkdv_count_max);
+        ctx.insert(tile, bel, "CLKDV_COUNT_FALL", clkdv_count_fall);
+        ctx.insert(tile, bel, "CLKDV_COUNT_FALL_2", clkdv_count_fall_2);
+        ctx.insert(tile, bel, "CLKDV_PHASE_RISE", clkdv_phase_rise);
+        ctx.insert(tile, bel, "CLKDV_PHASE_FALL", clkdv_phase_fall);
+        ctx.insert(tile, bel, "CLKDV_MODE", clkdv_mode);
 
         ctx.collect_enum_bool(tile, bel, "CFG_O_14", "0", "1");
         ctx.collect_enum_bool(tile, bel, "LVL1_MUX_20", "0", "1");
@@ -379,11 +374,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("1X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "0")),
             ("2X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "1")),
         ]);
-        ctx.tiledb.insert(tile, bel, "CLK_FEEDBACK", item);
+        ctx.insert(tile, bel, "CLK_FEEDBACK", item);
 
-        present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CFG_O_14"), true, false);
+        present.apply_bit_diff(ctx.item(tile, bel, "CFG_O_14"), true, false);
         if ctx.device.name.ends_with('e') {
-            ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(present));
+            ctx.insert(tile, bel, "ENABLE", xlat_bit(present));
         } else {
             present.assert_empty();
         }

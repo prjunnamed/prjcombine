@@ -6,11 +6,11 @@ use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let grid = backend.edev.chip;
-    for tile in backend.edev.db.tile_classes.keys() {
+    for (tcid, tile, _) in &backend.edev.db.tile_classes {
         if !tile.starts_with("IO") {
             continue;
         }
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         if grid.kind != ChipKind::Xc4000H {
             for slot in bels::IO {
                 let mut bctx = ctx.bel(slot);
@@ -177,10 +177,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for bel in ["IO0", "IO1"] {
                 let item =
                     ctx.extract_enum_default(tile, bel, "PAD", &["PULLUP", "PULLDOWN"], "NONE");
-                ctx.tiledb.insert(tile, bel, "PULL", item);
+                ctx.insert(tile, bel, "PULL", item);
                 if grid.kind != ChipKind::Xc4000A {
                     let item = ctx.extract_enum_default(tile, bel, "PAD", &["FAST"], "SLOW");
-                    ctx.tiledb.insert(tile, bel, "SLEW", item);
+                    ctx.insert(tile, bel, "SLEW", item);
                 } else {
                     let item = ctx.extract_enum(
                         tile,
@@ -188,78 +188,78 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "OSPEED",
                         &["SLOW", "MEDSLOW", "MEDFAST", "FAST"],
                     );
-                    ctx.tiledb.insert(tile, bel, "SLEW", item);
+                    ctx.insert(tile, bel, "SLEW", item);
                 }
                 let item = ctx.extract_enum_default(tile, bel, "INFF", &["DELAY"], "I");
-                ctx.tiledb.insert(tile, bel, "IFF_D", item);
+                ctx.insert(tile, bel, "IFF_D", item);
 
                 let item = ctx.extract_enum_bool(tile, bel, "INFF", "RESET", "SET");
-                ctx.tiledb.insert(tile, bel, "IFF_SRVAL", item);
+                ctx.insert(tile, bel, "IFF_SRVAL", item);
                 let item = ctx.extract_enum_bool(tile, bel, "OUT", "RESET", "SET");
-                ctx.tiledb.insert(tile, bel, "OFF_SRVAL", item);
+                ctx.insert(tile, bel, "OFF_SRVAL", item);
                 let item = ctx.extract_bit(tile, bel, "INFF", "IKNOT");
-                ctx.tiledb.insert(tile, bel, "INV.IFF_CLK", item);
+                ctx.insert(tile, bel, "INV.IFF_CLK", item);
                 let item = ctx.extract_bit(tile, bel, "OUT", "OKNOT");
-                ctx.tiledb.insert(tile, bel, "INV.OFF_CLK", item);
+                ctx.insert(tile, bel, "INV.OFF_CLK", item);
 
                 let item = ctx.extract_enum(tile, bel, "I1", &["I", "IQ", "IQL"]);
-                ctx.tiledb.insert(tile, bel, "I1MUX", item);
+                ctx.insert(tile, bel, "I1MUX", item);
                 let item = ctx.extract_enum(tile, bel, "I2", &["I", "IQ", "IQL"]);
-                ctx.tiledb.insert(tile, bel, "I2MUX", item);
+                ctx.insert(tile, bel, "I2MUX", item);
 
                 let item = ctx.extract_bit(tile, bel, "TRI", "NOT");
-                ctx.tiledb.insert(tile, bel, "INV.T", item);
+                ctx.insert(tile, bel, "INV.T", item);
 
                 let item = ctx.extract_bit(tile, bel, "RDBK", "I1");
-                ctx.tiledb.insert(tile, bel, "READBACK_I1", item);
+                ctx.insert(tile, bel, "READBACK_I1", item);
                 let item = ctx.extract_bit(tile, bel, "RDBK", "I2");
-                ctx.tiledb.insert(tile, bel, "READBACK_I2", item);
+                ctx.insert(tile, bel, "READBACK_I2", item);
                 let item = ctx.extract_bit(tile, bel, "RDBK", "OQ");
-                ctx.tiledb.insert(tile, bel, "READBACK_OFF", item);
+                ctx.insert(tile, bel, "READBACK_OFF", item);
 
                 let mut diff = ctx.state.get_diff(tile, bel, "INFF", "IK");
-                diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULL"), "NONE", "PULLUP");
+                diff.apply_enum_diff(ctx.item(tile, bel, "PULL"), "NONE", "PULLUP");
                 diff.assert_empty();
                 let mut diff = ctx.state.get_diff(tile, bel, "OUT", "OK");
-                diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULL"), "NONE", "PULLUP");
+                diff.apply_enum_diff(ctx.item(tile, bel, "PULL"), "NONE", "PULLUP");
                 diff.assert_empty();
             }
         } else {
             for bel in ["HIO0", "HIO1", "HIO2", "HIO3"] {
                 let item =
                     ctx.extract_enum_default(tile, bel, "PAD", &["PULLUP", "PULLDOWN"], "NONE");
-                ctx.tiledb.insert(tile, bel, "PULL", item);
+                ctx.insert(tile, bel, "PULL", item);
 
                 let item = ctx.extract_enum(tile, bel, "IN", &["CMOS", "TTL"]);
-                ctx.tiledb.insert(tile, bel, "ISTD", item);
+                ctx.insert(tile, bel, "ISTD", item);
                 let item = ctx.extract_enum(tile, bel, "OUT", &["CMOS", "TTL"]);
-                ctx.tiledb.insert(tile, bel, "OSTD", item);
+                ctx.insert(tile, bel, "OSTD", item);
                 let item = ctx.extract_enum(tile, bel, "OUT", &["CAP", "RES"]);
-                ctx.tiledb.insert(tile, bel, "OMODE", item);
+                ctx.insert(tile, bel, "OMODE", item);
 
                 let item = ctx.extract_bit(tile, bel, "IN", "NOT");
-                ctx.tiledb.insert(tile, bel, "INV.I", item);
+                ctx.insert(tile, bel, "INV.I", item);
                 let item = ctx.extract_bit(tile, bel, "OUT", "NOT");
-                ctx.tiledb.insert(tile, bel, "INV.O", item);
+                ctx.insert(tile, bel, "INV.O", item);
                 let item = ctx.extract_bit(tile, bel, "TRI", "NOT");
-                ctx.tiledb.insert(tile, bel, "INV.T", item);
+                ctx.insert(tile, bel, "INV.T", item);
 
                 let item = xlat_enum(vec![
                     ("T1", ctx.state.get_diff(tile, bel, "TRI", "TP")),
                     ("T2", ctx.state.get_diff(tile, bel, "TRI", "TS")),
                 ]);
-                ctx.tiledb.insert(tile, bel, "MUX.T", item);
+                ctx.insert(tile, bel, "MUX.T", item);
 
                 let item = ctx.extract_bit(tile, bel, "RDBK", "I");
-                ctx.tiledb.insert(tile, bel, "READBACK_I", item);
+                ctx.insert(tile, bel, "READBACK_I", item);
 
                 let mut diff = ctx.state.get_diff(tile, bel, "IN", "I");
-                diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULL"), "NONE", "PULLUP");
+                diff.apply_enum_diff(ctx.item(tile, bel, "PULL"), "NONE", "PULLUP");
                 diff.assert_empty();
                 let mut diff = ctx.state.get_diff(tile, bel, "OUT", "O");
-                diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "OSTD"), "TTL", "CMOS");
-                diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.T"), false, true);
-                diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "OMODE"), "RES", "CAP");
+                diff.apply_enum_diff(ctx.item(tile, bel, "OSTD"), "TTL", "CMOS");
+                diff.apply_bit_diff(ctx.item(tile, bel, "INV.T"), false, true);
+                diff.apply_enum_diff(ctx.item(tile, bel, "OMODE"), "RES", "CAP");
                 diff.assert_empty();
             }
         }

@@ -710,7 +710,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileBit::new(tile, frame, bit)
         }
         for reg in 0..0x96 {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("DRP{reg:02X}"),
@@ -755,6 +755,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "HCLK";
         let bel = "HCLK";
         let item = ctx.extract_bit(tile, bel, "DRP_MASK_PCIE", "1");
-        ctx.tiledb.insert(tile, bel, "DRP_MASK_BELOW_R", item);
+        ctx.insert(tile, bel, "DRP_MASK_BELOW_R", item);
     }
 }

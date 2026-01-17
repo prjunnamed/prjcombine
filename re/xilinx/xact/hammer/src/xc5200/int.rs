@@ -387,7 +387,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         if tcls_index.pips_bwd.is_empty() {
             continue;
         }
-        let mut ctx = FuzzCtx::new(session, backend, tcname);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for (&wire_to, ins) in &tcls_index.pips_bwd {
             let mux_name = if tcls.cells.len() == 1 {
                 format!("MUX.{}", intdb.wires.key(wire_to.wire))
@@ -493,7 +493,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if item.bits.is_empty() {
                                 println!("UMMM MUX {tcname} {mux_name} is empty");
                             }
-                            ctx.tiledb.insert(tcname, bel, mux_name, item);
+                            ctx.insert(tcname, bel, mux_name, item);
                             let bel = match &out_name[..] {
                                 "IMUX.IO0.O" => "IO0",
                                 "IMUX.IO1.O" => "IO1",
@@ -502,7 +502,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 _ => unreachable!(),
                             };
                             let item = xlat_enum_ocd(omux, OcdMode::Mux);
-                            ctx.tiledb.insert(tcname, bel, "OMUX", item);
+                            ctx.insert(tcname, bel, "OMUX", item);
                         } else {
                             let mut inps = vec![];
                             let mut got_empty = false;
@@ -539,7 +539,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         }
                                     }
                                     assert!(got_empty);
-                                    ctx.tiledb.insert(tcname, rbel, rattr, xlat_bit(common));
+                                    ctx.insert(tcname, rbel, rattr, xlat_bit(common));
                                 }
                             }
                             if !got_empty {
@@ -549,7 +549,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if item.bits.is_empty() {
                                 println!("UMMM MUX {tcname} {mux_name} is empty");
                             }
-                            ctx.tiledb.insert(tcname, bel, mux_name, item);
+                            ctx.insert(tcname, bel, mux_name, item);
                         }
                     }
                     SwitchBoxItem::Pass(pass) => {
@@ -568,7 +568,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 .get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
                         let item = xlat_bit(diff);
                         let name = format!("PASS.{out_name}.{in_name}");
-                        ctx.tiledb.insert(tcname, bel, name, item);
+                        ctx.insert(tcname, bel, name, item);
                     }
                     SwitchBoxItem::BiPass(pass) => {
                         let a_name = intdb.wires.key(pass.a.wire);
@@ -600,7 +600,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 &in_name,
                             );
                             let item = xlat_bit(diff);
-                            ctx.tiledb.insert(tcname, bel, &name, item);
+                            ctx.insert(tcname, bel, &name, item);
                         }
                     }
                     SwitchBoxItem::PermaBuf(buf) => {

@@ -366,7 +366,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     for i in 0..0x80 {
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             format!("DRP{i:02X}"),
@@ -408,13 +408,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let mut diffs = ctx.state.get_diffs(tile, bel, "COMMA_10B_ENABLE_1", "");
     diffs[3].bits.insert(TileBit::new(11, 23, 3), true);
     assert_eq!(diffs[4].bits.remove(&TileBit::new(11, 23, 3)), Some(true));
-    ctx.tiledb
-        .insert(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec(diffs));
+    ctx.insert(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec(diffs));
     ctx.collect_bitvec(tile, bel, "RXPRBSERR_LOOPBACK_0", "");
     ctx.state
         .get_diff(tile, bel, "RXPRBSERR_LOOPBACK_1", "")
         .assert_empty();
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "RXPRBSERR_LOOPBACK_1",
@@ -452,9 +451,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff = diff.combine(&!&refselpll_static);
             diffs.push((val, diff));
         }
-        ctx.tiledb
-            .insert(tile, bel, format!("REFSELPLL{i}_STATIC"), xlat_enum(diffs));
-        ctx.tiledb.insert(
+        ctx.insert(tile, bel, format!("REFSELPLL{i}_STATIC"), xlat_enum(diffs));
+        ctx.insert(
             tile,
             bel,
             format!("REFSELPLL{i}_STATIC_ENABLE"),

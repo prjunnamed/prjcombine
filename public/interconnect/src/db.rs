@@ -335,6 +335,7 @@ pub enum WireKind {
     MultiRoot,
     MultiBranch(ConnectorSlotId),
     Branch(ConnectorSlotId),
+    Special,
 }
 
 impl WireKind {
@@ -352,6 +353,7 @@ impl WireKind {
                 format!("multi_branch {slot}", slot = db.conn_slots.key(*slot))
             }
             WireKind::Branch(slot) => format!("branch {slot}", slot = db.conn_slots.key(*slot)),
+            WireKind::Special => "special".into(),
         }
     }
 }
@@ -620,6 +622,7 @@ pub enum SwitchBoxItem {
     BiPass(BiPass),
     ProgInv(ProgInv),
     ProgDelay(ProgDelay),
+    Bidi(Bidi),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
@@ -670,6 +673,14 @@ pub struct ProgDelay {
     pub src: PolTileWireCoord,
     pub bits: Vec<TileBit>,
     pub steps: Vec<BitVec>,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Encode, Decode)]
+pub struct Bidi {
+    pub conn: ConnectorSlotId,
+    pub wire: TileWireCoord,
+    // bit set iff driver upstream
+    pub bit_upstream: PolTileBit,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
@@ -816,6 +827,7 @@ impl TileClassIndex {
                                 });
                             pips_bwd.entry(delay.dst).or_default().insert(delay.src);
                         }
+                        SwitchBoxItem::Bidi(_) => (),
                     }
                 }
             }

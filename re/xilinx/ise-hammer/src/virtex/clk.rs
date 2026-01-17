@@ -163,7 +163,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff = ctx.state.get_diff(tile, bel, "DELAY", val);
                 diffs.push(!diff);
             }
-            ctx.tiledb.insert(tile, bel, "DELAY", xlat_bitvec(diffs));
+            ctx.insert(tile, bel, "DELAY", xlat_bitvec(diffs));
             let iostds = if !tile.ends_with("DLL") {
                 &[
                     ("CMOS", "LVTTL"),
@@ -210,7 +210,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for &(val, iostd) in iostds {
                 diffs.push((val, ctx.state.get_diff(tile, bel, "IOATTRBOX", iostd)));
             }
-            ctx.tiledb.insert(tile, bel, "IBUF", xlat_enum(diffs));
+            ctx.insert(tile, bel, "IBUF", xlat_enum(diffs));
         }
         for i in 0..2 {
             let bel = format!("BUFG[{i}]");
@@ -242,7 +242,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 for i in 0..4 {
                     let item = ctx.extract_bit_wide(tile, bel, &format!("BUF.GCLK_{lr}{i}"), "1");
                     if is_s2 {
-                        ctx.tiledb.insert(tile, bel, format!("BUF.GCLK{i}"), item);
+                        ctx.insert(tile, bel, format!("BUF.GCLK{i}"), item);
                     } else {
                         assert!(item.bits.is_empty());
                     }

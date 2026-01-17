@@ -771,11 +771,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ] {
         for (bel, ul) in [("BRAM_H[0]", 'L'), ("BRAM_H[1]", 'U')] {
             let item = ctx.extract_inv(tile, "BRAM_F", &format!("{pin}{ul}"));
-            ctx.tiledb
-                .insert(tile, "BRAM", format!("INV.{pin}{ul}"), item);
+            ctx.insert(tile, "BRAM", format!("INV.{pin}{ul}"), item);
             let item = ctx.extract_inv(tile, bel, pin);
-            ctx.tiledb
-                .insert(tile, "BRAM", format!("INV.{pin}{ul}"), item);
+            ctx.insert(tile, "BRAM", format!("INV.{pin}{ul}"), item);
         }
     }
 
@@ -788,17 +786,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("RSTREGARSTREG", "RSTREG"),
     ] {
         let item = ctx.extract_inv(tile, "FIFO_H[0]", pin);
-        ctx.tiledb
-            .insert(tile, "BRAM", format!("INV.{hwpin}L"), item);
+        ctx.insert(tile, "BRAM", format!("INV.{hwpin}L"), item);
         for ul in ['U', 'L'] {
             let item = ctx.extract_inv(tile, "FIFO_F", &format!("{pin}{ul}"));
-            ctx.tiledb
-                .insert(tile, "BRAM", format!("INV.{hwpin}{ul}"), item);
+            ctx.insert(tile, "BRAM", format!("INV.{hwpin}{ul}"), item);
         }
     }
     for bel in ["FIFO_H[0]", "FIFO_F"] {
         let item = ctx.extract_inv(tile, bel, "RST");
-        ctx.tiledb.insert(tile, "BRAM", "INV.RSTRAMARSTRAML", item);
+        ctx.insert(tile, "BRAM", "INV.RSTRAMARSTRAML", item);
     }
 
     for (attr, attr_a, attr_b) in [
@@ -831,8 +827,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present_ramb18_l.apply_bitvec_diff(&item_l, &bits![0; 18], &bits![1; 18]);
         present_ramb18_u.apply_bitvec_diff(&item_u, &bits![0; 18], &bits![1; 18]);
         present_fifo18.apply_bitvec_diff(&item_l, &bits![0; 18], &bits![1; 18]);
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_L"), item_l);
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_U"), item_u);
+        ctx.insert(tile, "BRAM", format!("{attr}_L"), item_l);
+        ctx.insert(tile, "BRAM", format!("{attr}_U"), item_u);
     }
 
     for (bel, ul) in [("BRAM_H[0]", 'L'), ("BRAM_H[1]", 'U')] {
@@ -844,10 +840,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for i in 0..8 {
             datap.extend(ctx.state.get_diffs(tile, bel, format!("INITP_{i:02X}"), ""));
         }
-        ctx.tiledb
-            .insert(tile, "BRAM", format!("DATA_{ul}"), xlat_bitvec(data));
-        ctx.tiledb
-            .insert(tile, "BRAM", format!("DATAP_{ul}"), xlat_bitvec(datap));
+        ctx.insert(tile, "BRAM", format!("DATA_{ul}"), xlat_bitvec(data));
+        ctx.insert(tile, "BRAM", format!("DATAP_{ul}"), xlat_bitvec(datap));
     }
 
     let mut data = vec![];
@@ -882,17 +876,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             datap_u.push(diff);
         }
     }
-    ctx.tiledb
-        .insert(tile, "BRAM", "DATA_L", xlat_bitvec(data_l));
-    ctx.tiledb
-        .insert(tile, "BRAM", "DATA_U", xlat_bitvec(data_u));
-    ctx.tiledb
-        .insert(tile, "BRAM", "DATAP_L", xlat_bitvec(datap_l));
-    ctx.tiledb
-        .insert(tile, "BRAM", "DATAP_U", xlat_bitvec(datap_u));
+    ctx.insert(tile, "BRAM", "DATA_L", xlat_bitvec(data_l));
+    ctx.insert(tile, "BRAM", "DATA_U", xlat_bitvec(data_u));
+    ctx.insert(tile, "BRAM", "DATAP_L", xlat_bitvec(datap_l));
+    ctx.insert(tile, "BRAM", "DATAP_U", xlat_bitvec(datap_u));
 
     let item = ctx.extract_enum_bool_wide(tile, "BRAM_F", "SAVEDATA", "FALSE", "TRUE");
-    ctx.tiledb.insert(tile, "BRAM", "SAVEDATA", item);
+    ctx.insert(tile, "BRAM", "SAVEDATA", item);
 
     for bel in ["BRAM_F", "BRAM_H[0]", "BRAM_H[1]"] {
         ctx.state
@@ -917,17 +907,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     for bel in ["FIFO_F", "FIFO_H[0]"] {
         let item = ctx.extract_enum_bool(tile, bel, "FIRST_WORD_FALL_THROUGH", "FALSE", "TRUE");
-        ctx.tiledb
-            .insert(tile, "BRAM", "FIRST_WORD_FALL_THROUGH", item);
+        ctx.insert(tile, "BRAM", "FIRST_WORD_FALL_THROUGH", item);
         let item = ctx.extract_enum_bool(tile, bel, "EN_SYN", "FALSE", "TRUE");
-        ctx.tiledb.insert(tile, "BRAM", "EN_SYN", item);
+        ctx.insert(tile, "BRAM", "EN_SYN", item);
         let item = ctx.extract_bitvec(tile, bel, "ALMOST_FULL_OFFSET", "");
-        ctx.tiledb.insert(tile, "BRAM", "ALMOST_FULL_OFFSET", item);
+        ctx.insert(tile, "BRAM", "ALMOST_FULL_OFFSET", item);
         let item = ctx.extract_bitvec(tile, bel, "ALMOST_EMPTY_OFFSET", "");
-        ctx.tiledb.insert(tile, "BRAM", "ALMOST_EMPTY_OFFSET", item);
+        ctx.insert(tile, "BRAM", "ALMOST_EMPTY_OFFSET", item);
     }
     for attr in ["ALMOST_FULL_OFFSET", "ALMOST_EMPTY_OFFSET"] {
-        let item = ctx.tiledb.item(tile, "BRAM", attr);
+        let item = ctx.item(tile, "BRAM", attr);
         present_ramb36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
         present_fifo36.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
         present_ramb18_l.apply_bitvec_diff(item, &bits![0; 13], &bits![1; 13]);
@@ -949,7 +938,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         present_fifo36.apply_enum_diff(&item, "NO_CHANGE", "WRITE_FIRST");
         present_fifo18.apply_enum_diff(&item, "NO_CHANGE", "WRITE_FIRST");
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_L"), item);
+        ctx.insert(tile, "BRAM", format!("{attr}_L"), item);
         let item = ctx.extract_enum(
             tile,
             "BRAM_H[1]",
@@ -957,7 +946,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"],
         );
         present_fifo36.apply_enum_diff(&item, "NO_CHANGE", "WRITE_FIRST");
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_U"), item);
+        ctx.insert(tile, "BRAM", format!("{attr}_U"), item);
     }
     for (bel_bram, bel_fifo) in [("BRAM_F", "FIFO_F"), ("BRAM_H[0]", "FIFO_H[0]")] {
         for val in ["0", "1"] {
@@ -975,9 +964,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff_f, diff_h0.combine(diff_h1));
         }
         let item = ctx.extract_enum(tile, "BRAM_H[0]", attr, &["0", "1"]);
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_L"), item);
+        ctx.insert(tile, "BRAM", format!("{attr}_L"), item);
         let item = ctx.extract_enum(tile, "BRAM_H[1]", attr, &["0", "1"]);
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_U"), item);
+        ctx.insert(tile, "BRAM", format!("{attr}_U"), item);
     }
     for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
         let item = xlat_enum(vec![
@@ -991,7 +980,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ),
             ("LOWER", ctx.state.get_diff(tile, "BRAM_F", attr, "LOWER")),
         ]);
-        ctx.tiledb.insert(tile, "BRAM", attr, item)
+        ctx.insert(tile, "BRAM", attr, item)
     }
 
     for (rw, ab, ba) in [("READ", 'A', 'B'), ("WRITE", 'B', 'A')] {
@@ -1022,8 +1011,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .state
                     .peek_diff(tile, bel, format!("{rw}_WIDTH_{ba}"), "18"),
             );
-            ctx.tiledb
-                .insert(tile, "BRAM", format!("{rw}_SDP_{ul}"), xlat_bit(diff));
+            ctx.insert(tile, "BRAM", format!("{rw}_SDP_{ul}"), xlat_bit(diff));
         }
         for val in ["0", "1", "2", "4", "9", "18", "36"] {
             let diff = ctx
@@ -1050,16 +1038,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             format!("{rw}_WIDTH_{ba}"),
             "36",
         ));
-        diff.apply_bit_diff(
-            ctx.tiledb.item(tile, "BRAM", &format!("{rw}_SDP_L")),
-            true,
-            false,
-        );
-        diff.apply_bit_diff(
-            ctx.tiledb.item(tile, "BRAM", &format!("{rw}_SDP_U")),
-            true,
-            false,
-        );
+        diff.apply_bit_diff(ctx.item(tile, "BRAM", &format!("{rw}_SDP_L")), true, false);
+        diff.apply_bit_diff(ctx.item(tile, "BRAM", &format!("{rw}_SDP_U")), true, false);
         diff.assert_empty();
     }
     for rw in ["READ", "WRITE"] {
@@ -1095,7 +1075,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 diff.assert_empty();
             }
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 "BRAM",
                 format!("{rw}_MUX_UL_{ab}"),
@@ -1110,8 +1090,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff = ctx.state.get_diff(tile, bel, &attr, "0");
                 assert_eq!(&diff, ctx.state.peek_diff(tile, bel, &attr, "1"));
                 let item = ctx.extract_enum(tile, bel, &attr, &["1", "2", "4", "9", "18"]);
-                ctx.tiledb
-                    .insert(tile, "BRAM", format!("{rw}_WIDTH_{ab}_{ul}"), item);
+                ctx.insert(tile, "BRAM", format!("{rw}_WIDTH_{ab}_{ul}"), item);
             }
         }
     }
@@ -1122,16 +1101,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diff_sdp = ctx.state.get_diff(tile, "FIFO_H[0]", "DATA_WIDTH.SDP", val);
         let xval = if val == "36" { "18" } else { val };
         if xval == "18" {
-            diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_B_L"), xval, "1");
-            diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_A_L"), xval, "1");
+            diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_B_L"), xval, "1");
+            diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_A_L"), xval, "1");
         }
         if val == "36" {
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_SDP_L"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_SDP_L"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "READ_SDP_L"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_SDP_L"), true, false);
         }
         assert_eq!(diff, diff_sdp);
-        diff.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_A_L"), xval, "1");
-        diff.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B_L"), xval, "1");
+        diff.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_A_L"), xval, "1");
+        diff.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_B_L"), xval, "1");
         diffs.push((val, diff));
     }
     for (val, val2) in [
@@ -1145,46 +1124,45 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut diff_sdp = ctx.state.get_diff(tile, "FIFO_F", "DATA_WIDTH.SDP", val2);
         let xval = if val == "36" { "18" } else { val };
         if val == "36" {
-            diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_B_L"), xval, "1");
-            diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_B_U"), xval, "1");
-            diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_A_L"), xval, "1");
-            diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_A_U"), xval, "1");
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_SDP_L"), true, false);
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_SDP_U"), true, false);
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_SDP_L"), true, false);
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_SDP_U"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_SDP_L"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_SDP_U"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_SDP_L"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_SDP_U"), true, false);
+            diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_B_L"), xval, "1");
+            diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_B_U"), xval, "1");
+            diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_A_L"), xval, "1");
+            diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_A_U"), xval, "1");
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "READ_SDP_L"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "READ_SDP_U"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_SDP_L"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_SDP_U"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "READ_SDP_L"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "READ_SDP_U"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_SDP_L"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_SDP_U"), true, false);
         }
         if val2 == "9" {
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_MUX_UL_A"), true, false);
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_MUX_UL_B"), true, false);
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_MUX_UL_A"), true, false);
-            diff.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_MUX_UL_B"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_MUX_UL_A"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "READ_MUX_UL_B"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_MUX_UL_A"), true, false);
-            diff_sdp.apply_bit_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_MUX_UL_B"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "READ_MUX_UL_A"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "READ_MUX_UL_B"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_MUX_UL_A"), true, false);
+            diff.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_MUX_UL_B"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "READ_MUX_UL_A"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "READ_MUX_UL_B"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_MUX_UL_A"), true, false);
+            diff_sdp.apply_bit_diff(ctx.item(tile, "BRAM", "WRITE_MUX_UL_B"), true, false);
         }
 
-        diff.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_A_L"), xval, "1");
+        diff.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_A_L"), xval, "1");
         if val != "36" {
-            diff.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B_L"), xval, "1");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_A_U"), xval, "1");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B_U"), xval, "1");
+            diff.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_B_L"), xval, "1");
+            diff.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_A_U"), xval, "1");
+            diff.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_B_U"), xval, "1");
         }
-        diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_A_L"), xval, "1");
-        diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B_L"), xval, "1");
-        diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "READ_WIDTH_A_U"), xval, "1");
-        diff_sdp.apply_enum_diff(ctx.tiledb.item(tile, "BRAM", "WRITE_WIDTH_B_U"), xval, "1");
+        diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_A_L"), xval, "1");
+        diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_B_L"), xval, "1");
+        diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "READ_WIDTH_A_U"), xval, "1");
+        diff_sdp.apply_enum_diff(ctx.item(tile, "BRAM", "WRITE_WIDTH_B_U"), xval, "1");
 
         assert_eq!(diff, diff_sdp);
         diffs.push((val, diff));
     }
-    ctx.tiledb
-        .insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum(diffs));
+    ctx.insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum(diffs));
 
     if edev.kind == ChipKind::Virtex6 {
         for (bel_bram, bel_fifo) in [("BRAM_F", "FIFO_F"), ("BRAM_H[0]", "FIFO_H[0]")] {
@@ -1208,28 +1186,27 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(diff_f, diff_h0.combine(diff_h1));
         }
         let item = ctx.extract_enum(tile, "BRAM_H[0]", attr, &["REGCE", "RSTREG"]);
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_L"), item);
+        ctx.insert(tile, "BRAM", format!("{attr}_L"), item);
         let item = ctx.extract_enum(tile, "BRAM_H[1]", attr, &["REGCE", "RSTREG"]);
-        ctx.tiledb.insert(tile, "BRAM", format!("{attr}_U"), item);
+        ctx.insert(tile, "BRAM", format!("{attr}_U"), item);
     }
 
     for bel in ["BRAM_F", "FIFO_F"] {
         let item = ctx.extract_enum_bool(tile, bel, "EN_ECC_READ", "FALSE", "TRUE");
-        ctx.tiledb.insert(tile, "BRAM", "EN_ECC_READ", item);
+        ctx.insert(tile, "BRAM", "EN_ECC_READ", item);
         let item = ctx.extract_enum_bool(tile, bel, "EN_ECC_WRITE.READ", "FALSE", "TRUE");
         if edev.kind == ChipKind::Virtex7 {
             let item = ctx.extract_enum_bool(tile, bel, "EN_ECC_WRITE", "FALSE", "TRUE");
-            ctx.tiledb.insert(tile, "BRAM", "EN_ECC_WRITE", item);
+            ctx.insert(tile, "BRAM", "EN_ECC_WRITE", item);
         } else {
             ctx.state
                 .get_diff(tile, bel, "EN_ECC_WRITE", "FALSE")
                 .assert_empty();
             let mut diff = ctx.state.get_diff(tile, bel, "EN_ECC_WRITE", "TRUE");
             diff.apply_bit_diff(&item, true, false);
-            ctx.tiledb
-                .insert(tile, "BRAM", "EN_ECC_WRITE_NO_READ", xlat_bit(diff));
+            ctx.insert(tile, "BRAM", "EN_ECC_WRITE_NO_READ", xlat_bit(diff));
         }
-        ctx.tiledb.insert(tile, "BRAM", "EN_ECC_WRITE", item);
+        ctx.insert(tile, "BRAM", "EN_ECC_WRITE", item);
     }
 
     for val in ["PERFORMANCE", "DELAYED_WRITE"] {
@@ -1265,16 +1242,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "RDADDR_COLLISION_HWCONFIG",
         &["PERFORMANCE", "DELAYED_WRITE"],
     );
-    ctx.tiledb
-        .insert(tile, "BRAM", "RDADDR_COLLISION_HWCONFIG_L", item);
+    ctx.insert(tile, "BRAM", "RDADDR_COLLISION_HWCONFIG_L", item);
     let item = ctx.extract_enum(
         tile,
         "BRAM_H[1]",
         "RDADDR_COLLISION_HWCONFIG",
         &["PERFORMANCE", "DELAYED_WRITE"],
     );
-    ctx.tiledb
-        .insert(tile, "BRAM", "RDADDR_COLLISION_HWCONFIG_U", item);
+    ctx.insert(tile, "BRAM", "RDADDR_COLLISION_HWCONFIG_U", item);
 
     if edev.kind == ChipKind::Virtex7 {
         for val in ["NONE", "LEFT", "RIGHT", "BOTH"] {
@@ -1295,17 +1270,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "EN_PWRGATE",
             &["NONE", "LEFT", "RIGHT", "BOTH"],
         );
-        ctx.tiledb.insert(tile, "BRAM", "EN_PWRGATE_L", item);
+        ctx.insert(tile, "BRAM", "EN_PWRGATE_L", item);
         let item = ctx.extract_enum(
             tile,
             "BRAM_H[1]",
             "EN_PWRGATE",
             &["NONE", "LEFT", "RIGHT", "BOTH"],
         );
-        ctx.tiledb.insert(tile, "BRAM", "EN_PWRGATE_U", item);
+        ctx.insert(tile, "BRAM", "EN_PWRGATE_U", item);
         for bel in ["BRAM_F", "FIFO_F", "BRAM_H[0]", "BRAM_H[1]", "FIFO_H[0]"] {
             let item = ctx.extract_enum_bool(tile, bel, "EN_SDBITERR_INIT_V6", "FALSE", "TRUE");
-            ctx.tiledb.insert(tile, "BRAM", "EN_SDBITERR_INIT_V6", item);
+            ctx.insert(tile, "BRAM", "EN_SDBITERR_INIT_V6", item);
         }
     }
 
@@ -1313,10 +1288,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     present_ramb18_l.assert_empty();
     present_ramb18_u.assert_empty();
     let is_fifo_u = present_fifo36.combine(&!&present_fifo18);
-    ctx.tiledb
-        .insert(tile, "BRAM", "IS_FIFO", xlat_bit(present_fifo18));
-    ctx.tiledb
-        .insert(tile, "BRAM", "IS_FIFO_U", xlat_bit(is_fifo_u));
+    ctx.insert(tile, "BRAM", "IS_FIFO", xlat_bit(present_fifo18));
+    ctx.insert(tile, "BRAM", "IS_FIFO_U", xlat_bit(is_fifo_u));
 
     for (bel, attr) in [
         ("BRAM_F", "BYPASS_RSR"),
@@ -1326,13 +1299,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("FIFO_F", "TEST_FIFO_CNT"),
     ] {
         let item = ctx.extract_bit(tile, bel, attr, "ENABLED");
-        ctx.tiledb.insert(tile, "BRAM", attr, item);
+        ctx.insert(tile, "BRAM", attr, item);
     }
     let item = ctx.extract_enum(tile, "BRAM_F", "WEAK_WRITE", &["NO_WW", "WW0", "WW1"]);
-    ctx.tiledb.insert(tile, "BRAM", "WEAK_WRITE", item);
+    ctx.insert(tile, "BRAM", "WEAK_WRITE", item);
     for attr in ["EN_TSTBRAMRST", "DIS_TSTFIFORST"] {
         let item = ctx.extract_bit(tile, "BRAM_F", attr, "1");
-        ctx.tiledb.insert(tile, "BRAM", attr, item);
+        ctx.insert(tile, "BRAM", attr, item);
     }
     ctx.collect_bitvec(tile, "BRAM", "TEST_ATTRIBUTES", "");
     for attr in ["TRD_DLY_L", "TRD_DLY_U"] {
@@ -1346,7 +1319,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.state.get_diff(tile, "BRAM_F", attr, val),
             ));
         }
-        ctx.tiledb.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
+        ctx.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
     }
     if edev.kind == ChipKind::Virtex6 {
         for attr in ["TWR_DLY_L", "TWR_DLY_U"] {
@@ -1360,7 +1333,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state.get_diff(tile, "BRAM_F", attr, val),
                 ));
             }
-            ctx.tiledb.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
+            ctx.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
         }
         for attr in ["EN_TSTREFBL", "EN_TSTRSRW"] {
             let mut diffs = vec![];
@@ -1370,10 +1343,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state.get_diff(tile, "BRAM_F", attr, val),
                 ));
             }
-            ctx.tiledb.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
+            ctx.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
         }
         let item = ctx.extract_enum_bool(tile, "BRAM_F", "EN_TSTBLCLAMP", "0", "1");
-        ctx.tiledb.insert(tile, "BRAM", "EN_TSTBLCLAMP", item);
+        ctx.insert(tile, "BRAM", "EN_TSTBLCLAMP", item);
     } else {
         for attr in ["TWR_DLY_A_L", "TWR_DLY_A_U", "TWR_DLY_B_L", "TWR_DLY_B_U"] {
             let mut diffs = vec![];
@@ -1389,7 +1362,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state.get_diff(tile, "BRAM_F", attr, val),
                 ));
             }
-            ctx.tiledb.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
+            ctx.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
         }
 
         for attr in [
@@ -1410,11 +1383,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state.get_diff(tile, "BRAM_F", attr, val),
                 ));
             }
-            ctx.tiledb.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
+            ctx.insert(tile, "BRAM", attr, xlat_enum_int(diffs));
         }
         for attr in ["DIS_TSTBLCLAMP", "TST_SSRLAT_WF"] {
             let item = ctx.extract_enum_bool(tile, "BRAM_F", attr, "0", "1");
-            ctx.tiledb.insert(tile, "BRAM", attr, item);
+            ctx.insert(tile, "BRAM", attr, item);
         }
         for attr in [
             "EN_TSTBLCLMP_WW",
@@ -1424,10 +1397,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "TST_PULSEPU_SFT",
         ] {
             let item = ctx.extract_enum_bool(tile, "BRAM_F", attr, "DISABLE", "ENABLE");
-            ctx.tiledb.insert(tile, "BRAM", attr, item);
+            ctx.insert(tile, "BRAM", attr, item);
         }
         let item = ctx.extract_enum_bool(tile, "BRAM_F", "EN_TSTBLCLAMP_RD", "NO", "YES");
-        ctx.tiledb.insert(tile, "BRAM", "EN_TSTBLCLAMP_RD", item);
+        ctx.insert(tile, "BRAM", "EN_TSTBLCLAMP_RD", item);
 
         // hm. bug?
         ctx.state
@@ -1451,8 +1424,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     );
                 }
                 let item = ctx.extract_bit(tile, bel, &format!("CASCADE_OUT.ADDR{ab}{i}"), "1");
-                ctx.tiledb
-                    .insert(tile, bel, format!("ADDR_CASCADE_OUT_{ab}"), item);
+                ctx.insert(tile, bel, format!("ADDR_CASCADE_OUT_{ab}"), item);
             }
         }
     }

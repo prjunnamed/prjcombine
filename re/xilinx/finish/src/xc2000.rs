@@ -6,7 +6,8 @@ use std::{
 use itertools::Itertools;
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_interconnect::db::{BelInfo, LegacyBel, SwitchBoxItem, TileWireCoord};
-use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
+use prjcombine_re_fpga_hammer::CollectorData;
+use prjcombine_types::db::DeviceCombo;
 use prjcombine_xc2000::{
     bels,
     bond::Bond,
@@ -141,7 +142,7 @@ fn sort_key<'a>(name: &'a str, chip: &'a Chip) -> SortKey<'a> {
 pub fn finish(
     xact: Option<prjcombine_re_xilinx_xact_geom::GeomDb>,
     geom: Option<prjcombine_re_xilinx_geom::GeomDb>,
-    tiledb: BsData,
+    mut bitdb: CollectorData,
 ) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     if let Some(ref xact) = xact {
@@ -241,7 +242,7 @@ pub fn finish(
     let chips = chips.into_vec();
     let bonds = bonds.into_vec();
 
-    let int = match (xact, geom) {
+    let mut int = match (xact, geom) {
         (Some(xact), None) => {
             assert_eq!(xact.ints.len(), 1);
             xact.ints.into_values().next().unwrap()
@@ -294,13 +295,15 @@ pub fn finish(
         _ => unreachable!(),
     };
 
-    // TODO: resort int
+    let bsdata = core::mem::take(&mut bitdb.bsdata);
+    // TODO: change to false when legacy stuff fully gone
+    bitdb.insert_into(&mut int, true);
 
     Database {
         chips,
         bonds,
         devices: parts,
         int,
-        bsdata: tiledb,
+        bsdata,
     }
 }

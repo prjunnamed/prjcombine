@@ -343,9 +343,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             let diff = ctx.state.get_diff(tile, bel, "PMA_SPEED", val);
             let bits = extract_bitvec_val(&item, &base, diff);
-            ctx.tiledb
-                .insert_misc_data(format!("GT10:PMA_SPEED:{val}"), bits);
+            ctx.insert_misc_data(format!("GT10:PMA_SPEED:{val}"), bits);
         }
-        ctx.tiledb.insert(tile, bel, "PMA_SPEED", item);
+        ctx.insert(tile, bel, "PMA_SPEED", item);
     }
 }

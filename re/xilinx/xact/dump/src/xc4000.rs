@@ -1634,27 +1634,32 @@ pub fn dump_chip(die: &Die, noblock: &[String]) -> (Chip, IntDb, NamingDb) {
         .collect();
 
     let finisher = extractor.finish();
-    finisher.finish(&mut intdb, &mut ndb, |db, tslot, wt, wf| {
-        if tslot != tslots::MAIN {
-            PipMode::Pass
-        } else {
-            let wtn = db.wires.key(wt.wire);
-            let wfn = db.wires.key(wf.wire);
-            if wtn.starts_with("IMUX")
-                || wtn.starts_with("LONG.IO")
-                || wtn.starts_with("IO.DBUF")
-                || wtn.starts_with("OUT")
-            {
-                PipMode::Mux
-            } else if wtn.starts_with("LONG") && wfn.starts_with("SINGLE") {
-                PipMode::Buf
-            } else if wtn.starts_with("LONG") {
-                PipMode::Mux
-            } else {
+    finisher.finish(
+        &mut intdb,
+        &mut ndb,
+        |db, tslot, wt, wf| {
+            if tslot != tslots::MAIN {
                 PipMode::Pass
+            } else {
+                let wtn = db.wires.key(wt.wire);
+                let wfn = db.wires.key(wf.wire);
+                if wtn.starts_with("IMUX")
+                    || wtn.starts_with("LONG.IO")
+                    || wtn.starts_with("IO.DBUF")
+                    || wtn.starts_with("OUT")
+                {
+                    PipMode::Mux
+                } else if wtn.starts_with("LONG") && wfn.starts_with("SINGLE") {
+                    PipMode::Buf
+                } else if wtn.starts_with("LONG") {
+                    PipMode::Mux
+                } else {
+                    PipMode::Pass
+                }
             }
-        }
-    });
+        },
+        false,
+    );
 
     for pad in noblock {
         let io = io_lookup[pad];

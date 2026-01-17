@@ -8,8 +8,8 @@ use itertools::Itertools;
 use prjcombine_entity::{EntityBundleItemIndex, EntityId};
 use prjcombine_interconnect::db::{
     BelAttribute, BelAttributeId, BelAttributeType, BelClassId, BelInfo, BelInput, BelInputId,
-    BelKind, BelSlotId, ConnectorWire, IntDb, PinDir, PolTileWireCoord, SwitchBox, SwitchBoxItem,
-    TableId, TableValue, TileClass, TileClassId, TileWireCoord, WireKind,
+    BelKind, BelSlotId, ConnectorSlotId, ConnectorWire, IntDb, PinDir, PolTileWireCoord, SwitchBox,
+    SwitchBoxItem, TableId, TableValue, TileClass, TileClassId, TileWireCoord, WireKind,
 };
 use prjcombine_types::{
     bitvec::BitVec,
@@ -281,6 +281,7 @@ fn gen_switchbox_old(
                     delay.src.tw,
                 ));
             }
+            SwitchBoxItem::Bidi(_) => unreachable!(),
         }
     }
     writeln!(buf, r#"### Switchbox {bname}"#).unwrap();
@@ -347,6 +348,7 @@ enum BitInfo {
     BiPass(BelSlotId, TileWireCoord, TileWireCoord, bool),
     ProgInv(BelSlotId, TileWireCoord, TileWireCoord, bool),
     Mux(BelSlotId, TileWireCoord, usize),
+    Bidi(BelSlotId, ConnectorSlotId, TileWireCoord, bool),
     BelInputInv(BelSlotId, BelInputId, bool),
     BelAttrBool(BelSlotId, BelAttributeId, bool),
     BelAttrBitVec(BelSlotId, BelAttributeId, usize, bool),
@@ -407,6 +409,14 @@ impl<'a, 'b, 'c> TileClassGen<'a, 'b, 'c> {
                 tname = self.tname,
                 bname = self.intdb.bel_slots.key(bslot),
                 dst = dst.to_string(self.intdb, self.tcls),
+            ),
+            BitInfo::Bidi(bslot, conn, wire, _) => format!(
+                "{dbname}-{tname}-{bname}-bidi-{conn}-{wire}",
+                dbname = self.dbname,
+                tname = self.tname,
+                bname = self.intdb.bel_slots.key(bslot),
+                conn = self.intdb.conn_slots.key(conn),
+                wire = wire.to_string(self.intdb, self.tcls),
             ),
             BitInfo::BelInputInv(bslot, pid, _) => {
                 let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
@@ -708,6 +718,42 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
             )
             .unwrap();
             tcgen.add_bit(pbuf.bit.bit, bi);
+        }
+        writeln!(buf, r#"</tbody>"#).unwrap();
+        writeln!(buf, r#"</table></div>"#).unwrap();
+        writeln!(buf).unwrap();
+    }
+
+    if sb.items.iter().any(|x| matches!(x, SwitchBoxItem::Bidi(_))) {
+        writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+        writeln!(
+            buf,
+            r#"<caption>{dbname} {tname} switchbox {bname} bidi buffers</caption>"#
+        )
+        .unwrap();
+        writeln!(buf, r#"<thead>"#).unwrap();
+        writeln!(
+            buf,
+            r#"<tr><th>Connector</th><th>Wire</th><th>Bit</th></tr>"#
+        )
+        .unwrap();
+        writeln!(buf, r#"</thead>"#).unwrap();
+        writeln!(buf, r#"<tbody>"#).unwrap();
+        for item in &sb.items {
+            let SwitchBoxItem::Bidi(bidi) = item else {
+                continue;
+            };
+            let bi = BitInfo::Bidi(bslot, bidi.conn, bidi.wire, bidi.bit_upstream.inv);
+            writeln!(
+                buf,
+                r#"<tr id="{anchor}"><td>{conn}</td><td>{wire}</td><td>{bit}</td></tr>"#,
+                anchor = tcgen.anchor(bi),
+                conn = intdb.conn_slots.key(bidi.conn),
+                wire = bidi.wire.to_string(intdb, tcls),
+                bit = tcgen.link_polbit(bidi.bit_upstream),
+            )
+            .unwrap();
+            tcgen.add_bit(bidi.bit_upstream.bit, bi);
         }
         writeln!(buf, r#"</tbody>"#).unwrap();
         writeln!(buf, r#"</table></div>"#).unwrap();
@@ -1215,6 +1261,15 @@ fn gen_bits(tcgen: &mut TileClassGen, buf: &mut String) {
                                 "{bname}: mux {dst} bit {idx}",
                                 bname = intdb.bel_slots.key(bslot),
                                 dst = dst.to_string(intdb, tcls),
+                            )
+                        }
+                        BitInfo::Bidi(bslot, conn, wire, inv) => {
+                            format!(
+                                "{bname}: {inv}bidi {conn} {wire}",
+                                bname = intdb.bel_slots.key(bslot),
+                                inv = if inv { "!" } else { "" },
+                                conn = intdb.conn_slots.key(conn),
+                                wire = wire.to_string(intdb, tcls),
                             )
                         }
                         BitInfo::BelInputInv(bslot, inp, inv) => {

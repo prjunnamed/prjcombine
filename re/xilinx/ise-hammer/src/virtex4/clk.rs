@@ -877,10 +877,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     diff.apply_bit_diff(&ien_item, true, false);
                     vals.push((val, diff));
                 }
-                ctx.tiledb
-                    .insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
+                ctx.insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
             }
-            ctx.tiledb.insert(tile, bel, "IMUX_ENABLE", ien_item);
+            ctx.insert(tile, bel, "IMUX_ENABLE", ien_item);
 
             ctx.state
                 .get_diff(tile, bel, "PIN_O_GFB", "1")
@@ -894,7 +893,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for bel in ["BUFG_MGTCLK_S", "BUFG_MGTCLK_N"] {
             for attr in ["BUF.MGT_L0", "BUF.MGT_L1", "BUF.MGT_R0", "BUF.MGT_R1"] {
                 let item = ctx.extract_bit(tile, &format!("{bel}_HROW"), attr, "1");
-                ctx.tiledb.insert(tile, bel, attr, item);
+                ctx.insert(tile, bel, attr, item);
             }
         }
     }
@@ -903,9 +902,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "HCLK_MGT_BUF";
         let bel = "HCLK_MGT_BUF";
         let item = ctx.extract_bit(tile, bel, "BUF.MGT0.CFG", "1");
-        ctx.tiledb.insert(tile, bel, "BUF.MGT0", item);
+        ctx.insert(tile, bel, "BUF.MGT0", item);
         let item = ctx.extract_bit(tile, bel, "BUF.MGT1.CFG", "1");
-        ctx.tiledb.insert(tile, bel, "BUF.MGT1", item);
+        ctx.insert(tile, bel, "BUF.MGT1", item);
     }
 
     {
@@ -930,8 +929,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "PASS".to_string(),
                 ctx.state.get_diff(tile, bel, &mux, "PASS"),
             ));
-            ctx.tiledb
-                .insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
+            ctx.insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
         }
     }
     {
@@ -961,8 +959,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.state.get_diff(tile, bel, &mux, "PASS"),
                 ));
             }
-            ctx.tiledb
-                .insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
+            ctx.insert(tile, bel, mux, xlat_enum_ocd(vals, OcdMode::Mux));
         }
     }
     {
@@ -986,13 +983,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     diff = diff.combine(&!&inp_diffs[j]);
                     inps.push((&gclk[j], diff));
                 }
-                ctx.tiledb
-                    .insert(tile, bel, &hclk[i], xlat_enum_ocd(inps, OcdMode::Mux));
+                ctx.insert(tile, bel, &hclk[i], xlat_enum_ocd(inps, OcdMode::Mux));
             }
         }
         for (i, diff) in inp_diffs.into_iter().enumerate() {
-            ctx.tiledb
-                .insert(tile, bel, format!("BUF.GCLK{i}"), xlat_bit(diff));
+            ctx.insert(tile, bel, format!("BUF.GCLK{i}"), xlat_bit(diff));
         }
     }
     {
@@ -1062,10 +1057,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff0 = ctx.state.get_diff(tile, bel, "BUF.VIOCLK0", "1");
             let diff1 = ctx.state.get_diff(tile, bel, "BUF.VIOCLK1", "1");
             let (diff0, diff1, diffc) = Diff::split(diff0, diff1);
-            ctx.tiledb.insert(tile, bel, "BUF.VIOCLK0", xlat_bit(diff0));
-            ctx.tiledb.insert(tile, bel, "BUF.VIOCLK1", xlat_bit(diff1));
-            ctx.tiledb
-                .insert(tile, bel, "VIOCLK_ENABLE", xlat_bit_wide(diffc));
+            ctx.insert(tile, bel, "BUF.VIOCLK0", xlat_bit(diff0));
+            ctx.insert(tile, bel, "BUF.VIOCLK1", xlat_bit(diff1));
+            ctx.insert(tile, bel, "VIOCLK_ENABLE", xlat_bit_wide(diffc));
             let (has_s, has_n) = match tile {
                 "HCLK_IO_DCI" | "HCLK_IO_LVDS" => (true, true),
                 "HCLK_IO_DCM_N" | "HCLK_IO_CFG_N" => (false, true),
@@ -1112,8 +1106,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "BUF.IOCLK_S0",
             "BUF.IOCLK_S1",
         ] {
-            let item = ctx.tiledb.item("HCLK_IO_LVDS", "IOCLK", attr).clone();
-            ctx.tiledb.insert(tile, "IOCLK", attr, item);
+            let item = ctx.item("HCLK_IO_LVDS", "IOCLK", attr).clone();
+            ctx.insert(tile, "IOCLK", attr, item);
         }
     }
     {
@@ -1137,34 +1131,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .state
                     .get_diff(tile, bel, format!("BUF.HCLK_{ud}{i}"), "1");
                 let diff = diff.combine(&!&hclk_giob);
-                ctx.tiledb
-                    .insert(tile, bel, format!("BUF.HCLK_{ud}{i}"), xlat_bit(diff));
+                ctx.insert(tile, bel, format!("BUF.HCLK_{ud}{i}"), xlat_bit(diff));
             }
             for i in 0..16 {
                 let diff = ctx
                     .state
                     .get_diff(tile, bel, format!("BUF.GIOB_{ud}{i}"), "1");
                 let diff = diff.combine(&!&hclk_giob);
-                ctx.tiledb
-                    .insert(tile, bel, format!("BUF.GIOB_{ud}{i}"), xlat_bit(diff));
+                ctx.insert(tile, bel, format!("BUF.GIOB_{ud}{i}"), xlat_bit(diff));
             }
             for i in 0..4 {
                 let diff = ctx
                     .state
                     .get_diff(tile, bel, format!("BUF.MGT_{ud}{i}"), "1");
                 let diff = diff.combine(&!&common_mgt);
-                ctx.tiledb
-                    .insert(tile, bel, format!("BUF.MGT_{ud}{i}"), xlat_bit(diff));
+                ctx.insert(tile, bel, format!("BUF.MGT_{ud}{i}"), xlat_bit(diff));
             }
         }
         let hclk_giob = hclk_giob.combine(&!&common);
         let common_mgt = common_mgt.combine(&!&common);
-        ctx.tiledb
-            .insert(tile, bel, "COMMON", xlat_bit_wide(common));
-        ctx.tiledb
-            .insert(tile, bel, "COMMON_HCLK_GIOB", xlat_bit_wide(hclk_giob));
-        ctx.tiledb
-            .insert(tile, bel, "COMMON_MGT", xlat_bit_wide(common_mgt));
+        ctx.insert(tile, bel, "COMMON", xlat_bit_wide(common));
+        ctx.insert(tile, bel, "COMMON_HCLK_GIOB", xlat_bit_wide(hclk_giob));
+        ctx.insert(tile, bel, "COMMON_MGT", xlat_bit_wide(common_mgt));
     }
     for (tile, bel, ud) in [
         ("HCLK_IO_DCM_N", "HCLK_DCM_S", 'D'),
@@ -1183,16 +1171,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .state
                 .get_diff(tile, bel, format!("BUF.HCLK_{ud}{i}"), "1");
             let diff = diff.combine(&!&common);
-            ctx.tiledb
-                .insert(tile, bel, format!("BUF.HCLK_{ud}{i}"), xlat_bit(diff));
+            ctx.insert(tile, bel, format!("BUF.HCLK_{ud}{i}"), xlat_bit(diff));
         }
         for i in 0..16 {
             let diff = ctx
                 .state
                 .get_diff(tile, bel, format!("BUF.GIOB_{ud}{i}"), "1");
             let diff = diff.combine(&!&common);
-            ctx.tiledb
-                .insert(tile, bel, format!("BUF.GIOB_{ud}{i}"), xlat_bit(diff));
+            ctx.insert(tile, bel, format!("BUF.GIOB_{ud}{i}"), xlat_bit(diff));
         }
         if edev.col_lgt.is_some() {
             let (_, _, common_mgt) = Diff::split(
@@ -1208,15 +1194,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .state
                     .get_diff(tile, bel, format!("BUF.MGT_{ud}{i}"), "1");
                 let diff = diff.combine(&!&common_mgt);
-                ctx.tiledb
-                    .insert(tile, bel, format!("BUF.MGT_{ud}{i}"), xlat_bit(diff));
+                ctx.insert(tile, bel, format!("BUF.MGT_{ud}{i}"), xlat_bit(diff));
             }
             let common_mgt = common_mgt.combine(&!&common);
-            ctx.tiledb
-                .insert(tile, bel, "COMMON_MGT", xlat_bit_wide(common_mgt));
+            ctx.insert(tile, bel, "COMMON_MGT", xlat_bit_wide(common_mgt));
         }
-        ctx.tiledb
-            .insert(tile, bel, "COMMON", xlat_bit_wide(common));
+        ctx.insert(tile, bel, "COMMON", xlat_bit_wide(common));
     }
     {
         let tile = "DCM";
@@ -1252,8 +1235,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "HCLK_MGT_BUF";
         let bel = "HCLK_MGT_BUF";
         let item = ctx.extract_bit(tile, bel, "BUF.MGT0.DCM", "1");
-        ctx.tiledb.insert(tile, bel, "BUF.MGT0", item);
+        ctx.insert(tile, bel, "BUF.MGT0", item);
         let item = ctx.extract_bit(tile, bel, "BUF.MGT1.DCM", "1");
-        ctx.tiledb.insert(tile, bel, "BUF.MGT1", item);
+        ctx.insert(tile, bel, "BUF.MGT1", item);
     }
 }

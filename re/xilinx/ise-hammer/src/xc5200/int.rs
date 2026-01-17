@@ -230,7 +230,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                 }
                                 assert!(got_empty);
-                                ctx.tiledb.insert(tcname, rbel, rattr, xlat_bit(common));
+                                ctx.insert(tcname, rbel, rattr, xlat_bit(common));
                             }
                         }
                         if !got_empty {
@@ -240,7 +240,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         if item.bits.is_empty() {
                             println!("UMMM MUX {tcname} {mux_name} is empty");
                         }
-                        ctx.tiledb.insert(tcname, bel, mux_name, item);
+                        ctx.insert(tcname, bel, mux_name, item);
                     }
                     SwitchBoxItem::Pass(pass) => {
                         let out_name = if tcls.cells.len() == 1 {
@@ -270,7 +270,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         let item = xlat_bit(diff);
                         let name = format!("PASS.{out_name}.{in_name}");
-                        ctx.tiledb.insert(tcname, bel, name, item);
+                        ctx.insert(tcname, bel, name, item);
                     }
                     SwitchBoxItem::BiPass(pass) => {
                         let a_name = intdb.wires.key(pass.a.wire);
@@ -302,7 +302,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 &in_name,
                             );
                             let item = xlat_bit(diff);
-                            ctx.tiledb.insert(tcname, bel, &name, item);
+                            ctx.insert(tcname, bel, &name, item);
                         }
                     }
                     SwitchBoxItem::PermaBuf(buf) => {

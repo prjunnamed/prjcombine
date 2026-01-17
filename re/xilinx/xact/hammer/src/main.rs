@@ -8,10 +8,9 @@ use backend::XactBackend;
 use clap::Parser;
 use collector::CollectorCtx;
 use itertools::Itertools;
-use prjcombine_re_fpga_hammer::Collector;
+use prjcombine_re_fpga_hammer::{Collector, CollectorData};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_xact_geom::{Device, GeomDb};
-use prjcombine_types::bsdata::BsData;
 use prjcombine_xc2000::chip::ChipKind;
 
 mod backend;
@@ -19,6 +18,7 @@ mod collector;
 mod fbuild;
 mod lca;
 mod props;
+mod specials;
 mod xc2000;
 mod xc3000;
 mod xc4000;
@@ -32,7 +32,7 @@ mod xc5200;
 struct Args {
     xact: PathBuf,
     geomdb: PathBuf,
-    tiledb: PathBuf,
+    bitdb: PathBuf,
     parts: Vec<String>,
     #[arg(short, long, action = clap::ArgAction::Count)]
     debug: u8,
@@ -46,7 +46,7 @@ struct RunOpts {
     no_dup: bool,
 }
 
-fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &RunOpts) {
+fn run(xact_path: &Path, db: &GeomDb, part: &Device, data: &mut CollectorData, opts: &RunOpts) {
     println!("part {name}", name = part.name);
     let edev = db.expand_grid(part);
     let endev = db.name(part, &edev);
@@ -80,7 +80,7 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: 
     let mut ctx = CollectorCtx {
         device: part,
         edev: &edev,
-        collector: Collector::new(&mut state, tiledb, edev.db),
+        collector: Collector::new(&mut state, data, edev.db),
     };
     match edev.chip.kind {
         ChipKind::Xc2000 => xc2000::collect_fuzzers(&mut ctx),
@@ -103,7 +103,7 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let db = GeomDb::from_file(args.geomdb)?;
-    let mut tiledb = BsData::new();
+    let mut data = CollectorData::default();
     let opts = RunOpts {
         no_dup: args.no_dup,
         debug: args.debug,
@@ -115,15 +115,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .collect();
     if args.parts.is_empty() {
         for part in &db.devices {
-            run(&args.xact, &db, part, &mut tiledb, &opts);
+            run(&args.xact, &db, part, &mut data, &opts);
         }
     } else {
         for pname in args.parts {
             let part = parts_dict[&&pname[..]];
-            run(&args.xact, &db, part, &mut tiledb, &opts);
+            run(&args.xact, &db, part, &mut data, &opts);
         }
     }
 
-    tiledb.to_file(&args.tiledb)?;
+    data.to_file(&args.bitdb)?;
     Ok(())
 }

@@ -1437,7 +1437,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     let wfname = intdb.wires.key(wire_mid.wire);
                                     let in_name = format!("{:#}.{}", wire_mid.cell, wfname);
                                     let name = format!("PASS.{out_name}.{in_name}");
-                                    ctx.tiledb.insert(tcname, bel, name, item);
+                                    ctx.insert(tcname, bel, name, item);
                                 }
                                 for (wire_from, diff) in diffs {
                                     match mux_diffs.entry(wire_mid).or_default().entry(wire_from) {
@@ -1610,7 +1610,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     diff.apply_bit_diff(&drive1, false, true);
                                 }
                             }
-                            ctx.tiledb.insert(tcname, bel, "DRIVE1", drive1);
+                            ctx.insert(tcname, bel, "DRIVE1", drive1);
 
                             inps.push(("VCC".to_string(), Diff::default()));
                             assert!(!got_empty);
@@ -1648,7 +1648,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                 }
                                 assert!(got_empty);
-                                ctx.tiledb.insert(tcname, rbel, rattr, xlat_bit(common));
+                                ctx.insert(tcname, rbel, rattr, xlat_bit(common));
                             }
                         }
 
@@ -1699,7 +1699,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     };
                                     for iotile in intdb.tile_classes.keys() {
                                         if iotile.starts_with(filter) {
-                                            ctx.tiledb.insert(
+                                            ctx.insert(
                                                 iotile,
                                                 bel,
                                                 "MUX.OFF_D",
@@ -1712,7 +1712,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                 } else {
                                     assert!(tcname.starts_with(filter));
-                                    ctx.tiledb.insert(
+                                    ctx.insert(
                                         tcname,
                                         bel,
                                         "MUX.OFF_D",
@@ -1734,7 +1734,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         if item.bits.is_empty() {
                             println!("UMMM MUX {tcname} {mux_name} is empty");
                         }
-                        ctx.tiledb.insert(tcname, bel, mux_name, item);
+                        ctx.insert(tcname, bel, mux_name, item);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
                         let out_name = intdb.wires.key(buf.dst.wire);
@@ -1765,7 +1765,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             wtn.to_string()
                         };
                         let name = format!("BUF.{out_name}.{in_name}");
-                        ctx.tiledb.insert(tcname, bel, name, item);
+                        ctx.insert(tcname, bel, name, item);
                     }
                     SwitchBoxItem::Pass(pass) => {
                         let wtn = intdb.wires.key(pass.dst.wire);
@@ -1787,7 +1787,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             wtn.to_string()
                         };
                         let name = format!("PASS.{out_name}.{in_name}");
-                        ctx.tiledb.insert(tcname, bel, name, item);
+                        ctx.insert(tcname, bel, name, item);
                     }
                     SwitchBoxItem::BiPass(pass) => {
                         let a_name = intdb.wires.key(pass.a.wire);
@@ -1814,7 +1814,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let in_name = format!("{:#}.{}", wsrc.cell, wfname);
                             let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
                             let item = xlat_bit(diff);
-                            ctx.tiledb.insert(tcname, bel, &name, item);
+                            ctx.insert(tcname, bel, &name, item);
                         }
                     }
                     _ => unreachable!(),
@@ -1831,10 +1831,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let wfname = edev.db.wires.key(wire_from.wire);
                     let in_name = format!("{:#}.{}", wire_from.cell, wfname);
                     let diff = diff.combine(&!&odiff);
-                    ctx.tiledb
-                        .insert(tcname, "INT", format!("BUF.OBUF.{in_name}"), xlat_bit(diff));
+                    ctx.insert(tcname, "INT", format!("BUF.OBUF.{in_name}"), xlat_bit(diff));
                 }
-                ctx.tiledb.insert(
+                ctx.insert(
                     tcname,
                     bel,
                     format!("BUF.{out_name}.0.OBUF"),
@@ -1871,8 +1870,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         wtname.to_string()
                     };
                     let iname = format!("{:#}.{}", wire_from.cell, wfname);
-                    ctx.tiledb
-                        .insert(tcname, bel, format!("BUF.{oname}.{iname}"), xlat_bit(diff));
+                    ctx.insert(tcname, bel, format!("BUF.{oname}.{iname}"), xlat_bit(diff));
                 }
             }
 
@@ -1902,8 +1900,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 if !got_empty {
                     in_diffs.push(("NONE".to_string(), Diff::default()));
                 }
-                ctx.tiledb
-                    .insert(tcname, bel, mux_name, xlat_enum_ocd(in_diffs, OcdMode::Mux));
+                ctx.insert(tcname, bel, mux_name, xlat_enum_ocd(in_diffs, OcdMode::Mux));
             }
         }
         if tcname.starts_with("IO.L") || tcname.starts_with("IO.R") {
@@ -1920,13 +1917,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         {
             for bel in ["TBUF_SPLITTER0", "TBUF_SPLITTER1"] {
                 let item = ctx.extract_bit(tcname, bel, "BUF", "W");
-                ctx.tiledb.insert(tcname, bel, "PASS", item);
+                ctx.insert(tcname, bel, "PASS", item);
                 let item = ctx.extract_bit(tcname, bel, "BUF", "E");
-                ctx.tiledb.insert(tcname, bel, "PASS", item);
+                ctx.insert(tcname, bel, "PASS", item);
                 let item = ctx.extract_bit(tcname, bel, "BUF", "W.BUF");
-                ctx.tiledb.insert(tcname, bel, "BUF_W", item);
+                ctx.insert(tcname, bel, "BUF_W", item);
                 let item = ctx.extract_bit(tcname, bel, "BUF", "E.BUF");
-                ctx.tiledb.insert(tcname, bel, "BUF_E", item);
+                ctx.insert(tcname, bel, "BUF_E", item);
             }
         }
         if matches!(
@@ -1950,8 +1947,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.state.peek_diff(tcname, bel, "MUX.O0", ipin).clone(),
                         ctx.state.peek_diff(tcname, bel, "MUX.O1", ipin).clone(),
                     );
-                    ctx.tiledb
-                        .insert(tcname, bel, format!("ENABLE.{ipin}"), xlat_bit(diff));
+                    ctx.insert(tcname, bel, format!("ENABLE.{ipin}"), xlat_bit(diff));
                 }
                 for opin in ["O0", "O1", "O2", "O3"] {
                     let mut diffs = vec![("NONE", Diff::default())];
@@ -1961,14 +1957,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ] {
                         let mut diff = ctx.state.get_diff(tcname, bel, format!("MUX.{opin}"), ipin);
                         diff.apply_bit_diff(
-                            ctx.tiledb.item(tcname, bel, &format!("ENABLE.{ipin}")),
+                            ctx.item(tcname, bel, &format!("ENABLE.{ipin}")),
                             true,
                             false,
                         );
                         diffs.push((ipin, diff));
                     }
-                    ctx.tiledb
-                        .insert(tcname, bel, format!("MUX.{opin}"), xlat_enum(diffs));
+                    ctx.insert(tcname, bel, format!("MUX.{opin}"), xlat_enum(diffs));
                 }
             } else {
                 for (opin, ipin_p) in [
@@ -2000,7 +1995,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             format!("BUFG.{hv}")
                         };
-                        ctx.tiledb.insert(tcname, bel, attr, item);
+                        ctx.insert(tcname, bel, attr, item);
                     }
                 }
             }
@@ -2035,9 +2030,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let bel = &format!("DEC{i}");
                     for j in 1..=4 {
                         let item = ctx.extract_bit(tcname, bel, &format!("O{j}MUX"), "I");
-                        ctx.tiledb.insert(tcname, bel, format!("O{j}_P"), item);
+                        ctx.insert(tcname, bel, format!("O{j}_P"), item);
                         let item = ctx.extract_bit(tcname, bel, &format!("O{j}MUX"), "NOT");
-                        ctx.tiledb.insert(tcname, bel, format!("O{j}_N"), item);
+                        ctx.insert(tcname, bel, format!("O{j}_N"), item);
                     }
                 }
             }

@@ -863,7 +863,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         {
                             println!("UMMM MUX {tcname} {mux_name} is empty");
                         }
-                        ctx.tiledb.insert(tcname, bel, mux_name, ti);
+                        ctx.insert(tcname, bel, mux_name, ti);
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
                         let mux_name = if tcls.cells.len() == 1 {
@@ -892,7 +892,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 src = intdb.wires.key(buf.src.wire)
                             )
                         };
-                        ctx.tiledb.insert(tcname, bel, buf_name, xlat_bit(diff));
+                        ctx.insert(tcname, bel, buf_name, xlat_bit(diff));
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
                         let mux_name = if tcls.cells.len() == 1 {

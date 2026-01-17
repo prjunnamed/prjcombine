@@ -2266,6 +2266,7 @@ impl PartContext<'_> {
                         cell: CellSlotId::from_idx(0),
                         wire,
                     },
+                    true,
                 ),
                 BTreeMap::from_iter([(bit, true)]),
             );
@@ -2329,7 +2330,7 @@ impl PartContext<'_> {
                     }
                     SwitchBoxItem::ProgInv(inv) => {
                         harvester.force_tiled(
-                            DiffKey::RoutingInv(tcid, inv.dst),
+                            DiffKey::RoutingInv(tcid, inv.dst, true),
                             BTreeMap::from_iter([(inv.bit.bit, !inv.bit.inv)]),
                         );
                     }

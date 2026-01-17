@@ -207,12 +207,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff_i = ctx.state.get_diff(tile, bel, "ENABLE_O2IPATH", "1");
         let diff_iq = ctx.state.get_diff(tile, bel, "ENABLE_O2IQPATH", "1");
         let (diff_i, diff_iq, diff_common) = Diff::split(diff_i, diff_iq);
-        ctx.tiledb
-            .insert(tile, bel, "ENABLE_O2IPATH", xlat_bit(diff_i));
-        ctx.tiledb
-            .insert(tile, bel, "ENABLE_O2IQPATH", xlat_bit(diff_iq));
-        ctx.tiledb
-            .insert(tile, bel, "ENABLE_O2I_O2IQ_PATH", xlat_bit(diff_common));
+        ctx.insert(tile, bel, "ENABLE_O2IPATH", xlat_bit(diff_i));
+        ctx.insert(tile, bel, "ENABLE_O2IQPATH", xlat_bit(diff_iq));
+        ctx.insert(tile, bel, "ENABLE_O2I_O2IQ_PATH", xlat_bit(diff_common));
         for pin in ["CLK", "CE"] {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -222,31 +219,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .state
                 .get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
             let (d0, d1, de) = Diff::split(d0, d1);
-            ctx.tiledb
-                .insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
-            ctx.tiledb
-                .insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
+            ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
+            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
         }
         ctx.state.get_diff(tile, bel, "IMUX", "1").assert_empty();
         ctx.state.get_diff(tile, bel, "IFFDMUX", "1").assert_empty();
         let diff_i = ctx.state.get_diff(tile, bel, "IMUX", "0");
         let diff_iff = ctx.state.get_diff(tile, bel, "IFFDMUX", "0");
         let (diff_i, diff_iff, diff_common) = Diff::split(diff_i, diff_iff);
-        ctx.tiledb
-            .insert(tile, bel, "I_DELAY_ENABLE", xlat_bit(diff_i));
-        ctx.tiledb
-            .insert(tile, bel, "IFF_DELAY_ENABLE", xlat_bit(diff_iff));
-        ctx.tiledb
-            .insert(tile, bel, "DELAY_ENABLE", xlat_bit_wide(diff_common));
+        ctx.insert(tile, bel, "I_DELAY_ENABLE", xlat_bit(diff_i));
+        ctx.insert(tile, bel, "IFF_DELAY_ENABLE", xlat_bit(diff_iff));
+        ctx.insert(tile, bel, "DELAY_ENABLE", xlat_bit_wide(diff_common));
         let item = ctx.extract_enum_bool(tile, bel, "IFF", "#FF", "#LATCH");
-        ctx.tiledb.insert(tile, bel, "FF_LATCH", item);
+        ctx.insert(tile, bel, "FF_LATCH", item);
         let item = ctx.extract_enum_bool(tile, bel, "IFFATTRBOX", "ASYNC", "SYNC");
-        ctx.tiledb.insert(tile, bel, "FF_SR_SYNC", item);
+        ctx.insert(tile, bel, "FF_SR_SYNC", item);
         let item = ctx.extract_enum_bool(tile, bel, "IFF_INIT_ATTR", "INIT0", "INIT1");
-        ctx.tiledb.insert(tile, bel, "FF_INIT", item);
+        ctx.insert(tile, bel, "FF_INIT", item);
         let item = ctx.extract_enum_bool(tile, bel, "IFF_SR_ATTR", "SRLOW", "SRHIGH");
-        ctx.tiledb.insert(tile, bel, "FF_SRVAL", item);
-        ctx.tiledb.insert(
+        ctx.insert(tile, bel, "FF_SRVAL", item);
+        ctx.insert(
             tile,
             bel,
             "READBACK_I",
@@ -275,22 +267,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 .get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
             let (d0, d1, de) = Diff::split(d0, d1);
             if pin == "REV" {
-                ctx.tiledb
-                    .insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
+                ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
             } else {
                 ctx.insert_int_inv(&["INT_IOI_FC"], tile, bel, pin, xlat_bool(d0, d1));
             }
-            ctx.tiledb
-                .insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
+            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
         }
         let item = ctx.extract_enum_bool(tile, bel, "OFF", "#FF", "#LATCH");
-        ctx.tiledb.insert(tile, bel, "FF_LATCH", item);
+        ctx.insert(tile, bel, "FF_LATCH", item);
         let item = ctx.extract_enum_bool(tile, bel, "OFFATTRBOX", "ASYNC", "SYNC");
-        ctx.tiledb.insert(tile, bel, "FF_SR_SYNC", item);
+        ctx.insert(tile, bel, "FF_SR_SYNC", item);
         let item = ctx.extract_enum_bool(tile, bel, "OFF_INIT_ATTR", "INIT0", "INIT1");
-        ctx.tiledb.insert(tile, bel, "FF_INIT", item);
+        ctx.insert(tile, bel, "FF_INIT", item);
         let item = ctx.extract_enum_bool(tile, bel, "OFF_SR_ATTR", "SRLOW", "SRHIGH");
-        ctx.tiledb.insert(tile, bel, "FF_SRVAL", item);
+        ctx.insert(tile, bel, "FF_SRVAL", item);
         ctx.collect_enum_default(tile, bel, "OMUX", &["O", "OFF"], "NONE");
         for tile in ["IOB_FC_S", "IOB_FC_N", "IOB_FC_W", "IOB_FC_E"] {
             ctx.collect_bit_wide(tile, bel, "ENABLE", "1");

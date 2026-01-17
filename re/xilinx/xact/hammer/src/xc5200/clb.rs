@@ -5,7 +5,8 @@ use prjcombine_xc2000::bels::xc5200 as bels;
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let mut ctx = FuzzCtx::new(session, backend, "CLB");
+    let tcid = backend.edev.db.get_tile_class("CLB");
+    let mut ctx = FuzzCtx::new(session, backend, tcid);
     let mut bctx = ctx.bel(bels::LC0);
     bctx.mode("CLB").test_cfg("CO", "USED");
     bctx.mode("CLB").test_enum("CV", &["GND", "VCC"]);
@@ -61,24 +62,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         let bel = &format!("LC{i}");
         let item = ctx.extract_bitvec(tile, sbel, &format!("LC{i}.F"), "");
-        ctx.tiledb.insert(tile, bel, "LUT", item);
+        ctx.insert(tile, bel, "LUT", item);
         let item = ctx.extract_bit(tile, sbel, &format!("LC{i}.FFX"), "NOTK");
-        ctx.tiledb.insert(tile, bel, "INV.CK", item);
+        ctx.insert(tile, bel, "INV.CK", item);
         let diff_ff = ctx.state.get_diff(tile, sbel, format!("LC{i}.FFX"), "FF");
         let mut diff_latch = ctx
             .state
             .get_diff(tile, sbel, format!("LC{i}.FFX"), "LATCH");
-        diff_latch.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.CK"), true, false);
-        ctx.tiledb.insert(
+        diff_latch.apply_bit_diff(ctx.item(tile, bel, "INV.CK"), true, false);
+        ctx.insert(
             tile,
             bel,
             "FFLATCH",
             xlat_enum(vec![("FF", diff_ff), ("LATCH", diff_latch)]),
         );
         let item = ctx.extract_enum_default(tile, sbel, &format!("LC{i}.FFX"), &["CE"], "NONE");
-        ctx.tiledb.insert(tile, bel, "CEMUX", item);
+        ctx.insert(tile, bel, "CEMUX", item);
         let item = ctx.extract_enum_default(tile, sbel, &format!("LC{i}.FFX"), &["CLR"], "NONE");
-        ctx.tiledb.insert(tile, bel, "CLRMUX", item);
+        ctx.insert(tile, bel, "CLRMUX", item);
         ctx.state
             .get_diff(tile, sbel, format!("LC{i}.DO"), format!("LC{i}.XBI"))
             .assert_empty();
@@ -97,7 +98,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .get_diff(tile, sbel, format!("LC{i}.DX"), format!("LC{i}.XBI")),
             ),
         ]);
-        ctx.tiledb.insert(tile, bel, "DMUX", item);
+        ctx.insert(tile, bel, "DMUX", item);
         let mut diffs = vec![
             (
                 "DI",
@@ -121,11 +122,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ),
             ));
         }
-        ctx.tiledb.insert(tile, bel, "DOMUX", xlat_enum(diffs));
+        ctx.insert(tile, bel, "DOMUX", xlat_enum(diffs));
         let item = ctx.extract_bit(tile, sbel, "RDBK", &format!("LC{i}.QX"));
-        ctx.tiledb.insert(tile, bel, "READBACK", item);
+        ctx.insert(tile, bel, "READBACK", item);
     }
     ctx.state.get_diff(tile, sbel, "CO", "USED").assert_empty();
     let item = ctx.extract_enum_bool(tile, sbel, "CV", "GND", "VCC");
-    ctx.tiledb.insert(tile, "VCC_GND", "MUX", item);
+    ctx.insert(tile, "VCC_GND", "MUX", item);
 }

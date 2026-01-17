@@ -388,51 +388,50 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bit(tile, bel, "F_RAM", "1");
         ctx.collect_bit(tile, bel, "G_RAM", "1");
         let item = ctx.extract_bit(tile, bel, "RAM", "DP");
-        ctx.tiledb.insert(tile, bel, "RAM_DP", item);
+        ctx.insert(tile, bel, "RAM_DP", item);
         let item = ctx.extract_bit(tile, bel, "RAM", "32X1");
-        ctx.tiledb.insert(tile, bel, "RAM_32X1", item);
+        ctx.insert(tile, bel, "RAM_32X1", item);
 
         let diff_s = ctx.state.get_diff(tile, bel, "RAMCLK", "CLK");
         let diff_inv = ctx
             .state
             .get_diff(tile, bel, "RAMCLK", "CLKNOT")
             .combine(&!&diff_s);
-        ctx.tiledb.insert(tile, bel, "RAM_SYNC", xlat_bit(diff_s));
-        ctx.tiledb
-            .insert(tile, bel, "INV.RAM_CLK", xlat_bit(diff_inv));
+        ctx.insert(tile, bel, "RAM_SYNC", xlat_bit(diff_s));
+        ctx.insert(tile, bel, "INV.RAM_CLK", xlat_bit(diff_inv));
 
         for pin in ["H1", "EC", "SR", "DIN"] {
             let item = ctx.extract_enum(tile, bel, pin, &["C1", "C2", "C3", "C4"]);
-            ctx.tiledb.insert(tile, bel, format!("MUX.{pin}"), item);
+            ctx.insert(tile, bel, format!("MUX.{pin}"), item);
         }
         let item = ctx.extract_enum(tile, bel, "H0", &["G", "SR"]);
-        ctx.tiledb.insert(tile, bel, "MUX.H0", item);
+        ctx.insert(tile, bel, "MUX.H0", item);
         let item = ctx.extract_enum(tile, bel, "H2", &["F", "DIN"]);
-        ctx.tiledb.insert(tile, bel, "MUX.H2", item);
+        ctx.insert(tile, bel, "MUX.H2", item);
 
         let item = ctx.extract_enum(tile, bel, "DX", &["F", "G", "H", "DIN"]);
-        ctx.tiledb.insert(tile, bel, "MUX.DX", item);
+        ctx.insert(tile, bel, "MUX.DX", item);
         let item = ctx.extract_enum(tile, bel, "DY", &["F", "G", "H", "DIN"]);
-        ctx.tiledb.insert(tile, bel, "MUX.DY", item);
+        ctx.insert(tile, bel, "MUX.DY", item);
 
         let item = ctx.extract_enum_bool(tile, bel, "SRX", "RESET", "SET");
-        ctx.tiledb.insert(tile, bel, "FFX_SRVAL", item);
+        ctx.insert(tile, bel, "FFX_SRVAL", item);
         let item = ctx.extract_enum_bool(tile, bel, "SRY", "RESET", "SET");
-        ctx.tiledb.insert(tile, bel, "FFY_SRVAL", item);
+        ctx.insert(tile, bel, "FFY_SRVAL", item);
 
         let item = ctx.extract_bit(tile, bel, "ECX", "EC");
-        ctx.tiledb.insert(tile, bel, "FFX_EC_ENABLE", item);
+        ctx.insert(tile, bel, "FFX_EC_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "ECY", "EC");
-        ctx.tiledb.insert(tile, bel, "FFY_EC_ENABLE", item);
+        ctx.insert(tile, bel, "FFY_EC_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "SETX", "SR");
-        ctx.tiledb.insert(tile, bel, "FFX_SR_ENABLE", item);
+        ctx.insert(tile, bel, "FFX_SR_ENABLE", item);
         let item = ctx.extract_bit(tile, bel, "SETY", "SR");
-        ctx.tiledb.insert(tile, bel, "FFY_SR_ENABLE", item);
+        ctx.insert(tile, bel, "FFY_SR_ENABLE", item);
 
         let item = ctx.extract_enum(tile, bel, "XMUX", &["F", "H"]);
-        ctx.tiledb.insert(tile, bel, "MUX.X", item);
+        ctx.insert(tile, bel, "MUX.X", item);
         let item = ctx.extract_enum(tile, bel, "YMUX", &["G", "H"]);
-        ctx.tiledb.insert(tile, bel, "MUX.Y", item);
+        ctx.insert(tile, bel, "MUX.Y", item);
 
         ctx.collect_bit(tile, bel, "INV.FFX_CLK", "1");
         ctx.collect_bit(tile, bel, "INV.FFY_CLK", "1");
@@ -443,9 +442,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         let item = ctx.extract_enum_default(tile, bel, "XQMUX", &["DIN"], "FFX");
-        ctx.tiledb.insert(tile, bel, "MUX.XQ", item);
+        ctx.insert(tile, bel, "MUX.XQ", item);
         let item = ctx.extract_enum_default(tile, bel, "YQMUX", &["EC"], "FFY");
-        ctx.tiledb.insert(tile, bel, "MUX.YQ", item);
+        ctx.insert(tile, bel, "MUX.YQ", item);
 
         ctx.collect_enum_default(tile, bel, "CARRY_ADDSUB", &["ADDSUB", "SUB"], "ADD");
         ctx.collect_enum_default(
@@ -459,8 +458,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         let diff0 = ctx.state.get_diff(tile, bel, "CARRY_FPROP", "CONST_0");
         let mut diff1 = ctx.state.get_diff(tile, bel, "CARRY_FPROP", "CONST_1");
-        diff1.discard_bits(ctx.tiledb.item(tile, bel, "CARRY_FGEN"));
-        ctx.tiledb.insert(
+        diff1.discard_bits(ctx.item(tile, bel, "CARRY_FGEN"));
+        ctx.insert(
             tile,
             bel,
             "CARRY_FPROP",
@@ -473,7 +472,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         let diff1 = ctx.state.get_diff(tile, bel, "CARRY_GPROP", "CONST_1");
         if !kind.is_clb_xl() {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 "CARRY_GPROP",
@@ -481,9 +480,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         } else {
             let mut diff0 = ctx.state.get_diff(tile, bel, "CARRY_GPROP", "CONST_0");
-            diff0.discard_bits(ctx.tiledb.item(tile, bel, "CARRY_FGEN"));
-            diff0.discard_bits(ctx.tiledb.item(tile, bel, "CARRY_FPROP"));
-            ctx.tiledb.insert(
+            diff0.discard_bits(ctx.item(tile, bel, "CARRY_FGEN"));
+            diff0.discard_bits(ctx.item(tile, bel, "CARRY_FPROP"));
+            ctx.insert(
                 tile,
                 bel,
                 "CARRY_GPROP",
@@ -499,8 +498,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if tile == "CLB" {
                 ctx.collect_enum(tile, bel, "MUX.CIN", &["COUT_B", "COUT_T"]);
             } else {
-                let item = ctx.tiledb.item("CLB", bel, "MUX.CIN").clone();
-                ctx.tiledb.insert(tile, bel, "MUX.CIN", item);
+                let item = ctx.item("CLB", bel, "MUX.CIN").clone();
+                ctx.insert(tile, bel, "MUX.CIN", item);
             }
         }
 
@@ -528,7 +527,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ]
         };
         for (name, frame, bit) in rb {
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 name,

@@ -171,7 +171,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let attr = format!("MUX.{pin}");
             let gnd = ctx.state.get_diff(tile, bel, &attr, "GND");
             let vcc = ctx.state.get_diff(tile, bel, &attr, "VCC");
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 attr,
@@ -217,7 +217,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let d0 = ctx.state.get_diff(tile, bel, "USE_MULT", "NONE");
         let d1 = ctx.state.get_diff(tile, bel, "USE_MULT", "MULTIPLY");
         assert_eq!(d1, ctx.state.get_diff(tile, bel, "USE_MULT", "DYNAMIC"));
-        ctx.tiledb.insert(tile, bel, "USE_MULT", xlat_bool(d0, d1));
+        ctx.insert(tile, bel, "USE_MULT", xlat_bool(d0, d1));
         ctx.collect_enum_bool(tile, bel, "USE_DPORT", "FALSE", "TRUE");
         ctx.collect_enum(tile, bel, "SEL_PATTERN", &["PATTERN", "C"]);
         ctx.collect_enum(

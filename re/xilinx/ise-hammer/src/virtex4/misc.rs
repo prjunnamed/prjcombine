@@ -395,12 +395,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "BSCAN[0]", "BSCAN[1]", "BSCAN[2]", "BSCAN[3]", "JTAGPPC", "DCIRESET", "ICAP[0]", "ICAP[1]",
     ] {
         let item = ctx.extract_bit(tile, bel, "PRESENT", "1");
-        ctx.tiledb.insert(tile, bel, "ENABLE", item);
+        ctx.insert(tile, bel, "ENABLE", item);
     }
 
     let bel = "BSCAN_COMMON";
     let item = xlat_bitvec(ctx.state.get_diffs(tile, bel, "USERID", ""));
-    ctx.tiledb.insert(tile, bel, "USERID", item);
+    ctx.insert(tile, bel, "USERID", item);
 
     let bel = "STARTUP";
     ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
@@ -421,14 +421,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item0 = ctx.extract_bit(tile, bel, "PIN.GSR", "1");
     let item1 = ctx.extract_bit(tile, bel, "PIN.GTS", "1");
     assert_eq!(item0, item1);
-    ctx.tiledb.insert(tile, "STARTUP", "GTS_GSR_ENABLE", item0);
+    ctx.insert(tile, "STARTUP", "GTS_GSR_ENABLE", item0);
     let item = ctx.extract_bit(tile, bel, "PIN.USRCCLKO", "1");
-    ctx.tiledb.insert(tile, "STARTUP", "USRCCLK_ENABLE", item);
+    ctx.insert(tile, "STARTUP", "USRCCLK_ENABLE", item);
 
     let item0 = ctx.extract_enum(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X32"]);
     let item1 = ctx.extract_enum(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X32"]);
     assert_eq!(item0, item1);
-    ctx.tiledb.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
+    ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
     for bel in ["ICAP[0]", "ICAP[1]"] {
         for pin in ["CLK", "CE", "WRITE"] {
             ctx.collect_int_inv(&["INT"; 16], tile, bel, pin, false);
@@ -501,7 +501,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum_bool(tile, bel, "ENCRYPT", "NO", "YES");
     ctx.collect_enum(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
     // these are too much trouble to deal with the normal way.
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "PERSIST",
@@ -510,7 +510,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             kind: TileItemKind::BitVec { invert: bits![0] },
         },
     );
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "GLUTMASK",
@@ -519,7 +519,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             kind: TileItemKind::BitVec { invert: bits![1] },
         },
     );
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "ICAP_SELECT",
@@ -572,7 +572,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("PROM_DATA", 0),
         ] {
             ctx.collect_bitvec(tile, bel, attr, "");
-            present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, attr), val, 0);
+            present.apply_bitvec_diff_int(ctx.item(tile, bel, attr), val, 0);
         }
         present.assert_empty();
 
@@ -600,7 +600,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             diffs.push((format!("GIOB{i}"), diff));
         }
-        ctx.tiledb
-            .insert(tile, bel, "MUX.CONVST", xlat_enum_ocd(diffs, OcdMode::Mux));
+        ctx.insert(tile, bel, "MUX.CONVST", xlat_enum_ocd(diffs, OcdMode::Mux));
     }
 }

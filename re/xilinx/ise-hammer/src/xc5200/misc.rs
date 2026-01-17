@@ -270,17 +270,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "CNR.BR";
         let bel = "MISC";
         let item = ctx.extract_enum(tile, bel, "PROGPIN", &["PULLUP", "PULLNONE"]);
-        ctx.tiledb.insert(tile, "PROG", "PULL", item);
+        ctx.insert(tile, "PROG", "PULL", item);
         let item = ctx.extract_enum(tile, bel, "DONEPIN", &["PULLUP", "PULLNONE"]);
-        ctx.tiledb.insert(tile, "DONE", "PULL", item);
+        ctx.insert(tile, "DONE", "PULL", item);
         ctx.collect_enum_bool(tile, bel, "TCTEST", "OFF", "ON");
         let bel = "STARTUP";
         ctx.collect_enum_bool(tile, bel, "CRC", "DISABLE", "ENABLE");
         ctx.collect_enum(tile, bel, "CONFIG_RATE", &["SLOW", "MED", "FAST"]);
         let item = ctx.extract_enum_bool(tile, bel, "GRMUX", "GR", "GRNOT");
-        ctx.tiledb.insert(tile, bel, "INV.GR", item);
+        ctx.insert(tile, bel, "INV.GR", item);
         let item = ctx.extract_enum_bool(tile, bel, "GTSMUX", "GTS", "GTSNOT");
-        ctx.tiledb.insert(tile, bel, "INV.GTS", item);
+        ctx.insert(tile, bel, "INV.GTS", item);
         let item = xlat_enum(vec![
             ("Q0", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C1")),
             ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C3")),
@@ -290,7 +290,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
             ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
         ]);
-        ctx.tiledb.insert(tile, bel, "DONE_ACTIVE", item);
+        ctx.insert(tile, bel, "DONE_ACTIVE", item);
         for attr in ["OUTPUTS_ACTIVE", "GSR_INACTIVE"] {
             let mut item = xlat_enum(vec![
                 ("Q3", ctx.state.get_diff(tile, bel, attr, "DI_PLUS_1")),
@@ -312,7 +312,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 };
                 values.insert("DONE_IN".to_string(), bits![0; 2]);
             }
-            ctx.tiledb.insert(tile, bel, attr, item);
+            ctx.insert(tile, bel, attr, item);
         }
         ctx.collect_enum(tile, bel, "STARTUP_CLK", &["CCLK", "USERCLK"]);
         ctx.collect_enum_bool(tile, bel, "SYNC_TO_DONE", "NO", "YES");
@@ -325,7 +325,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .get_diff(tile, bel, "OSC1_ATTR", format!("{}", 1 << i)),
             ));
         }
-        ctx.tiledb.insert(tile, bel, "OSC1", xlat_enum(diffs));
+        ctx.insert(tile, bel, "OSC1", xlat_enum(diffs));
         let mut diffs = vec![];
         for i in [1, 3, 5, 7, 10, 12, 14, 16] {
             diffs.push((
@@ -334,7 +334,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .get_diff(tile, bel, "OSC2_ATTR", format!("{}", 1 << i)),
             ));
         }
-        ctx.tiledb.insert(tile, bel, "OSC2", xlat_enum(diffs));
+        ctx.insert(tile, bel, "OSC2", xlat_enum(diffs));
         ctx.collect_enum(tile, bel, "CMUX", &["CCLK", "USERCLK"]);
     }
     {

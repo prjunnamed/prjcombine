@@ -7,10 +7,10 @@ use prjcombine_entity::{
 use prjcombine_interconnect::db::{
     Bel, BelAttribute, BelAttributeEnum, BelAttributeType, BelClass, BelClassAttribute,
     BelClassBidir, BelClassId, BelClassInput, BelClassOutput, BelClassPad, BelInfo, BelInput,
-    BelKind, BelSlot, BelSlotId, BitRectInfo, CellSlotId, ConnectorClass, ConnectorClassId,
+    BelKind, BelSlot, BelSlotId, Bidi, BitRectInfo, CellSlotId, ConnectorClass, ConnectorClassId,
     ConnectorSlot, ConnectorSlotId, ConnectorWire, EnumClass, IntDb, Mux, PermaBuf,
     PolTileWireCoord, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem, Table, TableId, TileClass,
-    TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
+    TileClassId, TileSlotId, TileWireCoord, WireKind,
 };
 use prjcombine_types::bsdata::{BitRectGeometry, PolTileBit, RectBitId, RectFrameId, TileBit};
 use proc_macro::{Ident, Span, TokenStream};
@@ -27,14 +27,6 @@ struct Context {
     db: AnnotatedDb,
     for_vars: HashMap<String, usize>,
     bitrect_geoms: HashMap<String, BitRectGeometry>,
-    defer_opposite: EntityPartVec<ConnectorSlotId, Ident>,
-    defer_branch: EntityPartVec<WireSlotId, (Ident, BranchKind)>,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-enum BranchKind {
-    Branch,
-    MultiBranch,
 }
 
 #[derive(Copy, Clone)]
@@ -801,6 +793,18 @@ impl Context {
                 }
                 switchbox.items.push(SwitchBoxItem::Mux(mux));
             }
+            ast::SwitchBoxItem::Bidi(conn, wire) => {
+                let id = self.eval_templ_id(conn)?;
+                let Some((csid, _)) = self.db.db.conn_slots.get(&id.to_string()) else {
+                    error_at(id.span(), &format!("undefined connector slot: {id}"))?
+                };
+                let bidi = Bidi {
+                    conn: csid,
+                    wire: self.eval_wire_ref(tcls, wire)?,
+                    bit_upstream: PolTileBit::DUMMY,
+                };
+                switchbox.items.push(SwitchBoxItem::Bidi(bidi));
+            }
             ast::SwitchBoxItem::ForLoop(for_loop) => self.eval_for(for_loop, |ctx, subitem| {
                 ctx.eval_switchbox(tcls, bslot, switchbox, subitem)
             })?,
@@ -918,8 +922,11 @@ impl Context {
                     error_at(ident.span(), "opposite slot redefined")?;
                 }
                 *got_opposite = true;
-                self.defer_opposite
-                    .insert(cslot, self.eval_templ_id(ident)?);
+                let ident = self.eval_templ_id(ident)?;
+                let Some((opposite, _)) = self.db.db.conn_slots.get(&ident.to_string()) else {
+                    error_at(ident.span(), &format!("undefined connector slot: {ident}"))?
+                };
+                self.db.db.conn_slots[cslot].opposite = opposite;
             }
             ast::ConnectorSlotItem::ConnectorClass(ccls) => {
                 for name in &ccls.names {
@@ -1068,31 +1075,35 @@ impl Context {
         Ok(())
     }
 
-    fn eval_wire_kind(
-        &self,
-        kind: &ast::WireKind,
-    ) -> Result<(WireKind, Option<(Ident, BranchKind)>)> {
+    fn eval_wire_kind(&self, kind: &ast::WireKind) -> Result<WireKind> {
         match kind {
-            ast::WireKind::Tie0 => Ok((WireKind::Tie0, None)),
-            ast::WireKind::Tie1 => Ok((WireKind::Tie1, None)),
-            ast::WireKind::TiePullup => Ok((WireKind::TiePullup, None)),
+            ast::WireKind::Tie0 => Ok(WireKind::Tie0),
+            ast::WireKind::Tie1 => Ok(WireKind::Tie1),
+            ast::WireKind::TiePullup => Ok(WireKind::TiePullup),
             ast::WireKind::Regional(id) => {
                 let id = self.eval_templ_id(id)?;
                 let Some(rslot) = self.db.db.region_slots.get(&id.to_string()) else {
                     error_at(id.span(), "unknown region slot")?
                 };
-                Ok((WireKind::Regional(rslot), None))
+                Ok(WireKind::Regional(rslot))
             }
-            ast::WireKind::Mux => Ok((WireKind::MuxOut, None)),
-            ast::WireKind::Bel => Ok((WireKind::BelOut, None)),
-            ast::WireKind::Test => Ok((WireKind::TestOut, None)),
-            ast::WireKind::MultiRoot => Ok((WireKind::MultiRoot, None)),
+            ast::WireKind::Mux => Ok(WireKind::MuxOut),
+            ast::WireKind::Bel => Ok(WireKind::BelOut),
+            ast::WireKind::Test => Ok(WireKind::TestOut),
+            ast::WireKind::MultiRoot => Ok(WireKind::MultiRoot),
             ast::WireKind::MultiBranch(id) => {
-                Ok((WireKind::Tie0, Some((id.clone(), BranchKind::MultiBranch))))
+                let Some((csid, _)) = self.db.db.conn_slots.get(&id.to_string()) else {
+                    error_at(id.span(), &format!("undefined connector slot: {id}"))?
+                };
+                Ok(WireKind::MultiBranch(csid))
             }
             ast::WireKind::Branch(id) => {
-                Ok((WireKind::Tie0, Some((id.clone(), BranchKind::Branch))))
+                let Some((csid, _)) = self.db.db.conn_slots.get(&id.to_string()) else {
+                    error_at(id.span(), &format!("undefined connector slot: {id}"))?
+                };
+                Ok(WireKind::Branch(csid))
             }
+            ast::WireKind::Special => Ok(WireKind::Special),
         }
     }
 
@@ -1101,7 +1112,7 @@ impl Context {
         span: Span,
         kind: &ast::WireKinds,
         idx: Option<usize>,
-    ) -> Result<(WireKind, Option<(Ident, BranchKind)>)> {
+    ) -> Result<WireKind> {
         match kind {
             ast::WireKinds::Single(kind) => self.eval_wire_kind(kind),
             ast::WireKinds::Multi(kinds) => {
@@ -1116,7 +1127,7 @@ impl Context {
         }
     }
 
-    fn eval_top(&mut self, item: &ast::TopItem) -> Result<()> {
+    fn eval_top_ph1(&mut self, item: &ast::TopItem) -> Result<()> {
         match item {
             ast::TopItem::Variant(ident) => {
                 error_at(ident.span(), "variants must be at the top level")?;
@@ -1152,7 +1163,7 @@ impl Context {
                 self.db.eval_id.push(vids);
             }
             ast::TopItem::BelClass(bcls) => {
-                let (bcid, prev) = self
+                let (_bcid, prev) = self
                     .db
                     .db
                     .bel_classes
@@ -1162,32 +1173,26 @@ impl Context {
                 }
                 self.db.bcls_id.push(bcls.name.clone());
                 self.db.bcls.push(Default::default());
-                for item in &bcls.items {
-                    self.eval_bel_class(bcid, item)?;
-                }
             }
             ast::TopItem::TileSlot(tslot) => {
                 let name = self.eval_templ_id(&tslot.name)?;
-                let (tsid, new) = self.db.db.tile_slots.insert(name.to_string());
+                let (_tsid, new) = self.db.db.tile_slots.insert(name.to_string());
                 if !new {
                     error_at(tslot.name.span(), "tile slot redefined")?;
                 }
                 self.db.tslot_id.push(name);
-                for item in &tslot.items {
-                    self.eval_tile_slot(tsid, item)?;
-                }
             }
             ast::TopItem::RegionSlot(rslot) => {
                 let name = self.eval_templ_id(&rslot.name)?;
                 let (_, new) = self.db.db.region_slots.insert(name.to_string());
                 if !new {
-                    error_at(rslot.name.span(), "tile slot redefined")?;
+                    error_at(rslot.name.span(), "region slot redefined")?;
                 }
                 self.db.rslot_id.push(name);
             }
             ast::TopItem::ConnectorSlot(cslot) => {
                 let name = self.eval_templ_id(&cslot.name)?;
-                let (csid, prev) = self.db.db.conn_slots.insert(
+                let (_csid, prev) = self.db.db.conn_slots.insert(
                     name.to_string(),
                     ConnectorSlot {
                         opposite: ConnectorSlotId::from_idx(0),
@@ -1197,6 +1202,49 @@ impl Context {
                     error_at(cslot.name.span(), "connector slot redefined")?;
                 }
                 self.db.cslot_id.push(name);
+            }
+            ast::TopItem::Wire(_) => (),
+            ast::TopItem::Table(_) => (),
+            ast::TopItem::ForLoop(for_loop) => {
+                self.eval_for(for_loop, |ctx, subitem| ctx.eval_top_ph1(subitem))?
+            }
+            ast::TopItem::If(if_) => self.eval_if(IfContext::Top, if_, |ctx, subitem| {
+                ctx.eval_top_ph1(subitem)
+            })?,
+        }
+        Ok(())
+    }
+
+    fn eval_top(&mut self, item: &ast::TopItem) -> Result<()> {
+        match item {
+            ast::TopItem::Variant(ident) => {
+                error_at(ident.span(), "variants must be at the top level")?;
+            }
+            ast::TopItem::BitRectClass(_) => (),
+            ast::TopItem::EnumClass(_) => (),
+            ast::TopItem::BelClass(bcls) => {
+                let bcid = self
+                    .db
+                    .db
+                    .bel_classes
+                    .get(&bcls.name.to_string())
+                    .unwrap()
+                    .0;
+                for item in &bcls.items {
+                    self.eval_bel_class(bcid, item)?;
+                }
+            }
+            ast::TopItem::TileSlot(tslot) => {
+                let name = self.eval_templ_id(&tslot.name)?;
+                let tsid = self.db.db.tile_slots.get(&name.to_string()).unwrap();
+                for item in &tslot.items {
+                    self.eval_tile_slot(tsid, item)?;
+                }
+            }
+            ast::TopItem::RegionSlot(_) => (),
+            ast::TopItem::ConnectorSlot(cslot) => {
+                let name = self.eval_templ_id(&cslot.name)?;
+                let csid = self.db.db.conn_slots.get(&name.to_string()).unwrap().0;
                 let mut got_opposite = false;
                 for item in &cslot.items {
                     self.eval_connector_slot(csid, &mut got_opposite, item)?;
@@ -1221,24 +1269,16 @@ impl Context {
                     };
                     assert_eq!(range.first().unwrap(), self.db.db.wires.next_id());
                     for i in 0..num {
-                        let (kind, defer_branch) =
-                            self.eval_wire_kinds(name.span(), &wire.kinds, Some(i))?;
-                        let (id, _) = self.db.db.wires.insert(format!("{name}[{i}]"), kind);
-                        if let Some(defer) = defer_branch {
-                            self.defer_branch.insert(id, defer);
-                        }
+                        let kind = self.eval_wire_kinds(name.span(), &wire.kinds, Some(i))?;
+                        self.db.db.wires.insert(format!("{name}[{i}]"), kind);
                     }
                 } else {
                     let Some(id) = self.db.wire_id.insert(name.to_string(), name.clone()) else {
                         error_at(name.span(), "wire redefined")?
                     };
                     assert_eq!(id, self.db.db.wires.next_id());
-                    let (kind, defer_branch) =
-                        self.eval_wire_kinds(name.span(), &wire.kinds, None)?;
-                    let (id, _) = self.db.db.wires.insert(name.to_string(), kind);
-                    if let Some(defer) = defer_branch {
-                        self.defer_branch.insert(id, defer);
-                    }
+                    let kind = self.eval_wire_kinds(name.span(), &wire.kinds, None)?;
+                    self.db.db.wires.insert(name.to_string(), kind);
                 }
             }
             ast::TopItem::Table(table) => {
@@ -1293,30 +1333,18 @@ fn eval_variant(variant: Option<Ident>, items: &[ast::TopItem]) -> Result<Annota
         },
         for_vars: Default::default(),
         bitrect_geoms: Default::default(),
-        defer_opposite: EntityPartVec::new(),
-        defer_branch: EntityPartVec::new(),
     };
     for item in items {
         if let ast::TopItem::Variant(_) = item {
             continue;
         }
+        ctx.eval_top_ph1(item)?;
+    }
+    for item in items {
+        if let ast::TopItem::Variant(_) = item {
+            continue;
+        }
         ctx.eval_top(item)?;
-    }
-    for csid in ctx.db.db.conn_slots.ids() {
-        let ident = &ctx.defer_opposite[csid];
-        let Some((ocsid, _)) = ctx.db.db.conn_slots.get(&ident.to_string()) else {
-            error_at(ident.span(), &format!("undefined connector slot: {ident}"))?
-        };
-        ctx.db.db.conn_slots[csid].opposite = ocsid;
-    }
-    for (wid, (ident, kind)) in ctx.defer_branch {
-        let Some((csid, _)) = ctx.db.db.conn_slots.get(&ident.to_string()) else {
-            error_at(ident.span(), &format!("undefined connector slot: {ident}"))?
-        };
-        ctx.db.db.wires[wid] = match kind {
-            BranchKind::Branch => WireKind::Branch(csid),
-            BranchKind::MultiBranch => WireKind::MultiBranch(csid),
-        };
     }
     Ok(ctx.db)
 }

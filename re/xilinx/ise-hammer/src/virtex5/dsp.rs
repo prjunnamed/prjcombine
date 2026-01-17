@@ -165,13 +165,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for bel in ["DSP[0]", "DSP[1]"] {
         let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-        present.discard_bits(ctx.tiledb.item(tile, bel, "SCAN_IN_SET_M"));
-        present.discard_bits(ctx.tiledb.item(tile, bel, "SCAN_IN_SET_P"));
-        present.discard_bits(ctx.tiledb.item(tile, bel, "TEST_SET_M"));
-        present.discard_bits(ctx.tiledb.item(tile, bel, "TEST_SET_P"));
+        present.discard_bits(ctx.item(tile, bel, "SCAN_IN_SET_M"));
+        present.discard_bits(ctx.item(tile, bel, "SCAN_IN_SET_P"));
+        present.discard_bits(ctx.item(tile, bel, "TEST_SET_M"));
+        present.discard_bits(ctx.item(tile, bel, "TEST_SET_P"));
         if bel == "DSP[0]" {
-            present.discard_bits(ctx.tiledb.item(tile, "DSP[0]", "LFSR_EN_SET"));
-            present.discard_bits(ctx.tiledb.item(tile, "DSP[1]", "LFSR_EN_SET"));
+            present.discard_bits(ctx.item(tile, "DSP[0]", "LFSR_EN_SET"));
+            present.discard_bits(ctx.item(tile, "DSP[1]", "LFSR_EN_SET"));
         }
         present.assert_empty();
     }

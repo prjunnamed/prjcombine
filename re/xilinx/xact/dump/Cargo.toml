@@ -10,6 +10,7 @@ path = "src/main.rs"
 [dependencies]
 ndarray.workspace = true
 clap.workspace = true
+bincode.workspace = true
 prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true

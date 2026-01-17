@@ -2,12 +2,11 @@
 
 use clap::Parser;
 use prjcombine_interconnect::dir::DirV;
-use prjcombine_re_fpga_hammer::Collector;
+use prjcombine_re_fpga_hammer::{Collector, CollectorData};
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::bitvec::BitVec;
-use prjcombine_types::bsdata::BsData;
 use prjcombine_xilinx_bitstream::Reg;
 use std::collections::HashMap;
 use std::error::Error;
@@ -35,7 +34,7 @@ use crate::collector::CollectorCtx;
 struct Args {
     toolchain: PathBuf,
     geomdb: PathBuf,
-    tiledb: PathBuf,
+    bitdb: PathBuf,
     parts: Vec<String>,
     #[arg(long)]
     skip_io: bool,
@@ -103,7 +102,7 @@ impl RunOpts {
     }
 }
 
-fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &RunOpts) {
+fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opts: &RunOpts) {
     println!("part {name}", name = part.name);
     let mut opts = *opts;
     let gedev = db.expand_grid(part);
@@ -418,7 +417,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &R
         device: part,
         edev: &gedev,
         db,
-        collector: Collector::new(&mut state, tiledb, gedev.db),
+        collector: Collector::new(&mut state, data, gedev.db),
         empty_bs: &empty_bs,
     };
     match gedev {
@@ -682,8 +681,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &R
             for i in 0..32 {
                 idcode.push((val & 1 << i) != 0);
             }
-            ctx.tiledb
-                .insert_device_data(&part.name, format!("IDCODE:{die}"), idcode);
+            ctx.insert_device_data(format!("IDCODE:{die}"), idcode);
         }
     }
     for (&dir, gtzbs) in &ctx.empty_bs.gtz {
@@ -695,8 +693,7 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, tiledb: &mut BsData, opts: &R
         for i in 0..32 {
             idcode.push((gtzbs.idcode & 1 << i) != 0);
         }
-        ctx.tiledb
-            .insert_device_data(&part.name, format!("IDCODE:{which}"), idcode);
+        ctx.insert_device_data(format!("IDCODE:{which}"), idcode);
     }
 
     for (key, data) in &ctx.state.features {
@@ -708,7 +705,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let tc = Toolchain::from_file(&args.toolchain)?;
     let db = GeomDb::from_file(args.geomdb)?;
-    let mut tiledb = BsData::new();
+    let mut data = CollectorData::default();
     let opts = RunOpts {
         skip_io: args.skip_io,
         skip_clk: args.skip_clk,
@@ -734,16 +731,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.parts.is_empty() {
         match db.chips.first().unwrap() {
             prjcombine_re_xilinx_geom::Chip::Virtex(_) => {
-                run(&tc, &db, parts_dict[&"xcv400"], &mut tiledb, &opts);
-                run(&tc, &db, parts_dict[&"xc2s50e"], &mut tiledb, &opts);
-                run(&tc, &db, parts_dict[&"xc2s50"], &mut tiledb, &opts);
-                run(&tc, &db, parts_dict[&"xcv405e"], &mut tiledb, &opts);
+                run(&tc, &db, parts_dict[&"xcv400"], &mut data, &opts);
+                run(&tc, &db, parts_dict[&"xc2s50e"], &mut data, &opts);
+                run(&tc, &db, parts_dict[&"xc2s50"], &mut data, &opts);
+                run(&tc, &db, parts_dict[&"xcv405e"], &mut data, &opts);
                 if !args.skip_devdata {
                     let mut xopts = opts;
                     xopts.skip_all();
                     xopts.devdata_only = true;
                     for part in &db.devices {
-                        run(&tc, &db, part, &mut tiledb, &xopts);
+                        run(&tc, &db, part, &mut data, &xopts);
                     }
                 }
             }
@@ -751,21 +748,21 @@ fn main() -> Result<(), Box<dyn Error>> {
                 prjcombine_virtex2::chip::ChipKind::Virtex2
                 | prjcombine_virtex2::chip::ChipKind::Virtex2P
                 | prjcombine_virtex2::chip::ChipKind::Virtex2PX => {
-                    run(&tc, &db, parts_dict[&"xc2v40"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc2vp4"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc2vpx20"], &mut tiledb, &opts);
+                    run(&tc, &db, parts_dict[&"xc2v40"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc2vp4"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc2vpx20"], &mut data, &opts);
                     if !args.skip_io {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_io = opts.skip_io;
-                        run(&tc, &db, parts_dict[&"xc2v250"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc2v250"], &mut data, &xopts);
                     }
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.devdata_only = true;
                         for part in &db.devices {
-                            run(&tc, &db, part, &mut tiledb, &xopts);
+                            run(&tc, &db, part, &mut data, &xopts);
                         }
                     }
                 }
@@ -774,120 +771,120 @@ fn main() -> Result<(), Box<dyn Error>> {
                 | prjcombine_virtex2::chip::ChipKind::Spartan3E
                 | prjcombine_virtex2::chip::ChipKind::Spartan3A
                 | prjcombine_virtex2::chip::ChipKind::Spartan3ADsp => {
-                    run(&tc, &db, parts_dict[&"xc3s200"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3s100e"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3s250e"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3s500e"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3s1200e"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3s1600e"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3s50a"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3s700a"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xc3sd1800a"], &mut tiledb, &opts);
-                    run(&tc, &db, parts_dict[&"xcexf10"], &mut tiledb, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s200"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s100e"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s250e"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s500e"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s1200e"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s1600e"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s50a"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3s700a"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xc3sd1800a"], &mut data, &opts);
+                    run(&tc, &db, parts_dict[&"xcexf10"], &mut data, &opts);
                     if !args.skip_core || !args.skip_io {
                         // dummy DCM int; more VREF
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_core = opts.skip_core;
                         xopts.skip_io = opts.skip_io;
-                        run(&tc, &db, parts_dict[&"xc3s4000"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc3s4000"], &mut data, &xopts);
                     }
                     if !args.skip_io {
                         // more VREF
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_io = opts.skip_io;
-                        run(&tc, &db, parts_dict[&"xc3s1000"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc3s1000"], &mut data, &xopts);
                     }
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.devdata_only = true;
                         for part in &db.devices {
-                            run(&tc, &db, part, &mut tiledb, &xopts);
+                            run(&tc, &db, part, &mut data, &xopts);
                         }
                     }
                 }
             },
             prjcombine_re_xilinx_geom::Chip::Spartan6(_) => {
-                run(&tc, &db, parts_dict[&"xc6slx75t"], &mut tiledb, &opts);
+                run(&tc, &db, parts_dict[&"xc6slx75t"], &mut data, &opts);
                 if !args.skip_devdata {
                     let mut xopts = opts;
                     xopts.skip_all();
                     xopts.devdata_only = true;
                     for part in &db.devices {
-                        run(&tc, &db, part, &mut tiledb, &xopts);
+                        run(&tc, &db, part, &mut data, &xopts);
                     }
                 }
             }
             prjcombine_re_xilinx_geom::Chip::Virtex4(grid) => match grid.kind {
                 prjcombine_virtex4::chip::ChipKind::Virtex4 => {
-                    run(&tc, &db, parts_dict[&"xc4vfx60"], &mut tiledb, &opts);
+                    run(&tc, &db, parts_dict[&"xc4vfx60"], &mut data, &opts);
                     if !opts.skip_io {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_io = opts.skip_io;
-                        run(&tc, &db, parts_dict[&"xc4vlx60"], &mut tiledb, &xopts);
-                        run(&tc, &db, parts_dict[&"xc4vlx100"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc4vlx60"], &mut data, &xopts);
+                        run(&tc, &db, parts_dict[&"xc4vlx100"], &mut data, &xopts);
                     }
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.devdata_only = true;
                         for part in &db.devices {
-                            run(&tc, &db, part, &mut tiledb, &xopts);
+                            run(&tc, &db, part, &mut data, &xopts);
                         }
                     }
                 }
                 prjcombine_virtex4::chip::ChipKind::Virtex5 => {
-                    run(&tc, &db, parts_dict[&"xc5vtx150t"], &mut tiledb, &opts);
+                    run(&tc, &db, parts_dict[&"xc5vtx150t"], &mut data, &opts);
                     if !opts.skip_gt {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_gt = opts.skip_gt;
-                        run(&tc, &db, parts_dict[&"xc5vlx30t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc5vlx30t"], &mut data, &xopts);
                     }
                     if !opts.skip_hard {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_hard = opts.skip_hard;
-                        run(&tc, &db, parts_dict[&"xc5vfx70t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc5vfx70t"], &mut data, &xopts);
                     }
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.devdata_only = true;
                         for part in &db.devices {
-                            run(&tc, &db, part, &mut tiledb, &xopts);
+                            run(&tc, &db, part, &mut data, &xopts);
                         }
                     }
                 }
                 prjcombine_virtex4::chip::ChipKind::Virtex6 => {
-                    run(&tc, &db, parts_dict[&"xc6vlx75t"], &mut tiledb, &opts);
+                    run(&tc, &db, parts_dict[&"xc6vlx75t"], &mut data, &opts);
                     if !opts.skip_gt {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_gt = opts.skip_gt;
-                        run(&tc, &db, parts_dict[&"xc6vhx255t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc6vhx255t"], &mut data, &xopts);
                     }
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.devdata_only = true;
                         for part in &db.devices {
-                            run(&tc, &db, part, &mut tiledb, &xopts);
+                            run(&tc, &db, part, &mut data, &xopts);
                         }
                     }
                 }
                 prjcombine_virtex4::chip::ChipKind::Virtex7 => {
-                    run(&tc, &db, parts_dict[&"xc7k70t"], &mut tiledb, &opts);
+                    run(&tc, &db, parts_dict[&"xc7k70t"], &mut data, &opts);
                     if !opts.skip_gt {
                         // GTP
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.skip_gt = opts.skip_gt;
-                        run(&tc, &db, parts_dict[&"xc7a50t"], &mut tiledb, &xopts);
-                        run(&tc, &db, parts_dict[&"xc7a200t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc7a50t"], &mut data, &xopts);
+                        run(&tc, &db, parts_dict[&"xc7a200t"], &mut data, &xopts);
                     }
                     if !opts.skip_clk || !opts.skip_hard {
                         // left PCIE
@@ -896,7 +893,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         xopts.skip_hard = opts.skip_hard;
                         xopts.skip_gt = opts.skip_gt;
                         xopts.max_threads = Some(12);
-                        run(&tc, &db, parts_dict[&"xc7vx485t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc7vx485t"], &mut data, &xopts);
                     }
                     if !opts.skip_clk || !opts.skip_hard || !opts.skip_gt {
                         // GTH, CLK_BALI_REBUF, PCIE3
@@ -907,7 +904,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         xopts.skip_gt = opts.skip_gt;
                         xopts.skip_gtz = opts.skip_gtz;
                         xopts.max_threads = Some(8);
-                        run(&tc, &db, parts_dict[&"xc7vx1140t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc7vx1140t"], &mut data, &xopts);
                     }
                     if !opts.skip_gtz {
                         // GTZ
@@ -915,56 +912,59 @@ fn main() -> Result<(), Box<dyn Error>> {
                         xopts.skip_all();
                         xopts.skip_gtz = opts.skip_gtz;
                         xopts.max_threads = Some(8);
-                        run(&tc, &db, parts_dict[&"xc7vh870t"], &mut tiledb, &xopts);
+                        run(&tc, &db, parts_dict[&"xc7vh870t"], &mut data, &xopts);
                     }
                     if !args.skip_devdata {
                         let mut xopts = opts;
                         xopts.skip_all();
                         xopts.devdata_only = true;
                         for part in &db.devices {
-                            run(&tc, &db, part, &mut tiledb, &xopts);
+                            run(&tc, &db, part, &mut data, &xopts);
                         }
                     }
                 }
             },
             _ => {
                 for part in &db.devices {
-                    run(&tc, &db, part, &mut tiledb, &opts);
+                    run(&tc, &db, part, &mut data, &opts);
                 }
             }
         }
     } else {
         for pname in args.parts {
             let part = parts_dict[&&pname[..]];
-            run(&tc, &db, part, &mut tiledb, &opts);
+            run(&tc, &db, part, &mut data, &opts);
         }
     }
     // inter-part fixups!
-    for part in Vec::from_iter(tiledb.device_data.keys().cloned()) {
+    for part in Vec::from_iter(data.bsdata.device_data.keys().cloned()) {
         if part.starts_with("xq2vp") {
             let xc_part = "xc".to_string() + &part[2..];
-            if tiledb.device_data.contains_key(&xc_part) {
+            if data.bsdata.device_data.contains_key(&xc_part) {
                 for key in ["DCM:DESKEW_ADJUST", "DCM:VBG_SEL", "DCM:VBG_PD"] {
-                    if let Some(val) = tiledb.device_data[&xc_part].get(key) {
+                    if let Some(val) = data.bsdata.device_data[&xc_part].get(key) {
                         let val = val.clone();
-                        tiledb.insert_device_data(&part, key, val);
+                        data.bsdata.insert_device_data(&part, key, val);
                     }
                 }
             }
         }
     }
-    if let Some(tile) = tiledb.tiles.get("INT_GT_CLKPAD") {
+    if let Some(tile) = data.bsdata.tiles.get("INT_GT_CLKPAD") {
         let dcmclk0 = tile.items["INT:INV.IMUX_DCM_CLK[0]"].clone();
         let dcmclk1 = tile.items["INT:INV.IMUX_DCM_CLK[1]"].clone();
         let dcmclk2 = tile.items["INT:INV.IMUX_DCM_CLK[2]"].clone();
         for tile in ["INT_DCM_V2", "INT_DCM_V2P"] {
-            if tiledb.tiles.contains_key(tile) {
-                tiledb.insert(tile, "INT", "INV.IMUX_DCM_CLK[0]", dcmclk0.clone());
-                tiledb.insert(tile, "INT", "INV.IMUX_DCM_CLK[1]", dcmclk1.clone());
-                tiledb.insert(tile, "INT", "INV.IMUX_DCM_CLK[2]", dcmclk2.clone());
+            if data.bsdata.tiles.contains_key(tile) {
+                data.bsdata
+                    .insert(tile, "INT", "INV.IMUX_DCM_CLK[0]", dcmclk0.clone());
+                data.bsdata
+                    .insert(tile, "INT", "INV.IMUX_DCM_CLK[1]", dcmclk1.clone());
+                data.bsdata
+                    .insert(tile, "INT", "INV.IMUX_DCM_CLK[2]", dcmclk2.clone());
             }
         }
     }
-    tiledb.to_file(&args.tiledb)?;
+    data.to_file(&args.bitdb)?;
     Ok(())
 }

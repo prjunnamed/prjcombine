@@ -437,7 +437,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
     }
 
     for addr in 0..0x20 {
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             format!("DRP{addr:02X}"),
@@ -602,7 +602,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
     }
 
     // sigh. bug. again. murder me with a rusty spoon.
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "PLL_CP",
@@ -623,14 +623,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
         .get_diff(tile, bel, "PLL_EN", "TRUE")
         .assert_empty();
 
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "PLL_EN",
         TileItem::from_bit(reg_bit(0x1a, 8), false),
     );
 
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "PLL_DIVCLK_EN",
@@ -724,144 +724,97 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
         let diff2 = ctx.state.get_diff(tile, bel, "MUX.CLKIN2", val2);
         let diff2 = diff2.combine(&!&diff1);
         diffs.push((val, diff1));
-        ctx.tiledb
-            .insert(tile, bel, "CLKINSEL_STATIC", xlat_bit(diff2));
+        ctx.insert(tile, bel, "CLKINSEL_STATIC", xlat_bit(diff2));
     }
     for val in ["CKINT1", "CLK_FROM_DCM0", "CLK_FROM_DCM1"] {
         let mut diff = ctx.state.get_diff(tile, bel, "MUX.CLKIN2", val);
-        diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLKINSEL_STATIC"), true, false);
+        diff.apply_bit_diff(ctx.item(tile, bel, "CLKINSEL_STATIC"), true, false);
         diffs.push((val, diff));
     }
-    ctx.tiledb
-        .insert(tile, bel, "MUX.CLKIN", xlat_enum_ocd(diffs, OcdMode::Mux));
+    ctx.insert(tile, bel, "MUX.CLKIN", xlat_enum_ocd(diffs, OcdMode::Mux));
 
     let diff = ctx.state.get_diff(tile, bel, "PLL_CLKCNTRL", "");
-    ctx.tiledb
-        .insert(tile, bel, "CLKIN_CLKFBIN_USED", xlat_bit(!diff));
+    ctx.insert(tile, bel, "CLKIN_CLKFBIN_USED", xlat_bit(!diff));
 
     let mut diffs = ctx.state.get_diffs(tile, bel, "PLL_IO_CLKSRC", "");
-    diffs[0].apply_enum_diff(
-        ctx.tiledb.item(tile, bel, "CLKINSEL_MODE"),
-        "DYNAMIC",
-        "STATIC",
-    );
-    diffs[1].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.CLKINSEL"), false, true);
+    diffs[0].apply_enum_diff(ctx.item(tile, bel, "CLKINSEL_MODE"), "DYNAMIC", "STATIC");
+    diffs[1].apply_bit_diff(ctx.item(tile, bel, "INV.CLKINSEL"), false, true);
     for diff in diffs {
         diff.assert_empty();
     }
 
     let mut diffs = ctx.state.get_diffs(tile, bel, "PLL_OPT_INV", "");
-    diffs[0].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.RST"), true, false);
-    diffs[1].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.MANPDLF"), true, false);
-    diffs[2].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.MANPULF"), true, false);
-    diffs[3].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.REL"), false, true);
-    diffs[4].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.CLKBRST"), true, false);
-    diffs[5].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.ENOUTSYNC"), true, false);
+    diffs[0].apply_bit_diff(ctx.item(tile, bel, "INV.RST"), true, false);
+    diffs[1].apply_bit_diff(ctx.item(tile, bel, "INV.MANPDLF"), true, false);
+    diffs[2].apply_bit_diff(ctx.item(tile, bel, "INV.MANPULF"), true, false);
+    diffs[3].apply_bit_diff(ctx.item(tile, bel, "INV.REL"), false, true);
+    diffs[4].apply_bit_diff(ctx.item(tile, bel, "INV.CLKBRST"), true, false);
+    diffs[5].apply_bit_diff(ctx.item(tile, bel, "INV.ENOUTSYNC"), true, false);
     for diff in diffs {
         diff.assert_empty();
     }
 
     let mut diffs = ctx.state.get_diffs(tile, bel, "PLL_SKEW_CNTRL", "");
-    diffs[0].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.SKEWSTB"), true, false);
-    diffs[1].apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.SKEWRST"), true, false);
+    diffs[0].apply_bit_diff(ctx.item(tile, bel, "INV.SKEWSTB"), true, false);
+    diffs[1].apply_bit_diff(ctx.item(tile, bel, "INV.SKEWRST"), true, false);
     for diff in diffs {
         diff.assert_empty();
     }
 
     // um?
     present.apply_enum_diff(
-        ctx.tiledb.item(tile, bel, "MUX.CLKFBIN"),
+        ctx.item(tile, bel, "MUX.CLKFBIN"),
         "BUFIO2FB_LR7",
         "BUFIO2FB_BT0",
     );
     present.apply_enum_diff(
-        ctx.tiledb.item(tile, bel, "MUX.CLKIN"),
+        ctx.item(tile, bel, "MUX.CLKIN"),
         "BUFIO2_LR3_7",
         "BUFIO2_BT0_4",
     );
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "CLKINSEL_STATIC"), true, false);
-    present.apply_enum_diff(
-        ctx.tiledb.item(tile, bel, "MUX.CLK_TO_DCM0"),
-        "NONE",
-        "CLKOUT0",
-    );
-    present.apply_enum_diff(
-        ctx.tiledb.item(tile, bel, "MUX.CLK_TO_DCM1"),
-        "NONE",
-        "CLKOUT0",
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_CLKOUT0_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_CLKOUT1_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_CLKOUT2_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_CLKOUT3_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_CLKOUT4_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_CLKOUT5_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_CLKFBOUT_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(
-        ctx.tiledb.item(tile, bel, "PLL_DIVCLK_NOCOUNT"),
-        true,
-        false,
-    );
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "PLL_EN_DLY"), false, true);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "PLL_EN"), true, false);
-    present.apply_bit_diff(ctx.tiledb.item(tile, bel, "PLL_DIVCLK_EN"), true, false);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_DIVCLK_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_DIVCLK_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT0_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT0_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT1_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT1_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT2_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT2_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT3_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT3_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT4_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT4_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT5_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKOUT5_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKFBOUT_LT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CLKFBOUT_HT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"), 0x11, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0xa, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_LOCK_CNT"), 0x3e8, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_UNLOCK_CNT"), 1, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_LOCK_SAT_HIGH"), 0x3e9, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_LOCK_REF_DLY"), 0x9, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_LOCK_FB_DLY"), 0x7, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_LFHF"), 3, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_RES"), 11, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CP"), 2, 0);
-    present.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_CP_REPL"), 2, 0);
+    present.apply_bit_diff(ctx.item(tile, bel, "CLKINSEL_STATIC"), true, false);
+    present.apply_enum_diff(ctx.item(tile, bel, "MUX.CLK_TO_DCM0"), "NONE", "CLKOUT0");
+    present.apply_enum_diff(ctx.item(tile, bel, "MUX.CLK_TO_DCM1"), "NONE", "CLKOUT0");
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_CLKOUT0_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_CLKOUT1_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_CLKOUT2_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_CLKOUT3_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_CLKOUT4_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_CLKOUT5_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_CLKFBOUT_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_DIVCLK_NOCOUNT"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_EN_DLY"), false, true);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_EN"), true, false);
+    present.apply_bit_diff(ctx.item(tile, bel, "PLL_DIVCLK_EN"), true, false);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_DIVCLK_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_DIVCLK_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT0_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT0_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT1_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT1_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT2_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT2_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT3_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT3_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT4_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT4_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT5_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKOUT5_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKFBOUT_LT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CLKFBOUT_HT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_SET"), 0x11, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0xa, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_LOCK_CNT"), 0x3e8, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_UNLOCK_CNT"), 1, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_LOCK_SAT_HIGH"), 0x3e9, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_LOCK_REF_DLY"), 0x9, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_LOCK_FB_DLY"), 0x7, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_LFHF"), 3, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_RES"), 11, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CP"), 2, 0);
+    present.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_CP_REPL"), 2, 0);
 
-    ctx.tiledb.insert(tile, bel, "ENABLE", xlat_bit(present));
+    ctx.insert(tile, bel, "ENABLE", xlat_bit(present));
 
     ctx.state
         .get_diff(tile, bel, "COMPENSATION", "SYSTEM_SYNCHRONOUS")
@@ -869,28 +822,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
     let mut diff = ctx
         .state
         .get_diff(tile, bel, "COMPENSATION", "SOURCE_SYNCHRONOUS");
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
     diff.assert_empty();
     let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "EXTERNAL");
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
-    diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PLL_EN_DLY"), true, false);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
+    diff.apply_bit_diff(ctx.item(tile, bel, "PLL_EN_DLY"), true, false);
     diff.assert_empty();
     let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "INTERNAL");
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_INTFB"), 2, 0);
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
-    diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PLL_EN_DLY"), true, false);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_INTFB"), 2, 0);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
+    diff.apply_bit_diff(ctx.item(tile, bel, "PLL_EN_DLY"), true, false);
     diff.assert_empty();
     let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "DCM2PLL");
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
-    diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PLL_EN_DLY"), true, false);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
+    diff.apply_bit_diff(ctx.item(tile, bel, "PLL_EN_DLY"), true, false);
     diff.assert_empty();
     let mut diff = ctx.state.get_diff(tile, bel, "COMPENSATION", "PLL2DCM");
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
-    diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
-    diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "PLL_EN_DLY"), true, false);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_SET"), 0, 0x11);
+    diff.apply_bitvec_diff_int(ctx.item(tile, bel, "PLL_IN_DLY_MX_SEL"), 0, 0xa);
+    diff.apply_bit_diff(ctx.item(tile, bel, "PLL_EN_DLY"), true, false);
     diff.assert_empty();
 
     for mult in 1..=64 {
@@ -906,7 +859,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
                 ("PLL_UNLOCK_CNT", 10),
             ] {
                 let val = extract_bitvec_val_part(
-                    ctx.tiledb.item(tile, bel, attr),
+                    ctx.item(tile, bel, attr),
                     &BitVec::repeat(false, width),
                     &mut diff,
                 );
@@ -916,8 +869,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
                         ival |= 1 << i;
                     }
                 }
-                ctx.tiledb
-                    .insert_misc_data(format!("PLL:{attr}:{mult}"), ival);
+                ctx.insert_misc_data(format!("PLL:{attr}:{mult}"), ival);
             }
             for (attr, width) in [
                 ("PLL_CP_REPL", 4),
@@ -926,7 +878,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
                 ("PLL_LFHF", 2),
             ] {
                 let val = extract_bitvec_val_part(
-                    ctx.tiledb.item(tile, bel, attr),
+                    ctx.item(tile, bel, attr),
                     &BitVec::repeat(false, width),
                     &mut diff,
                 );
@@ -936,8 +888,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
                         ival |= 1 << i;
                     }
                 }
-                ctx.tiledb
-                    .insert_misc_data(format!("PLL:{attr}:{bandwidth}:{mult}"), ival);
+                ctx.insert_misc_data(format!("PLL:{attr}:{bandwidth}:{mult}"), ival);
             }
             for attr in [
                 "PLL_CLKFBOUT_NOCOUNT",
@@ -945,7 +896,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
                 "PLL_CLKFBOUT_HT",
                 "PLL_CLKFBOUT_EDGE",
             ] {
-                diff.discard_bits(ctx.tiledb.item(tile, bel, attr));
+                diff.discard_bits(ctx.item(tile, bel, attr));
             }
             diff.assert_empty();
         }
@@ -978,7 +929,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_dcm: bool) {
     let bel = "CMT";
     let mut diff = ctx.state.get_diff(tile, bel, "PRESENT_ANY_PLL", "1");
     if !skip_dcm {
-        diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "BG"), 0x520, 1);
+        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "BG"), 0x520, 1);
         diff.assert_empty();
     }
     for bel in ["DCM0", "DCM1"] {

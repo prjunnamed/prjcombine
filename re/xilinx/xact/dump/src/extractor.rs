@@ -4,11 +4,14 @@ use std::{
 };
 
 use ndarray::Array2;
-use prjcombine_entity::{EntityBitVec, EntityId, EntityMap, EntityPartVec, EntityVec, entity_id};
+use prjcombine_entity::{
+    EntityBitVec, EntityBundleItemIndex, EntityId, EntityMap, EntityPartVec, EntityVec, entity_id,
+};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelSlotId, BiPass, IntDb, Mux, Pass, PermaBuf, ProgBuf, SwitchBoxItem,
-        TileClassId, TileSlotId, TileWireCoord, WireSlotId,
+        BelInfo, BelInputId, BelKind, BelOutputId, BelSlotId, BiPass, IntDb, Mux, Pass, PermaBuf,
+        PolTileWireCoord, ProgBuf, SwitchBoxItem, TileClassId, TileSlotId, TileWireCoord,
+        WireSlotId,
     },
     dir::Dir,
     grid::{BelCoord, CellCoord, ExpandedGrid, TileCoord, WireCoord},
@@ -70,7 +73,8 @@ pub struct Extractor<'a> {
     pub int_pip_force_dst: BTreeMap<(NetId, NetId), TileWireCoord>,
     pub used_pips: BTreeSet<(NetId, NetId)>,
     pub bel_pips: EntityVec<TileNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
-    pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
+    pub injected_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, PolTileWireCoord)>>,
+    pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, PolTileWireCoord)>>,
     pub int_pips:
         EntityPartVec<TileNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
     pub net_by_cell_override: BTreeMap<CellCoord, BTreeMap<NetId, WireSlotId>>,
@@ -79,7 +83,7 @@ pub struct Extractor<'a> {
 
 pub struct Finisher {
     pub bel_pips: EntityVec<TileNamingId, BTreeMap<(BelSlotId, String), PipNaming>>,
-    pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, TileWireCoord)>>,
+    pub tcls_pips: EntityPartVec<TileClassId, BTreeSet<(TileWireCoord, PolTileWireCoord)>>,
     pub int_pips:
         EntityPartVec<TileNamingId, BTreeMap<(TileWireCoord, TileWireCoord), IntPipNaming>>,
 }
@@ -139,6 +143,7 @@ impl<'a> Extractor<'a> {
                 .ids()
                 .map(|_| Default::default())
                 .collect(),
+            injected_pips: EntityPartVec::new(),
             tcls_pips: EntityPartVec::new(),
             int_pips: EntityPartVec::new(),
             net_by_cell_override: Default::default(),
@@ -337,10 +342,45 @@ impl<'a> Extractor<'a> {
         }
     }
 
+    pub fn pin_bel_input(&mut self, prim: &mut PrimExtractor<'a>, bel: BelCoord, pid: BelInputId) {
+        let BelKind::Class(bcid) = self.egrid.db.bel_slots[bel.slot].kind else {
+            unreachable!()
+        };
+        let bcls = &self.egrid.db[bcid];
+        let (pname, idx) = bcls.inputs.key(pid);
+        assert_eq!(idx, EntityBundleItemIndex::Single);
+        let net_id = prim.get_pin(pname);
+        let wire = self.egrid.get_bel_input(bel, pid);
+        self.net_int(net_id, wire.wire);
+    }
+
+    pub fn pin_bel_output(
+        &mut self,
+        prim: &mut PrimExtractor<'a>,
+        bel: BelCoord,
+        pid: BelOutputId,
+    ) {
+        let BelKind::Class(bcid) = self.egrid.db.bel_slots[bel.slot].kind else {
+            unreachable!()
+        };
+        let bcls = &self.egrid.db[bcid];
+        let (pname, idx) = bcls.outputs.key(pid);
+        assert_eq!(idx, EntityBundleItemIndex::Single);
+        let net_id = prim.get_pin(pname);
+        let wires = self.egrid.get_bel_output(bel, pid);
+        for wire in wires {
+            self.net_int(net_id, wire);
+        }
+    }
+
+    pub fn get_wire_net(&self, wire: WireCoord) -> NetId {
+        let wire = self.egrid.resolve_wire(wire).unwrap();
+        self.int_nets[&wire]
+    }
+
     pub fn get_bel_int_net(&self, bel: BelCoord, pin: &'a str) -> NetId {
         let w = self.egrid.get_bel_pin(bel, pin);
-        let w = self.egrid.resolve_wire(w[0]).unwrap();
-        self.int_nets[&w]
+        self.get_wire_net(w[0])
     }
 
     #[track_caller]
@@ -517,6 +557,13 @@ impl<'a> Extractor<'a> {
         self.int_pip_force_dst.insert((net_t, net_f), nw);
     }
 
+    pub fn inject_pip(&mut self, tcid: TileClassId, dst: TileWireCoord, src: PolTileWireCoord) {
+        if !self.injected_pips.contains_id(tcid) {
+            self.injected_pips.insert(tcid, Default::default());
+        }
+        self.injected_pips[tcid].insert((dst, src));
+    }
+
     fn extract_tiles(&mut self) {
         let mut tile_boxes: BTreeMap<_, Vec<_>> = BTreeMap::new();
         for (box_id, boxx) in &self.die.boxes {
@@ -612,7 +659,7 @@ impl<'a> Extractor<'a> {
                                 let pip_t = self.xlat_pip_loc(tcrd, (tx, ty));
                                 let pip_f = self.xlat_pip_loc(tcrd, (fx, fy));
                                 int_pips.insert((nwt, nwf), IntPipNaming::Box(pip_t, pip_f));
-                                muxes.insert((nwt, nwf));
+                                muxes.insert((nwt, nwf.pos()));
                             }
                         }
                     }
@@ -638,8 +685,13 @@ impl<'a> Extractor<'a> {
                     int_pips.insert((nwt, nwf), IntPipNaming::Pip(pip));
                     self.use_pip(nt, nf);
                     if !self.tbuf_pseudos.contains(&(nt, nf)) {
-                        muxes.insert((nwt, nwf));
+                        muxes.insert((nwt, nwf.pos()));
                     }
+                }
+            }
+            if let Some(extra_pips) = self.injected_pips.get(tile.class) {
+                for &(k, v) in extra_pips {
+                    muxes.insert((k, v));
                 }
             }
             if !self.tcls_pips.contains_id(tile.class) {
@@ -707,7 +759,8 @@ impl Finisher {
         mut self,
         db: &mut IntDb,
         ndb: &mut NamingDb,
-        mut classify_pip: impl FnMut(&IntDb, TileSlotId, TileWireCoord, TileWireCoord) -> PipMode,
+        mut classify_pip: impl FnMut(&IntDb, TileSlotId, TileWireCoord, PolTileWireCoord) -> PipMode,
+        keep_all_tcls: bool,
     ) {
         let mut new_tile_namings = EntityMap::new();
         for (naming, name, mut tile_naming) in core::mem::take(&mut ndb.tile_namings) {
@@ -719,31 +772,29 @@ impl Finisher {
         }
         ndb.tile_namings = new_tile_namings;
         let mut new_tile_classes = EntityMap::new();
-        for (kind, name, mut tcls) in core::mem::take(&mut db.tile_classes) {
-            if let Some(pips) = self.tcls_pips.remove(kind) {
+        for (tcid, name, mut tcls) in core::mem::take(&mut db.tile_classes) {
+            if let Some(pips) = self.tcls_pips.remove(tcid) {
                 let mut muxes: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
                 let mut items = vec![];
                 let mut passes = BTreeSet::new();
                 for (wt, wf) in pips {
                     match classify_pip(db, tcls.slot, wt, wf) {
                         PipMode::Mux => {
-                            muxes.entry(wt).or_default().insert(wf.pos());
+                            muxes.entry(wt).or_default().insert(wf);
                         }
                         PipMode::PermaBuf => {
-                            items.push(SwitchBoxItem::PermaBuf(PermaBuf {
-                                dst: wt,
-                                src: wf.pos(),
-                            }));
+                            items.push(SwitchBoxItem::PermaBuf(PermaBuf { dst: wt, src: wf }));
                         }
                         PipMode::Buf => {
                             items.push(SwitchBoxItem::ProgBuf(ProgBuf {
                                 dst: wt,
-                                src: wf.pos(),
+                                src: wf,
                                 bit: PolTileBit::DUMMY,
                             }));
                         }
                         PipMode::Pass => {
-                            passes.insert((wt, wf));
+                            assert!(!wf.inv);
+                            passes.insert((wt, wf.tw));
                         }
                     }
                 }
@@ -772,16 +823,18 @@ impl Finisher {
                         bits_off: None,
                     }));
                 }
-                items.sort();
-                let mut found = false;
-                for bel in tcls.bels.values_mut() {
-                    if let BelInfo::SwitchBox(sb) = bel {
-                        found = true;
-                        sb.items = items;
-                        break;
+                'found: {
+                    for bel in tcls.bels.values_mut() {
+                        if let BelInfo::SwitchBox(sb) = bel {
+                            sb.items.extend(items);
+                            sb.items.sort();
+                            break 'found;
+                        }
                     }
+                    assert!(items.is_empty());
                 }
-                assert!(found);
+                new_tile_classes.insert(name, tcls);
+            } else if keep_all_tcls {
                 new_tile_classes.insert(name, tcls);
             }
         }

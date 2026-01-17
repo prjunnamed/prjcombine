@@ -160,7 +160,7 @@ pub fn collect_iob(
 }
 
 pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> CollectorData {
-    let mut tiledb = BsData::new();
+    let mut data = CollectorData::default();
     let mut state = State::new();
     let mut bitvec_diffs: BTreeMap<DiffKey, BTreeMap<usize, Diff>> = BTreeMap::new();
     for (key, bits) in &harvester.known_global {
@@ -199,7 +199,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
             },
         );
     }
-    let mut collector = Collector::new(&mut state, &mut tiledb, edev.db);
+    let mut collector = Collector::new(&mut state, &mut data, edev.db);
 
     for (tcid, _, tcls) in &edev.db.tile_classes {
         if edev.tile_index[tcid].is_empty() {
@@ -263,8 +263,9 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                                     diffs.push((Some(wg), diff));
                                 }
                                 if !diffs_global_out.is_empty() {
-                                    collector.data.mux.insert(
-                                        (tcid, gmux.dst),
+                                    collector.insert_mux(
+                                        tcid,
+                                        gmux.dst,
                                         xlat_enum_raw(diffs_global_out, OcdMode::Mux),
                                     );
                                 }
@@ -273,10 +274,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                         if !got_tie && bslot == defs::bslots::INT {
                             diffs.push((None, Diff::default()));
                         }
-                        collector
-                            .data
-                            .mux
-                            .insert((tcid, mux.dst), xlat_enum_raw(diffs, OcdMode::Mux));
+                        collector.insert_mux(tcid, mux.dst, xlat_enum_raw(diffs, OcdMode::Mux));
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
                         collector.collect_progbuf(tcid, buf.dst, buf.src);
@@ -816,13 +814,11 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
         );
     }
 
-    let data = collector.data;
-
     for (key, data) in &state.features {
         println!("uncollected: {key:?}: {diffs:?}", diffs = data.diffs);
     }
 
-    assert_eq!(tiledb, BsData::new());
+    assert_eq!(data.bsdata, BsData::new());
 
     data
 }

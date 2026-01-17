@@ -5,7 +5,8 @@ use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     for tile in ["IO.L", "IO.R", "IO.B", "IO.T"] {
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let tcid = backend.edev.db.get_tile_class(tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..4 {
             let mut bctx = ctx.bel(bels::IO[i]);
             bctx.mode("IO")
@@ -44,24 +45,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for i in 0..4 {
             let bel = &format!("IO{i}");
             let item = ctx.extract_enum_default(tile, bel, "PAD", &["PULLUP", "PULLDOWN"], "NONE");
-            ctx.tiledb.insert(tile, bel, "PULL", item);
+            ctx.insert(tile, bel, "PULL", item);
             let item = ctx.extract_enum_default(tile, bel, "PAD", &["FAST"], "SLOW");
-            ctx.tiledb.insert(tile, bel, "SLEW", item);
+            ctx.insert(tile, bel, "SLEW", item);
             let item = ctx.extract_enum_default(tile, bel, "IN", &["DELAY"], "NODELAY");
-            ctx.tiledb.insert(tile, bel, "DELAYMUX", item);
+            ctx.insert(tile, bel, "DELAYMUX", item);
             let item = ctx.extract_bit(tile, bel, "IN", "NOT");
-            ctx.tiledb.insert(tile, bel, "INV.I", item);
+            ctx.insert(tile, bel, "INV.I", item);
             let item = ctx.extract_bit(tile, bel, "TRI", "NOT");
-            ctx.tiledb.insert(tile, bel, "INV.T", item);
+            ctx.insert(tile, bel, "INV.T", item);
             if tile == "IO.L" || tile == "IO.R" {
                 let item = ctx.extract_bit(tile, bel, "OUT", "NOT");
-                ctx.tiledb.insert(tile, bel, "INV.O", item);
+                ctx.insert(tile, bel, "INV.O", item);
             }
             let mut diff = ctx.state.get_diff(tile, bel, "IN", "I");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "PULL"), "NONE", "PULLUP");
+            diff.apply_enum_diff(ctx.item(tile, bel, "PULL"), "NONE", "PULLUP");
             diff.assert_empty();
             let mut diff = ctx.state.get_diff(tile, bel, "OUT", "O");
-            diff.apply_bit_diff(ctx.tiledb.item(tile, bel, "INV.T"), false, true);
+            diff.apply_bit_diff(ctx.item(tile, bel, "INV.T"), false, true);
             diff.assert_empty();
             ctx.state.get_diff(tile, bel, "TRI", "T").assert_empty();
         }

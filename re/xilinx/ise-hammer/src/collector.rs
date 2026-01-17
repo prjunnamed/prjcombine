@@ -33,9 +33,28 @@ impl DerefMut for CollectorCtx<'_, '_> {
 }
 
 impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
+    pub fn insert(
+        &mut self,
+        tile: impl Into<String>,
+        bel: impl Into<String>,
+        attr: impl Into<String>,
+        item: TileItem,
+    ) {
+        self.data.bsdata.insert(tile, bel, attr, item);
+    }
+
+    pub fn item(&self, tile: &str, bel: &str, attr: &str) -> &TileItem {
+        self.data.bsdata.item(tile, bel, attr)
+    }
+
+    pub fn insert_misc_data(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
+        self.collector.data.bsdata.insert_misc_data(key, val);
+    }
+
     pub fn insert_device_data(&mut self, key: impl Into<String>, val: impl Into<DbValue>) {
         self.collector
-            .tiledb
+            .data
+            .bsdata
             .insert_device_data(&self.device.name, key, val);
     }
 
@@ -47,7 +66,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
 
     pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
         let item = self.extract_inv(tile, bel, pin);
-        self.tiledb.insert(tile, bel, format!("INV.{pin}"), item);
+        self.insert(tile, bel, format!("INV.{pin}"), item);
     }
 
     pub fn has_tile(&self, tile: &str) -> bool {
@@ -92,8 +111,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let wire_name = intdb.wires.key(wire.wire);
         let int_tcname = int_tiles[wire.cell.to_idx()];
         let int_sb = self.int_sb(int_tcname);
-        self.tiledb
-            .insert(int_tcname, int_sb, format!("INV.{wire_name}"), item);
+        self.insert(int_tcname, int_sb, format!("INV.{wire_name}"), item);
     }
 
     pub fn item_int_inv(&self, int_tiles: &[&str], tile: &str, bel: &str, pin: &str) -> TileItem {
@@ -111,7 +129,6 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let int_tcname = int_tiles[wire.cell.to_idx()];
         let int_sb = self.int_sb(int_tcname);
         let mut item = self
-            .tiledb
             .item(int_tcname, int_sb, &format!("INV.{wire_name}"))
             .clone();
         assert_eq!(item.bits.len(), 1);

@@ -160,6 +160,7 @@ pub enum SwitchBoxItem {
     ProgBuf(WireRef, PolWireRef),
     ProgInv(WireRef, WireRef),
     Mux(WireRef, Vec<PolWireRef>),
+    Bidi(TemplateId, WireRef),
     ForLoop(ForLoop<SwitchBoxItem>),
     If(If<SwitchBoxItem>),
 }
@@ -256,6 +257,7 @@ pub enum WireKind {
     MultiRoot,
     MultiBranch(Ident),
     Branch(Ident),
+    Special,
 }
 
 // endregion

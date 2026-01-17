@@ -783,6 +783,7 @@ pub fn make_sample(
                             DiffKey::RoutingInv(
                                 tcid_ioi,
                                 TileWireCoord::new_idx(0, defs::wires::IMUX_IO_ICLK_OPTINV),
+                                true,
                             ),
                         );
                         sample.add_tiled_pattern(
@@ -790,6 +791,7 @@ pub fn make_sample(
                             DiffKey::RoutingInv(
                                 tcid_ioi,
                                 TileWireCoord::new_idx(0, defs::wires::IMUX_IO_OCLK_OPTINV),
+                                true,
                             ),
                         );
                     }
@@ -1010,6 +1012,7 @@ pub fn make_sample(
                             DiffKey::RoutingInv(
                                 tcid,
                                 TileWireCoord::new_idx(0, defs::wires::IMUX_CLK_OPTINV),
+                                true,
                             ),
                         );
                         kind = rest;
@@ -1094,6 +1097,7 @@ pub fn make_sample(
                                 DiffKey::RoutingInv(
                                     defs::tcls::INT_BRAM,
                                     TileWireCoord::new_idx(0, defs::wires::IMUX_CLK_OPTINV),
+                                    true,
                                 ),
                             );
                         } else {
@@ -1639,6 +1643,7 @@ pub fn make_sample(
                                         DiffKey::RoutingInv(
                                             tcid_plb,
                                             TileWireCoord::new_idx(0, defs::wires::IMUX_CLK_OPTINV),
+                                            true,
                                         ),
                                     );
                                 } else {
@@ -2391,6 +2396,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
     result.push(DiffKey::RoutingInv(
         tcid,
         TileWireCoord::new_idx(0, defs::wires::IMUX_CLK_OPTINV),
+        true,
     ));
     if let Some(tcid) = edev.chip.kind.tile_class_colbuf() {
         for i in 0..8 {
@@ -2497,6 +2503,7 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
         result.push(DiffKey::RoutingInv(
             defs::tcls::INT_BRAM,
             TileWireCoord::new_idx(0, defs::wires::IMUX_CLK_OPTINV),
+            true,
         ));
     }
     // IO
@@ -2507,10 +2514,12 @@ pub fn wanted_keys_tiled(edev: &ExpandedDevice) -> Vec<DiffKey> {
         result.push(DiffKey::RoutingInv(
             tcid,
             TileWireCoord::new_idx(0, defs::wires::IMUX_IO_ICLK_OPTINV),
+            true,
         ));
         result.push(DiffKey::RoutingInv(
             tcid,
             TileWireCoord::new_idx(0, defs::wires::IMUX_IO_OCLK_OPTINV),
+            true,
         ));
         for io in 0..2 {
             for i in 0..6 {

@@ -671,7 +671,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         if tcls_index.pips_bwd.is_empty() {
             continue;
         }
-        let mut ctx = FuzzCtx::new(session, backend, tile);
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
         for (&wire_to, ins) in &tcls_index.pips_bwd {
             let out_name = intdb.wires.key(wire_to.wire);
             let mux_name = if tile.starts_with("LL") {
@@ -934,7 +934,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 if item.bits.is_empty() {
                                     println!("UMMM MUX {tcname} {mux_name} is empty");
                                 }
-                                ctx.tiledb.insert(tcname, "INT", mux_name, item);
+                                ctx.insert(tcname, "INT", mux_name, item);
                             } else {
                                 for suffix in ["O", "OQ", "O.NOT", "OQ.NOT"] {
                                     let mut inps = vec![];
@@ -973,7 +973,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     if item.bits.is_empty() {
                                         println!("UMMM MUX {tcname} {mux_name} is empty");
                                     }
-                                    ctx.tiledb.insert(tcname, "INT", &mux_name, item);
+                                    ctx.insert(tcname, "INT", &mux_name, item);
                                     if rect_idx.to_idx() != 0 {
                                         common = Diff {
                                             bits: common
@@ -1073,7 +1073,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if item_i.bits.is_empty() {
                                 println!("UMMM MUX {tcname} {mux_name_i} is empty");
                             }
-                            ctx.tiledb.insert(tcname, "INT", mux_name_i, item_i);
+                            ctx.insert(tcname, "INT", mux_name_i, item_i);
                             let mut common = t_inps[0].1.clone();
                             for (_, diff) in &t_inps {
                                 common.bits.retain(|bit, _| diff.bits.contains_key(bit));
@@ -1092,13 +1092,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if item_t.bits.is_empty() {
                                 println!("UMMM MUX {tcname} {mux_name} is empty");
                             }
-                            ctx.tiledb.insert(tcname, "INT", mux_name, item_t);
-                            ctx.tiledb.insert(
-                                tcname,
-                                format!("TBUF{idx}"),
-                                "DRIVE1",
-                                xlat_bit(!common),
-                            );
+                            ctx.insert(tcname, "INT", mux_name, item_t);
+                            ctx.insert(tcname, format!("TBUF{idx}"), "DRIVE1", xlat_bit(!common));
                         } else {
                             let mut inps = vec![];
                             let mut got_empty = false;
@@ -1165,7 +1160,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         }
                                     }
                                     assert!(got_empty);
-                                    ctx.tiledb.insert(tcname, rbel, rattr, xlat_bit(common));
+                                    ctx.insert(tcname, rbel, rattr, xlat_bit(common));
                                 }
                             }
                             if !got_empty {
@@ -1175,7 +1170,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if item.bits.is_empty() {
                                 println!("UMMM MUX {tcname} {mux_name} is empty");
                             }
-                            ctx.tiledb.insert(tcname, bel, mux_name, item);
+                            ctx.insert(tcname, bel, mux_name, item);
                         }
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
@@ -1198,7 +1193,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             out_name.to_string()
                         };
                         let iname = format!("{:#}.{}", buf.src.cell, wfname);
-                        ctx.tiledb.insert(
+                        ctx.insert(
                             tcname,
                             "INT",
                             format!("BUF.{oname}.{iname}"),
@@ -1225,7 +1220,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             out_name.to_string()
                         };
                         let iname = format!("{:#}.{}", pass.src.cell, wfname);
-                        ctx.tiledb.insert(
+                        ctx.insert(
                             tcname,
                             "INT",
                             format!("PASS.{oname}.{iname}"),
@@ -1258,7 +1253,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
 
                             assert_eq!(diff.bits.len(), 1);
-                            ctx.tiledb.insert(tcname, bel, &name, xlat_bit(diff));
+                            ctx.insert(tcname, bel, &name, xlat_bit(diff));
                         }
                     }
                     _ => unreachable!(),
@@ -1269,11 +1264,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diffs = Vec::from_iter(diffs);
                 let item = xlat_enum(diffs);
                 if prefix == tcname {
-                    ctx.tiledb.insert(tcname, bel, "MUX.O", item);
+                    ctx.insert(tcname, bel, "MUX.O", item);
                 } else {
                     for tile in intdb.tile_classes.keys() {
                         if tile.starts_with(prefix) {
-                            ctx.tiledb.insert(tile, bel, "MUX.O", item.clone());
+                            ctx.insert(tile, bel, "MUX.O", item.clone());
                         }
                     }
                 }
@@ -1293,7 +1288,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = xlat_bit(!common);
         for tile in intdb.tile_classes.keys() {
             if tile.starts_with(prefix) {
-                ctx.tiledb.insert(tile, bel, "INV.T", item.clone());
+                ctx.insert(tile, bel, "INV.T", item.clone());
             }
         }
 
@@ -1305,7 +1300,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = xlat_bit(diff_inv_off_d);
         for tile in intdb.tile_classes.keys() {
             if tile.starts_with(prefix) {
-                ctx.tiledb.insert(tile, bel, "INV.OFF_D", item.clone());
+                ctx.insert(tile, bel, "INV.OFF_D", item.clone());
             }
         }
         assert_eq!(diffs["O1.OQ.NOT"], diffs["O1.OQ"]);
@@ -1321,7 +1316,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = xlat_enum(vec![("O1", Diff::default()), ("O2", diff_mux_off_d_o2)]);
         for tile in intdb.tile_classes.keys() {
             if tile.starts_with(prefix) {
-                ctx.tiledb.insert(tile, bel, "MUX.OFF_D", item.clone());
+                ctx.insert(tile, bel, "MUX.OFF_D", item.clone());
             }
         }
         assert_eq!(diffs["O1.OQ"], diffs["O2.OQ"]);
@@ -1343,14 +1338,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ]);
         for tile in intdb.tile_classes.keys() {
             if tile.starts_with(prefix) {
-                ctx.tiledb.insert(tile, bel, "OMUX", item.clone());
+                ctx.insert(tile, bel, "OMUX", item.clone());
             }
         }
 
         let item = xlat_bit(diff_off_used);
         for tile in intdb.tile_classes.keys() {
             if tile.starts_with(prefix) {
-                ctx.tiledb.insert(tile, bel, "OFF_USED", item.clone());
+                ctx.insert(tile, bel, "OFF_USED", item.clone());
             }
         }
     }

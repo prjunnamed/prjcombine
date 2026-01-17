@@ -1,79 +1,107 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::TileWireCoord,
+    db::{BelKind, TileWireCoord},
     grid::{CellCoord, DieId},
 };
-use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
+use prjcombine_re_fpga_hammer::{Diff, DiffKey, OcdMode, xlat_enum_attr, xlat_enum_raw};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
+use prjcombine_types::bsdata::PolTileBit;
+use prjcombine_xc2000::xc3000::{bcls, bslots, enums, tslots, wires};
 
 use crate::{
     backend::{Key, Value, XactBackend},
     collector::CollectorCtx,
     fbuild::FuzzCtx,
     props::BaseBelNoConfig,
+    specials,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let grid = backend.edev.chip;
-    for (_, tcname, tcls) in &backend.edev.db.tile_classes {
-        if !tcname.starts_with("CLB") {
+    for (tcid, _, tcls) in &backend.edev.db.tile_classes {
+        if tcls.slot != tslots::MAIN {
             continue;
         }
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
         for slot in tcls.bels.ids() {
-            let slot_name = backend.edev.db.bel_slots.key(slot).as_str();
-            if !slot_name.starts_with("IO") {
+            if backend.edev.db.bel_slots[slot].kind != BelKind::Class(bcls::IO) {
                 continue;
             }
             let mut bctx = ctx.bel(slot);
-            bctx.mode("IO").cfg("IN", "I").test_cfg("IN", "IQ");
+            bctx.build()
+                .null_bits()
+                .mode("IO")
+                .cfg("IN", "I")
+                .test_bel_special(specials::IO_IQ)
+                .cfg("IN", "IQ")
+                .commit();
             bctx.mode("IO")
                 .cfg("IN", "I")
-                .test_enum("IN", &["FF", "LATCH"]);
+                .test_bel_attr_as("IN", bcls::IO::IFF_MODE);
             bctx.mode("IO")
                 .cfg("IN", "I")
                 .mutex("TRI", "GND")
-                .test_manual("OUT", "OQ")
+                .test_bel_attr_val(bcls::IO::MUX_O, enums::IO_MUX_O::OQ)
                 .cfg_diff("OUT", "O", "OQ")
                 .commit();
             bctx.mode("IO")
                 .cfg("IN", "I")
                 .mutex("TRI", "GND")
                 .cfg("OUT", "O")
-                .test_cfg("OUT", "NOT");
+                .test_bel_input_inv(bcls::IO::O)
+                .cfg("OUT", "NOT")
+                .commit();
             bctx.mode("IO")
                 .cfg("IN", "I")
                 .mutex("TRI", "GND")
                 .cfg("OUT", "O")
-                .test_cfg("OUT", "FAST");
+                .test_bel_attr_val(bcls::IO::SLEW, enums::IO_SLEW::FAST)
+                .cfg("OUT", "FAST")
+                .commit();
             bctx.mode("IO")
                 .cfg("IN", "I")
                 .mutex("TRI", "T")
                 .cfg("OUT", "O")
                 .cfg("TRI", "T")
-                .test_cfg("TRI", "NOT");
+                .test_bel_input_inv(bcls::IO::T)
+                .cfg("TRI", "NOT")
+                .commit();
         }
-        if tcname.starts_with("CLB.BR") {
-            ctx.test_global("DONE", "DONEPAD", &["PULLUP", "NOPULLUP"]);
-            ctx.test_global("MISC", "REPROGRAM", &["ENABLE", "DISABLE"]);
-            ctx.test_global("MISC", "DONETIME", &["BEFORE", "AFTER"]);
-            ctx.test_global("MISC", "RESETTIME", &["BEFORE", "AFTER"]);
+        if tcls.bels.contains_id(bslots::MISC_SE) {
+            let mut bctx = ctx.bel(bslots::MISC_SE);
+            bctx.test_attr_global_enum_bool_as(
+                "DONEPAD",
+                bcls::MISC_SE::DONE_PULLUP,
+                "NOPULLUP",
+                "PULLUP",
+            );
+            bctx.test_attr_global_enum_bool_as(
+                "REPROGRAM",
+                bcls::MISC_SE::REPROGRAM_ENABLE,
+                "DISABLE",
+                "ENABLE",
+            );
+            bctx.test_attr_global(bcls::MISC_SE::DONETIME);
+            bctx.test_attr_global(bcls::MISC_SE::RESETTIME);
+
+            let mut bctx = ctx.bel(bslots::OSC);
             let tcrd =
                 CellCoord::new(DieId::from_idx(0), grid.col_e(), grid.row_s()).tile(tslots::MAIN);
-            let wt = TileWireCoord::new_idx(0, backend.edev.db.get_wire("IMUX.BUFG"));
-            let wf = TileWireCoord::new_idx(0, backend.edev.db.get_wire("OUT.OSC"));
+            let wt = TileWireCoord::new_idx(0, wires::IMUX_BUFG);
+            let wf = TileWireCoord::new_idx(0, wires::OUT_OSC);
             let crd = backend.ngrid.int_pip(tcrd, wt, wf);
             let rwt = backend.edev.resolve_tile_wire(tcrd, wt).unwrap();
             let rwf = backend.edev.resolve_tile_wire(tcrd, wf).unwrap();
-            for val in ["ENABLE", "DIV2"] {
-                ctx.build()
+            for (vid, val) in [
+                (enums::OSC_MODE::ENABLE, "ENABLE"),
+                (enums::OSC_MODE::DIV2, "DIV2"),
+            ] {
+                bctx.build()
                     .raw(Key::WireMutex(rwt), "OSC_SPECIAL")
                     .raw(Key::WireMutex(rwf), "OSC_SPECIAL")
-                    .test_manual("OSC", "MODE", val)
+                    .test_bel_attr_val(bcls::OSC::MODE, vid)
                     .global_diff("XTALOSC", "DISABLE", val)
                     .raw_diff(Key::Pip(crd), None, Value::FromPin("OSC", "O".into()))
                     .raw_diff(
@@ -81,193 +109,107 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                         None,
                         Value::FromPin("OSC", "O".into()),
                     )
-                    .prop(BaseBelNoConfig::new(bels::IO_S1, "IN".into(), "I".into()))
-                    .prop(BaseBelNoConfig::new(bels::IO_E0, "IN".into(), "I".into()))
+                    .prop(BaseBelNoConfig::new(
+                        bslots::IO_S[1],
+                        "IN".into(),
+                        "I".into(),
+                    ))
+                    .prop(BaseBelNoConfig::new(
+                        bslots::IO_E[0],
+                        "IN".into(),
+                        "I".into(),
+                    ))
                     .commit();
             }
         }
-        if tcname.starts_with("CLB.BL") {
-            ctx.test_global("MISC", "READ", &["COMMAND", "ONCE", "DISABLE"]);
+        if tcls.bels.contains_id(bslots::MISC_SW) {
+            let mut bctx = ctx.bel(bslots::MISC_SW);
+            bctx.test_attr_global_as("READ", bcls::MISC_SW::READBACK_MODE);
         }
-        if tcname.starts_with("CLB.TL") {
-            ctx.test_global("MISC", "INPUT", &["TTL", "CMOS"]);
+        if tcls.bels.contains_id(bslots::MISC_NW) {
+            let mut bctx = ctx.bel(bslots::MISC_NW);
+            bctx.test_attr_global_as("INPUT", bcls::MISC_NW::IO_INPUT_MODE);
         }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for (_, tcname, tcls) in &ctx.edev.db.tile_classes {
-        if tcname == "LLV.RS" {
-            let bel = "MISC";
-            ctx.tiledb.insert(
-                tcname,
-                bel,
-                "TLC",
-                TileItem::from_bit(TileBit::new(0, 0, 0), true),
-            );
-        } else if tcname == "LLV.R" {
-            let bel = "MISC";
-            ctx.tiledb.insert(
-                tcname,
-                bel,
-                "TLC",
-                TileItem::from_bit(TileBit::new(1, 0, 0), true),
-            );
-        }
-        if !tcname.starts_with("CLB") {
+    for (tcid, _, tcls) in &ctx.edev.db.tile_classes {
+        if tcls.slot != tslots::MAIN {
             continue;
         }
-        if !ctx.has_tile(tcname) {
+        if !ctx.has_tile(tcid) {
             continue;
         }
         for slot in tcls.bels.ids() {
-            let bel = ctx.edev.db.bel_slots.key(slot).as_str();
-            if !bel.starts_with("IO") {
+            if ctx.edev.db.bel_slots[slot].kind != BelKind::Class(bcls::IO) {
                 continue;
             }
-            ctx.state.get_diff(tcname, bel, "IN", "IQ").assert_empty();
-            let item = ctx.extract_bit(tcname, bel, "TRI", "NOT");
-            ctx.tiledb.insert(tcname, bel, "INV.T", item);
-            let item = ctx.extract_bit(tcname, bel, "OUT", "NOT");
-            ctx.tiledb.insert(tcname, bel, "INV.O", item);
-            let item = xlat_enum(vec![
-                ("SLOW", Diff::default()),
-                ("FAST", ctx.state.get_diff(tcname, bel, "OUT", "FAST")),
-            ]);
-            ctx.tiledb.insert(tcname, bel, "SLEW", item);
-            let item = xlat_enum(vec![
-                ("O", Diff::default()),
-                ("OFF", ctx.state.get_diff(tcname, bel, "OUT", "OQ")),
-            ]);
-            ctx.tiledb.insert(tcname, bel, "MUX.O", item);
-            let item = ctx.extract_enum_bool(tcname, bel, "IN", "FF", "LATCH");
-            ctx.tiledb.insert(tcname, bel, "IFF_LATCH", item);
+            ctx.collect_bel_input_inv(tcid, slot, bcls::IO::T);
+            ctx.collect_bel_input_inv(tcid, slot, bcls::IO::O);
+            ctx.collect_bel_attr_default(tcid, slot, bcls::IO::SLEW, enums::IO_SLEW::SLOW);
+            ctx.collect_bel_attr_default(tcid, slot, bcls::IO::MUX_O, enums::IO_MUX_O::O);
+            ctx.collect_bel_attr(tcid, slot, bcls::IO::IFF_MODE);
         }
-        for (prefix, bel, what, frame, bit) in [
-            ("CLB.BR", "IO_S0", "I", 28, 1),
-            ("CLB.BR", "IO_S0", "IFF", 25, 0),
-            ("CLB.BR", "IO_S1", "I", 20, 1),
-            ("CLB.BR", "IO_S1", "IFF", 24, 1),
-            ("CLB.B.", "IO_S0", "I", 14, 1),
-            ("CLB.B.", "IO_S0", "IFF", 11, 0),
-            ("CLB.B.", "IO_S1", "I", 6, 1),
-            ("CLB.B.", "IO_S1", "IFF", 10, 1),
-            ("CLB.BL", "IO_S0", "I", 14, 1),
-            ("CLB.BL", "IO_S0", "IFF", 11, 0),
-            ("CLB.BL", "IO_S1", "I", 6, 1),
-            ("CLB.BL", "IO_S1", "IFF", 10, 1),
-            ("CLB.TR", "IO_N0", "I", 28, 8),
-            ("CLB.TR", "IO_N0", "IFF", 25, 9),
-            ("CLB.TR", "IO_N1", "I", 20, 8),
-            ("CLB.TR", "IO_N1", "IFF", 24, 8),
-            ("CLB.T.", "IO_N0", "I", 14, 8),
-            ("CLB.T.", "IO_N0", "IFF", 11, 9),
-            ("CLB.T.", "IO_N1", "I", 6, 8),
-            ("CLB.T.", "IO_N1", "IFF", 10, 8),
-            ("CLB.TS.", "IO_N0", "I", 14, 8),
-            ("CLB.TS.", "IO_N0", "IFF", 11, 9),
-            ("CLB.TS.", "IO_N1", "I", 6, 8),
-            ("CLB.TS.", "IO_N1", "IFF", 10, 8),
-            ("CLB.TL", "IO_N0", "I", 14, 8),
-            ("CLB.TL", "IO_N0", "IFF", 11, 9),
-            ("CLB.TL", "IO_N1", "I", 6, 8),
-            ("CLB.TL", "IO_N1", "IFF", 10, 8),
-            ("CLB.BR", "IO_E0", "I", 13, 7),
-            ("CLB.BR", "IO_E0", "IFF", 9, 10),
-            ("CLB.BR", "IO_E1", "I", 5, 6),
-            ("CLB.BR", "IO_E1", "IFF", 6, 6),
-            ("CLB.R.", "IO_E0", "I", 13, 2),
-            ("CLB.R.", "IO_E0", "IFF", 9, 5),
-            ("CLB.R.", "IO_E1", "I", 5, 1),
-            ("CLB.R.", "IO_E1", "IFF", 6, 1),
-            ("CLB.TR", "IO_E0", "I", 13, 2),
-            ("CLB.TR", "IO_E0", "IFF", 8, 4),
-            ("CLB.TR", "IO_E1", "I", 5, 1),
-            ("CLB.TR", "IO_E1", "IFF", 6, 1),
-            ("CLB.BL", "IO_W0", "I", 2, 11),
-            ("CLB.BL", "IO_W0", "IFF", 8, 11),
-            ("CLB.BL", "IO_W1", "I", 9, 8),
-            ("CLB.BL", "IO_W1", "IFF", 22, 6),
-            ("CLB.L.", "IO_W0", "I", 2, 6),
-            ("CLB.L.", "IO_W0", "IFF", 8, 6),
-            ("CLB.L.", "IO_W1", "I", 9, 3),
-            ("CLB.L.", "IO_W1", "IFF", 22, 1),
-            ("CLB.TL", "IO_W0", "I", 10, 7),
-            ("CLB.TL", "IO_W0", "IFF", 12, 5),
-            ("CLB.TL", "IO_W1", "I", 9, 3),
-            ("CLB.TL", "IO_W1", "IFF", 22, 1),
-        ] {
-            if tcname.starts_with(prefix) {
-                ctx.tiledb.insert(
-                    tcname,
-                    bel,
-                    format!("READBACK_{what}"),
-                    TileItem::from_bit(TileBit::new(0, frame, bit), true),
+        if tcls.bels.contains_id(bslots::MISC_SE) {
+            let diff0 = ctx.state.get_diff_raw(&DiffKey::BelAttrEnumBool(
+                tcid,
+                bslots::MISC_SE,
+                bcls::MISC_SE::REPROGRAM_ENABLE,
+                false,
+            ));
+            let diff1 = ctx.state.get_diff_raw(&DiffKey::BelAttrEnumBool(
+                tcid,
+                bslots::MISC_SE,
+                bcls::MISC_SE::REPROGRAM_ENABLE,
+                true,
+            ));
+            let (bits, mut values) =
+                xlat_enum_raw(vec![(false, diff0), (true, diff1)], OcdMode::BitOrder);
+            let bits = Vec::from_iter(
+                bits.into_iter()
+                    .zip(values.remove(&false).unwrap())
+                    .map(|(bit, inv)| PolTileBit { bit, inv }),
+            );
+            ctx.insert_bel_attr_bitvec(
+                tcid,
+                bslots::MISC_SE,
+                bcls::MISC_SE::REPROGRAM_ENABLE,
+                bits,
+            );
+            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+            ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::DONETIME);
+            ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::RESETTIME);
+            let mut diffs = vec![(enums::OSC_MODE::DISABLE, Diff::default())];
+            for val in [enums::OSC_MODE::ENABLE, enums::OSC_MODE::DIV2] {
+                let mut diff = ctx.state.get_diff_raw(&DiffKey::BelAttrValue(
+                    tcid,
+                    bslots::OSC,
+                    bcls::OSC::MODE,
+                    val,
+                ));
+                let (ref bits, _) =
+                    ctx.data.sb_mux[&(tcid, TileWireCoord::new_idx(0, wires::IMUX_BUFG))];
+                diff.discard_bits_raw(bits);
+                diff.apply_bit_diff_raw(
+                    ctx.bel_attr_bit(tcid, bslots::IO_S[1], bcls::IO::OSC_PULLUP),
+                    false,
+                    true,
                 );
-            }
-        }
-        if tcname.starts_with("CLB.BR") {
-            let bel = "MISC";
-            ctx.collect_enum_bool_wide_mixed(tcname, bel, "REPROGRAM", "DISABLE", "ENABLE");
-            ctx.collect_enum(tcname, bel, "DONETIME", &["BEFORE", "AFTER"]);
-            ctx.collect_enum(tcname, bel, "RESETTIME", &["BEFORE", "AFTER"]);
-            ctx.tiledb.insert(
-                tcname,
-                bel,
-                "TLC",
-                TileItem::from_bit(TileBit::new(0, 1, 0), true),
-            );
-            ctx.tiledb.insert(
-                tcname,
-                bel,
-                "SLOWOSC_HALT",
-                TileItem::from_bit(TileBit::new(0, 5, 0), false),
-            );
-            let bel = "DONE";
-            let item = xlat_enum(vec![
-                (
-                    "PULLUP",
-                    ctx.state.get_diff(tcname, bel, "DONEPAD", "PULLUP"),
-                ),
-                (
-                    "PULLNONE",
-                    ctx.state.get_diff(tcname, bel, "DONEPAD", "NOPULLUP"),
-                ),
-            ]);
-            ctx.tiledb.insert(tcname, bel, "PULL", item);
-            let bel = "OSC";
-            let mut diffs = vec![("DISABLE", Diff::default())];
-            for val in ["ENABLE", "DIV2"] {
-                let mut diff = ctx.state.get_diff(tcname, bel, "MODE", val);
-                diff.discard_bits(ctx.tiledb.item(tcname, "INT", "MUX.IMUX.BUFG"));
-                diff.apply_bit_diff(ctx.tiledb.item(tcname, "IO_S1", "PULLUP"), false, true);
-                diff.apply_bit_diff(ctx.tiledb.item(tcname, "IO_E0", "PULLUP"), false, true);
+                diff.apply_bit_diff_raw(
+                    ctx.bel_attr_bit(tcid, bslots::IO_E[0], bcls::IO::OSC_PULLUP),
+                    false,
+                    true,
+                );
                 diffs.push((val, diff));
             }
-            ctx.tiledb.insert(tcname, bel, "MODE", xlat_enum(diffs));
+            ctx.insert_bel_attr_raw(tcid, bslots::OSC, bcls::OSC::MODE, xlat_enum_attr(diffs));
         }
-        if tcname.starts_with("CLB.BL") {
-            let bel = "MISC";
-            ctx.collect_enum(tcname, bel, "READ", &["COMMAND", "ONCE", "DISABLE"]);
+        if tcls.bels.contains_id(bslots::MISC_SW) {
+            ctx.collect_bel_attr(tcid, bslots::MISC_SW, bcls::MISC_SW::READBACK_MODE);
         }
-        if tcname.starts_with("CLB.TL") {
-            let bel = "MISC";
-            ctx.collect_enum(tcname, bel, "INPUT", &["TTL", "CMOS"]);
-        }
-        if tcname.starts_with("CLB.TR") {
-            let bel = "MISC";
-            ctx.tiledb.insert(
-                tcname,
-                bel,
-                "TAC",
-                TileItem::from_bit(TileBit::new(0, 0, 5), true),
-            );
-            ctx.tiledb.insert(
-                tcname,
-                bel,
-                "POR",
-                TileItem::from_bit(TileBit::new(0, 11, 9), true),
-            );
+        if tcls.bels.contains_id(bslots::MISC_NW) {
+            ctx.collect_bel_attr(tcid, bslots::MISC_NW, bcls::MISC_NW::IO_INPUT_MODE);
         }
     }
 }

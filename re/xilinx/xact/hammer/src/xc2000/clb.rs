@@ -1,468 +1,315 @@
-use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{Diff, xlat_bit_raw, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::{
-    bits,
-    bsdata::{TileBit, TileItem},
-};
-use prjcombine_xc2000::bels::xc2000 as bels;
+use prjcombine_types::bits;
+use prjcombine_xc2000::xc2000::{bcls, bslots, enums, tslots};
 
-use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
+use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx, specials};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    for tile in backend.edev.db.tile_classes.keys() {
-        if !tile.starts_with("CLB") {
+    for (tcid, _, tcls) in &backend.edev.db.tile_classes {
+        if tcls.slot != tslots::MAIN {
             continue;
         }
-        let mut ctx = FuzzCtx::new(session, backend, tile);
-        let mut bctx = ctx.bel(bels::CLB);
-        bctx.test_mode("F");
-        bctx.test_mode("FG");
-        bctx.test_mode("FGM");
-        bctx.mode("FG").test_equate("F", &["B", "C", "Q"]);
-        bctx.mode("FG").test_equate("G", &["B", "C", "Q"]);
-        bctx.mode("FG")
-            .test_manual("F", "ABC")
-            .cfg("F", "A")
-            .cfg("F", "B")
-            .cfg("F", "C")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("F", "ABD")
-            .cfg("F", "A")
-            .cfg("F", "B")
-            .cfg("F", "D")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("F", "ACD")
-            .cfg("F", "A")
-            .cfg("F", "C")
-            .cfg("F", "D")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("F", "BCD")
-            .cfg("F", "B")
-            .cfg("F", "C")
-            .cfg("F", "D")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("F", "ABQ")
-            .cfg("F", "A")
-            .cfg("F", "B")
-            .cfg("F", "Q")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("F", "ACQ")
-            .cfg("F", "A")
-            .cfg("F", "C")
-            .cfg("F", "Q")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("F", "BCQ")
-            .cfg("F", "B")
-            .cfg("F", "C")
-            .cfg("F", "Q")
-            .commit();
-        bctx.mode("FGM")
-            .mutex("FGM", "F")
-            .test_manual("F", "MACD")
-            .cfg("F", "A")
-            .cfg("F", "C")
-            .cfg("F", "D")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("G", "ABC")
-            .cfg("G", "A")
-            .cfg("G", "B")
-            .cfg("G", "C")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("G", "ABD")
-            .cfg("G", "A")
-            .cfg("G", "B")
-            .cfg("G", "D")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("G", "ACD")
-            .cfg("G", "A")
-            .cfg("G", "C")
-            .cfg("G", "D")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("G", "BCD")
-            .cfg("G", "B")
-            .cfg("G", "C")
-            .cfg("G", "D")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("G", "ABQ")
-            .cfg("G", "A")
-            .cfg("G", "B")
-            .cfg("G", "Q")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("G", "ACQ")
-            .cfg("G", "A")
-            .cfg("G", "C")
-            .cfg("G", "Q")
-            .commit();
-        bctx.mode("FG")
-            .test_manual("G", "BCQ")
-            .cfg("G", "B")
-            .cfg("G", "C")
-            .cfg("G", "Q")
-            .commit();
-        bctx.mode("FGM")
-            .mutex("FGM", "G")
-            .test_manual("G", "MACD")
-            .cfg("G", "A")
-            .cfg("G", "C")
-            .cfg("G", "D")
-            .commit();
-        for lut in ["F", "G"] {
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_ABC",
-                &["A", "B", "C"],
-                bits![1, 0, 0, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_ABC_NA",
-                &["A", "B", "C"],
-                bits![0, 1, 0, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_ABC_NB",
-                &["A", "B", "C"],
-                bits![0, 0, 1, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_ABC_NC",
-                &["A", "B", "C"],
-                bits![0, 0, 0, 0, 1, 0, 0, 0],
-            );
-
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCD",
-                &["B", "C", "D"],
-                bits![1, 0, 0, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCD_NB",
-                &["B", "C", "D"],
-                bits![0, 1, 0, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCD_NC",
-                &["B", "C", "D"],
-                bits![0, 0, 1, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCD_ND",
-                &["B", "C", "D"],
-                bits![0, 0, 0, 0, 1, 0, 0, 0],
-            );
-
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCQ",
-                &["B", "C", "Q"],
-                bits![1, 0, 0, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCQ_NB",
-                &["B", "C", "Q"],
-                bits![0, 1, 0, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCQ_NC",
-                &["B", "C", "Q"],
-                bits![0, 0, 1, 0, 0, 0, 0, 0],
-            );
-            bctx.mode("FG").test_equate_fixed(
-                lut,
-                "EQ_BCQ_NQ",
-                &["B", "C", "Q"],
-                bits![0, 0, 0, 0, 1, 0, 0, 0],
-            );
+        let mut ctx = FuzzCtx::new(session, backend, tcid);
+        let mut bctx = ctx.bel(bslots::CLB);
+        for (val, spec) in [
+            ("F", specials::CLB_MODE_F),
+            ("FG", specials::CLB_MODE_FG),
+            ("FGM", specials::CLB_MODE_FGM),
+        ] {
+            bctx.build()
+                .null_bits()
+                .test_bel_special(spec)
+                .mode(val)
+                .commit();
         }
-        bctx.mode("F").test_equate_fixed(
-            "F",
-            "EQ_ABCD",
-            &["A", "B", "C", "D"],
-            bits![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        for (attr, aname) in [(bcls::CLB::F, "F"), (bcls::CLB::G, "G")] {
+            bctx.mode("FG")
+                .test_bel_attr_equate(attr, aname, &["B", "C", "Q"]);
+            for (spec, i1, i2, i3) in [
+                (specials::CLB_LUT_ABC, "A", "B", "C"),
+                (specials::CLB_LUT_ABD, "A", "B", "D"),
+                (specials::CLB_LUT_ACD, "A", "C", "D"),
+                (specials::CLB_LUT_BCD, "B", "C", "D"),
+                (specials::CLB_LUT_ABQ, "A", "B", "Q"),
+                (specials::CLB_LUT_ACQ, "A", "C", "Q"),
+                (specials::CLB_LUT_BCQ, "B", "C", "Q"),
+            ] {
+                bctx.mode("FG")
+                    .test_bel_attr_special(attr, spec)
+                    .cfg(aname, i1)
+                    .cfg(aname, i2)
+                    .cfg(aname, i3)
+                    .commit();
+            }
+            bctx.mode("FGM")
+                .mutex("FGM", aname)
+                .test_bel_attr_special(attr, specials::CLB_LUT_MACD)
+                .cfg(aname, "A")
+                .cfg(aname, "C")
+                .cfg(aname, "D")
+                .commit();
+            for (spec, inps) in [
+                (specials::CLB_LUT_EQ_ABC, &["A", "B", "C"]),
+                (specials::CLB_LUT_EQ_BCD, &["B", "C", "D"]),
+                (specials::CLB_LUT_EQ_BCQ, &["B", "C", "Q"]),
+            ] {
+                for bidx in [0, 1, 2, 4] {
+                    let mut val = bits![0; 8];
+                    val.set(bidx, true);
+                    bctx.mode("FG")
+                        .test_bel_attr_special_bit(attr, spec, bidx)
+                        .equate_fixed(aname, inps, val)
+                        .commit();
+                }
+            }
+        }
+        for bidx in [0, 1, 2, 4, 8] {
+            let mut val = bits![0; 16];
+            val.set(bidx, true);
+            bctx.mode("F")
+                .test_bel_attr_special_bit(bcls::CLB::F, specials::CLB_LUT_EQ_ABCD, bidx)
+                .equate_fixed("F", &["A", "B", "C", "D"], val)
+                .commit();
+        }
+        bctx.mode("FG").test_bel_attr_default_as(
+            "SET",
+            bcls::CLB::MUX_SET,
+            enums::CLB_MUX_SET::TIE_0,
         );
-        bctx.mode("F").test_equate_fixed(
-            "F",
-            "EQ_ABCD_NA",
-            &["A", "B", "C", "D"],
-            bits![0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        bctx.mode("FG").test_bel_attr_default_as(
+            "RES",
+            bcls::CLB::MUX_RES,
+            enums::CLB_MUX_RES::TIE_0,
         );
-        bctx.mode("F").test_equate_fixed(
-            "F",
-            "EQ_ABCD_NB",
-            &["A", "B", "C", "D"],
-            bits![0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        );
-        bctx.mode("F").test_equate_fixed(
-            "F",
-            "EQ_ABCD_NC",
-            &["A", "B", "C", "D"],
-            bits![0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        );
-        bctx.mode("F").test_equate_fixed(
-            "F",
-            "EQ_ABCD_ND",
-            &["A", "B", "C", "D"],
-            bits![0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        );
-
-        bctx.mode("FG").test_enum("SET", &["A", "F"]);
-        bctx.mode("FG").test_enum("RES", &["D", "G"]);
-        bctx.mode("FG").test_enum("CLK", &["C", "G"]);
+        bctx.mode("FG")
+            .mutex("CLK", "C")
+            .test_bel_special(specials::CLB_CLK_C)
+            .cfg("CLK", "C")
+            .commit();
+        bctx.mode("FG")
+            .mutex("CLK", "G")
+            .test_bel_special(specials::CLB_CLK_G)
+            .cfg("CLK", "G")
+            .commit();
         bctx.mode("FG")
             .mutex("Q", "FF")
             .cfg("Q", "FF")
             .mutex("CLK", "C")
             .cfg("CLK", "C")
-            .test_cfg("CLK", "NOT");
+            .test_bel_input_inv(bcls::CLB::K)
+            .cfg("CLK", "NOT")
+            .commit();
         bctx.mode("FG")
             .mutex("CLK", "C")
             .cfg("CLK", "C")
-            .test_enum("Q", &["LATCH", "FF"]);
-        bctx.mode("FG").test_enum("X", &["F", "G", "Q"]);
-        bctx.mode("FG").test_enum("Y", &["F", "G", "Q"]);
+            .test_bel_attr_as("Q", bcls::CLB::FF_MODE);
+        bctx.mode("FG").test_bel_attr_as("X", bcls::CLB::MUX_X);
+        bctx.mode("FG").test_bel_attr_as("Y", bcls::CLB::MUX_Y);
         bctx.mode("FGM")
             .mutex("FGM", "F")
             .cfg("F", "A")
             .cfg("F", "C")
             .cfg("F", "D")
-            .test_cfg("X", "M");
+            .test_bel_attr_special(bcls::CLB::MUX_X, specials::CLB_MUX_XY_M)
+            .cfg("X", "M")
+            .commit();
         bctx.mode("FGM")
             .mutex("FGM", "F")
             .cfg("F", "A")
             .cfg("F", "C")
             .cfg("F", "D")
-            .test_cfg("Y", "M");
+            .test_bel_attr_special(bcls::CLB::MUX_Y, specials::CLB_MUX_XY_M)
+            .cfg("Y", "M")
+            .commit();
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ctx.edev.db.tile_classes.keys() {
-        if !tile.starts_with("CLB") {
+    for (tcid, _, tcls) in &ctx.edev.db.tile_classes {
+        if tcls.slot != tslots::MAIN {
             continue;
         }
-        let bel = "CLB";
-        for attr in ["X", "Y"] {
-            let item = xlat_enum(vec![
-                ("Q", ctx.state.get_diff(tile, bel, attr, "Q")),
-                ("F", ctx.state.get_diff(tile, bel, attr, "F")),
-                ("G", ctx.state.get_diff(tile, bel, attr, "G")),
-                ("F", ctx.state.get_diff(tile, bel, attr, "M")),
-            ]);
-            ctx.tiledb.insert(tile, bel, format!("MUX.{attr}"), item);
+        for attr in [bcls::CLB::MUX_X, bcls::CLB::MUX_Y] {
+            let mut diffs = vec![(
+                enums::CLB_MUX_XY::F,
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_MUX_XY_M),
+            )];
+            for val in [
+                enums::CLB_MUX_XY::Q,
+                enums::CLB_MUX_XY::F,
+                enums::CLB_MUX_XY::G,
+            ] {
+                diffs.push((val, ctx.get_diff_attr_val(tcid, bslots::CLB, attr, val)));
+            }
+            let item = xlat_enum_attr(diffs);
+            ctx.insert_bel_attr_raw(tcid, bslots::CLB, attr, item);
         }
-        ctx.collect_enum_default(tile, bel, "RES", &["D", "G"], "NONE");
-        ctx.collect_enum_default(tile, bel, "SET", &["A", "F"], "NONE");
-        let diff_inv = ctx.state.get_diff(tile, bel, "CLK", "NOT");
-        let diff_latch = ctx.state.get_diff(tile, bel, "Q", "LATCH");
-        let diff_ff = ctx.state.get_diff(tile, bel, "Q", "FF");
-        assert_eq!(diff_latch, diff_inv);
-        ctx.tiledb.insert(tile, bel, "INV.K", xlat_bit(diff_inv));
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "FF_MODE",
-            xlat_enum(vec![("FF", diff_ff), ("LATCH", Diff::default())]),
+        ctx.collect_bel_attr_default(
+            tcid,
+            bslots::CLB,
+            bcls::CLB::MUX_RES,
+            enums::CLB_MUX_RES::TIE_0,
         );
-        for lut in ["F", "G"] {
-            ctx.collect_bitvec(tile, bel, lut, "");
-            let diff_abc = ctx.state.get_diff(tile, bel, lut, "ABC");
-            let diff_abd = ctx.state.get_diff(tile, bel, lut, "ABD");
-            let diff_abq = ctx.state.get_diff(tile, bel, lut, "ABQ");
-            let diff_acd = ctx.state.get_diff(tile, bel, lut, "ACD");
-            let diff_acq = ctx.state.get_diff(tile, bel, lut, "ACQ");
-            let diff_bcd = ctx.state.get_diff(tile, bel, lut, "BCD");
-            let diff_bcq = ctx.state.get_diff(tile, bel, lut, "BCQ");
-            let diff_macd = ctx.state.get_diff(tile, bel, lut, "MACD");
+        ctx.collect_bel_attr_default(
+            tcid,
+            bslots::CLB,
+            bcls::CLB::MUX_SET,
+            enums::CLB_MUX_SET::TIE_0,
+        );
+        ctx.collect_bel_input_inv(tcid, bslots::CLB, bcls::CLB::K);
+        let bit_inv = ctx.bel_input_inv(tcid, bslots::CLB, bcls::CLB::K);
+        let diff_latch =
+            ctx.get_diff_attr_val(tcid, bslots::CLB, bcls::CLB::FF_MODE, enums::FF_MODE::LATCH);
+        assert_eq!(xlat_bit_raw(diff_latch), bit_inv);
+        ctx.collect_bel_attr_default(tcid, bslots::CLB, bcls::CLB::FF_MODE, enums::FF_MODE::LATCH);
+        ctx.collect_bel_attr(tcid, bslots::CLB, bcls::CLB::F);
+        ctx.collect_bel_attr(tcid, bslots::CLB, bcls::CLB::G);
+        for (attr, attr_i1, attr_i2, attr_i3) in [
+            (
+                bcls::CLB::F,
+                bcls::CLB::MUX_F1,
+                bcls::CLB::MUX_F2,
+                bcls::CLB::MUX_F3,
+            ),
+            (
+                bcls::CLB::G,
+                bcls::CLB::MUX_G1,
+                bcls::CLB::MUX_G2,
+                bcls::CLB::MUX_G3,
+            ),
+        ] {
+            let diff_abc =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_ABC);
+            let diff_abd =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_ABD);
+            let diff_abq =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_ABQ);
+            let diff_acd =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_ACD);
+            let diff_acq =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_ACQ);
+            let diff_bcd =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_BCD);
+            let diff_bcq =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_BCQ);
+            let diff_macd =
+                ctx.get_diff_attr_special(tcid, bslots::CLB, attr, specials::CLB_LUT_MACD);
             let diff_m = diff_macd.combine(&!&diff_acd);
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                "MODE",
-                xlat_enum(vec![("FG", Diff::default()), ("FGM", diff_m)]),
+            ctx.insert_bel_attr_raw(
+                tcid,
+                bslots::CLB,
+                bcls::CLB::MODE,
+                xlat_enum_attr(vec![
+                    (enums::CLB_MODE::FG, Diff::default()),
+                    (enums::CLB_MODE::FGM, diff_m),
+                ]),
             );
             let diff_i3_c = diff_abc.combine(&!&diff_abq);
             let diff_i3_d = diff_abd.combine(&!&diff_abq);
             assert_eq!(diff_i3_d, diff_acd.combine(&!&diff_acq));
             assert_eq!(diff_i3_d, diff_bcd.combine(&!&diff_bcq));
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                format!("MUX.{lut}3"),
-                xlat_enum(vec![
-                    ("C", diff_i3_c),
-                    ("D", diff_i3_d),
-                    ("Q", Diff::default()),
+            ctx.insert_bel_attr_raw(
+                tcid,
+                bslots::CLB,
+                attr_i3,
+                xlat_enum_attr(vec![
+                    (enums::CLB_MUX_I3::C, diff_i3_c),
+                    (enums::CLB_MUX_I3::D, diff_i3_d),
+                    (enums::CLB_MUX_I3::Q, Diff::default()),
                 ]),
             );
             let diff_i1_a = diff_acq.combine(&!&diff_bcq);
             let diff_i2_b = diff_abq.combine(&!&diff_acq);
             diff_bcq.assert_empty();
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                format!("MUX.{lut}1"),
-                xlat_enum(vec![("A", diff_i1_a), ("B", Diff::default())]),
+            ctx.insert_bel_attr_raw(
+                tcid,
+                bslots::CLB,
+                attr_i1,
+                xlat_enum_attr(vec![
+                    (enums::CLB_MUX_I1::A, diff_i1_a),
+                    (enums::CLB_MUX_I1::B, Diff::default()),
+                ]),
             );
-            ctx.tiledb.insert(
-                tile,
-                bel,
-                format!("MUX.{lut}2"),
-                xlat_enum(vec![("B", diff_i2_b), ("C", Diff::default())]),
+            ctx.insert_bel_attr_raw(
+                tcid,
+                bslots::CLB,
+                attr_i2,
+                xlat_enum_attr(vec![
+                    (enums::CLB_MUX_I2::B, diff_i2_b),
+                    (enums::CLB_MUX_I2::C, Diff::default()),
+                ]),
             );
 
-            for (val, bits) in [
-                ("EQ_ABC", bits![1, 0, 0, 0, 0, 0, 0, 0]),
-                ("EQ_ABC_NA", bits![0, 1, 0, 0, 0, 0, 0, 0]),
-                ("EQ_ABC_NB", bits![0, 0, 1, 0, 0, 0, 0, 0]),
-                ("EQ_ABC_NC", bits![0, 0, 0, 0, 1, 0, 0, 0]),
-                ("EQ_BCD", bits![1, 0, 0, 0, 0, 0, 0, 0]),
-                ("EQ_BCD_NB", bits![0, 1, 0, 0, 0, 0, 0, 0]),
-                ("EQ_BCD_NC", bits![0, 0, 1, 0, 0, 0, 0, 0]),
-                ("EQ_BCD_ND", bits![0, 0, 0, 0, 1, 0, 0, 0]),
-                ("EQ_BCQ", bits![1, 0, 0, 0, 0, 0, 0, 0]),
-                ("EQ_BCQ_NB", bits![0, 1, 0, 0, 0, 0, 0, 0]),
-                ("EQ_BCQ_NC", bits![0, 0, 1, 0, 0, 0, 0, 0]),
-                ("EQ_BCQ_NQ", bits![0, 0, 0, 0, 1, 0, 0, 0]),
+            let lut_bits = ctx.bel_attr_bitvec(tcid, bslots::CLB, attr).to_vec();
+            let mux_i1 = ctx.bel_attr_enum(tcid, bslots::CLB, attr_i1).clone();
+            let mux_i2 = ctx.bel_attr_enum(tcid, bslots::CLB, attr_i2).clone();
+            let mux_i3 = ctx.bel_attr_enum(tcid, bslots::CLB, attr_i3).clone();
+
+            for spec in [
+                specials::CLB_LUT_EQ_ABC,
+                specials::CLB_LUT_EQ_BCD,
+                specials::CLB_LUT_EQ_BCQ,
             ] {
-                let mut diff = ctx.state.get_diff(tile, bel, lut, val);
-                diff.apply_bitvec_diff(ctx.tiledb.item(tile, bel, lut), &bits, &bits![0; 8]);
-                if val.starts_with("EQ_ABC") {
-                    diff.apply_enum_diff(
-                        ctx.tiledb.item(tile, bel, &format!("MUX.{lut}1")),
-                        "A",
-                        "B",
-                    );
-                    diff.apply_enum_diff(
-                        ctx.tiledb.item(tile, bel, &format!("MUX.{lut}2")),
-                        "B",
-                        "C",
-                    );
-                    diff.apply_enum_diff(
-                        ctx.tiledb.item(tile, bel, &format!("MUX.{lut}3")),
-                        "C",
-                        "Q",
-                    );
+                for bit in [0, 1, 2, 4] {
+                    let mut diff =
+                        ctx.get_diff_attr_special_bit(tcid, bslots::CLB, attr, spec, bit);
+                    let mut bits = bits![0; 8];
+                    bits.set(bit, true);
+                    diff.apply_bitvec_diff_raw(&lut_bits, &bits, &bits![0; 8]);
+                    if spec == specials::CLB_LUT_EQ_ABC {
+                        diff.apply_enum_diff_attr(
+                            &mux_i1,
+                            enums::CLB_MUX_I1::A,
+                            enums::CLB_MUX_I1::B,
+                        );
+                        diff.apply_enum_diff_attr(
+                            &mux_i2,
+                            enums::CLB_MUX_I2::B,
+                            enums::CLB_MUX_I2::C,
+                        );
+                        diff.apply_enum_diff_attr(
+                            &mux_i3,
+                            enums::CLB_MUX_I3::C,
+                            enums::CLB_MUX_I3::Q,
+                        );
+                    }
+                    if spec == specials::CLB_LUT_EQ_BCD {
+                        diff.apply_enum_diff_attr(
+                            &mux_i3,
+                            enums::CLB_MUX_I3::D,
+                            enums::CLB_MUX_I3::Q,
+                        );
+                    }
+                    diff.assert_empty();
                 }
-                if val.starts_with("EQ_BCD") {
-                    diff.apply_enum_diff(
-                        ctx.tiledb.item(tile, bel, &format!("MUX.{lut}3")),
-                        "D",
-                        "Q",
-                    );
-                }
-                diff.assert_empty();
             }
         }
-        for (val, bits) in [
-            (
-                "EQ_ABCD",
-                bits![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ),
-            (
-                "EQ_ABCD_NA",
-                bits![0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ),
-            (
-                "EQ_ABCD_NC",
-                bits![0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ),
-            (
-                "EQ_ABCD_ND",
-                bits![0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            ),
-            (
-                "EQ_ABCD_NB",
-                bits![0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            ),
-        ] {
-            let mut diff = ctx.state.get_diff(tile, bel, "F", val);
-            diff.apply_bitvec_diff(
-                ctx.tiledb.item(tile, bel, "G"),
-                &bits.slice(..8),
-                &bits![0; 8],
+        for (diff_bit, real_bit) in [(0, 0), (1, 1), (4, 2), (8, 4), (2, 8)] {
+            let mut bits = bits![0; 16];
+            bits.set(real_bit, true);
+            let mut diff = ctx.get_diff_attr_special_bit(
+                tcid,
+                bslots::CLB,
+                bcls::CLB::F,
+                specials::CLB_LUT_EQ_ABCD,
+                diff_bit,
             );
-            diff.apply_bitvec_diff(
-                ctx.tiledb.item(tile, bel, "F"),
-                &bits.slice(8..),
-                &bits![0; 8],
-            );
-            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.F1"), "A", "B");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.G1"), "A", "B");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.F3"), "D", "Q");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MUX.G3"), "D", "Q");
-            diff.apply_enum_diff(ctx.tiledb.item(tile, bel, "MODE"), "FGM", "FG");
+            let f_bits = ctx.bel_attr_bitvec(tcid, bslots::CLB, bcls::CLB::F);
+            let g_bits = ctx.bel_attr_bitvec(tcid, bslots::CLB, bcls::CLB::G);
+            let mux_f1 = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_F1);
+            let mux_g1 = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_G1);
+            let mux_f3 = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_F3);
+            let mux_g3 = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_G3);
+            let mode = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MODE);
+            diff.apply_bitvec_diff_raw(g_bits, &bits.slice(..8), &bits![0; 8]);
+            diff.apply_bitvec_diff_raw(f_bits, &bits.slice(8..), &bits![0; 8]);
+            diff.apply_enum_diff_attr(mux_f1, enums::CLB_MUX_I1::A, enums::CLB_MUX_I1::B);
+            diff.apply_enum_diff_attr(mux_g1, enums::CLB_MUX_I1::A, enums::CLB_MUX_I1::B);
+            diff.apply_enum_diff_attr(mux_f3, enums::CLB_MUX_I3::D, enums::CLB_MUX_I3::Q);
+            diff.apply_enum_diff_attr(mux_g3, enums::CLB_MUX_I3::D, enums::CLB_MUX_I3::Q);
+            diff.apply_enum_diff_attr(mode, enums::CLB_MODE::FGM, enums::CLB_MODE::FG);
             diff.assert_empty();
         }
-        for val in ["F", "FG", "FGM"] {
-            ctx.state.get_diff(tile, bel, "BASE", val).assert_empty();
-        }
-    }
-    for (tile, frame, bit, bel) in [
-        ("CLB", 3, 2, "CLB"),
-        ("CLB.L", 3, 2, "CLB"),
-        ("CLB.L", 18, 5, "IO_W0"),
-        ("CLB.L", 20, 0, "IO_W1"),
-        ("CLB.R", 12, 2, "CLB"),
-        ("CLB.R", 0, 3, "IO_E0"),
-        ("CLB.R", 8, 2, "IO_E1"),
-        ("CLB.ML", 3, 2, "CLB"),
-        ("CLB.ML", 20, 0, "IO_W1"),
-        ("CLB.MR", 12, 2, "CLB"),
-        ("CLB.MR", 8, 2, "IO_E1"),
-        ("CLB.B", 3, 6, "CLB"),
-        ("CLB.B", 4, 1, "IO_S0"),
-        ("CLB.B", 8, 0, "IO_S1"),
-        ("CLB.BR1", 3, 6, "CLB"),
-        ("CLB.BR1", 4, 1, "IO_S0"),
-        ("CLB.BR1", 8, 0, "IO_S1"),
-        ("CLB.BL", 3, 6, "CLB"),
-        ("CLB.BL", 4, 1, "IO_S0"),
-        ("CLB.BL", 8, 0, "IO_S1"),
-        ("CLB.BL", 18, 9, "IO_W0"),
-        ("CLB.BR", 12, 6, "CLB"),
-        ("CLB.BR", 13, 1, "IO_S0"),
-        ("CLB.BR", 17, 0, "IO_S1"),
-        ("CLB.BR", 0, 7, "IO_E0"),
-        ("CLB.T", 3, 2, "CLB"),
-        ("CLB.T", 4, 7, "IO_N0"),
-        ("CLB.T", 8, 8, "IO_N1"),
-        ("CLB.TR1", 3, 2, "CLB"),
-        ("CLB.TR1", 4, 7, "IO_N0"),
-        ("CLB.TR1", 8, 8, "IO_N1"),
-        ("CLB.TL", 3, 2, "CLB"),
-        ("CLB.TL", 4, 7, "IO_N0"),
-        ("CLB.TL", 8, 8, "IO_N1"),
-        ("CLB.TL", 20, 0, "IO_W1"),
-        ("CLB.TR", 12, 2, "CLB"),
-        ("CLB.TR", 13, 7, "IO_N0"),
-        ("CLB.TR", 17, 8, "IO_N1"),
-        ("CLB.TR", 8, 2, "IO_E1"),
-    ] {
-        ctx.tiledb.insert(
-            tile,
-            bel,
-            "READBACK_Q",
-            TileItem::from_bit(TileBit::new(0, frame, bit), true),
-        );
     }
 }

@@ -412,7 +412,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let bel = "BSCAN_COMMON";
     let item = xlat_bitvec(ctx.state.get_diffs(tile, bel, "USERID", ""));
-    ctx.tiledb.insert(tile, bel, "USERID", item);
+    ctx.insert(tile, bel, "USERID", item);
 
     let bel = "STARTUP";
     ctx.collect_enum_bool(tile, bel, "GSR_SYNC", "NO", "YES");
@@ -420,14 +420,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item0 = ctx.extract_bit(tile, bel, "PIN.GSR", "1");
     let item1 = ctx.extract_bit(tile, bel, "PIN.GTS", "1");
     assert_eq!(item0, item1);
-    ctx.tiledb.insert(tile, bel, "GTS_GSR_ENABLE", item0);
+    ctx.insert(tile, bel, "GTS_GSR_ENABLE", item0);
     let item = ctx.extract_bit(tile, bel, "PIN.USRCCLKO", "1");
-    ctx.tiledb.insert(tile, bel, "USRCCLK_ENABLE", item);
+    ctx.insert(tile, bel, "USRCCLK_ENABLE", item);
 
     let item0 = ctx.extract_enum(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
     let item1 = ctx.extract_enum(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
     assert_eq!(item0, item1);
-    ctx.tiledb.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
+    ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
 
     {
         let bel = "JTAGPPC";
@@ -448,7 +448,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "SYSMON_TEST_E", "");
 
         let mut diff = ctx.state.get_diff(tile, bel, "JTAG_SYSMON", "DISABLE");
-        diff.apply_bitvec_diff_int(ctx.tiledb.item(tile, bel, "SYSMON_TEST_A"), 2, 0);
+        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_A"), 2, 0);
         diff.assert_empty();
     }
 
@@ -531,7 +531,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bitvec(tile, bel, "VGG_SEL", "");
     // these are too much trouble to deal with the normal way.
     for (attr, bit) in [("GTS_USR_B", 0), ("PERSIST", 3)] {
-        ctx.tiledb.insert(
+        ctx.insert(
             tile,
             bel,
             attr,
@@ -541,7 +541,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             },
         );
     }
-    ctx.tiledb.insert(
+    ctx.insert(
         tile,
         bel,
         "ICAP_SELECT",
@@ -568,5 +568,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let bel = "MISC";
     let mut diff = ctx.state.get_diff(tile, bel, "DD_OVERRIDE", "YES");
     diff.bits.remove(&TileBit::new(1, 0, 0));
-    ctx.tiledb.insert(tile, bel, "DD_OVERRIDE", xlat_bit(diff));
+    ctx.insert(tile, bel, "DD_OVERRIDE", xlat_bit(diff));
 }

@@ -1,6 +1,6 @@
 use crate::db::{
     BelAttribute, BelAttributeType, BelInfo, BelKind, ConnectorWire, IntDb, PadKind, PinDir,
-    TableValue, TileClass,
+    SwitchBoxItem, TableValue, TileClass,
 };
 use prjcombine_entity::{EntityBundleIndex, EntityBundleItemIndex, EntityId};
 use prjcombine_types::bsdata::{PolTileBit, TileBit};
@@ -35,7 +35,7 @@ impl TileClass {
                     )?;
                     for item in &sb.items {
                         match item {
-                            crate::db::SwitchBoxItem::Mux(mux) => {
+                            SwitchBoxItem::Mux(mux) => {
                                 write!(o, "\t\t\t\tmux {dst}", dst = mux.dst.to_string(db, self))?;
                                 if mux.bits.is_empty() {
                                     write!(o, " = ")?;
@@ -72,41 +72,41 @@ impl TileClass {
                                     writeln!(o, "\t\t\t\t}}")?;
                                 }
                             }
-                            crate::db::SwitchBoxItem::ProgBuf(buf) => writeln!(
+                            SwitchBoxItem::ProgBuf(buf) => writeln!(
                                 o,
                                 "\t\t\t\tprogbuf {dst} = {src} @{bit};",
                                 dst = buf.dst.to_string(db, self),
                                 src = buf.src.to_string(db, self),
                                 bit = self.dump_polbit(buf.bit),
                             )?,
-                            crate::db::SwitchBoxItem::PermaBuf(buf) => writeln!(
+                            SwitchBoxItem::PermaBuf(buf) => writeln!(
                                 o,
                                 "\t\t\t\tpermabuf {dst} = {src};",
                                 dst = buf.dst.to_string(db, self),
                                 src = buf.src.to_string(db, self),
                             )?,
-                            crate::db::SwitchBoxItem::Pass(pass) => writeln!(
+                            SwitchBoxItem::Pass(pass) => writeln!(
                                 o,
                                 "\t\t\t\tpass {dst} = {src} @{bit};",
                                 dst = pass.dst.to_string(db, self),
                                 src = pass.src.to_string(db, self),
                                 bit = self.dump_polbit(pass.bit),
                             )?,
-                            crate::db::SwitchBoxItem::BiPass(pass) => writeln!(
+                            SwitchBoxItem::BiPass(pass) => writeln!(
                                 o,
                                 "\t\t\t\tbipass {a} = {b} @{bit};",
                                 a = pass.a.to_string(db, self),
                                 b = pass.b.to_string(db, self),
                                 bit = self.dump_polbit(pass.bit),
                             )?,
-                            crate::db::SwitchBoxItem::ProgInv(inv) => writeln!(
+                            SwitchBoxItem::ProgInv(inv) => writeln!(
                                 o,
                                 "\t\t\t\tproginv {dst} = {src} @{bit};",
                                 dst = inv.dst.to_string(db, self),
                                 src = inv.src.to_string(db, self),
                                 bit = self.dump_polbit(inv.bit),
                             )?,
-                            crate::db::SwitchBoxItem::ProgDelay(delay) => {
+                            SwitchBoxItem::ProgDelay(delay) => {
                                 write!(
                                     o,
                                     "\t\t\t\tprogdelay {dst} = {src}",
@@ -132,6 +132,13 @@ impl TileClass {
                                     writeln!(o, "\t\t\t\t}}")?;
                                 }
                             }
+                            SwitchBoxItem::Bidi(bidi) => writeln!(
+                                o,
+                                "\t\t\t\tbidi {conn} {wire} @{bit};",
+                                conn = db.conn_slots.key(bidi.conn),
+                                wire = bidi.wire.to_string(db, self),
+                                bit = self.dump_polbit(bidi.bit_upstream),
+                            )?,
                         }
                     }
                     writeln!(o, "\t\t\t}}")?;

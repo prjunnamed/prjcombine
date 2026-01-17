@@ -1,8 +1,9 @@
-use std::{collections::btree_map, path::PathBuf};
+use std::path::PathBuf;
 
 use clap::Parser;
+use prjcombine_re_fpga_hammer::CollectorData;
 use prjcombine_re_xilinx_geom::Chip;
-use prjcombine_types::{bsdata::BsData, db::DumpFlags};
+use prjcombine_types::db::DumpFlags;
 
 mod spartan6;
 mod ultrascale;
@@ -19,36 +20,7 @@ struct Args {
     xact: Option<PathBuf>,
     #[arg(long)]
     geom: Option<PathBuf>,
-    tiledb: Vec<PathBuf>,
-}
-
-fn merge_tiledb(tiledb: Vec<BsData>) -> BsData {
-    let mut res = BsData::new();
-    for db in tiledb {
-        for (tile, tile_data) in db.tiles {
-            let tile_dst = res.tiles.entry(tile).or_default();
-            for (key, item) in tile_data.items {
-                match tile_dst.items.entry(key) {
-                    btree_map::Entry::Vacant(entry) => {
-                        entry.insert(item);
-                    }
-                    btree_map::Entry::Occupied(entry) => {
-                        // could make a little smarter?
-                        assert_eq!(item, *entry.get());
-                    }
-                }
-            }
-        }
-        for (device, data) in db.device_data {
-            for (key, val) in data {
-                res.insert_device_data(&device, key, val);
-            }
-        }
-        for (key, val) in db.misc_data {
-            res.insert_misc_data(key, val);
-        }
-    }
-    res
+    bitdb: Vec<PathBuf>,
 }
 
 fn main() {
@@ -62,17 +34,16 @@ fn main() {
     let geom = args
         .geom
         .map(|f| prjcombine_re_xilinx_geom::GeomDb::from_file(&f).unwrap());
-    let tiledb: Vec<_> = args
-        .tiledb
-        .iter()
-        .map(|f| BsData::from_file(f).unwrap())
-        .collect();
-    let tiledb = merge_tiledb(tiledb);
+    let mut bitdb = CollectorData::default();
+    for fname in args.bitdb {
+        let cur = CollectorData::from_file(fname).unwrap();
+        bitdb.merge(cur);
+    }
     if let Some(geom) = geom {
         let chip = geom.chips.first().unwrap();
         match chip {
             Chip::Xc2000(_) => {
-                let db = xc2000::finish(xact, Some(geom), tiledb);
+                let db = xc2000::finish(xact, Some(geom), bitdb);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -81,7 +52,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Virtex(_) => {
-                let db = virtex::finish(geom, tiledb);
+                let db = virtex::finish(geom, bitdb.bsdata);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -90,7 +61,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Virtex2(_) => {
-                let db = virtex2::finish(geom, tiledb);
+                let db = virtex2::finish(geom, bitdb.bsdata);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -99,7 +70,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Spartan6(_) => {
-                let db = spartan6::finish(geom, tiledb);
+                let db = spartan6::finish(geom, bitdb.bsdata);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -108,7 +79,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Virtex4(_) => {
-                let db = virtex4::finish(geom, tiledb);
+                let db = virtex4::finish(geom, bitdb.bsdata);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -117,7 +88,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Ultrascale(_) => {
-                let db = ultrascale::finish(geom, tiledb);
+                let db = ultrascale::finish(geom, bitdb.bsdata);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -128,7 +99,7 @@ fn main() {
             Chip::Versal(_) => todo!(),
         }
     } else {
-        let db = xc2000::finish(xact, None, tiledb);
+        let db = xc2000::finish(xact, None, bitdb);
         db.to_file(&args.db).unwrap();
         db.dump(
             &mut std::fs::File::create(&args.txt).unwrap(),

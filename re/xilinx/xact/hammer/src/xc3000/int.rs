@@ -1,19 +1,18 @@
-use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{
-    db::{BelInfo, SwitchBoxItem, TileWireCoord},
-    grid::{TileCoord, WireCoord},
+    db::{BelInfo, BelKind, BelSlotId, PolTileWireCoord, SwitchBoxItem, TileWireCoord, WireSlotId},
+    dir::Dir,
+    grid::{BelCoord, TileCoord, WireCoord},
 };
-use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd,
-};
+use prjcombine_re_fpga_hammer::{Diff, DiffKey, FuzzerProp, OcdMode, xlat_bit_raw, xlat_enum_raw};
 use prjcombine_re_hammer::{Fuzzer, Session};
-use prjcombine_xc2000::{bels::xc2000 as bels, tslots};
+use prjcombine_xc2000::xc3000::{bcls, bslots, tslots, wires};
 
 use crate::{
     backend::{Key, Value, XactBackend},
     collector::CollectorCtx,
     fbuild::FuzzCtx,
     props::DynProp,
+    specials,
 };
 
 fn apply_int_pip<'a>(
@@ -32,6 +31,115 @@ fn apply_int_pip<'a>(
     fuzzer.base(Key::Pip(crd), Value::FromPin(block, pin.into()))
 }
 
+fn wire_to_outpin(backend: &XactBackend, wire: WireCoord) -> Option<(BelCoord, &'static str)> {
+    let chip = backend.edev.chip;
+    match wire.slot {
+        wires::OUT_CLB_X => Some((wire.bel(bslots::CLB), "X")),
+        wires::OUT_CLB_Y => Some((wire.bel(bslots::CLB), "Y")),
+        wires::OUT_OSC => Some((wire.bel(bslots::OSC), "O")),
+        wires::OUT_CLKIOB => Some((wire.bel(bslots::CLKIOB), "I")),
+        wires::GCLK => Some((
+            wire.with_cr(chip.col_w(), chip.row_n()).bel(bslots::BUFG),
+            "O",
+        )),
+        wires::ACLK => Some((
+            wire.with_cr(chip.col_e(), chip.row_s()).bel(bslots::BUFG),
+            "O",
+        )),
+        _ => {
+            if let Some(idx) = wires::OUT_IO_W_I.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_W[idx]), "I"))
+            } else if let Some(idx) = wires::OUT_IO_E_I.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_E[idx]), "I"))
+            } else if let Some(idx) = wires::OUT_IO_S_I.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_S[idx]), "I"))
+            } else if let Some(idx) = wires::OUT_IO_N_I.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_N[idx]), "I"))
+            } else if let Some(idx) = wires::OUT_IO_W_Q.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_W[idx]), "Q"))
+            } else if let Some(idx) = wires::OUT_IO_E_Q.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_E[idx]), "Q"))
+            } else if let Some(idx) = wires::OUT_IO_S_Q.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_S[idx]), "Q"))
+            } else if let Some(idx) = wires::OUT_IO_N_Q.index_of(wire.slot) {
+                Some((wire.bel(bslots::IO_N[idx]), "Q"))
+            } else {
+                None
+            }
+        }
+    }
+}
+
+fn wire_to_inpin(wire: WireSlotId) -> Option<(BelSlotId, &'static str)> {
+    match wire {
+        wires::IMUX_CLB_A => Some((bslots::CLB, "A")),
+        wires::IMUX_CLB_B => Some((bslots::CLB, "B")),
+        wires::IMUX_CLB_C => Some((bslots::CLB, "C")),
+        wires::IMUX_CLB_D => Some((bslots::CLB, "D")),
+        wires::IMUX_CLB_E => Some((bslots::CLB, "E")),
+        wires::IMUX_CLB_DI => Some((bslots::CLB, "DI")),
+        wires::IMUX_CLB_EC => Some((bslots::CLB, "EC")),
+        wires::IMUX_CLB_RD => Some((bslots::CLB, "RD")),
+        wires::IMUX_CLB_K => Some((bslots::CLB, "K")),
+        wires::IMUX_BUFG => Some((bslots::BUFG, "I")),
+        _ => {
+            if let Some(idx) = wires::IMUX_IO_W_O.index_of(wire) {
+                Some((bslots::IO_W[idx], "O"))
+            } else if let Some(idx) = wires::IMUX_IO_E_O.index_of(wire) {
+                Some((bslots::IO_E[idx], "O"))
+            } else if let Some(idx) = wires::IMUX_IO_S_O.index_of(wire) {
+                Some((bslots::IO_S[idx], "O"))
+            } else if let Some(idx) = wires::IMUX_IO_N_O.index_of(wire) {
+                Some((bslots::IO_N[idx], "O"))
+            } else if let Some(idx) = wires::IMUX_IO_W_T.index_of(wire) {
+                Some((bslots::IO_W[idx], "T"))
+            } else if let Some(idx) = wires::IMUX_IO_E_T.index_of(wire) {
+                Some((bslots::IO_E[idx], "T"))
+            } else if let Some(idx) = wires::IMUX_IO_S_T.index_of(wire) {
+                Some((bslots::IO_S[idx], "T"))
+            } else if let Some(idx) = wires::IMUX_IO_N_T.index_of(wire) {
+                Some((bslots::IO_N[idx], "T"))
+            } else if let Some(idx) = wires::IMUX_IO_W_IK.index_of(wire) {
+                Some((bslots::IO_W[idx], "IK"))
+            } else if let Some(idx) = wires::IMUX_IO_E_IK.index_of(wire) {
+                Some((bslots::IO_E[idx], "IK"))
+            } else if let Some(idx) = wires::IMUX_IO_S_IK.index_of(wire) {
+                Some((bslots::IO_S[idx], "IK"))
+            } else if let Some(idx) = wires::IMUX_IO_N_IK.index_of(wire) {
+                Some((bslots::IO_N[idx], "IK"))
+            } else if let Some(idx) = wires::IMUX_IO_W_OK.index_of(wire) {
+                Some((bslots::IO_W[idx], "OK"))
+            } else if let Some(idx) = wires::IMUX_IO_E_OK.index_of(wire) {
+                Some((bslots::IO_E[idx], "OK"))
+            } else if let Some(idx) = wires::IMUX_IO_S_OK.index_of(wire) {
+                Some((bslots::IO_S[idx], "OK"))
+            } else if let Some(idx) = wires::IMUX_IO_N_OK.index_of(wire) {
+                Some((bslots::IO_N[idx], "OK"))
+            } else if let Some(idx) = wires::IMUX_TBUF_I.index_of(wire) {
+                Some((
+                    if idx < 2 {
+                        bslots::TBUF[idx]
+                    } else {
+                        bslots::TBUF_E[idx - 2]
+                    },
+                    "I",
+                ))
+            } else if let Some(idx) = wires::IMUX_TBUF_T.index_of(wire) {
+                Some((
+                    if idx < 2 {
+                        bslots::TBUF[idx]
+                    } else {
+                        bslots::TBUF_E[idx - 2]
+                    },
+                    "T",
+                ))
+            } else {
+                None
+            }
+        }
+    }
+}
+
 fn drive_wire<'a>(
     backend: &XactBackend<'a>,
     mut fuzzer: Fuzzer<XactBackend<'a>>,
@@ -39,54 +147,17 @@ fn drive_wire<'a>(
     wire_avoid: &mut Vec<WireCoord>,
     root: bool,
 ) -> (Fuzzer<XactBackend<'a>>, &'a str, &'static str) {
-    let grid = backend.edev.chip;
-    let mut cell = wire_target.cell;
+    let cell = wire_target.cell;
     let wt = wire_target.slot;
     let wtn = &backend.edev.db.wires.key(wt)[..];
-    let (ploc, pwt, pwf) = if wtn.starts_with("OUT") || wtn == "GCLK" || wtn == "ACLK" {
-        let (slot, pin) = match wtn {
-            "OUT.CLB.X" => (bels::CLB, "X"),
-            "OUT.CLB.Y" => (bels::CLB, "Y"),
-            "OUT.BIOB0.I" => (bels::IO_S0, "I"),
-            "OUT.BIOB0.Q" => (bels::IO_S0, "Q"),
-            "OUT.BIOB1.I" => (bels::IO_S1, "I"),
-            "OUT.BIOB1.Q" => (bels::IO_S1, "Q"),
-            "OUT.TIOB0.I" => (bels::IO_N0, "I"),
-            "OUT.TIOB0.Q" => (bels::IO_N0, "Q"),
-            "OUT.TIOB1.I" => (bels::IO_N1, "I"),
-            "OUT.TIOB1.Q" => (bels::IO_N1, "Q"),
-            "OUT.LIOB0.I" => (bels::IO_W0, "I"),
-            "OUT.LIOB0.Q" => (bels::IO_W0, "Q"),
-            "OUT.LIOB1.I" => (bels::IO_W1, "I"),
-            "OUT.LIOB1.Q" => (bels::IO_W1, "Q"),
-            "OUT.RIOB0.I" => (bels::IO_E0, "I"),
-            "OUT.RIOB0.Q" => (bels::IO_E0, "Q"),
-            "OUT.RIOB1.I" => (bels::IO_E1, "I"),
-            "OUT.RIOB1.Q" => (bels::IO_E1, "Q"),
-            "OUT.OSC" => (bels::OSC, "O"),
-            "OUT.CLKIOB" => (bels::CLKIOB, "I"),
-            "GCLK" => {
-                cell.col = grid.col_w();
-                cell.row = grid.row_n();
-                (bels::BUFG, "O")
-            }
-            "ACLK" => {
-                cell.col = grid.col_e();
-                cell.row = grid.row_s();
-                (bels::BUFG, "O")
-            }
-            _ => panic!("umm {wtn}"),
-        };
-        let tcrd = cell.tile(tslots::MAIN);
+    let (ploc, pwt, pwf) = if let Some((bel, pin)) = wire_to_outpin(backend, wire_target) {
+        let tcrd = backend.edev.get_tile_by_bel(bel);
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let block = &ntile.bels[slot][0];
-        if slot == bels::OSC {
+        let block = &ntile.bels[bel.slot][0];
+        if bel.slot == bslots::OSC {
             fuzzer = fuzzer.base(Key::GlobalOpt("XTALOSC".into()), "ENABLE");
             if root {
-                let wires = [
-                    backend.edev.db.get_wire("SINGLE.V.R3"),
-                    backend.edev.db.get_wire("SINGLE.H.B3"),
-                ];
+                let wires = [wires::SINGLE_VE[3], wires::SINGLE_HS[3]];
                 let wire = if wire_avoid[0].slot == wires[0] {
                     wires[1]
                 } else {
@@ -111,12 +182,8 @@ fn drive_wire<'a>(
             block,
             pin,
         );
-    } else if wtn.starts_with("LONG.H") {
-        let slot = if wtn == "LONG.H0" {
-            bels::TBUF0
-        } else {
-            bels::TBUF1
-        };
+    } else if let Some(idx) = wires::LONG_H.index_of(wire_target.slot) {
+        let slot = bslots::TBUF[idx];
         let pin = "O";
         let tcrd = cell.tile(tslots::MAIN);
         let ntile = &backend.ngrid.tiles[&tcrd];
@@ -128,15 +195,29 @@ fn drive_wire<'a>(
             block,
             pin,
         );
-    } else if wtn == "ACLK.V" || wtn == "GCLK.V" || wtn.starts_with("IOCLK") {
+    } else if matches!(wire_target.slot, wires::ACLK_V | wires::GCLK_V)
+        || wire_as_ioclk(wire_target.slot).is_some()
+    {
         'a: {
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
                 let tile = &backend.edev[tcrd];
                 let tcls_index = &backend.edev.db_index[tile.class];
-                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
+                let rw = if let Some((_, idx)) = wire_as_ioclk(wire_target.slot) {
+                    if tcls_index
+                        .pips_bwd
+                        .contains_key(&TileWireCoord::new_idx(0, w.slot))
+                    {
+                        w.wire(wires::IMUX_IOCLK[idx])
+                    } else {
+                        continue;
+                    }
+                } else {
+                    w
+                };
+                if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, rw.slot)) {
                     for &inp in ins {
-                        if backend.edev.db.wires.key(inp.wire).ends_with("CLK") {
+                        if matches!(inp.wire, wires::GCLK | wires::ACLK) {
                             let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if !wire_avoid.contains(&rwf) {
                                 break 'a (tcrd, TileWireCoord::new_idx(0, w.slot), inp.tw);
@@ -147,9 +228,9 @@ fn drive_wire<'a>(
             }
             panic!("ummm no out for {wtn}?")
         }
-    } else if (wtn.starts_with("SINGLE") && wtn.ends_with(".STUB"))
+    } else if (wtn.starts_with("SINGLE") && wtn.contains("_STUB"))
         || wtn.starts_with("LONG")
-        || wtn.starts_with("IMUX.IOCLK")
+        || wtn.starts_with("IMUX_IOCLK")
     {
         'a: {
             for w in backend.edev.wire_tree(wire_target) {
@@ -169,7 +250,7 @@ fn drive_wire<'a>(
             }
             panic!("ummm no out for {wtn}?")
         }
-    } else if wtn.starts_with("SINGLE.V") && !wtn.ends_with(".STUB") {
+    } else if wtn.starts_with("SINGLE_V") && !wtn.contains("_STUB") {
         'a: {
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
@@ -178,7 +259,7 @@ fn drive_wire<'a>(
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
                         if backend.edev.db.wires.key(inp.wire).starts_with("OUT")
-                            || backend.edev.db.wires.key(inp.wire).starts_with("LONG.H")
+                            || backend.edev.db.wires.key(inp.wire).starts_with("LONG_H")
                         {
                             let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if !wire_avoid.contains(&rwf) {
@@ -190,7 +271,7 @@ fn drive_wire<'a>(
             }
             panic!("ummm no out for {wtn}?")
         }
-    } else if wtn.starts_with("SINGLE.H") && !wtn.ends_with(".STUB") {
+    } else if wtn.starts_with("SINGLE_H") && !wtn.contains("_STUB") {
         'a: {
             for w in backend.edev.wire_tree(wire_target) {
                 let tcrd = w.cell.tile(tslots::MAIN);
@@ -198,8 +279,8 @@ fn drive_wire<'a>(
                 let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
-                        if (backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.V")
-                            && !backend.edev.db.wires.key(inp.wire).ends_with(".STUB"))
+                        if (backend.edev.db.wires.key(inp.wire).starts_with("SINGLE_V")
+                            && !backend.edev.db.wires.key(inp.wire).contains("_STUB"))
                             || backend.edev.db.wires.key(inp.wire).starts_with("OUT")
                         {
                             let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
@@ -216,7 +297,7 @@ fn drive_wire<'a>(
                 let tcls_index = &backend.edev.db_index[tile.class];
                 if let Some(ins) = tcls_index.pips_bwd.get(&TileWireCoord::new_idx(0, w.slot)) {
                     for &inp in ins {
-                        if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE.H") {
+                        if backend.edev.db.wires.key(inp.wire).starts_with("SINGLE_H") {
                             let rwf = backend.edev.resolve_tile_wire(tcrd, inp.tw).unwrap();
                             if !wire_avoid.contains(&rwf) {
                                 break 'a (tcrd, TileWireCoord::new_idx(0, w.slot), inp.tw);
@@ -237,6 +318,20 @@ fn drive_wire<'a>(
     (fuzzer, block, pin)
 }
 
+fn wire_as_ioclk(wire: WireSlotId) -> Option<(Dir, usize)> {
+    if let Some(idx) = wires::IOCLK_W.index_of(wire) {
+        Some((Dir::W, idx))
+    } else if let Some(idx) = wires::IOCLK_E.index_of(wire) {
+        Some((Dir::E, idx))
+    } else if let Some(idx) = wires::IOCLK_S.index_of(wire) {
+        Some((Dir::S, idx))
+    } else if let Some(idx) = wires::IOCLK_N.index_of(wire) {
+        Some((Dir::N, idx))
+    } else {
+        None
+    }
+}
+
 fn apply_imux_finish<'a>(
     backend: &XactBackend<'a>,
     wire: WireCoord,
@@ -245,57 +340,39 @@ fn apply_imux_finish<'a>(
     spin: &'static str,
     inv: bool,
 ) -> Fuzzer<XactBackend<'a>> {
-    let grid = backend.edev.chip;
+    let chip = backend.edev.chip;
     let cell = wire.cell;
     let w = wire.slot;
     let wn = &backend.edev.db.wires.key(w)[..];
-    if wn.starts_with("IOCLK") {
-        let slot = match &wn[6..7] {
-            "L" => bels::IO_W0,
-            "R" => bels::IO_E0,
-            "B" => bels::IO_S0,
-            "T" => bels::IO_N0,
-            _ => unreachable!(),
+    if let Some((side, idx)) = wire_as_ioclk(wire.slot) {
+        let slot = match side {
+            Dir::W => bslots::IO_W[0],
+            Dir::E => bslots::IO_E[0],
+            Dir::S => bslots::IO_S[0],
+            Dir::N => bslots::IO_N[0],
         };
-        let pin = if wn.ends_with('0') { "OK" } else { "IK" };
-        let (col, row) = match wn {
-            "IOCLK.B0" => (grid.col_w(), grid.row_s()),
-            "IOCLK.B1" => (grid.col_e(), grid.row_s()),
-            "IOCLK.T0" => (grid.col_e(), grid.row_n()),
-            "IOCLK.T1" => (grid.col_w(), grid.row_n()),
-            "IOCLK.L0" => (grid.col_w(), grid.row_n()),
-            "IOCLK.L1" => (grid.col_w(), grid.row_s()),
-            "IOCLK.R0" => (grid.col_e(), grid.row_s()),
-            "IOCLK.R1" => (grid.col_e(), grid.row_n()),
+        let pin = if idx == 0 { bcls::IO::OK } else { bcls::IO::IK };
+        let (col, row) = match (side, idx) {
+            (Dir::W, 0) => (chip.col_w(), chip.row_n()),
+            (Dir::W, 1) => (chip.col_w(), chip.row_s()),
+            (Dir::E, 0) => (chip.col_e(), chip.row_s()),
+            (Dir::E, 1) => (chip.col_e(), chip.row_n()),
+            (Dir::S, 0) => (chip.col_w(), chip.row_s()),
+            (Dir::S, 1) => (chip.col_e(), chip.row_s()),
+            (Dir::N, 0) => (chip.col_e(), chip.row_n()),
+            (Dir::N, 1) => (chip.col_w(), chip.row_n()),
             _ => unreachable!(),
         };
         let cell = cell.with_cr(col, row);
         let tcrd = cell.tile(tslots::MAIN);
-        let tile = &backend.edev[tcrd];
-        let tcls = &backend.edev.db[tile.class];
         let ntile = &backend.ngrid.tiles[&tcrd];
         let block = &ntile.bels[slot][0];
-        let bel_data = &tcls.bels[slot];
-        let BelInfo::Legacy(bel_data) = bel_data else {
-            unreachable!()
-        };
-        let wire_pin = bel_data.pins[pin].wires.iter().copied().next().unwrap();
+        let wire_pin = backend.edev.get_bel_input(cell.bel(slot), pin);
+        let wire_pin = TileWireCoord::new_idx(0, wire_pin.slot);
         let crd = backend
             .ngrid
             .int_pip(tcrd, wire_pin, TileWireCoord::new_idx(0, wire.slot));
-        if let DiffKey::Legacy(ref id) = fuzzer.info.features[0].key
-            && &id.tile != backend.edev.db.tile_classes.key(tile.class)
-        {
-            fuzzer.info.features.push(FuzzerFeature {
-                key: DiffKey::Legacy(FeatureId {
-                    tile: backend.edev.db.tile_classes.key(tile.class).clone(),
-                    bel: "INT".into(),
-                    attr: format!("INV.{wn}"),
-                    val: if inv { "1" } else { "0" }.into(),
-                }),
-                rects: EntityVec::from_iter([backend.edev.btile_main(col, row)]),
-            });
-        }
+        let pin_name = backend.edev.db.bel_classes[bcls::IO].inputs.key(pin).0;
         return fuzzer
             .base(Key::BlockBase(block), "IO")
             .base(Key::BlockConfig(block, "IN".into(), "I".into()), true)
@@ -308,83 +385,31 @@ fn apply_imux_finish<'a>(
             .fuzz(
                 Key::BlockConfig(
                     block,
-                    if pin == "IK" { "IN" } else { "OUT" }.into(),
-                    format!("{pin}NOT"),
+                    if pin == bcls::IO::IK { "IN" } else { "OUT" }.into(),
+                    format!("{pin_name}NOT"),
                 ),
                 false,
                 inv,
             )
             .fuzz(Key::Pip(crd), None, Value::FromPin(sblock, spin.into()))
             .fuzz(
-                Key::BlockPin(block, pin.into()),
+                Key::BlockPin(block, pin_name.to_string()),
                 None,
                 Value::FromPin(sblock, spin.into()),
             );
     }
-    if !wn.starts_with("IMUX") || wn.starts_with("IMUX.IOCLK") {
+    let Some((slot, pin)) = wire_to_inpin(wire.slot) else {
         return fuzzer;
-    }
-    let (slot, pin) = match wn {
-        "IMUX.CLB.A" => (bels::CLB, "A"),
-        "IMUX.CLB.B" => (bels::CLB, "B"),
-        "IMUX.CLB.C" => (bels::CLB, "C"),
-        "IMUX.CLB.D" => (bels::CLB, "D"),
-        "IMUX.CLB.E" => (bels::CLB, "E"),
-        "IMUX.CLB.DI" => (bels::CLB, "DI"),
-        "IMUX.CLB.EC" => (bels::CLB, "EC"),
-        "IMUX.CLB.RD" => (bels::CLB, "RD"),
-        "IMUX.CLB.K" => (bels::CLB, "K"),
-        "IMUX.BIOB0.O" => (bels::IO_S0, "O"),
-        "IMUX.BIOB0.T" => (bels::IO_S0, "T"),
-        "IMUX.BIOB0.IK" => (bels::IO_S0, "IK"),
-        "IMUX.BIOB0.OK" => (bels::IO_S0, "OK"),
-        "IMUX.BIOB1.O" => (bels::IO_S1, "O"),
-        "IMUX.BIOB1.T" => (bels::IO_S1, "T"),
-        "IMUX.BIOB1.IK" => (bels::IO_S1, "IK"),
-        "IMUX.BIOB1.OK" => (bels::IO_S1, "OK"),
-        "IMUX.TIOB0.O" => (bels::IO_N0, "O"),
-        "IMUX.TIOB0.T" => (bels::IO_N0, "T"),
-        "IMUX.TIOB0.IK" => (bels::IO_N0, "IK"),
-        "IMUX.TIOB0.OK" => (bels::IO_N0, "OK"),
-        "IMUX.TIOB1.O" => (bels::IO_N1, "O"),
-        "IMUX.TIOB1.T" => (bels::IO_N1, "T"),
-        "IMUX.TIOB1.IK" => (bels::IO_N1, "IK"),
-        "IMUX.TIOB1.OK" => (bels::IO_N1, "OK"),
-        "IMUX.LIOB0.O" => (bels::IO_W0, "O"),
-        "IMUX.LIOB0.T" => (bels::IO_W0, "T"),
-        "IMUX.LIOB0.IK" => (bels::IO_W0, "IK"),
-        "IMUX.LIOB0.OK" => (bels::IO_W0, "OK"),
-        "IMUX.LIOB1.O" => (bels::IO_W1, "O"),
-        "IMUX.LIOB1.T" => (bels::IO_W1, "T"),
-        "IMUX.LIOB1.IK" => (bels::IO_W1, "IK"),
-        "IMUX.LIOB1.OK" => (bels::IO_W1, "OK"),
-        "IMUX.RIOB0.O" => (bels::IO_E0, "O"),
-        "IMUX.RIOB0.T" => (bels::IO_E0, "T"),
-        "IMUX.RIOB0.IK" => (bels::IO_E0, "IK"),
-        "IMUX.RIOB0.OK" => (bels::IO_E0, "OK"),
-        "IMUX.RIOB1.O" => (bels::IO_E1, "O"),
-        "IMUX.RIOB1.T" => (bels::IO_E1, "T"),
-        "IMUX.RIOB1.IK" => (bels::IO_E1, "IK"),
-        "IMUX.RIOB1.OK" => (bels::IO_E1, "OK"),
-        "IMUX.TBUF0.I" => (bels::TBUF0, "I"),
-        "IMUX.TBUF0.T" => (bels::TBUF0, "T"),
-        "IMUX.TBUF1.I" => (bels::TBUF1, "I"),
-        "IMUX.TBUF1.T" => (bels::TBUF1, "T"),
-        "IMUX.TBUF2.I" => (bels::TBUF0_E, "I"),
-        "IMUX.TBUF2.T" => (bels::TBUF0_E, "T"),
-        "IMUX.TBUF3.I" => (bels::TBUF1_E, "I"),
-        "IMUX.TBUF3.T" => (bels::TBUF1_E, "T"),
-        "IMUX.BUFG" => (bels::BUFG, "I"),
-        _ => panic!("umm {wn}?"),
     };
-    let tcrd = cell.tile(tslots::MAIN);
+    let bel = wire.bel(slot);
+    let tcrd = backend.edev.get_tile_by_bel(bel);
     let ntile = &backend.ngrid.tiles[&tcrd];
-    let block = &ntile.bels[slot][0];
-    if pin == "T" && wn.contains("IOB") {
+    let block = &ntile.bels[bel.slot][0];
+    if pin == "T" && wn.starts_with("IMUX_IO") {
         fuzzer = fuzzer
             .base(Key::BlockBase(block), "IO")
             .base(Key::BlockConfig(block, "IN".into(), "I".into()), true)
-            .base(Key::BelMutex(cell.bel(slot), "TRI".into()), "T")
+            .base(Key::BelMutex(bel, "TRI".into()), "T")
             .fuzz(
                 Key::BlockConfig(block, "TRI".into(), "T".into()),
                 false,
@@ -406,7 +431,7 @@ fn apply_imux_finish<'a>(
             .base(Key::BlockConfig(block, "IN".into(), "I".into()), true)
             .base(Key::BlockConfig(block, "OUT".into(), "O".into()), false)
             .base(Key::BlockConfig(block, "OUT".into(), "OQ".into()), true)
-            .base(Key::BelMutex(cell.bel(slot), "TRI".into()), "GND")
+            .base(Key::BelMutex(bel, "TRI".into()), "GND")
             .base(Key::BlockConfig(block, "OUT".into(), "OKNOT".into()), false);
     }
     fuzzer.fuzz(
@@ -419,17 +444,12 @@ fn apply_imux_finish<'a>(
 #[derive(Clone, Debug)]
 struct IntPip {
     wire_to: TileWireCoord,
-    wire_from: TileWireCoord,
-    inv: bool,
+    wire_from: PolTileWireCoord,
 }
 
 impl IntPip {
-    pub fn new(wire_to: TileWireCoord, wire_from: TileWireCoord, inv: bool) -> Self {
-        Self {
-            wire_to,
-            wire_from,
-            inv,
-        }
+    pub fn new(wire_to: TileWireCoord, wire_from: PolTileWireCoord) -> Self {
+        Self { wire_to, wire_from }
     }
 }
 
@@ -447,14 +467,14 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for IntPip {
         let rwt = backend.edev.resolve_tile_wire(tcrd, self.wire_to).unwrap();
         let rwf = backend
             .edev
-            .resolve_tile_wire(tcrd, self.wire_from)
+            .resolve_tile_wire(tcrd, self.wire_from.tw)
             .unwrap();
         let mut wire_avoid = vec![rwt];
         let (mut fuzzer, block, pin) = drive_wire(backend, fuzzer, rwf, &mut wire_avoid, true);
         fuzzer = fuzzer.fuzz(Key::WireMutex(rwt), false, true);
-        let crd = backend.ngrid.int_pip(tcrd, self.wire_to, self.wire_from);
+        let crd = backend.ngrid.int_pip(tcrd, self.wire_to, self.wire_from.tw);
         fuzzer = fuzzer.fuzz(Key::Pip(crd), None, Value::FromPin(block, pin.into()));
-        fuzzer = apply_imux_finish(backend, rwt, fuzzer, block, pin, self.inv);
+        fuzzer = apply_imux_finish(backend, rwt, fuzzer, block, pin, self.wire_from.inv);
         Some((fuzzer, false))
     }
 }
@@ -489,83 +509,149 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ProhibitInt {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let intdb = backend.edev.db;
-    for (tcid, tile, tcls) in &intdb.tile_classes {
-        let tcls_index = &backend.edev.db_index[tcid];
-        if tcls_index.pips_bwd.is_empty() {
-            continue;
-        }
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+    for (tcid, _, tcls) in &intdb.tile_classes {
+        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcid) else {
             continue;
         };
-        for (&wire_to, ins) in &tcls_index.pips_bwd {
-            let wire_to_name = intdb.wires.key(wire_to.wire);
-            let mux_name = if tile.starts_with("LL") {
-                format!("MUX.{:#}.{}", wire_to.cell, wire_to_name)
-            } else {
-                format!("MUX.{wire_to_name}")
+        for bel in tcls.bels.values() {
+            let BelInfo::SwitchBox(sb) = bel else {
+                continue;
             };
-            for &wire_from in ins {
-                let wire_from = wire_from.tw;
-                let wire_from_name = intdb.wires.key(wire_from.wire);
-                let in_name = format!("{:#}.{}", wire_from.cell, wire_from_name);
-                ctx.build()
-                    .test_manual("INT", &mux_name, &in_name)
-                    .prop(IntPip::new(wire_to, wire_from, false))
-                    .commit();
-                if wire_to_name.starts_with("IOCLK") {
-                    ctx.build()
-                        .test_manual("INT", &mux_name, format!("{in_name}.INV"))
-                        .prop(IntPip::new(wire_to, wire_from, true))
-                        .commit();
-                }
-            }
-            if mux_name.contains("TBUF") && mux_name.ends_with('I') {
-                let long_name = if mux_name.contains("TBUF0") || mux_name.contains("TBUF2") {
-                    "LONG.H0"
-                } else {
-                    "LONG.H1"
-                };
-                let t_name = format!("{}.T", &intdb.wires.key(wire_to.wire)[..10]);
-                let wire_long = TileWireCoord::new_idx(0, intdb.get_wire(long_name));
-                let wire_t = TileWireCoord::new_idx(0, intdb.get_wire(&t_name));
-                for &wire_from in ins {
-                    let wire_from = wire_from.tw;
-                    let wire_from_name = intdb.wires.key(wire_from.wire);
-                    if !wire_from_name.starts_with("SINGLE") {
-                        continue;
+            for item in &sb.items {
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        for &src in mux.src.keys() {
+                            if wires::IMUX_IOCLK.contains(mux.dst.wire)
+                                && matches!(src.wire, wires::ACLK | wires::GCLK)
+                            {
+                                let ioclk = sb
+                                    .items
+                                    .iter()
+                                    .find_map(|item| {
+                                        if let SwitchBoxItem::ProgInv(inv) = item {
+                                            if inv.src == mux.dst {
+                                                Some(inv.dst)
+                                            } else {
+                                                None
+                                            }
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                    .unwrap();
+                                for (wt, wf) in [(ioclk, src), (ioclk, mux.dst.pos())] {
+                                    ctx.build()
+                                        .test_raw(DiffKey::RoutingInv(tcid, ioclk, false))
+                                        .prop(IntPip::new(wt, wf))
+                                        .commit();
+                                    ctx.build()
+                                        .test_raw(DiffKey::RoutingInv(tcid, ioclk, true))
+                                        .prop(IntPip::new(wt, !wf))
+                                        .commit();
+                                }
+                                continue;
+                            }
+                            if matches!(
+                                src.wire,
+                                wires::TIE_0 | wires::TIE_1 | wires::SPECIAL_IO_PULLUP
+                            ) {
+                                continue;
+                            }
+                            ctx.build()
+                                .test_raw(DiffKey::Routing(tcid, mux.dst, src))
+                                .prop(IntPip::new(mux.dst, src))
+                                .commit();
+                        }
+                        if let Some(idx) = wires::IMUX_TBUF_I.index_of(mux.dst.wire) {
+                            let wire_long = wires::LONG_H[idx % 2];
+                            let wire_t = wires::IMUX_TBUF_T[idx];
+                            let wire_long = TileWireCoord::new_idx(0, wire_long);
+                            let wire_t = TileWireCoord::new_idx(0, wire_t);
+                            for &src in mux.src.keys() {
+                                let wire_from_name = intdb.wires.key(src.wire);
+                                if !wire_from_name.starts_with("SINGLE") {
+                                    continue;
+                                }
+                                ctx.build()
+                                    .test_raw(DiffKey::Routing(
+                                        tcid,
+                                        wire_t,
+                                        TileWireCoord::new_idx(0, wires::TIE_0).pos(),
+                                    ))
+                                    .prop(ProhibitInt::new(mux.dst))
+                                    .prop(ProhibitInt::new(wire_t))
+                                    .prop(IntPip::new(wire_long, src))
+                                    .commit();
+                            }
+                        }
                     }
-                    ctx.build()
-                        .test_manual("INT", format!("MUX.{t_name}"), "GND")
-                        .prop(ProhibitInt::new(wire_to))
-                        .prop(ProhibitInt::new(wire_t))
-                        .prop(IntPip::new(wire_long, wire_from, false))
-                        .commit();
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        ctx.build()
+                            .test_raw(DiffKey::Routing(tcid, buf.dst, buf.src))
+                            .prop(IntPip::new(buf.dst, buf.src))
+                            .commit();
+                    }
+                    SwitchBoxItem::PermaBuf(buf) => {
+                        if buf.src.wire == wires::IMUX_BUFG {
+                            continue;
+                        }
+                        ctx.build()
+                            .null_bits()
+                            .test_raw(DiffKey::Routing(tcid, buf.dst, buf.src))
+                            .prop(IntPip::new(buf.dst, buf.src))
+                            .commit();
+                    }
+                    SwitchBoxItem::Pass(pass) => {
+                        ctx.build()
+                            .test_raw(DiffKey::Routing(tcid, pass.dst, pass.src.pos()))
+                            .prop(IntPip::new(pass.dst, pass.src.pos()))
+                            .commit();
+                    }
+                    SwitchBoxItem::BiPass(pass) => {
+                        ctx.build()
+                            .test_raw(DiffKey::Routing(tcid, pass.a, pass.b.pos()))
+                            .prop(IntPip::new(pass.a, pass.b.pos()))
+                            .commit();
+                        ctx.build()
+                            .test_raw(DiffKey::Routing(tcid, pass.b, pass.a.pos()))
+                            .prop(IntPip::new(pass.b, pass.a.pos()))
+                            .commit();
+                    }
+                    SwitchBoxItem::ProgInv(_) => {
+                        // handled in mux code
+                    }
+                    _ => unreachable!(),
                 }
             }
         }
         for slot in tcls.bels.ids() {
-            let slot_name = backend.edev.db.bel_slots.key(slot).as_str();
-            if slot_name.starts_with("IO") {
+            if backend.edev.db.bel_slots[slot].kind == BelKind::Class(bcls::IO) {
                 let mut bctx = ctx.bel(slot);
                 bctx.mode("IO")
                     .global("XTALOSC", "DISABLE")
-                    .test_cfg("IN", "I");
+                    .test_bel_special(specials::IO_IN_I)
+                    .cfg("IN", "I")
+                    .commit();
                 bctx.mode("IO")
                     .global("XTALOSC", "DISABLE")
                     .cfg("IN", "I")
                     .mutex("TRI", "PULLUP")
-                    .test_cfg("IN", "PULLUP");
+                    .test_bel_special(specials::IO_IN_PULLUP)
+                    .cfg("IN", "PULLUP")
+                    .commit();
                 bctx.mode("IO")
                     .cfg("IN", "I")
                     .mutex("TRI", "GND")
                     .mutex("OUT", "O")
-                    .test_cfg("OUT", "O");
+                    .test_bel_special(specials::IO_OUT_O)
+                    .cfg("OUT", "O")
+                    .commit();
             }
-            if slot_name.starts_with("PULLUP_TBUF") {
+            if backend.edev.db.bel_slots[slot].kind == BelKind::Class(bcls::PULLUP) {
                 let mut bctx = ctx.bel(slot);
                 bctx.build()
-                    .pin_mutex_exclusive("O")
-                    .test_manual("ENABLE", "1")
+                    .bidir_mutex_exclusive(bcls::PULLUP::O)
+                    .test_bel_attr_bits(bcls::PULLUP::ENABLE)
                     .pip_pin("O", "O")
                     .commit();
             }
@@ -575,16 +661,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.db;
-    let grid = ctx.edev.chip;
-    for (_, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile(tcname) {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
+        if !ctx.has_tile(tcid) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {
+            if bslot == bslots::BUFG {
+                continue;
+            }
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
-            let bel = intdb.bel_slots.key(bslot);
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
@@ -596,40 +683,32 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         };
                         let mut inps = vec![];
                         let mut got_empty = false;
-                        for &wire_from in mux.src.keys() {
-                            let in_name =
-                                format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire));
-                            let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
-                            if diff.bits.is_empty() {
+                        for &src in mux.src.keys() {
+                            if wires::IMUX_IOCLK.contains(mux.dst.wire)
+                                && matches!(src.wire, wires::ACLK | wires::GCLK)
+                            {
+                                inps.push((Some(src), Diff::default()));
                                 got_empty = true;
+                                continue;
                             }
-                            inps.push((in_name.to_string(), diff));
-                        }
-                        if out_name.ends_with(".T") {
-                            if out_name.starts_with("IMUX.TBUF") {
-                                let diff = ctx.state.get_diff(tcname, "INT", &mux_name, "GND");
-                                inps.push(("GND".to_string(), diff));
-                            } else {
-                                let slot = match &out_name[5..10] {
-                                    "LIOB0" => bels::IO_W[0],
-                                    "LIOB1" => bels::IO_W[1],
-                                    "RIOB0" => bels::IO_E[0],
-                                    "RIOB1" => bels::IO_E[1],
-                                    "BIOB0" => bels::IO_S[0],
-                                    "BIOB1" => bels::IO_S[1],
-                                    "TIOB0" => bels::IO_N[0],
-                                    "TIOB1" => bels::IO_N[1],
-                                    _ => unreachable!(),
-                                };
-                                let bel = ctx.edev.db.bel_slots.key(slot).as_str();
-                                let diff = ctx.state.get_diff(tcname, bel, "OUT", "O");
-                                inps.push(("GND".to_string(), diff));
-
-                                let mut diff_i = ctx.state.get_diff(tcname, bel, "IN", "I");
+                            if src.wire == wires::TIE_0
+                                && !wires::IMUX_TBUF_T.contains(mux.dst.wire)
+                            {
+                                let (slot, pin) = wire_to_inpin(mux.dst.wire).unwrap();
+                                assert_eq!(pin, "T");
+                                let diff = ctx.get_diff_bel_special(tcid, slot, specials::IO_OUT_O);
+                                inps.push((Some(src), diff));
+                                continue;
+                            }
+                            if src.wire == wires::SPECIAL_IO_PULLUP {
+                                let (slot, pin) = wire_to_inpin(mux.dst.wire).unwrap();
+                                assert_eq!(pin, "T");
+                                let mut diff_i =
+                                    ctx.get_diff_bel_special(tcid, slot, specials::IO_IN_I);
                                 let mut diff_pullup =
-                                    ctx.state.get_diff(tcname, bel, "IN", "PULLUP");
-                                if tcname.starts_with("CLB.BR")
-                                    && (bel == "IO_S1" || bel == "IO_E0")
+                                    ctx.get_diff_bel_special(tcid, slot, specials::IO_IN_PULLUP);
+                                if tcls.bels.contains_id(bslots::OSC)
+                                    && (slot == bslots::IO_S[1] || slot == bslots::IO_E[0])
                                 {
                                     let mut diff_i_spec = Diff::default();
                                     for (&k, &v) in &diff_i.bits {
@@ -640,193 +719,64 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     diff_i = diff_i.combine(&!&diff_i_spec);
                                     diff_pullup = diff_pullup.combine(&diff_i_spec);
                                     // umm what is this actually
-                                    ctx.tiledb.insert(
-                                        tcname,
-                                        bel,
-                                        "PULLUP",
-                                        xlat_bit(!diff_i_spec),
+                                    ctx.insert_bel_attr_bitvec(
+                                        tcid,
+                                        slot,
+                                        bcls::IO::OSC_PULLUP,
+                                        vec![xlat_bit_raw(!diff_i_spec)],
                                     );
                                 }
                                 assert_eq!(diff_i, !&diff_pullup);
-                                inps.push(("PULLUP".to_string(), diff_pullup));
-                            }
-                            inps.push(("VCC".to_string(), Diff::default()));
-                            got_empty = true;
-                        }
-                        if out_name.starts_with("IMUX.IOCLK") {
-                            let val = match (&tcname[..6], &out_name[..], grid.is_small) {
-                                ("CLB.BL", "IMUX.IOCLK0", false) => "GCLK",
-                                ("CLB.BL", "IMUX.IOCLK1", false) => "ACLK",
-                                ("CLB.BR", "IMUX.IOCLK0", false) => "ACLK",
-                                ("CLB.BR", "IMUX.IOCLK1", false) => "ACLK",
-                                ("CLB.TL", "IMUX.IOCLK0", false) => "GCLK",
-                                ("CLB.TL", "IMUX.IOCLK1", false) => "GCLK",
-                                ("CLB.TR", "IMUX.IOCLK0", false) => "ACLK",
-                                ("CLB.TR", "IMUX.IOCLK1", false) => "GCLK",
-                                (_, "IMUX.IOCLK0", true) => "ACLK",
-                                (_, "IMUX.IOCLK1", true) => "GCLK",
-                                _ => unreachable!(),
-                            };
-                            inps.push((val.to_string(), Diff::default()));
-                            got_empty = true;
-                        }
-                        if !got_empty {
-                            assert!(mux_name.contains("IOB"));
-                            assert!(mux_name.ends_with(".O"));
-                            inps.push(("NONE".to_string(), Diff::default()));
-                        }
-                        let item = xlat_enum_ocd(inps, OcdMode::Mux);
-                        if item.bits.is_empty() {
-                            if mux_name.contains("TBUF") && mux_name.ends_with(".I") {
-                                // OK.
+                                inps.push((Some(src), diff_pullup));
                                 continue;
                             }
+                            if src.wire == wires::TIE_1 {
+                                inps.push((Some(src), Diff::default()));
+                                got_empty = true;
+                                continue;
+                            }
+                            let diff = ctx
+                                .state
+                                .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
+                            if diff.bits.is_empty() {
+                                got_empty = true;
+                            }
+                            inps.push((Some(src), diff));
+                        }
+                        if !got_empty {
+                            let Some((_slot, pin)) = wire_to_inpin(mux.dst.wire) else {
+                                unreachable!()
+                            };
+                            assert_eq!(pin, "O");
+                            inps.push((None, Diff::default()));
+                        }
+                        let (bits, vals) = xlat_enum_raw(inps, OcdMode::Mux);
+                        if bits.is_empty() && !wires::IMUX_TBUF_I.contains(mux.dst.wire) {
                             println!("UMMM MUX {tcname} {mux_name} is empty");
                         }
-                        ctx.tiledb.insert(tcname, bel, mux_name, item);
+                        ctx.insert_mux(tcid, mux.dst, (bits, vals));
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
-                        let out_name = intdb.wires.key(buf.dst.wire);
-                        let mux_name = if tcname.starts_with("LL") {
-                            format!("MUX.{wtt:#}.{out_name}", wtt = buf.dst.cell)
-                        } else {
-                            format!("MUX.{out_name}")
-                        };
-                        let wfname = intdb.wires.key(buf.src.wire);
-                        let in_name = format!("{:#}.{}", buf.src.cell, wfname);
-                        let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
-                        if out_name.starts_with("IOCLK") {
-                            let empty = grid.is_small
-                                && matches!(
-                                    &out_name[..],
-                                    "IOCLK.B0" | "IOCLK.B1" | "IOCLK.L0" | "IOCLK.L1"
-                                );
-                            diff.assert_empty();
-                            let diff = ctx.state.get_diff(
-                                tcname,
-                                "INT",
-                                &mux_name,
-                                format!("{in_name}.INV"),
-                            );
-                            if in_name.ends_with("CLK") && empty {
-                                diff.assert_empty();
-                            } else {
-                                let item = xlat_bit(diff);
-                                ctx.tiledb
-                                    .insert(tcname, bel, format!("INV.{out_name}"), item);
-                            }
-                        } else {
-                            if diff.bits.is_empty() {
-                                panic!("weird lack of bits: {tcname} {out_name} {wfname}");
-                            }
-
-                            assert_eq!(diff.bits.len(), 1);
-                            let oname = if tcname.starts_with("LL") {
-                                format!("{:#}.{}", buf.dst.cell, out_name)
-                            } else {
-                                out_name.to_string()
-                            };
-                            let iname = format!("{:#}.{}", buf.src.cell, wfname);
-                            ctx.tiledb.insert(
-                                tcname,
-                                bel,
-                                format!("BUF.{oname}.{iname}"),
-                                xlat_bit(diff),
-                            );
-                        }
+                        ctx.collect_progbuf(tcid, buf.dst, buf.src);
                     }
-                    SwitchBoxItem::PermaBuf(buf) => {
-                        let out_name = intdb.wires.key(buf.dst.wire);
-                        let mux_name = if tcname.starts_with("LL") {
-                            format!("MUX.{wtt:#}.{out_name}", wtt = buf.dst.cell)
-                        } else {
-                            format!("MUX.{out_name}")
-                        };
-                        let in_name =
-                            format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire));
-                        let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
-                        diff.assert_empty();
-                    }
+                    SwitchBoxItem::PermaBuf(_) => (),
                     SwitchBoxItem::Pass(pass) => {
-                        let out_name = intdb.wires.key(pass.dst.wire);
-                        let mux_name = if tcname.starts_with("LL") {
-                            format!("MUX.{wtt:#}.{out_name}", wtt = pass.dst.cell)
-                        } else {
-                            format!("MUX.{out_name}")
-                        };
-
-                        let wfname = intdb.wires.key(pass.src.wire);
-                        let in_name = format!("{:#}.{}", pass.src.cell, wfname);
-                        let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
-                        if diff.bits.is_empty() {
-                            panic!("weird lack of bits: {tcname} {out_name} {wfname}");
-                        }
-
-                        assert_eq!(diff.bits.len(), 1);
-                        let oname = if tcname.starts_with("LL") {
-                            format!("{:#}.{}", pass.dst.cell, out_name)
-                        } else {
-                            out_name.to_string()
-                        };
-                        let iname = format!("{:#}.{}", pass.src.cell, wfname);
-                        ctx.tiledb.insert(
-                            tcname,
-                            bel,
-                            format!("PASS.{oname}.{iname}"),
-                            xlat_bit(diff),
-                        );
+                        ctx.collect_pass(tcid, pass.dst, pass.src);
                     }
                     SwitchBoxItem::BiPass(pass) => {
-                        let aname = intdb.wires.key(pass.a.wire);
-                        let bname = intdb.wires.key(pass.b.wire);
-                        let name = if tcname.starts_with("LL") {
-                            format!(
-                                "BIPASS.{:#}.{}.{:#}.{}",
-                                pass.a.cell, aname, pass.b.cell, bname
-                            )
-                        } else {
-                            assert_eq!(pass.a.cell.to_idx(), 0);
-                            assert_eq!(pass.b.cell.to_idx(), 0);
-                            format!("BIPASS.{aname}.{bname}")
-                        };
-
-                        for (wdst, wsrc) in [(pass.a, pass.b), (pass.b, pass.a)] {
-                            let out_name = intdb.wires.key(wdst.wire);
-                            let mux_name = if tcname.starts_with("LL") {
-                                format!("MUX.{wtt:#}.{out_name}", wtt = wdst.cell)
-                            } else {
-                                format!("MUX.{out_name}")
-                            };
-
-                            let wfname = intdb.wires.key(wsrc.wire);
-                            let in_name = format!("{:#}.{}", wsrc.cell, wfname);
-                            let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
-
-                            assert_eq!(diff.bits.len(), 1);
-                            ctx.tiledb.insert(tcname, bel, &name, xlat_bit(diff));
-                        }
+                        ctx.collect_bipass(tcid, pass.a, pass.b);
                     }
-                    SwitchBoxItem::ProgInv(_) => (),
+                    SwitchBoxItem::ProgInv(inv) => {
+                        ctx.collect_inv_pair(tcid, inv.dst);
+                    }
                     _ => unreachable!(),
                 }
             }
         }
 
-        if tcname.starts_with("CLB.BLS") {
-            ctx.collect_enum_bool(tcname, "INT", "INV.IOCLK.B0", "0", "1");
-            ctx.collect_enum_bool(tcname, "INT", "INV.IOCLK.L1", "0", "1");
-        }
-        if tcname.starts_with("CLB.BRS") {
-            ctx.collect_enum_bool(tcname, "INT", "INV.IOCLK.B1", "0", "1");
-        }
-        if tcname.starts_with("CLB.TLS") {
-            ctx.collect_enum_bool(tcname, "INT", "INV.IOCLK.L0", "0", "1");
-        }
-
         for slot in tcls.bels.ids() {
-            let bel = ctx.edev.db.bel_slots.key(slot);
-            if bel.starts_with("PULLUP_TBUF") {
-                ctx.collect_bit(tcname, bel, "ENABLE", "1");
+            if ctx.edev.db.bel_slots[slot].kind == BelKind::Class(bcls::PULLUP) {
+                ctx.collect_bel_attr(tcid, slot, bcls::PULLUP::ENABLE);
             }
         }
     }

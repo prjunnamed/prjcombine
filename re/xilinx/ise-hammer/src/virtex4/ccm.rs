@@ -361,7 +361,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff = ctx.state.get_diff(tile, bel, pin, "REL_INT");
                 diffs.push(("REL_INT".to_string(), diff));
             }
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("MUX.{pin}"),
@@ -430,7 +430,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }
-            ctx.tiledb.insert(
+            ctx.insert(
                 tile,
                 bel,
                 format!("MUX.{pin}"),
@@ -440,7 +440,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for bel in ["PMCD[0]", "PMCD[1]", "DPM"] {
         let vreg_enable = ctx.extract_enum_bool(tile, bel, "CCM_VREG_ENABLE", "FALSE", "TRUE");
-        ctx.tiledb.insert(tile, "CCM", "VREG_ENABLE", vreg_enable);
+        ctx.insert(tile, "CCM", "VREG_ENABLE", vreg_enable);
         // ???
         for attr in ["CCM_VBG_SEL", "CCM_VBG_PD", "CCM_VREG_PHASE_MARGIN"] {
             for diff in ctx.state.get_diffs(tile, bel, attr, "") {
