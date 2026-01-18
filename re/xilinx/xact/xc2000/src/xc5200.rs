@@ -1,7 +1,11 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
-use prjcombine_xc2000::{bels::xc5200 as bels, chip::Chip, expanded::ExpandedDevice};
+use prjcombine_xc2000::{
+    chip::Chip,
+    expanded::ExpandedDevice,
+    xc5200::{bslots, tcls},
+};
 
 use crate::ExpandedNamedDevice;
 
@@ -77,86 +81,86 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let col = tcrd.col;
         let row = tcrd.row;
         let kind = edev.db.tile_classes.key(tile.class);
-        match &kind[..] {
-            "CLB" => {
+        match tile.class {
+            tcls::CLB => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.add_bel(
-                    bels::LC0,
+                    bslots::LC[0],
                     vec![
                         name_a(grid, "", "", col, row),
                         name_b(grid, "CLB_", "", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[0],
                     vec![
                         name_a(grid, "TBUF.", ".0", col, row),
                         name_b(grid, "TBUF_", ".0", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF1,
+                    bslots::TBUF[1],
                     vec![
                         name_a(grid, "TBUF.", ".1", col, row),
                         name_b(grid, "TBUF_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF2,
+                    bslots::TBUF[2],
                     vec![
                         name_a(grid, "TBUF.", ".2", col, row),
                         name_b(grid, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF3,
+                    bslots::TBUF[3],
                     vec![
                         name_a(grid, "TBUF.", ".3", col, row),
                         name_b(grid, "TBUF_", ".3", col, row),
                     ],
                 );
             }
-            "CNR.BL" => {
+            tcls::CNR_SW => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
                     name_a(grid, "dummy.", ".1", col, row),
                 ];
-                ntile.add_bel(bels::BUFG, vec!["bufgs_bl".to_string()]);
-                ntile.add_bel(bels::CLKIOB, vec!["i_bufgs_bl".to_string()]);
-                ntile.add_bel(bels::RDBK, vec!["rdbk".to_string()]);
+                ntile.add_bel(bslots::BUFG, vec!["bufgs_bl".to_string()]);
+                ntile.add_bel(bslots::CLKIOB, vec!["i_bufgs_bl".to_string()]);
+                ntile.add_bel(bslots::RDBK, vec!["rdbk".to_string()]);
             }
-            "CNR.BR" => {
+            tcls::CNR_SE => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
                     name_a(grid, "dummy.", ".1", col, row),
                 ];
-                ntile.add_bel(bels::BUFG, vec!["bufgs_br".to_string()]);
-                ntile.add_bel(bels::CLKIOB, vec!["i_bufgs_br".to_string()]);
-                ntile.add_bel(bels::STARTUP, vec!["startup".to_string()]);
+                ntile.add_bel(bslots::BUFG, vec!["bufgs_br".to_string()]);
+                ntile.add_bel(bslots::CLKIOB, vec!["i_bufgs_br".to_string()]);
+                ntile.add_bel(bslots::STARTUP, vec!["startup".to_string()]);
             }
-            "CNR.TL" => {
+            tcls::CNR_NW => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
                     name_a(grid, "dummy.", ".1", col, row),
                 ];
-                ntile.add_bel(bels::BUFG, vec!["bufgs_tl".to_string()]);
-                ntile.add_bel(bels::CLKIOB, vec!["i_bufgs_tl".to_string()]);
-                ntile.add_bel(bels::BSCAN, vec!["bscan".to_string()]);
+                ntile.add_bel(bslots::BUFG, vec!["bufgs_tl".to_string()]);
+                ntile.add_bel(bslots::CLKIOB, vec!["i_bufgs_tl".to_string()]);
+                ntile.add_bel(bslots::BSCAN, vec!["bscan".to_string()]);
             }
-            "CNR.TR" => {
+            tcls::CNR_NE => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
                     name_a(grid, "dummy.", ".1", col, row),
                 ];
-                ntile.add_bel(bels::BUFG, vec!["bufgs_tr".to_string()]);
-                ntile.add_bel(bels::CLKIOB, vec!["i_bufgs_tr".to_string()]);
-                ntile.add_bel(bels::OSC, vec!["osc".to_string()]);
+                ntile.add_bel(bslots::BUFG, vec!["bufgs_tr".to_string()]);
+                ntile.add_bel(bslots::CLKIOB, vec!["i_bufgs_tr".to_string()]);
+                ntile.add_bel(bslots::OSC, vec!["osc".to_string()]);
             }
-            "IO.L" => {
+            tcls::IO_W => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
@@ -166,40 +170,40 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     + (edev.chip.rows - 2) * 4
                     + (row.to_idx() - 1) * 4
                     + 1;
-                ntile.add_bel(bels::IO0, vec![format!("PAD{p}")]);
-                ntile.add_bel(bels::IO1, vec![format!("PAD{}", p + 1)]);
-                ntile.add_bel(bels::IO2, vec![format!("PAD{}", p + 2)]);
-                ntile.add_bel(bels::IO3, vec![format!("PAD{}", p + 3)]);
+                ntile.add_bel(bslots::IO[0], vec![format!("PAD{p}")]);
+                ntile.add_bel(bslots::IO[1], vec![format!("PAD{}", p + 1)]);
+                ntile.add_bel(bslots::IO[2], vec![format!("PAD{}", p + 2)]);
+                ntile.add_bel(bslots::IO[3], vec![format!("PAD{}", p + 3)]);
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[0],
                     vec![
                         name_a(grid, "TBUF.", ".0", col, row),
                         name_b(grid, "TBUF_", ".0", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF1,
+                    bslots::TBUF[1],
                     vec![
                         name_a(grid, "TBUF.", ".1", col, row),
                         name_b(grid, "TBUF_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF2,
+                    bslots::TBUF[2],
                     vec![
                         name_a(grid, "TBUF.", ".2", col, row),
                         name_b(grid, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF3,
+                    bslots::TBUF[3],
                     vec![
                         name_a(grid, "TBUF.", ".3", col, row),
                         name_b(grid, "TBUF_", ".3", col, row),
                     ],
                 );
             }
-            "IO.R" => {
+            tcls::IO_E => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
@@ -208,40 +212,40 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let p = (edev.chip.columns - 2) * 4
                     + (edev.chip.row_n().to_idx() - row.to_idx() - 1) * 4
                     + 1;
-                ntile.add_bel(bels::IO0, vec![format!("PAD{}", p + 3)]);
-                ntile.add_bel(bels::IO1, vec![format!("PAD{}", p + 2)]);
-                ntile.add_bel(bels::IO2, vec![format!("PAD{}", p + 1)]);
-                ntile.add_bel(bels::IO3, vec![format!("PAD{p}")]);
+                ntile.add_bel(bslots::IO[0], vec![format!("PAD{}", p + 3)]);
+                ntile.add_bel(bslots::IO[1], vec![format!("PAD{}", p + 2)]);
+                ntile.add_bel(bslots::IO[2], vec![format!("PAD{}", p + 1)]);
+                ntile.add_bel(bslots::IO[3], vec![format!("PAD{p}")]);
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[0],
                     vec![
                         name_a(grid, "TBUF.", ".0", col, row),
                         name_b(grid, "TBUF_", ".0", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF1,
+                    bslots::TBUF[1],
                     vec![
                         name_a(grid, "TBUF.", ".1", col, row),
                         name_b(grid, "TBUF_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF2,
+                    bslots::TBUF[2],
                     vec![
                         name_a(grid, "TBUF.", ".2", col, row),
                         name_b(grid, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF3,
+                    bslots::TBUF[3],
                     vec![
                         name_a(grid, "TBUF.", ".3", col, row),
                         name_b(grid, "TBUF_", ".3", col, row),
                     ],
                 );
             }
-            "IO.B" => {
+            tcls::IO_S => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
@@ -251,90 +255,90 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     + (edev.chip.rows - 2) * 4
                     + (edev.chip.col_e().to_idx() - col.to_idx() - 1) * 4
                     + 1;
-                ntile.add_bel(bels::IO0, vec![format!("PAD{p}")]);
-                ntile.add_bel(bels::IO1, vec![format!("PAD{}", p + 1)]);
-                ntile.add_bel(bels::IO2, vec![format!("PAD{}", p + 2)]);
-                ntile.add_bel(bels::IO3, vec![format!("PAD{}", p + 3)]);
+                ntile.add_bel(bslots::IO[0], vec![format!("PAD{p}")]);
+                ntile.add_bel(bslots::IO[1], vec![format!("PAD{}", p + 1)]);
+                ntile.add_bel(bslots::IO[2], vec![format!("PAD{}", p + 2)]);
+                ntile.add_bel(bslots::IO[3], vec![format!("PAD{}", p + 3)]);
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[0],
                     vec![
                         name_a(grid, "TBUF.", ".0", col, row),
                         name_b(grid, "TBUF_", ".0", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF1,
+                    bslots::TBUF[1],
                     vec![
                         name_a(grid, "TBUF.", ".1", col, row),
                         name_b(grid, "TBUF_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF2,
+                    bslots::TBUF[2],
                     vec![
                         name_a(grid, "TBUF.", ".2", col, row),
                         name_b(grid, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF3,
+                    bslots::TBUF[3],
                     vec![
                         name_a(grid, "TBUF.", ".3", col, row),
                         name_b(grid, "TBUF_", ".3", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::SCANTEST,
+                    bslots::SCANTEST,
                     vec![
                         name_a(grid, "SCANTEST.", ".1", col, row),
                         name_b(grid, "SCANTEST_", ".1", col, row),
                     ],
                 );
             }
-            "IO.T" => {
+            tcls::IO_N => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);
                 ntile.tie_names = vec![
                     name_a(grid, "src0.", ".1", col, row),
                     name_a(grid, "dummy.", ".1", col, row),
                 ];
                 let p = (col.to_idx() - 1) * 4 + 1;
-                ntile.add_bel(bels::IO0, vec![format!("PAD{}", p + 3)]);
-                ntile.add_bel(bels::IO1, vec![format!("PAD{}", p + 2)]);
-                ntile.add_bel(bels::IO2, vec![format!("PAD{}", p + 1)]);
-                ntile.add_bel(bels::IO3, vec![format!("PAD{p}")]);
+                ntile.add_bel(bslots::IO[0], vec![format!("PAD{}", p + 3)]);
+                ntile.add_bel(bslots::IO[1], vec![format!("PAD{}", p + 2)]);
+                ntile.add_bel(bslots::IO[2], vec![format!("PAD{}", p + 1)]);
+                ntile.add_bel(bslots::IO[3], vec![format!("PAD{p}")]);
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[0],
                     vec![
                         name_a(grid, "TBUF.", ".0", col, row),
                         name_b(grid, "TBUF_", ".0", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF1,
+                    bslots::TBUF[1],
                     vec![
                         name_a(grid, "TBUF.", ".1", col, row),
                         name_b(grid, "TBUF_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF2,
+                    bslots::TBUF[2],
                     vec![
                         name_a(grid, "TBUF.", ".2", col, row),
                         name_b(grid, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF3,
+                    bslots::TBUF[3],
                     vec![
                         name_a(grid, "TBUF.", ".3", col, row),
                         name_b(grid, "TBUF_", ".3", col, row),
                     ],
                 );
             }
-            "CLKL" | "CLKR" | "CLKH" => {
+            tcls::LLV | tcls::LLV_W | tcls::LLV_E => {
                 ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), clk_y.clone())]);
             }
-            "CLKB" | "CLKT" | "CLKV" => {
+            tcls::LLH | tcls::LLH_S | tcls::LLH_N => {
                 ngrid.name_tile(tcrd, kind, [(clk_x.clone(), row_y[row].clone())]);
             }
 

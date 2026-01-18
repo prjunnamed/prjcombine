@@ -14,7 +14,7 @@ use crate::{
     props::{
         BaseBelConfig, BaseBelMode, BaseBelMutex, BaseRaw, BidirMutexExclusive, BondedIo, DynProp,
         ExtraTile, FuzzBelConfig, FuzzBelConfigDiff, FuzzBelMode, FuzzBelPipBufg, FuzzBelPipPin,
-        FuzzEquate, FuzzEquateFixed, FuzzRaw, NullBits, PinMutexExclusive,
+        FuzzEquate, FuzzEquateFixed, FuzzRaw, InputMutexExclusive, NullBits, PinMutexExclusive,
     },
 };
 
@@ -380,6 +380,11 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
     pub fn bidir_mutex_exclusive(self, pin: BelBidirId) -> Self {
         let prop = BidirMutexExclusive::new(self.bel, pin);
+        self.prop(prop)
+    }
+
+    pub fn input_mutex_exclusive(self, pin: BelInputId) -> Self {
+        let prop = InputMutexExclusive::new(self.bel, pin);
         self.prop(prop)
     }
 

@@ -9,8 +9,8 @@ use prjcombine_interconnect::{
 };
 
 use crate::db::{
-    ConnectorClassNamingId, ConnectorWireInFarNaming, ConnectorWireOutNaming, NamingDb, RawTileId,
-    TileClassNamingId,
+    BelNaming, ConnectorClassNamingId, ConnectorWireInFarNaming, ConnectorWireOutNaming, NamingDb,
+    ProperBelNaming, RawTileId, TileClassNamingId,
 };
 
 #[derive(Clone, Debug)]
@@ -378,5 +378,13 @@ impl<'a> ExpandedGridNaming<'a> {
         } else {
             None
         }
+    }
+
+    pub fn get_bel_naming(&self, bel: BelCoord) -> &ProperBelNaming {
+        let tcrd = self.egrid.get_tile_by_bel(bel);
+        let ntile = &self.tiles[&tcrd];
+        let naming = &self.db.tile_class_namings[ntile.naming];
+        let BelNaming::Bel(ref naming) = naming.bels[bel.slot];
+        naming
     }
 }

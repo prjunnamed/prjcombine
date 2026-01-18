@@ -2,7 +2,7 @@ use core::fmt::Debug;
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelSlotId, TileWireCoord},
+    db::{BelSlotId, TileWireCoord, WireSlotId},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
@@ -97,6 +97,12 @@ impl BelIntoPipWire for (PipInt, usize, String) {
     fn into_pip_wire(self, backend: &IseBackend, _slot: BelSlotId) -> PipWire {
         let wire = backend.edev.db.get_wire(&self.2);
         PipWire::Int(TileWireCoord::new_idx(self.1, wire))
+    }
+}
+
+impl BelIntoPipWire for (PipInt, usize, WireSlotId) {
+    fn into_pip_wire(self, _backend: &IseBackend, _slot: BelSlotId) -> PipWire {
+        PipWire::Int(TileWireCoord::new_idx(self.1, self.2))
     }
 }
 

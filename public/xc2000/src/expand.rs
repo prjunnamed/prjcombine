@@ -11,7 +11,7 @@ use prjcombine_xilinx_bitstream::{
 use crate::{
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
-    xc2000, xc3000,
+    xc2000, xc3000, xc5200,
 };
 
 impl Chip {
@@ -788,60 +788,102 @@ impl Chip {
                 for cell in egrid.die_cells(die) {
                     if cell.col == self.col_w() {
                         if cell.row == self.row_s() {
-                            egrid.add_tile_single(cell, "CNR.BL");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::CNR_SW);
                         } else if cell.row == self.row_n() {
-                            egrid.add_tile_single(cell, "CNR.TL");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::CNR_NW);
                         } else {
-                            egrid.add_tile_single(cell, "IO.L");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::IO_W);
                         }
                     } else if cell.col == self.col_e() {
                         if cell.row == self.row_s() {
-                            egrid.add_tile_single(cell, "CNR.BR");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::CNR_SE);
                         } else if cell.row == self.row_n() {
-                            egrid.add_tile_single(cell, "CNR.TR");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::CNR_NE);
                         } else {
-                            egrid.add_tile_single(cell, "IO.R");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::IO_E);
                         }
                     } else {
                         if cell.row == self.row_s() {
-                            egrid.add_tile_single(cell, "IO.B");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::IO_S);
                         } else if cell.row == self.row_n() {
-                            egrid.add_tile_single(cell, "IO.T");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::IO_N);
                         } else {
-                            egrid.add_tile_single(cell, "CLB");
+                            egrid.add_tile_single_id(cell, xc5200::tcls::CLB);
                         }
+                    }
+                    if cell.col != self.col_w() {
+                        egrid.fill_conn_pair_id(
+                            cell.delta(-1, 0),
+                            cell,
+                            xc5200::ccls::PASS_E,
+                            xc5200::ccls::PASS_W,
+                        );
+                    }
+                    if cell.row != self.row_s() {
+                        egrid.fill_conn_pair_id(
+                            cell.delta(0, -1),
+                            cell,
+                            xc5200::ccls::PASS_N,
+                            xc5200::ccls::PASS_S,
+                        );
                     }
                 }
 
                 for cell in egrid.row(die, self.row_mid()) {
-                    let kind = if cell.col == self.col_w() {
-                        "CLKL"
+                    let tcid = if cell.col == self.col_w() {
+                        xc5200::tcls::LLV_W
                     } else if cell.col == self.col_e() {
-                        "CLKR"
+                        xc5200::tcls::LLV_E
                     } else {
-                        "CLKH"
+                        xc5200::tcls::LLV
                     };
-                    egrid.fill_conn_pair(cell.delta(0, -1), cell, "LLV.N", "LLV.S");
-                    egrid.add_tile(cell, kind, &[cell.delta(0, -1), cell]);
+                    egrid.add_tile_id(cell, tcid, &[cell.delta(0, -1), cell]);
                 }
 
                 for cell in egrid.column(die, self.col_mid()) {
                     let kind = if cell.row == self.row_s() {
-                        "CLKB"
+                        xc5200::tcls::LLH_S
                     } else if cell.row == self.row_n() {
-                        "CLKT"
+                        xc5200::tcls::LLH_N
                     } else {
-                        "CLKV"
+                        xc5200::tcls::LLH
                     };
-                    egrid.fill_conn_pair(cell.delta(-1, 0), cell, "LLH.E", "LLH.W");
-                    egrid.add_tile(cell, kind, &[cell.delta(-1, 0), cell]);
+                    egrid.add_tile_id(cell, kind, &[cell.delta(-1, 0), cell]);
                 }
 
-                egrid.fill_main_passes(die);
-                egrid.fill_conn_term(CellCoord::new(die, self.col_w(), self.row_s()), "CNR.LL");
-                egrid.fill_conn_term(CellCoord::new(die, self.col_e(), self.row_s()), "CNR.LR");
-                egrid.fill_conn_term(CellCoord::new(die, self.col_w(), self.row_n()), "CNR.UL");
-                egrid.fill_conn_term(CellCoord::new(die, self.col_e(), self.row_n()), "CNR.UR");
+                for cell in egrid.die_cells(die) {
+                    egrid[cell].region_root[xc5200::rslots::GCLK_H] = cell.with_col(self.col_w());
+                    egrid[cell].region_root[xc5200::rslots::LONG_H] =
+                        cell.with_col(if cell.col < self.col_mid() {
+                            self.col_w()
+                        } else {
+                            self.col_e()
+                        });
+                    egrid[cell].region_root[xc5200::rslots::GCLK_V] = cell.with_row(self.row_s());
+                    egrid[cell].region_root[xc5200::rslots::LONG_V] =
+                        cell.with_row(if cell.row < self.row_mid() {
+                            self.row_s()
+                        } else {
+                            self.row_n()
+                        });
+                }
+
+                egrid.fill_conn_term_id(
+                    CellCoord::new(die, self.col_w(), self.row_s()),
+                    xc5200::ccls::CNR_SW,
+                );
+                egrid.fill_conn_term_id(
+                    CellCoord::new(die, self.col_e(), self.row_s()),
+                    xc5200::ccls::CNR_SE,
+                );
+                egrid.fill_conn_term_id(
+                    CellCoord::new(die, self.col_w(), self.row_n()),
+                    xc5200::ccls::CNR_NW,
+                );
+                egrid.fill_conn_term_id(
+                    CellCoord::new(die, self.col_e(), self.row_n()),
+                    xc5200::ccls::CNR_NE,
+                );
 
                 for row in egrid.rows(die) {
                     if row == self.row_mid() {

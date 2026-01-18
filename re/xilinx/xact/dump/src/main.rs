@@ -59,6 +59,11 @@ fn main() {
                 .unwrap()
                 .0
         }
+        "xc5200" => {
+            bincode::decode_from_slice(prjcombine_xc2000::xc5200::INIT, bincode::config::standard())
+                .unwrap()
+                .0
+        }
         _ => IntDb::default(),
     };
     for part in &parts {

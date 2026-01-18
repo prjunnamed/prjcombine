@@ -2,13 +2,13 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map};
 
-use prjcombine_entity::{EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityBundleIndex, EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelPin, BelSlotId, BiPass, CellSlotId, ConnectorClass, ConnectorClassId,
-        ConnectorSlotId, ConnectorWire, IntDb, LegacyBel, Mux, Pass, PermaBuf, PinDir, ProgBuf,
-        ProgDelay, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass, TileClassId,
-        TileSlotId, TileWireCoord, WireKind, WireSlotId,
+        Bel, BelInfo, BelInput, BelKind, BelPin, BelSlotId, BiPass, CellSlotId, ConnectorClass,
+        ConnectorClassId, ConnectorSlotId, ConnectorWire, IntDb, LegacyBel, Mux, Pass, PermaBuf,
+        PinDir, ProgBuf, ProgDelay, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass,
+        TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
     },
     dir::{Dir, DirMap},
 };
@@ -88,7 +88,6 @@ pub struct XTileInfo<'a, 'b> {
 pub enum IntConnKind {
     Raw,
     IntfIn,
-    IntfOut,
 }
 
 impl ExtrBelInfo {
@@ -1328,6 +1327,7 @@ pub struct IntBuilder<'a> {
     extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, TileWireCoord>>,
     test_mux_pass: HashSet<WireSlotId>,
     test_mux_ins: HashMap<WireSlotId, WireSlotId>,
+    mux_to_ok: HashSet<WireSlotId>,
 }
 
 impl<'a> IntBuilder<'a> {
@@ -1358,11 +1358,16 @@ impl<'a> IntBuilder<'a> {
             extra_names_tile: Default::default(),
             test_mux_pass: Default::default(),
             test_mux_ins: Default::default(),
+            mux_to_ok: Default::default(),
         }
     }
 
     pub fn allow_mux_to_branch(&mut self) {
         self.allow_mux_to_branch = true;
+    }
+
+    pub fn allow_mux_to(&mut self, wire: WireSlotId) {
+        self.mux_to_ok.insert(wire);
     }
 
     pub fn test_mux_pass(&mut self, wire: WireSlotId) {
@@ -2173,7 +2178,11 @@ impl<'a> IntBuilder<'a> {
                                 continue;
                             }
                         }
-                        _ => continue,
+                        _ => {
+                            if !self.mux_to_ok.contains(&wt.wire) {
+                                continue;
+                            }
+                        }
                     }
                     if let Some(&(_, wf)) = names.get(&wfi) {
                         let mode = self.pip_mode(wt.wire);
@@ -2428,7 +2437,123 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
+    fn convert_bel(&self, slot: BelSlotId, bel: BelInfo) -> BelInfo {
+        match self.db.bel_slots[slot].kind {
+            BelKind::Class(bcid) => {
+                let bcls = &self.db[bcid];
+                let BelInfo::Legacy(mut bel) = bel else {
+                    unreachable!()
+                };
+                let is_ultra = matches!(
+                    self.rd.family.as_str(),
+                    "ultrascale" | "ultrascaleplus" | "versal"
+                );
+                fn convert_input(pin: BelPin) -> BelInput {
+                    assert_eq!(pin.dir, PinDir::Input);
+                    assert_eq!(pin.wires.len(), 1);
+                    let wire = pin.wires.into_iter().next().unwrap();
+                    BelInput::Fixed(wire.pos())
+                }
+                fn convert_output(pin: BelPin) -> BTreeSet<TileWireCoord> {
+                    assert_eq!(pin.dir, PinDir::Output);
+                    pin.wires
+                }
+                fn convert_bidir(pin: BelPin) -> TileWireCoord {
+                    assert_eq!(pin.dir, PinDir::Input);
+                    assert_eq!(pin.wires.len(), 1);
+                    pin.wires.into_iter().next().unwrap()
+                }
+                let name_index = |name, idx| {
+                    if is_ultra {
+                        format!("{name}_{idx}_")
+                    } else {
+                        format!("{name}{idx}")
+                    }
+                };
+                let mut res = Bel::default();
+                for (index, name, _inp) in bcls.inputs.bundles() {
+                    match index {
+                        EntityBundleIndex::Single(id) => {
+                            if let Some(pin) = bel.pins.remove(name) {
+                                res.inputs.insert(id, convert_input(pin));
+                            }
+                        }
+                        EntityBundleIndex::Array(range) => {
+                            for (i, id) in range.into_iter().enumerate() {
+                                if let Some(pin) = bel.pins.remove(&name_index(name, i)) {
+                                    res.inputs.insert(id, convert_input(pin));
+                                }
+                            }
+                        }
+                    }
+                }
+                for (index, name, _outp) in bcls.outputs.bundles() {
+                    match index {
+                        EntityBundleIndex::Single(id) => {
+                            if let Some(pin) = bel.pins.remove(name) {
+                                res.outputs.insert(id, convert_output(pin));
+                            }
+                        }
+                        EntityBundleIndex::Array(range) => {
+                            for (i, id) in range.into_iter().enumerate() {
+                                if let Some(pin) = bel.pins.remove(&name_index(name, i)) {
+                                    res.outputs.insert(id, convert_output(pin));
+                                }
+                            }
+                        }
+                    }
+                }
+                for (index, name, _bidir) in bcls.bidirs.bundles() {
+                    match index {
+                        EntityBundleIndex::Single(id) => {
+                            if let Some(pin) = bel.pins.remove(name) {
+                                res.bidirs.insert(id, convert_bidir(pin));
+                            }
+                        }
+                        EntityBundleIndex::Array(range) => {
+                            for (i, id) in range.into_iter().enumerate() {
+                                if let Some(pin) = bel.pins.remove(&name_index(name, i)) {
+                                    res.bidirs.insert(id, convert_bidir(pin));
+                                }
+                            }
+                        }
+                    }
+                }
+                BelInfo::Bel(res)
+            }
+            BelKind::Routing => {
+                let BelInfo::Legacy(bel) = bel else {
+                    return bel;
+                };
+                let mut dst = None;
+                let mut src = None;
+                for pin in bel.pins.into_values() {
+                    assert_eq!(pin.wires.len(), 1);
+                    let wire = pin.wires.into_iter().next().unwrap();
+                    match pin.dir {
+                        PinDir::Input => {
+                            assert_eq!(src, None);
+                            src = Some(wire);
+                        }
+                        PinDir::Output => {
+                            assert_eq!(dst, None);
+                            dst = Some(wire);
+                        }
+                        PinDir::Inout => unreachable!(),
+                    }
+                }
+                let dst = dst.unwrap();
+                let src = src.unwrap().pos();
+                BelInfo::SwitchBox(SwitchBox {
+                    items: vec![SwitchBoxItem::PermaBuf(PermaBuf { dst, src })],
+                })
+            }
+            BelKind::Legacy => bel,
+        }
+    }
+
     fn insert_tcls_bel(&mut self, tcid: TileClassId, slot: BelSlotId, bel: BelInfo) {
+        let bel = self.convert_bel(slot, bel);
         let tcls = &mut self.db.tile_classes[tcid];
         if !tcls.bels.contains_id(slot) {
             tcls.bels.insert(slot, bel);

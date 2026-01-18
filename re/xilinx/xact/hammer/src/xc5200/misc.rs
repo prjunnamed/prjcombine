@@ -2,28 +2,25 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
+use prjcombine_xc2000::xc5200::{bslots, tcls, tslots};
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    let tcid = backend.edev.db.get_tile_class("CNR.BL");
-    let mut ctx = FuzzCtx::new(session, backend, tcid);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SW);
     ctx.test_cfg5200("MISC", "SCANTEST", &["ENABLE", "ENLL", "NE7", "DISABLE"]);
     ctx.test_global("MISC", "READABORT", &["DISABLE", "ENABLE"]);
     ctx.test_global("MISC", "READCAPTURE", &["DISABLE", "ENABLE"]);
     ctx.test_global("RDBK", "READCLK", &["CCLK", "RDBK"]);
 
-    let tcid = backend.edev.db.get_tile_class("CNR.TL");
-    let mut ctx = FuzzCtx::new(session, backend, tcid);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NW);
     ctx.test_global("MISC", "BSRECONFIG", &["DISABLE", "ENABLE"]);
     ctx.test_global("MISC", "BSREADBACK", &["DISABLE", "ENABLE"]);
     ctx.test_global("MISC", "INPUT", &["TTL", "CMOS"]);
-    let mut bctx = ctx.bel(bels::BSCAN);
+    let mut bctx = ctx.bel(bslots::BSCAN);
     bctx.mode("BSCAN").test_cfg("BSCAN", "USED");
 
-    let tcid = backend.edev.db.get_tile_class("CNR.BR");
-    let mut ctx = FuzzCtx::new(session, backend, tcid);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SE);
     ctx.test_cfg5200("MISC", "TCTEST", &["ON", "OFF"]);
     ctx.test_global("PROG", "PROGPIN", &["PULLUP", "NOPULLUP"]);
     ctx.test_global("DONE", "DONEPIN", &["PULLUP", "NOPULLUP"]);
@@ -110,15 +107,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
         }
     }
 
-    let mut bctx = ctx.bel(bels::STARTUP);
+    let mut bctx = ctx.bel(bslots::STARTUP);
     bctx.mode("STARTUP").test_cfg("GCLR", "NOT");
     bctx.mode("STARTUP").test_cfg("GTS", "NOT");
 
-    let tcid = backend.edev.db.get_tile_class("CNR.TR");
-    let mut ctx = FuzzCtx::new(session, backend, tcid);
+    let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NE);
     ctx.test_cfg5200("MISC", "TLC", &["ON", "OFF"]);
     ctx.test_cfg5200("MISC", "TAC", &["ON", "OFF"]);
-    let mut bctx = ctx.bel(bels::OSC);
+    let mut bctx = ctx.bel(bslots::OSC);
     let cnr_br = CellCoord::new(
         DieId::from_idx(0),
         backend.edev.chip.col_e(),
@@ -140,7 +136,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "CNR.BL";
+    let tile = "CNR_SW";
     let bel = "MISC";
     let item = ctx.extract_enum_bool(tile, bel, "READABORT", "DISABLE", "ENABLE");
     ctx.insert(tile, bel, "READ_ABORT", item);
@@ -153,7 +149,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item = ctx.extract_enum(tile, bel, "READCLK", &["RDBK", "CCLK"]);
     ctx.insert(tile, bel, "READ_CLK", item);
 
-    let tile = "CNR.TL";
+    let tile = "CNR_NW";
     let bel = "MISC";
     let item = ctx.extract_enum_bool(tile, bel, "BSRECONFIG", "DISABLE", "ENABLE");
     ctx.insert(tile, bel, "BS_RECONFIG", item);
@@ -165,7 +161,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item = ctx.extract_bit(tile, bel, "BSCAN", "USED");
     ctx.insert(tile, bel, "ENABLE", item);
 
-    let tile = "CNR.BR";
+    let tile = "CNR_SE";
     let bel = "MISC";
     ctx.collect_enum_bool(tile, bel, "TCTEST", "OFF", "ON");
 
@@ -234,7 +230,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item = ctx.extract_enum(tile, bel, "OSCCLK", &["CCLK", "USERCLK"]);
     ctx.insert(tile, bel, "CMUX", item);
 
-    let tile = "CNR.TR";
+    let tile = "CNR_NE";
     let bel = "MISC";
     ctx.collect_enum_bool(tile, bel, "TLC", "OFF", "ON");
     ctx.collect_enum_bool(tile, bel, "TAC", "OFF", "ON");

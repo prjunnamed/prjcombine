@@ -10,3 +10,4 @@ pub mod regions;
 pub mod tslots;
 pub mod xc2000;
 pub mod xc3000;
+pub mod xc5200;

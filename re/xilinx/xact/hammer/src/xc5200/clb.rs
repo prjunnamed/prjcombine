@@ -1,13 +1,13 @@
 use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::bels::xc5200 as bels;
+use prjcombine_xc2000::xc5200::bslots;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let tcid = backend.edev.db.get_tile_class("CLB");
     let mut ctx = FuzzCtx::new(session, backend, tcid);
-    let mut bctx = ctx.bel(bels::LC0);
+    let mut bctx = ctx.bel(bslots::LC[0]);
     bctx.mode("CLB").test_cfg("CO", "USED");
     bctx.mode("CLB").test_enum("CV", &["GND", "VCC"]);
     bctx.mode("CLB")
@@ -58,9 +58,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
-    let sbel = "LC0";
+    let sbel = "LC[0]";
     for i in 0..4 {
-        let bel = &format!("LC{i}");
+        let bel = &format!("LC[{i}]");
         let item = ctx.extract_bitvec(tile, sbel, &format!("LC{i}.F"), "");
         ctx.insert(tile, bel, "LUT", item);
         let item = ctx.extract_bit(tile, sbel, &format!("LC{i}.FFX"), "NOTK");

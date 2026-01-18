@@ -4,7 +4,7 @@ use prjcombine_interconnect::grid::CellCoord;
 use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Coord;
-use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::chip::{ChipKind, IoDiffKind};
 use prjcombine_virtex2::defs;
 use prjcombine_virtex2::iob::IobKind;
@@ -25,7 +25,7 @@ fn verify_pci_ce(
                     break;
                 }
                 if cell.row < srow {
-                    let obel = vrf.get_bel(cell.with_row(srow).bel(defs::bslots::PCI_CE_S));
+                    let obel = vrf.get_legacy_bel(cell.with_row(srow).bel(defs::bslots::PCI_CE_S));
                     vrf.verify_net(&[obel.fwire("O"), (crd, wire)]);
                     return;
                 }
@@ -36,13 +36,13 @@ fn verify_pci_ce(
                     break;
                 }
                 if cell.row >= srow {
-                    let obel = vrf.get_bel(cell.with_row(srow).bel(defs::bslots::PCI_CE_N));
+                    let obel = vrf.get_legacy_bel(cell.with_row(srow).bel(defs::bslots::PCI_CE_N));
                     vrf.verify_net(&[obel.fwire("O"), (crd, wire)]);
                     return;
                 }
             }
         }
-        let obel = vrf.get_bel(
+        let obel = vrf.get_legacy_bel(
             cell.with_row(endev.chip.row_mid())
                 .bel(defs::bslots::PCILOGICSE),
         );
@@ -59,7 +59,7 @@ fn verify_pci_ce(
             } else {
                 (col_r, defs::bslots::PCI_CE_W)
             };
-            let obel = vrf.get_bel(cell.with_col(scol).bel(slot));
+            let obel = vrf.get_legacy_bel(cell.with_col(scol).bel(slot));
             vrf.verify_net(&[obel.fwire("O"), (crd, wire)]);
             return;
         }
@@ -68,16 +68,16 @@ fn verify_pci_ce(
         } else {
             endev.chip.col_e()
         };
-        let obel = vrf.get_bel(cell.with_col(scol).bel(defs::bslots::PCI_CE_CNR));
+        let obel = vrf.get_legacy_bel(cell.with_col(scol).bel(defs::bslots::PCI_CE_CNR));
         vrf.verify_net(&[obel.fwire("O"), (crd, wire)]);
     }
 }
 
-pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let io = endev.chip.get_io_crd(bel.bel);
     let io_info = endev.chip.get_io_info(io);
     if io_info.pad_kind == Some(IobKind::Clk) {
-        vrf.verify_bel(
+        vrf.verify_legacy_bel(
             bel,
             ["CLK_P", "CLK_N"][io.iob().to_idx() % 2],
             &[("I", SitePinDir::Out)],
@@ -149,7 +149,7 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
         if endev.chip.kind == ChipKind::Spartan3ADsp {
             pins.extend([("OAUX", SitePinDir::In), ("TAUX", SitePinDir::In)]);
         }
-        vrf.verify_bel(bel, kind, &pins, &[]);
+        vrf.verify_legacy_bel(bel, kind, &pins, &[]);
         // diff pairing
         if !endev.chip.kind.is_virtex2() || io_info.diff != IoDiffKind::None {
             for pin in ["PADOUT", "DIFFI_IN", "DIFFO_IN", "DIFFO_OUT"] {
@@ -197,8 +197,12 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelCont
     }
 }
 
-pub fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
-    vrf.verify_bel(
+pub fn verify_pcilogicse(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    bel: &LegacyBelContext<'_>,
+) {
+    vrf.verify_legacy_bel(
         bel,
         "PCILOGICSE",
         &[
@@ -229,31 +233,51 @@ pub fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &
     vrf.claim_net(&[(bel.crds[pip.tile], &pip.wire_to)]);
 }
 
-pub fn verify_pci_ce_n(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_n(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    bel: &LegacyBelContext<'_>,
+) {
     vrf.claim_net(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell.delta(0, -1), bel.crd(), bel.wire("I"));
 }
 
-pub fn verify_pci_ce_s(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_s(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    bel: &LegacyBelContext<'_>,
+) {
     vrf.claim_net(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell, bel.crd(), bel.wire("I"));
 }
 
-pub fn verify_pci_ce_e(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_e(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    bel: &LegacyBelContext<'_>,
+) {
     vrf.claim_net(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell.delta(-1, 0), bel.crd(), bel.wire("I"));
 }
 
-pub fn verify_pci_ce_w(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_w(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    bel: &LegacyBelContext<'_>,
+) {
     vrf.claim_net(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell, bel.crd(), bel.wire("I"));
 }
 
-pub fn verify_pci_ce_cnr(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_pci_ce_cnr(
+    endev: &ExpandedNamedDevice,
+    vrf: &mut Verifier,
+    bel: &LegacyBelContext<'_>,
+) {
     vrf.claim_net(&[bel.fwire("O")]);
     vrf.claim_pip(bel.crd(), bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell, bel.crd(), bel.wire("I"));

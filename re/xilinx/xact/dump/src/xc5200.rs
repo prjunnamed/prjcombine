@@ -2,584 +2,20 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{
-        BelInfo, BelPin, ConnectorClass, ConnectorWire, IntDb, LegacyBel, PinDir, TileClass,
-        TileWireCoord, WireKind,
-    },
-    dir::{Dir, DirMap},
+    db::{BelInfo, IntDb, SwitchBoxItem},
+    dir::Dir,
     grid::{CellCoord, DieId, EdgeIoCoord},
 };
 use prjcombine_re_xilinx_xact_data::die::Die;
 use prjcombine_re_xilinx_xact_naming::db::{NamingDb, TileNaming};
 use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::{
-    bels::xc5200 as bels,
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad},
-    cslots, regions, tslots,
+    xc5200::{INIT, bcls, bslots, wires},
 };
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
-
-fn bel_from_pins(db: &IntDb, pins: &[(&str, impl AsRef<str>)]) -> BelInfo {
-    let mut bel = LegacyBel::default();
-    for &(name, ref wire) in pins {
-        let wire = wire.as_ref();
-        bel.pins.insert(
-            name.into(),
-            BelPin {
-                wires: BTreeSet::from_iter([TileWireCoord::new_idx(0, db.get_wire(wire))]),
-                dir: if wire.starts_with("IMUX") || wire.starts_with("OMUX") {
-                    PinDir::Input
-                } else {
-                    PinDir::Output
-                },
-            },
-        );
-    }
-    BelInfo::Legacy(bel)
-}
-
-pub fn make_intdb() -> IntDb {
-    let mut db = IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS);
-
-    let term_slots = DirMap::from_fn(|dir| match dir {
-        Dir::W => cslots::W,
-        Dir::E => cslots::E,
-        Dir::S => cslots::S,
-        Dir::N => cslots::N,
-    });
-
-    let mut main_terms = DirMap::from_fn(|dir| ConnectorClass::new(term_slots[dir]));
-    let mut cnr_ll_w = ConnectorClass::new(cslots::W);
-    let mut cnr_lr_s = ConnectorClass::new(cslots::S);
-    let mut cnr_ul_n = ConnectorClass::new(cslots::N);
-    let mut cnr_ur_e = ConnectorClass::new(cslots::E);
-
-    db.wires.insert("GND".into(), WireKind::Tie0);
-
-    for i in 0..24 {
-        db.wires.insert(format!("CLB.M{i}"), WireKind::MultiRoot);
-        db.wires.insert(format!("CLB.M{i}.BUF"), WireKind::MuxOut);
-    }
-    for i in 0..16 {
-        db.wires.insert(format!("IO.M{i}"), WireKind::MultiRoot);
-        db.wires.insert(format!("IO.M{i}.BUF"), WireKind::MuxOut);
-    }
-
-    for i in 0..12 {
-        if matches!(i, 0 | 6) {
-            continue;
-        }
-        let w0 = db
-            .wires
-            .insert(format!("SINGLE.E{i}"), WireKind::MultiRoot)
-            .0;
-        let w1 = db
-            .wires
-            .insert(format!("SINGLE.W{i}"), WireKind::MultiBranch(cslots::W))
-            .0;
-        main_terms[Dir::W].wires.insert(w1, ConnectorWire::Pass(w0));
-    }
-    for i in 0..12 {
-        if matches!(i, 0 | 6) {
-            continue;
-        }
-        let w0 = db
-            .wires
-            .insert(format!("SINGLE.S{i}"), WireKind::MultiRoot)
-            .0;
-        let w1 = db
-            .wires
-            .insert(format!("SINGLE.N{i}"), WireKind::MultiBranch(cslots::N))
-            .0;
-        main_terms[Dir::N].wires.insert(w1, ConnectorWire::Pass(w0));
-    }
-
-    for i in 0..8 {
-        let w_be = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.B.E{i}"),
-                WireKind::MultiBranch(cslots::W),
-            )
-            .0;
-        let w_bw = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.B.W{i}"),
-                WireKind::MultiBranch(cslots::W),
-            )
-            .0;
-        main_terms[Dir::W]
-            .wires
-            .insert(w_bw, ConnectorWire::Pass(w_be));
-        let w_rn = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.R.N{i}"),
-                WireKind::MultiBranch(cslots::S),
-            )
-            .0;
-        let w_rs = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.R.S{i}"),
-                WireKind::MultiBranch(cslots::S),
-            )
-            .0;
-        main_terms[Dir::S]
-            .wires
-            .insert(w_rs, ConnectorWire::Pass(w_rn));
-        let w_tw = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.T.W{i}"),
-                WireKind::MultiBranch(cslots::E),
-            )
-            .0;
-        let w_te = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.T.E{i}"),
-                WireKind::MultiBranch(cslots::E),
-            )
-            .0;
-        main_terms[Dir::E]
-            .wires
-            .insert(w_te, ConnectorWire::Pass(w_tw));
-        let w_ls = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.L.S{i}"),
-                WireKind::MultiBranch(cslots::N),
-            )
-            .0;
-        let w_ln = db
-            .wires
-            .insert(
-                format!("IO.SINGLE.L.N{i}"),
-                WireKind::MultiBranch(cslots::N),
-            )
-            .0;
-        main_terms[Dir::N]
-            .wires
-            .insert(w_ln, ConnectorWire::Pass(w_ls));
-        cnr_ll_w.wires.insert(w_be, ConnectorWire::Reflect(w_ln));
-        cnr_lr_s.wires.insert(w_rn, ConnectorWire::Reflect(w_bw));
-        cnr_ul_n.wires.insert(w_ls, ConnectorWire::Reflect(w_te));
-        cnr_ur_e.wires.insert(w_tw, ConnectorWire::Reflect(w_rs));
-    }
-
-    for i in [0, 6] {
-        let w = db
-            .wires
-            .insert(format!("DBL.H{i}.M"), WireKind::MultiRoot)
-            .0;
-        let ww = db
-            .wires
-            .insert(format!("DBL.H{i}.W"), WireKind::MultiBranch(cslots::E))
-            .0;
-        main_terms[Dir::E].wires.insert(ww, ConnectorWire::Pass(w));
-        let we = db
-            .wires
-            .insert(format!("DBL.H{i}.E"), WireKind::MultiBranch(cslots::W))
-            .0;
-        main_terms[Dir::W].wires.insert(we, ConnectorWire::Pass(w));
-    }
-    for i in [0, 6] {
-        let w = db
-            .wires
-            .insert(format!("DBL.V{i}.M"), WireKind::MultiRoot)
-            .0;
-        let ws = db
-            .wires
-            .insert(format!("DBL.V{i}.S"), WireKind::MultiBranch(cslots::N))
-            .0;
-        main_terms[Dir::N].wires.insert(ws, ConnectorWire::Pass(w));
-        let wn = db
-            .wires
-            .insert(format!("DBL.V{i}.N"), WireKind::MultiBranch(cslots::S))
-            .0;
-        main_terms[Dir::S].wires.insert(wn, ConnectorWire::Pass(w));
-    }
-
-    for i in 0..8 {
-        let w = db
-            .wires
-            .insert(format!("LONG.H{i}"), WireKind::MultiBranch(cslots::W))
-            .0;
-        main_terms[Dir::W].wires.insert(w, ConnectorWire::Pass(w));
-    }
-    for i in 0..8 {
-        let w = db
-            .wires
-            .insert(format!("LONG.V{i}"), WireKind::MultiBranch(cslots::S))
-            .0;
-        main_terms[Dir::S].wires.insert(w, ConnectorWire::Pass(w));
-    }
-
-    let w = db
-        .wires
-        .insert("GLOBAL.L".into(), WireKind::Branch(cslots::W))
-        .0;
-    main_terms[Dir::W].wires.insert(w, ConnectorWire::Pass(w));
-    let w = db
-        .wires
-        .insert("GLOBAL.R".into(), WireKind::Branch(cslots::E))
-        .0;
-    main_terms[Dir::E].wires.insert(w, ConnectorWire::Pass(w));
-    let w = db
-        .wires
-        .insert("GLOBAL.B".into(), WireKind::Branch(cslots::S))
-        .0;
-    main_terms[Dir::S].wires.insert(w, ConnectorWire::Pass(w));
-    let w = db
-        .wires
-        .insert("GLOBAL.T".into(), WireKind::Branch(cslots::N))
-        .0;
-    main_terms[Dir::N].wires.insert(w, ConnectorWire::Pass(w));
-
-    let w = db
-        .wires
-        .insert("GLOBAL.TL".into(), WireKind::Branch(cslots::W))
-        .0;
-    main_terms[Dir::W].wires.insert(w, ConnectorWire::Pass(w));
-    let w = db
-        .wires
-        .insert("GLOBAL.BR".into(), WireKind::Branch(cslots::E))
-        .0;
-    main_terms[Dir::E].wires.insert(w, ConnectorWire::Pass(w));
-    let w = db
-        .wires
-        .insert("GLOBAL.BL".into(), WireKind::Branch(cslots::S))
-        .0;
-    main_terms[Dir::S].wires.insert(w, ConnectorWire::Pass(w));
-    let w = db
-        .wires
-        .insert("GLOBAL.TR".into(), WireKind::Branch(cslots::N))
-        .0;
-    main_terms[Dir::N].wires.insert(w, ConnectorWire::Pass(w));
-
-    for i in 0..8 {
-        // only 4 of these outside CLB
-        db.wires.insert(format!("OMUX{i}"), WireKind::MuxOut);
-        let w = db.wires.insert(format!("OMUX{i}.BUF"), WireKind::MuxOut).0;
-        if i < 4 {
-            let ww = db
-                .wires
-                .insert(format!("OMUX{i}.BUF.W"), WireKind::Branch(cslots::E))
-                .0;
-            main_terms[Dir::E].wires.insert(ww, ConnectorWire::Pass(w));
-            let we = db
-                .wires
-                .insert(format!("OMUX{i}.BUF.E"), WireKind::Branch(cslots::W))
-                .0;
-            main_terms[Dir::W].wires.insert(we, ConnectorWire::Pass(w));
-            let ws = db
-                .wires
-                .insert(format!("OMUX{i}.BUF.S"), WireKind::Branch(cslots::N))
-                .0;
-            main_terms[Dir::N].wires.insert(ws, ConnectorWire::Pass(w));
-            let wn = db
-                .wires
-                .insert(format!("OMUX{i}.BUF.N"), WireKind::Branch(cslots::S))
-                .0;
-            main_terms[Dir::S].wires.insert(wn, ConnectorWire::Pass(w));
-        }
-    }
-
-    for i in 0..4 {
-        for pin in ["X", "Q", "DO"] {
-            db.wires
-                .insert(format!("OUT.LC{i}.{pin}"), WireKind::BelOut);
-        }
-    }
-    for i in 0..4 {
-        db.wires.insert(format!("OUT.TBUF{i}"), WireKind::BelOut);
-    }
-    db.wires.insert("OUT.PWRGND".into(), WireKind::BelOut);
-    for i in 0..4 {
-        db.wires.insert(format!("OUT.IO{i}.I"), WireKind::BelOut);
-    }
-    db.wires.insert("OUT.CLKIOB".into(), WireKind::BelOut);
-    db.wires.insert("OUT.RDBK.RIP".into(), WireKind::BelOut);
-    db.wires.insert("OUT.RDBK.DATA".into(), WireKind::BelOut);
-    db.wires
-        .insert("OUT.STARTUP.DONEIN".into(), WireKind::BelOut);
-    db.wires.insert("OUT.STARTUP.Q1Q4".into(), WireKind::BelOut);
-    db.wires.insert("OUT.STARTUP.Q2".into(), WireKind::BelOut);
-    db.wires.insert("OUT.STARTUP.Q3".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSCAN.DRCK".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSCAN.IDLE".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSCAN.RESET".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSCAN.SEL1".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSCAN.SEL2".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSCAN.SHIFT".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSCAN.UPDATE".into(), WireKind::BelOut);
-    db.wires.insert("OUT.BSUPD".into(), WireKind::BelOut);
-    db.wires.insert("OUT.OSC.OSC1".into(), WireKind::BelOut);
-    db.wires.insert("OUT.OSC.OSC2".into(), WireKind::BelOut);
-    db.wires.insert("OUT.TOP.COUT".into(), WireKind::BelOut);
-
-    for i in 0..4 {
-        for pin in ["F1", "F2", "F3", "F4", "DI"] {
-            db.wires
-                .insert(format!("IMUX.LC{i}.{pin}"), WireKind::MuxOut);
-        }
-    }
-    for pin in ["CE", "CLK", "RST"] {
-        db.wires.insert(format!("IMUX.CLB.{pin}"), WireKind::MuxOut);
-    }
-    db.wires.insert("IMUX.TS".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.GIN".into(), WireKind::MuxOut);
-    for i in 0..4 {
-        for pin in ["T", "O"] {
-            db.wires
-                .insert(format!("IMUX.IO{i}.{pin}"), WireKind::MuxOut);
-        }
-    }
-    db.wires.insert("IMUX.RDBK.RCLK".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.RDBK.TRIG".into(), WireKind::MuxOut);
-    db.wires
-        .insert("IMUX.STARTUP.SCLK".into(), WireKind::MuxOut);
-    db.wires
-        .insert("IMUX.STARTUP.GRST".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.STARTUP.GTS".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.BSCAN.TDO1".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.BSCAN.TDO2".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.OSC.OCLK".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.BYPOSC.PUMP".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.BUFG".into(), WireKind::MuxOut);
-    db.wires.insert("IMUX.BOT.CIN".into(), WireKind::MuxOut);
-
-    let mut ll_terms = main_terms.clone();
-    for term in ll_terms.values_mut() {
-        for (w, name, _) in &db.wires {
-            if name.starts_with("LONG") {
-                term.wires.remove(w);
-            }
-        }
-    }
-
-    db.conn_classes.insert("CNR.LL".into(), cnr_ll_w);
-    db.conn_classes.insert("CNR.LR".into(), cnr_lr_s);
-    db.conn_classes.insert("CNR.UL".into(), cnr_ul_n);
-    db.conn_classes.insert("CNR.UR".into(), cnr_ur_e);
-    for (dir, term) in main_terms {
-        db.conn_classes.insert(format!("MAIN.{dir}"), term);
-    }
-    for (dir, term) in ll_terms {
-        let hv = match dir {
-            Dir::W | Dir::E => 'H',
-            Dir::S | Dir::N => 'V',
-        };
-        db.conn_classes.insert(format!("LL{hv}.{dir}"), term);
-    }
-
-    {
-        let mut tcls = TileClass::new(tslots::MAIN, 1);
-        tcls.bels
-            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
-
-        for i in 0..4 {
-            tcls.bels.insert(
-                bels::LC[i],
-                bel_from_pins(
-                    &db,
-                    &[
-                        ("F1", format!("IMUX.LC{i}.F1")),
-                        ("F2", format!("IMUX.LC{i}.F2")),
-                        ("F3", format!("IMUX.LC{i}.F3")),
-                        ("F4", format!("IMUX.LC{i}.F4")),
-                        ("DI", format!("IMUX.LC{i}.DI")),
-                        ("CE", "IMUX.CLB.CE".to_string()),
-                        ("CK", "IMUX.CLB.CLK".to_string()),
-                        ("CLR", "IMUX.CLB.RST".to_string()),
-                        ("X", format!("OUT.LC{i}.X")),
-                        ("Q", format!("OUT.LC{i}.Q")),
-                        ("DO", format!("OUT.LC{i}.DO")),
-                    ],
-                ),
-            );
-        }
-        for i in 0..4 {
-            tcls.bels.insert(
-                bels::TBUF[i],
-                bel_from_pins(
-                    &db,
-                    &[
-                        ("I", format!("OMUX{ii}.BUF", ii = i + 4)),
-                        ("O", format!("OUT.TBUF{i}")),
-                        ("T", "IMUX.TS".to_string()),
-                    ],
-                ),
-            );
-        }
-        tcls.bels
-            .insert(bels::VCC_GND, bel_from_pins(&db, &[("O", "OUT.PWRGND")]));
-        db.tile_classes.insert("CLB".into(), tcls);
-    }
-
-    for (name, gout) in [
-        ("IO.L", "GLOBAL.L"),
-        ("IO.R", "GLOBAL.R"),
-        ("IO.B", "GLOBAL.B"),
-        ("IO.T", "GLOBAL.T"),
-    ] {
-        let mut tcls = TileClass::new(tslots::MAIN, 1);
-        tcls.bels
-            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
-
-        for i in 0..4 {
-            tcls.bels.insert(
-                bels::IO[i],
-                bel_from_pins(
-                    &db,
-                    &[
-                        ("O", format!("IMUX.IO{i}.O")),
-                        ("T", format!("IMUX.IO{i}.T")),
-                        ("I", format!("OUT.IO{i}.I")),
-                    ],
-                ),
-            );
-        }
-        for i in 0..4 {
-            tcls.bels.insert(
-                bels::TBUF[i],
-                bel_from_pins(
-                    &db,
-                    &[
-                        ("I", format!("OMUX{i}.BUF")),
-                        ("O", format!("OUT.TBUF{i}")),
-                        ("T", "IMUX.TS".to_string()),
-                    ],
-                ),
-            );
-        }
-        tcls.bels.insert(
-            bels::BUFR,
-            bel_from_pins(&db, &[("IN", "IMUX.GIN"), ("OUT", gout)]),
-        );
-        if name == "IO.B" {
-            tcls.bels
-                .insert(bels::CIN, bel_from_pins(&db, &[("IN", "IMUX.BOT.CIN")]));
-            tcls.bels
-                .insert(bels::SCANTEST, BelInfo::Legacy(LegacyBel::default()));
-        }
-        if name == "IO.T" {
-            tcls.bels
-                .insert(bels::COUT, bel_from_pins(&db, &[("OUT", "OUT.TOP.COUT")]));
-        }
-        db.tile_classes.insert(name.into(), tcls);
-    }
-    for (name, gout) in [
-        ("CNR.BL", "GLOBAL.BL"),
-        ("CNR.BR", "GLOBAL.BR"),
-        ("CNR.TL", "GLOBAL.TL"),
-        ("CNR.TR", "GLOBAL.TR"),
-    ] {
-        let mut tcls = TileClass::new(tslots::MAIN, 1);
-        tcls.bels
-            .insert(bels::INT, BelInfo::SwitchBox(Default::default()));
-
-        tcls.bels.insert(
-            bels::BUFG,
-            bel_from_pins(&db, &[("I", "IMUX.BUFG"), ("O", gout)]),
-        );
-        tcls.bels
-            .insert(bels::CLKIOB, bel_from_pins(&db, &[("OUT", "OUT.CLKIOB")]));
-        match name {
-            "CNR.BL" => {
-                tcls.bels.insert(
-                    bels::RDBK,
-                    bel_from_pins(
-                        &db,
-                        &[
-                            ("CK", "IMUX.RDBK.RCLK"),
-                            ("TRIG", "IMUX.RDBK.TRIG"),
-                            ("DATA", "OUT.RDBK.DATA"),
-                            ("RIP", "OUT.RDBK.RIP"),
-                        ],
-                    ),
-                );
-            }
-            "CNR.BR" => {
-                tcls.bels.insert(
-                    bels::STARTUP,
-                    bel_from_pins(
-                        &db,
-                        &[
-                            ("CLK", "IMUX.STARTUP.SCLK"),
-                            ("GR", "IMUX.STARTUP.GRST"),
-                            ("GTS", "IMUX.STARTUP.GTS"),
-                            ("DONEIN", "OUT.STARTUP.DONEIN"),
-                            ("Q1Q4", "OUT.STARTUP.Q1Q4"),
-                            ("Q2", "OUT.STARTUP.Q2"),
-                            ("Q3", "OUT.STARTUP.Q3"),
-                        ],
-                    ),
-                );
-            }
-            "CNR.TL" => {
-                tcls.bels.insert(
-                    bels::BSCAN,
-                    bel_from_pins(
-                        &db,
-                        &[
-                            ("TDO1", "IMUX.BSCAN.TDO1"),
-                            ("TDO2", "IMUX.BSCAN.TDO2"),
-                            ("DRCK", "OUT.BSCAN.DRCK"),
-                            ("IDLE", "OUT.BSCAN.IDLE"),
-                            ("RESET", "OUT.BSCAN.RESET"),
-                            ("SEL1", "OUT.BSCAN.SEL1"),
-                            ("SEL2", "OUT.BSCAN.SEL2"),
-                            ("SHIFT", "OUT.BSCAN.SHIFT"),
-                            ("UPDATE", "OUT.BSCAN.UPDATE"),
-                        ],
-                    ),
-                );
-            }
-            "CNR.TR" => {
-                tcls.bels.insert(
-                    bels::OSC,
-                    bel_from_pins(
-                        &db,
-                        &[
-                            ("C", "IMUX.OSC.OCLK"),
-                            ("OSC1", "OUT.OSC.OSC1"),
-                            ("OSC2", "OUT.OSC.OSC2"),
-                        ],
-                    ),
-                );
-                tcls.bels.insert(
-                    bels::BYPOSC,
-                    bel_from_pins(&db, &[("I", "IMUX.BYPOSC.PUMP")]),
-                );
-                tcls.bels
-                    .insert(bels::BSUPD, bel_from_pins(&db, &[("O", "OUT.BSUPD")]));
-            }
-            _ => unreachable!(),
-        }
-        db.tile_classes.insert(name.into(), tcls);
-    }
-    for (name, slot, sbslot) in [
-        ("CLKV", tslots::EXTRA_COL, bels::LLH),
-        ("CLKB", tslots::EXTRA_COL, bels::LLH),
-        ("CLKT", tslots::EXTRA_COL, bels::LLH),
-        ("CLKH", tslots::EXTRA_ROW, bels::LLV),
-        ("CLKL", tslots::EXTRA_ROW, bels::LLV),
-        ("CLKR", tslots::EXTRA_ROW, bels::LLV),
-    ] {
-        let mut tcls = TileClass::new(slot, 2);
-        tcls.bels
-            .insert(sbslot, BelInfo::SwitchBox(Default::default()));
-
-        db.tile_classes.insert(name.into(), tcls);
-    }
-
-    db
-}
 
 pub fn make_chip(die: &Die) -> Chip {
     Chip {
@@ -597,7 +33,9 @@ pub fn make_chip(die: &Die) -> Chip {
 
 pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     let chip = make_chip(die);
-    let mut intdb = make_intdb();
+    let mut intdb: IntDb = bincode::decode_from_slice(INIT, bincode::config::standard())
+        .unwrap()
+        .0;
     let mut ndb = NamingDb::default();
     for name in intdb.tile_classes.keys() {
         ndb.tile_namings.insert(name.clone(), TileNaming::default());
@@ -629,35 +67,35 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         if !ntile.tie_names.is_empty() {
             let mut tie = extractor.grab_prim_a(&ntile.tie_names[0]);
             let o = tie.get_pin("O");
-            extractor.net_int(o, cell.wire(intdb.get_wire("GND")));
+            extractor.net_int(o, cell.wire(wires::TIE_0));
             let mut dummy = extractor.grab_prim_a(&ntile.tie_names[1]);
             let i = dummy.get_pin("I");
             let wire = if col == chip.col_w() {
                 if row == chip.row_s() {
-                    "GLOBAL.BR"
+                    wires::GCLK_SE
                 } else if row == chip.row_n() {
-                    "GLOBAL.BL"
+                    wires::GCLK_SW
                 } else {
-                    "GLOBAL.R"
+                    wires::GCLK_E
                 }
             } else if col == chip.col_e() {
                 if row == chip.row_s() {
-                    "GLOBAL.TR"
+                    wires::GCLK_NE
                 } else if row == chip.row_n() {
-                    "GLOBAL.TL"
+                    wires::GCLK_NW
                 } else {
-                    "GLOBAL.L"
+                    wires::GCLK_W
                 }
             } else {
                 if row == chip.row_s() {
-                    "GLOBAL.T"
+                    wires::GCLK_N
                 } else if row == chip.row_n() {
-                    "GLOBAL.B"
+                    wires::GCLK_S
                 } else {
                     unreachable!()
                 }
             };
-            let wire = cell.wire(intdb.get_wire(wire));
+            let wire = cell.wire(wire);
             extractor.net_dummy(i);
             let (line, _) = extractor.consume_one_bwd(i, tcrd);
             extractor.net_int(line, wire);
@@ -667,87 +105,137 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             }
         }
         for (slot, bel_info) in &tcls.bels {
-            let BelInfo::Legacy(bel_info) = bel_info else {
-                continue;
-            };
             let bel = cell.bel(slot);
             let slot_name = intdb.bel_slots.key(slot);
             match slot {
-                bels::BUFG | bels::RDBK | bels::BSCAN => {
+                bslots::INT | bslots::LLH | bslots::LLV => (),
+                bslots::BUFG => {
                     let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
-                    for pin in bel_info.pins.keys() {
-                        extractor.net_bel_int(prim.get_pin(pin), bel, pin);
+                    let BelInfo::SwitchBox(sb) = bel_info else {
+                        unreachable!();
+                    };
+                    assert_eq!(sb.items.len(), 1);
+                    let SwitchBoxItem::PermaBuf(buf) = sb.items[0] else {
+                        unreachable!();
+                    };
+                    extractor.net_int(prim.get_pin("O"), edev.tile_wire(tcrd, buf.dst));
+                    extractor.net_int(prim.get_pin("I"), edev.tile_wire(tcrd, buf.src.tw));
+                }
+                bslots::RDBK | bslots::BSCAN => {
+                    let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
+                    let BelInfo::Bel(bel_info) = bel_info else {
+                        unreachable!();
+                    };
+                    for pid in bel_info.inputs.ids() {
+                        extractor.pin_bel_input(&mut prim, bel, pid);
+                    }
+                    for pid in bel_info.outputs.ids() {
+                        extractor.pin_bel_output(&mut prim, bel, pid);
                     }
                 }
-                bels::STARTUP => {
+                bslots::STARTUP => {
                     let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
-                    for pin in ["DONEIN", "Q1Q4", "Q2", "Q3", "GTS"] {
-                        extractor.net_bel_int(prim.get_pin(pin), bel, pin);
+                    let BelInfo::Bel(bel_info) = bel_info else {
+                        unreachable!();
+                    };
+                    for pid in bel_info.outputs.ids() {
+                        extractor.pin_bel_output(&mut prim, bel, pid);
                     }
-                    extractor.net_bel_int(prim.get_pin("CK"), bel, "CLK");
-                    extractor.net_bel_int(prim.get_pin("GCLR"), bel, "GR");
+                    extractor.pin_bel_input(&mut prim, bel, bcls::STARTUP::GTS);
+                    extractor.net_int(
+                        prim.get_pin("CK"),
+                        edev.get_bel_input(bel, bcls::STARTUP::CLK).wire,
+                    );
+                    extractor.net_int(
+                        prim.get_pin("GCLR"),
+                        edev.get_bel_input(bel, bcls::STARTUP::GR).wire,
+                    );
                 }
-                bels::OSC => {
+                bslots::OSC => {
                     let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
-                    for pin in ["OSC1", "OSC2"] {
-                        extractor.net_bel_int(prim.get_pin(pin), bel, pin);
+                    for pid in [bcls::OSC::OSC1, bcls::OSC::OSC2] {
+                        extractor.pin_bel_output(&mut prim, bel, pid);
                     }
-                    extractor.net_bel_int(prim.get_pin("CK"), bel, "C");
-                    extractor.net_bel_int(prim.get_pin("BSUPD"), cell.bel(bels::BSUPD), "O");
+                    extractor.net_int(
+                        prim.get_pin("CK"),
+                        edev.get_bel_input(bel, bcls::OSC::C).wire,
+                    );
+                    extractor.net_int(
+                        prim.get_pin("BSUPD"),
+                        edev.get_bel_output(cell.bel(bslots::BSUPD), bcls::BSUPD::O)[0],
+                    );
                 }
-                bels::BYPOSC => {
+                bslots::BYPOSC => {
                     // ???
                 }
-                bels::BSUPD => {
+                bslots::BSUPD => {
                     // handled with OSC
                 }
-                bels::CLKIOB => {
+                bslots::CLKIOB => {
                     let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
-                    extractor.net_bel_int(prim.get_pin("I"), bel, "OUT");
+                    let net = prim.get_pin("I");
+                    let wire = edev.get_bel_output(bel, bcls::CLKIOB::OUT)[0];
+                    extractor.net_int(net, wire);
                 }
-                bels::IO0 | bels::IO1 | bels::IO2 | bels::IO3 => {
+                _ if bslots::IO.contains(slot) => {
                     let mut prim = extractor.grab_prim_i(&ntile.bels[slot][0]);
-                    for pin in bel_info.pins.keys() {
-                        extractor.net_bel_int(prim.get_pin(pin), bel, pin);
+                    let BelInfo::Bel(bel_info) = bel_info else {
+                        unreachable!();
+                    };
+                    for pid in bel_info.inputs.ids() {
+                        extractor.pin_bel_input(&mut prim, bel, pid);
+                    }
+                    for pid in bel_info.outputs.ids() {
+                        extractor.pin_bel_output(&mut prim, bel, pid);
                     }
                 }
-                bels::TBUF0 | bels::TBUF1 | bels::TBUF2 | bels::TBUF3 => {
+                _ if bslots::TBUF.contains(slot) => {
                     let mut prim =
                         extractor.grab_prim_ab(&ntile.bels[slot][0], &ntile.bels[slot][1]);
                     let o = prim.get_pin("O");
                     extractor.net_bel(o, bel, "O");
                     let (net_o, pip) = extractor.consume_one_fwd(o, tcrd);
-                    extractor.net_bel_int(net_o, bel, "O");
+                    let wire_o = edev.get_bel_output(bel, bcls::TBUF::O)[0];
+                    extractor.net_int(net_o, wire_o);
                     extractor.bel_pip(ntile.naming, slot, "O", pip);
                     let i = prim.get_pin("I");
                     extractor.net_bel(i, bel, "I");
                     let (net_i, pip) = extractor.consume_one_bwd(i, tcrd);
-                    extractor.net_bel_int(net_i, bel, "I");
+                    let wire_i = edev.get_bel_input(bel, bcls::TBUF::I);
+                    extractor.net_int(net_i, wire_i.wire);
                     extractor.bel_pip(ntile.naming, slot, "I", pip);
                     let t = prim.get_pin("T");
                     extractor.net_bel(t, bel, "T");
                     let (net_t, pip) = extractor.consume_one_bwd(t, tcrd);
-                    extractor.net_bel_int(net_t, bel, "T");
+                    let wire_t = edev.get_bel_input(bel, bcls::TBUF::T);
+                    extractor.net_int(net_t, wire_t.wire);
                     extractor.bel_pip(ntile.naming, slot, "T", pip);
                     extractor.mark_tbuf_pseudo(net_o, net_i);
 
-                    let wib = bel_info.pins["I"].wires.iter().next().unwrap().wire;
-                    let wi = intdb.get_wire(intdb.wires.key(wib).strip_suffix(".BUF").unwrap());
+                    let wi = wires::OMUX[wires::OMUX_BUF.index_of(wire_i.slot).unwrap()];
                     assert_eq!(extractor.nets[net_i].pips_bwd.len(), 1);
                     let net_omux = *extractor.nets[net_i].pips_bwd.iter().next().unwrap().0;
                     extractor.net_int(net_omux, cell.wire(wi));
                 }
-                bels::BUFR | bels::CIN | bels::COUT => {
+                bslots::BUFR | bslots::CIN | bslots::COUT => {
                     // handled later
                 }
-                bels::LC0 => {
+                _ if slot == bslots::LC[0] => {
                     let mut prim =
                         extractor.grab_prim_ab(&ntile.bels[slot][0], &ntile.bels[slot][1]);
-                    for pin in ["CE", "CK", "CLR"] {
-                        extractor.net_bel_int(prim.get_pin(pin), bel, pin);
+                    for (pin, pid) in [
+                        ("CE", bcls::LC::CE),
+                        ("CK", bcls::LC::CK),
+                        ("CLR", bcls::LC::CLR),
+                    ] {
+                        let net = prim.get_pin(pin);
+                        let wire = edev.get_bel_input(bel, pid);
+                        extractor.net_int(net, wire.wire);
                     }
                     let cv = prim.get_pin("CV");
-                    extractor.net_bel_int(cv, cell.bel(bels::VCC_GND), "O");
+                    let wire_cv =
+                        edev.get_bel_output(cell.bel(bslots::VCC_GND), bcls::VCC_GND::O)[0];
+                    extractor.net_int(cv, wire_cv);
                     let mut omux = Vec::from_iter(
                         extractor.nets[cv]
                             .pips_fwd
@@ -758,68 +246,80 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     assert_eq!(omux.len(), 8);
                     for (i, (net, _)) in omux.into_iter().enumerate() {
                         let i = 7 - i;
-                        extractor.net_int(net, cell.wire(intdb.get_wire(&format!("OMUX{i}"))));
+                        extractor.net_int(net, cell.wire(wires::OMUX[i]));
                         assert_eq!(extractor.nets[net].pips_fwd.len(), 1);
                         let (&net_buf, _) = extractor.nets[net].pips_fwd.iter().next().unwrap();
-                        extractor
-                            .net_int(net_buf, cell.wire(intdb.get_wire(&format!("OMUX{i}.BUF"))));
+                        extractor.net_int(net_buf, cell.wire(wires::OMUX_BUF[i]));
                     }
                     for (i, pin, spin) in [
-                        (0, "F1", "LC0.F1"),
-                        (0, "F2", "LC0.F2"),
-                        (0, "F3", "LC0.F3"),
-                        (0, "F4", "LC0.F4"),
-                        (0, "DI", "LC0.DI"),
-                        (0, "DO", "LC0.DO"),
-                        (0, "X", "LC0.X"),
-                        (0, "Q", "LC0.Q"),
-                        (1, "F1", "LC1.F1"),
-                        (1, "F2", "LC1.F2"),
-                        (1, "F3", "LC1.F3"),
-                        (1, "F4", "LC1.F4"),
-                        (1, "DI", "LC1.DI"),
-                        (1, "DO", "LC1.DO"),
-                        (1, "X", "LC1.X"),
-                        (1, "Q", "LC1.Q"),
-                        (2, "F1", "LC2.F1"),
-                        (2, "F2", "LC2.F2"),
-                        (2, "F3", "LC2.F3"),
-                        (2, "F4", "LC2.F4"),
-                        (2, "DI", "LC2.DI"),
-                        (2, "DO", "LC2.DO"),
-                        (2, "X", "LC2.X"),
-                        (2, "Q", "LC2.Q"),
-                        (3, "F1", "LC3.F1"),
-                        (3, "F2", "LC3.F2"),
-                        (3, "F3", "LC3.F3"),
-                        (3, "F4", "LC3.F4"),
-                        (3, "DI", "LC3.DI"),
-                        (3, "DO", "LC3.DO"),
-                        (3, "X", "LC3.X"),
-                        (3, "Q", "LC3.Q"),
+                        (0, bcls::LC::F1, "LC0.F1"),
+                        (0, bcls::LC::F2, "LC0.F2"),
+                        (0, bcls::LC::F3, "LC0.F3"),
+                        (0, bcls::LC::F4, "LC0.F4"),
+                        (0, bcls::LC::DI, "LC0.DI"),
+                        (1, bcls::LC::F1, "LC1.F1"),
+                        (1, bcls::LC::F2, "LC1.F2"),
+                        (1, bcls::LC::F3, "LC1.F3"),
+                        (1, bcls::LC::F4, "LC1.F4"),
+                        (1, bcls::LC::DI, "LC1.DI"),
+                        (2, bcls::LC::F1, "LC2.F1"),
+                        (2, bcls::LC::F2, "LC2.F2"),
+                        (2, bcls::LC::F3, "LC2.F3"),
+                        (2, bcls::LC::F4, "LC2.F4"),
+                        (2, bcls::LC::DI, "LC2.DI"),
+                        (3, bcls::LC::F1, "LC3.F1"),
+                        (3, bcls::LC::F2, "LC3.F2"),
+                        (3, bcls::LC::F3, "LC3.F3"),
+                        (3, bcls::LC::F4, "LC3.F4"),
+                        (3, bcls::LC::DI, "LC3.DI"),
                     ] {
-                        extractor.net_bel_int(prim.get_pin(spin), cell.bel(bels::LC[i]), pin);
+                        let wire = edev.get_bel_input(cell.bel(bslots::LC[i]), pin);
+                        extractor.net_int(prim.get_pin(spin), wire.wire);
+                    }
+                    for (i, pin, spin) in [
+                        (0, bcls::LC::DO, "LC0.DO"),
+                        (0, bcls::LC::X, "LC0.X"),
+                        (0, bcls::LC::Q, "LC0.Q"),
+                        (1, bcls::LC::DO, "LC1.DO"),
+                        (1, bcls::LC::X, "LC1.X"),
+                        (1, bcls::LC::Q, "LC1.Q"),
+                        (2, bcls::LC::DO, "LC2.DO"),
+                        (2, bcls::LC::X, "LC2.X"),
+                        (2, bcls::LC::Q, "LC2.Q"),
+                        (3, bcls::LC::DO, "LC3.DO"),
+                        (3, bcls::LC::X, "LC3.X"),
+                        (3, bcls::LC::Q, "LC3.Q"),
+                    ] {
+                        let wire = edev.get_bel_output(cell.bel(bslots::LC[i]), pin)[0];
+                        extractor.net_int(prim.get_pin(spin), wire);
                     }
                     let ci = prim.get_pin("CI");
                     extractor.net_bel(ci, bel, "CI");
                     let co = prim.get_pin("CO");
                     if row == chip.row_n() - 1 {
-                        extractor.net_bel_int(co, cell.delta(0, 1).bel(bels::COUT), "OUT");
+                        let wire = edev
+                            .get_bel_output(cell.delta(0, 1).bel(bslots::COUT), bcls::COUT::OUT)[0];
+                        extractor.net_int(co, wire);
                     } else {
                         extractor.net_bel(co, bel, "CO");
                     }
                     let (co_b, pip) = extractor.consume_one_bwd(ci, tcrd);
                     extractor.bel_pip(ntile.naming, slot, "CI", pip);
                     if row == chip.row_s() + 1 {
-                        extractor.net_bel_int(co_b, cell.delta(0, -1).bel(bels::CIN), "IN");
+                        let wire =
+                            edev.get_bel_input(cell.delta(0, -1).bel(bslots::CIN), bcls::CIN::IN);
+                        extractor.net_int(co_b, wire.wire);
                     } else {
-                        extractor.net_bel(co_b, cell.delta(0, -1).bel(bels::LC0), "CO");
+                        extractor.net_bel(co_b, cell.delta(0, -1).bel(bslots::LC[0]), "CO");
                     }
                 }
-                bels::LC1 | bels::LC2 | bels::LC3 | bels::VCC_GND => {
+                _ if bslots::LC.contains(slot) => {
                     // handled with LC0
                 }
-                bels::SCANTEST => {
+                bslots::VCC_GND => {
+                    // handled with LC0
+                }
+                bslots::SCANTEST => {
                     extractor.grab_prim_ab(&ntile.bels[slot][0], &ntile.bels[slot][1]);
                 }
 
@@ -832,12 +332,18 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     for (tcrd, tile) in edev.tiles() {
         let ntile = &endev.ngrid.tiles[&tcrd];
         let tcls = &intdb[tile.class];
-        for (slot, _) in &tcls.bels {
-            if slot == bels::BUFR {
-                let bel = tcrd.bel(slot);
-                let net = extractor.get_bel_int_net(bel, "OUT");
+        for (slot, bel_info) in &tcls.bels {
+            if slot == bslots::BUFR {
+                let BelInfo::SwitchBox(sb) = bel_info else {
+                    unreachable!();
+                };
+                assert_eq!(sb.items.len(), 1);
+                let SwitchBoxItem::PermaBuf(buf) = sb.items[0] else {
+                    unreachable!();
+                };
+                let net = extractor.get_wire_net(edev.tile_wire(tcrd, buf.dst));
                 let (imux, pip) = extractor.consume_one_bwd(net, tcrd);
-                extractor.net_bel_int(imux, bel, "IN");
+                extractor.net_int(imux, edev.tile_wire(tcrd, buf.src.tw));
                 extractor.bel_pip(ntile.naming, slot, "BUF", pip);
             }
         }
@@ -865,7 +371,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             assert_eq!(nets.len(), 8);
             for (i, net) in nets.into_iter().enumerate() {
                 let i = 7 - i;
-                let wire = intdb.get_wire(&format!("LONG.V{i}"));
+                let wire = wires::LONG_V[i];
                 queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
@@ -894,7 +400,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             }
             assert_eq!(nets.len(), 8);
             for (i, net) in nets.into_iter().enumerate() {
-                let wire = intdb.get_wire(&format!("LONG.H{i}"));
+                let wire = wires::LONG_H[i];
                 queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
@@ -922,48 +428,29 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                 nets.push(net);
             }
             let wires = if row == chip.row_s() {
-                &[
-                    "IO.SINGLE.B.W0",
-                    "IO.SINGLE.B.W1",
-                    "IO.SINGLE.B.W2",
-                    "IO.SINGLE.B.W3",
-                    "IO.SINGLE.B.W4",
-                    "IO.SINGLE.B.W5",
-                    "IO.SINGLE.B.W6",
-                    "IO.SINGLE.B.W7",
-                ][..]
+                &wires::SINGLE_IO_S_W[..]
             } else if row == chip.row_n() {
-                &[
-                    "IO.SINGLE.T.W0",
-                    "IO.SINGLE.T.W1",
-                    "IO.SINGLE.T.W2",
-                    "IO.SINGLE.T.W3",
-                    "IO.SINGLE.T.W4",
-                    "IO.SINGLE.T.W5",
-                    "IO.SINGLE.T.W6",
-                    "IO.SINGLE.T.W7",
-                ][..]
+                &wires::SINGLE_IO_N_W[..]
             } else {
                 &[
-                    "SINGLE.W11",
-                    "SINGLE.W10",
-                    "SINGLE.W9",
-                    "SINGLE.W8",
-                    "SINGLE.W7",
-                    "SINGLE.W5",
-                    "SINGLE.W4",
-                    "SINGLE.W3",
-                    "SINGLE.W2",
-                    "SINGLE.W1",
-                    "DBL.H0.M",
-                    "DBL.H6.M",
-                    "DBL.H0.E",
-                    "DBL.H6.E",
+                    wires::SINGLE_W[11],
+                    wires::SINGLE_W[10],
+                    wires::SINGLE_W[9],
+                    wires::SINGLE_W[8],
+                    wires::SINGLE_W[7],
+                    wires::SINGLE_W[5],
+                    wires::SINGLE_W[4],
+                    wires::SINGLE_W[3],
+                    wires::SINGLE_W[2],
+                    wires::SINGLE_W[1],
+                    wires::DBL_H_M[0],
+                    wires::DBL_H_M[1],
+                    wires::DBL_H_E[0],
+                    wires::DBL_H_E[1],
                 ][..]
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                let wire = intdb.get_wire(wire);
                 queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
@@ -987,47 +474,46 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             }
             let wires = if col == chip.col_w() {
                 &[
-                    "IO.SINGLE.L.S7",
-                    "IO.SINGLE.L.S6",
-                    "IO.SINGLE.L.S5",
-                    "IO.SINGLE.L.S4",
-                    "IO.SINGLE.L.S3",
-                    "IO.SINGLE.L.S2",
-                    "IO.SINGLE.L.S1",
-                    "IO.SINGLE.L.S0",
+                    wires::SINGLE_IO_W_S[7],
+                    wires::SINGLE_IO_W_S[6],
+                    wires::SINGLE_IO_W_S[5],
+                    wires::SINGLE_IO_W_S[4],
+                    wires::SINGLE_IO_W_S[3],
+                    wires::SINGLE_IO_W_S[2],
+                    wires::SINGLE_IO_W_S[1],
+                    wires::SINGLE_IO_W_S[0],
                 ][..]
             } else if col == chip.col_e() {
                 &[
-                    "IO.SINGLE.R.S7",
-                    "IO.SINGLE.R.S6",
-                    "IO.SINGLE.R.S5",
-                    "IO.SINGLE.R.S4",
-                    "IO.SINGLE.R.S3",
-                    "IO.SINGLE.R.S2",
-                    "IO.SINGLE.R.S1",
-                    "IO.SINGLE.R.S0",
+                    wires::SINGLE_IO_E_S[7],
+                    wires::SINGLE_IO_E_S[6],
+                    wires::SINGLE_IO_E_S[5],
+                    wires::SINGLE_IO_E_S[4],
+                    wires::SINGLE_IO_E_S[3],
+                    wires::SINGLE_IO_E_S[2],
+                    wires::SINGLE_IO_E_S[1],
+                    wires::SINGLE_IO_E_S[0],
                 ][..]
             } else {
                 &[
-                    "DBL.V6.M",
-                    "DBL.V6.N",
-                    "DBL.V0.N",
-                    "DBL.V0.M",
-                    "SINGLE.S11",
-                    "SINGLE.S10",
-                    "SINGLE.S9",
-                    "SINGLE.S8",
-                    "SINGLE.S7",
-                    "SINGLE.S5",
-                    "SINGLE.S4",
-                    "SINGLE.S3",
-                    "SINGLE.S2",
-                    "SINGLE.S1",
+                    wires::DBL_V_M[1],
+                    wires::DBL_V_N[1],
+                    wires::DBL_V_N[0],
+                    wires::DBL_V_M[0],
+                    wires::SINGLE_S[11],
+                    wires::SINGLE_S[10],
+                    wires::SINGLE_S[9],
+                    wires::SINGLE_S[8],
+                    wires::SINGLE_S[7],
+                    wires::SINGLE_S[5],
+                    wires::SINGLE_S[4],
+                    wires::SINGLE_S[3],
+                    wires::SINGLE_S[2],
+                    wires::SINGLE_S[1],
                 ][..]
             };
             assert_eq!(nets.len(), wires.len());
             for (net, wire) in nets.into_iter().zip(wires.iter().copied()) {
-                let wire = intdb.get_wire(wire);
                 queue.push((net, CellCoord::new(die, col, row).wire(wire)));
             }
         }
@@ -1055,8 +541,8 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             for i in 0..16 {
                 let net = extractor.get_net(crd.0, crd.1 + i, Dir::E).unwrap();
                 let net_b = extractor.get_net(crd.0, crd.1 + i, Dir::W).unwrap();
-                extractor.net_int(net, cell.wire(intdb.get_wire(&format!("IO.M{i}"))));
-                extractor.net_int(net_b, cell.wire(intdb.get_wire(&format!("IO.M{i}.BUF"))))
+                extractor.net_int(net, cell.wire(wires::IO_M[i]));
+                extractor.net_int(net_b, cell.wire(wires::IO_M_BUF[i]))
             }
         } else if col == chip.col_w() || col == chip.col_e() {
             let mut crd = None;
@@ -1072,8 +558,8 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             for i in 0..16 {
                 let net = extractor.get_net(crd.0 + (15 - i), crd.1, Dir::S).unwrap();
                 let net_b = extractor.get_net(crd.0 + (15 - i), crd.1, Dir::N).unwrap();
-                extractor.net_int(net, cell.wire(intdb.get_wire(&format!("IO.M{i}"))));
-                extractor.net_int(net_b, cell.wire(intdb.get_wire(&format!("IO.M{i}.BUF"))))
+                extractor.net_int(net, cell.wire(wires::IO_M[i]));
+                extractor.net_int(net_b, cell.wire(wires::IO_M_BUF[i]))
             }
         } else {
             let mut crd = None;
@@ -1089,8 +575,8 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             for i in 0..24 {
                 let net = extractor.get_net(crd.0 + (23 - i), crd.1, Dir::S).unwrap();
                 let net_b = extractor.get_net(crd.0 + (23 - i), crd.1, Dir::N).unwrap();
-                extractor.net_int(net, cell.wire(intdb.get_wire(&format!("CLB.M{i}"))));
-                extractor.net_int(net_b, cell.wire(intdb.get_wire(&format!("CLB.M{i}.BUF"))))
+                extractor.net_int(net, cell.wire(wires::CLB_M[i]));
+                extractor.net_int(net_b, cell.wire(wires::CLB_M_BUF[i]))
             }
         }
     }
@@ -1109,7 +595,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
             if w_t.starts_with("LONG") && !(w_f.starts_with("LONG") || w_f.starts_with("OUT")) {
                 queue.push((net_t, net_f));
             }
-            if w_f == "IMUX.BOT.CIN" {
+            if rw_f.slot == wires::IMUX_BOT_CIN {
                 queue.push((net_t, net_f));
             }
         }
@@ -1119,7 +605,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
 
     for i in 0..8 {
-        let wire = intdb.get_wire(&format!("IO.SINGLE.L.N{i}"));
+        let wire = wires::SINGLE_IO_W_N[i];
         let rw = edev
             .resolve_wire(CellCoord::new(die, chip.col_w(), chip.row_s()).wire(wire))
             .unwrap();
@@ -1137,7 +623,10 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         &mut ndb,
         |db, _, wt, _| {
             let wtn = db.wires.key(wt.wire);
-            if wtn.ends_with(".BUF") {
+            if wires::IO_M_BUF.contains(wt.wire)
+                || wires::CLB_M_BUF.contains(wt.wire)
+                || wires::OMUX_BUF.contains(wt.wire)
+            {
                 PipMode::PermaBuf
             } else if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
                 PipMode::Mux

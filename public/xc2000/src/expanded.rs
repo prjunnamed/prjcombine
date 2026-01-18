@@ -8,7 +8,7 @@ use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 
 use crate::{
     chip::{Chip, ChipKind},
-    xc2000, xc3000,
+    xc2000, xc3000, xc5200,
 };
 
 pub struct ExpandedDevice<'a> {
@@ -162,9 +162,13 @@ impl ExpandedDevice<'_> {
                 }
             }
             ChipKind::Xc5200 => {
-                if matches!(&kind[..], "CLKL" | "CLKR" | "CLKH") {
-                    EntityVec::from_iter([self.btile_llv(col, row)])
-                } else if matches!(&kind[..], "CLKB" | "CLKT" | "CLKV") {
+                if tcrd.slot == xc5200::tslots::LLV {
+                    if tile.class == xc5200::tcls::LLV {
+                        EntityVec::from_iter([self.btile_llv(col, row)])
+                    } else {
+                        EntityVec::from_iter([self.btile_llv(col, row), self.btile_main(col, row)])
+                    }
+                } else if tcrd.slot == xc5200::tslots::LLH {
                     EntityVec::from_iter([self.btile_llh(col, row)])
                 } else {
                     EntityVec::from_iter([self.btile_main(col, row)])

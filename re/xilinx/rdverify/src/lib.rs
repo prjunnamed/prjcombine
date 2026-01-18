@@ -1,9 +1,9 @@
 #![allow(clippy::unnecessary_unwrap)]
 
-use prjcombine_entity::{EntityBitVec, EntityId, EntityPartVec, EntityVec};
+use prjcombine_entity::{EntityBitVec, EntityBundleItemIndex, EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{
-    BelInfo, BelSlotId, ConnectorWire, IntDb, LegacyBel, PinDir, SwitchBoxItem, TileClassId,
-    TileWireCoord, WireKind, WireSlotId,
+    BelInfo, BelInput, BelKind, BelSlotId, ConnectorWire, IntDb, LegacyBel, PinDir, SwitchBoxItem,
+    TileClassId, TileWireCoord, WireKind, WireSlotId,
 };
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,
@@ -15,10 +15,11 @@ use prjcombine_re_xilinx_naming::db::{
 };
 use prjcombine_re_xilinx_naming::grid::{ExpandedGridNaming, TileNaming};
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
-pub struct BelContext<'a> {
+pub struct LegacyBelContext<'a> {
     pub die: DieId,
     pub col: ColId,
     pub row: RowId,
@@ -34,7 +35,7 @@ pub struct BelContext<'a> {
     pub crds: EntityPartVec<RawTileId, Coord>,
 }
 
-impl<'a> BelContext<'a> {
+impl<'a> LegacyBelContext<'a> {
     pub fn crd(&self) -> Coord {
         self.crds[self.naming.tile]
     }
@@ -78,10 +79,162 @@ impl<'a> BelContext<'a> {
     }
 }
 
+pub struct BelVerifier<'a, 'b> {
+    pub vrf: &'b mut Verifier<'a>,
+    pub ntile: &'a TileNaming,
+    pub naming: &'a ProperBelNaming,
+    pub crds: EntityPartVec<RawTileId, Coord>,
+    bcrd: BelCoord,
+    kind: String,
+    extra_ins: Vec<String>,
+    extra_outs: Vec<String>,
+}
+
+impl<'a, 'b> BelVerifier<'a, 'b> {
+    pub fn kind(mut self, kind: impl Into<String>) -> Self {
+        self.kind = kind.into();
+        self
+    }
+
+    pub fn extra_in(mut self, name: impl Into<String>) -> Self {
+        self.extra_ins.push(name.into());
+        self
+    }
+
+    pub fn extra_out(mut self, name: impl Into<String>) -> Self {
+        self.extra_outs.push(name.into());
+        self
+    }
+
+    pub fn crd(&self) -> Coord {
+        self.crds[self.naming.tile]
+    }
+
+    #[track_caller]
+    pub fn wire(&self, name: &str) -> &'a str {
+        &self.naming.pins[name].name
+    }
+
+    #[track_caller]
+    pub fn wire_far(&self, name: &str) -> &'a str {
+        &self.naming.pins[name].name_far
+    }
+
+    #[track_caller]
+    pub fn fwire(&self, name: &str) -> (Coord, &'a str) {
+        (self.crd(), self.wire(name))
+    }
+
+    #[track_caller]
+    pub fn fwire_far(&self, name: &str) -> (Coord, &'a str) {
+        (self.crd(), self.wire_far(name))
+    }
+
+    pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> &'a str {
+        self.vrf.bel_wire(bcrd, name)
+    }
+
+    pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> &'a str {
+        self.vrf.bel_wire_far(bcrd, name)
+    }
+
+    pub fn bel_fwire(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
+        self.vrf.bel_fwire(bcrd, name)
+    }
+
+    pub fn bel_fwire_far(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
+        self.vrf.bel_fwire_far(bcrd, name)
+    }
+
+    pub fn claim_net(&mut self, tiles: &[(Coord, &str)]) {
+        self.vrf.claim_net(tiles);
+    }
+
+    pub fn verify_net(&mut self, tiles: &[(Coord, &str)]) {
+        self.vrf.verify_net(tiles);
+    }
+
+    pub fn claim_pip(&mut self, crd: Coord, wt: &str, wf: &str) {
+        self.vrf.claim_pip(crd, wt, wf);
+    }
+
+    pub fn commit(self) {
+        let db = self.vrf.db;
+        let tcrd = self.vrf.grid.get_tile_by_bel(self.bcrd);
+        let tile = &self.vrf.grid[tcrd];
+        let tcls = &db[tile.class];
+        let ntile = &self.vrf.ngrid.tiles[&tcrd];
+        let BelKind::Class(bcid) = db.bel_slots[self.bcrd.slot].kind else {
+            unreachable!()
+        };
+        let BelInfo::Bel(ref bel) = tcls.bels[self.bcrd.slot] else {
+            unreachable!()
+        };
+        let bcls = &db[bcid];
+        let mut pins = vec![];
+        for pid in bel.inputs.ids() {
+            let (name, idx) = bcls.inputs.key(pid);
+            let name = self.vrf.pin_index(name, idx);
+            let n = &self.naming.pins[&name];
+            pins.push(SitePin {
+                dir: SitePinDir::In,
+                pin: name.into(),
+                wire: Some(&n.name),
+            });
+        }
+        for pid in bel.outputs.ids() {
+            let (name, idx) = bcls.outputs.key(pid);
+            let name = self.vrf.pin_index(name, idx);
+            let n = &self.naming.pins[&name];
+            pins.push(SitePin {
+                dir: SitePinDir::Out,
+                pin: name.into(),
+                wire: Some(&n.name),
+            });
+        }
+        for pid in bel.bidirs.ids() {
+            let (name, idx) = bcls.bidirs.key(pid);
+            let name = self.vrf.pin_index(name, idx);
+            let n = &self.naming.pins[&name];
+            pins.push(SitePin {
+                dir: SitePinDir::Inout,
+                pin: name.into(),
+                wire: Some(&n.name),
+            });
+        }
+        for name in self.extra_ins {
+            let wire = Some(self.naming.pins[&name].name.as_ref());
+            pins.push(SitePin {
+                dir: SitePinDir::In,
+                pin: name.into(),
+                wire,
+            });
+        }
+        for name in self.extra_outs {
+            let wire = Some(self.naming.pins[&name].name.as_ref());
+            pins.push(SitePin {
+                dir: SitePinDir::Out,
+                pin: name.into(),
+                wire,
+            });
+        }
+        if let Some(name) = ntile.bels.get(self.bcrd.slot) {
+            let crd = self.vrf.bel_rcrd(self.bcrd);
+            self.vrf.claim_site(crd, name, &self.kind, &pins);
+        } else {
+            println!(
+                "MISSING SITE NAME {tiles:?} {slot}",
+                tiles = tile.cells,
+                slot = db.bel_slots.key(self.bcrd.slot)
+            );
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct SitePin<'a> {
     pub dir: SitePinDir,
-    pub pin: &'a str,
+    pub pin: Cow<'a, str>,
     pub wire: Option<&'a str>,
 }
 
@@ -118,6 +271,7 @@ pub struct Verifier<'a> {
     cond_stub_ins: HashSet<rawdump::WireId>,
     cond_stub_ins_tk: HashSet<(rawdump::TileKindId, rawdump::WireId)>,
     skip_bel_pins: HashSet<(BelCoord, &'static str)>,
+    skip_sb: HashSet<BelSlotId>,
 }
 
 #[derive(Debug, Default)]
@@ -185,8 +339,26 @@ fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo
                     }
                 }
             }
-            BelInfo::Bel(_bel) => {
-                todo!();
+            BelInfo::Bel(bel) => {
+                for &inp in bel.inputs.values() {
+                    match inp {
+                        BelInput::Fixed(wire) => {
+                            used_i.insert(wire.tw);
+                        }
+                        BelInput::Invertible(wire, _) => {
+                            used_i.insert(wire);
+                        }
+                    }
+                }
+                for wires in bel.outputs.values() {
+                    for &wire in wires {
+                        used_o.insert(wire);
+                    }
+                }
+                for &wire in bel.bidirs.values() {
+                    used_i.insert(wire);
+                    used_o.insert(wire);
+                }
             }
             BelInfo::Legacy(bel) => {
                 for pin in bel.pins.values() {
@@ -232,7 +404,7 @@ fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo
 }
 
 impl<'a> Verifier<'a> {
-    fn new(rd: &'a Part, ngrid: &'a ExpandedGridNaming) -> Self {
+    pub fn new(rd: &'a Part, ngrid: &'a ExpandedGridNaming) -> Self {
         let mut node_used = EntityVec::new();
         for nid in ngrid.egrid.db.tile_classes.ids() {
             node_used.push(prep_tile_class_used_info(ngrid.egrid.db, nid));
@@ -290,6 +462,7 @@ impl<'a> Verifier<'a> {
             cond_stub_ins: HashSet::new(),
             cond_stub_ins_tk: HashSet::new(),
             skip_bel_pins: HashSet::new(),
+            skip_sb: HashSet::new(),
         }
     }
 
@@ -297,7 +470,7 @@ impl<'a> Verifier<'a> {
         self.intf_int_aliases.insert(from, to);
     }
 
-    fn prep_int_wires(&mut self) {
+    pub fn prep_int_wires(&mut self) {
         for (tcrd, tile) in self.grid.tiles() {
             let nui = &self.node_used[tile.class];
             let Some(ntile) = self.ngrid.tiles.get(&tcrd) else {
@@ -588,8 +761,8 @@ impl<'a> Verifier<'a> {
                 }
                 let mut extra_pins: HashSet<_> = site.pins.keys().map(|x| &x[..]).collect();
                 for pin in pins {
-                    if let Some(tkp) = site.pins.get(pin.pin) {
-                        extra_pins.remove(pin.pin);
+                    if let Some(tkp) = site.pins.get(pin.pin.as_ref()) {
+                        extra_pins.remove(pin.pin.as_ref());
                         let exp_dir = match pin.dir {
                             SitePinDir::In => rawdump::TkSitePinDir::Input,
                             SitePinDir::Out => rawdump::TkSitePinDir::Output,
@@ -638,8 +811,8 @@ impl<'a> Verifier<'a> {
         tcrd: TileCoord,
     ) -> Option<EntityPartVec<RawTileId, rawdump::Coord>> {
         let mut crds = EntityPartVec::new();
-        if let Some(nnode) = self.ngrid.tiles.get(&tcrd) {
-            for (k, name) in &nnode.names {
+        if let Some(ntile) = self.ngrid.tiles.get(&tcrd) {
+            for (k, name) in &ntile.names {
                 if let Some(c) = self.xlat_tile(name) {
                     crds.insert(k, c);
                 } else {
@@ -728,6 +901,22 @@ impl<'a> Verifier<'a> {
         }
     }
 
+    fn pin_index(&self, name: &str, idx: EntityBundleItemIndex) -> String {
+        match idx {
+            EntityBundleItemIndex::Single => name.to_string(),
+            EntityBundleItemIndex::Array { index, .. } => {
+                if matches!(
+                    self.rd.family.as_str(),
+                    "ultrascale" | "ultrascaleplus" | "versal"
+                ) {
+                    format!("{name}_{index}_")
+                } else {
+                    format!("{name}{index}")
+                }
+            }
+        }
+    }
+
     fn handle_tile(&mut self, tcrd: TileCoord) {
         let tile = &self.grid[tcrd];
         let crds;
@@ -752,7 +941,10 @@ impl<'a> Verifier<'a> {
         let mut wires_missing = HashSet::new();
         let mut tie_pins_extra = HashMap::new();
         let mut pips = vec![];
-        for bel in tcls.bels.values() {
+        for (bslot, bel) in &tcls.bels {
+            if self.skip_sb.contains(&bslot) {
+                continue;
+            }
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
@@ -932,7 +1124,7 @@ impl<'a> Verifier<'a> {
                 }
                 pins.push(SitePin {
                     dir: SitePinDir::Out,
-                    pin,
+                    pin: pin.into(),
                     wire: Some(v),
                 });
             }
@@ -945,7 +1137,7 @@ impl<'a> Verifier<'a> {
                 };
                 pins.push(SitePin {
                     dir: SitePinDir::Out,
-                    pin,
+                    pin: pin.into(),
                     wire: Some(v),
                 })
             }
@@ -960,7 +1152,149 @@ impl<'a> Verifier<'a> {
         for (slot, bel) in &tcls.bels {
             match bel {
                 BelInfo::SwitchBox(_) => (),
-                BelInfo::Bel(_bel) => todo!(),
+                BelInfo::Bel(bel) => {
+                    let BelNaming::Bel(bn) = &naming.bels[slot] else {
+                        unreachable!()
+                    };
+                    let BelKind::Class(bcid) = self.db.bel_slots[slot].kind else {
+                        unreachable!()
+                    };
+                    let bcls = &self.db[bcid];
+                    for (pin, &inp) in &bel.inputs {
+                        let (name, idx) = bcls.inputs.key(pin);
+                        let pin = self.pin_index(name, idx);
+                        let n = &bn.pins[&pin];
+                        let mut crd = crds[bn.tile];
+                        let mut wn: &str = &n.name;
+                        for pip in &n.pips {
+                            let ncrd = crds[pip.tile];
+                            self.claim_net(&[(crd, wn), (ncrd, &pip.wire_to)]);
+                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
+                            wn = &pip.wire_from;
+                            crd = ncrd;
+                        }
+                        if n.pips.is_empty() {
+                            wn = &n.name_far;
+                        }
+
+                        let w = match inp {
+                            BelInput::Fixed(wire) => wire.tw,
+                            BelInput::Invertible(wire, _) => wire,
+                        };
+
+                        let wire = self
+                            .ngrid
+                            .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
+                            .unwrap();
+                        let wcrd;
+                        let ww: &str;
+                        if let Some(pip) = n.int_pips.get(&w) {
+                            self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
+                            self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
+                            wcrd = crds[pip.tile];
+                            ww = &pip.wire_from;
+                            self.claim_net(&[(crd, wn)]);
+                        } else {
+                            wcrd = crd;
+                            ww = wn;
+                        }
+                        if n.is_intf {
+                            if !self.pin_int_intf_wire(wcrd, ww, wire) {
+                                println!(
+                                    "MISSING BEL PIN INTF WIRE {part} {tile} {pin} {wire}",
+                                    part = self.rd.part,
+                                    tile = ntile.names[def_rt],
+                                    wire = n.name_far
+                                );
+                            }
+                        } else {
+                            if !self.pin_int_wire(wcrd, ww, wire) {
+                                let iwd = &self.int_wire_data[&wire];
+                                if iwd.used_o {
+                                    println!(
+                                        "MISSING BEL PIN INT WIRE {part} {tile} {pin} {wire}",
+                                        part = self.rd.part,
+                                        tile = ntile.names[def_rt],
+                                        wire = n.name_far
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    for (pin, wires) in &bel.outputs {
+                        let (name, idx) = bcls.outputs.key(pin);
+                        let pin = self.pin_index(name, idx);
+                        let n = &bn.pins[&pin];
+                        let mut crd = crds[bn.tile];
+                        let mut wn: &str = &n.name;
+                        for pip in &n.pips {
+                            let ncrd = crds[pip.tile];
+                            self.claim_net(&[(crd, wn), (ncrd, &pip.wire_from)]);
+                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
+                            wn = &pip.wire_to;
+                            crd = ncrd;
+                        }
+                        if n.pips.is_empty() {
+                            wn = &n.name_far;
+                        }
+
+                        let mut claim = true;
+                        for &w in wires {
+                            let wire = self
+                                .ngrid
+                                .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
+                                .unwrap();
+                            let wcrd;
+                            let ww: &str;
+                            if let Some(pip) = n.int_pips.get(&w) {
+                                self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
+                                self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_from)]);
+                                wcrd = crds[pip.tile];
+                                ww = &pip.wire_to;
+                            } else {
+                                wcrd = crd;
+                                ww = wn;
+                                claim = false;
+                            }
+                            if !self.pin_int_wire(wcrd, ww, wire) {
+                                let iwd = &self.int_wire_data[&wire];
+                                if iwd.used_i {
+                                    println!(
+                                        "MISSING BEL PIN INT WIRE {part} {tile} {pin} {wire}",
+                                        part = self.rd.part,
+                                        tile = ntile.names[def_rt],
+                                        wire = n.name_far
+                                    );
+                                }
+                            }
+                        }
+                        if claim {
+                            self.claim_net(&[(crd, wn)]);
+                        }
+                    }
+                    for (pin, &w) in &bel.bidirs {
+                        let (name, idx) = bcls.bidirs.key(pin);
+                        let pin = self.pin_index(name, idx);
+                        let n = &bn.pins[&pin];
+                        let crd = crds[bn.tile];
+                        let wn = &n.name_far;
+                        assert!(n.pips.is_empty());
+
+                        let wire = self
+                            .ngrid
+                            .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
+                            .unwrap();
+                        assert!(n.int_pips.is_empty());
+                        if !self.pin_int_wire(crd, wn, wire) {
+                            println!(
+                                "MISSING BEL PIN INT WIRE {part} {tile} {pin} {wire}",
+                                part = self.rd.part,
+                                tile = ntile.names[def_rt],
+                                wire = n.name_far
+                            );
+                        }
+                    }
+                }
                 BelInfo::Legacy(bel) => {
                     let BelNaming::Bel(bn) = &naming.bels[slot] else {
                         unreachable!()
@@ -1372,7 +1706,7 @@ impl<'a> Verifier<'a> {
 
     pub fn verify_bel_dummies(
         &mut self,
-        bel: &BelContext<'_>,
+        bel: &LegacyBelContext<'_>,
         kind: &str,
         extras: &[(&str, SitePinDir)],
         skip: &[&str],
@@ -1390,7 +1724,7 @@ impl<'a> Verifier<'a> {
                     PinDir::Output => SitePinDir::Out,
                     PinDir::Inout => SitePinDir::Inout,
                 },
-                pin: k,
+                pin: k.into(),
                 wire: Some(&n.name),
             });
         }
@@ -1398,7 +1732,7 @@ impl<'a> Verifier<'a> {
             if dummies.contains(&pin) {
                 pins.push(SitePin {
                     dir,
-                    pin,
+                    pin: pin.into(),
                     wire: None,
                 });
             } else {
@@ -1410,7 +1744,7 @@ impl<'a> Verifier<'a> {
                 }
                 pins.push(SitePin {
                     dir,
-                    pin,
+                    pin: pin.into(),
                     wire: Some(&bel.naming.pins[pin].name),
                 });
             }
@@ -1426,9 +1760,70 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_bel(
+    pub fn bel_naming(&self, bcrd: BelCoord) -> &'a ProperBelNaming {
+        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let ntile = &self.ngrid.tiles[&tcrd];
+        let nn = &self.ndb.tile_class_namings[ntile.naming];
+        let BelNaming::Bel(naming) = &nn.bels[bcrd.slot] else {
+            unreachable!()
+        };
+        naming
+    }
+
+    pub fn bel_rcrd(&self, bcrd: BelCoord) -> Coord {
+        let naming = self.bel_naming(bcrd);
+        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let crds = self.get_node_crds(tcrd).unwrap();
+        crds[naming.tile]
+    }
+
+    pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> &'a str {
+        let naming = self.bel_naming(bcrd);
+        &naming.pins[name].name
+    }
+
+    pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> &'a str {
+        let naming = self.bel_naming(bcrd);
+        &naming.pins[name].name_far
+    }
+
+    pub fn bel_fwire(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
+        (self.bel_rcrd(bcrd), self.bel_wire(bcrd, name))
+    }
+
+    pub fn bel_fwire_far(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
+        (self.bel_rcrd(bcrd), self.bel_wire_far(bcrd, name))
+    }
+
+    pub fn verify_bel<'b>(&'b mut self, bcrd: BelCoord) -> BelVerifier<'a, 'b> {
+        let kind = if let BelKind::Class(bcid) = self.db.bel_slots[bcrd.slot].kind {
+            self.db.bel_classes.key(bcid)
+        } else {
+            self.db.bel_slots.key(bcrd.slot)
+        }
+        .to_string();
+        let tcrd = self.grid.get_tile_by_bel(bcrd);
+        let ntile = &self.ngrid.tiles[&tcrd];
+        let nn = &self.ndb.tile_class_namings[ntile.naming];
+        let crds = self.get_node_crds(tcrd).unwrap();
+        let BelNaming::Bel(naming) = &nn.bels[bcrd.slot] else {
+            unreachable!()
+        };
+        BelVerifier {
+            vrf: self,
+            naming,
+            bcrd,
+            kind,
+            extra_ins: vec![],
+            extra_outs: vec![],
+            ntile,
+            crds,
+        }
+    }
+
+    pub fn verify_legacy_bel(
         &mut self,
-        bel: &BelContext<'_>,
+        bel: &LegacyBelContext<'_>,
         kind: &str,
         extras: &[(&str, SitePinDir)],
         skip: &[&str],
@@ -1436,12 +1831,12 @@ impl<'a> Verifier<'a> {
         self.verify_bel_dummies(bel, kind, extras, skip, &[]);
     }
 
-    pub fn get_bel(&self, bel: BelCoord) -> BelContext<'a> {
+    pub fn get_legacy_bel(&self, bel: BelCoord) -> LegacyBelContext<'a> {
         self.find_bel(bel)
             .unwrap_or_else(|| panic!("{}", bel.to_string(self.db)))
     }
 
-    pub fn find_bel(&self, bel: BelCoord) -> Option<BelContext<'a>> {
+    pub fn find_bel(&self, bel: BelCoord) -> Option<LegacyBelContext<'a>> {
         let tcrd = self.grid.find_tile_by_bel(bel)?;
         let tile = &self.grid[tcrd];
         let crds = self.get_node_crds(tcrd).unwrap();
@@ -1454,7 +1849,7 @@ impl<'a> Verifier<'a> {
         let BelNaming::Bel(naming) = &nn.bels[bel.slot] else {
             unreachable!()
         };
-        Some(BelContext {
+        Some(LegacyBelContext {
             die: bel.cell.die,
             col: bel.cell.col,
             row: bel.cell.row,
@@ -1473,11 +1868,11 @@ impl<'a> Verifier<'a> {
 
     pub fn find_bel_delta(
         &self,
-        bel: &BelContext<'_>,
+        bel: &LegacyBelContext<'_>,
         dx: isize,
         dy: isize,
         slot: BelSlotId,
-    ) -> Option<BelContext<'a>> {
+    ) -> Option<LegacyBelContext<'a>> {
         let nc = bel.col.to_idx() as isize + dx;
         let nr = bel.row.to_idx() as isize + dy;
         if nc < 0 || nr < 0 {
@@ -1498,11 +1893,11 @@ impl<'a> Verifier<'a> {
 
     pub fn find_bel_walk(
         &self,
-        bel: &BelContext<'_>,
+        bel: &LegacyBelContext<'_>,
         dx: isize,
         dy: isize,
         slot: BelSlotId,
-    ) -> Option<BelContext<'a>> {
+    ) -> Option<LegacyBelContext<'a>> {
         let mut c = bel.col.to_idx();
         let mut r = bel.row.to_idx();
         loop {
@@ -1527,8 +1922,12 @@ impl<'a> Verifier<'a> {
     }
 
     #[track_caller]
-    pub fn find_bel_sibling(&self, bel: &BelContext<'_>, slot: BelSlotId) -> BelContext<'a> {
-        self.get_bel(bel.cell.bel(slot))
+    pub fn find_bel_sibling(
+        &self,
+        bel: &LegacyBelContext<'_>,
+        slot: BelSlotId,
+    ) -> LegacyBelContext<'a> {
+        self.get_legacy_bel(bel.cell.bel(slot))
     }
 
     pub fn skip_residual_sites(&mut self) {
@@ -1585,7 +1984,11 @@ impl<'a> Verifier<'a> {
         self.skip_bel_pins.insert((bel, pin));
     }
 
-    fn finish(mut self) {
+    pub fn skip_sb(&mut self, slot: BelSlotId) {
+        self.skip_sb.insert(slot);
+    }
+
+    pub fn finish(mut self) {
         let mut cond_stub_outs = HashMap::new();
         let mut cond_stub_ins = HashMap::new();
         for (&crd, tile) in &self.rd.tiles {
@@ -1699,7 +2102,8 @@ pub fn verify(
     rd: &rawdump::Part,
     grid: &ExpandedGridNaming,
     extra_pre: impl FnOnce(&mut Verifier),
-    bel_handler: impl Fn(&mut Verifier, &BelContext<'_>),
+    bel_handler: impl Fn(&mut Verifier, BelCoord),
+    legacy_bel_handler: impl Fn(&mut Verifier, &LegacyBelContext<'_>),
     extra: impl FnOnce(&mut Verifier),
 ) {
     let mut vrf = Verifier::new(rd, grid);
@@ -1709,9 +2113,15 @@ pub fn verify(
     for (tcrd, tile) in grid.egrid.tiles() {
         let tcls = &grid.egrid.db[tile.class];
         for (slot, bel) in &tcls.bels {
-            if matches!(bel, BelInfo::Legacy(_)) {
-                let ctx = vrf.get_bel(tcrd.bel(slot));
-                bel_handler(&mut vrf, &ctx);
+            match bel {
+                BelInfo::Bel(_) => {
+                    bel_handler(&mut vrf, tcrd.bel(slot));
+                }
+                BelInfo::Legacy(_) => {
+                    let ctx = vrf.get_legacy_bel(tcrd.bel(slot));
+                    legacy_bel_handler(&mut vrf, &ctx);
+                }
+                _ => (),
             }
         }
     }

@@ -1,9 +1,9 @@
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
-use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier};
 use prjcombine_virtex2::{chip::ColumnKind, defs};
 
-pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
-    vrf.verify_bel(
+pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+    vrf.verify_legacy_bel(
         bel,
         "SLICE",
         &[
@@ -308,7 +308,7 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Be
     }
 }
 
-pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
+pub fn verify_slice_s3(vrf: &mut Verifier, bel: &LegacyBelContext) {
     let idx = defs::bslots::SLICE.index_of(bel.slot).unwrap();
     let kind = if matches!(idx, 0 | 2) {
         "SLICEM"
@@ -334,7 +334,7 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
             ("BYINVOUT", SitePinDir::Out),
         ]);
     }
-    vrf.verify_bel(bel, kind, &pins, &[]);
+    vrf.verify_legacy_bel(bel, kind, &pins, &[]);
     for pin in ["F5", "FX", "COUT"] {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -464,7 +464,7 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &BelContext) {
     }
 }
 
-pub fn verify_tbus(vrf: &mut Verifier, bel: &BelContext) {
+pub fn verify_tbus(vrf: &mut Verifier, bel: &LegacyBelContext) {
     let obel = vrf.find_bel_sibling(bel, defs::bslots::TBUF[0]);
     vrf.claim_pip(bel.crd(), bel.wire("BUS0"), obel.wire("O"));
     vrf.claim_pip(bel.crd(), bel.wire("BUS2"), obel.wire("O"));
@@ -486,8 +486,8 @@ pub fn verify_tbus(vrf: &mut Verifier, bel: &BelContext) {
     vrf.claim_pip(bel.crd(), bel.wire("OUT"), bel.wire("BUS2"));
 }
 
-pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &BelContext) {
-    vrf.verify_bel(
+pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+    vrf.verify_legacy_bel(
         bel,
         "RESERVED_ANDOR",
         &[

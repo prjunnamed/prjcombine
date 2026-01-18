@@ -11,6 +11,7 @@ path = "src/main.rs"
 prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
 prjcombine-interconnect.workspace = true
+prjcombine-xc2000.workspace = true
 prjcombine-virtex.workspace = true
 prjcombine-virtex2.workspace = true
 prjcombine-spartan6.workspace = true

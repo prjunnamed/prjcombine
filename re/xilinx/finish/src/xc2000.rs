@@ -5,14 +5,14 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
-use prjcombine_interconnect::db::{BelInfo, LegacyBel, SwitchBoxItem, TileWireCoord};
+use prjcombine_interconnect::db::{BelInfo, SwitchBoxItem, TileWireCoord};
 use prjcombine_re_fpga_hammer::CollectorData;
 use prjcombine_types::db::DeviceCombo;
 use prjcombine_xc2000::{
-    bels,
     bond::Bond,
     chip::Chip,
     db::{Database, Device},
+    xc5200,
 };
 use regex::Regex;
 
@@ -255,18 +255,12 @@ pub fn finish(
             assert_eq!(xact.ints.len(), 1);
             assert_eq!(geom.ints.len(), 1);
             let (key_x, mut int_x) = xact.ints.into_iter().next().unwrap();
-            let (key_i, mut int_i) = geom.ints.into_iter().next().unwrap();
+            let (key_i, int_i) = geom.ints.into_iter().next().unwrap();
             assert_eq!(key_x, "xc5200");
             assert_eq!(key_i, "xc5200");
-            let io_b = int_i.get_tile_class("IO.B");
-            let io_b = &mut int_i.tile_classes[io_b];
-            io_b.bels.insert(
-                bels::xc5200::SCANTEST,
-                BelInfo::Legacy(LegacyBel::default()),
-            );
-            let key = TileWireCoord::new_idx(0, int_i.get_wire("IMUX.BYPOSC.PUMP"));
+            let key = TileWireCoord::new_idx(0, xc5200::wires::IMUX_BYPOSC_PUMP);
             let BelInfo::SwitchBox(ref src_cnr_tr) =
-                int_i.tile_classes.get("CNR.TR").unwrap().1.bels[bels::xc5200::INT]
+                int_i.tile_classes[xc5200::tcls::CNR_NE].bels[xc5200::bslots::INT]
             else {
                 unreachable!()
             };
@@ -283,7 +277,7 @@ pub fn finish(
                 .unwrap()
                 .clone();
             let BelInfo::SwitchBox(ref mut dst_cnr_tr) =
-                int_x.tile_classes.get_mut("CNR.TR").unwrap().1.bels[bels::xc5200::INT]
+                int_x.tile_classes[xc5200::tcls::CNR_NE].bels[xc5200::bslots::INT]
             else {
                 unreachable!()
             };

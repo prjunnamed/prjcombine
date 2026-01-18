@@ -1,8 +1,8 @@
 # Splitters
 
-{{tile xc5200 CLKL}}
-{{tile xc5200 CLKH}}
-{{tile xc5200 CLKR}}
-{{tile xc5200 CLKB}}
-{{tile xc5200 CLKV}}
-{{tile xc5200 CLKT}}
+{{tile xc5200 LLV_W}}
+{{tile xc5200 LLV}}
+{{tile xc5200 LLV_E}}
+{{tile xc5200 LLH_S}}
+{{tile xc5200 LLH}}
+{{tile xc5200 LLH_N}}

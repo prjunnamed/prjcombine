@@ -1,7 +1,7 @@
-use prjcombine_re_xilinx_rdverify::{BelContext, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier};
 use prjcombine_ultrascale::defs;
 
-pub fn verify_xp5iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_xp5iob(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let idx = defs::bslots::XP5IOB
         .into_iter()
         .position(|x| bel.slot == x)
@@ -32,7 +32,7 @@ pub fn verify_xp5iob(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("PHY2IOB_T1", SitePinDir::In),
         ("VREF", SitePinDir::In),
     ];
-    vrf.verify_bel(bel, "XP5IOB", &pins, &[]);
+    vrf.verify_legacy_bel(bel, "XP5IOB", &pins, &[]);
     for (pin, _) in pins {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -1791,7 +1791,7 @@ pub const X5PHY_LS_FROM_LPDDRMC_DFX_BROADCAST: &[&str] = &[
     "CLB2PHY_SCAN_MODE_RST_B",
 ];
 
-pub fn verify_xp5io_vref(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_xp5io_vref(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let idx = defs::bslots::XP5IO_VREF
         .into_iter()
         .position(|x| bel.slot == x)
@@ -1820,7 +1820,7 @@ pub fn verify_xp5io_vref(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("PHY2IOB_R2RDAC_SEL9", SitePinDir::In),
         ("VREF2IOB_VREF", SitePinDir::Out),
     ];
-    vrf.verify_bel(bel, "XP5IO_VREF", &pins, &[]);
+    vrf.verify_legacy_bel(bel, "XP5IO_VREF", &pins, &[]);
     for (pin, _) in pins {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -1853,7 +1853,7 @@ pub fn verify_xp5io_vref(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_x5phy_ls(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_x5phy_ls(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let idx = defs::bslots::X5PHY_LS
         .into_iter()
         .position(|x| bel.slot == x)
@@ -1982,7 +1982,7 @@ pub fn verify_x5phy_ls(vrf: &mut Verifier, bel: &BelContext<'_>) {
         pins.push((opin, SitePinDir::Out));
     }
 
-    vrf.verify_bel(bel, "X5PHY_LS", &pins, &[]);
+    vrf.verify_legacy_bel(bel, "X5PHY_LS", &pins, &[]);
     for (pin, _) in pins {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -2176,7 +2176,7 @@ pub fn verify_x5phy_ls(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_x5phy_hs(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_x5phy_hs(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let idx = defs::bslots::X5PHY_HS
         .into_iter()
         .position(|x| bel.slot == x)
@@ -2217,7 +2217,7 @@ pub fn verify_x5phy_hs(vrf: &mut Verifier, bel: &BelContext<'_>) {
         ("HRT_PHY2IOB_T5", SitePinDir::Out),
         ("CLB2PHY_CTRL_DLY_TEST_IN", SitePinDir::In),
     ]);
-    vrf.verify_bel(bel, "X5PHY_HS", &pins, &[]);
+    vrf.verify_legacy_bel(bel, "X5PHY_HS", &pins, &[]);
     for (pin, _) in pins {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -2270,14 +2270,14 @@ pub fn verify_x5phy_hs(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_x5phy_pll_select(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_x5phy_pll_select(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let pins = [
         ("D0", SitePinDir::In),
         ("D1", SitePinDir::In),
         ("DIS", SitePinDir::In),
         ("Z", SitePinDir::Out),
     ];
-    vrf.verify_bel(bel, "X5PHY_PLL_SELECT", &pins, &[]);
+    vrf.verify_legacy_bel(bel, "X5PHY_PLL_SELECT", &pins, &[]);
     for (pin, _) in pins {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -2654,7 +2654,7 @@ pub const XP5IO_JTAG: &[(&str, &str, &str, &str)] = &[
     ),
 ];
 
-pub fn verify_xp5pio_cmu_ana(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_xp5pio_cmu_ana(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let mut pins = vec![
         ("GTS_CFG_B_IN", SitePinDir::In),
         ("GHIGH_B_IN", SitePinDir::In),
@@ -2665,7 +2665,7 @@ pub fn verify_xp5pio_cmu_ana(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for &(_, pin) in XP5PIO_DIG_FROM_ANA {
         pins.push((pin, SitePinDir::Out));
     }
-    vrf.verify_bel(bel, "XP5PIO_CMU_ANA", &pins, &[]);
+    vrf.verify_legacy_bel(bel, "XP5PIO_CMU_ANA", &pins, &[]);
     for (pin, _) in pins {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -2675,7 +2675,7 @@ pub fn verify_xp5pio_cmu_ana(vrf: &mut Verifier, bel: &BelContext<'_>) {
     }
 }
 
-pub fn verify_xp5pio_cmu_dig(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_xp5pio_cmu_dig(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let mut junk_out = vec![];
     for i in 0..17 {
         junk_out.push(format!("CMU2XCV_DCI_ZBUS{i}"));
@@ -2724,7 +2724,7 @@ pub fn verify_xp5pio_cmu_dig(vrf: &mut Verifier, bel: &BelContext<'_>) {
     for &(_, pin, _, _) in XP5IO_JTAG {
         pins.push((pin, SitePinDir::In));
     }
-    vrf.verify_bel(bel, "XP5PIO_CMU_DIG_TOP", &pins, &[]);
+    vrf.verify_legacy_bel(bel, "XP5PIO_CMU_DIG_TOP", &pins, &[]);
     for (pin, _) in pins {
         vrf.claim_net(&[bel.fwire(pin)]);
     }
@@ -2751,7 +2751,7 @@ pub fn verify_xp5pio_cmu_dig(vrf: &mut Verifier, bel: &BelContext<'_>) {
     );
 }
 
-pub fn verify_lpddrmc(vrf: &mut Verifier, bel: &BelContext<'_>) {
+pub fn verify_lpddrmc(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let mut alloc_outs = vec![];
     let mut alloc_ins = vec![];
     for i in 0..66 {
@@ -2833,7 +2833,7 @@ pub fn verify_lpddrmc(vrf: &mut Verifier, bel: &BelContext<'_>) {
         pins.push((pin, SitePinDir::Out));
     }
 
-    vrf.verify_bel(
+    vrf.verify_legacy_bel(
         bel,
         "LPDDRMC",
         &pins,

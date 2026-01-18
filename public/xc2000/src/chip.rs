@@ -8,7 +8,7 @@ use prjcombine_interconnect::{
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 
-use crate::{bels, xc2000, xc3000};
+use crate::{bels, xc2000, xc3000, xc5200};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPad {
@@ -238,7 +238,7 @@ impl Chip {
                             .unwrap(),
                     ),
                     ChipKind::Xc5200 => TileIobId::from_idx(
-                        bels::xc5200::IO
+                        xc5200::bslots::IO
                             .iter()
                             .position(|&x| x == bel.slot)
                             .unwrap(),
@@ -309,7 +309,7 @@ impl Chip {
                 };
                 let slot = match self.kind {
                     ChipKind::Xc4000H => bels::xc4000::HIO[iob.to_idx()],
-                    ChipKind::Xc5200 => bels::xc5200::IO[iob.to_idx()],
+                    ChipKind::Xc5200 => xc5200::bslots::IO[iob.to_idx()],
                     _ => bels::xc4000::IO[iob.to_idx()],
                 };
                 CellCoord::new(die, col, row).bel(slot)

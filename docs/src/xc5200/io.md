@@ -1,6 +1,6 @@
 # Input/Output
 
-{{tile xc5200 IO.L}}
-{{tile xc5200 IO.R}}
-{{tile xc5200 IO.B}}
-{{tile xc5200 IO.T}}
+{{tile xc5200 IO_W}}
+{{tile xc5200 IO_E}}
+{{tile xc5200 IO_S}}
+{{tile xc5200 IO_N}}

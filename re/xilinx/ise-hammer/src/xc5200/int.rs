@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
-    db::{BelInfo, SwitchBoxItem},
+    db::{BelInfo, SwitchBoxItem, WireSlotId},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::{
@@ -9,6 +9,7 @@ use prjcombine_re_fpga_hammer::{
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;
+use prjcombine_xc2000::xc5200::{bslots, tcls, wires};
 use prjcombine_xilinx_bitstream::BitRect;
 
 use crate::{
@@ -58,6 +59,13 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for AllColumnIo {
     }
 }
 
+fn wire_is_omux_buf(wire: WireSlotId) -> bool {
+    wires::OMUX_BUF_W.contains(wire)
+        || wires::OMUX_BUF_E.contains(wire)
+        || wires::OMUX_BUF_S.contains(wire)
+        || wires::OMUX_BUF_N.contains(wire)
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
@@ -70,6 +78,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
             };
             for &wire_from in ins {
+                if matches!(wire_from.wire, wires::IMUX_GIN | wires::IMUX_BUFG) {
+                    continue;
+                }
                 let wire_from = wire_from.tw;
                 let wire_from_name = intdb.wires.key(wire_from.wire);
                 let in_name = if tcls.cells.len() == 1 {
@@ -77,10 +88,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 } else {
                     format!("{:#}.{}", wire_from.cell, wire_from_name)
                 };
-                if (tcname == "IO.B" || tcname == "IO.T")
-                    && mux_name.contains("IMUX.IO")
-                    && mux_name.ends_with('O')
-                    && in_name.contains("OMUX")
+                if wires::IMUX_IO_O.contains(wire_to.wire)
+                    && matches!(tcid, tcls::IO_S | tcls::IO_N)
+                    && wire_is_omux_buf(wire_from.wire)
                 {
                     continue;
                 }
@@ -98,10 +108,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if let Some(rev) = tcls_index.pips_fwd.get(&wire_to)
                     && rev.contains(&wire_from.pos())
                 {
-                    if tcname.starts_with("CLK") || tcname.starts_with("CNR") {
-                        if wire_from_name.starts_with("LONG.H") {
+                    if !tcls.bels.contains_id(bslots::TBUF[0]) {
+                        if wires::LONG_H.contains(wire_from.wire) {
                             builder = builder.prop(DriveLLH::new(wire_from));
-                        } else if wire_from_name.starts_with("LONG.V") {
+                        } else if wires::LONG_V.contains(wire_from.wire) {
                             builder = builder.prop(DriveLLV::new(wire_from));
                         } else {
                             panic!("AM HOUSECAT {tcname} {mux_name} {in_name}");
@@ -160,7 +170,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                     }
                 }
 
-                if mux_name.contains("LONG.V2") && (tcname == "CLKL" || tcname == "CLKR") {
+                if wire_to.wire == wires::LONG_V[2] && matches!(tcid, tcls::LLV_W | tcls::LLV_E) {
                     builder = builder.prop(AllColumnIo);
                 }
 
@@ -172,11 +182,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.db;
-    for (_, tcname, tcls) in &intdb.tile_classes {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
         if !ctx.has_tile(tcname) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {
+            if matches!(bslot, bslots::BUFR | bslots::BUFG) {
+                continue;
+            }
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
@@ -200,10 +213,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                             };
-                            if (tcname == "IO.B" || tcname == "IO.T")
-                                && mux_name.contains("IMUX.IO")
-                                && mux_name.ends_with('O')
-                                && in_name.contains("OMUX")
+                            if wires::IMUX_IO_O.contains(mux.dst.wire)
+                                && matches!(tcid, tcls::IO_S | tcls::IO_N)
+                                && wire_is_omux_buf(wire_from.wire)
                             {
                                 continue;
                             }
@@ -214,10 +226,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             inps.push((in_name.to_string(), diff));
                         }
                         for (rtile, rwire, rbel, rattr) in [
-                            ("CNR.BR", "IMUX.STARTUP.GTS", "STARTUP", "ENABLE.GTS"),
-                            ("CNR.BR", "IMUX.STARTUP.GRST", "STARTUP", "ENABLE.GR"),
+                            (
+                                tcls::CNR_SE,
+                                wires::IMUX_STARTUP_GTS,
+                                "STARTUP",
+                                "ENABLE.GTS",
+                            ),
+                            (
+                                tcls::CNR_SE,
+                                wires::IMUX_STARTUP_GRST,
+                                "STARTUP",
+                                "ENABLE.GR",
+                            ),
                         ] {
-                            if tcname == rtile && out_name == rwire {
+                            if tcid == rtile && mux.dst.wire == rwire {
                                 let mut common = inps[0].1.clone();
                                 for (_, diff) in &inps {
                                     common.bits.retain(|bit, _| diff.bits.contains_key(bit));
@@ -257,12 +279,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             ctx.state
                                 .get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
                         // HORSEFUCKERS PISS SHIT FUCK
-                        match (&tcname[..], &out_name[..], &in_name[..]) {
-                            ("CNR.BR", "LONG.V0", "OUT.STARTUP.DONEIN") => {
+                        match (tcid, pass.src.wire) {
+                            (tcls::CNR_SE, wires::OUT_STARTUP_DONEIN)
+                                if pass.dst.wire == wires::LONG_V[0] =>
+                            {
                                 assert_eq!(diff.bits.len(), 2);
                                 assert_eq!(diff.bits.remove(&TileBit::new(0, 6, 20)), Some(false));
                             }
-                            ("CNR.BR", "LONG.V1", "OUT.STARTUP.DONEIN") => {
+                            (tcls::CNR_SE, wires::OUT_STARTUP_DONEIN)
+                                if pass.dst.wire == wires::LONG_V[1] =>
+                            {
                                 assert_eq!(diff.bits.len(), 0);
                                 diff.bits.insert(TileBit::new(0, 6, 20), false);
                             }

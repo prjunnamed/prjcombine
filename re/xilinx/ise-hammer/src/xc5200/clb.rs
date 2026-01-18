@@ -1,7 +1,7 @@
 use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_xc2000::bels::xc5200 as bels;
+use prjcombine_xc2000::xc5200 as defs;
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -12,7 +12,7 @@ use crate::{
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, "CLB");
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::LC[i]);
+        let mut bctx = ctx.bel(defs::bslots::LC[i]);
         let mode = if i.is_multiple_of(2) { "LC5A" } else { "LC5B" };
         bctx.mode(mode)
             .test_multi_attr("LUT", MultiValue::OldLut('F'), 16);
@@ -58,14 +58,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         bctx.mode(mode).pin("CO").test_enum("COMUX", &["CY"]);
     }
     for i in 0..4 {
-        let mut bctx = ctx.bel(bels::TBUF[i]);
+        let mut bctx = ctx.bel(defs::bslots::TBUF[i]);
         bctx.mode("TBUF")
             .test_manual("TMUX", "T")
             .pin("T")
             .pin_pips("T")
             .commit();
     }
-    let mut bctx = ctx.bel(bels::VCC_GND);
+    let mut bctx = ctx.bel(defs::bslots::VCC_GND);
     bctx.mode("VCC_GND").test_enum("MUX", &["0", "1"]);
 }
 
@@ -73,7 +73,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
     for i in 0..4 {
         let i: usize = i;
-        let bel = &format!("LC{i}");
+        let bel = &format!("LC[{i}]");
         ctx.collect_bitvec(tile, bel, "LUT", "");
         if i.is_multiple_of(2) {
             ctx.collect_enum(tile, bel, "DOMUX", &["DI", "F5O", "CO"]);
@@ -106,7 +106,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
     for i in 0..4 {
-        let bel = &format!("TBUF{i}");
+        let bel = &format!("TBUF[{i}]");
         ctx.collect_enum_default(tile, bel, "TMUX", &["T"], "NONE");
     }
     let bel = "VCC_GND";

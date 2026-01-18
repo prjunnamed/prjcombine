@@ -123,6 +123,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 for (key, intdb) in dbin.ints {
                     let naming = dbin.namings.remove(&key).unwrap();
                     let init = match key.as_str() {
+                        "xc5200" => {
+                            bincode::decode_from_slice(
+                                prjcombine_xc2000::xc5200::INIT,
+                                bincode::config::standard(),
+                            )
+                            .unwrap()
+                            .0
+                        }
                         "virtex" => {
                             bincode::decode_from_slice(
                                 prjcombine_virtex::defs::INIT,

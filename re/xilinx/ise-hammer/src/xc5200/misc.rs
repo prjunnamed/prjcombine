@@ -4,7 +4,7 @@ use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{bits, bsdata::TileItemKind};
-use prjcombine_xc2000::{bels::xc5200 as bels, tslots};
+use prjcombine_xc2000::xc5200::{bslots, tcls, tslots};
 
 use crate::{
     backend::IseBackend,
@@ -18,7 +18,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.BL");
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_SW);
         for val in ["ENABLE", "ENLL", "NE7", "DISABLE"] {
             ctx.test_manual("MISC", "SCAN_TEST", val)
                 .global("SCANTEST", val)
@@ -32,19 +32,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("READCAPTURE", val)
                 .commit();
         }
-        let mut bctx = ctx.bel(bels::BUFG);
+        let mut bctx = ctx.bel(bslots::BUFG);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
             .mode("CLK")
             .commit();
-        let mut bctx = ctx.bel(bels::RDBK);
+        let mut bctx = ctx.bel(bslots::RDBK);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
             .mode("RDBK")
             .commit();
-        let mut bctx = ctx.bel(bels::RDBK);
+        let mut bctx = ctx.bel(bslots::RDBK);
         for val in ["CCLK", "RDBK"] {
             bctx.mode("RDBK")
                 .pin("CK")
@@ -55,7 +55,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.TL");
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_NW);
         for val in ["ENABLE", "DISABLE"] {
             ctx.test_manual("MISC", "BS_RECONFIG", val)
                 .global("BSRECONFIG", val)
@@ -69,18 +69,18 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("INPUT", val)
                 .commit();
         }
-        let mut bctx = ctx.bel(bels::BUFG);
+        let mut bctx = ctx.bel(bslots::BUFG);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
             .mode("CLK")
             .commit();
-        let mut bctx = ctx.bel(bels::BSCAN);
+        let mut bctx = ctx.bel(bslots::BSCAN);
         bctx.test_manual("ENABLE", "1").mode("BSCAN").commit();
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.BR");
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_SE);
         for val in ["PULLUP", "PULLNONE"] {
             ctx.test_manual("MISC", "PROGPIN", val)
                 .global("PROGPIN", val)
@@ -94,13 +94,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("TCTEST", val)
                 .commit();
         }
-        let mut bctx = ctx.bel(bels::BUFG);
+        let mut bctx = ctx.bel(bslots::BUFG);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
             .mode("CLK")
             .commit();
-        let mut bctx = ctx.bel(bels::STARTUP);
+        let mut bctx = ctx.bel(bslots::STARTUP);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -193,7 +193,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     }
 
     {
-        let mut ctx = FuzzCtx::new(session, backend, "CNR.TR");
+        let mut ctx = FuzzCtx::new_id(session, backend, tcls::CNR_NE);
         for val in ["OFF", "ON"] {
             ctx.test_manual("MISC", "TAC", val)
                 .global("TAC", val)
@@ -202,7 +202,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 .global("TLC", val)
                 .commit();
         }
-        let mut bctx = ctx.bel(bels::BUFG);
+        let mut bctx = ctx.bel(bslots::BUFG);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -210,7 +210,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             .commit();
 
         // pins located in TR, config in BR.
-        let mut bctx = ctx.bel(bels::OSC);
+        let mut bctx = ctx.bel(bslots::OSC);
         bctx.build()
             .null_bits()
             .test_manual("PRESENT", "1")
@@ -242,7 +242,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
-        let tile = "CNR.BL";
+        let tile = "CNR_SW";
         let bel = "MISC";
         ctx.collect_enum(
             tile,
@@ -257,7 +257,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     {
-        let tile = "CNR.TL";
+        let tile = "CNR_NW";
         let bel = "MISC";
         ctx.collect_enum_bool(tile, bel, "BS_RECONFIG", "DISABLE", "ENABLE");
         ctx.collect_enum_bool(tile, bel, "BS_READBACK", "DISABLE", "ENABLE");
@@ -267,7 +267,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     {
-        let tile = "CNR.BR";
+        let tile = "CNR_SE";
         let bel = "MISC";
         let item = ctx.extract_enum(tile, bel, "PROGPIN", &["PULLUP", "PULLNONE"]);
         ctx.insert(tile, "PROG", "PULL", item);
@@ -338,7 +338,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "CMUX", &["CCLK", "USERCLK"]);
     }
     {
-        let tile = "CNR.TR";
+        let tile = "CNR_NE";
         let bel = "MISC";
         ctx.collect_enum_bool(tile, bel, "TAC", "OFF", "ON");
         ctx.collect_enum_bool(tile, bel, "TLC", "OFF", "ON");

@@ -1,14 +1,14 @@
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::bels::xc5200 as bels;
+use prjcombine_xc2000::xc5200::bslots;
 
 use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
-    for tile in ["IO.L", "IO.R", "IO.B", "IO.T"] {
+    for tile in ["IO_W", "IO_E", "IO_S", "IO_N"] {
         let tcid = backend.edev.db.get_tile_class(tile);
         let mut ctx = FuzzCtx::new(session, backend, tcid);
         for i in 0..4 {
-            let mut bctx = ctx.bel(bels::IO[i]);
+            let mut bctx = ctx.bel(bslots::IO[i]);
             bctx.mode("IO")
                 .cfg("IN", "I")
                 .test_enum("PAD", &["PULLUP", "PULLDOWN"]);
@@ -32,8 +32,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                     .test_cfg("OUT", "NOT");
             }
         }
-        if tile == "IO.B" {
-            let mut bctx = ctx.bel(bels::SCANTEST);
+        if tile == "IO_S" {
+            let mut bctx = ctx.bel(bslots::SCANTEST);
             bctx.mode("SCANTEST")
                 .test_enum("OUT", &["XI", "YI", "ZI", "VI", "SCANPASS"]);
         }
@@ -41,9 +41,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ["IO.L", "IO.R", "IO.B", "IO.T"] {
+    for tile in ["IO_W", "IO_E", "IO_S", "IO_N"] {
         for i in 0..4 {
-            let bel = &format!("IO{i}");
+            let bel = &format!("IO[{i}]");
             let item = ctx.extract_enum_default(tile, bel, "PAD", &["PULLUP", "PULLDOWN"], "NONE");
             ctx.insert(tile, bel, "PULL", item);
             let item = ctx.extract_enum_default(tile, bel, "PAD", &["FAST"], "SLOW");
@@ -66,7 +66,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff.assert_empty();
             ctx.state.get_diff(tile, bel, "TRI", "T").assert_empty();
         }
-        if tile == "IO.B" {
+        if tile == "IO_S" {
             ctx.collect_enum(
                 tile,
                 "SCANTEST",
