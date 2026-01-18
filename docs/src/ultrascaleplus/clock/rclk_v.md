@@ -1,7 +1,7 @@
 # Clock vertical nodes
 
-{{tile ultrascaleplus RCLK_V_SINGLE.CLE}}
-{{tile ultrascaleplus RCLK_V_SINGLE.LAG}}
-{{tile ultrascaleplus RCLK_V_DOUBLE.DSP}}
-{{tile ultrascaleplus RCLK_V_QUAD.BRAM}}
-{{tile ultrascaleplus RCLK_V_QUAD.URAM}}
+{{tile ultrascaleplus RCLK_V_SINGLE_CLE}}
+{{tile ultrascaleplus RCLK_V_SINGLE_LAG}}
+{{tile ultrascaleplus RCLK_V_DOUBLE_DSP}}
+{{tile ultrascaleplus RCLK_V_QUAD_BRAM}}
+{{tile ultrascaleplus RCLK_V_QUAD_URAM}}

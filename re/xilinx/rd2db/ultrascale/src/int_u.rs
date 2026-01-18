@@ -1,57 +1,27 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::{
-    db::{
-        CellSlotId, ConnectorClass, ConnectorSlotId, ConnectorWire, IntDb, TileWireCoord, WireKind,
-        WireSlotId,
-    },
-    dir::{Dir, DirPartMap},
+    db::{CellSlotId, ConnectorClass, ConnectorWire, IntDb, TileWireCoord, WireSlotId},
+    dir::{Dir, DirMap, DirV},
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
-use prjcombine_entity::{EntityId, EntityPartVec};
+use prjcombine_entity::{EntityId, EntityPartVec, id::EntityStaticRange};
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
-use prjcombine_ultrascale::{bels, cslots, regions, tslots};
+use prjcombine_ultrascale::{
+    defs,
+    defs::ultrascale::{ccls, cslots, tcls, wires},
+    defs::wiredata::ultrascale as wiredata,
+};
 
 trait IntBuilderExt {
-    fn mux_out_pair(
-        &mut self,
-        name: impl Into<String>,
-        raw_names: &[impl AsRef<str>; 2],
-    ) -> WireSlotId;
-
-    fn branch_pair(
-        &mut self,
-        src: WireSlotId,
-        dir: Dir,
-        name: impl Into<String>,
-        raw_names: &[impl AsRef<str>; 2],
-    ) -> WireSlotId;
+    fn wire_names_pair(&mut self, w: WireSlotId, raw_names: &[impl AsRef<str>; 2]) -> WireSlotId;
 }
 
 impl IntBuilderExt for IntBuilder<'_> {
-    fn mux_out_pair(
-        &mut self,
-        name: impl Into<String>,
-        raw_names: &[impl AsRef<str>; 2],
-    ) -> WireSlotId {
-        let w = self.mux_out(name, &[""]);
-        for (sub, name) in raw_names.iter().enumerate() {
-            self.extra_name_sub(name.as_ref(), sub, w);
-        }
-        w
-    }
-
-    fn branch_pair(
-        &mut self,
-        src: WireSlotId,
-        dir: Dir,
-        name: impl Into<String>,
-        raw_names: &[impl AsRef<str>; 2],
-    ) -> WireSlotId {
-        let w = self.branch(src, dir, name, &[""]);
+    fn wire_names_pair(&mut self, w: WireSlotId, raw_names: &[impl AsRef<str>; 2]) -> WireSlotId {
         for (sub, name) in raw_names.iter().enumerate() {
             self.extra_name_sub(name.as_ref(), sub, w);
         }
@@ -85,185 +55,115 @@ impl XTileInfoExt for XTileInfo<'_, '_> {
 
 struct IntMaker<'a> {
     builder: IntBuilder<'a>,
-    long_term_slots: DirPartMap<ConnectorSlotId>,
-    long_main_passes: DirPartMap<ConnectorClass>,
     // how many mental illnesses do you think I could be diagnosed with just from this repo?
     sng_fixup_map: BTreeMap<TileWireCoord, TileWireCoord>,
-    term_wires_w: EntityPartVec<WireSlotId, ConnectorWire>,
-    term_wires_e: EntityPartVec<WireSlotId, ConnectorWire>,
-    term_wires_lw: EntityPartVec<WireSlotId, ConnectorWire>,
-    term_wires_le: EntityPartVec<WireSlotId, ConnectorWire>,
     dev_naming: &'a DeviceNaming,
 }
 
 impl IntMaker<'_> {
-    fn fill_term_slots(&mut self) {
-        self.long_term_slots.insert(Dir::W, cslots::LW);
-        self.long_term_slots.insert(Dir::E, cslots::LE);
+    fn fill_wireset_ql<const N: usize>(
+        &mut self,
+        w: &[EntityStaticRange<WireSlotId, N>],
+        dir: Dir,
+        fts: Option<WireSlotId>,
+        ftn: Option<WireSlotId>,
+    ) {
+        let l = w.len() - 1;
+        let ftd = !dir;
+        let ll = if matches!(dir, Dir::E | Dir::W) {
+            l * 2
+        } else {
+            l
+        };
+        for i in 0..N {
+            self.builder
+                .wire_names(w[0][i], &[format!("{dir}{dir}{ll}_BEG{i}")]);
+            for j in 1..l {
+                let nn = (b'A' + (j as u8 - 1)) as char;
+                let wname = format!("{dir}{dir}{ll}_{nn}_FT{ftd}{i}");
+                self.builder.wire_names(w[j][i], &[wname]);
+            }
+            let wname = format!("{dir}{dir}{ll}_END{i}");
+            self.builder.wire_names(w[l][i], &[wname]);
+            if i == 0
+                && let Some(fts) = fts
+            {
+                self.builder
+                    .wire_names(fts, &[format!("{dir}{dir}{ll}_BLS_{i}_FTN")]);
+            }
+            if i == (N - 1)
+                && let Some(ftn) = ftn
+            {
+                self.builder
+                    .wire_names(ftn, &[format!("{dir}{dir}{ll}_BLN_{i}_FTS")]);
+            }
+        }
     }
 
     fn fill_wires_ql(&mut self) {
-        for (dir, name, l, n, fts, ftn) in [
-            (Dir::E, "QUAD", 2, 16, true, true),
-            (Dir::W, "QUAD", 2, 16, false, false),
-            (Dir::N, "QUAD.4", 4, 8, false, false),
-            (Dir::N, "QUAD.5", 5, 8, false, true),
-            (Dir::S, "QUAD.4", 4, 8, false, false),
-            (Dir::S, "QUAD.5", 5, 8, false, false),
-            (Dir::E, "LONG", 6, 8, true, false),
-            (Dir::W, "LONG", 6, 8, false, true),
-            (Dir::N, "LONG.12", 12, 4, false, false),
-            (Dir::N, "LONG.16", 16, 4, false, true),
-            (Dir::S, "LONG.12", 12, 4, true, false),
-            (Dir::S, "LONG.16", 16, 4, false, false),
-        ] {
-            let ftd = !dir;
-            let ll = if matches!(dir, Dir::E | Dir::W) {
-                l * 2
-            } else {
-                l
-            };
-            for i in 0..n {
-                let mut w = self.builder.mux_out(
-                    format!("{name}.{dir}.{i}.0"),
-                    &[format!("{dir}{dir}{ll}_BEG{i}")],
-                );
-                for j in 1..l {
-                    let nn = (b'A' + (j - 1)) as char;
-                    let wname = format!("{name}.{dir}.{i}.{j}");
-                    let vwname = format!("{dir}{dir}{ll}_{nn}_FT{ftd}{i}");
-                    if matches!(dir, Dir::W | Dir::E) {
-                        let wn = self.builder.wire(
-                            wname,
-                            WireKind::Branch(self.long_term_slots[!dir]),
-                            &[vwname],
-                        );
-                        self.long_main_passes
-                            .get_mut(!dir)
-                            .unwrap()
-                            .wires
-                            .insert(wn, ConnectorWire::Pass(w));
-                        w = wn;
-                    } else {
-                        w = self.builder.branch(w, dir, wname, &[vwname]);
-                    }
-                }
-                let wname = format!("{name}.{dir}.{i}.{l}");
-                let vwname = format!("{dir}{dir}{ll}_END{i}");
-                if matches!(dir, Dir::W | Dir::E) {
-                    let wn = self.builder.wire(
-                        wname,
-                        WireKind::Branch(self.long_term_slots[!dir]),
-                        &[vwname],
-                    );
-                    self.long_main_passes
-                        .get_mut(!dir)
-                        .unwrap()
-                        .wires
-                        .insert(wn, ConnectorWire::Pass(w));
-                    w = wn;
-                } else {
-                    w = self.builder.branch(w, dir, wname, &[vwname]);
-                }
-                if i == 0 && fts {
-                    self.builder.branch(
-                        w,
-                        Dir::S,
-                        format!("{name}.{dir}.{i}.{l}.S"),
-                        &[format!("{dir}{dir}{ll}_BLS_{i}_FTN")],
-                    );
-                }
-                if i == (n - 1) && ftn {
-                    self.builder.branch(
-                        w,
-                        Dir::N,
-                        format!("{name}.{dir}.{i}.{l}.N"),
-                        &[format!("{dir}{dir}{ll}_BLN_{i}_FTS")],
-                    );
-                }
-            }
-        }
-        for dir in [Dir::W, Dir::E] {
-            let rdir = !dir;
-            for i in 0..16 {
-                for seg in 0..2 {
-                    let nseg = seg + 1;
-                    let wt = self.builder.db.get_wire(&format!("QUAD.{rdir}.{i}.{nseg}"));
-                    let wf = self.builder.db.get_wire(&format!("QUAD.{dir}.{i}.{seg}"));
-                    let wires = match dir {
-                        Dir::W => &mut self.term_wires_lw,
-                        Dir::E => &mut self.term_wires_le,
-                        _ => unreachable!(),
-                    };
-                    wires.insert(wt, ConnectorWire::Reflect(wf));
-                }
-            }
-            for i in 0..8 {
-                for seg in 0..6 {
-                    let nseg = seg + 1;
-                    let wt = self.builder.db.get_wire(&format!("LONG.{rdir}.{i}.{nseg}"));
-                    let wf = self.builder.db.get_wire(&format!("LONG.{dir}.{i}.{seg}"));
-                    let wires = match dir {
-                        Dir::W => &mut self.term_wires_lw,
-                        Dir::E => &mut self.term_wires_le,
-                        _ => unreachable!(),
-                    };
-                    wires.insert(wt, ConnectorWire::Reflect(wf));
-                }
-            }
-        }
+        self.fill_wireset_ql(
+            &wiredata::X4_E,
+            Dir::E,
+            Some(wires::X4_E2_S0),
+            Some(wires::X4_E2_N15),
+        );
+        self.fill_wireset_ql(&wiredata::X4_W, Dir::W, None, None);
+        self.fill_wireset_ql(&wiredata::X4_N, Dir::N, None, None);
+        self.fill_wireset_ql(&wiredata::X5_N, Dir::N, None, Some(wires::X5_N5_N7));
+        self.fill_wireset_ql(&wiredata::X4_S, Dir::S, None, None);
+        self.fill_wireset_ql(&wiredata::X5_S, Dir::S, None, None);
+        self.fill_wireset_ql(&wiredata::X12_E, Dir::E, Some(wires::X12_E6_S0), None);
+        self.fill_wireset_ql(&wiredata::X12_W, Dir::W, None, Some(wires::X12_W6_N7));
+        self.fill_wireset_ql(&wiredata::X12_N, Dir::N, None, None);
+        self.fill_wireset_ql(&wiredata::X16_N, Dir::N, None, Some(wires::X16_N16_N3));
+        self.fill_wireset_ql(&wiredata::X12_S, Dir::S, Some(wires::X12_S12_S0), None);
+        self.fill_wireset_ql(&wiredata::X16_S, Dir::S, None, None);
     }
 
     fn fill_wires_sdnode(&mut self) {
-        for (iq, q) in ["NE", "NW", "SE", "SW"].into_iter().enumerate() {
-            for i in 0..16 {
-                match (iq, i) {
-                    (1 | 3, 0) => {
-                        let w = self.builder.mux_out_pair(
-                            format!("SDNODE.{q}.{i}"),
-                            &[format!("SDND{q}_W_{i}_FTS"), format!("SDND{q}_E_{i}_FTS")],
-                        );
-                        self.builder.branch_pair(
-                            w,
-                            Dir::S,
-                            format!("SDNODE.{q}.{i}.S"),
-                            &[
-                                format!("SDND{q}_W_BLS_{i}_FTN"),
-                                format!("SDND{q}_E_BLS_{i}_FTN"),
-                            ],
-                        );
-                    }
-                    (1 | 3, 15) => {
-                        let w = self.builder.mux_out_pair(
-                            format!("SDNODE.{q}.{i}"),
-                            &[format!("SDND{q}_W_{i}_FTN"), format!("SDND{q}_E_{i}_FTN")],
-                        );
-                        self.builder.branch_pair(
-                            w,
-                            Dir::N,
-                            format!("SDNODE.{q}.{i}.N"),
-                            &[
-                                format!("SDND{q}_W_BLN_{i}_FTS"),
-                                format!("SDND{q}_E_BLN_{i}_FTS"),
-                            ],
-                        );
-                    }
-                    _ => {
-                        let xlat = [0, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6];
-                        self.builder.mux_out_pair(
-                            format!("SDNODE.{q}.{i}"),
-                            &[
-                                format!(
-                                    "INT_NODE_SINGLE_DOUBLE_{n}_INT_OUT",
-                                    n = iq * 32 + 16 + xlat[i]
-                                ),
-                                format!(
-                                    "INT_NODE_SINGLE_DOUBLE_{n}_INT_OUT",
-                                    n = iq * 32 + xlat[i]
-                                ),
-                            ],
-                        );
-                    }
+        for i in 0..64 {
+            let ii = i % 16;
+            let iq = i / 16;
+            let q = ["NE", "NW", "SE", "SW"][iq];
+            match (iq, ii) {
+                (1 | 3, 0) => {
+                    self.builder.wire_names_pair(
+                        wires::SDNODE[i],
+                        &[format!("SDND{q}_W_{ii}_FTS"), format!("SDND{q}_E_{ii}_FTS")],
+                    );
+                    self.builder.wire_names_pair(
+                        wires::SDNODE_S[i],
+                        &[
+                            format!("SDND{q}_W_BLS_{ii}_FTN"),
+                            format!("SDND{q}_E_BLS_{ii}_FTN"),
+                        ],
+                    );
+                }
+                (1 | 3, 15) => {
+                    self.builder.wire_names_pair(
+                        wires::SDNODE[i],
+                        &[format!("SDND{q}_W_{ii}_FTN"), format!("SDND{q}_E_{ii}_FTN")],
+                    );
+                    self.builder.wire_names_pair(
+                        wires::SDNODE_N[i],
+                        &[
+                            format!("SDND{q}_W_BLN_{ii}_FTS"),
+                            format!("SDND{q}_E_BLN_{ii}_FTS"),
+                        ],
+                    );
+                }
+                _ => {
+                    let xlat = [0, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6];
+                    self.builder.wire_names_pair(
+                        wires::SDNODE[i],
+                        &[
+                            format!(
+                                "INT_NODE_SINGLE_DOUBLE_{n}_INT_OUT",
+                                n = iq * 32 + 16 + xlat[ii]
+                            ),
+                            format!("INT_NODE_SINGLE_DOUBLE_{n}_INT_OUT", n = iq * 32 + xlat[ii]),
+                        ],
+                    );
                 }
             }
         }
@@ -271,8 +171,8 @@ impl IntMaker<'_> {
 
     fn fill_wires_sng(&mut self) {
         for i in 0..8 {
-            let beg = self.builder.mux_out_pair(
-                format!("SNG.E.{i}.0"),
+            self.builder.wire_names_pair(
+                wires::X1_E0[i],
                 &[
                     if i == 0 {
                         format!("EE1_W_{i}_FTS")
@@ -282,82 +182,56 @@ impl IntMaker<'_> {
                     format!("EE1_E_BEG{i}"),
                 ],
             );
-            let end = self
-                .builder
-                .branch(beg, Dir::E, format!("SNG.E.{i}.1"), &[""]);
-            self.builder.extra_name_sub(format!("EE1_E_END{i}"), 0, end);
+            self.builder
+                .extra_name_sub(format!("EE1_E_END{i}"), 0, wires::X1_E1[i]);
             if i == 0 {
-                self.builder.branch_pair(
-                    end,
-                    Dir::S,
-                    format!("SNG.E.{i}.1.S"),
+                self.builder.wire_names_pair(
+                    wires::X1_E1_S0,
                     &[format!("EE1_E_BLS_{i}_FTN"), format!("EE1_W_BLS_{i}_FTN")],
                 );
             }
             self.sng_fixup_map.insert(
-                TileWireCoord::new_idx(0, beg),
-                TileWireCoord::new_idx(1, end),
+                TileWireCoord::new_idx(0, wires::X1_E0[i]),
+                TileWireCoord::new_idx(1, wires::X1_E1[i]),
             );
-            if i == 0 {
-                self.builder
-                    .branch(end, Dir::W, format!("SNG.E.{i}.1.W"), &[""]);
-                self.builder
-                    .branch(end, Dir::E, format!("SNG.E.{i}.1.E"), &[""]);
-            }
         }
         for i in 0..8 {
-            let beg = self.builder.mux_out_pair(
-                format!("SNG.W.{i}.0"),
+            self.builder.wire_names_pair(
+                wires::X1_W0[i],
                 &[
                     format!("WW1_W_BEG{i}"),
                     format!("INT_INT_SINGLE_{n}_INT_OUT", n = i + 48),
                 ],
             );
-            let end = self
-                .builder
-                .branch(beg, Dir::W, format!("SNG.W.{i}.1"), &[""]);
-            self.builder.extra_name_sub(format!("WW1_W_END{i}"), 1, end);
+            self.builder
+                .extra_name_sub(format!("WW1_W_END{i}"), 1, wires::X1_W1[i]);
             self.sng_fixup_map.insert(
-                TileWireCoord::new_idx(1, beg),
-                TileWireCoord::new_idx(0, end),
+                TileWireCoord::new_idx(1, wires::X1_W0[i]),
+                TileWireCoord::new_idx(0, wires::X1_W1[i]),
             );
         }
-        for dir in [Dir::W, Dir::E] {
-            let rdir = !dir;
+        for (dir, w0, w1) in [
+            (Dir::N, wires::X1_N0, wires::X1_N1),
+            (Dir::S, wires::X1_S0, wires::X1_S1),
+        ] {
             for i in 0..8 {
-                let wt = self.builder.db.get_wire(&format!("SNG.{rdir}.{i}.1"));
-                let wf = self.builder.db.get_wire(&format!("SNG.{dir}.{i}.0"));
-                let wires = match dir {
-                    Dir::W => &mut self.term_wires_w,
-                    Dir::E => &mut self.term_wires_e,
-                    _ => unreachable!(),
-                };
-                wires.insert(wt, ConnectorWire::Reflect(wf));
-            }
-        }
-        for dir in [Dir::N, Dir::S] {
-            for i in 0..8 {
-                let beg = self.builder.mux_out_pair(
-                    format!("SNG.{dir}.{i}.0"),
+                self.builder.wire_names_pair(
+                    w0[i],
                     &[
                         format!("{dir}{dir}1_W_BEG{i}"),
                         format!("{dir}{dir}1_E_BEG{i}"),
                     ],
                 );
-                let end = self.builder.branch_pair(
-                    beg,
-                    dir,
-                    format!("SNG.{dir}.{i}.1"),
+                self.builder.wire_names_pair(
+                    w1[i],
                     &[
                         format!("{dir}{dir}1_W_END{i}"),
                         format!("{dir}{dir}1_E_END{i}"),
                     ],
                 );
                 if i == 0 && dir == Dir::S {
-                    self.builder.branch_pair(
-                        end,
-                        Dir::S,
-                        format!("SNG.{dir}.{i}.1.S"),
+                    self.builder.wire_names_pair(
+                        wires::X1_S1_S0,
                         &[
                             format!("{dir}{dir}1_W_BLS_{i}_FTN"),
                             format!("{dir}{dir}1_E_BLS_{i}_FTN"),
@@ -369,97 +243,66 @@ impl IntMaker<'_> {
     }
 
     fn fill_wires_dbl(&mut self) {
-        for dir in [Dir::E, Dir::W] {
+        for (dir, w0, w2) in [
+            (Dir::E, wires::X2_E0, wires::X2_E2),
+            (Dir::W, wires::X2_W0, wires::X2_W2),
+        ] {
             for i in 0..8 {
-                let beg = self.builder.mux_out_pair(
-                    format!("DBL.{dir}.{i}.0"),
+                self.builder.wire_names_pair(
+                    w0[i],
                     &[
                         format!("{dir}{dir}2_W_BEG{i}"),
                         format!("{dir}{dir}2_E_BEG{i}"),
                     ],
                 );
-                let mid = self
-                    .builder
-                    .branch(beg, dir, format!("DBL.{dir}.{i}.1"), &[""]);
-                let end = self.builder.branch_pair(
-                    mid,
-                    dir,
-                    format!("DBL.{dir}.{i}.2"),
+                self.builder.wire_names_pair(
+                    w2[i],
                     &[
                         format!("{dir}{dir}2_W_END{i}"),
                         format!("{dir}{dir}2_E_END{i}"),
                     ],
                 );
                 if i == 7 && dir == Dir::E {
-                    self.builder.branch_pair(
-                        end,
-                        Dir::N,
-                        format!("DBL.{dir}.{i}.2.N"),
+                    self.builder.wire_names_pair(
+                        wires::X2_E2_N7,
                         &[
                             format!("{dir}{dir}2_W_BLN_{i}_FTS"),
                             format!("{dir}{dir}2_E_BLN_{i}_FTS"),
                         ],
                     );
                 }
-                if i == 7 && dir == Dir::E {
-                    self.builder
-                        .branch(end, Dir::W, format!("DBL.{dir}.{i}.2.W"), &[""]);
-                    self.builder
-                        .branch(end, Dir::E, format!("DBL.{dir}.{i}.2.E"), &[""]);
-                }
             }
         }
-        for dir in [Dir::W, Dir::E] {
-            let rdir = !dir;
-            for i in 0..8 {
-                for seg in 0..2 {
-                    let nseg = seg + 1;
-                    // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaaaaaaa
-                    let xseg = seg ^ 1;
-                    let wt = self.builder.db.get_wire(&format!("DBL.{rdir}.{i}.{nseg}"));
-                    let wf = self.builder.db.get_wire(&format!("DBL.{dir}.{i}.{xseg}"));
-                    let wires = match dir {
-                        Dir::W => &mut self.term_wires_w,
-                        Dir::E => &mut self.term_wires_e,
-                        _ => unreachable!(),
-                    };
-                    wires.insert(wt, ConnectorWire::Reflect(wf));
-                }
-            }
-        }
-        for dir in [Dir::N, Dir::S] {
+        for (dir, w0, w1, w2) in [
+            (Dir::N, wires::X2_N0, wires::X2_N1, wires::X2_N2),
+            (Dir::S, wires::X2_S0, wires::X2_S1, wires::X2_S2),
+        ] {
             let ftd = !dir;
             for i in 0..8 {
-                let beg = self.builder.mux_out_pair(
-                    format!("DBL.{dir}.{i}.0"),
+                self.builder.wire_names_pair(
+                    w0[i],
                     &[
                         format!("{dir}{dir}2_W_BEG{i}"),
                         format!("{dir}{dir}2_E_BEG{i}"),
                     ],
                 );
-                let a = self.builder.branch_pair(
-                    beg,
-                    dir,
-                    format!("DBL.{dir}.{i}.1"),
+                self.builder.wire_names_pair(
+                    w1[i],
                     &[
                         format!("{dir}{dir}2_W_A_FT{ftd}{i}"),
                         format!("{dir}{dir}2_E_A_FT{ftd}{i}"),
                     ],
                 );
-                let end = self.builder.branch_pair(
-                    a,
-                    dir,
-                    format!("DBL.{dir}.{i}.2"),
+                self.builder.wire_names_pair(
+                    w2[i],
                     &[
                         format!("{dir}{dir}2_W_END{i}"),
                         format!("{dir}{dir}2_E_END{i}"),
                     ],
                 );
                 if i == 7 && dir == Dir::N {
-                    self.builder.branch_pair(
-                        end,
-                        Dir::N,
-                        format!("DBL.{dir}.{i}.2.N"),
+                    self.builder.wire_names_pair(
+                        wires::X2_N2_N7,
                         &[
                             format!("{dir}{dir}2_W_BLN_{i}_FTS"),
                             format!("{dir}{dir}2_E_BLN_{i}_FTS"),
@@ -471,112 +314,108 @@ impl IntMaker<'_> {
     }
 
     fn fill_wires_qlnode(&mut self) {
-        for (iq, q) in ["NE", "NW", "SE", "SW"].into_iter().enumerate() {
-            for i in 0..16 {
-                let xlat = [0, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6];
-                let w = self.builder.mux_out_pair(
-                    format!("QLNODE.{q}.{i}"),
-                    &[
-                        format!("INT_NODE_QUAD_LONG_{n}_INT_OUT", n = iq * 32 + 16 + xlat[i]),
-                        format!("INT_NODE_QUAD_LONG_{n}_INT_OUT", n = iq * 32 + xlat[i]),
-                    ],
-                );
-                match (q, i) {
-                    ("NW", 0) | ("SW", 0) | ("NW", 1) => {
-                        self.builder
-                            .extra_name_sub(format!("QLND{q}_W_{i}_FTS"), 0, w);
-                        self.builder
-                            .extra_name_sub(format!("QLND{q}_E_{i}_FTS"), 1, w);
-                        self.builder.branch_pair(
-                            w,
-                            Dir::S,
-                            format!("QLNODE.{q}.{i}.S"),
-                            &[
-                                format!("QLND{q}_W_BLS_{i}_FTN"),
-                                format!("QLND{q}_E_BLS_{i}_FTN"),
-                            ],
-                        );
-                    }
-                    ("NW", 15) | ("SW", 15) | ("SE", 15) => {
-                        self.builder
-                            .extra_name_sub(format!("QLND{q}_W_{i}_FTN"), 0, w);
-                        self.builder
-                            .extra_name_sub(format!("QLND{q}_E_{i}_FTN"), 1, w);
-                        self.builder.branch_pair(
-                            w,
-                            Dir::N,
-                            format!("QLNODE.{q}.{i}.N"),
-                            &[
-                                format!("QLND{q}_W_BLN_{i}_FTS"),
-                                format!("QLND{q}_E_BLN_{i}_FTS"),
-                            ],
-                        );
-                    }
-                    _ => (),
+        for i in 0..64 {
+            let ii = i % 16;
+            let iq = i / 16;
+            let q = ["NE", "NW", "SE", "SW"][iq];
+            let xlat = [0, 7, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6];
+            self.builder.wire_names_pair(
+                wires::QLNODE[i],
+                &[
+                    format!(
+                        "INT_NODE_QUAD_LONG_{n}_INT_OUT",
+                        n = iq * 32 + 16 + xlat[ii]
+                    ),
+                    format!("INT_NODE_QUAD_LONG_{n}_INT_OUT", n = iq * 32 + xlat[ii]),
+                ],
+            );
+            match (q, ii) {
+                ("NW", 0) | ("SW", 0) | ("NW", 1) => {
+                    self.builder
+                        .extra_name_sub(format!("QLND{q}_W_{ii}_FTS"), 0, wires::QLNODE[i]);
+                    self.builder
+                        .extra_name_sub(format!("QLND{q}_E_{ii}_FTS"), 1, wires::QLNODE[i]);
+                    self.builder.wire_names_pair(
+                        wires::QLNODE_S[i],
+                        &[
+                            format!("QLND{q}_W_BLS_{ii}_FTN"),
+                            format!("QLND{q}_E_BLS_{ii}_FTN"),
+                        ],
+                    );
                 }
+                ("NW", 15) | ("SW", 15) | ("SE", 15) => {
+                    self.builder
+                        .extra_name_sub(format!("QLND{q}_W_{ii}_FTN"), 0, wires::QLNODE[i]);
+                    self.builder
+                        .extra_name_sub(format!("QLND{q}_E_{ii}_FTN"), 1, wires::QLNODE[i]);
+                    self.builder.wire_names_pair(
+                        wires::QLNODE_N[i],
+                        &[
+                            format!("QLND{q}_W_BLN_{ii}_FTS"),
+                            format!("QLND{q}_E_BLN_{ii}_FTS"),
+                        ],
+                    );
+                }
+                _ => (),
             }
         }
     }
 
     fn fill_wires_inode(&mut self) {
-        for (iq, q) in ["1", "2"].into_iter().enumerate() {
-            for i in 0..32 {
-                match i {
-                    1 | 3 => {
-                        let w = self.builder.mux_out_pair(
-                            format!("INODE.{q}.{i}"),
-                            &[
-                                format!("INODE_{q}_W_{i}_FTS"),
-                                format!("INODE_{q}_E_{i}_FTS"),
-                            ],
-                        );
-                        self.builder.branch_pair(
-                            w,
-                            Dir::S,
-                            format!("INODE.{q}.{i}.S"),
-                            &[
-                                format!("INODE_{q}_W_BLS_{i}_FTN"),
-                                format!("INODE_{q}_E_BLS_{i}_FTN"),
-                            ],
-                        );
-                    }
-                    28 | 30 => {
-                        let w = self.builder.mux_out_pair(
-                            format!("INODE.{q}.{i}"),
-                            &[
-                                format!("INODE_{q}_W_{i}_FTN"),
-                                format!("INODE_{q}_E_{i}_FTN"),
-                            ],
-                        );
-                        self.builder.branch_pair(
-                            w,
-                            Dir::N,
-                            format!("INODE.{q}.{i}.N"),
-                            &[
-                                format!("INODE_{q}_W_BLN_{i}_FTS"),
-                                format!("INODE_{q}_E_BLN_{i}_FTS"),
-                            ],
-                        );
-                    }
-                    _ => {
-                        let xlat = [
-                            0, 11, 22, 25, 26, 27, 28, 29, 30, 31, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                            12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24,
-                        ];
-                        let w = self.builder.mux_out(format!("INODE.{q}.{i}"), &[""]);
-                        self.builder.extra_name_tile_sub(
-                            "INT",
-                            format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + 32 + xlat[i]),
-                            0,
-                            w,
-                        );
-                        self.builder.extra_name_tile_sub(
-                            "INT",
-                            format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + xlat[i]),
-                            1,
-                            w,
-                        );
-                    }
+        for i in 0..64 {
+            let iq = i / 32;
+            let ii = i % 32;
+            let q = ["1", "2"][iq];
+            match ii {
+                1 | 3 => {
+                    self.builder.wire_names_pair(
+                        wires::INODE[i],
+                        &[
+                            format!("INODE_{q}_W_{ii}_FTS"),
+                            format!("INODE_{q}_E_{ii}_FTS"),
+                        ],
+                    );
+                    self.builder.wire_names_pair(
+                        wires::INODE_S[i],
+                        &[
+                            format!("INODE_{q}_W_BLS_{ii}_FTN"),
+                            format!("INODE_{q}_E_BLS_{ii}_FTN"),
+                        ],
+                    );
+                }
+                28 | 30 => {
+                    self.builder.wire_names_pair(
+                        wires::INODE[i],
+                        &[
+                            format!("INODE_{q}_W_{ii}_FTN"),
+                            format!("INODE_{q}_E_{ii}_FTN"),
+                        ],
+                    );
+                    self.builder.wire_names_pair(
+                        wires::INODE_N[i],
+                        &[
+                            format!("INODE_{q}_W_BLN_{ii}_FTS"),
+                            format!("INODE_{q}_E_BLN_{ii}_FTS"),
+                        ],
+                    );
+                }
+                _ => {
+                    let xlat = [
+                        0, 11, 22, 25, 26, 27, 28, 29, 30, 31, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12,
+                        13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24,
+                    ];
+                    self.builder.extra_name_tile_sub(
+                        "INT",
+                        format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + 32 + xlat[ii]),
+                        0,
+                        wires::INODE[i],
+                    );
+                    self.builder.extra_name_tile_sub(
+                        "INT",
+                        format!("INT_NODE_IMUX_{n}_INT_OUT", n = iq * 64 + xlat[ii]),
+                        1,
+                        wires::INODE[i],
+                    );
                 }
             }
         }
@@ -584,8 +423,8 @@ impl IntMaker<'_> {
 
     fn fill_wires_imux(&mut self) {
         for i in 0..10 {
-            self.builder.mux_out_pair(
-                format!("IMUX.CTRL.{i}"),
+            self.builder.wire_names_pair(
+                wires::IMUX_CTRL[i],
                 &[format!("CTRL_W_B{i}"), format!("CTRL_E_B{i}")],
             );
         }
@@ -593,14 +432,12 @@ impl IntMaker<'_> {
         for i in 0..16 {
             match i {
                 1 | 3 | 5 | 7 | 11 => {
-                    let w = self.builder.mux_out_pair(
-                        format!("IMUX.BYP.{i}"),
+                    self.builder.wire_names_pair(
+                        wires::IMUX_BYP[i],
                         &[format!("BOUNCE_W_{i}_FTS"), format!("BOUNCE_E_{i}_FTS")],
                     );
-                    self.builder.branch_pair(
-                        w,
-                        Dir::S,
-                        format!("IMUX.BYP.{i}.S"),
+                    self.builder.wire_names_pair(
+                        wires::IMUX_BYP_S[i],
                         &[
                             format!("BOUNCE_W_BLS_{i}_FTN"),
                             format!("BOUNCE_E_BLS_{i}_FTN"),
@@ -608,14 +445,12 @@ impl IntMaker<'_> {
                     );
                 }
                 8 | 10 | 12 | 14 => {
-                    let w = self.builder.mux_out_pair(
-                        format!("IMUX.BYP.{i}"),
+                    self.builder.wire_names_pair(
+                        wires::IMUX_BYP[i],
                         &[format!("BOUNCE_W_{i}_FTN"), format!("BOUNCE_E_{i}_FTN")],
                     );
-                    self.builder.branch_pair(
-                        w,
-                        Dir::N,
-                        format!("IMUX.BYP.{i}.N"),
+                    self.builder.wire_names_pair(
+                        wires::IMUX_BYP_N[i],
                         &[
                             format!("BOUNCE_W_BLN_{i}_FTS"),
                             format!("BOUNCE_E_BLN_{i}_FTS"),
@@ -623,19 +458,20 @@ impl IntMaker<'_> {
                     );
                 }
                 _ => {
-                    self.builder.mux_out_pair(
-                        format!("IMUX.BYP.{i}"),
+                    self.builder.wire_names_pair(
+                        wires::IMUX_BYP[i],
                         &[format!("BYPASS_W{i}"), format!("BYPASS_E{i}")],
                     );
                 }
             }
         }
         for i in 0..48 {
-            let w = self.builder.mux_out_pair(
-                format!("IMUX.IMUX.{i}"),
+            self.builder.wire_names_pair(
+                wires::IMUX_IMUX[i],
                 &[format!("IMUX_W{i}"), format!("IMUX_E{i}")],
             );
-            self.builder.delay(w, format!("IMUX.IMUX.{i}.DELAY"), &[""]);
+            self.builder
+                .mark_delay(wires::IMUX_IMUX[i], wires::IMUX_IMUX_DELAY[i]);
         }
     }
 
@@ -669,16 +505,16 @@ impl IntMaker<'_> {
         ];
         for i in 0..24 {
             if let Some(((wa, wb), (ea, eb))) = BUFCE_XLAT[i] {
-                self.builder.mux_out_pair(
-                    format!("RCLK.IMUX.{i}"),
+                self.builder.wire_names_pair(
+                    wires::IMUX_RCLK[i],
                     &[
                         format!("CLK_BUFCE_LEAF_X16_{wa}_CE_INT{wb}"),
                         format!("CLK_BUFCE_LEAF_X16_{ea}_CE_INT{eb}",),
                     ],
                 );
             } else {
-                self.builder.mux_out_pair(
-                    format!("RCLK.IMUX.{i}"),
+                self.builder.wire_names_pair(
+                    wires::IMUX_RCLK[i],
                     &[
                         format!("INT_RCLK_TO_CLK_LEFT_{a}_{b}", a = i / 6, b = i % 6),
                         format!("INT_RCLK_TO_CLK_RIGHT_{a}_{b}", a = i / 6, b = i % 6),
@@ -687,48 +523,40 @@ impl IntMaker<'_> {
             }
         }
         for i in 0..24 {
-            let w = self.builder.mux_out(format!("RCLK.INODE.{i}"), &[""]);
             for sub in 0..2 {
                 for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
                     let ii = (i % 12) + (1 - sub) * 12 + (i / 12) * 24;
                     let name = format!("INT_NODE_IMUX_{ii}_INT_OUT");
-                    self.builder.extra_name_tile_sub(tkn, name, sub, w);
+                    self.builder
+                        .extra_name_tile_sub(tkn, name, sub, wires::INODE_RCLK[i]);
                 }
             }
         }
     }
 
     fn fill_wires(&mut self) {
-        let main_pass_lw = ConnectorClass::new(self.long_term_slots[Dir::W]);
-        let main_pass_le = ConnectorClass::new(self.long_term_slots[Dir::E]);
-        self.long_main_passes.insert(Dir::W, main_pass_lw);
-        self.long_main_passes.insert(Dir::E, main_pass_le);
-
         // common wires
 
-        self.builder.wire("GND", WireKind::Tie0, &["GND_WIRE"]);
-        self.builder.wire("VCC", WireKind::Tie1, &["VCC_WIRE"]);
+        self.builder.wire_names(wires::TIE_0, &["GND_WIRE"]);
+        self.builder.wire_names(wires::TIE_1, &["VCC_WIRE"]);
 
         for i in 0..16 {
-            let w = self.builder.wire(
-                format!("GCLK{i}"),
-                WireKind::Regional(regions::LEAF),
-                &[format!("GCLK_B_0_{i}")],
-            );
+            self.builder
+                .wire_names(wires::GCLK[i], &[format!("GCLK_B_0_{i}")]);
             for tkn in ["RCLK_INT_L", "RCLK_INT_R"] {
                 self.builder.extra_name_tile_sub(
                     tkn,
                     format!("CLK_BUFCE_LEAF_X16_0_CLK_OUT{ii}", ii = i / 2 + (i % 2) * 8),
                     2,
-                    w,
+                    wires::GCLK[i],
                 );
             }
         }
 
         for i in 0..16 {
             for j in 0..2 {
-                self.builder.mux_out(
-                    format!("GNODE.{i}.{j}"),
+                self.builder.wire_names(
+                    wires::GNODE[i * 2 + j],
                     &[format!("INT_NODE_GLOBAL_{i}_OUT{j}")],
                 );
             }
@@ -736,20 +564,20 @@ impl IntMaker<'_> {
 
         self.fill_wires_ql();
 
-        // wires belonging to interconnect left/right half-nodes
+        // wires belonging to interconnect left/right half-tiles
 
         for i in 0..32 {
-            let w = self
-                .builder
-                .logic_out(format!("OUT.{i}"), &[format!("LOGIC_OUTS_W{i}")]);
-            self.builder.test_mux_in(format!("OUT.{i}.TMIN"), w);
             self.builder
-                .extra_name_sub(format!("LOGIC_OUTS_E{i}"), 1, w);
+                .wire_names(wires::OUT[i], &[format!("LOGIC_OUTS_W{i}")]);
+            self.builder
+                .mark_test_mux_in(wires::OUT_TMIN[i], wires::OUT[i]);
+            self.builder
+                .extra_name_sub(format!("LOGIC_OUTS_E{i}"), 1, wires::OUT[i]);
         }
 
         for i in 0..4 {
             self.builder
-                .test_out(format!("TEST.{i}"), &[format!("BLOCK_OUTS{i}")]);
+                .wire_names(wires::TEST[i], &[format!("BLOCK_OUTS{i}")]);
         }
 
         self.fill_wires_sdnode();
@@ -759,61 +587,23 @@ impl IntMaker<'_> {
         self.fill_wires_inode();
         self.fill_wires_imux();
         self.fill_wires_rclk();
-
-        self.builder.extract_main_passes();
-        self.builder.db.conn_classes.insert(
-            "MAIN.LW".into(),
-            self.long_main_passes.remove(Dir::W).unwrap(),
-        );
-        self.builder.db.conn_classes.insert(
-            "MAIN.LE".into(),
-            self.long_main_passes.remove(Dir::E).unwrap(),
-        );
-        self.builder.db.conn_classes.insert(
-            "TERM.W".into(),
-            ConnectorClass {
-                slot: self.builder.term_slots[Dir::W],
-                wires: std::mem::take(&mut self.term_wires_w),
-            },
-        );
-        self.builder.db.conn_classes.insert(
-            "TERM.E".into(),
-            ConnectorClass {
-                slot: self.builder.term_slots[Dir::E],
-                wires: std::mem::take(&mut self.term_wires_e),
-            },
-        );
-        self.builder.db.conn_classes.insert(
-            "TERM.LW".into(),
-            ConnectorClass {
-                slot: self.long_term_slots[Dir::W],
-                wires: std::mem::take(&mut self.term_wires_lw),
-            },
-        );
-        self.builder.db.conn_classes.insert(
-            "TERM.LE".into(),
-            ConnectorClass {
-                slot: self.long_term_slots[Dir::E],
-                wires: std::mem::take(&mut self.term_wires_le),
-            },
-        );
     }
 
     fn fill_tiles_int(&mut self) {
         self.builder
-            .int_type(tslots::INT, bels::INT, "INT", "INT", "INT");
-        let nk = self.builder.db.get_tile_class("INT");
-        let tcls = &mut self.builder.db.tile_classes[nk];
-        tcls.cells.push(tcls.cells.next_id().to_string());
-        let pips = self.builder.pips.get_mut(&(nk, bels::INT)).unwrap();
+            .int_type_id(tcls::INT, defs::bslots::INT, "INT", "INT");
+        let pips = self
+            .builder
+            .pips
+            .get_mut(&(tcls::INT, defs::bslots::INT))
+            .unwrap();
         pips.pips = pips
             .pips
             .iter()
             .map(|(&(wt, wf), &mode)| {
-                let wtn = self.builder.db.wires.key(wt.wire);
-                if wtn.starts_with("INODE")
-                    || wtn.starts_with("SDNODE")
-                    || wtn.starts_with("QLNODE")
+                if wires::INODE.contains(wt.wire)
+                    || wires::SDNODE.contains(wt.wire)
+                    || wires::QLNODE.contains(wt.wire)
                 {
                     let nwf = self.sng_fixup_map.get(&wf).copied().unwrap_or(wf);
                     ((wt, nwf), mode)
@@ -830,11 +620,11 @@ impl IntMaker<'_> {
         }
     }
 
-    fn extract_sn_term(&mut self, dir: Dir, int_xy: Coord) {
-        let pass_rev = &self.builder.db[self
-            .builder
-            .db
-            .get_conn_class(&format!("MAIN.{rd}", rd = !dir))];
+    fn extract_sn_term(&mut self, dir: DirV, int_xy: Coord) {
+        let pass_rev = &self.builder.db[match dir {
+            DirV::S => ccls::PASS_N,
+            DirV::N => ccls::PASS_S,
+        }];
         let naming =
             &self.builder.ndb.tile_class_namings[self.builder.ndb.get_tile_class_naming("INT")];
         let mut node2target = BTreeMap::new();
@@ -843,66 +633,72 @@ impl IntMaker<'_> {
                 unreachable!()
             };
             for cid in [0, 1] {
-                let tile = CellSlotId::from_idx(cid);
+                let cell = CellSlotId::from_idx(cid);
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wf)) else {
                     continue;
                 };
                 let node = self.builder.rd.lookup_wire_force(int_xy, name);
-                let mut twf = (tile, wf);
+                let mut twf = (cell, wf);
                 // sigh. no hope. no hope at all.
-                if self.builder.db.wires.key(wf) == "SNG.E.0.1" {
+                if wf == wires::X1_E1[0] {
                     twf = (
-                        CellSlotId::from_idx(tile.to_idx() ^ 1),
-                        self.builder
-                            .db
-                            .get_wire(&format!("SNG.E.0.1.{d}", d = ["E", "W"][tile.to_idx()])),
+                        CellSlotId::from_idx(cell.to_idx() ^ 1),
+                        [wires::X1_E1_E0, wires::X1_E1_W0][cell.to_idx()],
                     );
                 }
-                if self.builder.db.wires.key(wf) == "DBL.E.7.2" {
+                if wf == wires::X2_E2[7] {
                     twf = (
-                        CellSlotId::from_idx(tile.to_idx() ^ 1),
-                        self.builder
-                            .db
-                            .get_wire(&format!("DBL.E.7.2.{d}", d = ["E", "W"][tile.to_idx()])),
+                        CellSlotId::from_idx(cell.to_idx() ^ 1),
+                        [wires::X2_E2_E7, wires::X2_E2_W7][cell.to_idx()],
                     );
                 }
                 assert!(node2target.insert(node, twf).is_none());
             }
         }
         for cid in [0, 1] {
-            let pass = &self.builder.db.conn_classes
-                [self.builder.db.get_conn_class(&format!("MAIN.{dir}"))];
+            let pass = &self.builder.db[match dir {
+                DirV::S => ccls::PASS_S,
+                DirV::N => ccls::PASS_N,
+            }];
             let naming =
                 &self.builder.ndb.tile_class_namings[self.builder.ndb.get_tile_class_naming("INT")];
             let mut wires = EntityPartVec::new();
             for wt in pass.wires.ids() {
-                let tile = CellSlotId::from_idx(cid);
+                let cell = CellSlotId::from_idx(cid);
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wt)) else {
                     continue;
                 };
                 let node = self.builder.rd.lookup_wire_force(int_xy, name);
                 if let Some(&(tf, wf)) = node2target.get(&node) {
-                    assert_eq!(tile, tf);
+                    assert_eq!(cell, tf);
                     wires.insert(wt, ConnectorWire::Reflect(wf));
                 }
             }
-            let term = ConnectorClass {
-                slot: self.builder.term_slots[dir],
+            let conn = ConnectorClass {
+                slot: match dir {
+                    DirV::S => cslots::S,
+                    DirV::N => cslots::N,
+                },
                 wires,
             };
-            self.builder
-                .insert_term_merge(&format!("TERM.{dir}{cid}"), term);
+            self.builder.insert_connector(
+                match dir {
+                    DirV::S => [ccls::TERM_S0, ccls::TERM_S1][cid],
+                    DirV::N => [ccls::TERM_N0, ccls::TERM_N1][cid],
+                },
+                conn,
+            );
         }
     }
 
     fn fill_terms(&mut self) {
         for &xy in self.builder.rd.tiles_by_kind_name("INT_TERM_B") {
             let int_xy = self.builder.walk_to_int(xy, Dir::N, true).unwrap();
-            self.extract_sn_term(Dir::S, int_xy);
+            self.extract_sn_term(DirV::S, int_xy);
         }
         for &xy in self.builder.rd.tiles_by_kind_name("INT_TERM_T") {
             let int_xy = self.builder.walk_to_int(xy, Dir::S, true).unwrap();
-            self.extract_sn_term(Dir::N, int_xy);
+            self.extract_sn_term(DirV::N, int_xy);
         }
     }
 
@@ -911,7 +707,10 @@ impl IntMaker<'_> {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn) {
                 let mut bels = vec![];
                 for i in 0..2 {
-                    let slot = [bels::BUFCE_LEAF_X16_S, bels::BUFCE_LEAF_X16_N][i];
+                    let slot = [
+                        defs::bslots::BUFCE_LEAF_X16_S,
+                        defs::bslots::BUFCE_LEAF_X16_N,
+                    ][i];
                     let mut bel = self.builder.bel_xy(slot, "BUFCE_LEAF_X16", 0, i);
                     for j in 0..16 {
                         bel = bel.pin_name_only(&format!("CLK_IN{j}"), 0);
@@ -920,18 +719,18 @@ impl IntMaker<'_> {
                 }
                 let mut bel = self
                     .builder
-                    .bel_virtual(bels::RCLK_INT_CLK)
+                    .bel_virtual(defs::bslots::RCLK_INT_CLK)
                     .extra_wire("VCC", &["VCC_WIRE"]);
                 for i in 0..24 {
                     bel = bel.extra_wire(format!("HDISTR{i}"), &[format!("CLK_HDISTR_FT0_{i}")]);
                 }
                 bels.push(bel);
                 self.builder
-                    .xtile(tslots::RCLK_INT, "RCLK_INT", "RCLK_INT", xy)
+                    .xtile_id(tcls::RCLK_INT, "RCLK_INT", xy)
                     .num_tiles(4)
                     .ref_int_side(xy.delta(0, 1), Dir::W, 0)
                     .ref_int_side(xy.delta(0, 1), Dir::E, 1)
-                    .extract_muxes(bels::RCLK_INT)
+                    .extract_muxes(defs::bslots::RCLK_INT)
                     .bels(bels)
                     .extract();
             }
@@ -939,51 +738,51 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_intf(&mut self) {
-        for (kind, naming, dir, tkn, sb_delay) in [
-            ("INTF", "INTF.W", Dir::W, "INT_INTERFACE_L", None),
-            ("INTF", "INTF.E", Dir::E, "INT_INTERFACE_R", None),
+        for (tcid, naming, dir, tkn, sb_delay) in [
+            (tcls::INTF, "INTF_W", Dir::W, "INT_INTERFACE_L", None),
+            (tcls::INTF, "INTF_E", Dir::E, "INT_INTERFACE_R", None),
             (
-                "INTF.DELAY",
-                "INTF.W.IO",
+                tcls::INTF_DELAY,
+                "INTF_W_IO",
                 Dir::W,
                 "INT_INT_INTERFACE_XIPHY_FT",
-                Some(bels::INTF_DELAY),
+                Some(defs::bslots::INTF_DELAY),
             ),
             (
-                "INTF.DELAY",
-                "INTF.W.PCIE",
+                tcls::INTF_DELAY,
+                "INTF_W_PCIE",
                 Dir::W,
                 "INT_INTERFACE_PCIE_L",
-                Some(bels::INTF_DELAY),
+                Some(defs::bslots::INTF_DELAY),
             ),
             (
-                "INTF.DELAY",
-                "INTF.E.PCIE",
+                tcls::INTF_DELAY,
+                "INTF_E_PCIE",
                 Dir::E,
                 "INT_INTERFACE_PCIE_R",
-                Some(bels::INTF_DELAY),
+                Some(defs::bslots::INTF_DELAY),
             ),
             (
-                "INTF.DELAY",
-                "INTF.W.GT",
+                tcls::INTF_DELAY,
+                "INTF_W_GT",
                 Dir::W,
                 "INT_INT_INTERFACE_GT_LEFT_FT",
-                Some(bels::INTF_DELAY),
+                Some(defs::bslots::INTF_DELAY),
             ),
             (
-                "INTF.DELAY",
-                "INTF.E.GT",
+                tcls::INTF_DELAY,
+                "INTF_E_GT",
                 Dir::E,
                 "INT_INTERFACE_GT_R",
-                Some(bels::INTF_DELAY),
+                Some(defs::bslots::INTF_DELAY),
             ),
         ] {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn.as_ref()) {
                 let int_xy = self.builder.walk_to_int(xy, !dir, false).unwrap();
                 let mut xn = self
                     .builder
-                    .xtile(tslots::INTF, kind, naming, xy)
-                    .extract_intfs(bels::INTF_TESTMUX, true)
+                    .xtile_id(tcid, naming, xy)
+                    .extract_intfs(defs::bslots::INTF_TESTMUX, true)
                     .ref_int_side(int_xy, dir, 0);
                 if let Some(sb) = sb_delay {
                     xn = xn.extract_delay(sb);
@@ -994,21 +793,21 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_clb(&mut self) {
-        for (tkn, kind, side) in [
-            ("CLEL_L", "CLEL", Dir::W),
-            ("CLEL_R", "CLEL", Dir::E),
-            ("CLE_M", "CLEM", Dir::W),
-            ("CLE_M_R", "CLEM", Dir::W),
+        for (tkn, tcid, naming, side) in [
+            ("CLEL_L", tcls::CLEL, "CLEL", Dir::W),
+            ("CLEL_R", tcls::CLEL, "CLEL", Dir::E),
+            ("CLE_M", tcls::CLEM, "CLEM", Dir::W),
+            ("CLE_M_R", tcls::CLEM, "CLEM", Dir::W),
         ] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
                 let int_xy = xy.delta(if side == Dir::W { 1 } else { -1 }, 0);
                 let bel = self
                     .builder
-                    .bel_xy(bels::SLICE, "SLICE", 0, 0)
+                    .bel_xy(defs::bslots::SLICE, "SLICE", 0, 0)
                     .pin_name_only("CIN", 1)
                     .pin_name_only("COUT", 0);
                 self.builder
-                    .xtile(tslots::BEL, kind, kind, xy)
+                    .xtile_id(tcid, naming, xy)
                     .ref_int_side(int_xy, side, 0)
                     .bel(bel)
                     .extract();
@@ -1028,7 +827,7 @@ impl IntMaker<'_> {
             for i in 0..4 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::LAGUNA[i], "LAGUNA", i >> 1, i & 1);
+                    .bel_xy(defs::bslots::LAGUNA[i], "LAGUNA", i >> 1, i & 1);
                 for j in 0..6 {
                     bel = bel
                         .pin_name_only(&format!("RXQ{j}"), 0)
@@ -1074,18 +873,18 @@ impl IntMaker<'_> {
             }
             bels.push(
                 self.builder
-                    .bel_virtual(bels::LAGUNA_EXTRA)
+                    .bel_virtual(defs::bslots::LAGUNA_EXTRA)
                     .extra_wire("UBUMP", &["UBUMP_EXTRA"])
                     .extra_wire("RXD", &["LAG_IOBUF_ATOM_16_RXO"])
                     .extra_wire("TXOUT", &["VCC_WIRE0"]),
             );
             bels.push(
                 self.builder
-                    .bel_virtual(bels::VCC_LAGUNA)
+                    .bel_virtual(defs::bslots::VCC_LAGUNA)
                     .extra_wire("VCC", &["VCC_WIRE"]),
             );
             self.builder
-                .xtile(tslots::BEL, "LAGUNA", "LAGUNA", xy)
+                .xtile_id(tcls::LAGUNA, "LAGUNA", xy)
                 .ref_int_side(xy.delta(1, 0), Dir::W, 0)
                 .bels(bels)
                 .extract();
@@ -1094,10 +893,10 @@ impl IntMaker<'_> {
 
     fn fill_tiles_bram(&mut self) {
         if let Some(&xy) = self.builder.rd.tiles_by_kind_name("BRAM").iter().next() {
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.W");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_W");
             let mut bel_bram_f = self
                 .builder
-                .bel_xy(bels::BRAM_F, "RAMB36", 0, 0)
+                .bel_xy(defs::bslots::BRAM_F, "RAMB36", 0, 0)
                 .pin_name_only("CASINSBITERR", 1)
                 .pin_name_only("CASINDBITERR", 1)
                 .pin_name_only("CASOUTSBITERR", 0)
@@ -1111,12 +910,12 @@ impl IntMaker<'_> {
                 .pin_name_only("START_RSR_NEXT", 0);
             let mut bel_bram_h0 = self
                 .builder
-                .bel_xy(bels::BRAM_H0, "RAMB18", 0, 0)
+                .bel_xy(defs::bslots::BRAM_H[0], "RAMB18", 0, 0)
                 .pin_name_only("CASPRVEMPTY", 0)
                 .pin_name_only("CASPRVRDEN", 0)
                 .pin_name_only("CASNXTEMPTY", 0)
                 .pin_name_only("CASNXTRDEN", 0);
-            let mut bel_bram_h1 = self.builder.bel_xy(bels::BRAM_H1, "RAMB18", 0, 1);
+            let mut bel_bram_h1 = self.builder.bel_xy(defs::bslots::BRAM_H[1], "RAMB18", 0, 1);
             for ab in ['A', 'B'] {
                 for ul in ['U', 'L'] {
                     for i in 0..16 {
@@ -1145,10 +944,7 @@ impl IntMaker<'_> {
                     bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("CASDOP{ab}U{i}"), 0);
                 }
             }
-            let mut xn = self
-                .builder
-                .xtile(tslots::BEL, "BRAM", "BRAM", xy)
-                .num_tiles(5);
+            let mut xn = self.builder.xtile_id(tcls::BRAM, "BRAM", xy).num_tiles(5);
             for i in 0..5 {
                 xn = xn
                     .ref_int_side(xy.delta(2, i as i32), Dir::W, i)
@@ -1164,13 +960,16 @@ impl IntMaker<'_> {
             "RCLK_RCLK_BRAM_L_BRAMCLMP_FT",
         ] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
-                let intf = self.builder.ndb.get_tile_class_naming("INTF.W");
+                let intf = self.builder.ndb.get_tile_class_naming("INTF_W");
                 let mut bels = vec![];
                 for (i, x, y) in [(0, 0, 0), (1, 0, 1), (2, 1, 0), (3, 1, 1)] {
-                    bels.push(self.builder.bel_xy(bels::HARD_SYNC[i], "HARD_SYNC", x, y));
+                    bels.push(
+                        self.builder
+                            .bel_xy(defs::bslots::HARD_SYNC[i], "HARD_SYNC", x, y),
+                    );
                 }
                 self.builder
-                    .xtile(tslots::RCLK_BEL, "HARD_SYNC", "HARD_SYNC", xy)
+                    .xtile_id(tcls::HARD_SYNC, "HARD_SYNC", xy)
                     .ref_int_side(xy.delta(2, 1), Dir::W, 0)
                     .ref_single(xy.delta(1, 1), 0, intf)
                     .bels(bels)
@@ -1181,10 +980,10 @@ impl IntMaker<'_> {
 
     fn fill_tiles_dsp(&mut self) {
         if let Some(&xy) = self.builder.rd.tiles_by_kind_name("DSP").iter().next() {
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.E");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_E");
             let mut bels_dsp = vec![];
             for i in 0..2 {
-                let mut bel = self.builder.bel_xy(bels::DSP[i], "DSP48E2", 0, i);
+                let mut bel = self.builder.bel_xy(defs::bslots::DSP[i], "DSP48E2", 0, i);
                 let buf_cnt = match i {
                     0 => 1,
                     1 => 0,
@@ -1208,10 +1007,7 @@ impl IntMaker<'_> {
                 }
                 bels_dsp.push(bel);
             }
-            let mut xn = self
-                .builder
-                .xtile(tslots::BEL, "DSP", "DSP", xy)
-                .num_tiles(5);
+            let mut xn = self.builder.xtile_id(tcls::DSP, "DSP", xy).num_tiles(5);
             for i in 0..5 {
                 xn = xn
                     .ref_int_side(xy.delta(-2, i as i32), Dir::E, i)
@@ -1222,26 +1018,35 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_hard(&mut self) {
-        for (slot, kind, tkn, bk) in [
-            (bels::PCIE3, "PCIE", "PCIE", "PCIE_3_1"),
-            (bels::CMAC, "CMAC", "CMAC_CMAC_FT", "CMAC_SITE"),
-            (bels::ILKN, "ILKN", "ILMAC_ILMAC_FT", "ILKN_SITE"),
+        for (slot, tcid, naming, tkn, bk) in [
+            (defs::bslots::PCIE3, tcls::PCIE, "PCIE", "PCIE", "PCIE_3_1"),
+            (
+                defs::bslots::CMAC,
+                tcls::CMAC,
+                "CMAC",
+                "CMAC_CMAC_FT",
+                "CMAC_SITE",
+            ),
+            (
+                defs::bslots::ILKN,
+                tcls::ILKN,
+                "ILKN",
+                "ILMAC_ILMAC_FT",
+                "ILKN_SITE",
+            ),
         ] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
                 let int_w_xy = self.builder.walk_to_int(xy, Dir::W, false).unwrap();
                 let int_e_xy = self.builder.walk_to_int(xy, Dir::E, false).unwrap();
-                let intf_w = self.builder.ndb.get_tile_class_naming("INTF.E.PCIE");
-                let intf_e = self.builder.ndb.get_tile_class_naming("INTF.W.PCIE");
+                let intf_w = self.builder.ndb.get_tile_class_naming("INTF_E_PCIE");
+                let intf_e = self.builder.ndb.get_tile_class_naming("INTF_W_PCIE");
                 let mut bel = self.builder.bel_xy(slot, bk, 0, 0);
-                if kind == "PCIE" {
+                if tcid == tcls::PCIE {
                     bel = bel
                         .pin_name_only("MCAP_PERST0_B", 1)
                         .pin_name_only("MCAP_PERST1_B", 1);
                 }
-                let mut xn = self
-                    .builder
-                    .xtile(tslots::BEL, kind, kind, xy)
-                    .num_tiles(120);
+                let mut xn = self.builder.xtile_id(tcid, naming, xy).num_tiles(120);
                 for i in 0..60 {
                     xn = xn
                         .ref_int_side(int_w_xy.delta(0, (i + i / 30) as i32), Dir::E, i)
@@ -1257,16 +1062,13 @@ impl IntMaker<'_> {
     fn fill_tiles_cfg(&mut self) {
         if let Some(&xy) = self.builder.rd.tiles_by_kind_name("CFG_CFG").iter().next() {
             let int_xy = self.builder.walk_to_int(xy, Dir::W, false).unwrap();
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.E.PCIE");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_E_PCIE");
             let bels = [
-                self.builder.bel_xy(bels::CFG, "CONFIG_SITE", 0, 0),
+                self.builder.bel_xy(defs::bslots::CFG, "CONFIG_SITE", 0, 0),
                 self.builder
-                    .bel_xy(bels::ABUS_SWITCH_CFG, "ABUS_SWITCH", 0, 0),
+                    .bel_xy(defs::bslots::ABUS_SWITCH_CFG, "ABUS_SWITCH", 0, 0),
             ];
-            let mut xn = self
-                .builder
-                .xtile(tslots::BEL, "CFG", "CFG", xy)
-                .num_tiles(60);
+            let mut xn = self.builder.xtile_id(tcls::CFG, "CFG", xy).num_tiles(60);
             for i in 0..60 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::E, i)
@@ -1283,16 +1085,16 @@ impl IntMaker<'_> {
             .next()
         {
             let int_xy = self.builder.walk_to_int(xy, Dir::W, false).unwrap();
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.E.PCIE");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_E_PCIE");
             let bels = [
-                self.builder.bel_xy(bels::PMV, "PMV", 0, 0),
-                self.builder.bel_xy(bels::PMV2, "PMV2", 0, 0),
-                self.builder.bel_xy(bels::PMVIOB, "PMVIOB", 0, 0),
-                self.builder.bel_xy(bels::MTBF3, "MTBF3", 0, 0),
+                self.builder.bel_xy(defs::bslots::PMV, "PMV", 0, 0),
+                self.builder.bel_xy(defs::bslots::PMV2, "PMV2", 0, 0),
+                self.builder.bel_xy(defs::bslots::PMVIOB, "PMVIOB", 0, 0),
+                self.builder.bel_xy(defs::bslots::MTBF3, "MTBF3", 0, 0),
             ];
             let mut xn = self
                 .builder
-                .xtile(tslots::BEL, "CFGIO", "CFGIO", xy)
+                .xtile_id(tcls::CFGIO, "CFGIO", xy)
                 .num_tiles(30);
             for i in 0..30 {
                 xn = xn
@@ -1304,20 +1106,17 @@ impl IntMaker<'_> {
 
         if let Some(&xy) = self.builder.rd.tiles_by_kind_name("AMS").iter().next() {
             let int_xy = self.builder.walk_to_int(xy, Dir::W, false).unwrap();
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.E.PCIE");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_E_PCIE");
             let mut bel = self
                 .builder
-                .bel_xy(bels::SYSMON, "SYSMONE1", 0, 0)
+                .bel_xy(defs::bslots::SYSMON, "SYSMONE1", 0, 0)
                 .pins_name_only(&["I2C_SCLK_TS", "I2C_SDA_TS"])
                 .pin_name_only("I2C_SCLK_IN", 1)
                 .pin_name_only("I2C_SDA_IN", 1);
             for i in 0..16 {
                 bel = bel.pins_name_only(&[format!("VP_AUX{i}"), format!("VN_AUX{i}")]);
             }
-            let mut xn = self
-                .builder
-                .xtile(tslots::BEL, "AMS", "AMS", xy)
-                .num_tiles(30);
+            let mut xn = self.builder.xtile_id(tcls::AMS, "AMS", xy).num_tiles(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::E, i)
@@ -1330,27 +1129,27 @@ impl IntMaker<'_> {
     fn fill_tiles_xiphy(&mut self) {
         if let Some(&xy) = self.builder.rd.tiles_by_kind_name("XIPHY_L").iter().next() {
             let int_xy = self.builder.walk_to_int(xy, Dir::E, false).unwrap();
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.W.IO");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_W_IO");
             let rclk_int = self.builder.ndb.get_tile_class_naming("RCLK_INT");
             let mut bels = vec![];
             for i in 0..24 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::BUFCE_ROW_CMT[i], "BUFCE_ROW", 0, i)
+                        .bel_xy(defs::bslots::BUFCE_ROW_CMT[i], "BUFCE_ROW", 0, i)
                         .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"]),
                 );
             }
             for i in 0..24 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::GCLK_TEST_BUF_CMT[i], "GCLK_TEST_BUFE3", 0, i)
+                        .bel_xy(defs::bslots::GCLK_TEST_BUF_CMT[i], "GCLK_TEST_BUFE3", 0, i)
                         .pins_name_only(&["CLK_IN", "CLK_OUT"]),
                 );
             }
             for i in 0..24 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::BUFGCE[i], "BUFGCE", 0, i)
+                        .bel_xy(defs::bslots::BUFGCE[i], "BUFGCE", 0, i)
                         .pins_name_only(&["CLK_OUT"])
                         .pin_name_only("CLK_IN", usize::from(matches!(i, 5 | 11 | 17 | 23)))
                         .extra_wire(
@@ -1374,21 +1173,21 @@ impl IntMaker<'_> {
             for i in 0..8 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::BUFGCTRL[i], "BUFGCTRL", 0, i)
+                        .bel_xy(defs::bslots::BUFGCTRL[i], "BUFGCTRL", 0, i)
                         .pins_name_only(&["CLK_I0", "CLK_I1", "CLK_OUT"]),
                 );
             }
             for i in 0..4 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::BUFGCE_DIV[i], "BUFGCE_DIV", 0, i)
+                        .bel_xy(defs::bslots::BUFGCE_DIV[i], "BUFGCE_DIV", 0, i)
                         .pins_name_only(&["CLK_IN", "CLK_OUT"]),
                 );
             }
             for i in 0..2 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::PLL[i], "PLLE3_ADV", 0, i)
+                        .bel_xy(defs::bslots::PLL[i], "PLLE3_ADV", 0, i)
                         .pins_name_only(&[
                             "CLKOUT0",
                             "CLKOUT0B",
@@ -1428,7 +1227,7 @@ impl IntMaker<'_> {
             }
             bels.push(
                 self.builder
-                    .bel_xy(bels::MMCM, "MMCME3_ADV", 0, 0)
+                    .bel_xy(defs::bslots::MMCM, "MMCME3_ADV", 0, 0)
                     .pins_name_only(&[
                         "CLKOUT0",
                         "CLKOUT0B",
@@ -1463,14 +1262,104 @@ impl IntMaker<'_> {
             );
             bels.push(
                 self.builder
-                    .bel_xy(bels::ABUS_SWITCH_CMT, "ABUS_SWITCH", 0, 0),
+                    .bel_xy(defs::bslots::ABUS_SWITCH_CMT, "ABUS_SWITCH", 0, 0),
             );
+            let mut bel = self.builder.bel_virtual(defs::bslots::CMT);
+            for i in 0..4 {
+                bel = bel.extra_wire(format!("CCIO{i}"), &[format!("IOB2CLK_CCIO{i}")]);
+            }
+            for i in 0..24 {
+                let dummy_base = [
+                    0, 3, 36, 53, 56, 59, 62, 65, 68, 71, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 39,
+                    42, 45, 48,
+                ][i];
+                bel = bel
+                    .extra_wire(format!("VDISTR{i}_B"), &[format!("CLK_VDISTR_BOT{i}")])
+                    .extra_wire(format!("VDISTR{i}_T"), &[format!("CLK_VDISTR_TOP{i}")])
+                    .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_0_{i}")])
+                    .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_1_{i}")])
+                    .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_0_{i}")])
+                    .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_1_{i}")])
+                    .extra_wire(
+                        format!("HDISTR{i}_L_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 1 + i * 8)],
+                    )
+                    .extra_wire(
+                        format!("HDISTR{i}_R_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = i * 8)],
+                    )
+                    .extra_wire(
+                        format!("HDISTR{i}_OUT_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 4 + i * 8)],
+                    )
+                    .extra_wire(
+                        format!("HROUTE{i}_L_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
+                    )
+                    .extra_wire(
+                        format!("HROUTE{i}_R_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
+                    )
+                    .extra_wire(
+                        format!("VDISTR{i}_B_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 6 + i * 8)],
+                    )
+                    .extra_wire(
+                        format!("VDISTR{i}_T_MUX"),
+                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 7 + i * 8)],
+                    )
+                    .extra_wire(
+                        format!("OUT_MUX{i}"),
+                        &[format!("CLK_CMT_MUX_16_ENC_{i}_CLK_OUT")],
+                    )
+                    .extra_wire(
+                        format!("OUT_MUX{i}_DUMMY0"),
+                        &[format!("VCC_WIRE{dummy_base}")],
+                    )
+                    .extra_wire(
+                        format!("OUT_MUX{i}_DUMMY1"),
+                        &[format!("VCC_WIRE{ii}", ii = dummy_base + 1)],
+                    )
+                    .extra_wire(
+                        format!("OUT_MUX{i}_DUMMY2"),
+                        &[format!("VCC_WIRE{ii}", ii = dummy_base + 2)],
+                    );
+            }
+            for i in 0..6 {
+                bel = bel
+                    .extra_wire(
+                        format!("XIPHY_CLK{i}_B"),
+                        &[format!("CLK_LEAF_MUX_XIPHY_{ii}_CLK_LEAF", ii = i + 6)],
+                    )
+                    .extra_wire(
+                        format!("XIPHY_CLK{i}_T"),
+                        &[format!("CLK_LEAF_MUX_XIPHY_{i}_CLK_LEAF")],
+                    );
+            }
+            bels.push(bel);
+            bels.push(
+                self.builder
+                    .bel_virtual(defs::bslots::VCC_CMT)
+                    .extra_wire("VCC", &["VCC_WIRE"]),
+            );
+            let mut xn = self
+                .builder
+                .xtile_id(tcls::CMT, "CMT", xy)
+                .num_tiles(60)
+                .ref_xlat(int_xy.delta(0, 30), &[Some(30), None, None, None], rclk_int);
+            for i in 0..60 {
+                xn = xn
+                    .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::W, i)
+                    .ref_single(int_xy.delta(-1, (i + i / 30) as i32), i, intf)
+            }
+            xn.bels(bels).extract();
 
             // XIPHY
+            let mut bels = vec![];
             for i in 0..52 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::BITSLICE[i], "BITSLICE_RX_TX", 0, i)
+                    .bel_xy(defs::bslots::BITSLICE[i], "BITSLICE_RX_TX", 0, i)
                     .pins_name_only(&[
                         "TX_CLK",
                         "TX_OCLK",
@@ -1579,7 +1468,7 @@ impl IntMaker<'_> {
             for i in 0..8 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::BITSLICE_T[i], "BITSLICE_TX", 0, i)
+                    .bel_xy(defs::bslots::BITSLICE_T[i], "BITSLICE_TX", 0, i)
                     .pins_name_only(&[
                         "CLK",
                         "DIV2_CLK",
@@ -1628,7 +1517,7 @@ impl IntMaker<'_> {
             for i in 0..8 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::BITSLICE_CONTROL[i], "BITSLICE_CONTROL", 0, i)
+                    .bel_xy(defs::bslots::BITSLICE_CONTROL[i], "BITSLICE_CONTROL", 0, i)
                     .pins_name_only(&[
                         "PDQS_GT_IN",
                         "NDQS_GT_IN",
@@ -1730,7 +1619,7 @@ impl IntMaker<'_> {
             for i in 0..8 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::PLL_SELECT[i], "PLL_SELECT_SITE", 0, i ^ 1)
+                        .bel_xy(defs::bslots::PLL_SELECT[i], "PLL_SELECT_SITE", 0, i ^ 1)
                         .pins_name_only(&["REFCLK_DFD", "Z", "PLL_CLK_EN"])
                         .pin_name_only("D0", 1)
                         .pin_name_only("D1", 1),
@@ -1739,7 +1628,7 @@ impl IntMaker<'_> {
             for i in 0..4 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::RIU_OR[i], "RIU_OR", 0, i)
+                    .bel_xy(defs::bslots::RIU_OR[i], "RIU_OR", 0, i)
                     .pins_name_only(&["RIU_RD_VALID_LOW", "RIU_RD_VALID_UPP"]);
                 for i in 0..16 {
                     bel = bel.pins_name_only(&[
@@ -1752,7 +1641,12 @@ impl IntMaker<'_> {
             for i in 0..4 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::XIPHY_FEEDTHROUGH[i], "XIPHY_FEEDTHROUGH", i, 0)
+                    .bel_xy(
+                        defs::bslots::XIPHY_FEEDTHROUGH[i],
+                        "XIPHY_FEEDTHROUGH",
+                        i,
+                        0,
+                    )
                     .pins_name_only(&[
                         "CLB2PHY_CTRL_RST_B_LOW_SMX",
                         "CLB2PHY_CTRL_RST_B_UPP_SMX",
@@ -1791,87 +1685,9 @@ impl IntMaker<'_> {
                 bels.push(bel);
             }
 
-            let mut bel = self.builder.bel_virtual(bels::CMT);
-            for i in 0..4 {
-                bel = bel.extra_wire(format!("CCIO{i}"), &[format!("IOB2CLK_CCIO{i}")]);
-            }
-            for i in 0..24 {
-                let dummy_base = [
-                    0, 3, 36, 53, 56, 59, 62, 65, 68, 71, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 39,
-                    42, 45, 48,
-                ][i];
-                bel = bel
-                    .extra_wire(format!("VDISTR{i}_B"), &[format!("CLK_VDISTR_BOT{i}")])
-                    .extra_wire(format!("VDISTR{i}_T"), &[format!("CLK_VDISTR_TOP{i}")])
-                    .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_0_{i}")])
-                    .extra_wire(format!("HROUTE{i}_R"), &[format!("CLK_HROUTE_1_{i}")])
-                    .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_0_{i}")])
-                    .extra_wire(format!("HDISTR{i}_R"), &[format!("CLK_HDISTR_1_{i}")])
-                    .extra_wire(
-                        format!("HDISTR{i}_L_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 1 + i * 8)],
-                    )
-                    .extra_wire(
-                        format!("HDISTR{i}_R_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = i * 8)],
-                    )
-                    .extra_wire(
-                        format!("HDISTR{i}_OUT_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 4 + i * 8)],
-                    )
-                    .extra_wire(
-                        format!("HROUTE{i}_L_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 3 + i * 8)],
-                    )
-                    .extra_wire(
-                        format!("HROUTE{i}_R_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 2 + i * 8)],
-                    )
-                    .extra_wire(
-                        format!("VDISTR{i}_B_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 6 + i * 8)],
-                    )
-                    .extra_wire(
-                        format!("VDISTR{i}_T_MUX"),
-                        &[format!("CLK_CMT_MUX_2TO1_{ii}_CLK_OUT", ii = 7 + i * 8)],
-                    )
-                    .extra_wire(
-                        format!("OUT_MUX{i}"),
-                        &[format!("CLK_CMT_MUX_16_ENC_{i}_CLK_OUT")],
-                    )
-                    .extra_wire(
-                        format!("OUT_MUX{i}_DUMMY0"),
-                        &[format!("VCC_WIRE{dummy_base}")],
-                    )
-                    .extra_wire(
-                        format!("OUT_MUX{i}_DUMMY1"),
-                        &[format!("VCC_WIRE{ii}", ii = dummy_base + 1)],
-                    )
-                    .extra_wire(
-                        format!("OUT_MUX{i}_DUMMY2"),
-                        &[format!("VCC_WIRE{ii}", ii = dummy_base + 2)],
-                    );
-            }
-            for i in 0..6 {
-                bel = bel
-                    .extra_wire(
-                        format!("XIPHY_CLK{i}_B"),
-                        &[format!("CLK_LEAF_MUX_XIPHY_{ii}_CLK_LEAF", ii = i + 6)],
-                    )
-                    .extra_wire(
-                        format!("XIPHY_CLK{i}_T"),
-                        &[format!("CLK_LEAF_MUX_XIPHY_{i}_CLK_LEAF")],
-                    );
-            }
-            bels.push(bel);
-            bels.push(
-                self.builder
-                    .bel_virtual(bels::VCC_CMT)
-                    .extra_wire("VCC", &["VCC_WIRE"]),
-            );
             let mut xn = self
                 .builder
-                .xtile(tslots::BEL, "XIPHY", "XIPHY", xy)
+                .xtile_id(tcls::XIPHY, "XIPHY", xy)
                 .num_tiles(60)
                 .ref_xlat(int_xy.delta(0, 30), &[Some(30), None, None, None], rclk_int);
             for i in 0..60 {
@@ -1886,7 +1702,7 @@ impl IntMaker<'_> {
     fn fill_tiles_hpio(&mut self) {
         if let Some(&xy) = self.builder.rd.tiles_by_kind_name("HPIO_L").iter().next() {
             let int_xy = self.builder.walk_to_int(xy, Dir::E, false).unwrap();
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.W.IO");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_W_IO");
             let mut bels = vec![];
             let mut is_nocfg = true;
             if let Some(wire) = self.builder.rd.wires.get("HPIO_IOB_3_TSDI_PIN") {
@@ -1898,7 +1714,7 @@ impl IntMaker<'_> {
             for i in 0..26 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::HPIOB[i], "IOB", 0, i)
+                    .bel_xy(defs::bslots::HPIOB[i], "IOB", 0, i)
                     .pins_name_only(&[
                         "I",
                         "OUTB_B_IN",
@@ -1930,7 +1746,7 @@ impl IntMaker<'_> {
             for i in 0..12 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::HPIOB_DIFF_IN[i], "HPIOBDIFFINBUF", 0, i)
+                        .bel_xy(defs::bslots::HPIOB_DIFF_IN[i], "HPIOBDIFFINBUF", 0, i)
                         .pins_name_only(&[
                             "LVDS_TRUE",
                             "LVDS_COMP",
@@ -1944,20 +1760,17 @@ impl IntMaker<'_> {
             for i in 0..12 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::HPIOB_DIFF_OUT[i], "HPIOBDIFFOUTBUF", 0, i)
+                        .bel_xy(defs::bslots::HPIOB_DIFF_OUT[i], "HPIOBDIFFOUTBUF", 0, i)
                         .pins_name_only(&["AOUT", "BOUT", "O_B", "TSTATEB"]),
                 );
             }
             bels.push(
                 self.builder
-                    .bel_xy(bels::HPIO_VREF, "HPIO_VREF_SITE", 0, 0)
+                    .bel_xy(defs::bslots::HPIO_VREF, "HPIO_VREF_SITE", 0, 0)
                     .pins_name_only(&["VREF1", "VREF2"]),
             );
-            let naming = if is_nocfg { "HPIO.NOCFG" } else { "HPIO" };
-            let mut xn = self
-                .builder
-                .xtile(tslots::IOB, "HPIO", naming, xy)
-                .num_tiles(30);
+            let naming = if is_nocfg { "HPIO_NOCFG" } else { "HPIO" };
+            let mut xn = self.builder.xtile_id(tcls::HPIO, naming, xy).num_tiles(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::W, i)
@@ -1977,21 +1790,23 @@ impl IntMaker<'_> {
                 .builder
                 .walk_to_int(xy.delta(0, -30), Dir::E, false)
                 .unwrap();
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.W.IO");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_W_IO");
             let mut bels = vec![];
             for i in 0..5 {
-                bels.push(
-                    self.builder
-                        .bel_xy(bels::ABUS_SWITCH_HPIO[i], "ABUS_SWITCH", i, 0),
-                );
+                bels.push(self.builder.bel_xy(
+                    defs::bslots::ABUS_SWITCH_HPIO[i],
+                    "ABUS_SWITCH",
+                    i,
+                    0,
+                ));
             }
             bels.push(
                 self.builder
-                    .bel_xy(bels::HPIO_ZMATCH, "HPIO_ZMATCH_BLK_HCLK", 0, 0),
+                    .bel_xy(defs::bslots::HPIO_ZMATCH, "HPIO_ZMATCH_BLK_HCLK", 0, 0),
             );
             let mut xn = self
                 .builder
-                .xtile(tslots::RCLK_IOB, "RCLK_HPIO", "RCLK_HPIO", xy)
+                .xtile_id(tcls::RCLK_HPIO, "RCLK_HPIO", xy)
                 .num_tiles(60);
             for i in 0..60 {
                 xn = xn
@@ -2005,7 +1820,7 @@ impl IntMaker<'_> {
     fn fill_tiles_hrio(&mut self) {
         if let Some(&xy) = self.builder.rd.tiles_by_kind_name("HRIO_L").iter().next() {
             let int_xy = self.builder.walk_to_int(xy, Dir::E, false).unwrap();
-            let intf = self.builder.ndb.get_tile_class_naming("INTF.W.IO");
+            let intf = self.builder.ndb.get_tile_class_naming("INTF_W_IO");
             let mut bels = vec![];
             let mut is_nocfg = true;
             if let Some(wire) = self.builder.rd.wires.get("HRIO_IOB_5_TSDI_PIN") {
@@ -2017,7 +1832,7 @@ impl IntMaker<'_> {
             for i in 0..26 {
                 let mut bel = self
                     .builder
-                    .bel_xy(bels::HRIOB[i], "IOB", 0, i)
+                    .bel_xy(defs::bslots::HRIOB[i], "IOB", 0, i)
                     .pins_name_only(&[
                         "DOUT",
                         "OUTB_B_IN",
@@ -2046,7 +1861,7 @@ impl IntMaker<'_> {
             for i in 0..12 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::HRIOB_DIFF_IN[i], "HRIODIFFINBUF", 0, i)
+                        .bel_xy(defs::bslots::HRIOB_DIFF_IN[i], "HRIODIFFINBUF", 0, i)
                         .pins_name_only(&[
                             "LVDS_IBUF_OUT",
                             "LVDS_IBUF_OUT_B",
@@ -2058,15 +1873,12 @@ impl IntMaker<'_> {
             for i in 0..12 {
                 bels.push(
                     self.builder
-                        .bel_xy(bels::HRIOB_DIFF_OUT[i], "HRIODIFFOUTBUF", 0, i)
+                        .bel_xy(defs::bslots::HRIOB_DIFF_OUT[i], "HRIODIFFOUTBUF", 0, i)
                         .pins_name_only(&["AOUT", "BOUT", "O_B", "TSTATEB"]),
                 );
             }
-            let naming = if is_nocfg { "HRIO.NOCFG" } else { "HRIO" };
-            let mut xn = self
-                .builder
-                .xtile(tslots::IOB, "HRIO", naming, xy)
-                .num_tiles(30);
+            let naming = if is_nocfg { "HRIO_NOCFG" } else { "HRIO" };
+            let mut xn = self.builder.xtile_id(tcls::HRIO, naming, xy).num_tiles(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::W, i)
@@ -2084,13 +1896,15 @@ impl IntMaker<'_> {
         {
             let mut bels = vec![];
             for i in 0..8 {
-                bels.push(
-                    self.builder
-                        .bel_xy(bels::ABUS_SWITCH_HRIO[i], "ABUS_SWITCH", i, 0),
-                );
+                bels.push(self.builder.bel_xy(
+                    defs::bslots::ABUS_SWITCH_HRIO[i],
+                    "ABUS_SWITCH",
+                    i,
+                    0,
+                ));
             }
             self.builder
-                .xtile(tslots::RCLK_IOB, "RCLK_HRIO", "RCLK_HRIO", xy)
+                .xtile_id(tcls::RCLK_HRIO, "RCLK_HRIO", xy)
                 .num_tiles(0)
                 .bels(bels)
                 .extract();
@@ -2098,16 +1912,16 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_rclk(&mut self) {
-        for (node, tkn) in [
-            ("RCLK_HROUTE_SPLITTER.HARD", "PCIE"),
-            ("RCLK_HROUTE_SPLITTER.HARD", "CMAC_CMAC_FT"),
-            ("RCLK_HROUTE_SPLITTER.HARD", "ILMAC_ILMAC_FT"),
-            ("RCLK_HROUTE_SPLITTER.HARD", "CFG_CFG"),
-            ("RCLK_HROUTE_SPLITTER.HARD", "RCLK_AMS_CFGIO"),
-            ("RCLK_HROUTE_SPLITTER.CLE", "RCLK_CLEM_CLKBUF_L"),
+        for (tcid, tkn) in [
+            (tcls::RCLK_HROUTE_SPLITTER_HARD, "PCIE"),
+            (tcls::RCLK_HROUTE_SPLITTER_HARD, "CMAC_CMAC_FT"),
+            (tcls::RCLK_HROUTE_SPLITTER_HARD, "ILMAC_ILMAC_FT"),
+            (tcls::RCLK_HROUTE_SPLITTER_HARD, "CFG_CFG"),
+            (tcls::RCLK_HROUTE_SPLITTER_HARD, "RCLK_AMS_CFGIO"),
+            (tcls::RCLK_HROUTE_SPLITTER_CLE, "RCLK_CLEM_CLKBUF_L"),
         ] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
-                let mut bel = self.builder.bel_virtual(bels::RCLK_HROUTE_SPLITTER);
+                let mut bel = self.builder.bel_virtual(defs::bslots::RCLK_HROUTE_SPLITTER);
                 for i in 0..24 {
                     bel = bel
                         .extra_wire(format!("HROUTE{i}_L"), &[format!("CLK_HROUTE_L{i}")])
@@ -2115,10 +1929,10 @@ impl IntMaker<'_> {
                 }
                 let bel_vcc = self
                     .builder
-                    .bel_virtual(bels::VCC_RCLK_HROUTE_SPLITTER)
+                    .bel_virtual(defs::bslots::VCC_RCLK_HROUTE_SPLITTER)
                     .extra_wire("VCC", &["VCC_WIRE"]);
                 self.builder
-                    .xtile(tslots::RCLK_SPLITTER, node, "RCLK_HROUTE_SPLITTER", xy)
+                    .xtile_id(tcid, "RCLK_HROUTE_SPLITTER", xy)
                     .num_tiles(0)
                     .bel(bel)
                     .bel(bel_vcc)
@@ -2133,7 +1947,7 @@ impl IntMaker<'_> {
             .iter()
             .next()
         {
-            let mut bel = self.builder.bel_virtual(bels::RCLK_SPLITTER);
+            let mut bel = self.builder.bel_virtual(defs::bslots::RCLK_SPLITTER);
             for i in 0..24 {
                 bel = bel
                     .extra_wire(format!("HDISTR{i}_L"), &[format!("CLK_HDISTR_L{i}")])
@@ -2143,10 +1957,10 @@ impl IntMaker<'_> {
             }
             let bel_vcc = self
                 .builder
-                .bel_virtual(bels::VCC_RCLK_SPLITTER)
+                .bel_virtual(defs::bslots::VCC_RCLK_SPLITTER)
                 .extra_wire("VCC", &["VCC_WIRE"]);
             self.builder
-                .xtile(tslots::RCLK_SPLITTER, "RCLK_SPLITTER", "RCLK_SPLITTER", xy)
+                .xtile_id(tcls::RCLK_SPLITTER, "RCLK_SPLITTER", xy)
                 .num_tiles(0)
                 .bel(bel)
                 .bel(bel_vcc)
@@ -2167,7 +1981,7 @@ impl IntMaker<'_> {
                 let int_xy = xy.delta(if side == Dir::W { 1 } else { -1 }, 0);
                 let bels = vec![
                     self.builder
-                        .bel_xy(bels::BUFCE_ROW_RCLK0, "BUFCE_ROW", 0, 0)
+                        .bel_xy(defs::bslots::BUFCE_ROW_RCLK[0], "BUFCE_ROW", 0, 0)
                         .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
                         .extra_wire("VDISTR_B", &["CLK_VDISTR_BOT"])
                         .extra_wire("VDISTR_T", &["CLK_VDISTR_TOP"])
@@ -2180,19 +1994,18 @@ impl IntMaker<'_> {
                         .extra_wire("VROUTE_T_MUX", &["CLK_CMT_MUX_3TO1_3_CLK_OUT"])
                         .extra_wire("HROUTE_MUX", &["CLK_CMT_MUX_2TO1_1_CLK_OUT"]),
                     self.builder
-                        .bel_xy(bels::GCLK_TEST_BUF_RCLK0, "GCLK_TEST_BUFE3", 0, 0)
+                        .bel_xy(defs::bslots::GCLK_TEST_BUF_RCLK[0], "GCLK_TEST_BUFE3", 0, 0)
                         .pin_name_only("CLK_OUT", 0)
                         .pin_name_only("CLK_IN", usize::from(is_alt)),
                     self.builder
-                        .bel_virtual(bels::VCC_RCLK_V)
+                        .bel_virtual(defs::bslots::VCC_RCLK_V)
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 ];
                 self.builder
-                    .xtile(
-                        tslots::RCLK_V,
-                        "RCLK_V_SINGLE.CLE",
+                    .xtile_id(
+                        tcls::RCLK_V_SINGLE_CLE,
                         if is_alt {
-                            "RCLK_V_SINGLE.ALT"
+                            "RCLK_V_SINGLE_ALT"
                         } else {
                             "RCLK_V_SINGLE"
                         },
@@ -2212,12 +2025,20 @@ impl IntMaker<'_> {
             }
         }
 
-        for (tkn, kind, side) in [
-            ("RCLK_BRAM_L", "RCLK_V_DOUBLE.BRAM", Dir::W),
-            ("RCLK_BRAM_R", "RCLK_V_DOUBLE.BRAM", Dir::W),
-            ("RCLK_RCLK_BRAM_L_AUXCLMP_FT", "RCLK_V_DOUBLE.BRAM", Dir::W),
-            ("RCLK_RCLK_BRAM_L_BRAMCLMP_FT", "RCLK_V_DOUBLE.BRAM", Dir::W),
-            ("RCLK_DSP_L", "RCLK_V_DOUBLE.DSP", Dir::E),
+        for (tkn, tcid, side) in [
+            ("RCLK_BRAM_L", tcls::RCLK_V_DOUBLE_BRAM, Dir::W),
+            ("RCLK_BRAM_R", tcls::RCLK_V_DOUBLE_BRAM, Dir::W),
+            (
+                "RCLK_RCLK_BRAM_L_AUXCLMP_FT",
+                tcls::RCLK_V_DOUBLE_BRAM,
+                Dir::W,
+            ),
+            (
+                "RCLK_RCLK_BRAM_L_BRAMCLMP_FT",
+                tcls::RCLK_V_DOUBLE_BRAM,
+                Dir::W,
+            ),
+            ("RCLK_DSP_L", tcls::RCLK_V_DOUBLE_DSP, Dir::E),
         ] {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
                 let is_alt = self.dev_naming.rclk_alt_pins[tkn];
@@ -2227,7 +2048,7 @@ impl IntMaker<'_> {
                 for i in 0..2 {
                     bels.push(
                         self.builder
-                            .bel_xy(bels::BUFCE_ROW_RCLK[i], "BUFCE_ROW", i, 0)
+                            .bel_xy(defs::bslots::BUFCE_ROW_RCLK[i], "BUFCE_ROW", i, 0)
                             .pins_name_only(&["CLK_IN", "CLK_OUT", "CLK_OUT_OPT_DLY"])
                             .extra_wire("VDISTR_B", &[format!("CLK_VDISTR_BOT{i}")])
                             .extra_wire("VDISTR_T", &[format!("CLK_VDISTR_TOP{i}")])
@@ -2259,22 +2080,21 @@ impl IntMaker<'_> {
                 for i in 0..2 {
                     bels.push(
                         self.builder
-                            .bel_xy(bels::GCLK_TEST_BUF_RCLK[i], "GCLK_TEST_BUFE3", i, 0)
+                            .bel_xy(defs::bslots::GCLK_TEST_BUF_RCLK[i], "GCLK_TEST_BUFE3", i, 0)
                             .pin_name_only("CLK_OUT", 0)
                             .pin_name_only("CLK_IN", usize::from(is_alt)),
                     );
                 }
                 bels.push(
                     self.builder
-                        .bel_virtual(bels::VCC_RCLK_V)
+                        .bel_virtual(defs::bslots::VCC_RCLK_V)
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
                 self.builder
-                    .xtile(
-                        tslots::RCLK_V,
-                        kind,
+                    .xtile_id(
+                        tcid,
                         if is_alt {
-                            "RCLK_V_DOUBLE.ALT"
+                            "RCLK_V_DOUBLE_ALT"
                         } else {
                             "RCLK_V_DOUBLE"
                         },
@@ -2296,28 +2116,28 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_gt(&mut self) {
-        for (common, channel, tkn, kind, naming, side) in [
+        for (common, channel, tkn, tcid, naming, side) in [
             (
-                bels::GTH_COMMON,
-                bels::GTH_CHANNEL,
+                defs::bslots::GTH_COMMON,
+                defs::bslots::GTH_CHANNEL,
                 "GTH_QUAD_LEFT_FT",
-                "GTH",
+                tcls::GTH,
                 "GTH_L",
                 Dir::W,
             ),
             (
-                bels::GTY_COMMON,
-                bels::GTY_CHANNEL,
+                defs::bslots::GTY_COMMON,
+                defs::bslots::GTY_CHANNEL,
                 "GTY_QUAD_LEFT_FT",
-                "GTY",
+                tcls::GTY,
                 "GTY_L",
                 Dir::W,
             ),
             (
-                bels::GTH_COMMON,
-                bels::GTH_CHANNEL,
+                defs::bslots::GTH_COMMON,
+                defs::bslots::GTH_CHANNEL,
                 "GTH_R",
-                "GTH",
+                tcls::GTH,
                 "GTH_R",
                 Dir::E,
             ),
@@ -2325,12 +2145,16 @@ impl IntMaker<'_> {
             if let Some(&xy) = self.builder.rd.tiles_by_kind_name(tkn).iter().next() {
                 let int_xy = self.builder.walk_to_int(xy, !side, false).unwrap();
                 let intf = self.builder.ndb.get_tile_class_naming(if side == Dir::W {
-                    "INTF.W.GT"
+                    "INTF_W_GT"
                 } else {
-                    "INTF.E.GT"
+                    "INTF_E_GT"
                 });
                 let rclk_int = self.builder.ndb.get_tile_class_naming("RCLK_INT");
-                let gtk = &kind[..3];
+                let gtk = match tcid {
+                    tcls::GTH => "GTH",
+                    tcls::GTY => "GTY",
+                    _ => unreachable!(),
+                };
                 let mut bels = vec![];
                 for i in 0..24 {
                     let bi = [
@@ -2361,7 +2185,7 @@ impl IntMaker<'_> {
                     ][i];
                     let mut bel = self
                         .builder
-                        .bel_xy(bels::BUFG_GT[i], "BUFG_GT", 0, i)
+                        .bel_xy(defs::bslots::BUFG_GT[i], "BUFG_GT", 0, i)
                         .pins_name_only(&["CLK_IN", "CLK_OUT", "CE", "RST_PRE_OPTINV"]);
                     for j in 0..5 {
                         bel = bel
@@ -2383,7 +2207,7 @@ impl IntMaker<'_> {
                 for i in 0..11 {
                     let mut bel = self
                         .builder
-                        .bel_xy(bels::BUFG_GT_SYNC[i], "BUFG_GT_SYNC", 0, i)
+                        .bel_xy(defs::bslots::BUFG_GT_SYNC[i], "BUFG_GT_SYNC", 0, i)
                         .pins_name_only(&["CE_OUT", "RST_OUT"]);
                     if i != 10 {
                         bel = bel.pins_name_only(&["CLK_IN"]);
@@ -2391,10 +2215,12 @@ impl IntMaker<'_> {
                     bels.push(bel);
                 }
                 for i in 0..4 {
-                    bels.push(
-                        self.builder
-                            .bel_xy(bels::ABUS_SWITCH_GT[i], "ABUS_SWITCH", 0, i),
-                    );
+                    bels.push(self.builder.bel_xy(
+                        defs::bslots::ABUS_SWITCH_GT[i],
+                        "ABUS_SWITCH",
+                        0,
+                        i,
+                    ));
                 }
 
                 for i in 0..4 {
@@ -2485,7 +2311,7 @@ impl IntMaker<'_> {
                             ],
                         ),
                 );
-                let mut bel = self.builder.bel_virtual(bels::RCLK_GT);
+                let mut bel = self.builder.bel_virtual(defs::bslots::RCLK_GT);
                 for i in 0..24 {
                     if side == Dir::W {
                         bel = bel
@@ -2500,13 +2326,13 @@ impl IntMaker<'_> {
                 bels.push(bel);
                 bels.push(
                     self.builder
-                        .bel_virtual(bels::VCC_GT)
+                        .bel_virtual(defs::bslots::VCC_GT)
                         .extra_wire("VCC", &["VCC_WIRE"]),
                 );
 
                 let mut xn = self
                     .builder
-                    .xtile(tslots::BEL, kind, naming, xy)
+                    .xtile_id(tcid, naming, xy)
                     .num_tiles(60)
                     .ref_xlat(
                         int_xy.delta(0, 30),
@@ -2536,25 +2362,23 @@ pub fn make_int_db(rd: &Part, dev_naming: &DeviceNaming) -> (IntDb, NamingDb) {
     let mut maker = IntMaker {
         builder: IntBuilder::new(
             rd,
-            IntDb::new(tslots::SLOTS, bels::SLOTS, regions::SLOTS, cslots::SLOTS),
+            bincode::decode_from_slice(defs::ultrascale::INIT, bincode::config::standard())
+                .unwrap()
+                .0,
         ),
-        long_term_slots: DirPartMap::new(),
-        long_main_passes: DirPartMap::new(),
         sng_fixup_map: BTreeMap::new(),
-        term_wires_w: EntityPartVec::new(),
-        term_wires_e: EntityPartVec::new(),
-        term_wires_lw: EntityPartVec::new(),
-        term_wires_le: EntityPartVec::new(),
         dev_naming,
     };
 
-    for bslot in maker.builder.db.bel_slots.values_mut() {
-        if bslot.tile_slot == tslots::CMT {
-            bslot.tile_slot = tslots::BEL;
-        }
-    }
+    maker
+        .builder
+        .inject_main_passes(DirMap::from_fn(|dir| match dir {
+            Dir::W => ccls::PASS_W,
+            Dir::E => ccls::PASS_E,
+            Dir::S => ccls::PASS_S,
+            Dir::N => ccls::PASS_N,
+        }));
 
-    maker.fill_term_slots();
     maker.fill_wires();
 
     maker.fill_tiles_int();

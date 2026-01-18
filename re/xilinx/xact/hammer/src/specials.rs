@@ -23,7 +23,6 @@ specials![
     IO_BUF_ON,
     IO_IQ,
     BIDI_S,
-
     // xc3000
     CLB_LUT_ABCD,
     CLB_LUT_ABCE,

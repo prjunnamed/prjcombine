@@ -1,5 +1,3 @@
-#![recursion_limit = "1024"]
-
 use clap::Parser;
 use prjcombine_interconnect::dir::DirV;
 use prjcombine_re_fpga_hammer::{Collector, CollectorData};

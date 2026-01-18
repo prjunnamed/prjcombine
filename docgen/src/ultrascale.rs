@@ -17,16 +17,9 @@ pub fn gen_ultrascale(ctx: &mut DocgenContext) {
         flip_frame: false,
         flip_bit: true,
     };
-    let gtz_orientation = TileOrientation {
-        frame_direction: FrameDirection::Horizontal,
-        flip_frame: false,
-        flip_bit: true,
-    };
     let orientation = |tname: &str| {
         if tname.starts_with("REG.") {
             reg_orientation
-        } else if tname == "GTZ" {
-            gtz_orientation
         } else {
             tile_orientation
         }

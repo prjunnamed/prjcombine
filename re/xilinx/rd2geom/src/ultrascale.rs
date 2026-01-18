@@ -1,8 +1,7 @@
-use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip, DeviceNaming, DisabledPart, Interposer};
 use prjcombine_re_xilinx_naming_ultrascale::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_ultrascale::expand_grid;
+use prjcombine_ultrascale::{defs, expand_grid};
 
 use crate::db::{PreDevice, make_device_multi};
 use prjcombine_re_xilinx_rd2db_ultrascale::{bond, grid, int_u, int_up};
@@ -10,10 +9,20 @@ use prjcombine_re_xilinx_rdverify_ultrascale::verify_device;
 
 pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
     let (grids, interposer, disabled, naming) = grid::make_grids(rd);
-    let (intdb, ndb) = if rd.family == "ultrascale" {
-        int_u::make_int_db(rd, &naming)
+    let (base, (intdb, ndb)) = if rd.family == "ultrascale" {
+        (
+            bincode::decode_from_slice(defs::ultrascale::INIT, bincode::config::standard())
+                .unwrap()
+                .0,
+            int_u::make_int_db(rd, &naming),
+        )
     } else {
-        int_up::make_int_db(rd, &naming)
+        (
+            bincode::decode_from_slice(defs::ultrascaleplus::INIT, bincode::config::standard())
+                .unwrap()
+                .0,
+            int_up::make_int_db(rd, &naming),
+        )
     };
     let grid_refs = grids.map_values(|x| x);
     let edev = expand_grid(&grid_refs, &interposer, &disabled, &intdb);
@@ -37,7 +46,7 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         disabled,
         DeviceNaming::Ultrascale(naming),
         rd.family.clone(),
-        IntDb::default(),
+        base,
         intdb,
         ndb,
     )

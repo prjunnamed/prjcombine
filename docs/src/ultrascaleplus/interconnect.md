@@ -4,5 +4,5 @@
 
 {{tile ultrascaleplus INT}}
 {{tile ultrascaleplus INTF}}
-{{tile ultrascaleplus INTF.IO}}
-{{tile ultrascaleplus INTF.DELAY}}
+{{tile ultrascaleplus INTF_IO}}
+{{tile ultrascaleplus INTF_DELAY}}

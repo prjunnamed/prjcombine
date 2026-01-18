@@ -182,7 +182,7 @@ fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo
                             used_i.insert(delay.src.tw);
                         }
                         SwitchBoxItem::Bidi(_) => unreachable!(),
-                                            }
+                    }
                 }
             }
             BelInfo::Bel(_bel) => {

@@ -4,4 +4,4 @@
 
 {{tile ultrascale INT}}
 {{tile ultrascale INTF}}
-{{tile ultrascale INTF.DELAY}}
+{{tile ultrascale INTF_DELAY}}

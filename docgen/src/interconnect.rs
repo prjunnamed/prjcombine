@@ -1359,6 +1359,10 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
     let tcls = &intdb[tcid];
     let mut buf = String::new();
 
+    if matches!(dbname, "ultrascale" | "ultrascaleplus") && tcls.bels.iter().next().is_none() {
+        return;
+    }
+
     writeln!(buf, r#"## Tile {tname}"#).unwrap();
     writeln!(buf).unwrap();
     writeln!(buf, r#"Cells: {}"#, tcls.cells.len()).unwrap();

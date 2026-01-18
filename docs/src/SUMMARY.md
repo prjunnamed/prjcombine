@@ -303,6 +303,7 @@
     - [HPIO IOB](ultrascale/io/hpio.md)
     - [HRIO IOB](ultrascale/io/hrio.md)
     - [HPIO/HRIO XIPHY](ultrascale/io/xiphy.md)
+    - [Clock Management Tile](ultrascale/io/cmt.md)
   - [Configuration center](ultrascale/center.md)
   - [CMAC](ultrascale/cmac.md)
   - [PCI Express](ultrascale/pcie.md)
