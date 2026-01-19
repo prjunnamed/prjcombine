@@ -656,7 +656,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ];
         builder
             .xtile_id(defs::tcls::CNR_SE, "CNR_SE", xy)
-            .num_tiles(2)
+            .num_cells(2)
             .raw_tile(xy.delta(0, 1))
             .ref_single(xy, 0, intf_cnr)
             .ref_single(xy.delta(0, 1), 1, intf_cnr)
@@ -677,7 +677,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         ];
         builder
             .xtile_id(defs::tcls::CNR_NE, "CNR_NE", xy)
-            .num_tiles(2)
+            .num_cells(2)
             .raw_tile(xy.delta(0, 1))
             .ref_single(xy, 0, intf_cnr)
             .ref_single(xy.delta(0, 1), 1, intf_cnr)
@@ -1036,7 +1036,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::IOB, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bels(bels)
                 .extract();
         }
@@ -1149,7 +1149,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::IOI_CLK_SN, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -1234,7 +1234,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             builder
                 .xtile_id(defs::tcls::PCI_CE_TRUNK_BUF, trunk_naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
             let bel = builder
@@ -1257,7 +1257,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             builder
                 .xtile_id(defs::tcls::PCI_CE_V_BUF, v_naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -1276,7 +1276,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("PCI_CE_O", &["HCLK_PCI_CE_INOUT"]);
             builder
                 .xtile_id(defs::tcls::PCI_CE_SPLIT, "PCI_CE_SPLIT", xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -1388,7 +1388,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder
                 .xtile_id(defs::tcls::IOI_CLK_WE, naming, xy)
                 .raw_tile(xy) // dummy
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .bel(bel_term)
                 .extract();
@@ -1428,7 +1428,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 );
             builder
                 .xtile_id(defs::tcls::PCI_CE_H_BUF, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -1539,7 +1539,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             let mut xn = builder
                 .xtile_id(defs::tcls::MCB, tkn, xy)
-                .num_tiles(28)
+                .num_cells(28)
                 .raw_tile(xy.delta(0, -7))
                 .raw_tile(clk_xy.unwrap())
                 .raw_tile(muis[5].delta(0, -1))
@@ -1601,7 +1601,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::HCLK, naming, xy)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_int(xy.delta(0, -1), 0)
                 .ref_int(xy.delta(0, 1), 1)
                 .bel(bel)
@@ -1639,7 +1639,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::HCLK_H_MIDBUF, tkn, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -1671,7 +1671,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         bels.push(bel);
         builder
             .xtile_id(defs::tcls::HCLK_ROW, "HCLK_ROW", xy)
-            .num_tiles(0)
+            .num_cells(0)
             .bels(bels)
             .extract();
     }
@@ -1687,7 +1687,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::HCLK_V_MIDBUF, "HCLK_V_MIDBUF", xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -1781,7 +1781,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::CKPIN_V_MIDBUF, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -1804,7 +1804,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::CKPIN_H_MIDBUF, "CKPIN_H_MIDBUF", xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -2177,14 +2177,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             match tkn {
                 "REG_L" => {
                     xn = xn
-                        .num_tiles(2)
+                        .num_cells(2)
                         .raw_tile(xy.delta(1, 0))
                         .raw_tile_single(xy.delta(2, 1), 0)
                         .raw_tile_single(xy.delta(2, 2), 1);
                 }
                 "REG_R" => {
                     xn = xn
-                        .num_tiles(2)
+                        .num_cells(2)
                         .raw_tile(xy.delta(-1, 0))
                         .raw_tile_single(xy.delta(-4, 1), 0)
                         .raw_tile_single(xy.delta(-4, 2), 1);
@@ -2299,7 +2299,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("DQSN_I", &[format!("IOI_{lr}TERM_{bt}_DQSN{bi}_{ew}")]);
             builder
                 .xtile_id(defs::tcls::CLKPIN_BUF, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -2439,7 +2439,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .extra_wire("DQSN_I", &[format!("{prefix}_DQSN{bi}_{ns}")]);
             builder
                 .xtile_id(defs::tcls::CLKPIN_BUF, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -2601,7 +2601,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             builder
                 .xtile_id(defs::tcls::CMT_DCM, tkn, xy)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy.delta(-1, -2), 0, intf)
                 .ref_single(xy.delta(-1, 0), 1, intf)
                 .bels(bels)
@@ -2662,7 +2662,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
             builder
                 .xtile_id(tcid, kind, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -2793,7 +2793,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(defs::tcls::CMT_PLL, tkn, xy)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy.delta(-1, -2), 0, intf)
                 .ref_single(xy.delta(-1, 0), 1, intf)
                 .bel(bel_pll)
@@ -2830,17 +2830,17 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 builder
                     .xtile_id(tcid, tcname, xy)
-                    .num_tiles(0)
+                    .num_cells(0)
                     .bel(bel)
                     .extract();
             } else {
                 builder
                     .xtile_id(defs::tcls::PLL_BUFPLL_S, "PLL_BUFPLL_S", xy)
-                    .num_tiles(0)
+                    .num_cells(0)
                     .extract();
                 builder
                     .xtile_id(defs::tcls::PLL_BUFPLL_N, "PLL_BUFPLL_N", xy)
-                    .num_tiles(0)
+                    .num_cells(0)
                     .extract();
             }
         }
@@ -3136,7 +3136,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             let mut xn = builder
                 .xtile_id(defs::tcls::GTP, tkn, xy)
-                .num_tiles(16)
+                .num_cells(16)
                 .raw_tile(xy.delta(
                     0,
                     match tkn {

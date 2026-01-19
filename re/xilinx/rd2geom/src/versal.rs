@@ -1,4 +1,3 @@
-use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip, DeviceNaming, DisabledPart, Interposer};
 use prjcombine_re_xilinx_naming_versal::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -32,7 +31,9 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         disabled,
         DeviceNaming::Versal(naming),
         "versal",
-        IntDb::default(),
+        bincode::decode_from_slice(prjcombine_versal::defs::INIT, bincode::config::standard())
+            .unwrap()
+            .0,
         intdb,
         ndb,
     )

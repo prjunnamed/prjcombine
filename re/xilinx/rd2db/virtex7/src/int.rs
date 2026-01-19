@@ -797,7 +797,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ]);
         builder
             .xtile_id(tcls::PMVBRAM_NC, "PMVBRAM_NC", xy)
-            .num_tiles(0)
+            .num_cells(0)
             .bel(bel)
             .extract();
     }
@@ -1018,7 +1018,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         builder
             .xtile_id(tcls::INT_LCLK, "INT_LCLK", xy)
             .raw_tile_single(xy.delta(1, 0), 1)
-            .num_tiles(2)
+            .num_cells(2)
             .bel(bel_l)
             .bel(bel_r)
             .extract();
@@ -1073,7 +1073,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         builder
             .xtile_id(tcls::HCLK, "HCLK", xy)
             .raw_tile(xy.delta(1, 0))
-            .num_tiles(0)
+            .num_cells(0)
             .bel(bel_l)
             .bel(bel_r)
             .extract();
@@ -1149,7 +1149,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             builder
                 .xtile_id(tcid, naming, xy)
-                .num_tiles(num_tiles)
+                .num_cells(num_tiles)
                 .bels(bels)
                 .extract();
         }
@@ -1263,7 +1263,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             builder
                 .xtile_id(tcls::CLK_HROW, tkn, xy)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_int(xy.delta(-2, -1), 0)
                 .ref_int(xy.delta(-2, 1), 1)
                 .bels(bels)
@@ -1316,7 +1316,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let intf = builder.ndb.get_tile_class_naming("INTF_R");
             builder
                 .xtile_id(tcls::CLK_BUFG, tkn, xy)
-                .num_tiles(4)
+                .num_cells(4)
                 .ref_int(xy.delta(-2, 0), 0)
                 .ref_single(xy.delta(-1, 0), 0, intf)
                 .ref_int(xy.delta(-2, 1), 1)
@@ -1481,7 +1481,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .raw_tile(xy.delta(0, -2))
                 .raw_tile(xy.delta(0, 1))
                 .raw_tile(xy.delta(0, 3))
-                .num_tiles(8);
+                .num_cells(8);
             for i in 0..4 {
                 xn = xn.ref_int(int_xy.delta(0, -4 + i as i32), i).ref_single(
                     intf_xy.delta(0, -4 + i as i32),
@@ -1778,7 +1778,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                         xy,
                     )
                     .raw_tile(iob_xy)
-                    .num_tiles(2)
+                    .num_cells(2)
                     .ref_int(int_xy, 0)
                     .ref_single(intf_xy, 0, intf)
                     .ref_int(int_xy.delta(0, 1), 1)
@@ -2353,7 +2353,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             bels.push(bel);
             let mut xn = builder
                 .xtile_id(tcls::CMT, if is_l { "CMT_W" } else { "CMT_E" }, xy)
-                .num_tiles(50)
+                .num_cells(50)
                 .raw_tile(xy.delta(0, 9))
                 .raw_tile(xy.delta(0, 22))
                 .raw_tile(xy.delta(0, 35))
@@ -2392,7 +2392,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .extra_wire("PHASER_RDCLK", &["CMT_FIFO_L_PHASER_RDCLK"])
                     .extra_wire("PHASER_RDEN", &["CMT_FIFO_L_PHASER_RDENABLE"]),
             ];
-            let mut xn = builder.xtile_id(tcls::CMT_FIFO, tkn, xy).num_tiles(12);
+            let mut xn = builder.xtile_id(tcls::CMT_FIFO, tkn, xy).num_cells(12);
             for i in 0..12 {
                 xn = xn.ref_int(int_xy.delta(0, i as i32), i).ref_single(
                     intf_xy.delta(0, i as i32),
@@ -2459,7 +2459,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .xtile_id(tcls::CFG, "CFG", xy_b)
             .raw_tile(xy_m)
             .raw_tile(xy_t)
-            .num_tiles(50);
+            .num_cells(50);
         for i in 0..25 {
             xn = xn.ref_int(xy_b.delta(3, -10 + i as i32), i).ref_single(
                 xy_b.delta(2, -10 + i as i32),
@@ -2513,7 +2513,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .xtile_id(tcls::SYSMON, naming, xy_b)
                 .raw_tile(xy_m)
                 .raw_tile(xy_t)
-                .num_tiles(25);
+                .num_cells(25);
             if naming == "SYSMON_E" {
                 xn = xn
                     .raw_tile(xy_b.delta(0, -26))
@@ -2647,7 +2647,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .raw_tile(xy_pss2)
             .raw_tile(xy_pss3)
             .raw_tile(xy_pss4)
-            .num_tiles(100);
+            .num_cells(100);
         for i in 0..4 {
             for j in 0..25 {
                 xn = xn
@@ -2747,7 +2747,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_xy(defs::bslots::OPAD_TXN[0], "OPAD", 0, 0)
                     .pins_name_only(&["I"]),
             ];
-            let mut xn = builder.xtile_id(tcid, tkn, xy).num_tiles(11);
+            let mut xn = builder.xtile_id(tcid, tkn, xy).num_cells(11);
             for i in 0..11 {
                 xn = xn.ref_int(xy.delta(int_dx, -5 + i as i32), i).ref_single(
                     xy.delta(intf_dx, -5 + i as i32),
@@ -2869,7 +2869,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_xy(defs::bslots::IPAD_CLKN[1], "IPAD", 0, 3)
                     .pins_name_only(&["O"]),
             ];
-            let mut xn = builder.xtile_id(tcid, tkn, xy).num_tiles(6);
+            let mut xn = builder.xtile_id(tcid, tkn, xy).num_cells(6);
             for i in 0..3 {
                 xn = xn.ref_int(xy.delta(int_dx, i as i32), i).ref_single(
                     xy.delta(intf_dx, i as i32),
@@ -2990,7 +2990,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_xy(defs::bslots::OPAD_TXN[0], "OPAD", 0, 0)
                     .pins_name_only(&["I"]),
             ];
-            let mut xn = builder.xtile_id(tcid, tkn, xy).num_tiles(11);
+            let mut xn = builder.xtile_id(tcid, tkn, xy).num_cells(11);
             let int_dx = if is_l { 3 } else { -4 };
             let intf_dx = if is_l { 2 } else { -3 };
             for i in 0..11 {
@@ -3094,7 +3094,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     .bel_xy(defs::bslots::IPAD_CLKN[1], "IPAD", 0, 3)
                     .pins_name_only(&["O"]),
             ];
-            let mut xn = builder.xtile_id(tcid, tkn, xy).num_tiles(6);
+            let mut xn = builder.xtile_id(tcid, tkn, xy).num_cells(6);
             let int_dx = if is_l { 3 } else { -4 };
             let intf_dx = if is_l { 2 } else { -3 };
             for i in 0..3 {
@@ -3130,7 +3130,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire("SOUTHREFCLK1_U", &["BRKH_GTX_SOUTHREFCLK1_UPPER"]);
         builder
             .xtile_id(tcls::BRKH_GTX, "BRKH_GTX", xy)
-            .num_tiles(0)
+            .num_cells(0)
             .bel(bel)
             .extract();
     }

@@ -260,8 +260,8 @@ fn make_columns(
         ("MRMAC_TOP_TILE", HardRowKind::Mrmac),
         ("MRMAC_BOT_TILE", HardRowKind::Mrmac),
         ("SDFECA_TOP_TILE", HardRowKind::SdfecA),
-        ("DFE_CFC_BOT_TILE", HardRowKind::DfeCfcB),
-        ("DFE_CFC_TOP_TILE", HardRowKind::DfeCfcT),
+        ("DFE_CFC_BOT_TILE", HardRowKind::DfeCfcS),
+        ("DFE_CFC_TOP_TILE", HardRowKind::DfeCfcN),
         ("CPM_EXT_TILE", HardRowKind::CpmExt),
     ] {
         for (x, y) in int.find_tiles(&[tt]) {

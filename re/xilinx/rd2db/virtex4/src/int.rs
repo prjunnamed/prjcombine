@@ -573,7 +573,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_single(defs::bslots::CAPTURE, "CAPTURE"),
             builder.bel_single(defs::bslots::USR_ACCESS, "USR_ACCESS_SITE"),
         ];
-        let mut xn = builder.xtile_id(tcls::CFG, "CFG", xy).num_tiles(16);
+        let mut xn = builder.xtile_id(tcls::CFG, "CFG", xy).num_cells(16);
         for i in 0..8 {
             xn = xn.ref_int(xy.delta(-1, -8 + (i as i32)), i);
         }
@@ -698,7 +698,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .raw_tile(xy.delta(1, 9))
             .raw_tile(xy.delta(0, -9))
             .raw_tile(xy.delta(0, 9))
-            .num_tiles(16)
+            .num_cells(16)
             .force_test_mux_in();
         for i in 0..8 {
             xn = xn.ref_int(xy.delta(-1, -8 + (i as i32)), i);
@@ -773,7 +773,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
         builder
             .xtile_id(tcls::CLK_HROW, "CLK_HROW", xy)
-            .num_tiles(0)
+            .num_cells(0)
             .bel(bel)
             .extract();
     }
@@ -798,7 +798,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(tcid, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -828,7 +828,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(tcid, naming, xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .extract();
         }
@@ -963,7 +963,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ]);
             let mut xn = builder
                 .xtile_id(tcid, naming, xy)
-                .num_tiles(3)
+                .num_cells(3)
                 .raw_tile(xy.delta(0, -2))
                 .raw_tile(xy.delta(0, -1))
                 .raw_tile(xy.delta(0, 1))
@@ -1127,7 +1127,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             let mut xn = builder
                 .xtile_id(tcid, naming, xy)
-                .num_tiles(2)
+                .num_cells(2)
                 .force_test_mux_in();
             if ioloc == 'S' {
                 xn = xn
@@ -1190,7 +1190,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             .extra_wire_force("MGT_I3", "HCLK_MGT_CLKR1");
         builder
             .xtile_id(tcls::HCLK_DCM, "HCLK_DCM", xy)
-            .num_tiles(0)
+            .num_cells(0)
             .raw_tile(xy.delta(1, 0))
             .bel(bel)
             .bel(bel_hclk_dcm_hrow.raw_tile(1))
@@ -1700,7 +1700,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .xtile_id(tcls::MGT, naming, xy.delta(0, -18))
                 .raw_tile(xy)
                 .raw_tile(xy.delta(0, -10))
-                .num_tiles(32)
+                .num_cells(32)
                 .force_test_mux_in();
             for i in 0..32 {
                 xn = xn.ref_int(

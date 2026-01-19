@@ -906,7 +906,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
             builder
                 .xtile_id(tcid, naming, xy)
-                .num_tiles(num_cells)
+                .num_cells(num_cells)
                 .extract_muxes(defs::bslots::DLL_INT)
                 .skip_muxes(&dll_forbidden)
                 .ref_int(xy, 0)

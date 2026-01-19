@@ -727,7 +727,7 @@ impl IntMaker<'_> {
                 bels.push(bel);
                 self.builder
                     .xtile_id(tcls::RCLK_INT, "RCLK_INT", xy)
-                    .num_tiles(4)
+                    .num_cells(4)
                     .ref_int_side(xy.delta(0, 1), Dir::W, 0)
                     .ref_int_side(xy.delta(0, 1), Dir::E, 1)
                     .extract_muxes(defs::bslots::RCLK_INT)
@@ -944,7 +944,7 @@ impl IntMaker<'_> {
                     bel_bram_h1 = bel_bram_h1.pin_name_only(&format!("CASDOP{ab}U{i}"), 0);
                 }
             }
-            let mut xn = self.builder.xtile_id(tcls::BRAM, "BRAM", xy).num_tiles(5);
+            let mut xn = self.builder.xtile_id(tcls::BRAM, "BRAM", xy).num_cells(5);
             for i in 0..5 {
                 xn = xn
                     .ref_int_side(xy.delta(2, i as i32), Dir::W, i)
@@ -1007,7 +1007,7 @@ impl IntMaker<'_> {
                 }
                 bels_dsp.push(bel);
             }
-            let mut xn = self.builder.xtile_id(tcls::DSP, "DSP", xy).num_tiles(5);
+            let mut xn = self.builder.xtile_id(tcls::DSP, "DSP", xy).num_cells(5);
             for i in 0..5 {
                 xn = xn
                     .ref_int_side(xy.delta(-2, i as i32), Dir::E, i)
@@ -1046,7 +1046,7 @@ impl IntMaker<'_> {
                         .pin_name_only("MCAP_PERST0_B", 1)
                         .pin_name_only("MCAP_PERST1_B", 1);
                 }
-                let mut xn = self.builder.xtile_id(tcid, naming, xy).num_tiles(120);
+                let mut xn = self.builder.xtile_id(tcid, naming, xy).num_cells(120);
                 for i in 0..60 {
                     xn = xn
                         .ref_int_side(int_w_xy.delta(0, (i + i / 30) as i32), Dir::E, i)
@@ -1068,7 +1068,7 @@ impl IntMaker<'_> {
                 self.builder
                     .bel_xy(defs::bslots::ABUS_SWITCH_CFG, "ABUS_SWITCH", 0, 0),
             ];
-            let mut xn = self.builder.xtile_id(tcls::CFG, "CFG", xy).num_tiles(60);
+            let mut xn = self.builder.xtile_id(tcls::CFG, "CFG", xy).num_cells(60);
             for i in 0..60 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::E, i)
@@ -1095,7 +1095,7 @@ impl IntMaker<'_> {
             let mut xn = self
                 .builder
                 .xtile_id(tcls::CFGIO, "CFGIO", xy)
-                .num_tiles(30);
+                .num_cells(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::E, i)
@@ -1116,7 +1116,7 @@ impl IntMaker<'_> {
             for i in 0..16 {
                 bel = bel.pins_name_only(&[format!("VP_AUX{i}"), format!("VN_AUX{i}")]);
             }
-            let mut xn = self.builder.xtile_id(tcls::AMS, "AMS", xy).num_tiles(30);
+            let mut xn = self.builder.xtile_id(tcls::AMS, "AMS", xy).num_cells(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::E, i)
@@ -1345,7 +1345,7 @@ impl IntMaker<'_> {
             let mut xn = self
                 .builder
                 .xtile_id(tcls::CMT, "CMT", xy)
-                .num_tiles(60)
+                .num_cells(60)
                 .ref_xlat(int_xy.delta(0, 30), &[Some(30), None, None, None], rclk_int);
             for i in 0..60 {
                 xn = xn
@@ -1688,7 +1688,7 @@ impl IntMaker<'_> {
             let mut xn = self
                 .builder
                 .xtile_id(tcls::XIPHY, "XIPHY", xy)
-                .num_tiles(60)
+                .num_cells(60)
                 .ref_xlat(int_xy.delta(0, 30), &[Some(30), None, None, None], rclk_int);
             for i in 0..60 {
                 xn = xn
@@ -1770,7 +1770,7 @@ impl IntMaker<'_> {
                     .pins_name_only(&["VREF1", "VREF2"]),
             );
             let naming = if is_nocfg { "HPIO_NOCFG" } else { "HPIO" };
-            let mut xn = self.builder.xtile_id(tcls::HPIO, naming, xy).num_tiles(30);
+            let mut xn = self.builder.xtile_id(tcls::HPIO, naming, xy).num_cells(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::W, i)
@@ -1807,7 +1807,7 @@ impl IntMaker<'_> {
             let mut xn = self
                 .builder
                 .xtile_id(tcls::RCLK_HPIO, "RCLK_HPIO", xy)
-                .num_tiles(60);
+                .num_cells(60);
             for i in 0..60 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::W, i)
@@ -1878,7 +1878,7 @@ impl IntMaker<'_> {
                 );
             }
             let naming = if is_nocfg { "HRIO_NOCFG" } else { "HRIO" };
-            let mut xn = self.builder.xtile_id(tcls::HRIO, naming, xy).num_tiles(30);
+            let mut xn = self.builder.xtile_id(tcls::HRIO, naming, xy).num_cells(30);
             for i in 0..30 {
                 xn = xn
                     .ref_int_side(int_xy.delta(0, (i + i / 30) as i32), Dir::W, i)
@@ -1905,7 +1905,7 @@ impl IntMaker<'_> {
             }
             self.builder
                 .xtile_id(tcls::RCLK_HRIO, "RCLK_HRIO", xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bels(bels)
                 .extract();
         }
@@ -1933,7 +1933,7 @@ impl IntMaker<'_> {
                     .extra_wire("VCC", &["VCC_WIRE"]);
                 self.builder
                     .xtile_id(tcid, "RCLK_HROUTE_SPLITTER", xy)
-                    .num_tiles(0)
+                    .num_cells(0)
                     .bel(bel)
                     .bel(bel_vcc)
                     .extract();
@@ -1961,7 +1961,7 @@ impl IntMaker<'_> {
                 .extra_wire("VCC", &["VCC_WIRE"]);
             self.builder
                 .xtile_id(tcls::RCLK_SPLITTER, "RCLK_SPLITTER", xy)
-                .num_tiles(0)
+                .num_cells(0)
                 .bel(bel)
                 .bel(bel_vcc)
                 .extract();
@@ -2333,7 +2333,7 @@ impl IntMaker<'_> {
                 let mut xn = self
                     .builder
                     .xtile_id(tcid, naming, xy)
-                    .num_tiles(60)
+                    .num_cells(60)
                     .ref_xlat(
                         int_xy.delta(0, 30),
                         if side == Dir::W {

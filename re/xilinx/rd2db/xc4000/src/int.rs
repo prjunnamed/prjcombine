@@ -1198,7 +1198,7 @@ fn extract_clb(
 
         let mut xn = builder
             .xtile(tslots::MAIN, kind, &naming, crd)
-            .num_tiles(3)
+            .num_cells(3)
             .raw_tile_single(xy_n, 1)
             .raw_tile_single(xy_e, 2)
             .extract_muxes(bels::INT)
@@ -1278,7 +1278,7 @@ fn extract_bot(
             }
             let mut xn = builder
                 .xtile(tslots::MAIN, nn, &naming, crd)
-                .num_tiles(4)
+                .num_cells(4)
                 .raw_tile_single(xy_n, 1)
                 .raw_tile_single(xy_e, 2)
                 .raw_tile_single(xy_w, 3)
@@ -1361,7 +1361,7 @@ fn extract_top(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[T
             }
             let mut xn = builder
                 .xtile(tslots::MAIN, nn, &naming, crd)
-                .num_tiles(3)
+                .num_cells(3)
                 .raw_tile_single(xy_e, 1)
                 .raw_tile_single(xy_w, 2)
                 .extract_muxes(bels::INT)
@@ -1442,7 +1442,7 @@ fn extract_rt(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[Ti
 
             let mut xn = builder
                 .xtile(tslots::MAIN, nn, &naming, crd)
-                .num_tiles(3)
+                .num_cells(3)
                 .raw_tile_single(xy_s, 1)
                 .raw_tile_single(xy_n, 2)
                 .extract_muxes(bels::INT)
@@ -1539,7 +1539,7 @@ fn extract_left(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[
 
             let mut xn = builder
                 .xtile(tslots::MAIN, nn, &naming, crd)
-                .num_tiles(4)
+                .num_cells(4)
                 .raw_tile_single(xy_s, 1)
                 .raw_tile_single(xy_e, 2)
                 .raw_tile_single(xy_n, 3)
@@ -1726,7 +1726,7 @@ fn extract_ur(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[Ti
 
         let mut xn = builder
             .xtile(tslots::MAIN, "CNR.TR", "CNR.TR", crd)
-            .num_tiles(2)
+            .num_cells(2)
             .raw_tile_single(xy_s, 1)
             .extract_muxes(bels::INT)
             .optin_muxes_tile(imux_nw)
@@ -1816,7 +1816,7 @@ fn extract_ll(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[Ti
 
         let mut xn = builder
             .xtile(tslots::MAIN, "CNR.BL", "CNR.BL", crd)
-            .num_tiles(2)
+            .num_cells(2)
             .raw_tile_single(xy_e, 1)
             .extract_muxes(bels::INT)
             .optin_muxes_tile(imux_nw)
@@ -1900,7 +1900,7 @@ fn extract_ul(builder: &mut IntBuilder, imux_wires: &[WireSlotId], imux_nw: &[Ti
 
         let mut xn = builder
             .xtile(tslots::MAIN, "CNR.TL", "CNR.TL", crd)
-            .num_tiles(4)
+            .num_cells(4)
             .raw_tile_single(xy_e, 1)
             .raw_tile_single(xy_s, 2)
             .raw_tile_single(xy_se, 3)
@@ -2002,7 +2002,7 @@ fn extract_llh(builder: &mut IntBuilder) {
 
             let mut xn = builder
                 .xtile(tslots::EXTRA_COL, kind, naming, crd)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy_w, 0, naming_w)
                 .ref_single(xy_e, 1, naming_e)
                 .extract_muxes(bels::LLH)
@@ -2168,7 +2168,7 @@ fn extract_llv(builder: &mut IntBuilder) {
                 );
             builder
                 .xtile(tslots::EXTRA_ROW, kind, kind, crd)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy_s, 0, naming_s)
                 .ref_single(xy_n, 1, naming_n)
                 .extract_muxes(bels::LLV)
@@ -2207,7 +2207,7 @@ fn extract_llhq(builder: &mut IntBuilder) {
             }
             builder
                 .xtile(tslots::EXTRA_COL, kind, naming, crd)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy_w, 0, naming_w)
                 .ref_single(xy_e, 1, naming_e)
                 .extract_muxes(bels::LLH)
@@ -2285,7 +2285,7 @@ fn extract_llhc(builder: &mut IntBuilder) {
             }
             let mut xn = builder
                 .xtile(tslots::EXTRA_COL, kind, naming, crd)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy_w, 0, naming_w)
                 .ref_single(xy_e, 1, naming_e)
                 .extract_muxes(bels::LLH)
@@ -2327,7 +2327,7 @@ fn extract_llvc(builder: &mut IntBuilder) {
             }
             builder
                 .xtile(tslots::EXTRA_ROW, kind, kind, crd)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy_s, 0, naming_s)
                 .ref_single(xy_n, 1, naming_n)
                 .extract_muxes(bels::LLV)
@@ -2358,7 +2358,7 @@ fn extract_llvq(builder: &mut IntBuilder) {
             }
             builder
                 .xtile(tslots::EXTRA_ROW, kind, naming, crd)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_single(xy_s, 0, naming_s)
                 .ref_single(xy_n, 1, naming_n)
                 .extract_muxes(bels::LLV)
@@ -2382,7 +2382,7 @@ fn extract_clkc(builder: &mut IntBuilder) {
             .extra_wire("O.UR.V", &["CLKC_BUFGLS_6"]);
         builder
             .xtile(tslots::EXTRA_CROSS, "CLKC", "CLKC", crd)
-            .num_tiles(0)
+            .num_cells(0)
             .bel(bel)
             .extract();
     }
@@ -2451,7 +2451,7 @@ fn extract_clkq(builder: &mut IntBuilder) {
                 .extra_int_out("O.UR.V.R", &["BCCBRK_BUFGLS_6R", "TCCBRK_BUFGLS_6R"]);
             builder
                 .xtile(tslots::EXTRA_CROSS, "CLKQ", naming, crd)
-                .num_tiles(2)
+                .num_cells(2)
                 .ref_xlat(crd.delta(-1, 0), &[None, Some(0)], hvbrk)
                 .ref_xlat(crd.delta(2, 0), &[None, Some(1)], hvbrk)
                 .bel(bel)

@@ -211,6 +211,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                             .unwrap()
                             .0
                         }
+                        "versal" => {
+                            bincode::decode_from_slice(
+                                prjcombine_versal::defs::INIT,
+                                bincode::config::standard(),
+                            )
+                            .unwrap()
+                            .0
+                        }
                         _ => IntDb::default(),
                     };
                     builder.ingest_int(key, init, intdb, naming);
