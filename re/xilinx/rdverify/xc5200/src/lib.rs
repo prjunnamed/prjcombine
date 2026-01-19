@@ -2,7 +2,7 @@ use prjcombine_interconnect::grid::BelCoord;
 use prjcombine_re_xilinx_naming_xc2000::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
 use prjcombine_re_xilinx_rdverify::{SitePin, SitePinDir, Verifier};
-use prjcombine_xc2000::xc5200::bslots;
+use prjcombine_xc2000::xc5200::{bslots, wires};
 
 fn verify_lc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
     let idx = bslots::LC.index_of(bcrd.slot).unwrap();
@@ -127,13 +127,12 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
         bslots::COUT => verify_top_cout(vrf, bcrd),
         bslots::CIN => verify_bot_cin(vrf, bcrd),
         bslots::SCANTEST => (),
-        bslots::RDBK
-        | bslots::STARTUP
-        | bslots::BSCAN
-        | bslots::OSC
-        | bslots::BYPOSC
-        | bslots::BSUPD
-        | bslots::VCC_GND => vrf.verify_bel(bcrd).commit(),
+        bslots::OSC_SE | bslots::MISC_SW | bslots::MISC_SE | bslots::MISC_NW | bslots::MISC_NE => {}
+        bslots::OSC_NE => vrf.verify_bel(bcrd).kind("OSC").commit(),
+        bslots::RDBK | bslots::STARTUP | bslots::BSCAN | bslots::BYPOSC | bslots::BSUPD => {
+            vrf.verify_bel(bcrd).commit()
+        }
+        bslots::PROGTIE => vrf.verify_bel(bcrd).kind("VCC_GND").commit(),
         _ => println!("MEOW {}", bcrd.to_string(endev.edev.db)),
     }
 }
@@ -141,6 +140,9 @@ fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
 pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
     let mut vrf = Verifier::new(rd, &endev.ngrid);
     vrf.skip_sb(bslots::BUFG);
+    for idx in 0..4 {
+        vrf.alias_wire_slot(wires::IMUX_IO_O_SN[idx], wires::IMUX_IO_O[idx]);
+    }
     vrf.prep_int_wires();
     vrf.handle_int();
     for (tcrd, tile) in endev.edev.tiles() {

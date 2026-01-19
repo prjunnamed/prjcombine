@@ -16,7 +16,7 @@ use prjcombine_re_xilinx_naming::db::{
 use prjcombine_re_xilinx_naming::grid::{ExpandedGridNaming, TileNaming};
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use std::borrow::Cow;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
 #[derive(Debug)]
 pub struct LegacyBelContext<'a> {
@@ -252,6 +252,7 @@ pub struct Verifier<'a> {
     pub grid: &'a ExpandedGrid<'a>,
     pub ngrid: &'a ExpandedGridNaming<'a>,
     pub tile_lut: HashMap<String, Coord>,
+    wire_slot_aliases: HashMap<WireSlotId, WireSlotId>,
     intf_int_aliases: HashMap<WireCoord, WireCoord>,
     dummy_in_nodes: HashSet<NodeOrWire>,
     dummy_out_nodes: HashSet<NodeOrWire>,
@@ -416,6 +417,7 @@ impl<'a> Verifier<'a> {
             grid: ngrid.egrid,
             ngrid,
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
+            wire_slot_aliases: HashMap::new(),
             intf_int_aliases: HashMap::new(),
             dummy_in_nodes: HashSet::new(),
             dummy_out_nodes: HashSet::new(),
@@ -464,6 +466,10 @@ impl<'a> Verifier<'a> {
             skip_bel_pins: HashSet::new(),
             skip_sb: HashSet::new(),
         }
+    }
+
+    pub fn alias_wire_slot(&mut self, from: WireSlotId, to: WireSlotId) {
+        self.wire_slot_aliases.insert(from, to);
     }
 
     pub fn alias_intf_int(&mut self, from: WireCoord, to: WireCoord) {
@@ -548,7 +554,10 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn pin_int_wire(&mut self, crd: Coord, wire: &str, iw: WireCoord) -> bool {
+    pub fn pin_int_wire(&mut self, crd: Coord, wire: &str, mut iw: WireCoord) -> bool {
+        if let Some(&nslot) = self.wire_slot_aliases.get(&iw.slot) {
+            iw.slot = nslot;
+        }
         if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if iwd.used_i && iwd.used_o {
@@ -940,7 +949,7 @@ impl<'a> Verifier<'a> {
         let mut wires_pinned = HashSet::new();
         let mut wires_missing = HashSet::new();
         let mut tie_pins_extra = HashMap::new();
-        let mut pips = vec![];
+        let mut pips = BTreeSet::new();
         for (bslot, bel) in &tcls.bels {
             if self.skip_sb.contains(&bslot) {
                 continue;
@@ -952,21 +961,21 @@ impl<'a> Verifier<'a> {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
                         for src in mux.src.keys() {
-                            pips.push((mux.dst, src.tw));
+                            pips.insert((mux.dst, src.tw));
                         }
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
-                        pips.push((buf.dst, buf.src.tw));
+                        pips.insert((buf.dst, buf.src.tw));
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        pips.push((buf.dst, buf.src.tw));
+                        pips.insert((buf.dst, buf.src.tw));
                     }
                     SwitchBoxItem::Pass(pass) => {
-                        pips.push((pass.dst, pass.src));
+                        pips.insert((pass.dst, pass.src));
                     }
                     SwitchBoxItem::BiPass(pass) => {
-                        pips.push((pass.a, pass.b));
-                        pips.push((pass.b, pass.a));
+                        pips.insert((pass.a, pass.b));
+                        pips.insert((pass.b, pass.a));
                     }
                     SwitchBoxItem::ProgDelay(delay) => {
                         let Some(wti) = wire_lut[&delay.dst] else {
@@ -1006,6 +1015,12 @@ impl<'a> Verifier<'a> {
             }
         }
         for (wt, wf) in pips {
+            if wt.cell == wf.cell
+                && (self.wire_slot_aliases.get(&wt.wire) == Some(&wf.wire)
+                    || self.wire_slot_aliases.get(&wf.wire) == Some(&wt.wire))
+            {
+                continue;
+            }
             let Some(wti) = wire_lut[&wt] else { continue };
             let wftie = self.db[wf.wire].is_tie();
             let pip_found;

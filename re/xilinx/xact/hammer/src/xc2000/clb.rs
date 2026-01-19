@@ -97,7 +97,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             .cfg("Q", "FF")
             .mutex("CLK", "C")
             .cfg("CLK", "C")
-            .test_bel_input_inv(bcls::CLB::K)
+            .test_bel_input_inv(bcls::CLB::K, true)
             .cfg("CLK", "NOT")
             .commit();
         bctx.mode("FG")

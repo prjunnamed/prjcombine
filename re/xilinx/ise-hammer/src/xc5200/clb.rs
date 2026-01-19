@@ -1,114 +1,148 @@
-use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
+use prjcombine_re_fpga_hammer::{Diff, DiffKey, xlat_bool_raw, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
-use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_xc2000::xc5200 as defs;
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue},
     collector::CollectorCtx,
-    generic::fbuild::FuzzCtx,
+    generic::fbuild::{FuzzBuilderBase, FuzzCtx},
+    xc5200::specials,
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new(session, backend, "CLB");
+    let mut ctx = FuzzCtx::new_id(session, backend, tcls::CLB);
     for i in 0..4 {
-        let mut bctx = ctx.bel(defs::bslots::LC[i]);
+        let mut bctx = ctx.bel(bslots::LC[i]);
         let mode = if i.is_multiple_of(2) { "LC5A" } else { "LC5B" };
         bctx.mode(mode)
-            .test_multi_attr("LUT", MultiValue::OldLut('F'), 16);
+            .test_bel_attr_multi(bcls::LC::LUT, MultiValue::OldLut('F'));
         bctx.mode(mode)
             .attr("DMUX", "F")
             .pin("DI")
-            .test_manual("FFLATCH", "#LATCH")
+            .test_bel_attr_val(bcls::LC::FF_MODE, enums::FF_MODE::LATCH)
             .attr("FFLATCH", "#LATCH")
             .pin("Q")
             .commit();
-        if mode == "LC5A" {
+        for (val, vname) in &backend.edev.db[enums::LC_MUX_DO].values {
+            if val == enums::LC_MUX_DO::F5O && !i.is_multiple_of(2) {
+                continue;
+            }
             bctx.mode(mode)
                 .pin("DO")
                 .pin("DI")
-                .test_enum("DOMUX", &["DI", "F5O", "CO"]);
-        } else {
-            bctx.mode(mode)
-                .pin("DO")
-                .pin("DI")
-                .test_enum("DOMUX", &["DI", "CO"]);
+                .test_bel_attr_val(bcls::LC::MUX_DO, val)
+                .attr("DOMUX", vname)
+                .commit();
         }
         bctx.mode(mode)
             .pin("DI")
             .attr("DOMUX", "DI")
-            .test_enum("DMUX", &["F", "DO"]);
-        bctx.mode(mode).pin("CE").test_enum("CEMUX", &["CE"]);
-        bctx.mode(mode).pin("CLR").test_enum("CLRMUX", &["CLR"]);
+            .test_bel_attr_rename("DMUX", bcls::LC::MUX_D);
         bctx.mode(mode)
-            .pin("CK")
-            .pin("DI")
-            .pin("Q")
-            .attr("DMUX", "F")
-            .attr("FFLATCH", "")
-            .test_enum("CKMUX", &["CK", "CKNOT"]);
-
+            .pin("CE")
+            .test_bel_attr_bits(bcls::LC::CE_ENABLE)
+            .attr("CEMUX", "CE")
+            .commit();
         bctx.mode(mode)
-            .pin("CK")
-            .pin("DI")
-            .pin("Q")
-            .attr("DMUX", "F")
-            .attr("FFLATCH", "#LATCH")
-            .test_enum_suffix("CKMUX", "LATCH", &["CK", "CKNOT"]);
-        bctx.mode(mode).pin("CO").test_enum("COMUX", &["CY"]);
+            .pin("CLR")
+            .test_bel_attr_bits(bcls::LC::CLR_ENABLE)
+            .attr("CLRMUX", "CLR")
+            .commit();
+        for (val, rval) in [(false, "CK"), (true, "CKNOT")] {
+            bctx.mode(mode)
+                .pin("CK")
+                .pin("DI")
+                .pin("Q")
+                .attr("DMUX", "F")
+                .attr("FFLATCH", "")
+                .test_bel_input_inv(bcls::LC::CK, val)
+                .attr("CKMUX", rval)
+                .commit();
+        }
+        for (spec, rval) in [(specials::CK_LATCH, "CK"), (specials::CKNOT_LATCH, "CKNOT")] {
+            bctx.mode(mode)
+                .pin("CK")
+                .pin("DI")
+                .pin("Q")
+                .attr("DMUX", "F")
+                .attr("FFLATCH", "#LATCH")
+                .test_bel_special(spec)
+                .attr("CKMUX", rval)
+                .commit();
+        }
+        bctx.mode(mode)
+            .null_bits()
+            .pin("CO")
+            .test_bel_special(specials::COMUX)
+            .attr("COMUX", "CY")
+            .commit();
     }
     for i in 0..4 {
-        let mut bctx = ctx.bel(defs::bslots::TBUF[i]);
+        let mut bctx = ctx.bel(bslots::TBUF[i]);
         bctx.mode("TBUF")
-            .test_manual("TMUX", "T")
+            .test_bel_attr_bits(bcls::TBUF::T_ENABLE)
             .pin("T")
             .pin_pips("T")
             .commit();
     }
-    let mut bctx = ctx.bel(defs::bslots::VCC_GND);
-    bctx.mode("VCC_GND").test_enum("MUX", &["0", "1"]);
+    let mut bctx = ctx.bel(bslots::PROGTIE);
+    bctx.mode("VCC_GND")
+        .test_bel_attr_bool_rename("MUX", bcls::PROGTIE::VAL, "0", "1");
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "CLB";
+    let tcid = tcls::CLB;
     for i in 0..4 {
-        let i: usize = i;
-        let bel = &format!("LC[{i}]");
-        ctx.collect_bitvec(tile, bel, "LUT", "");
-        if i.is_multiple_of(2) {
-            ctx.collect_enum(tile, bel, "DOMUX", &["DI", "F5O", "CO"]);
-        } else {
-            ctx.collect_enum(tile, bel, "DOMUX", &["DI", "CO"]);
-        }
-        let item = xlat_enum(vec![
-            ("FF", Diff::default()),
+        let bslot = bslots::LC[i];
+        ctx.collect_bel_attr(tcid, bslot, bcls::LC::LUT);
+        ctx.collect_bel_attr(tcid, bslot, bcls::LC::CE_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::LC::CLR_ENABLE);
+        ctx.collect_bel_attr(tcid, bslot, bcls::LC::MUX_D);
+        let item = xlat_enum_attr(vec![
+            (enums::FF_MODE::FF, Diff::default()),
             (
-                "LATCH",
-                ctx.state
-                    .get_diff(tile, bel, "FFLATCH", "#LATCH")
-                    .combine(&!ctx.state.peek_diff(tile, bel, "CKMUX", "CKNOT")),
+                enums::FF_MODE::LATCH,
+                ctx.get_diff_attr_val(tcid, bslot, bcls::LC::FF_MODE, enums::FF_MODE::LATCH)
+                    .combine(&!ctx.state.peek_diff_raw(&DiffKey::BelInputInv(
+                        tcid,
+                        bslot,
+                        bcls::LC::CK,
+                        true,
+                    ))),
             ),
         ]);
-        ctx.insert(tile, bel, "FFLATCH", item);
-        ctx.collect_enum(tile, bel, "DMUX", &["F", "DO"]);
-        ctx.collect_enum_default(tile, bel, "CLRMUX", &["CLR"], "NONE");
-        ctx.collect_enum_default(tile, bel, "CEMUX", &["CE"], "NONE");
-        let item = ctx.extract_enum_bool(tile, bel, "CKMUX", "CK", "CKNOT");
-        ctx.insert(tile, bel, "INV.CK", item);
-        let item = ctx.extract_enum_bool(tile, bel, "CKMUX.LATCH", "CKNOT", "CK");
-        ctx.insert(tile, bel, "INV.CK", item);
-        ctx.state.get_diff(tile, bel, "COMUX", "CY").assert_empty();
-        ctx.insert(
-            tile,
-            bel,
-            "READBACK",
-            TileItem::from_bit(TileBit::new(0, 1, [5, 10, 23, 28][i]), true),
+        ctx.insert_bel_attr_raw(tcid, bslot, bcls::LC::FF_MODE, item);
+        ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::LC::CK);
+        let diff0 = ctx.get_diff_bel_special(tcid, bslot, specials::CKNOT_LATCH);
+        let diff1 = ctx.get_diff_bel_special(tcid, bslot, specials::CK_LATCH);
+        ctx.insert_bel_input_inv(tcid, bslot, bcls::LC::CK, xlat_bool_raw(diff0, diff1));
+        let mut diffs = vec![
+            (
+                enums::LC_MUX_DO::DI,
+                ctx.get_diff_attr_val(tcid, bslot, bcls::LC::MUX_DO, enums::LC_MUX_DO::DI),
+            ),
+            (
+                enums::LC_MUX_DO::CO,
+                ctx.get_diff_attr_val(tcid, bslot, bcls::LC::MUX_DO, enums::LC_MUX_DO::CO),
+            ),
+        ];
+        if i.is_multiple_of(2) {
+            diffs.push((
+                enums::LC_MUX_DO::F5O,
+                ctx.get_diff_attr_val(tcid, bslot, bcls::LC::MUX_DO, enums::LC_MUX_DO::F5O),
+            ));
+        }
+        ctx.insert_bel_attr_raw(tcid, bslot, bcls::LC::MUX_DO, xlat_enum_attr(diffs));
+        ctx.insert_bel_attr_bool(
+            tcid,
+            bslot,
+            bcls::LC::READBACK,
+            TileBit::new(0, 1, [5, 10, 23, 28][i]).neg(),
         );
     }
     for i in 0..4 {
-        let bel = &format!("TBUF[{i}]");
-        ctx.collect_enum_default(tile, bel, "TMUX", &["T"], "NONE");
+        ctx.collect_bel_attr(tcid, bslots::TBUF[i], bcls::TBUF::T_ENABLE);
     }
-    let bel = "VCC_GND";
-    ctx.collect_enum_bool(tile, bel, "MUX", "0", "1");
+    ctx.collect_bel_attr_enum_bool(tcid, bslots::PROGTIE, bcls::PROGTIE::VAL)
 }

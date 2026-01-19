@@ -41,7 +41,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
             tcls::CNR_NE => {
                 let ntile = ngrid.name_tile(tcrd, "CNR_NE", ["TR".into()]);
                 ntile.add_bel(bslots::BUFG, "BUFG_TR".to_string());
-                ntile.add_bel(bslots::OSC, "OSC".to_string());
+                ntile.add_bel(bslots::OSC_NE, "OSC".to_string());
                 ntile.add_bel(bslots::BYPOSC, "BYPOSC".to_string());
                 ntile.add_bel(bslots::BSUPD, "BSUPD".to_string());
                 ntile.tie_name = Some(format!("GND_R{r}C{c}"));
@@ -132,7 +132,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ntile.add_bel(bslots::TBUF[1], format!("TBUF_R{r}C{c}.1"));
                 ntile.add_bel(bslots::TBUF[2], format!("TBUF_R{r}C{c}.2"));
                 ntile.add_bel(bslots::TBUF[3], format!("TBUF_R{r}C{c}.3"));
-                ntile.add_bel(bslots::VCC_GND, format!("VCC_GND_R{r}C{c}"));
+                ntile.add_bel(bslots::PROGTIE, format!("VCC_GND_R{r}C{c}"));
             }
             tcls::LLV_W => {
                 ngrid.name_tile(tcrd, "LLV_W", ["LM".into()]);

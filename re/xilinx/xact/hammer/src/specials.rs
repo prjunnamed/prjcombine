@@ -42,4 +42,9 @@ specials![
     IO_IN_I,
     IO_IN_PULLUP,
     IO_OUT_O,
+    // xc5200
+    IO_TRI_T,
+    CLB_CO_USED,
+    LC_DO_XBI,
+    LC_X_F,
 ];

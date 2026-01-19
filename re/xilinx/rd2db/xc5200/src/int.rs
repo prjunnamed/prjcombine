@@ -1,5 +1,7 @@
+use std::collections::BTreeMap;
+
 use prjcombine_interconnect::{
-    db::IntDb,
+    db::{BelInfo, IntDb, Mux, SwitchBoxItem, TileWireCoord},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_rawdump::Part;
@@ -253,7 +255,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             ],
         );
     }
-    builder.wire_names(wires::OUT_PWRGND, &["WIRE_PWRGND_CLB"]);
+    builder.wire_names(wires::OUT_PROGTIE, &["WIRE_PWRGND_CLB"]);
     for i in 0..4 {
         builder.wire_names(
             wires::OUT_IO_I[i],
@@ -385,7 +387,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder.bel_indexed(bslots::TBUF[1], "TBUF", 1),
             builder.bel_indexed(bslots::TBUF[2], "TBUF", 2),
             builder.bel_indexed(bslots::TBUF[3], "TBUF", 3),
-            builder.bel_single(bslots::VCC_GND, "VCC_GND"),
+            builder.bel_single(bslots::PROGTIE, "VCC_GND"),
         ],
     );
     let bels_io = [
@@ -426,14 +428,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 ],
             ),
     ];
-    let mut bels_io_s = bels_io.to_vec();
+    let mut bels_io_sn = bels_io.to_vec();
+    for i in 0..4 {
+        bels_io_sn[i] = bels_io_sn[i]
+            .clone()
+            .pin_int_nudge("O", TileWireCoord::new_idx(0, wires::IMUX_IO_O_SN[i]));
+    }
+    let mut bels_io_s = bels_io_sn.clone();
     bels_io_s.push(
         builder
             .bel_virtual(bslots::CIN)
             .extra_int_in("IN", &["WIRE_COUT_BOT"]),
     );
     bels_io_s.push(builder.bel_virtual(bslots::SCANTEST));
-    let mut bels_io_n = bels_io.to_vec();
+    let mut bels_io_n = bels_io_sn;
     bels_io_n.push(
         builder
             .bel_virtual(bslots::COUT)
@@ -458,6 +466,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .bel_virtual(bslots::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_BL"]),
             builder.bel_single(bslots::RDBK, "RDBK"),
+            builder.bel_virtual(bslots::MISC_SW),
         ],
     );
     builder.extract_int_id(
@@ -471,6 +480,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .bel_virtual(bslots::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_BR"]),
             builder.bel_single(bslots::STARTUP, "STARTUP"),
+            builder.bel_virtual(bslots::OSC_SE),
+            builder.bel_virtual(bslots::MISC_SE),
         ],
     );
     builder.extract_int_id(
@@ -484,6 +495,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .bel_virtual(bslots::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_TL"]),
             builder.bel_single(bslots::BSCAN, "BSCAN"),
+            builder.bel_virtual(bslots::MISC_NW),
         ],
     );
     builder.extract_int_id(
@@ -496,9 +508,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             builder
                 .bel_virtual(bslots::CLKIOB)
                 .extra_int_out("OUT", &["WIRE_PIN_CLKIOB_TR"]),
-            builder.bel_single(bslots::OSC, "OSC"),
+            builder.bel_single(bslots::OSC_NE, "OSC"),
             builder.bel_single(bslots::BYPOSC, "BYPOSC"),
             builder.bel_single(bslots::BSUPD, "BSUPD"),
+            builder.bel_virtual(bslots::MISC_NE),
         ],
     );
 
@@ -549,5 +562,52 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
 
-    builder.build()
+    let (mut intdb, mut naming) = builder.build();
+
+    for tcid in [tcls::IO_S, tcls::IO_N] {
+        let tcls = &mut intdb.tile_classes[tcid];
+        let BelInfo::SwitchBox(ref mut sb) = tcls.bels[bslots::INT] else {
+            unreachable!()
+        };
+        let mut new_items = vec![];
+        for item in &mut sb.items {
+            let SwitchBoxItem::Mux(mux) = item else {
+                continue;
+            };
+            let Some(idx) = wires::IMUX_IO_O.index_of(mux.dst.wire) else {
+                continue;
+            };
+            let mut new_mux = Mux {
+                dst: TileWireCoord::new_idx(0, wires::IMUX_IO_O_SN[idx]),
+                bits: Default::default(),
+                src: BTreeMap::new(),
+                bits_off: None,
+            };
+            new_mux.src.insert(mux.dst.pos(), Default::default());
+            new_mux.src.insert(mux.dst.neg(), Default::default());
+            mux.src.retain(|&wire, _| {
+                if wires::OMUX_BUF_S.contains(wire.wire) || wires::OMUX_BUF_N.contains(wire.wire) {
+                    new_mux.src.insert(wire, Default::default());
+                    new_mux.src.insert(!wire, Default::default());
+                    false
+                } else {
+                    true
+                }
+            });
+            new_items.push(SwitchBoxItem::Mux(new_mux));
+        }
+        sb.items.extend(new_items);
+        sb.items.sort();
+    }
+    for key in ["IO_S", "IO_S_CLK", "IO_N", "IO_N_CLK"] {
+        let ntcls = naming.tile_class_namings.get_mut(key).unwrap().1;
+        for i in 0..4 {
+            let name = ntcls.wires[&TileWireCoord::new_idx(0, wires::IMUX_IO_O[i])].clone();
+            ntcls
+                .wires
+                .insert(TileWireCoord::new_idx(0, wires::IMUX_IO_O_SN[i]), name);
+        }
+    }
+
+    (intdb, naming)
 }

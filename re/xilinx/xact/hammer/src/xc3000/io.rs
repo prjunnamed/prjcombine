@@ -50,7 +50,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 .cfg("IN", "I")
                 .mutex("TRI", "GND")
                 .cfg("OUT", "O")
-                .test_bel_input_inv(bcls::IO::O)
+                .test_bel_input_inv(bcls::IO::O, true)
                 .cfg("OUT", "NOT")
                 .commit();
             bctx.mode("IO")
@@ -65,7 +65,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
                 .mutex("TRI", "T")
                 .cfg("OUT", "O")
                 .cfg("TRI", "T")
-                .test_bel_input_inv(bcls::IO::T)
+                .test_bel_input_inv(bcls::IO::T, true)
                 .cfg("TRI", "NOT")
                 .commit();
         }

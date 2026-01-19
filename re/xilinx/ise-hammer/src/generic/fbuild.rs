@@ -1,13 +1,18 @@
 use prjcombine_interconnect::{
-    db::{BelSlotId, TileClassId},
+    db::{
+        BelAttributeId, BelAttributeType, BelInputId, BelKind, BelSlotId, EnumValueId, TileClassId,
+    },
     dir::DirV,
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FpgaFuzzerGen, FuzzerProp};
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FpgaFuzzerGen, FuzzerProp, SpecialId};
 use prjcombine_re_hammer::Session;
 use prjcombine_xilinx_bitstream::Reg;
 
-use crate::backend::{IseBackend, Key, MultiValue, PinFromKind, Value};
+use crate::{
+    backend::{IseBackend, Key, MultiValue, PinFromKind, Value},
+    generic::props::extra::{ExtraKeyBelAttrValue, ExtraKeyLegacy, ExtraKeyLegacyAttr},
+};
 
 use super::props::{
     BaseRaw, DynProp, FuzzRaw, FuzzRawMulti, NullBits,
@@ -209,7 +214,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
     }
 
     fn extra_tile<R: TileRelation + 'b>(self, relation: R, bel: impl Into<String>) -> Self {
-        self.prop(ExtraTile::new(relation, Some(bel.into()), None, None))
+        self.prop(ExtraTile::new(relation, ExtraKeyLegacy::new(bel.into())))
     }
 
     fn extra_tile_fixed(self, tcrd: TileCoord, bel: impl Into<String>) -> Self {
@@ -225,9 +230,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
     ) -> Self {
         self.prop(ExtraTile::new(
             relation,
-            Some(bel.into()),
-            Some(attr.into()),
-            Some(val.into()),
+            ExtraKeyLegacyAttr::new(bel.into(), attr.into(), val.into()),
         ))
     }
 
@@ -243,7 +246,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
 
     fn extra_tiles_by_kind(self, kind: impl AsRef<str>, bel: impl Into<String>) -> Self {
         let kind = self.backend().edev.db.get_tile_class(kind.as_ref());
-        self.prop(ExtraTilesByKind::new(kind, Some(bel.into()), None, None))
+        self.prop(ExtraTilesByKind::new(kind, ExtraKeyLegacy::new(bel.into())))
     }
 
     fn extra_tiles_attr_by_kind(
@@ -256,14 +259,12 @@ pub trait FuzzBuilderBase<'b>: Sized {
         let kind = self.backend().edev.db.get_tile_class(kind.as_ref());
         self.prop(ExtraTilesByKind::new(
             kind,
-            Some(bel.into()),
-            Some(attr.into()),
-            Some(val.into()),
+            ExtraKeyLegacyAttr::new(bel.into(), attr.into(), val.into()),
         ))
     }
 
     fn extra_tiles_by_bel(self, slot: BelSlotId, bel: impl Into<String>) -> Self {
-        self.prop(ExtraTilesByBel::new(slot, Some(bel.into()), None, None))
+        self.prop(ExtraTilesByBel::new(slot, ExtraKeyLegacy::new(bel.into())))
     }
 
     fn extra_tiles_attr_by_bel(
@@ -275,9 +276,7 @@ pub trait FuzzBuilderBase<'b>: Sized {
     ) -> Self {
         self.prop(ExtraTilesByBel::new(
             slot,
-            Some(bel.into()),
-            Some(attr.into()),
-            Some(val.into()),
+            ExtraKeyLegacyAttr::new(bel.into(), attr.into(), val.into()),
         ))
     }
 
@@ -326,6 +325,19 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
+    fn extra_fixed_bel_attr_val(
+        self,
+        tcrd: TileCoord,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: EnumValueId,
+    ) -> Self {
+        self.prop(ExtraTile::new(
+            FixedRelation(tcrd),
+            ExtraKeyBelAttrValue::new(bslot, attr, val),
+        ))
+    }
+
     fn null_bits(self) -> Self {
         self.prop(NullBits)
     }
@@ -358,6 +370,15 @@ impl<'b> FuzzBuilderBase<'b> for FuzzBuilder<'_, 'b> {
 }
 
 impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
+    pub fn test_raw(self, key: DiffKey) -> FuzzBuilderTestManual<'sm, 'b> {
+        FuzzBuilderTestManual {
+            session: self.session,
+            tile_class: self.tile_class,
+            props: self.props,
+            key,
+        }
+    }
+
     pub fn test_manual(
         self,
         bel: &'static str,
@@ -376,12 +397,7 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
             attr: attr.into(),
             val: val.into(),
         });
-        FuzzBuilderTestManual {
-            session: self.session,
-            tile_class: self.tile_class,
-            props: self.props,
-            key,
-        }
+        self.test_raw(key)
     }
 
     pub fn test_reg(
@@ -724,6 +740,34 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_manual(attr, "").prop(prop).commit();
     }
 
+    pub fn test_bel_attr_multi(self, attr: BelAttributeId, value: MultiValue) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::Bitvec(width) = self.backend.edev.db[bcid].attributes[attr].typ
+        else {
+            unreachable!()
+        };
+        let prop = FuzzBelMultiAttr::new(
+            self.bel,
+            self.backend.edev.db[bcid].attributes.key(attr).to_string(),
+            value,
+            width,
+        );
+        self.test_bel_attr_bits(attr).prop(prop).commit();
+    }
+
+    pub fn test_raw(self, key: DiffKey) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        FuzzBuilderBelTestManual {
+            session: self.session,
+            backend: self.backend,
+            tile_class: self.tile_class,
+            bel: self.bel,
+            props: self.props,
+            key,
+        }
+    }
+
     pub fn test_manual(
         self,
         attr: impl AsRef<str>,
@@ -743,14 +787,156 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
             attr: attr.into(),
             val: val.into(),
         });
-        FuzzBuilderBelTestManual {
-            session: self.session,
-            backend: self.backend,
-            tile_class: self.tile_class,
-            bel: self.bel,
-            props: self.props,
-            key,
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_special(self, spec: SpecialId) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelSpecial(self.tile_class, self.bel, spec);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_attr_bits(self, attr: BelAttributeId) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelAttrBit(self.tile_class, self.bel, attr, 0);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_attr_val(
+        self,
+        attr: BelAttributeId,
+        val: EnumValueId,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelAttrValue(self.tile_class, self.bel, attr, val);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_attr_enum_bool(
+        self,
+        attr: BelAttributeId,
+        val: bool,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelAttrEnumBool(self.tile_class, self.bel, attr, val);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_attr_bool_rename(
+        &mut self,
+        rattr: impl Into<String>,
+        attr: BelAttributeId,
+        val0: impl Into<String>,
+        val1: impl Into<String>,
+    ) {
+        let rattr = rattr.into();
+        self.clone()
+            .test_bel_attr_enum_bool(attr, false)
+            .attr(&rattr, val0)
+            .commit();
+        self.clone()
+            .test_bel_attr_enum_bool(attr, true)
+            .attr(rattr, val1)
+            .commit();
+    }
+
+    pub fn test_global_attr_bool_rename(
+        &mut self,
+        opt: impl Into<String>,
+        attr: BelAttributeId,
+        val0: impl Into<String>,
+        val1: impl Into<String>,
+    ) {
+        let opt = opt.into();
+        self.clone()
+            .test_bel_attr_enum_bool(attr, false)
+            .global(&opt, val0)
+            .commit();
+        self.clone()
+            .test_bel_attr_enum_bool(attr, true)
+            .global(opt, val1)
+            .commit();
+    }
+
+    pub fn test_bel_attr_rename(mut self, rattr: impl AsRef<str>, attr: BelAttributeId) {
+        let rattr = rattr.as_ref();
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::Enum(ecid) = self.backend.edev.db[bcid].attributes[attr].typ else {
+            unreachable!()
+        };
+        let ecls = &self.backend.edev.db[ecid];
+        for (vid, val) in &ecls.values {
+            self.clone()
+                .test_bel_attr_val(attr, vid)
+                .attr(rattr, val)
+                .commit();
         }
+    }
+
+    pub fn test_bel_attr_default_rename(
+        mut self,
+        rattr: impl AsRef<str>,
+        attr: BelAttributeId,
+        default: EnumValueId,
+    ) {
+        let rattr = rattr.as_ref();
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::Enum(ecid) = self.backend.edev.db[bcid].attributes[attr].typ else {
+            unreachable!()
+        };
+        let ecls = &self.backend.edev.db[ecid];
+        for (vid, val) in &ecls.values {
+            if vid == default {
+                continue;
+            }
+            self.clone()
+                .test_bel_attr_val(attr, vid)
+                .attr(rattr, val)
+                .commit();
+        }
+    }
+
+    pub fn test_bel_input_inv_enum(
+        &mut self,
+        rattr: impl Into<String>,
+        pin: BelInputId,
+        val0: impl Into<String>,
+        val1: impl Into<String>,
+    ) {
+        let rattr = rattr.into();
+        self.clone()
+            .test_bel_input_inv(pin, false)
+            .attr(&rattr, val0)
+            .commit();
+        self.clone()
+            .test_bel_input_inv(pin, true)
+            .attr(rattr, val1)
+            .commit();
+    }
+
+    pub fn test_bel_attr(self, attr: BelAttributeId) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let rattr = self.backend.edev.db[bcid].attributes.key(attr);
+        self.test_bel_attr_rename(rattr, attr)
+    }
+
+    pub fn test_bel_attr_default(self, attr: BelAttributeId, val: EnumValueId) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let rattr = self.backend.edev.db[bcid].attributes.key(attr);
+        self.test_bel_attr_default_rename(rattr, attr, val)
+    }
+
+    pub fn test_bel_input_inv(
+        self,
+        pin: BelInputId,
+        val: bool,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelInputInv(self.tile_class, self.bel, pin, val);
+        self.test_raw(key)
     }
 }
 

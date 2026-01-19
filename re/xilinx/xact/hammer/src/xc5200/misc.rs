@@ -1,244 +1,261 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId};
-use prjcombine_re_fpga_hammer::xlat_enum;
 use prjcombine_re_hammer::Session;
-use prjcombine_xc2000::xc5200::{bslots, tcls, tslots};
+use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls, tslots};
 
-use crate::{backend::XactBackend, collector::CollectorCtx, fbuild::FuzzCtx};
+use crate::{
+    backend::{Key, XactBackend},
+    collector::CollectorCtx,
+    fbuild::FuzzCtx,
+};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a XactBackend<'a>) {
     let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SW);
-    ctx.test_cfg5200("MISC", "SCANTEST", &["ENABLE", "ENLL", "NE7", "DISABLE"]);
-    ctx.test_global("MISC", "READABORT", &["DISABLE", "ENABLE"]);
-    ctx.test_global("MISC", "READCAPTURE", &["DISABLE", "ENABLE"]);
-    ctx.test_global("RDBK", "READCLK", &["CCLK", "RDBK"]);
+    let mut bctx = ctx.bel(bslots::MISC_SW);
+    for (val, vname) in [
+        (enums::SCAN_TEST::DISABLE, "DISABLE"),
+        (enums::SCAN_TEST::ENABLE, "ENABLE"),
+        (enums::SCAN_TEST::ENLL, "ENLL"),
+        (enums::SCAN_TEST::NE7, "NE7"),
+    ] {
+        bctx.build()
+            .mutex("SCANTEST", vname)
+            .test_bel_attr_val(bcls::MISC_SW::SCAN_TEST, val)
+            .raw_diff(
+                Key::BlockConfig("_cfg5200_", "SCANTEST".into(), vname.into()),
+                false,
+                true,
+            )
+            .commit();
+    }
+
+    let mut bctx = ctx.bel(bslots::RDBK);
+    bctx.test_attr_global_enum_bool_as("READABORT", bcls::RDBK::READ_ABORT, "DISABLE", "ENABLE");
+    bctx.test_attr_global_enum_bool_as(
+        "READCAPTURE",
+        bcls::RDBK::READ_CAPTURE,
+        "DISABLE",
+        "ENABLE",
+    );
+    bctx.test_attr_global_as("READCLK", bcls::RDBK::MUX_CLK);
 
     let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NW);
-    ctx.test_global("MISC", "BSRECONFIG", &["DISABLE", "ENABLE"]);
-    ctx.test_global("MISC", "BSREADBACK", &["DISABLE", "ENABLE"]);
-    ctx.test_global("MISC", "INPUT", &["TTL", "CMOS"]);
+    let mut bctx = ctx.bel(bslots::MISC_NW);
+    bctx.test_attr_global_as("INPUT", bcls::MISC_NW::IO_INPUT_MODE);
     let mut bctx = ctx.bel(bslots::BSCAN);
-    bctx.mode("BSCAN").test_cfg("BSCAN", "USED");
+    bctx.test_attr_global_enum_bool_as("BSRECONFIG", bcls::BSCAN::RECONFIG, "DISABLE", "ENABLE");
+    bctx.test_attr_global_enum_bool_as("BSREADBACK", bcls::BSCAN::READBACK, "DISABLE", "ENABLE");
+    bctx.mode("BSCAN")
+        .test_bel_attr_bits(bcls::BSCAN::ENABLE)
+        .cfg("BSCAN", "USED")
+        .commit();
 
     let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_SE);
-    ctx.test_cfg5200("MISC", "TCTEST", &["ON", "OFF"]);
-    ctx.test_global("PROG", "PROGPIN", &["PULLUP", "NOPULLUP"]);
-    ctx.test_global("DONE", "DONEPIN", &["PULLUP", "NOPULLUP"]);
-    ctx.test_global("STARTUP", "CRC", &["DISABLE", "ENABLE"]);
-    ctx.test_global("STARTUP", "CONFIGRATE", &["SLOW", "MED", "FAST"]);
-    ctx.build()
-        .bel_out("OSC", "CK")
-        .test_global("OSC", "OSCCLK", &["CCLK", "USERCLK"]);
-
-    ctx.build()
+    let mut bctx = ctx.bel(bslots::MISC_SE);
+    for (val, vname) in [(false, "OFF"), (true, "ON")] {
+        bctx.build()
+            .mutex("TCTEST", vname)
+            .test_bel_attr_enum_bool(bcls::MISC_SE::TCTEST, val)
+            .raw_diff(
+                Key::BlockConfig("_cfg5200_", "TCTEST".into(), vname.into()),
+                false,
+                true,
+            )
+            .commit();
+    }
+    bctx.test_attr_global_enum_bool_as("PROGPIN", bcls::MISC_SE::PROG_PULLUP, "NOPULLUP", "PULLUP");
+    bctx.test_attr_global_enum_bool_as("DONEPIN", bcls::MISC_SE::DONE_PULLUP, "NOPULLUP", "PULLUP");
+    let mut bctx = ctx.bel(bslots::STARTUP);
+    bctx.test_attr_global_enum_bool_as("CRC", bcls::STARTUP::CRC, "DISABLE", "ENABLE");
+    bctx.test_attr_global_as("CONFIGRATE", bcls::STARTUP::CONFIG_RATE);
+    bctx.build()
         .global("SYNCTODONE", "NO")
         .global("DONEACTIVE", "C1")
-        .test_manual("STARTUP", "STARTUP_CLK", "USERCLK")
+        .test_bel_attr_val(bcls::STARTUP::MUX_CLK, enums::STARTUP_MUX_CLK::USERCLK)
         .global_diff("GSRINACTIVE", "C4", "U3")
         .global_diff("OUTPUTSACTIVE", "C4", "U3")
         .global_diff("STARTUPCLK", "CCLK", "USERCLK")
         .bel_out("STARTUP", "CK")
         .commit();
-    ctx.build()
+    bctx.build()
         .global("STARTUPCLK", "CCLK")
         .global("DONEACTIVE", "C1")
-        .test_manual("STARTUP", "SYNC_TO_DONE", "YES")
+        .test_bel_attr_bits(bcls::STARTUP::SYNC_TO_DONE)
         .global_diff("GSRINACTIVE", "C4", "DI_PLUS_1")
         .global_diff("OUTPUTSACTIVE", "C4", "DI_PLUS_1")
         .global_diff("SYNCTODONE", "NO", "YES")
         .commit();
 
-    for val in ["C1", "C2", "C3", "C4"] {
-        ctx.build()
+    for (val, rval) in [
+        (enums::DONE_TIMING::Q0, "C1"),
+        (enums::DONE_TIMING::Q1Q4, "C2"),
+        (enums::DONE_TIMING::Q2, "C3"),
+        (enums::DONE_TIMING::Q3, "C4"),
+    ] {
+        bctx.build()
             .global("STARTUPCLK", "CCLK")
             .global("SYNCTODONE", "NO")
             .global("GSRINACTIVE", "C4")
             .global("OUTPUTSACTIVE", "C4")
-            .test_manual("STARTUP", "DONE_ACTIVE", val)
-            .global_diff("DONEACTIVE", "C1", val)
+            .test_bel_attr_val(bcls::STARTUP::DONE_TIMING, val)
+            .global_diff("DONEACTIVE", "C1", rval)
             .commit();
     }
-    for val in ["U2", "U3", "U4"] {
-        ctx.build()
+    for (val, rval) in [
+        (enums::DONE_TIMING::Q2, "U2"),
+        (enums::DONE_TIMING::Q3, "U3"),
+        (enums::DONE_TIMING::Q1Q4, "U4"),
+    ] {
+        bctx.build()
             .global("STARTUPCLK", "USERCLK")
             .global("SYNCTODONE", "NO")
             .global("GSRINACTIVE", "U3")
             .global("OUTPUTSACTIVE", "U3")
             .bel_out("STARTUP", "CK")
-            .test_manual("STARTUP", "DONE_ACTIVE", val)
-            .global_diff("DONEACTIVE", "C1", val)
+            .test_bel_attr_val(bcls::STARTUP::DONE_TIMING, val)
+            .global_diff("DONEACTIVE", "C1", rval)
             .commit();
     }
     for (attr, opt, oopt) in [
-        ("OUTPUTS_ACTIVE", "OUTPUTSACTIVE", "GSRINACTIVE"),
-        ("GSR_INACTIVE", "GSRINACTIVE", "OUTPUTSACTIVE"),
+        (bcls::STARTUP::GTS_TIMING, "OUTPUTSACTIVE", "GSRINACTIVE"),
+        (bcls::STARTUP::GSR_TIMING, "GSRINACTIVE", "OUTPUTSACTIVE"),
     ] {
-        for val in ["C2", "C3", "C4"] {
-            ctx.build()
+        for (val, rval) in [
+            (enums::GTS_GSR_TIMING::Q1Q4, "C2"),
+            (enums::GTS_GSR_TIMING::Q2, "C3"),
+            (enums::GTS_GSR_TIMING::Q3, "C4"),
+        ] {
+            bctx.build()
                 .global("STARTUPCLK", "CCLK")
                 .global("SYNCTODONE", "NO")
                 .global("DONEACTIVE", "C1")
                 .global(oopt, "C4")
-                .test_manual("STARTUP", attr, val)
-                .global_diff(opt, "C4", val)
+                .test_bel_attr_val(attr, val)
+                .global_diff(opt, "C4", rval)
                 .commit();
         }
-        for val in ["U2", "U3", "U4"] {
-            ctx.build()
+        for (val, rval) in [
+            (enums::GTS_GSR_TIMING::Q2, "U2"),
+            (enums::GTS_GSR_TIMING::Q3, "U3"),
+            (enums::GTS_GSR_TIMING::Q1Q4, "U4"),
+        ] {
+            bctx.build()
                 .global("STARTUPCLK", "USERCLK")
                 .global("SYNCTODONE", "NO")
                 .global("DONEACTIVE", "C1")
                 .global(oopt, "U3")
                 .bel_out("STARTUP", "CK")
-                .test_manual("STARTUP", attr, val)
-                .global_diff(opt, "U3", val)
+                .test_bel_attr_val(attr, val)
+                .global_diff(opt, "U3", rval)
                 .commit();
         }
-        for val in ["DI", "DI_PLUS_1", "DI_PLUS_2"] {
-            ctx.build()
+        for (val, rval) in [
+            (enums::GTS_GSR_TIMING::DONE_IN, "DI"),
+            (enums::GTS_GSR_TIMING::Q3, "DI_PLUS_1"),
+            (enums::GTS_GSR_TIMING::Q1Q4, "DI_PLUS_2"),
+        ] {
+            bctx.build()
                 .global("STARTUPCLK", "USERCLK")
                 .global("SYNCTODONE", "YES")
                 .global("DONEACTIVE", "C1")
                 .global(oopt, "DI_PLUS_1")
                 .bel_out("STARTUP", "CK")
-                .test_manual("STARTUP", attr, val)
-                .global_diff(opt, "DI_PLUS_1", val)
+                .test_bel_attr_val(attr, val)
+                .global_diff(opt, "DI_PLUS_1", rval)
                 .commit();
         }
     }
 
     let mut bctx = ctx.bel(bslots::STARTUP);
-    bctx.mode("STARTUP").test_cfg("GCLR", "NOT");
-    bctx.mode("STARTUP").test_cfg("GTS", "NOT");
+    bctx.mode("STARTUP")
+        .test_bel_input_inv(bcls::STARTUP::GR, true)
+        .cfg("GCLR", "NOT")
+        .commit();
+    bctx.mode("STARTUP")
+        .test_bel_input_inv(bcls::STARTUP::GTS, true)
+        .cfg("GTS", "NOT")
+        .commit();
+
+    let mut bctx = ctx.bel(bslots::OSC_SE);
+    bctx.build()
+        .bel_out("OSC", "CK")
+        .test_attr_global_as("OSCCLK", bcls::OSC_SE::MUX_CLK);
 
     let mut ctx = FuzzCtx::new(session, backend, tcls::CNR_NE);
-    ctx.test_cfg5200("MISC", "TLC", &["ON", "OFF"]);
-    ctx.test_cfg5200("MISC", "TAC", &["ON", "OFF"]);
-    let mut bctx = ctx.bel(bslots::OSC);
-    let cnr_br = CellCoord::new(
+    let mut bctx = ctx.bel(bslots::MISC_NE);
+    for (attr, aname) in [(bcls::MISC_NE::TLC, "TLC"), (bcls::MISC_NE::TAC, "TAC")] {
+        for (val, vname) in [(false, "OFF"), (true, "ON")] {
+            bctx.build()
+                .mutex(aname, vname)
+                .test_bel_attr_enum_bool(attr, val)
+                .raw_diff(
+                    Key::BlockConfig("_cfg5200_", aname.into(), vname.into()),
+                    false,
+                    true,
+                )
+                .commit();
+        }
+    }
+    let mut bctx = ctx.bel(bslots::OSC_NE);
+    let cnr_se = CellCoord::new(
         DieId::from_idx(0),
         backend.edev.chip.col_e(),
         backend.edev.chip.row_s(),
     )
     .tile(tslots::MAIN);
-    for val in ["D2", "D4", "D6", "D8"] {
+    for (val, vname) in &backend.edev.db.enum_classes[enums::OSC1_DIV].values {
         bctx.mode("OSC")
-            .extra_tile(cnr_br, "OSC", "OSC1", val)
-            .mutex("OSC1", val)
-            .test_cfg("OSC1", val);
+            .null_bits()
+            .extra_fixed_bel_attr_val(cnr_se, bslots::OSC_SE, bcls::OSC_SE::OSC1_DIV, val)
+            .mutex("OSC1", vname)
+            .test_bel_attr_val(bcls::OSC_SE::OSC1_DIV, val)
+            .cfg("OSC1", vname)
+            .commit();
     }
-    for val in ["D1", "D3", "D5", "D7", "D10", "D12", "D14", "D16"] {
+    for (val, vname) in &backend.edev.db.enum_classes[enums::OSC2_DIV].values {
         bctx.mode("OSC")
-            .extra_tile(cnr_br, "OSC", "OSC2", val)
-            .mutex("OSC2", val)
-            .test_cfg("OSC2", val);
+            .null_bits()
+            .extra_fixed_bel_attr_val(cnr_se, bslots::OSC_SE, bcls::OSC_SE::OSC2_DIV, val)
+            .mutex("OSC2", vname)
+            .test_bel_attr_val(bcls::OSC_SE::OSC2_DIV, val)
+            .cfg("OSC2", vname)
+            .commit();
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let tile = "CNR_SW";
-    let bel = "MISC";
-    let item = ctx.extract_enum_bool(tile, bel, "READABORT", "DISABLE", "ENABLE");
-    ctx.insert(tile, bel, "READ_ABORT", item);
-    let item = ctx.extract_enum_bool(tile, bel, "READCAPTURE", "DISABLE", "ENABLE");
-    ctx.insert(tile, bel, "READ_CAPTURE", item);
-    let item = ctx.extract_enum(tile, bel, "SCANTEST", &["ENABLE", "ENLL", "NE7", "DISABLE"]);
-    ctx.insert(tile, bel, "SCAN_TEST", item);
+    ctx.collect_bel_attr(tcls::CNR_SW, bslots::MISC_SW, bcls::MISC_SW::SCAN_TEST);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_ABORT);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_CAPTURE);
+    ctx.collect_bel_attr(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::MUX_CLK);
 
-    let bel = "RDBK";
-    let item = ctx.extract_enum(tile, bel, "READCLK", &["RDBK", "CCLK"]);
-    ctx.insert(tile, bel, "READ_CLK", item);
+    ctx.collect_bel_attr(tcls::CNR_NW, bslots::MISC_NW, bcls::MISC_NW::IO_INPUT_MODE);
+    ctx.collect_bel_attr(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::ENABLE);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::READBACK);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::RECONFIG);
 
-    let tile = "CNR_NW";
-    let bel = "MISC";
-    let item = ctx.extract_enum_bool(tile, bel, "BSRECONFIG", "DISABLE", "ENABLE");
-    ctx.insert(tile, bel, "BS_RECONFIG", item);
-    let item = ctx.extract_enum_bool(tile, bel, "BSREADBACK", "DISABLE", "ENABLE");
-    ctx.insert(tile, bel, "BS_READBACK", item);
-    ctx.collect_enum(tile, bel, "INPUT", &["CMOS", "TTL"]);
-
-    let bel = "BSCAN";
-    let item = ctx.extract_bit(tile, bel, "BSCAN", "USED");
-    ctx.insert(tile, bel, "ENABLE", item);
-
-    let tile = "CNR_SE";
-    let bel = "MISC";
-    ctx.collect_enum_bool(tile, bel, "TCTEST", "OFF", "ON");
-
-    let bel = "STARTUP";
-    ctx.collect_enum_bool(tile, bel, "CRC", "DISABLE", "ENABLE");
-    let item = ctx.extract_enum(tile, bel, "CONFIGRATE", &["SLOW", "MED", "FAST"]);
-    ctx.insert(tile, bel, "CONFIG_RATE", item);
-    let item = ctx.extract_bit(tile, bel, "GTS", "NOT");
-    ctx.insert(tile, bel, "INV.GTS", item);
-    let item = ctx.extract_bit(tile, bel, "GCLR", "NOT");
-    ctx.insert(tile, bel, "INV.GR", item);
-    let item = xlat_enum(vec![
-        ("Q0", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C1")),
-        ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C3")),
-        ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C4")),
-        ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "C2")),
-        ("Q2", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U2")),
-        ("Q3", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U3")),
-        ("Q1Q4", ctx.state.get_diff(tile, bel, "DONE_ACTIVE", "U4")),
-    ]);
-    ctx.insert(tile, bel, "DONE_ACTIVE", item);
-    for attr in ["OUTPUTS_ACTIVE", "GSR_INACTIVE"] {
-        let item = xlat_enum(vec![
-            ("DONE_IN", ctx.state.get_diff(tile, bel, attr, "DI")),
-            ("Q3", ctx.state.get_diff(tile, bel, attr, "DI_PLUS_1")),
-            ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "DI_PLUS_2")),
-            ("Q2", ctx.state.get_diff(tile, bel, attr, "C3")),
-            ("Q3", ctx.state.get_diff(tile, bel, attr, "C4")),
-            ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "C2")),
-            ("Q2", ctx.state.get_diff(tile, bel, attr, "U2")),
-            ("Q3", ctx.state.get_diff(tile, bel, attr, "U3")),
-            ("Q1Q4", ctx.state.get_diff(tile, bel, attr, "U4")),
-        ]);
-        ctx.insert(tile, bel, attr, item);
-    }
-    ctx.collect_enum_default(tile, bel, "STARTUP_CLK", &["USERCLK"], "CCLK");
-    ctx.collect_bit(tile, bel, "SYNC_TO_DONE", "YES");
-
-    let bel = "DONE";
-    let item = xlat_enum(vec![
-        ("PULLUP", ctx.state.get_diff(tile, bel, "DONEPIN", "PULLUP")),
-        (
-            "PULLNONE",
-            ctx.state.get_diff(tile, bel, "DONEPIN", "NOPULLUP"),
-        ),
-    ]);
-    ctx.insert(tile, bel, "PULL", item);
-    let bel = "PROG";
-    let item = xlat_enum(vec![
-        ("PULLUP", ctx.state.get_diff(tile, bel, "PROGPIN", "PULLUP")),
-        (
-            "PULLNONE",
-            ctx.state.get_diff(tile, bel, "PROGPIN", "NOPULLUP"),
-        ),
-    ]);
-    ctx.insert(tile, bel, "PULL", item);
-
-    let bel = "OSC";
-    ctx.collect_enum(tile, bel, "OSC1", &["D2", "D4", "D6", "D8"]);
-    ctx.collect_enum(
-        tile,
-        bel,
-        "OSC2",
-        &["D1", "D3", "D5", "D7", "D10", "D12", "D14", "D16"],
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::TCTEST);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::PROG_PULLUP);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CRC);
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CONFIG_RATE);
+    ctx.collect_bel_input_inv(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GTS);
+    ctx.collect_bel_input_inv(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GR);
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::DONE_TIMING);
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GTS_TIMING);
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GSR_TIMING);
+    ctx.collect_bel_attr_default(
+        tcls::CNR_SE,
+        bslots::STARTUP,
+        bcls::STARTUP::MUX_CLK,
+        enums::STARTUP_MUX_CLK::CCLK,
     );
-    let item = ctx.extract_enum(tile, bel, "OSCCLK", &["CCLK", "USERCLK"]);
-    ctx.insert(tile, bel, "CMUX", item);
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::SYNC_TO_DONE);
 
-    let tile = "CNR_NE";
-    let bel = "MISC";
-    ctx.collect_enum_bool(tile, bel, "TLC", "OFF", "ON");
-    ctx.collect_enum_bool(tile, bel, "TAC", "OFF", "ON");
-    let bel = "OSC";
-    for val in ["D2", "D4", "D6", "D8"] {
-        ctx.state.get_diff(tile, bel, "OSC1", val).assert_empty();
-    }
-    for val in ["D1", "D3", "D5", "D7", "D10", "D12", "D14", "D16"] {
-        ctx.state.get_diff(tile, bel, "OSC2", val).assert_empty();
-    }
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::OSC1_DIV);
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::OSC2_DIV);
+    ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::MUX_CLK);
+
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TLC);
+    ctx.collect_bel_attr_enum_bool(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TAC);
 }

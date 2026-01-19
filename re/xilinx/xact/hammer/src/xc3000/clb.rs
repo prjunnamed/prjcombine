@@ -150,7 +150,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, XactBackend<'a>>, backend: &'a 
             .commit();
         bctx.mode("FG")
             .cfg("CLK", "K")
-            .test_bel_input_inv(bcls::CLB::K)
+            .test_bel_input_inv(bcls::CLB::K, true)
             .cfg("CLK", "NOT")
             .commit();
     }

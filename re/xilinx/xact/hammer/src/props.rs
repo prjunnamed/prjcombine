@@ -2,7 +2,7 @@ use prjcombine_interconnect::{
     db::{BelBidirId, BelInputId, BelSlotId},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FuzzerFeature, FuzzerProp};
+use prjcombine_re_fpga_hammer::{DiffKey, FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_types::bitvec::BitVec;
 
@@ -627,19 +627,12 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BondedIo {
 #[derive(Clone, Debug)]
 pub struct ExtraTile {
     pub tcrd: TileCoord,
-    pub bel: String,
-    pub attr: String,
-    pub val: String,
+    pub key: DiffKey,
 }
 
 impl ExtraTile {
-    pub fn new(tcrd: TileCoord, bel: String, attr: String, val: String) -> Self {
-        Self {
-            tcrd,
-            bel,
-            attr,
-            val,
-        }
+    pub fn new(tcrd: TileCoord, key: DiffKey) -> Self {
+        Self { tcrd, key }
     }
 }
 
@@ -654,15 +647,8 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for ExtraTile {
         _tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let tile = &backend.edev[self.tcrd];
-        let tile = backend.edev.db.tile_classes.key(tile.class);
         fuzzer.info.features.push(FuzzerFeature {
-            key: DiffKey::Legacy(FeatureId {
-                tile: tile.into(),
-                bel: self.bel.clone(),
-                attr: self.attr.clone(),
-                val: self.val.clone(),
-            }),
+            key: self.key.clone(),
             rects: backend.edev.tile_bits(self.tcrd),
         });
         Some((fuzzer, false))

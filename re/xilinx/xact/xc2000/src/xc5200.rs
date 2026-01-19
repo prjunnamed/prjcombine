@@ -158,7 +158,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 ];
                 ntile.add_bel(bslots::BUFG, vec!["bufgs_tr".to_string()]);
                 ntile.add_bel(bslots::CLKIOB, vec!["i_bufgs_tr".to_string()]);
-                ntile.add_bel(bslots::OSC, vec!["osc".to_string()]);
+                ntile.add_bel(bslots::OSC_NE, vec!["osc".to_string()]);
             }
             tcls::IO_W => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), row_y[row].clone())]);

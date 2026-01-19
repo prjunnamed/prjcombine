@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::db::BelInfo;
+use prjcombine_interconnect::db::{BelInfo, TileClassId};
 use prjcombine_re_fpga_hammer::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::bsdata::{BitRectId, DbValue, TileItem};
@@ -67,6 +67,10 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
         let item = self.extract_inv(tile, bel, pin);
         self.insert(tile, bel, format!("INV.{pin}"), item);
+    }
+
+    pub fn has_tile_id(&self, tcid: TileClassId) -> bool {
+        !self.edev.tile_index[tcid].is_empty()
     }
 
     pub fn has_tile(&self, tile: &str) -> bool {

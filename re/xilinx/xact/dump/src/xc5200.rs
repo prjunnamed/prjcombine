@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, IntDb, SwitchBoxItem},
+    db::{BelInfo, IntDb, Mux, SwitchBoxItem, TileWireCoord},
     dir::Dir,
     grid::{CellCoord, DieId, EdgeIoCoord},
 };
@@ -12,7 +12,7 @@ use prjcombine_re_xilinx_xact_xc2000::{ExpandedNamedDevice, name_device};
 use prjcombine_xc2000::{
     bond::{Bond, BondPad, CfgPad},
     chip::{Chip, ChipKind, SharedCfgPad},
-    xc5200::{INIT, bcls, bslots, wires},
+    xc5200::{INIT, bcls, bslots, tcls, wires},
 };
 
 use crate::extractor::{Extractor, NetBinding, PipMode};
@@ -151,14 +151,14 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                         edev.get_bel_input(bel, bcls::STARTUP::GR).wire,
                     );
                 }
-                bslots::OSC => {
+                bslots::OSC_NE => {
                     let mut prim = extractor.grab_prim_a(&ntile.bels[slot][0]);
-                    for pid in [bcls::OSC::OSC1, bcls::OSC::OSC2] {
+                    for pid in [bcls::OSC_NE::OSC1, bcls::OSC_NE::OSC2] {
                         extractor.pin_bel_output(&mut prim, bel, pid);
                     }
                     extractor.net_int(
                         prim.get_pin("CK"),
-                        edev.get_bel_input(bel, bcls::OSC::C).wire,
+                        edev.get_bel_input(bel, bcls::OSC_NE::C).wire,
                     );
                     extractor.net_int(
                         prim.get_pin("BSUPD"),
@@ -168,7 +168,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                 bslots::BYPOSC => {
                     // ???
                 }
-                bslots::BSUPD => {
+                bslots::BSUPD | bslots::OSC_SE => {
                     // handled with OSC
                 }
                 bslots::CLKIOB => {
@@ -178,16 +178,16 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     extractor.net_int(net, wire);
                 }
                 _ if bslots::IO.contains(slot) => {
+                    let idx = bslots::IO.index_of(slot).unwrap();
                     let mut prim = extractor.grab_prim_i(&ntile.bels[slot][0]);
-                    let BelInfo::Bel(bel_info) = bel_info else {
-                        unreachable!();
-                    };
-                    for pid in bel_info.inputs.ids() {
-                        extractor.pin_bel_input(&mut prim, bel, pid);
+                    extractor.pin_bel_input(&mut prim, bel, bcls::IO::T);
+                    if matches!(tile.class, tcls::IO_S | tcls::IO_N) {
+                        let net_id = prim.get_pin("O");
+                        extractor.net_int(net_id, cell.wire(wires::IMUX_IO_O[idx]));
+                    } else {
+                        extractor.pin_bel_input(&mut prim, bel, bcls::IO::O);
                     }
-                    for pid in bel_info.outputs.ids() {
-                        extractor.pin_bel_output(&mut prim, bel, pid);
-                    }
+                    extractor.pin_bel_output(&mut prim, bel, bcls::IO::I);
                 }
                 _ if bslots::TBUF.contains(slot) => {
                     let mut prim =
@@ -234,7 +234,7 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                     }
                     let cv = prim.get_pin("CV");
                     let wire_cv =
-                        edev.get_bel_output(cell.bel(bslots::VCC_GND), bcls::VCC_GND::O)[0];
+                        edev.get_bel_output(cell.bel(bslots::PROGTIE), bcls::PROGTIE::O)[0];
                     extractor.net_int(cv, wire_cv);
                     let mut omux = Vec::from_iter(
                         extractor.nets[cv]
@@ -316,12 +316,13 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
                 _ if bslots::LC.contains(slot) => {
                     // handled with LC0
                 }
-                bslots::VCC_GND => {
+                bslots::PROGTIE => {
                     // handled with LC0
                 }
                 bslots::SCANTEST => {
                     extractor.grab_prim_ab(&ntile.bels[slot][0], &ntile.bels[slot][1]);
                 }
+                bslots::MISC_SW | bslots::MISC_SE | bslots::MISC_NW | bslots::MISC_NE => (),
 
                 _ => panic!("umm bel {slot_name}?"),
             }
@@ -636,6 +637,41 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
         },
         false,
     );
+    for tcid in [tcls::IO_S, tcls::IO_N] {
+        let tcls = &mut intdb.tile_classes[tcid];
+        let BelInfo::SwitchBox(ref mut sb) = tcls.bels[bslots::INT] else {
+            unreachable!()
+        };
+        let mut new_items = vec![];
+        for item in &mut sb.items {
+            let SwitchBoxItem::Mux(mux) = item else {
+                continue;
+            };
+            let Some(idx) = wires::IMUX_IO_O.index_of(mux.dst.wire) else {
+                continue;
+            };
+            let mut new_mux = Mux {
+                dst: TileWireCoord::new_idx(0, wires::IMUX_IO_O_SN[idx]),
+                bits: Default::default(),
+                src: BTreeMap::new(),
+                bits_off: None,
+            };
+            new_mux.src.insert(mux.dst.pos(), Default::default());
+            new_mux.src.insert(mux.dst.neg(), Default::default());
+            mux.src.retain(|&wire, _| {
+                if wires::OMUX_BUF_S.contains(wire.wire) || wires::OMUX_BUF_N.contains(wire.wire) {
+                    new_mux.src.insert(wire, Default::default());
+                    new_mux.src.insert(!wire, Default::default());
+                    false
+                } else {
+                    true
+                }
+            });
+            new_items.push(SwitchBoxItem::Mux(new_mux));
+        }
+        sb.items.extend(new_items);
+        sb.items.sort();
+    }
     (chip, intdb, ndb)
 }
 

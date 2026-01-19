@@ -1,29 +1,55 @@
 use prjcombine_tablegen::target_defs;
 
 target_defs! {
-    // TODO: bel classes
+    enum LC_MUX_DO { DI, F5O, CO }
+    enum FF_MODE { FF, LATCH }
+    enum LC_MUX_D { F, DO }
     bel_class LC {
         input F1, F2, F3, F4;
         input DI;
         input CE, CK, CLR;
         output X, Q, DO;
+
+        attribute LUT: bitvec[16];
+        // F5O only available at LC[0] and LC[2]
+        attribute MUX_DO: LC_MUX_DO;
+        attribute FF_MODE: FF_MODE;
+        attribute MUX_D: LC_MUX_D;
+        attribute CLR_ENABLE: bool;
+        attribute CE_ENABLE: bool;
+        attribute READBACK: bitvec[1];
     }
 
     bel_class TBUF {
         input I, T;
         output O;
+
+        attribute T_ENABLE: bool;
     }
 
-    bel_class VCC_GND {
+    bel_class PROGTIE {
         output O;
+
+        attribute VAL: bitvec[1];
     }
 
+    enum IO_SLEW { FAST, SLOW }
+    enum IO_PULL { NONE, PULLUP, PULLDOWN }
     bel_class IO {
         input O, T;
         output I;
+        pad PAD: inout;
+
+        attribute SLEW: IO_SLEW;
+        attribute PULL: IO_PULL;
+        attribute DELAY_ENABLE: bool;
+        attribute INV_I: bool;
     }
 
-    bel_class SCANTEST;
+    enum SCANTEST_OUT { XI, YI, ZI, VI, SCANPASS }
+    bel_class SCANTEST {
+        attribute OUT: SCANTEST_OUT;
+    }
     bel_class CIN {
         input IN;
     }
@@ -34,27 +60,82 @@ target_defs! {
         output OUT;
     }
 
+    enum RDBK_MUX_CLK { CCLK, RDBK }
     bel_class RDBK {
         input CK, TRIG;
         output DATA, RIP;
+
+        attribute MUX_CLK: RDBK_MUX_CLK;
+        attribute READ_ABORT: bool;
+        attribute READ_CAPTURE: bool;
     }
+    enum SCAN_TEST { DISABLE, ENABLE, ENLL, NE7 }
+    bel_class MISC_SW {
+        attribute SCAN_TEST: SCAN_TEST;
+    }
+
+    enum CONFIG_RATE { SLOW, MED, FAST }
+    enum DONE_TIMING { Q0, Q1Q4, Q2, Q3 }
+    enum GTS_GSR_TIMING { Q1Q4, Q2, Q3, DONE_IN }
+    enum STARTUP_MUX_CLK { CCLK, USERCLK }
     bel_class STARTUP {
         input CLK, GR, GTS;
         output DONEIN, Q1Q4, Q2, Q3;
+
+        attribute GR_ENABLE: bool;
+        attribute GTS_ENABLE: bool;
+        attribute CONFIG_RATE: CONFIG_RATE;
+        attribute CRC: bool;
+        attribute DONE_TIMING: DONE_TIMING;
+        attribute GTS_TIMING: GTS_GSR_TIMING;
+        attribute GSR_TIMING: GTS_GSR_TIMING;
+        attribute SYNC_TO_DONE: bool;
+        attribute MUX_CLK: STARTUP_MUX_CLK;
     }
+    bel_class MISC_SE {
+        pad PROG_B: input;
+        pad DONE: inout;
+        attribute DONE_PULLUP: bool;
+        attribute PROG_PULLUP: bool;
+        attribute TCTEST: bool;
+    }
+
     bel_class BSCAN {
         input TDO1, TDO2;
         output DRCK, IDLE, RESET, SEL1, SEL2, SHIFT, UPDATE;
+
+        attribute ENABLE: bool;
+        attribute RECONFIG: bool;
+        attribute READBACK: bool;
     }
-    bel_class OSC {
+    enum IO_INPUT_MODE { TTL, CMOS }
+    bel_class MISC_NW {
+        attribute IO_INPUT_MODE: IO_INPUT_MODE;
+    }
+
+    bel_class OSC_NE {
         input C;
         output OSC1, OSC2;
+    }
+    enum OSC1_DIV { D2, D4, D6, D8 }
+    enum OSC2_DIV { D1, D3, D5, D7, D10, D12, D14, D16 }
+    enum OSC_MUX_CLK { CCLK, USERCLK }
+    bel_class OSC_SE {
+        attribute OSC1_DIV: OSC1_DIV;
+        attribute OSC2_DIV: OSC2_DIV;
+        attribute MUX_CLK: OSC_MUX_CLK;
     }
     bel_class BYPOSC {
         input I;
     }
     bel_class BSUPD {
         output O;
+    }
+    bel_class MISC_NE {
+        pad CCLK: inout;
+
+        attribute TAC: bool;
+        attribute TLC: bool;
     }
 
     region_slot GCLK_H;
@@ -112,7 +193,7 @@ target_defs! {
     wire OUT_LC_Q[4]: bel;
     wire OUT_LC_DO[4]: bel;
     wire OUT_TBUF[4]: bel;
-    wire OUT_PWRGND: bel;
+    wire OUT_PROGTIE: bel;
     wire OUT_IO_I[4]: bel;
     wire OUT_CLKIOB: bel;
     wire OUT_RDBK_RIP: bel;
@@ -144,6 +225,7 @@ target_defs! {
     wire IMUX_TS: mux;
     wire IMUX_GIN: mux;
     wire IMUX_IO_O[4]: mux;
+    wire IMUX_IO_O_SN[4]: mux;
     wire IMUX_IO_T[4]: mux;
     wire IMUX_RDBK_RCLK: mux;
     wire IMUX_RDBK_TRIG: mux;
@@ -179,7 +261,7 @@ target_defs! {
         bel_slot INT: routing;
         bel_slot LC[4]: LC;
         bel_slot TBUF[4]: TBUF;
-        bel_slot VCC_GND: VCC_GND;
+        bel_slot PROGTIE: PROGTIE;
 
         tile_class CLB {
             cell CELL;
@@ -211,10 +293,9 @@ target_defs! {
                 }
             }
 
-            bel VCC_GND {
-                output O = OUT_PWRGND;
+            bel PROGTIE {
+                output O = OUT_PROGTIE;
             }
-            // TODO
         }
 
         bel_slot IO[4]: IO;
@@ -242,7 +323,11 @@ target_defs! {
 
             for i in 0..4 {
                 bel IO[i] {
-                    input O = IMUX_IO_O[i];
+                    if tile_class [IO_S, IO_N] {
+                        input O = IMUX_IO_O_SN[i];
+                    } else {
+                        input O = IMUX_IO_O[i];
+                    }
                     input T = IMUX_IO_T[i];
                     output I = OUT_IO_I[i];
                 }
@@ -282,7 +367,6 @@ target_defs! {
                     output OUT = OUT_TOP_COUT;
                 }
             }
-            // TODO
         }
 
         bel_slot BUFG: routing;
@@ -290,9 +374,14 @@ target_defs! {
         bel_slot RDBK: RDBK;
         bel_slot STARTUP: STARTUP;
         bel_slot BSCAN: BSCAN;
-        bel_slot OSC: OSC;
+        bel_slot OSC_SE: OSC_SE;
+        bel_slot OSC_NE: OSC_NE;
         bel_slot BYPOSC: BYPOSC;
         bel_slot BSUPD: BSUPD;
+        bel_slot MISC_SW: MISC_SW;
+        bel_slot MISC_SE: MISC_SE;
+        bel_slot MISC_NW: MISC_NW;
+        bel_slot MISC_NE: MISC_NE;
 
         tile_class CNR_SW {
             cell CELL;
@@ -313,6 +402,8 @@ target_defs! {
                 output DATA = OUT_RDBK_DATA;
                 output RIP = OUT_RDBK_RIP;
             }
+
+            bel MISC_SW;
         }
 
         tile_class CNR_SE {
@@ -337,6 +428,9 @@ target_defs! {
                 output Q2 = OUT_STARTUP_Q2;
                 output Q3 = OUT_STARTUP_Q3;
             }
+
+            bel OSC_SE;
+            bel MISC_SE;
         }
 
         tile_class CNR_NW {
@@ -363,6 +457,8 @@ target_defs! {
                 output SHIFT = OUT_BSCAN_SHIFT;
                 output UPDATE = OUT_BSCAN_UPDATE;
             }
+
+            bel MISC_NW;
         }
 
         tile_class CNR_NE {
@@ -378,7 +474,7 @@ target_defs! {
                 output OUT = OUT_CLKIOB;
             }
 
-            bel OSC {
+            bel OSC_NE {
                 input C = IMUX_OSC_OCLK;
                 output OSC1 = OUT_OSC_OSC1;
                 output OSC2 = OUT_OSC_OSC2;
@@ -391,6 +487,8 @@ target_defs! {
             bel BSUPD {
                 output O = OUT_BSUPD;
             }
+
+            bel MISC_NE;
         }
     }
 
@@ -425,11 +523,13 @@ target_defs! {
         tile_class LLV_W {
             cell S, N;
             bitrect LLV: LLV_W;
+            bitrect MAIN: MAIN_W;
             switchbox LLV;
         }
         tile_class LLV_E {
             cell S, N;
             bitrect LLV: LLV_E;
+            bitrect MAIN: MAIN_E;
             switchbox LLV;
         }
     }

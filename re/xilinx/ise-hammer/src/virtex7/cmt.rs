@@ -16,7 +16,12 @@ use crate::{
     collector::CollectorCtx,
     generic::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
-        props::{DynProp, extra::ExtraTileMaybe, pip::PinFar, relation::Delta},
+        props::{
+            DynProp,
+            extra::{ExtraKeyLegacyAttr, ExtraTileMaybe},
+            pip::PinFar,
+            relation::Delta,
+        },
     },
 };
 
@@ -1110,9 +1115,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 if !backend.edev.tile_index[tcid].is_empty() {
                     props.push(Box::new(ExtraTileMaybe::new(
                         ColPair(tile),
-                        Some("HCLK_IO".into()),
-                        Some(format!("ENABLE.PERF{i}")),
-                        Some("1".into()),
+                        ExtraKeyLegacyAttr::new(
+                            "HCLK_IO".into(),
+                            format!("ENABLE.PERF{i}"),
+                            "1".into(),
+                        ),
                     )));
                 }
             }

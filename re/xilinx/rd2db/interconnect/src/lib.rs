@@ -36,6 +36,7 @@ pub struct ExtrBelInfo {
 pub enum BelPinInfo {
     Int,
     NameOnly(usize),
+    IntNudge(TileWireCoord),
     ForceInt(TileWireCoord, String),
     ExtraInt(PinDir, Vec<String>),
     ExtraIntForce(PinDir, TileWireCoord, String),
@@ -118,6 +119,12 @@ impl ExtrBelInfo {
     ) -> Self {
         self.pins
             .insert(name.to_string(), BelPinInfo::ForceInt(wire, wname.into()));
+        self
+    }
+
+    pub fn pin_int_nudge(mut self, name: &str, wire: TileWireCoord) -> Self {
+        self.pins
+            .insert(name.to_string(), BelPinInfo::IntNudge(wire));
         self
     }
 
@@ -875,6 +882,38 @@ impl XTileExtractor<'_, '_, '_> {
                             },
                         );
                         pins.insert(name.clone(), BelPin { wires, dir });
+                    }
+                    &BelPinInfo::IntNudge(wire) => {
+                        let dir = match tksp.dir {
+                            rawdump::TkSitePinDir::Input => PinDir::Input,
+                            rawdump::TkSitePinDir::Output => PinDir::Output,
+                            _ => panic!("bidir pin {name}"),
+                        };
+                        if tksp.wire.is_none() {
+                            panic!(
+                                "missing site wire for pin {name} tile {tile}",
+                                tile = self.xtile.name()
+                            );
+                        }
+                        let (ick, _wires, wnf, pips, int_pips) =
+                            self.walk_to_int(name, dir, bel.raw_tile, tksp.wire.unwrap());
+                        naming_pins.insert(
+                            name.clone(),
+                            BelPinNaming {
+                                name: self.rd.wires[tksp.wire.unwrap()].clone(),
+                                name_far: self.rd.wires[wnf].clone(),
+                                pips,
+                                int_pips,
+                                is_intf: ick != IntConnKind::Raw,
+                            },
+                        );
+                        pins.insert(
+                            name.clone(),
+                            BelPin {
+                                wires: BTreeSet::from_iter([wire]),
+                                dir,
+                            },
+                        );
                     }
                     &BelPinInfo::ForceInt(wire, ref wname) => {
                         let dir = match tksp.dir {
@@ -1985,6 +2024,32 @@ impl<'a> IntBuilder<'a> {
                                 },
                             );
                             pins.insert(name.clone(), BelPin { wires, dir });
+                        }
+                        &BelPinInfo::IntNudge(wire) => {
+                            let dir = match tksp.dir {
+                                rawdump::TkSitePinDir::Input => PinDir::Input,
+                                rawdump::TkSitePinDir::Output => PinDir::Output,
+                                _ => panic!("bidir pin {name}"),
+                            };
+                            let (ick, _wires, wnf, pips, int_pips) =
+                                walk_to_int(dir, tksp.wire.unwrap());
+                            naming_pins.insert(
+                                name.clone(),
+                                BelPinNaming {
+                                    name: self.rd.wires[tksp.wire.unwrap()].clone(),
+                                    name_far: self.rd.wires[wnf].clone(),
+                                    pips,
+                                    int_pips,
+                                    is_intf: ick != IntConnKind::Raw,
+                                },
+                            );
+                            pins.insert(
+                                name.clone(),
+                                BelPin {
+                                    wires: BTreeSet::from_iter([wire]),
+                                    dir,
+                                },
+                            );
                         }
                         &BelPinInfo::ForceInt(wire, ref wname) => {
                             let dir = match tksp.dir {
