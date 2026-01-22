@@ -152,53 +152,29 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="splitters"><a class="header" href="#splitters">Splitters</a></h1>
-<h2 id="tile-llhclb"><a class="header" href="#tile-llhclb">Tile LLH.CLB</a></h2>
+<h2 id="tile-llh_clb"><a class="header" href="#tile-llh_clb">Tile LLH_CLB</a></h2>
 <p>Cells: 2</p>
 <h3 id="switchbox-llh"><a class="header" href="#switchbox-llh">Switchbox LLH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLH.CLB switchbox LLH</caption>
+<caption>xc4000 LLH_CLB switchbox LLH bidirectional pass gates</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th>Side A</th><th>Side B</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="1">CELL0.LONG.H0</td><td>CELL1.LONG.H0</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB-LLH-bipass-W.LONG_H[0]-E.LONG_H[0]"><td>W.LONG_H[0]</td><td>E.LONG_H[0]</td><td><a href="#xc4000-LLH_CLB-bit-LLH_S[0][8]">!LLH_S[0][8]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H1</td><td>CELL1.LONG.H1</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB-LLH-bipass-W.LONG_H[1]-E.LONG_H[1]"><td>W.LONG_H[1]</td><td>E.LONG_H[1]</td><td><a href="#xc4000-LLH_CLB-bit-LLH_S[0][7]">!LLH_S[0][7]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H2</td><td>CELL1.LONG.H2</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB-LLH-bipass-W.LONG_H[2]-E.LONG_H[2]"><td>W.LONG_H[2]</td><td>E.LONG_H[2]</td><td><a href="#xc4000-LLH_CLB-bit-LLH_S[0][6]">!LLH_S[0][6]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H3</td><td>CELL1.LONG.H3</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB-LLH-bipass-W.LONG_H[3]-E.LONG_H[3]"><td>W.LONG_H[3]</td><td>E.LONG_H[3]</td><td><a href="#xc4000-LLH_CLB-bit-LLH[0][4]">!LLH[0][4]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H4</td><td>CELL1.LONG.H4</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB-LLH-bipass-W.LONG_H[4]-E.LONG_H[4]"><td>W.LONG_H[4]</td><td>E.LONG_H[4]</td><td><a href="#xc4000-LLH_CLB-bit-LLH[0][5]">!LLH[0][5]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H5</td><td>CELL1.LONG.H5</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H0</td><td>CELL0.LONG.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H1</td><td>CELL0.LONG.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H2</td><td>CELL0.LONG.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H3</td><td>CELL0.LONG.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H4</td><td>CELL0.LONG.H4</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H5</td><td>CELL0.LONG.H5</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB-LLH-bipass-W.LONG_H[5]-E.LONG_H[5]"><td>W.LONG_H[5]</td><td>E.LONG_H[5]</td><td><a href="#xc4000-LLH_CLB-bit-LLH[0][3]">!LLH[0][3]</a></td></tr>
 
 </tbody>
 
@@ -208,7 +184,7 @@
 <h3 id="bitstream"><a class="header" href="#bitstream">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLH.CLB rect R0</caption>
+<caption>xc4000 LLH_CLB rect LLH</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
 
@@ -219,21 +195,37 @@
 </thead>
 
 <tbody>
+<tr><td>B9</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+</tr>
+
 <tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H4.1.LONG.H4">~LLH:BIPASS.0.LONG.H4.1.LONG.H4</a>
+<td id="xc4000-LLH_CLB-bit-LLH[0][5]" title="LLH[0][5]">
+<a href="#xc4000-LLH_CLB-LLH-bipass-W.LONG_H[4]-E.LONG_H[4]">LLH: !bipass W.LONG_H[4] = E.LONG_H[4]</a>
 </td>
 </tr>
 
 <tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H3.1.LONG.H3">~LLH:BIPASS.0.LONG.H3.1.LONG.H3</a>
+<td id="xc4000-LLH_CLB-bit-LLH[0][4]" title="LLH[0][4]">
+<a href="#xc4000-LLH_CLB-LLH-bipass-W.LONG_H[3]-E.LONG_H[3]">LLH: !bipass W.LONG_H[3] = E.LONG_H[3]</a>
 </td>
 </tr>
 
 <tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H5.1.LONG.H5">~LLH:BIPASS.0.LONG.H5.1.LONG.H5</a>
+<td id="xc4000-LLH_CLB-bit-LLH[0][3]" title="LLH[0][3]">
+<a href="#xc4000-LLH_CLB-LLH-bipass-W.LONG_H[5]-E.LONG_H[5]">LLH: !bipass W.LONG_H[5] = E.LONG_H[5]</a>
 </td>
 </tr>
 
@@ -256,7 +248,7 @@
 
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLH.CLB rect R1</caption>
+<caption>xc4000 LLH_CLB rect LLH_S</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
 
@@ -267,21 +259,25 @@
 </thead>
 
 <tbody>
+<tr><td>B9</td>
+<td>-</td>
+</tr>
+
 <tr><td>B8</td>
-<td title="R1.F0.B8">
-<a href="#tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H0.1.LONG.H0">~LLH:BIPASS.0.LONG.H0.1.LONG.H0</a>
+<td id="xc4000-LLH_CLB-bit-LLH_S[0][8]" title="LLH_S[0][8]">
+<a href="#xc4000-LLH_CLB-LLH-bipass-W.LONG_H[0]-E.LONG_H[0]">LLH: !bipass W.LONG_H[0] = E.LONG_H[0]</a>
 </td>
 </tr>
 
 <tr><td>B7</td>
-<td title="R1.F0.B7">
-<a href="#tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H1.1.LONG.H1">~LLH:BIPASS.0.LONG.H1.1.LONG.H1</a>
+<td id="xc4000-LLH_CLB-bit-LLH_S[0][7]" title="LLH_S[0][7]">
+<a href="#xc4000-LLH_CLB-LLH-bipass-W.LONG_H[1]-E.LONG_H[1]">LLH: !bipass W.LONG_H[1] = E.LONG_H[1]</a>
 </td>
 </tr>
 
 <tr><td>B6</td>
-<td title="R1.F0.B6">
-<a href="#tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H2.1.LONG.H2">~LLH:BIPASS.0.LONG.H2.1.LONG.H2</a>
+<td id="xc4000-LLH_CLB-bit-LLH_S[0][6]" title="LLH_S[0][6]">
+<a href="#xc4000-LLH_CLB-LLH-bipass-W.LONG_H[2]-E.LONG_H[2]">LLH: !bipass W.LONG_H[2] = E.LONG_H[2]</a>
 </td>
 </tr>
 
@@ -314,94 +310,29 @@
 </table>
 </div>
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H0.1.LONG.H0">LLH:BIPASS.0.LONG.H0.1.LONG.H0</th>
-<th>1.F0.B8</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H1.1.LONG.H1">LLH:BIPASS.0.LONG.H1.1.LONG.H1</th>
-<th>1.F0.B7</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H2.1.LONG.H2">LLH:BIPASS.0.LONG.H2.1.LONG.H2</th>
-<th>1.F0.B6</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H3.1.LONG.H3">LLH:BIPASS.0.LONG.H3.1.LONG.H3</th>
-<th>0.F0.B4</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H4.1.LONG.H4">LLH:BIPASS.0.LONG.H4.1.LONG.H4</th>
-<th>0.F0.B5</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB-LLH:BIPASS.0.LONG.H5.1.LONG.H5">LLH:BIPASS.0.LONG.H5.1.LONG.H5</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-llhclbb"><a class="header" href="#tile-llhclbb">Tile LLH.CLB.B</a></h2>
+<h2 id="tile-llh_clb_s"><a class="header" href="#tile-llh_clb_s">Tile LLH_CLB_S</a></h2>
 <p>Cells: 2</p>
 <h3 id="switchbox-llh-1"><a class="header" href="#switchbox-llh-1">Switchbox LLH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLH.CLB.B switchbox LLH</caption>
+<caption>xc4000 LLH_CLB_S switchbox LLH bidirectional pass gates</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th>Side A</th><th>Side B</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="1">CELL0.LONG.H0</td><td>CELL1.LONG.H0</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[0]-E.LONG_H[0]"><td>W.LONG_H[0]</td><td>E.LONG_H[0]</td><td><a href="#xc4000-LLH_CLB_S-bit-LLH_S[0][11]">!LLH_S[0][11]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H1</td><td>CELL1.LONG.H1</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[1]-E.LONG_H[1]"><td>W.LONG_H[1]</td><td>E.LONG_H[1]</td><td><a href="#xc4000-LLH_CLB_S-bit-LLH_S[0][12]">!LLH_S[0][12]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H2</td><td>CELL1.LONG.H2</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[2]-E.LONG_H[2]"><td>W.LONG_H[2]</td><td>E.LONG_H[2]</td><td><a href="#xc4000-LLH_CLB_S-bit-LLH[0][0]">!LLH[0][0]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H3</td><td>CELL1.LONG.H3</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[3]-E.LONG_H[3]"><td>W.LONG_H[3]</td><td>E.LONG_H[3]</td><td><a href="#xc4000-LLH_CLB_S-bit-LLH[0][4]">!LLH[0][4]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H4</td><td>CELL1.LONG.H4</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[4]-E.LONG_H[4]"><td>W.LONG_H[4]</td><td>E.LONG_H[4]</td><td><a href="#xc4000-LLH_CLB_S-bit-LLH[0][5]">!LLH[0][5]</a></td></tr>
 
-<tr><td rowspan="1">CELL0.LONG.H5</td><td>CELL1.LONG.H5</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H0</td><td>CELL0.LONG.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H1</td><td>CELL0.LONG.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H2</td><td>CELL0.LONG.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H3</td><td>CELL0.LONG.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H4</td><td>CELL0.LONG.H4</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H5</td><td>CELL0.LONG.H5</td><td>bidirectional pass transistor</td>
-</tr>
+<tr id="xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[5]-E.LONG_H[5]"><td>W.LONG_H[5]</td><td>E.LONG_H[5]</td><td><a href="#xc4000-LLH_CLB_S-bit-LLH[0][3]">!LLH[0][3]</a></td></tr>
 
 </tbody>
 
@@ -411,7 +342,7 @@ inverted
 <h3 id="bitstream-1"><a class="header" href="#bitstream-1">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLH.CLB.B rect R0</caption>
+<caption>xc4000 LLH_CLB_S rect LLH</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
 
@@ -422,21 +353,37 @@ inverted
 </thead>
 
 <tbody>
+<tr><td>B9</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+</tr>
+
 <tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H4.1.LONG.H4">~LLH:BIPASS.0.LONG.H4.1.LONG.H4</a>
+<td id="xc4000-LLH_CLB_S-bit-LLH[0][5]" title="LLH[0][5]">
+<a href="#xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[4]-E.LONG_H[4]">LLH: !bipass W.LONG_H[4] = E.LONG_H[4]</a>
 </td>
 </tr>
 
 <tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H3.1.LONG.H3">~LLH:BIPASS.0.LONG.H3.1.LONG.H3</a>
+<td id="xc4000-LLH_CLB_S-bit-LLH[0][4]" title="LLH[0][4]">
+<a href="#xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[3]-E.LONG_H[3]">LLH: !bipass W.LONG_H[3] = E.LONG_H[3]</a>
 </td>
 </tr>
 
 <tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H5.1.LONG.H5">~LLH:BIPASS.0.LONG.H5.1.LONG.H5</a>
+<td id="xc4000-LLH_CLB_S-bit-LLH[0][3]" title="LLH[0][3]">
+<a href="#xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[5]-E.LONG_H[5]">LLH: !bipass W.LONG_H[5] = E.LONG_H[5]</a>
 </td>
 </tr>
 
@@ -449,8 +396,8 @@ inverted
 </tr>
 
 <tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H2.1.LONG.H2">~LLH:BIPASS.0.LONG.H2.1.LONG.H2</a>
+<td id="xc4000-LLH_CLB_S-bit-LLH[0][0]" title="LLH[0][0]">
+<a href="#xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[2]-E.LONG_H[2]">LLH: !bipass W.LONG_H[2] = E.LONG_H[2]</a>
 </td>
 </tr>
 
@@ -461,7 +408,7 @@ inverted
 
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLH.CLB.B rect R1</caption>
+<caption>xc4000 LLH_CLB_S rect LLH_S</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
 
@@ -473,14 +420,14 @@ inverted
 
 <tbody>
 <tr><td>B12</td>
-<td title="R1.F0.B12">
-<a href="#tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H1.1.LONG.H1">~LLH:BIPASS.0.LONG.H1.1.LONG.H1</a>
+<td id="xc4000-LLH_CLB_S-bit-LLH_S[0][12]" title="LLH_S[0][12]">
+<a href="#xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[1]-E.LONG_H[1]">LLH: !bipass W.LONG_H[1] = E.LONG_H[1]</a>
 </td>
 </tr>
 
 <tr><td>B11</td>
-<td title="R1.F0.B11">
-<a href="#tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H0.1.LONG.H0">~LLH:BIPASS.0.LONG.H0.1.LONG.H0</a>
+<td id="xc4000-LLH_CLB_S-bit-LLH_S[0][11]" title="LLH_S[0][11]">
+<a href="#xc4000-LLH_CLB_S-LLH-bipass-W.LONG_H[0]-E.LONG_H[0]">LLH: !bipass W.LONG_H[0] = E.LONG_H[0]</a>
 </td>
 </tr>
 
@@ -535,1327 +482,12 @@ inverted
 
 <div class="table-wrapper">
 <table>
+<caption>xc4000 LLH_CLB_S rect MAIN_SW</caption>
 <thead>
-<tr><th id="tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H0.1.LONG.H0">LLH:BIPASS.0.LONG.H0.1.LONG.H0</th>
-<th>1.F0.B11</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H1.1.LONG.H1">LLH:BIPASS.0.LONG.H1.1.LONG.H1</th>
-<th>1.F0.B12</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H2.1.LONG.H2">LLH:BIPASS.0.LONG.H2.1.LONG.H2</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H3.1.LONG.H3">LLH:BIPASS.0.LONG.H3.1.LONG.H3</th>
-<th>0.F0.B4</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H4.1.LONG.H4">LLH:BIPASS.0.LONG.H4.1.LONG.H4</th>
-<th>0.F0.B5</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.CLB.B-LLH:BIPASS.0.LONG.H5.1.LONG.H5">LLH:BIPASS.0.LONG.H5.1.LONG.H5</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-llhiob"><a class="header" href="#tile-llhiob">Tile LLH.IO.B</a></h2>
-<p>Cells: 2</p>
-<h3 id="switchbox-llh-2"><a class="header" href="#switchbox-llh-2">Switchbox LLH</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLH.IO.B switchbox LLH</caption>
-<thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td rowspan="1">CELL0.LONG.H3</td><td>CELL1.LONG.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.H4</td><td>CELL1.LONG.H4</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.H5</td><td>CELL1.LONG.H5</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H0</td><td>CELL1.LONG.IO.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H1</td><td>CELL1.LONG.IO.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H2</td><td>CELL1.LONG.IO.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H3</td><td>CELL1.LONG.IO.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H0</td><td>CELL1.DEC.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H1</td><td>CELL1.DEC.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H2</td><td>CELL1.DEC.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H3</td><td>CELL1.DEC.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H3</td><td>CELL0.LONG.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H4</td><td>CELL0.LONG.H4</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H5</td><td>CELL0.LONG.H5</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H0</td><td>CELL0.LONG.IO.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H1</td><td>CELL0.LONG.IO.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H2</td><td>CELL0.LONG.IO.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H3</td><td>CELL0.LONG.IO.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H0</td><td>CELL0.DEC.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H1</td><td>CELL0.DEC.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H2</td><td>CELL0.DEC.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H3</td><td>CELL0.DEC.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLH.IO.B rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+<tr><th rowspan="2">Bit</th><th colspan="36">Frame</th></tr>
 
 <tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B10</td>
-<td title="R0.F0.B10">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.H3.1.LONG.H3">~LLH:BIPASS.0.LONG.H3.1.LONG.H3</a>
-</td>
-</tr>
-
-<tr><td>B9</td>
-<td title="R0.F0.B9">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.H4.1.LONG.H4">~LLH:BIPASS.0.LONG.H4.1.LONG.H4</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R0.F0.B8">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.H5.1.LONG.H5">~LLH:BIPASS.0.LONG.H5.1.LONG.H5</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R0.F0.B7">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H3.1.DEC.H3">~LLH:BIPASS.0.DEC.H3.1.DEC.H3</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H1.1.DEC.H1">~LLH:BIPASS.0.DEC.H1.1.DEC.H1</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H2.1.DEC.H2">~LLH:BIPASS.0.DEC.H2.1.DEC.H2</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H0.1.DEC.H0">~LLH:BIPASS.0.DEC.H0.1.DEC.H0</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3">~LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0">~LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2">~LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2</a>
-</td>
-</tr>
-
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1">~LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H0.1.DEC.H0">LLH:BIPASS.0.DEC.H0.1.DEC.H0</th>
-<th>0.F0.B4</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H1.1.DEC.H1">LLH:BIPASS.0.DEC.H1.1.DEC.H1</th>
-<th>0.F0.B6</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H2.1.DEC.H2">LLH:BIPASS.0.DEC.H2.1.DEC.H2</th>
-<th>0.F0.B5</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.DEC.H3.1.DEC.H3">LLH:BIPASS.0.DEC.H3.1.DEC.H3</th>
-<th>0.F0.B7</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.H3.1.LONG.H3">LLH:BIPASS.0.LONG.H3.1.LONG.H3</th>
-<th>0.F0.B10</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.H4.1.LONG.H4">LLH:BIPASS.0.LONG.H4.1.LONG.H4</th>
-<th>0.F0.B9</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.H5.1.LONG.H5">LLH:BIPASS.0.LONG.H5.1.LONG.H5</th>
-<th>0.F0.B8</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0">LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0</th>
-<th>0.F0.B2</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1">LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2">LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.B-LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3">LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-llhiot"><a class="header" href="#tile-llhiot">Tile LLH.IO.T</a></h2>
-<p>Cells: 2</p>
-<h3 id="switchbox-llh-3"><a class="header" href="#switchbox-llh-3">Switchbox LLH</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLH.IO.T switchbox LLH</caption>
-<thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td rowspan="1">CELL0.LONG.H0</td><td>CELL1.LONG.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.H1</td><td>CELL1.LONG.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.H2</td><td>CELL1.LONG.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H0</td><td>CELL1.LONG.IO.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H1</td><td>CELL1.LONG.IO.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H2</td><td>CELL1.LONG.IO.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.H3</td><td>CELL1.LONG.IO.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H0</td><td>CELL1.DEC.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H1</td><td>CELL1.DEC.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H2</td><td>CELL1.DEC.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.H3</td><td>CELL1.DEC.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H0</td><td>CELL0.LONG.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H1</td><td>CELL0.LONG.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.H2</td><td>CELL0.LONG.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H0</td><td>CELL0.LONG.IO.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H1</td><td>CELL0.LONG.IO.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H2</td><td>CELL0.LONG.IO.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.H3</td><td>CELL0.LONG.IO.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H0</td><td>CELL0.DEC.H0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H1</td><td>CELL0.DEC.H1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H2</td><td>CELL0.DEC.H2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.H3</td><td>CELL0.DEC.H3</td><td>bidirectional pass transistor</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLH.IO.T rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B6</td>
-<td title="R0.F0.B6">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1">~LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td title="R0.F0.B5">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2">~LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2</a>
-</td>
-</tr>
-
-<tr><td>B4</td>
-<td title="R0.F0.B4">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0">~LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0</a>
-</td>
-</tr>
-
-<tr><td>B3</td>
-<td title="R0.F0.B3">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3">~LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3</a>
-</td>
-</tr>
-
-<tr><td>B2</td>
-<td title="R0.F0.B2">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H3.1.DEC.H3">~LLH:BIPASS.0.DEC.H3.1.DEC.H3</a>
-</td>
-</tr>
-
-<tr><td>B1</td>
-<td title="R0.F0.B1">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H1.1.DEC.H1">~LLH:BIPASS.0.DEC.H1.1.DEC.H1</a>
-</td>
-</tr>
-
-<tr><td>B0</td>
-<td title="R0.F0.B0">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H2.1.DEC.H2">~LLH:BIPASS.0.DEC.H2.1.DEC.H2</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLH.IO.T rect R1</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
-
-<tr>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B9</td>
-<td title="R1.F0.B9">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H0.1.DEC.H0">~LLH:BIPASS.0.DEC.H0.1.DEC.H0</a>
-</td>
-</tr>
-
-<tr><td>B8</td>
-<td title="R1.F0.B8">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.H0.1.LONG.H0">~LLH:BIPASS.0.LONG.H0.1.LONG.H0</a>
-</td>
-</tr>
-
-<tr><td>B7</td>
-<td title="R1.F0.B7">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.H1.1.LONG.H1">~LLH:BIPASS.0.LONG.H1.1.LONG.H1</a>
-</td>
-</tr>
-
-<tr><td>B6</td>
-<td title="R1.F0.B6">
-<a href="#tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.H2.1.LONG.H2">~LLH:BIPASS.0.LONG.H2.1.LONG.H2</a>
-</td>
-</tr>
-
-<tr><td>B5</td>
-<td>-</td>
-</tr>
-
-<tr><td>B4</td>
-<td>-</td>
-</tr>
-
-<tr><td>B3</td>
-<td>-</td>
-</tr>
-
-<tr><td>B2</td>
-<td>-</td>
-</tr>
-
-<tr><td>B1</td>
-<td>-</td>
-</tr>
-
-<tr><td>B0</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H0.1.DEC.H0">LLH:BIPASS.0.DEC.H0.1.DEC.H0</th>
-<th>1.F0.B9</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H1.1.DEC.H1">LLH:BIPASS.0.DEC.H1.1.DEC.H1</th>
-<th>0.F0.B1</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H2.1.DEC.H2">LLH:BIPASS.0.DEC.H2.1.DEC.H2</th>
-<th>0.F0.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.DEC.H3.1.DEC.H3">LLH:BIPASS.0.DEC.H3.1.DEC.H3</th>
-<th>0.F0.B2</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.H0.1.LONG.H0">LLH:BIPASS.0.LONG.H0.1.LONG.H0</th>
-<th>1.F0.B8</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.H1.1.LONG.H1">LLH:BIPASS.0.LONG.H1.1.LONG.H1</th>
-<th>1.F0.B7</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.H2.1.LONG.H2">LLH:BIPASS.0.LONG.H2.1.LONG.H2</th>
-<th>1.F0.B6</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0">LLH:BIPASS.0.LONG.IO.H0.1.LONG.IO.H0</th>
-<th>0.F0.B4</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1">LLH:BIPASS.0.LONG.IO.H1.1.LONG.IO.H1</th>
-<th>0.F0.B6</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2">LLH:BIPASS.0.LONG.IO.H2.1.LONG.IO.H2</th>
-<th>0.F0.B5</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLH.IO.T-LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3">LLH:BIPASS.0.LONG.IO.H3.1.LONG.IO.H3</th>
-<th>0.F0.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-llvclb"><a class="header" href="#tile-llvclb">Tile LLV.CLB</a></h2>
-<p>Cells: 2</p>
-<h3 id="switchbox-llv"><a class="header" href="#switchbox-llv">Switchbox LLV</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.CLB switchbox LLV</caption>
-<thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td rowspan="1">CELL0.LONG.V0</td><td>CELL1.LONG.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.V1</td><td>CELL1.LONG.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.V2</td><td>CELL1.LONG.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.V3</td><td>CELL1.LONG.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.V4</td><td>CELL1.LONG.V4</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.V5</td><td>CELL1.LONG.V5</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V0</td><td>CELL0.LONG.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V1</td><td>CELL0.LONG.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V2</td><td>CELL0.LONG.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V3</td><td>CELL0.LONG.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V4</td><td>CELL0.LONG.V4</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V5</td><td>CELL0.LONG.V5</td><td>bidirectional pass transistor</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-clkh"><a class="header" href="#bel-clkh">Bel CLKH</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.CLB bel CLKH</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>O0</td><td>output</td><td>CELL0.GCLK0</td></tr>
-
-<tr><td>O1</td><td>output</td><td>CELL0.GCLK1</td></tr>
-
-<tr><td>O2</td><td>output</td><td>CELL0.GCLK2</td></tr>
-
-<tr><td>O3</td><td>output</td><td>CELL0.GCLK3</td></tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-wires"><a class="header" href="#bel-wires">Bel wires</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.CLB bel wires</caption>
-<thead>
-<tr><th>Wire</th><th>Pins</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>CELL0.GCLK0</td><td>CLKH.O0</td></tr>
-
-<tr><td>CELL0.GCLK1</td><td>CLKH.O1</td></tr>
-
-<tr><td>CELL0.GCLK2</td><td>CLKH.O2</td></tr>
-
-<tr><td>CELL0.GCLK3</td><td>CLKH.O3</td></tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.CLB rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="31">Frame</th></tr>
-
-<tr>
-<th>F30</th>
-<th>F29</th>
-<th>F28</th>
-<th>F27</th>
-<th>F26</th>
-<th>F25</th>
-<th>F24</th>
-<th>F23</th>
-<th>F22</th>
-<th>F21</th>
-<th>F20</th>
-<th>F19</th>
-<th>F18</th>
-<th>F17</th>
-<th>F16</th>
-<th>F15</th>
-<th>F14</th>
-<th>F13</th>
-<th>F12</th>
-<th>F11</th>
-<th>F10</th>
-<th>F9</th>
-<th>F8</th>
-<th>F7</th>
-<th>F6</th>
-<th>F5</th>
-<th>F4</th>
-<th>F3</th>
-<th>F2</th>
-<th>F1</th>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F30.B0">
-<a href="#tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V5.1.LONG.V5">~LLV:BIPASS.0.LONG.V5.1.LONG.V5</a>
-</td>
-<td title="R0.F29.B0">
-<a href="#tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V1.1.LONG.V1">~LLV:BIPASS.0.LONG.V1.1.LONG.V1</a>
-</td>
-<td title="R0.F28.B0">
-<a href="#tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V2.1.LONG.V2">~LLV:BIPASS.0.LONG.V2.1.LONG.V2</a>
-</td>
-<td title="R0.F27.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O2">CLKH:MUX.O2[4]</a>
-</td>
-<td title="R0.F26.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O2">CLKH:MUX.O2[2]</a>
-</td>
-<td title="R0.F25.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O2">CLKH:MUX.O2[0]</a>
-</td>
-<td title="R0.F24.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O2">CLKH:MUX.O2[1]</a>
-</td>
-<td title="R0.F23.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O2">CLKH:MUX.O2[3]</a>
-</td>
-<td title="R0.F22.B0">
-<a href="#tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V3.1.LONG.V3">~LLV:BIPASS.0.LONG.V3.1.LONG.V3</a>
-</td>
-<td title="R0.F21.B0">
-<a href="#tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V0.1.LONG.V0">~LLV:BIPASS.0.LONG.V0.1.LONG.V0</a>
-</td>
-<td title="R0.F20.B0">
-<a href="#tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V4.1.LONG.V4">~LLV:BIPASS.0.LONG.V4.1.LONG.V4</a>
-</td>
-<td title="R0.F19.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O0">CLKH:MUX.O0[4]</a>
-</td>
-<td title="R0.F18.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O0">CLKH:MUX.O0[2]</a>
-</td>
-<td title="R0.F17.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O0">CLKH:MUX.O0[0]</a>
-</td>
-<td title="R0.F16.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O0">CLKH:MUX.O0[1]</a>
-</td>
-<td title="R0.F15.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O0">CLKH:MUX.O0[3]</a>
-</td>
-<td title="R0.F14.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O3">CLKH:MUX.O3[3]</a>
-</td>
-<td title="R0.F13.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O3">CLKH:MUX.O3[1]</a>
-</td>
-<td>-</td>
-<td title="R0.F11.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O3">CLKH:MUX.O3[0]</a>
-</td>
-<td title="R0.F10.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O3">CLKH:MUX.O3[2]</a>
-</td>
-<td title="R0.F9.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O3">CLKH:MUX.O3[4]</a>
-</td>
-<td title="R0.F8.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O1">CLKH:MUX.O1[4]</a>
-</td>
-<td title="R0.F7.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O1">CLKH:MUX.O1[2]</a>
-</td>
-<td title="R0.F6.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O1">CLKH:MUX.O1[0]</a>
-</td>
-<td title="R0.F5.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O1">CLKH:MUX.O1[1]</a>
-</td>
-<td title="R0.F4.B0">
-<a href="#tile-xc4000-LLV.CLB-CLKH:MUX.O1">CLKH:MUX.O1[3]</a>
-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-<td>-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.CLB-CLKH:MUX.O0">CLKH:MUX.O0</th>
-<th>0.F19.B0</th>
-<th>0.F15.B0</th>
-<th>0.F18.B0</th>
-<th>0.F16.B0</th>
-<th>0.F17.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.UL.V</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.CLB-CLKH:MUX.O1">CLKH:MUX.O1</th>
-<th>0.F8.B0</th>
-<th>0.F4.B0</th>
-<th>0.F7.B0</th>
-<th>0.F5.B0</th>
-<th>0.F6.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.LL.H</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.CLB-CLKH:MUX.O2">CLKH:MUX.O2</th>
-<th>0.F27.B0</th>
-<th>0.F23.B0</th>
-<th>0.F26.B0</th>
-<th>0.F24.B0</th>
-<th>0.F25.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.LR.V</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.CLB-CLKH:MUX.O3">CLKH:MUX.O3</th>
-<th>0.F9.B0</th>
-<th>0.F14.B0</th>
-<th>0.F10.B0</th>
-<th>0.F13.B0</th>
-<th>0.F11.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.UR.H</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V0.1.LONG.V0">LLV:BIPASS.0.LONG.V0.1.LONG.V0</th>
-<th>0.F21.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V1.1.LONG.V1">LLV:BIPASS.0.LONG.V1.1.LONG.V1</th>
-<th>0.F29.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V2.1.LONG.V2">LLV:BIPASS.0.LONG.V2.1.LONG.V2</th>
-<th>0.F28.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V3.1.LONG.V3">LLV:BIPASS.0.LONG.V3.1.LONG.V3</th>
-<th>0.F22.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V4.1.LONG.V4">LLV:BIPASS.0.LONG.V4.1.LONG.V4</th>
-<th>0.F20.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.CLB-LLV:BIPASS.0.LONG.V5.1.LONG.V5">LLV:BIPASS.0.LONG.V5.1.LONG.V5</th>
-<th>0.F30.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-llviol"><a class="header" href="#tile-llviol">Tile LLV.IO.L</a></h2>
-<p>Cells: 2</p>
-<h3 id="switchbox-llv-1"><a class="header" href="#switchbox-llv-1">Switchbox LLV</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.IO.L switchbox LLV</caption>
-<thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td rowspan="1">CELL0.LONG.IO.V0</td><td>CELL1.LONG.IO.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.V1</td><td>CELL1.LONG.IO.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.V2</td><td>CELL1.LONG.IO.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.LONG.IO.V3</td><td>CELL1.LONG.IO.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.V0</td><td>CELL1.DEC.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.V1</td><td>CELL1.DEC.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.V2</td><td>CELL1.DEC.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL0.DEC.V3</td><td>CELL1.DEC.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V0</td><td>CELL0.LONG.IO.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V1</td><td>CELL0.LONG.IO.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V2</td><td>CELL0.LONG.IO.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V3</td><td>CELL0.LONG.IO.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V0</td><td>CELL0.DEC.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V1</td><td>CELL0.DEC.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V2</td><td>CELL0.DEC.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V3</td><td>CELL0.DEC.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-clkh-1"><a class="header" href="#bel-clkh-1">Bel CLKH</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.IO.L bel CLKH</caption>
-<thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>O0</td><td>output</td><td>CELL0.GCLK0</td></tr>
-
-<tr><td>O1</td><td>output</td><td>CELL0.GCLK1</td></tr>
-
-<tr><td>O2</td><td>output</td><td>CELL0.GCLK2</td></tr>
-
-<tr><td>O3</td><td>output</td><td>CELL0.GCLK3</td></tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bel-wires-1"><a class="header" href="#bel-wires-1">Bel wires</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.IO.L bel wires</caption>
-<thead>
-<tr><th>Wire</th><th>Pins</th></tr>
-
-</thead>
-
-<tbody>
-<tr><td>CELL0.GCLK0</td><td>CLKH.O0</td></tr>
-
-<tr><td>CELL0.GCLK1</td><td>CLKH.O1</td></tr>
-
-<tr><td>CELL0.GCLK2</td><td>CLKH.O2</td></tr>
-
-<tr><td>CELL0.GCLK3</td><td>CLKH.O3</td></tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.IO.L rect R0</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="26">Frame</th></tr>
-
-<tr>
-<th>F25</th>
-<th>F24</th>
-<th>F23</th>
-<th>F22</th>
-<th>F21</th>
-<th>F20</th>
-<th>F19</th>
-<th>F18</th>
-<th>F17</th>
-<th>F16</th>
-<th>F15</th>
-<th>F14</th>
-<th>F13</th>
-<th>F12</th>
-<th>F11</th>
-<th>F10</th>
-<th>F9</th>
-<th>F8</th>
-<th>F7</th>
-<th>F6</th>
-<th>F5</th>
-<th>F4</th>
-<th>F3</th>
-<th>F2</th>
-<th>F1</th>
-<th>F0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>B0</td>
-<td title="R0.F25.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O3">CLKH:MUX.O3[4]</a>
-</td>
-<td title="R0.F24.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O3">CLKH:MUX.O3[2]</a>
-</td>
-<td title="R0.F23.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O3">CLKH:MUX.O3[0]</a>
-</td>
-<td title="R0.F22.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O3">CLKH:MUX.O3[1]</a>
-</td>
-<td title="R0.F21.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O3">CLKH:MUX.O3[3]</a>
-</td>
-<td title="R0.F20.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V3.1.DEC.V3">~LLV:BIPASS.0.DEC.V3.1.DEC.V3</a>
-</td>
-<td title="R0.F19.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O1">CLKH:MUX.O1[4]</a>
-</td>
-<td title="R0.F18.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O1">CLKH:MUX.O1[2]</a>
-</td>
-<td title="R0.F17.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O1">CLKH:MUX.O1[0]</a>
-</td>
-<td title="R0.F16.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O1">CLKH:MUX.O1[1]</a>
-</td>
-<td title="R0.F15.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O1">CLKH:MUX.O1[3]</a>
-</td>
-<td title="R0.F14.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1">~LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1</a>
-</td>
-<td title="R0.F13.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V2.1.DEC.V2">~LLV:BIPASS.0.DEC.V2.1.DEC.V2</a>
-</td>
-<td title="R0.F12.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V1.1.DEC.V1">~LLV:BIPASS.0.DEC.V1.1.DEC.V1</a>
-</td>
-<td title="R0.F11.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O0">CLKH:MUX.O0[4]</a>
-</td>
-<td title="R0.F10.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O0">CLKH:MUX.O0[2]</a>
-</td>
-<td title="R0.F9.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O0">CLKH:MUX.O0[0]</a>
-</td>
-<td title="R0.F8.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O0">CLKH:MUX.O0[1]</a>
-</td>
-<td title="R0.F7.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V0.1.DEC.V0">~LLV:BIPASS.0.DEC.V0.1.DEC.V0</a>
-</td>
-<td title="R0.F6.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O0">CLKH:MUX.O0[3]</a>
-</td>
-<td>-</td>
-<td title="R0.F4.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2">~LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2</a>
-</td>
-<td title="R0.F3.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3">~LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3</a>
-</td>
-<td title="R0.F2.B0">
-<a href="#tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0">~LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0</a>
-</td>
-<td>-</td>
-<td title="R0.F0.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O2">CLKH:MUX.O2[4]</a>
-</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<caption>xc4000 LLV.IO.L rect R1</caption>
-<thead>
-<tr><th rowspan="2">Bit</th><th colspan="35">Frame</th></tr>
-
-<tr>
+<th>F35</th>
 <th>F34</th>
 <th>F33</th>
 <th>F32</th>
@@ -1896,19 +528,480 @@ inverted
 </thead>
 
 <tbody>
+<tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
 <tr><td>B0</td>
-<td title="R1.F34.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O2">CLKH:MUX.O2[2]</a>
-</td>
-<td title="R1.F33.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O2">CLKH:MUX.O2[0]</a>
-</td>
-<td title="R1.F32.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O2">CLKH:MUX.O2[1]</a>
-</td>
-<td title="R1.F31.B0">
-<a href="#tile-xc4000-LLV.IO.L-CLKH:MUX.O2">CLKH:MUX.O2[3]</a>
-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -1947,417 +1040,131 @@ inverted
 </table>
 </div>
 
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.L-CLKH:MUX.O0">CLKH:MUX.O0</th>
-<th>0.F11.B0</th>
-<th>0.F6.B0</th>
-<th>0.F10.B0</th>
-<th>0.F8.B0</th>
-<th>0.F9.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.UL.V</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.L-CLKH:MUX.O1">CLKH:MUX.O1</th>
-<th>0.F19.B0</th>
-<th>0.F15.B0</th>
-<th>0.F18.B0</th>
-<th>0.F16.B0</th>
-<th>0.F17.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.LL.H</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.L-CLKH:MUX.O2">CLKH:MUX.O2</th>
-<th>0.F0.B0</th>
-<th>1.F31.B0</th>
-<th>1.F34.B0</th>
-<th>1.F32.B0</th>
-<th>1.F33.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.LR.V</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.L-CLKH:MUX.O3">CLKH:MUX.O3</th>
-<th>0.F25.B0</th>
-<th>0.F21.B0</th>
-<th>0.F24.B0</th>
-<th>0.F22.B0</th>
-<th>0.F23.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.UR.H</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V0.1.DEC.V0">LLV:BIPASS.0.DEC.V0.1.DEC.V0</th>
-<th>0.F7.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V1.1.DEC.V1">LLV:BIPASS.0.DEC.V1.1.DEC.V1</th>
-<th>0.F12.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V2.1.DEC.V2">LLV:BIPASS.0.DEC.V2.1.DEC.V2</th>
-<th>0.F13.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.DEC.V3.1.DEC.V3">LLV:BIPASS.0.DEC.V3.1.DEC.V3</th>
-<th>0.F20.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0">LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0</th>
-<th>0.F2.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1">LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1</th>
-<th>0.F14.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2">LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2</th>
-<th>0.F4.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.L-LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3">LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3</th>
-<th>0.F3.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<h2 id="tile-llvior"><a class="header" href="#tile-llvior">Tile LLV.IO.R</a></h2>
+<h2 id="tile-llh_io_s"><a class="header" href="#tile-llh_io_s">Tile LLH_IO_S</a></h2>
 <p>Cells: 2</p>
-<h3 id="switchbox-llv-2"><a class="header" href="#switchbox-llv-2">Switchbox LLV</a></h3>
+<h3 id="switchbox-llh-2"><a class="header" href="#switchbox-llh-2">Switchbox LLH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLV.IO.R switchbox LLV</caption>
+<caption>xc4000 LLH_IO_S switchbox LLH bidirectional pass gates</caption>
 <thead>
-<tr><th>Destination</th><th>Source</th><th>Kind</th></tr>
+<tr><th>Side A</th><th>Side B</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td rowspan="1">CELL0.LONG.V0</td><td>CELL1.LONG.V0</td><td>bidirectional pass transistor</td>
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.LONG_H[3]-E.LONG_H[3]"><td>W.LONG_H[3]</td><td>E.LONG_H[3]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][10]">!LLH[0][10]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.LONG_H[4]-E.LONG_H[4]"><td>W.LONG_H[4]</td><td>E.LONG_H[4]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][9]">!LLH[0][9]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.LONG_H[5]-E.LONG_H[5]"><td>W.LONG_H[5]</td><td>E.LONG_H[5]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][8]">!LLH[0][8]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[0]-E.LONG_IO_H[0]"><td>W.LONG_IO_H[0]</td><td>E.LONG_IO_H[0]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][2]">!LLH[0][2]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[1]-E.LONG_IO_H[1]"><td>W.LONG_IO_H[1]</td><td>E.LONG_IO_H[1]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][0]">!LLH[0][0]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[2]-E.LONG_IO_H[2]"><td>W.LONG_IO_H[2]</td><td>E.LONG_IO_H[2]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][1]">!LLH[0][1]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[3]-E.LONG_IO_H[3]"><td>W.LONG_IO_H[3]</td><td>E.LONG_IO_H[3]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][3]">!LLH[0][3]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[0]-E.DEC_H[0]"><td>W.DEC_H[0]</td><td>E.DEC_H[0]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][4]">!LLH[0][4]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[1]-E.DEC_H[1]"><td>W.DEC_H[1]</td><td>E.DEC_H[1]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][6]">!LLH[0][6]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[2]-E.DEC_H[2]"><td>W.DEC_H[2]</td><td>E.DEC_H[2]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][5]">!LLH[0][5]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[3]-E.DEC_H[3]"><td>W.DEC_H[3]</td><td>E.DEC_H[3]</td><td><a href="#xc4000-LLH_IO_S-bit-LLH[0][7]">!LLH[0][7]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream-2"><a class="header" href="#bitstream-2">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLH_IO_S rect LLH</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
+<tr>
+<th>F0</th>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.V1</td><td>CELL1.LONG.V1</td><td>bidirectional pass transistor</td>
+</thead>
+
+<tbody>
+<tr><td>B12</td>
+<td>-</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.V2</td><td>CELL1.LONG.V2</td><td>bidirectional pass transistor</td>
+<tr><td>B11</td>
+<td>-</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.V3</td><td>CELL1.LONG.V3</td><td>bidirectional pass transistor</td>
+<tr><td>B10</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][10]" title="LLH[0][10]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.LONG_H[3]-E.LONG_H[3]">LLH: !bipass W.LONG_H[3] = E.LONG_H[3]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.V4</td><td>CELL1.LONG.V4</td><td>bidirectional pass transistor</td>
+<tr><td>B9</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][9]" title="LLH[0][9]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.LONG_H[4]-E.LONG_H[4]">LLH: !bipass W.LONG_H[4] = E.LONG_H[4]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.V5</td><td>CELL1.LONG.V5</td><td>bidirectional pass transistor</td>
+<tr><td>B8</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][8]" title="LLH[0][8]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.LONG_H[5]-E.LONG_H[5]">LLH: !bipass W.LONG_H[5] = E.LONG_H[5]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.IO.V0</td><td>CELL1.LONG.IO.V0</td><td>bidirectional pass transistor</td>
+<tr><td>B7</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][7]" title="LLH[0][7]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[3]-E.DEC_H[3]">LLH: !bipass W.DEC_H[3] = E.DEC_H[3]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.IO.V1</td><td>CELL1.LONG.IO.V1</td><td>bidirectional pass transistor</td>
+<tr><td>B6</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][6]" title="LLH[0][6]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[1]-E.DEC_H[1]">LLH: !bipass W.DEC_H[1] = E.DEC_H[1]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.IO.V2</td><td>CELL1.LONG.IO.V2</td><td>bidirectional pass transistor</td>
+<tr><td>B5</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][5]" title="LLH[0][5]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[2]-E.DEC_H[2]">LLH: !bipass W.DEC_H[2] = E.DEC_H[2]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.LONG.IO.V3</td><td>CELL1.LONG.IO.V3</td><td>bidirectional pass transistor</td>
+<tr><td>B4</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][4]" title="LLH[0][4]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.DEC_H[0]-E.DEC_H[0]">LLH: !bipass W.DEC_H[0] = E.DEC_H[0]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.DEC.V0</td><td>CELL1.DEC.V0</td><td>bidirectional pass transistor</td>
+<tr><td>B3</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][3]" title="LLH[0][3]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[3]-E.LONG_IO_H[3]">LLH: !bipass W.LONG_IO_H[3] = E.LONG_IO_H[3]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.DEC.V1</td><td>CELL1.DEC.V1</td><td>bidirectional pass transistor</td>
+<tr><td>B2</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][2]" title="LLH[0][2]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[0]-E.LONG_IO_H[0]">LLH: !bipass W.LONG_IO_H[0] = E.LONG_IO_H[0]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.DEC.V2</td><td>CELL1.DEC.V2</td><td>bidirectional pass transistor</td>
+<tr><td>B1</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][1]" title="LLH[0][1]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[2]-E.LONG_IO_H[2]">LLH: !bipass W.LONG_IO_H[2] = E.LONG_IO_H[2]</a>
+</td>
 </tr>
 
-<tr><td rowspan="1">CELL0.DEC.V3</td><td>CELL1.DEC.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V0</td><td>CELL0.LONG.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V1</td><td>CELL0.LONG.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V2</td><td>CELL0.LONG.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V3</td><td>CELL0.LONG.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V4</td><td>CELL0.LONG.V4</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.V5</td><td>CELL0.LONG.V5</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V0</td><td>CELL0.LONG.IO.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V1</td><td>CELL0.LONG.IO.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V2</td><td>CELL0.LONG.IO.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.LONG.IO.V3</td><td>CELL0.LONG.IO.V3</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V0</td><td>CELL0.DEC.V0</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V1</td><td>CELL0.DEC.V1</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V2</td><td>CELL0.DEC.V2</td><td>bidirectional pass transistor</td>
-</tr>
-
-<tr><td rowspan="1">CELL1.DEC.V3</td><td>CELL0.DEC.V3</td><td>bidirectional pass transistor</td>
+<tr><td>B0</td>
+<td id="xc4000-LLH_IO_S-bit-LLH[0][0]" title="LLH[0][0]">
+<a href="#xc4000-LLH_IO_S-LLH-bipass-W.LONG_IO_H[1]-E.LONG_IO_H[1]">LLH: !bipass W.LONG_IO_H[1] = E.LONG_IO_H[1]</a>
+</td>
 </tr>
 
 </tbody>
@@ -2365,56 +1172,1211 @@ inverted
 </table>
 </div>
 
-<h3 id="bel-clkh-2"><a class="header" href="#bel-clkh-2">Bel CLKH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLV.IO.R bel CLKH</caption>
+<caption>xc4000 LLH_IO_S rect MAIN_W</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th rowspan="2">Bit</th><th colspan="36">Frame</th></tr>
+
+<tr>
+<th>F35</th>
+<th>F34</th>
+<th>F33</th>
+<th>F32</th>
+<th>F31</th>
+<th>F30</th>
+<th>F29</th>
+<th>F28</th>
+<th>F27</th>
+<th>F26</th>
+<th>F25</th>
+<th>F24</th>
+<th>F23</th>
+<th>F22</th>
+<th>F21</th>
+<th>F20</th>
+<th>F19</th>
+<th>F18</th>
+<th>F17</th>
+<th>F16</th>
+<th>F15</th>
+<th>F14</th>
+<th>F13</th>
+<th>F12</th>
+<th>F11</th>
+<th>F10</th>
+<th>F9</th>
+<th>F8</th>
+<th>F7</th>
+<th>F6</th>
+<th>F5</th>
+<th>F4</th>
+<th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
+</tr>
 
 </thead>
 
 <tbody>
-<tr><td>O0</td><td>output</td><td>CELL0.GCLK0</td></tr>
+<tr><td>B12</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
 
-<tr><td>O1</td><td>output</td><td>CELL0.GCLK1</td></tr>
+<tr><td>B11</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
 
-<tr><td>O2</td><td>output</td><td>CELL0.GCLK2</td></tr>
+<tr><td>B10</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
 
-<tr><td>O3</td><td>output</td><td>CELL0.GCLK3</td></tr>
+<tr><td>B9</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B8</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B7</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bel-wires-2"><a class="header" href="#bel-wires-2">Bel wires</a></h3>
+<h2 id="tile-llh_io_n"><a class="header" href="#tile-llh_io_n">Tile LLH_IO_N</a></h2>
+<p>Cells: 2</p>
+<h3 id="switchbox-llh-3"><a class="header" href="#switchbox-llh-3">Switchbox LLH</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLV.IO.R bel wires</caption>
+<caption>xc4000 LLH_IO_N switchbox LLH bidirectional pass gates</caption>
 <thead>
-<tr><th>Wire</th><th>Pins</th></tr>
+<tr><th>Side A</th><th>Side B</th><th>Bit</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>CELL0.GCLK0</td><td>CLKH.O0</td></tr>
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.LONG_H[0]-E.LONG_H[0]"><td>W.LONG_H[0]</td><td>E.LONG_H[0]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH_S[0][8]">!LLH_S[0][8]</a></td></tr>
 
-<tr><td>CELL0.GCLK1</td><td>CLKH.O1</td></tr>
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.LONG_H[1]-E.LONG_H[1]"><td>W.LONG_H[1]</td><td>E.LONG_H[1]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH_S[0][7]">!LLH_S[0][7]</a></td></tr>
 
-<tr><td>CELL0.GCLK2</td><td>CLKH.O2</td></tr>
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.LONG_H[2]-E.LONG_H[2]"><td>W.LONG_H[2]</td><td>E.LONG_H[2]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH_S[0][6]">!LLH_S[0][6]</a></td></tr>
 
-<tr><td>CELL0.GCLK3</td><td>CLKH.O3</td></tr>
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[0]-E.LONG_IO_H[0]"><td>W.LONG_IO_H[0]</td><td>E.LONG_IO_H[0]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH[0][4]">!LLH[0][4]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[1]-E.LONG_IO_H[1]"><td>W.LONG_IO_H[1]</td><td>E.LONG_IO_H[1]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH[0][6]">!LLH[0][6]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[2]-E.LONG_IO_H[2]"><td>W.LONG_IO_H[2]</td><td>E.LONG_IO_H[2]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH[0][5]">!LLH[0][5]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[3]-E.LONG_IO_H[3]"><td>W.LONG_IO_H[3]</td><td>E.LONG_IO_H[3]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH[0][3]">!LLH[0][3]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[0]-E.DEC_H[0]"><td>W.DEC_H[0]</td><td>E.DEC_H[0]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH_S[0][9]">!LLH_S[0][9]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[1]-E.DEC_H[1]"><td>W.DEC_H[1]</td><td>E.DEC_H[1]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH[0][1]">!LLH[0][1]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[2]-E.DEC_H[2]"><td>W.DEC_H[2]</td><td>E.DEC_H[2]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH[0][0]">!LLH[0][0]</a></td></tr>
+
+<tr id="xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[3]-E.DEC_H[3]"><td>W.DEC_H[3]</td><td>E.DEC_H[3]</td><td><a href="#xc4000-LLH_IO_N-bit-LLH[0][2]">!LLH[0][2]</a></td></tr>
 
 </tbody>
 
 </table>
 </div>
 
-<h3 id="bitstream-6"><a class="header" href="#bitstream-6">Bitstream</a></h3>
+<h3 id="bitstream-3"><a class="header" href="#bitstream-3">Bitstream</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>xc4000 LLV.IO.R rect R0</caption>
+<caption>xc4000 LLH_IO_N rect LLH</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
+<tr>
+<th>F0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B6</td>
+<td id="xc4000-LLH_IO_N-bit-LLH[0][6]" title="LLH[0][6]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[1]-E.LONG_IO_H[1]">LLH: !bipass W.LONG_IO_H[1] = E.LONG_IO_H[1]</a>
+</td>
+</tr>
+
+<tr><td>B5</td>
+<td id="xc4000-LLH_IO_N-bit-LLH[0][5]" title="LLH[0][5]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[2]-E.LONG_IO_H[2]">LLH: !bipass W.LONG_IO_H[2] = E.LONG_IO_H[2]</a>
+</td>
+</tr>
+
+<tr><td>B4</td>
+<td id="xc4000-LLH_IO_N-bit-LLH[0][4]" title="LLH[0][4]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[0]-E.LONG_IO_H[0]">LLH: !bipass W.LONG_IO_H[0] = E.LONG_IO_H[0]</a>
+</td>
+</tr>
+
+<tr><td>B3</td>
+<td id="xc4000-LLH_IO_N-bit-LLH[0][3]" title="LLH[0][3]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.LONG_IO_H[3]-E.LONG_IO_H[3]">LLH: !bipass W.LONG_IO_H[3] = E.LONG_IO_H[3]</a>
+</td>
+</tr>
+
+<tr><td>B2</td>
+<td id="xc4000-LLH_IO_N-bit-LLH[0][2]" title="LLH[0][2]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[3]-E.DEC_H[3]">LLH: !bipass W.DEC_H[3] = E.DEC_H[3]</a>
+</td>
+</tr>
+
+<tr><td>B1</td>
+<td id="xc4000-LLH_IO_N-bit-LLH[0][1]" title="LLH[0][1]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[1]-E.DEC_H[1]">LLH: !bipass W.DEC_H[1] = E.DEC_H[1]</a>
+</td>
+</tr>
+
+<tr><td>B0</td>
+<td id="xc4000-LLH_IO_N-bit-LLH[0][0]" title="LLH[0][0]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[2]-E.DEC_H[2]">LLH: !bipass W.DEC_H[2] = E.DEC_H[2]</a>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLH_IO_N rect LLH_S</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="1">Frame</th></tr>
+
+<tr>
+<th>F0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B9</td>
+<td id="xc4000-LLH_IO_N-bit-LLH_S[0][9]" title="LLH_S[0][9]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.DEC_H[0]-E.DEC_H[0]">LLH: !bipass W.DEC_H[0] = E.DEC_H[0]</a>
+</td>
+</tr>
+
+<tr><td>B8</td>
+<td id="xc4000-LLH_IO_N-bit-LLH_S[0][8]" title="LLH_S[0][8]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.LONG_H[0]-E.LONG_H[0]">LLH: !bipass W.LONG_H[0] = E.LONG_H[0]</a>
+</td>
+</tr>
+
+<tr><td>B7</td>
+<td id="xc4000-LLH_IO_N-bit-LLH_S[0][7]" title="LLH_S[0][7]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.LONG_H[1]-E.LONG_H[1]">LLH: !bipass W.LONG_H[1] = E.LONG_H[1]</a>
+</td>
+</tr>
+
+<tr><td>B6</td>
+<td id="xc4000-LLH_IO_N-bit-LLH_S[0][6]" title="LLH_S[0][6]">
+<a href="#xc4000-LLH_IO_N-LLH-bipass-W.LONG_H[2]-E.LONG_H[2]">LLH: !bipass W.LONG_H[2] = E.LONG_H[2]</a>
+</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLH_IO_N rect MAIN_W</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="36">Frame</th></tr>
+
+<tr>
+<th>F35</th>
+<th>F34</th>
+<th>F33</th>
+<th>F32</th>
+<th>F31</th>
+<th>F30</th>
+<th>F29</th>
+<th>F28</th>
+<th>F27</th>
+<th>F26</th>
+<th>F25</th>
+<th>F24</th>
+<th>F23</th>
+<th>F22</th>
+<th>F21</th>
+<th>F20</th>
+<th>F19</th>
+<th>F18</th>
+<th>F17</th>
+<th>F16</th>
+<th>F15</th>
+<th>F14</th>
+<th>F13</th>
+<th>F12</th>
+<th>F11</th>
+<th>F10</th>
+<th>F9</th>
+<th>F8</th>
+<th>F7</th>
+<th>F6</th>
+<th>F5</th>
+<th>F4</th>
+<th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B6</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B5</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B4</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B3</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B2</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B1</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="tile-llv_clb"><a class="header" href="#tile-llv_clb">Tile LLV_CLB</a></h2>
+<p>Cells: 2</p>
+<h3 id="switchbox-llv"><a class="header" href="#switchbox-llv">Switchbox LLV</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_CLB switchbox LLV bidirectional pass gates</caption>
+<thead>
+<tr><th>Side A</th><th>Side B</th><th>Bit</th></tr>
+
+</thead>
+
+<tbody>
+<tr id="xc4000-LLV_CLB-LLV-bipass-S.LONG_V[0]-N.LONG_V[0]"><td>S.LONG_V[0]</td><td>N.LONG_V[0]</td><td><a href="#xc4000-LLV_CLB-bit-LLV[21][0]">!LLV[21][0]</a></td></tr>
+
+<tr id="xc4000-LLV_CLB-LLV-bipass-S.LONG_V[1]-N.LONG_V[1]"><td>S.LONG_V[1]</td><td>N.LONG_V[1]</td><td><a href="#xc4000-LLV_CLB-bit-LLV[29][0]">!LLV[29][0]</a></td></tr>
+
+<tr id="xc4000-LLV_CLB-LLV-bipass-S.LONG_V[2]-N.LONG_V[2]"><td>S.LONG_V[2]</td><td>N.LONG_V[2]</td><td><a href="#xc4000-LLV_CLB-bit-LLV[28][0]">!LLV[28][0]</a></td></tr>
+
+<tr id="xc4000-LLV_CLB-LLV-bipass-S.LONG_V[3]-N.LONG_V[3]"><td>S.LONG_V[3]</td><td>N.LONG_V[3]</td><td><a href="#xc4000-LLV_CLB-bit-LLV[22][0]">!LLV[22][0]</a></td></tr>
+
+<tr id="xc4000-LLV_CLB-LLV-bipass-S.LONG_V[4]-N.LONG_V[4]"><td>S.LONG_V[4]</td><td>N.LONG_V[4]</td><td><a href="#xc4000-LLV_CLB-bit-LLV[20][0]">!LLV[20][0]</a></td></tr>
+
+<tr id="xc4000-LLV_CLB-LLV-bipass-S.LONG_V[5]-N.LONG_V[5]"><td>S.LONG_V[5]</td><td>N.LONG_V[5]</td><td><a href="#xc4000-LLV_CLB-bit-LLV[30][0]">!LLV[30][0]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_CLB switchbox LLV muxes GCLK[0]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-4"><a href="#xc4000-LLV_CLB-bit-LLV[19][0]">LLV[19][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-3"><a href="#xc4000-LLV_CLB-bit-LLV[15][0]">LLV[15][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-2"><a href="#xc4000-LLV_CLB-bit-LLV[16][0]">LLV[16][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-1"><a href="#xc4000-LLV_CLB-bit-LLV[17][0]">LLV[17][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-0"><a href="#xc4000-LLV_CLB-bit-LLV[18][0]">LLV[18][0]</a></td><td>S.GCLK[0]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_CLB switchbox LLV muxes GCLK[1]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-4"><a href="#xc4000-LLV_CLB-bit-LLV[4][0]">LLV[4][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-3"><a href="#xc4000-LLV_CLB-bit-LLV[8][0]">LLV[8][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-2"><a href="#xc4000-LLV_CLB-bit-LLV[5][0]">LLV[5][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-1"><a href="#xc4000-LLV_CLB-bit-LLV[6][0]">LLV[6][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-0"><a href="#xc4000-LLV_CLB-bit-LLV[7][0]">LLV[7][0]</a></td><td>S.GCLK[1]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[2]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_CLB switchbox LLV muxes GCLK[2]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-4"><a href="#xc4000-LLV_CLB-bit-LLV[23][0]">LLV[23][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-3"><a href="#xc4000-LLV_CLB-bit-LLV[24][0]">LLV[24][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-2"><a href="#xc4000-LLV_CLB-bit-LLV[27][0]">LLV[27][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-1"><a href="#xc4000-LLV_CLB-bit-LLV[25][0]">LLV[25][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-0"><a href="#xc4000-LLV_CLB-bit-LLV[26][0]">LLV[26][0]</a></td><td>S.GCLK[2]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[4]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_CLB switchbox LLV muxes GCLK[3]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-4"><a href="#xc4000-LLV_CLB-bit-LLV[14][0]">LLV[14][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-3"><a href="#xc4000-LLV_CLB-bit-LLV[13][0]">LLV[13][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-2"><a href="#xc4000-LLV_CLB-bit-LLV[11][0]">LLV[11][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-1"><a href="#xc4000-LLV_CLB-bit-LLV[9][0]">LLV[9][0]</a></td><td id="xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-0"><a href="#xc4000-LLV_CLB-bit-LLV[10][0]">LLV[10][0]</a></td><td>S.GCLK[3]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[6]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream-4"><a class="header" href="#bitstream-4">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_CLB rect LLV</caption>
 <thead>
 <tr><th rowspan="2">Bit</th><th colspan="36">Frame</th></tr>
 
@@ -2461,111 +2423,367 @@ inverted
 
 <tbody>
 <tr><td>B0</td>
-<td title="R0.F35.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V5.1.LONG.V5">~LLV:BIPASS.0.LONG.V5.1.LONG.V5</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="xc4000-LLV_CLB-bit-LLV[30][0]" title="LLV[30][0]">
+<a href="#xc4000-LLV_CLB-LLV-bipass-S.LONG_V[5]-N.LONG_V[5]">LLV: !bipass S.LONG_V[5] = N.LONG_V[5]</a>
 </td>
-<td title="R0.F34.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V1.1.LONG.V1">~LLV:BIPASS.0.LONG.V1.1.LONG.V1</a>
+<td id="xc4000-LLV_CLB-bit-LLV[29][0]" title="LLV[29][0]">
+<a href="#xc4000-LLV_CLB-LLV-bipass-S.LONG_V[1]-N.LONG_V[1]">LLV: !bipass S.LONG_V[1] = N.LONG_V[1]</a>
 </td>
-<td title="R0.F33.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V2.1.LONG.V2">~LLV:BIPASS.0.LONG.V2.1.LONG.V2</a>
+<td id="xc4000-LLV_CLB-bit-LLV[28][0]" title="LLV[28][0]">
+<a href="#xc4000-LLV_CLB-LLV-bipass-S.LONG_V[2]-N.LONG_V[2]">LLV: !bipass S.LONG_V[2] = N.LONG_V[2]</a>
 </td>
-<td title="R0.F32.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O2">CLKH:MUX.O2[4]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[27][0]" title="LLV[27][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-2">LLV: mux S.GCLK[2] bit 2</a>
 </td>
-<td title="R0.F31.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O2">CLKH:MUX.O2[2]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[26][0]" title="LLV[26][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-0">LLV: mux S.GCLK[2] bit 0</a>
 </td>
-<td title="R0.F30.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O2">CLKH:MUX.O2[0]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[25][0]" title="LLV[25][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-1">LLV: mux S.GCLK[2] bit 1</a>
 </td>
-<td title="R0.F29.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O2">CLKH:MUX.O2[1]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[24][0]" title="LLV[24][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-3">LLV: mux S.GCLK[2] bit 3</a>
 </td>
-<td title="R0.F28.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O2">CLKH:MUX.O2[3]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[23][0]" title="LLV[23][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[2]-4">LLV: mux S.GCLK[2] bit 4</a>
 </td>
-<td title="R0.F27.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V3.1.LONG.V3">~LLV:BIPASS.0.LONG.V3.1.LONG.V3</a>
+<td id="xc4000-LLV_CLB-bit-LLV[22][0]" title="LLV[22][0]">
+<a href="#xc4000-LLV_CLB-LLV-bipass-S.LONG_V[3]-N.LONG_V[3]">LLV: !bipass S.LONG_V[3] = N.LONG_V[3]</a>
 </td>
-<td title="R0.F26.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V0.1.LONG.V0">~LLV:BIPASS.0.LONG.V0.1.LONG.V0</a>
+<td id="xc4000-LLV_CLB-bit-LLV[21][0]" title="LLV[21][0]">
+<a href="#xc4000-LLV_CLB-LLV-bipass-S.LONG_V[0]-N.LONG_V[0]">LLV: !bipass S.LONG_V[0] = N.LONG_V[0]</a>
 </td>
-<td title="R0.F25.B0">
-<a href="#tile-xc4000-LLV.IO.R-MISC:TLC">~MISC:TLC</a>
+<td id="xc4000-LLV_CLB-bit-LLV[20][0]" title="LLV[20][0]">
+<a href="#xc4000-LLV_CLB-LLV-bipass-S.LONG_V[4]-N.LONG_V[4]">LLV: !bipass S.LONG_V[4] = N.LONG_V[4]</a>
 </td>
-<td title="R0.F24.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V4.1.LONG.V4">~LLV:BIPASS.0.LONG.V4.1.LONG.V4</a>
+<td id="xc4000-LLV_CLB-bit-LLV[19][0]" title="LLV[19][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-4">LLV: mux S.GCLK[0] bit 4</a>
 </td>
-<td title="R0.F23.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0">~LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0</a>
+<td id="xc4000-LLV_CLB-bit-LLV[18][0]" title="LLV[18][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-0">LLV: mux S.GCLK[0] bit 0</a>
 </td>
-<td title="R0.F22.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3">~LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3</a>
+<td id="xc4000-LLV_CLB-bit-LLV[17][0]" title="LLV[17][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-1">LLV: mux S.GCLK[0] bit 1</a>
 </td>
-<td title="R0.F21.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2">~LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2</a>
+<td id="xc4000-LLV_CLB-bit-LLV[16][0]" title="LLV[16][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-2">LLV: mux S.GCLK[0] bit 2</a>
+</td>
+<td id="xc4000-LLV_CLB-bit-LLV[15][0]" title="LLV[15][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[0]-3">LLV: mux S.GCLK[0] bit 3</a>
+</td>
+<td id="xc4000-LLV_CLB-bit-LLV[14][0]" title="LLV[14][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-4">LLV: mux S.GCLK[3] bit 4</a>
+</td>
+<td id="xc4000-LLV_CLB-bit-LLV[13][0]" title="LLV[13][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-3">LLV: mux S.GCLK[3] bit 3</a>
 </td>
 <td>-</td>
-<td title="R0.F19.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O0">CLKH:MUX.O0[3]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[11][0]" title="LLV[11][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-2">LLV: mux S.GCLK[3] bit 2</a>
 </td>
-<td title="R0.F18.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V3.1.DEC.V3">~LLV:BIPASS.0.DEC.V3.1.DEC.V3</a>
+<td id="xc4000-LLV_CLB-bit-LLV[10][0]" title="LLV[10][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-0">LLV: mux S.GCLK[3] bit 0</a>
 </td>
-<td title="R0.F17.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O0">CLKH:MUX.O0[1]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[9][0]" title="LLV[9][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[3]-1">LLV: mux S.GCLK[3] bit 1</a>
 </td>
-<td title="R0.F16.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O0">CLKH:MUX.O0[0]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[8][0]" title="LLV[8][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-3">LLV: mux S.GCLK[1] bit 3</a>
 </td>
-<td title="R0.F15.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O0">CLKH:MUX.O0[2]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[7][0]" title="LLV[7][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-0">LLV: mux S.GCLK[1] bit 0</a>
 </td>
-<td title="R0.F14.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O0">CLKH:MUX.O0[4]</a>
+<td id="xc4000-LLV_CLB-bit-LLV[6][0]" title="LLV[6][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-1">LLV: mux S.GCLK[1] bit 1</a>
 </td>
-<td title="R0.F13.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V2.1.DEC.V2">~LLV:BIPASS.0.DEC.V2.1.DEC.V2</a>
+<td id="xc4000-LLV_CLB-bit-LLV[5][0]" title="LLV[5][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-2">LLV: mux S.GCLK[1] bit 2</a>
 </td>
-<td title="R0.F12.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V1.1.DEC.V1">~LLV:BIPASS.0.DEC.V1.1.DEC.V1</a>
+<td id="xc4000-LLV_CLB-bit-LLV[4][0]" title="LLV[4][0]">
+<a href="#xc4000-LLV_CLB-LLV-mux-S.GCLK[1]-4">LLV: mux S.GCLK[1] bit 4</a>
 </td>
-<td title="R0.F11.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1">~LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1</a>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="tile-llv_io_w"><a class="header" href="#tile-llv_io_w">Tile LLV_IO_W</a></h2>
+<p>Cells: 2</p>
+<h3 id="switchbox-llv-1"><a class="header" href="#switchbox-llv-1">Switchbox LLV</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_W switchbox LLV bidirectional pass gates</caption>
+<thead>
+<tr><th>Side A</th><th>Side B</th><th>Bit</th></tr>
+
+</thead>
+
+<tbody>
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[0]-N.LONG_IO_V[0]"><td>S.LONG_IO_V[0]</td><td>N.LONG_IO_V[0]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[2][0]">!LLV[2][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[1]-N.LONG_IO_V[1]"><td>S.LONG_IO_V[1]</td><td>N.LONG_IO_V[1]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[14][0]">!LLV[14][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[2]-N.LONG_IO_V[2]"><td>S.LONG_IO_V[2]</td><td>N.LONG_IO_V[2]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[4][0]">!LLV[4][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[3]-N.LONG_IO_V[3]"><td>S.LONG_IO_V[3]</td><td>N.LONG_IO_V[3]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[3][0]">!LLV[3][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[0]-N.DEC_V[0]"><td>S.DEC_V[0]</td><td>N.DEC_V[0]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[7][0]">!LLV[7][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[1]-N.DEC_V[1]"><td>S.DEC_V[1]</td><td>N.DEC_V[1]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[12][0]">!LLV[12][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[2]-N.DEC_V[2]"><td>S.DEC_V[2]</td><td>N.DEC_V[2]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[13][0]">!LLV[13][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[3]-N.DEC_V[3]"><td>S.DEC_V[3]</td><td>N.DEC_V[3]</td><td><a href="#xc4000-LLV_IO_W-bit-LLV[20][0]">!LLV[20][0]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_W switchbox LLV muxes GCLK[0]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-4"><a href="#xc4000-LLV_IO_W-bit-LLV[11][0]">LLV[11][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-3"><a href="#xc4000-LLV_IO_W-bit-LLV[6][0]">LLV[6][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-2"><a href="#xc4000-LLV_IO_W-bit-LLV[8][0]">LLV[8][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-1"><a href="#xc4000-LLV_IO_W-bit-LLV[9][0]">LLV[9][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-0"><a href="#xc4000-LLV_IO_W-bit-LLV[10][0]">LLV[10][0]</a></td><td>S.GCLK[0]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_W switchbox LLV muxes GCLK[1]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-4"><a href="#xc4000-LLV_IO_W-bit-LLV[15][0]">LLV[15][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-3"><a href="#xc4000-LLV_IO_W-bit-LLV[19][0]">LLV[19][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-2"><a href="#xc4000-LLV_IO_W-bit-LLV[16][0]">LLV[16][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-1"><a href="#xc4000-LLV_IO_W-bit-LLV[17][0]">LLV[17][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-0"><a href="#xc4000-LLV_IO_W-bit-LLV[18][0]">LLV[18][0]</a></td><td>S.GCLK[1]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[2]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_W switchbox LLV muxes GCLK[2]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-4"><a href="#xc4000-LLV_IO_W-bit-LLV_E[31][0]">LLV_E[31][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-3"><a href="#xc4000-LLV_IO_W-bit-LLV_E[32][0]">LLV_E[32][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-2"><a href="#xc4000-LLV_IO_W-bit-LLV[0][0]">LLV[0][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-1"><a href="#xc4000-LLV_IO_W-bit-LLV_E[33][0]">LLV_E[33][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-0"><a href="#xc4000-LLV_IO_W-bit-LLV_E[34][0]">LLV_E[34][0]</a></td><td>S.GCLK[2]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[4]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_W switchbox LLV muxes GCLK[3]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-4"><a href="#xc4000-LLV_IO_W-bit-LLV[21][0]">LLV[21][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-3"><a href="#xc4000-LLV_IO_W-bit-LLV[22][0]">LLV[22][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-2"><a href="#xc4000-LLV_IO_W-bit-LLV[23][0]">LLV[23][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-1"><a href="#xc4000-LLV_IO_W-bit-LLV[25][0]">LLV[25][0]</a></td><td id="xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-0"><a href="#xc4000-LLV_IO_W-bit-LLV[24][0]">LLV[24][0]</a></td><td>S.GCLK[3]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[6]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream-5"><a class="header" href="#bitstream-5">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_W rect LLV</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="26">Frame</th></tr>
+
+<tr>
+<th>F25</th>
+<th>F24</th>
+<th>F23</th>
+<th>F22</th>
+<th>F21</th>
+<th>F20</th>
+<th>F19</th>
+<th>F18</th>
+<th>F17</th>
+<th>F16</th>
+<th>F15</th>
+<th>F14</th>
+<th>F13</th>
+<th>F12</th>
+<th>F11</th>
+<th>F10</th>
+<th>F9</th>
+<th>F8</th>
+<th>F7</th>
+<th>F6</th>
+<th>F5</th>
+<th>F4</th>
+<th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B0</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[25][0]" title="LLV[25][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-1">LLV: mux S.GCLK[3] bit 1</a>
 </td>
-<td title="R0.F10.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O1">CLKH:MUX.O1[3]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[24][0]" title="LLV[24][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-0">LLV: mux S.GCLK[3] bit 0</a>
 </td>
-<td title="R0.F9.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O1">CLKH:MUX.O1[1]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[23][0]" title="LLV[23][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-2">LLV: mux S.GCLK[3] bit 2</a>
 </td>
-<td title="R0.F8.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O1">CLKH:MUX.O1[0]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[22][0]" title="LLV[22][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-3">LLV: mux S.GCLK[3] bit 3</a>
 </td>
-<td title="R0.F7.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O1">CLKH:MUX.O1[2]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[21][0]" title="LLV[21][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[3]-4">LLV: mux S.GCLK[3] bit 4</a>
 </td>
-<td title="R0.F6.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O1">CLKH:MUX.O1[4]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[20][0]" title="LLV[20][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[3]-N.DEC_V[3]">LLV: !bipass S.DEC_V[3] = N.DEC_V[3]</a>
 </td>
-<td title="R0.F5.B0">
-<a href="#tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V0.1.DEC.V0">~LLV:BIPASS.0.DEC.V0.1.DEC.V0</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[19][0]" title="LLV[19][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-3">LLV: mux S.GCLK[1] bit 3</a>
 </td>
-<td title="R0.F4.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O3">CLKH:MUX.O3[3]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[18][0]" title="LLV[18][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-0">LLV: mux S.GCLK[1] bit 0</a>
 </td>
-<td title="R0.F3.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O3">CLKH:MUX.O3[1]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[17][0]" title="LLV[17][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-1">LLV: mux S.GCLK[1] bit 1</a>
 </td>
-<td title="R0.F2.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O3">CLKH:MUX.O3[0]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[16][0]" title="LLV[16][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-2">LLV: mux S.GCLK[1] bit 2</a>
 </td>
-<td title="R0.F1.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O3">CLKH:MUX.O3[2]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[15][0]" title="LLV[15][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[1]-4">LLV: mux S.GCLK[1] bit 4</a>
 </td>
-<td title="R0.F0.B0">
-<a href="#tile-xc4000-LLV.IO.R-CLKH:MUX.O3">CLKH:MUX.O3[4]</a>
+<td id="xc4000-LLV_IO_W-bit-LLV[14][0]" title="LLV[14][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[1]-N.LONG_IO_V[1]">LLV: !bipass S.LONG_IO_V[1] = N.LONG_IO_V[1]</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[13][0]" title="LLV[13][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[2]-N.DEC_V[2]">LLV: !bipass S.DEC_V[2] = N.DEC_V[2]</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[12][0]" title="LLV[12][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[1]-N.DEC_V[1]">LLV: !bipass S.DEC_V[1] = N.DEC_V[1]</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[11][0]" title="LLV[11][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-4">LLV: mux S.GCLK[0] bit 4</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[10][0]" title="LLV[10][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-0">LLV: mux S.GCLK[0] bit 0</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[9][0]" title="LLV[9][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-1">LLV: mux S.GCLK[0] bit 1</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[8][0]" title="LLV[8][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-2">LLV: mux S.GCLK[0] bit 2</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[7][0]" title="LLV[7][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.DEC_V[0]-N.DEC_V[0]">LLV: !bipass S.DEC_V[0] = N.DEC_V[0]</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[6][0]" title="LLV[6][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[0]-3">LLV: mux S.GCLK[0] bit 3</a>
+</td>
+<td>-</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[4][0]" title="LLV[4][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[2]-N.LONG_IO_V[2]">LLV: !bipass S.LONG_IO_V[2] = N.LONG_IO_V[2]</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[3][0]" title="LLV[3][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[3]-N.LONG_IO_V[3]">LLV: !bipass S.LONG_IO_V[3] = N.LONG_IO_V[3]</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[2][0]" title="LLV[2][0]">
+<a href="#xc4000-LLV_IO_W-LLV-bipass-S.LONG_IO_V[0]-N.LONG_IO_V[0]">LLV: !bipass S.LONG_IO_V[0] = N.LONG_IO_V[0]</a>
+</td>
+<td>-</td>
+<td id="xc4000-LLV_IO_W-bit-LLV[0][0]" title="LLV[0][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-2">LLV: mux S.GCLK[2] bit 2</a>
 </td>
 </tr>
 
@@ -2576,342 +2794,466 @@ inverted
 
 <div class="table-wrapper">
 <table>
+<caption>xc4000 LLV_IO_W rect LLV_E</caption>
 <thead>
-<tr><th id="tile-xc4000-LLV.IO.R-CLKH:MUX.O0">CLKH:MUX.O0</th>
-<th>0.F14.B0</th>
-<th>0.F19.B0</th>
-<th>0.F15.B0</th>
-<th>0.F17.B0</th>
-<th>0.F16.B0</th>
+<tr><th rowspan="2">Bit</th><th colspan="36">Frame</th></tr>
+
+<tr>
+<th>F35</th>
+<th>F34</th>
+<th>F33</th>
+<th>F32</th>
+<th>F31</th>
+<th>F30</th>
+<th>F29</th>
+<th>F28</th>
+<th>F27</th>
+<th>F26</th>
+<th>F25</th>
+<th>F24</th>
+<th>F23</th>
+<th>F22</th>
+<th>F21</th>
+<th>F20</th>
+<th>F19</th>
+<th>F18</th>
+<th>F17</th>
+<th>F16</th>
+<th>F15</th>
+<th>F14</th>
+<th>F13</th>
+<th>F12</th>
+<th>F11</th>
+<th>F10</th>
+<th>F9</th>
+<th>F8</th>
+<th>F7</th>
+<th>F6</th>
+<th>F5</th>
+<th>F4</th>
+<th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
 </tr>
 
 </thead>
 
 <tbody>
-<tr><td>I.UL.V</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.R-CLKH:MUX.O1">CLKH:MUX.O1</th>
-<th>0.F6.B0</th>
-<th>0.F10.B0</th>
-<th>0.F7.B0</th>
-<th>0.F9.B0</th>
-<th>0.F8.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.LL.H</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.R-CLKH:MUX.O2">CLKH:MUX.O2</th>
-<th>0.F32.B0</th>
-<th>0.F28.B0</th>
-<th>0.F31.B0</th>
-<th>0.F29.B0</th>
-<th>0.F30.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.LR.V</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.R-CLKH:MUX.O3">CLKH:MUX.O3</th>
-<th>0.F0.B0</th>
-<th>0.F4.B0</th>
-<th>0.F1.B0</th>
-<th>0.F3.B0</th>
-<th>0.F2.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>I.UR.H</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LL.V</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UL.H</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.LR.H</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-<td>1</td>
-</tr>
-
-<tr><td>I.UR.V</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>0</td>
-</tr>
-
-<tr><td>NONE</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V0.1.DEC.V0">LLV:BIPASS.0.DEC.V0.1.DEC.V0</th>
-<th>0.F5.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V1.1.DEC.V1">LLV:BIPASS.0.DEC.V1.1.DEC.V1</th>
-<th>0.F12.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V2.1.DEC.V2">LLV:BIPASS.0.DEC.V2.1.DEC.V2</th>
-<th>0.F13.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.DEC.V3.1.DEC.V3">LLV:BIPASS.0.DEC.V3.1.DEC.V3</th>
-<th>0.F18.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0">LLV:BIPASS.0.LONG.IO.V0.1.LONG.IO.V0</th>
-<th>0.F23.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1">LLV:BIPASS.0.LONG.IO.V1.1.LONG.IO.V1</th>
-<th>0.F11.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2">LLV:BIPASS.0.LONG.IO.V2.1.LONG.IO.V2</th>
-<th>0.F21.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3">LLV:BIPASS.0.LONG.IO.V3.1.LONG.IO.V3</th>
-<th>0.F22.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V0.1.LONG.V0">LLV:BIPASS.0.LONG.V0.1.LONG.V0</th>
-<th>0.F26.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V1.1.LONG.V1">LLV:BIPASS.0.LONG.V1.1.LONG.V1</th>
-<th>0.F34.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V2.1.LONG.V2">LLV:BIPASS.0.LONG.V2.1.LONG.V2</th>
-<th>0.F33.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V3.1.LONG.V3">LLV:BIPASS.0.LONG.V3.1.LONG.V3</th>
-<th>0.F27.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V4.1.LONG.V4">LLV:BIPASS.0.LONG.V4.1.LONG.V4</th>
-<th>0.F24.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-LLV:BIPASS.0.LONG.V5.1.LONG.V5">LLV:BIPASS.0.LONG.V5.1.LONG.V5</th>
-<th>0.F35.B0</th>
-</tr>
-
-<tr><th id="tile-xc4000-LLV.IO.R-MISC:TLC">MISC:TLC</th>
-<th>0.F25.B0</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
+<tr><td>B0</td>
+<td>-</td>
+<td id="xc4000-LLV_IO_W-bit-LLV_E[34][0]" title="LLV_E[34][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-0">LLV: mux S.GCLK[2] bit 0</a>
 </td>
-<td>~[0]</td>
+<td id="xc4000-LLV_IO_W-bit-LLV_E[33][0]" title="LLV_E[33][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-1">LLV: mux S.GCLK[2] bit 1</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV_E[32][0]" title="LLV_E[32][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-3">LLV: mux S.GCLK[2] bit 3</a>
+</td>
+<td id="xc4000-LLV_IO_W-bit-LLV_E[31][0]" title="LLV_E[31][0]">
+<a href="#xc4000-LLV_IO_W-LLV-mux-S.GCLK[2]-4">LLV: mux S.GCLK[2] bit 4</a>
+</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h2 id="tile-llv_io_e"><a class="header" href="#tile-llv_io_e">Tile LLV_IO_E</a></h2>
+<p>Cells: 2</p>
+<h3 id="switchbox-llv-2"><a class="header" href="#switchbox-llv-2">Switchbox LLV</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E switchbox LLV bidirectional pass gates</caption>
+<thead>
+<tr><th>Side A</th><th>Side B</th><th>Bit</th></tr>
+
+</thead>
+
+<tbody>
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[0]-N.LONG_V[0]"><td>S.LONG_V[0]</td><td>N.LONG_V[0]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[26][0]">!LLV[26][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[1]-N.LONG_V[1]"><td>S.LONG_V[1]</td><td>N.LONG_V[1]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[34][0]">!LLV[34][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[2]-N.LONG_V[2]"><td>S.LONG_V[2]</td><td>N.LONG_V[2]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[33][0]">!LLV[33][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[3]-N.LONG_V[3]"><td>S.LONG_V[3]</td><td>N.LONG_V[3]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[27][0]">!LLV[27][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[4]-N.LONG_V[4]"><td>S.LONG_V[4]</td><td>N.LONG_V[4]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[24][0]">!LLV[24][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[5]-N.LONG_V[5]"><td>S.LONG_V[5]</td><td>N.LONG_V[5]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[35][0]">!LLV[35][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[0]-N.LONG_IO_V[0]"><td>S.LONG_IO_V[0]</td><td>N.LONG_IO_V[0]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[23][0]">!LLV[23][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[1]-N.LONG_IO_V[1]"><td>S.LONG_IO_V[1]</td><td>N.LONG_IO_V[1]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[11][0]">!LLV[11][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[2]-N.LONG_IO_V[2]"><td>S.LONG_IO_V[2]</td><td>N.LONG_IO_V[2]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[21][0]">!LLV[21][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[3]-N.LONG_IO_V[3]"><td>S.LONG_IO_V[3]</td><td>N.LONG_IO_V[3]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[22][0]">!LLV[22][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[0]-N.DEC_V[0]"><td>S.DEC_V[0]</td><td>N.DEC_V[0]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[5][0]">!LLV[5][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[1]-N.DEC_V[1]"><td>S.DEC_V[1]</td><td>N.DEC_V[1]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[12][0]">!LLV[12][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[2]-N.DEC_V[2]"><td>S.DEC_V[2]</td><td>N.DEC_V[2]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[13][0]">!LLV[13][0]</a></td></tr>
+
+<tr id="xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[3]-N.DEC_V[3]"><td>S.DEC_V[3]</td><td>N.DEC_V[3]</td><td><a href="#xc4000-LLV_IO_E-bit-LLV[18][0]">!LLV[18][0]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E switchbox LLV muxes GCLK[0]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-4"><a href="#xc4000-LLV_IO_E-bit-LLV[14][0]">LLV[14][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-3"><a href="#xc4000-LLV_IO_E-bit-LLV[19][0]">LLV[19][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-2"><a href="#xc4000-LLV_IO_E-bit-LLV[17][0]">LLV[17][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-1"><a href="#xc4000-LLV_IO_E-bit-LLV[16][0]">LLV[16][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-0"><a href="#xc4000-LLV_IO_E-bit-LLV[15][0]">LLV[15][0]</a></td><td>S.GCLK[0]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[0]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E switchbox LLV muxes GCLK[1]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-4"><a href="#xc4000-LLV_IO_E-bit-LLV[10][0]">LLV[10][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-3"><a href="#xc4000-LLV_IO_E-bit-LLV[6][0]">LLV[6][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-2"><a href="#xc4000-LLV_IO_E-bit-LLV[9][0]">LLV[9][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-1"><a href="#xc4000-LLV_IO_E-bit-LLV[8][0]">LLV[8][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-0"><a href="#xc4000-LLV_IO_E-bit-LLV[7][0]">LLV[7][0]</a></td><td>S.GCLK[1]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[2]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E switchbox LLV muxes GCLK[2]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-4"><a href="#xc4000-LLV_IO_E-bit-LLV[28][0]">LLV[28][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-3"><a href="#xc4000-LLV_IO_E-bit-LLV[29][0]">LLV[29][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-2"><a href="#xc4000-LLV_IO_E-bit-LLV[32][0]">LLV[32][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-1"><a href="#xc4000-LLV_IO_E-bit-LLV[30][0]">LLV[30][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-0"><a href="#xc4000-LLV_IO_E-bit-LLV[31][0]">LLV[31][0]</a></td><td>S.GCLK[2]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[4]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E switchbox LLV muxes GCLK[3]</caption>
+<thead>
+<tr><th colspan="5">Bits</th><th colspan="1">Destination</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-4"><a href="#xc4000-LLV_IO_E-bit-LLV[4][0]">LLV[4][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-3"><a href="#xc4000-LLV_IO_E-bit-LLV[3][0]">LLV[3][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-2"><a href="#xc4000-LLV_IO_E-bit-LLV[2][0]">LLV[2][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-1"><a href="#xc4000-LLV_IO_E-bit-LLV[0][0]">LLV[0][0]</a></td><td id="xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-0"><a href="#xc4000-LLV_IO_E-bit-LLV[1][0]">LLV[1][0]</a></td><td>S.GCLK[3]</td></tr>
+
+<tr><th colspan="5"></th><th colspan="1">Source</th></tr>
+
+<tr><td>0</td><td>1</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[1]</td></tr>
+
+<tr><td>1</td><td>0</td><td>1</td><td>1</td><td>1</td><td>S.BUFGLS[3]</td></tr>
+
+<tr><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>S.BUFGLS[5]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>S.BUFGLS[6]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>S.BUFGLS[7]</td></tr>
+
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td><td>off</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bels-misc_e"><a class="header" href="#bels-misc_e">Bels MISC_E</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E bel MISC_E pins</caption>
+<thead>
+<tr><th>Pin</th><th>Direction</th><th>MISC_E</th></tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E bel MISC_E attribute bits</caption>
+<thead>
+<tr><th>Attribute</th><th>MISC_E</th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>TLC</td><td id="xc4000-LLV_IO_E-MISC_E-TLC"><a href="#xc4000-LLV_IO_E-bit-LLV[25][0]">!LLV[25][0]</a></td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="bitstream-6"><a class="header" href="#bitstream-6">Bitstream</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>xc4000 LLV_IO_E rect LLV</caption>
+<thead>
+<tr><th rowspan="2">Bit</th><th colspan="41">Frame</th></tr>
+
+<tr>
+<th>F40</th>
+<th>F39</th>
+<th>F38</th>
+<th>F37</th>
+<th>F36</th>
+<th>F35</th>
+<th>F34</th>
+<th>F33</th>
+<th>F32</th>
+<th>F31</th>
+<th>F30</th>
+<th>F29</th>
+<th>F28</th>
+<th>F27</th>
+<th>F26</th>
+<th>F25</th>
+<th>F24</th>
+<th>F23</th>
+<th>F22</th>
+<th>F21</th>
+<th>F20</th>
+<th>F19</th>
+<th>F18</th>
+<th>F17</th>
+<th>F16</th>
+<th>F15</th>
+<th>F14</th>
+<th>F13</th>
+<th>F12</th>
+<th>F11</th>
+<th>F10</th>
+<th>F9</th>
+<th>F8</th>
+<th>F7</th>
+<th>F6</th>
+<th>F5</th>
+<th>F4</th>
+<th>F3</th>
+<th>F2</th>
+<th>F1</th>
+<th>F0</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>B0</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[35][0]" title="LLV[35][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[5]-N.LONG_V[5]">LLV: !bipass S.LONG_V[5] = N.LONG_V[5]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[34][0]" title="LLV[34][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[1]-N.LONG_V[1]">LLV: !bipass S.LONG_V[1] = N.LONG_V[1]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[33][0]" title="LLV[33][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[2]-N.LONG_V[2]">LLV: !bipass S.LONG_V[2] = N.LONG_V[2]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[32][0]" title="LLV[32][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-2">LLV: mux S.GCLK[2] bit 2</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[31][0]" title="LLV[31][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-0">LLV: mux S.GCLK[2] bit 0</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[30][0]" title="LLV[30][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-1">LLV: mux S.GCLK[2] bit 1</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[29][0]" title="LLV[29][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-3">LLV: mux S.GCLK[2] bit 3</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[28][0]" title="LLV[28][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[2]-4">LLV: mux S.GCLK[2] bit 4</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[27][0]" title="LLV[27][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[3]-N.LONG_V[3]">LLV: !bipass S.LONG_V[3] = N.LONG_V[3]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[26][0]" title="LLV[26][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[0]-N.LONG_V[0]">LLV: !bipass S.LONG_V[0] = N.LONG_V[0]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[25][0]" title="LLV[25][0]">
+<a href="#xc4000-LLV_IO_E-MISC_E-TLC">MISC_E: ! TLC</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[24][0]" title="LLV[24][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_V[4]-N.LONG_V[4]">LLV: !bipass S.LONG_V[4] = N.LONG_V[4]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[23][0]" title="LLV[23][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[0]-N.LONG_IO_V[0]">LLV: !bipass S.LONG_IO_V[0] = N.LONG_IO_V[0]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[22][0]" title="LLV[22][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[3]-N.LONG_IO_V[3]">LLV: !bipass S.LONG_IO_V[3] = N.LONG_IO_V[3]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[21][0]" title="LLV[21][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[2]-N.LONG_IO_V[2]">LLV: !bipass S.LONG_IO_V[2] = N.LONG_IO_V[2]</a>
+</td>
+<td>-</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[19][0]" title="LLV[19][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-3">LLV: mux S.GCLK[0] bit 3</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[18][0]" title="LLV[18][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[3]-N.DEC_V[3]">LLV: !bipass S.DEC_V[3] = N.DEC_V[3]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[17][0]" title="LLV[17][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-2">LLV: mux S.GCLK[0] bit 2</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[16][0]" title="LLV[16][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-1">LLV: mux S.GCLK[0] bit 1</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[15][0]" title="LLV[15][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-0">LLV: mux S.GCLK[0] bit 0</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[14][0]" title="LLV[14][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[0]-4">LLV: mux S.GCLK[0] bit 4</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[13][0]" title="LLV[13][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[2]-N.DEC_V[2]">LLV: !bipass S.DEC_V[2] = N.DEC_V[2]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[12][0]" title="LLV[12][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[1]-N.DEC_V[1]">LLV: !bipass S.DEC_V[1] = N.DEC_V[1]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[11][0]" title="LLV[11][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.LONG_IO_V[1]-N.LONG_IO_V[1]">LLV: !bipass S.LONG_IO_V[1] = N.LONG_IO_V[1]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[10][0]" title="LLV[10][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-4">LLV: mux S.GCLK[1] bit 4</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[9][0]" title="LLV[9][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-2">LLV: mux S.GCLK[1] bit 2</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[8][0]" title="LLV[8][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-1">LLV: mux S.GCLK[1] bit 1</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[7][0]" title="LLV[7][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-0">LLV: mux S.GCLK[1] bit 0</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[6][0]" title="LLV[6][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[1]-3">LLV: mux S.GCLK[1] bit 3</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[5][0]" title="LLV[5][0]">
+<a href="#xc4000-LLV_IO_E-LLV-bipass-S.DEC_V[0]-N.DEC_V[0]">LLV: !bipass S.DEC_V[0] = N.DEC_V[0]</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[4][0]" title="LLV[4][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-4">LLV: mux S.GCLK[3] bit 4</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[3][0]" title="LLV[3][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-3">LLV: mux S.GCLK[3] bit 3</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[2][0]" title="LLV[2][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-2">LLV: mux S.GCLK[3] bit 2</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[1][0]" title="LLV[1][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-0">LLV: mux S.GCLK[3] bit 0</a>
+</td>
+<td id="xc4000-LLV_IO_E-bit-LLV[0][0]" title="LLV[0][0]">
+<a href="#xc4000-LLV_IO_E-LLV-mux-S.GCLK[3]-1">LLV: mux S.GCLK[3] bit 1</a>
+</td>
 </tr>
 
 </tbody>
