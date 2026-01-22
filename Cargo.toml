@@ -163,7 +163,7 @@ enum-map = { version = "2.7", features = ["serde"] }
 indexmap = { version = "2", features = ["serde"] }
 ndarray = { version = "0.17", features = ["serde"] }
 rand = { version = "0.9", features = ["small_rng"] }
-nix = { version = "0.30", features = ["fs"] }
+nix = { version = "0.31", features = ["fs"] }
 tempfile = "3.0"
 toml = { version = "0.9", features = ["serde", "std"] }
 simple-error = "0.3"
@@ -176,7 +176,7 @@ derive-where = "1.2"
 bytes = "1.8.0"
 hex = "0.4.3"
 flate2 = "1.0"
-zip = "6.0"
+zip = "7.0"
 walkdir = "2.5"
 
 [profile.dev]
