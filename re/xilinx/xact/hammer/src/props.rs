@@ -437,50 +437,18 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzEquateFixed {
 }
 
 #[derive(Clone, Debug)]
-pub struct FuzzBelPipBufg {
+pub struct InputMutexExclusive {
     pub bel: BelSlotId,
-    pub key: String,
-    pub buf: &'static str,
+    pub pin: BelInputId,
 }
 
-impl FuzzBelPipBufg {
-    pub fn new(bel: BelSlotId, key: String, buf: &'static str) -> Self {
-        Self { bel, key, buf }
-    }
-}
-
-impl<'b> FuzzerProp<'b, XactBackend<'b>> for FuzzBelPipBufg {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply<'a>(
-        &self,
-        backend: &XactBackend<'a>,
-        tcrd: TileCoord,
-        fuzzer: Fuzzer<XactBackend<'a>>,
-    ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let crd = backend.ngrid.bel_pip(tcrd.bel(self.bel), &self.key);
-        Some((
-            fuzzer.fuzz(Key::Pip(crd), None, Value::FromPin(self.buf, "O".into())),
-            false,
-        ))
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct PinMutexExclusive {
-    pub bel: BelSlotId,
-    pub pin: String,
-}
-
-impl PinMutexExclusive {
-    pub fn new(bel: BelSlotId, pin: String) -> Self {
+impl InputMutexExclusive {
+    pub fn new(bel: BelSlotId, pin: BelInputId) -> Self {
         Self { bel, pin }
     }
 }
 
-impl<'b> FuzzerProp<'b, XactBackend<'b>> for PinMutexExclusive {
+impl<'b> FuzzerProp<'b, XactBackend<'b>> for InputMutexExclusive {
     fn dyn_clone(&self) -> Box<DynProp<'b>> {
         Box::new(Clone::clone(self))
     }
@@ -491,10 +459,9 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for PinMutexExclusive {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<XactBackend<'a>>,
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        for wire in backend.edev.get_bel_pin(tcrd.bel(self.bel), &self.pin) {
-            let rw = backend.edev.resolve_wire(wire)?;
-            fuzzer = fuzzer.fuzz(Key::WireMutex(rw), false, true);
-        }
+        let wire = backend.edev.get_bel_input(tcrd.bel(self.bel), self.pin);
+        let rw = backend.edev.resolve_wire(wire.wire)?;
+        fuzzer = fuzzer.fuzz(Key::WireMutex(rw), false, true);
         Some((fuzzer, false))
     }
 }
@@ -524,36 +491,6 @@ impl<'b> FuzzerProp<'b, XactBackend<'b>> for BidirMutexExclusive {
     ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
         let wire = backend.edev.get_bel_bidir(tcrd.bel(self.bel), self.pin);
         let rw = backend.edev.resolve_wire(wire)?;
-        fuzzer = fuzzer.fuzz(Key::WireMutex(rw), false, true);
-        Some((fuzzer, false))
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct InputMutexExclusive {
-    pub bel: BelSlotId,
-    pub pin: BelInputId,
-}
-
-impl InputMutexExclusive {
-    pub fn new(bel: BelSlotId, pin: BelInputId) -> Self {
-        Self { bel, pin }
-    }
-}
-
-impl<'b> FuzzerProp<'b, XactBackend<'b>> for InputMutexExclusive {
-    fn dyn_clone(&self) -> Box<DynProp<'b>> {
-        Box::new(Clone::clone(self))
-    }
-
-    fn apply<'a>(
-        &self,
-        backend: &XactBackend<'a>,
-        tcrd: TileCoord,
-        mut fuzzer: Fuzzer<XactBackend<'a>>,
-    ) -> Option<(Fuzzer<XactBackend<'a>>, bool)> {
-        let wire = backend.edev.get_bel_input(tcrd.bel(self.bel), self.pin);
-        let rw = backend.edev.resolve_wire(wire.wire)?;
         fuzzer = fuzzer.fuzz(Key::WireMutex(rw), false, true);
         Some((fuzzer, false))
     }

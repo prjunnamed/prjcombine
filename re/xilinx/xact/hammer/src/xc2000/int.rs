@@ -621,12 +621,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             inps.push((
                                 Some(TileWireCoord::new_idx(0, wires::SPECIAL_CLB_G).neg()),
                                 ctx.get_diff_bel_special(tcid, bslots::CLB, specials::CLB_CLK_G)
-                                    .combine(&!ctx.get_diff_bel_input_inv(
+                                    .combine(&!ctx.state.peek_diff_raw(&DiffKey::BelInputInv(
                                         tcid,
                                         bslots::CLB,
                                         bcls::CLB::K,
                                         true,
-                                    )),
+                                    ))),
                             ));
                         } else {
                             assert!(got_empty);

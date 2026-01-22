@@ -1,6 +1,6 @@
 # Corners
 
-{{tile spartanxl CNR.BL}}
-{{tile spartanxl CNR.TL}}
-{{tile spartanxl CNR.BR}}
-{{tile spartanxl CNR.TR}}
+{{tile spartanxl CNR_SW}}
+{{tile spartanxl CNR_NW}}
+{{tile spartanxl CNR_SE}}
+{{tile spartanxl CNR_NE}}

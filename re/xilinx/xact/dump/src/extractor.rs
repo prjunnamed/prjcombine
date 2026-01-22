@@ -9,8 +9,8 @@ use prjcombine_entity::{
 };
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelInputId, BelKind, BelOutputId, BelSlotId, BiPass, IntDb, Mux, Pass, PermaBuf,
-        PolTileWireCoord, ProgBuf, SwitchBoxItem, TileClassId, TileSlotId, TileWireCoord,
+        BelBidirId, BelInfo, BelInputId, BelKind, BelOutputId, BelSlotId, BiPass, IntDb, Mux, Pass,
+        PermaBuf, PolTileWireCoord, ProgBuf, SwitchBoxItem, TileClassId, TileSlotId, TileWireCoord,
         WireSlotId,
     },
     dir::Dir,
@@ -101,6 +101,7 @@ pub enum NetBinding<'a> {
     None,
     Dummy,
     Int(WireCoord),
+    IntAltTie(WireCoord),
     Bel(BelCoord, &'a str),
 }
 
@@ -322,9 +323,10 @@ impl<'a> Extractor<'a> {
         }
     }
 
-    pub fn net_dummy(&mut self, net_id: NetId) {
+    pub fn net_int_alt_tie(&mut self, net_id: NetId, wire: WireCoord) {
+        let wire = self.egrid.resolve_wire(wire).unwrap();
         let net = &mut self.nets[net_id];
-        let nbind = NetBinding::Dummy;
+        let nbind = NetBinding::IntAltTie(wire);
         if net.binding == NetBinding::None {
             net.binding = nbind;
         } else if net.binding != nbind {
@@ -336,9 +338,17 @@ impl<'a> Extractor<'a> {
         }
     }
 
-    pub fn net_bel_int(&mut self, net_id: NetId, bel: BelCoord, pin: &'a str) {
-        for wire in self.egrid.get_bel_pin(bel, pin) {
-            self.net_int(net_id, wire);
+    pub fn net_dummy(&mut self, net_id: NetId) {
+        let net = &mut self.nets[net_id];
+        let nbind = NetBinding::Dummy;
+        if net.binding == NetBinding::None {
+            net.binding = nbind;
+        } else if net.binding != nbind {
+            let (nx, ny, nd) = net.root;
+            eprintln!(
+                "NET {nx}.{ny}.{nd} ALREADY BOUND: is {bind:?} setting {nbind:?}",
+                bind = net.binding,
+            );
         }
     }
 
@@ -378,9 +388,14 @@ impl<'a> Extractor<'a> {
         self.int_nets[&wire]
     }
 
-    pub fn get_bel_int_net(&self, bel: BelCoord, pin: &'a str) -> NetId {
-        let w = self.egrid.get_bel_pin(bel, pin);
-        self.get_wire_net(w[0])
+    pub fn get_bel_input_net(&self, bel: BelCoord, pin: BelInputId) -> NetId {
+        let w = self.egrid.get_bel_input(bel, pin);
+        self.get_wire_net(w.wire)
+    }
+
+    pub fn get_bel_bidir_net(&self, bel: BelCoord, pin: BelBidirId) -> NetId {
+        let w = self.egrid.get_bel_bidir(bel, pin);
+        self.get_wire_net(w)
     }
 
     #[track_caller]
@@ -531,7 +546,10 @@ impl<'a> Extractor<'a> {
     pub fn own_mux(&mut self, wire: WireCoord, tcrd: TileCoord) {
         let net = self.int_nets[&wire];
         for &net_f in self.nets[net].pips_bwd.keys() {
-            if matches!(self.nets[net_f].binding, NetBinding::Int(_)) {
+            if matches!(
+                self.nets[net_f].binding,
+                NetBinding::Int(_) | NetBinding::IntAltTie(_)
+            ) {
                 assert_eq!(self.pip_owner.insert((net, net_f), tcrd), None);
             }
         }
@@ -697,6 +715,19 @@ impl<'a> Extractor<'a> {
             if !self.tcls_pips.contains_id(tile.class) {
                 self.tcls_pips.insert(tile.class, muxes);
             } else {
+                let cur_muxes = &self.tcls_pips[tile.class];
+                if *cur_muxes != muxes {
+                    for &(dst, src) in cur_muxes.symmetric_difference(&muxes) {
+                        if !muxes.contains(&(dst, src)) {
+                            println!(
+                                "MISMATCH AT {tcname} {dst} {src}",
+                                tcname = self.egrid.db.tile_classes.key(tile.class),
+                                dst = dst.to_string(self.egrid.db, &self.egrid.db[tile.class]),
+                                src = src.to_string(self.egrid.db, &self.egrid.db[tile.class]),
+                            );
+                        }
+                    }
+                }
                 assert_eq!(
                     self.tcls_pips[tile.class],
                     muxes,
@@ -760,7 +791,6 @@ impl Finisher {
         db: &mut IntDb,
         ndb: &mut NamingDb,
         mut classify_pip: impl FnMut(&IntDb, TileSlotId, TileWireCoord, PolTileWireCoord) -> PipMode,
-        keep_all_tcls: bool,
     ) {
         let mut new_tile_namings = EntityMap::new();
         for (naming, name, mut tile_naming) in core::mem::take(&mut ndb.tile_namings) {
@@ -834,7 +864,7 @@ impl Finisher {
                     assert!(items.is_empty());
                 }
                 new_tile_classes.insert(name, tcls);
-            } else if keep_all_tcls {
+            } else {
                 new_tile_classes.insert(name, tcls);
             }
         }

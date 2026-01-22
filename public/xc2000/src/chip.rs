@@ -4,11 +4,11 @@ use bincode::{Decode, Encode};
 use itertools::Itertools;
 use prjcombine_entity::{EntityId, EntityRange};
 use prjcombine_interconnect::{
-    dir::{DirH, DirV},
+    dir::{DirH, DirHV, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, EdgeIoCoord, RowId, TileIobId},
 };
 
-use crate::{bels, xc2000, xc3000, xc5200};
+use crate::{xc2000, xc3000, xc4000, xc5200};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Encode, Decode)]
 pub enum SharedCfgPad {
@@ -177,6 +177,22 @@ impl Chip {
         }
     }
 
+    pub fn col_side_of_mid(&self, col: ColId) -> DirH {
+        if col < self.col_mid() {
+            DirH::W
+        } else {
+            DirH::E
+        }
+    }
+
+    pub fn row_side_of_mid(&self, row: RowId) -> DirV {
+        if row < self.row_mid() {
+            DirV::S
+        } else {
+            DirV::N
+        }
+    }
+
     pub fn columns(&self) -> EntityRange<ColId> {
         EntityRange::new(0, self.columns)
     }
@@ -232,7 +248,7 @@ impl Chip {
             | ChipKind::Xc5200 => {
                 let iob = match self.kind {
                     ChipKind::Xc4000H => TileIobId::from_idx(
-                        bels::xc4000::HIO
+                        xc4000::bslots::HIO
                             .iter()
                             .position(|&x| x == bel.slot)
                             .unwrap(),
@@ -244,7 +260,7 @@ impl Chip {
                             .unwrap(),
                     ),
                     _ => TileIobId::from_idx(
-                        bels::xc4000::IO
+                        xc4000::bslots::IO
                             .iter()
                             .position(|&x| x == bel.slot)
                             .unwrap(),
@@ -308,9 +324,9 @@ impl Chip {
                     EdgeIoCoord::W(row, iob) => (self.col_w(), row, iob),
                 };
                 let slot = match self.kind {
-                    ChipKind::Xc4000H => bels::xc4000::HIO[iob.to_idx()],
+                    ChipKind::Xc4000H => xc4000::bslots::HIO[iob.to_idx()],
                     ChipKind::Xc5200 => xc5200::bslots::IO[iob.to_idx()],
-                    _ => bels::xc4000::IO[iob.to_idx()],
+                    _ => xc4000::bslots::IO[iob.to_idx()],
                 };
                 CellCoord::new(die, col, row).bel(slot)
             }
@@ -468,9 +484,98 @@ impl Chip {
         EdgeIoCoord::E(self.row_s(), TileIobId::from_idx(0))
     }
 
-    pub fn io_tclk(&self) -> EdgeIoCoord {
-        assert!(self.kind.is_xc3000());
-        EdgeIoCoord::W(self.row_n(), TileIobId::from_idx(0))
+    pub fn bel_clock_io(&self, idx: usize) -> BelCoord {
+        match self.kind {
+            ChipKind::Xc2000 => unreachable!(),
+            ChipKind::Xc3000 | ChipKind::Xc3000A => [
+                CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_n())
+                    .bel(xc3000::bslots::IO_W[0]),
+                CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s())
+                    .bel(xc3000::bslots::IO_E[0]),
+            ][idx],
+            ChipKind::Xc4000
+            | ChipKind::Xc4000A
+            | ChipKind::Xc4000E
+            | ChipKind::Xc4000Ex
+            | ChipKind::Xc4000Xla
+            | ChipKind::Xc4000Xv
+            | ChipKind::SpartanXl => {
+                [
+                    CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_n() - 1)
+                        .bel(xc4000::bslots::IO[0]),
+                    CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_s() + 1)
+                        .bel(xc4000::bslots::IO[1]),
+                    CellCoord::new(DieId::from_idx(0), self.col_w() + 1, self.row_s())
+                        .bel(xc4000::bslots::IO[0]),
+                    CellCoord::new(DieId::from_idx(0), self.col_e() - 1, self.row_s())
+                        .bel(xc4000::bslots::IO[1]),
+                    CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s() + 1)
+                        .bel(xc4000::bslots::IO[0]), // skip one
+                    CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_n() - 1)
+                        .bel(xc4000::bslots::IO[0]),
+                    CellCoord::new(DieId::from_idx(0), self.col_e() - 1, self.row_n())
+                        .bel(xc4000::bslots::IO[0]), // skip one
+                    CellCoord::new(DieId::from_idx(0), self.col_w() + 1, self.row_n())
+                        .bel(xc4000::bslots::IO[0]),
+                ][idx]
+            }
+            ChipKind::Xc4000H => {
+                [
+                    CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_n() - 1)
+                        .bel(xc4000::bslots::HIO[0]),
+                    CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_s() + 1)
+                        .bel(xc4000::bslots::HIO[3]),
+                    CellCoord::new(DieId::from_idx(0), self.col_w() + 1, self.row_s())
+                        .bel(xc4000::bslots::HIO[0]),
+                    CellCoord::new(DieId::from_idx(0), self.col_e() - 1, self.row_s())
+                        .bel(xc4000::bslots::HIO[3]),
+                    CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s() + 1)
+                        .bel(xc4000::bslots::HIO[2]), // skip one
+                    CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_n() - 1)
+                        .bel(xc4000::bslots::HIO[0]),
+                    CellCoord::new(DieId::from_idx(0), self.col_e() - 1, self.row_n())
+                        .bel(xc4000::bslots::HIO[2]), // skip one
+                    CellCoord::new(DieId::from_idx(0), self.col_w() + 1, self.row_n())
+                        .bel(xc4000::bslots::HIO[0]),
+                ][idx]
+            }
+            ChipKind::Xc5200 => {
+                [
+                    CellCoord::new(DieId::from_idx(0), self.col_w(), self.row_n() - 1)
+                        .bel(xc5200::bslots::IO[1]), // skip two (2×unbonded)
+                    CellCoord::new(DieId::from_idx(0), self.col_w() + 1, self.row_s())
+                        .bel(xc5200::bslots::IO[2]), // skip one (M2)
+                    CellCoord::new(DieId::from_idx(0), self.col_e(), self.row_s() + 1)
+                        .bel(xc5200::bslots::IO[1]), // skip one (D7)
+                    CellCoord::new(DieId::from_idx(0), self.col_e() - 2, self.row_n())
+                        .bel(xc5200::bslots::IO[2]), // skip five (TDO, 2×unbonded, A0, unbonded)
+                ][idx]
+            }
+        }
+    }
+
+    pub fn bel_buff_io(&self, which: DirHV) -> BelCoord {
+        assert!(matches!(
+            self.kind,
+            ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv
+        ));
+        let die = DieId::from_idx(0);
+        match (which, self.is_buff_large) {
+            (DirHV::SW, _) => {
+                CellCoord::new(die, self.col_w(), self.row_q(DirV::S)).bel(xc4000::bslots::IO[1])
+            }
+            (DirHV::NW, _) => CellCoord::new(die, self.col_w(), self.row_q(DirV::N) - 1)
+                .bel(xc4000::bslots::IO[0]),
+            (DirHV::SE, false) => {
+                CellCoord::new(die, self.col_e(), self.row_q(DirV::S)).bel(xc4000::bslots::IO[1])
+            }
+            (DirHV::SE, true) => CellCoord::new(die, self.col_e(), self.row_q(DirV::S) + 1)
+                .bel(xc4000::bslots::IO[1]),
+            (DirHV::NE, false) => CellCoord::new(die, self.col_e(), self.row_q(DirV::N) - 1)
+                .bel(xc4000::bslots::IO[0]),
+            (DirHV::NE, true) => CellCoord::new(die, self.col_e(), self.row_q(DirV::N) - 2)
+                .bel(xc4000::bslots::IO[0]),
+        }
     }
 
     pub fn btile_height_main(&self, row: RowId) -> usize {
@@ -578,6 +683,21 @@ impl Chip {
 
     pub fn btile_width_brk(&self) -> usize {
         if self.kind == ChipKind::Xc2000 { 2 } else { 1 }
+    }
+
+    pub fn bel_bufg(&self, idx: usize) -> BelCoord {
+        assert!(self.kind.is_xc4000());
+        let (col, row, slot) = [
+            (self.col_w(), self.row_n(), xc4000::bslots::BUFG_V),
+            (self.col_w(), self.row_s(), xc4000::bslots::BUFG_V),
+            (self.col_w(), self.row_s(), xc4000::bslots::BUFG_H),
+            (self.col_e(), self.row_s(), xc4000::bslots::BUFG_H),
+            (self.col_e(), self.row_s(), xc4000::bslots::BUFG_V),
+            (self.col_e(), self.row_n(), xc4000::bslots::BUFG_V),
+            (self.col_e(), self.row_n(), xc4000::bslots::BUFG_H),
+            (self.col_w(), self.row_n(), xc4000::bslots::BUFG_H),
+        ][idx];
+        CellCoord::new(DieId::from_idx(0), col, row).bel(slot)
     }
 }
 

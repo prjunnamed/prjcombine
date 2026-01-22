@@ -4,7 +4,6 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_fpga_hammer::{DiffKey, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
-use prjcombine_re_xilinx_naming::db::BelNaming;
 
 use crate::backend::{IseBackend, Key, MultiValue, PinFromKind, Value};
 
@@ -33,11 +32,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelMode {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
-        Some((
-            fuzzer.base(Key::SiteMode(&ntile.bels[self.bel]), self.val.clone()),
-            false,
-        ))
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        Some((fuzzer.base(Key::SiteMode(site), self.val.clone()), false))
     }
 }
 
@@ -63,11 +59,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BelUnused {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
-        Some((
-            fuzzer.base(Key::SiteMode(&ntile.bels[self.bel]), None),
-            false,
-        ))
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
+        Some((fuzzer.base(Key::SiteMode(site), None), false))
     }
 }
 
@@ -95,13 +88,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMode {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
-            fuzzer.fuzz(
-                Key::SiteMode(&ntile.bels[self.bel]),
-                self.val0.clone(),
-                self.val1.clone(),
-            ),
+            fuzzer.fuzz(Key::SiteMode(site), self.val0.clone(), self.val1.clone()),
             false,
         ))
     }
@@ -130,9 +119,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPin {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
-            fuzzer.base(Key::SitePin(&ntile.bels[self.bel], self.pin.clone()), true),
+            fuzzer.base(Key::SitePin(site, self.pin.clone()), true),
             false,
         ))
     }
@@ -161,9 +150,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelNoPin {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
-            fuzzer.base(Key::SitePin(&ntile.bels[self.bel], self.pin.clone()), false),
+            fuzzer.base(Key::SitePin(site, self.pin.clone()), false),
             false,
         ))
     }
@@ -192,13 +181,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPin {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
-            fuzzer.fuzz(
-                Key::SitePin(&ntile.bels[self.bel], self.pin.clone()),
-                None,
-                true,
-            ),
+            fuzzer.fuzz(Key::SitePin(site, self.pin.clone()), None, true),
             false,
         ))
     }
@@ -228,10 +213,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPips {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
-        let BelNaming::Bel(bel_naming) = &tile_naming.bels[self.bel] else {
-            unreachable!()
-        };
+        let bel_naming = backend.ngrid.get_bel_naming(tcrd.bel(self.bel));
         let pin_naming = &bel_naming.pins[&self.pin];
         for pip in &pin_naming.pips {
             fuzzer = fuzzer.base(
@@ -267,10 +249,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPips {
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
-        let BelNaming::Bel(bel_naming) = &tile_naming.bels[self.bel] else {
-            unreachable!()
-        };
+        let bel_naming = backend.ngrid.get_bel_naming(tcrd.bel(self.bel));
         let pin_naming = &bel_naming.pins[&self.pin];
         for pip in &pin_naming.pips {
             fuzzer = fuzzer.fuzz(
@@ -309,15 +288,12 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinIntPips {
         let tile = &backend.edev[tcrd];
         let tcls = &backend.edev.db[tile.class];
         let ntile = &backend.ngrid.tiles[&tcrd];
-        let tile_naming = &backend.ngrid.db.tile_class_namings[ntile.naming];
         let bel_data = &tcls.bels[self.bel];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
         let pin_data = &bel_data.pins[&self.pin];
-        let BelNaming::Bel(bel_naming) = &tile_naming.bels[self.bel] else {
-            unreachable!()
-        };
+        let bel_naming = backend.ngrid.get_bel_naming(tcrd.bel(self.bel));
         let pin_naming = &bel_naming.pins[&self.pin];
         assert_eq!(pin_data.wires.len(), 1);
         let wire = *pin_data.wires.first().unwrap();
@@ -356,12 +332,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinFrom {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
-            fuzzer.base(
-                Key::SitePinFrom(&ntile.bels[self.bel], self.pin.clone()),
-                self.from,
-            ),
+            fuzzer.base(Key::SitePinFrom(site, self.pin.clone()), self.from),
             false,
         ))
     }
@@ -397,10 +370,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinFrom {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
             fuzzer.fuzz(
-                Key::SitePinFrom(&ntile.bels[self.bel], self.pin.clone()),
+                Key::SitePinFrom(site, self.pin.clone()),
                 self.from0,
                 self.from1,
             ),
@@ -439,10 +412,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelPinPair {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
-        let site_to = &ntile.bels[self.bel_to];
-        let site_from = &ntile.bels[self.bel_from];
-
+        let site_to = backend.ngrid.get_bel_name(tcrd.bel(self.bel_to)).unwrap();
+        let site_from = backend.ngrid.get_bel_name(tcrd.bel(self.bel_from)).unwrap();
         Some((
             fuzzer.base(
                 Key::SitePin(site_to, self.pin_to.clone()),
@@ -483,10 +454,8 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelPinPair {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
-        let site_to = &ntile.bels[self.bel_to];
-        let site_from = &ntile.bels[self.bel_from];
-
+        let site_to = backend.ngrid.get_bel_name(tcrd.bel(self.bel_to)).unwrap();
+        let site_from = backend.ngrid.get_bel_name(tcrd.bel(self.bel_from)).unwrap();
         Some((
             fuzzer.fuzz(
                 Key::SitePin(site_to, self.pin_to.clone()),
@@ -522,12 +491,9 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for BaseBelAttr {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
-            fuzzer.base(
-                Key::SiteAttr(&ntile.bels[self.bel], self.attr.clone()),
-                self.val.clone(),
-            ),
+            fuzzer.base(Key::SiteAttr(site, self.attr.clone()), self.val.clone()),
             false,
         ))
     }
@@ -563,10 +529,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelAttr {
         tcrd: TileCoord,
         fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         Some((
             fuzzer.fuzz(
-                Key::SiteAttr(&ntile.bels[self.bel], self.attr.clone()),
+                Key::SiteAttr(site, self.attr.clone()),
                 self.val_a.clone(),
                 self.val_b.clone(),
             ),
@@ -605,13 +571,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzBelMultiAttr {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.bel)).unwrap();
         fuzzer.bits = self.width;
         Some((
-            fuzzer.fuzz_multi(
-                Key::SiteAttr(&ntile.bels[self.bel], self.attr.clone()),
-                self.val,
-            ),
+            fuzzer.fuzz_multi(Key::SiteAttr(site, self.attr.clone()), self.val),
             false,
         ))
     }
@@ -716,7 +679,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for GlobalMutexHere {
 }
 
 fn resolve_global_xy(backend: &IseBackend, tcrd: TileCoord, slot: BelSlotId, opt: &str) -> String {
-    let site = &backend.ngrid.tiles[&tcrd].bels[slot];
+    let site = backend.ngrid.get_bel_name(tcrd.bel(slot)).unwrap();
     opt.replace('*', &site[site.rfind('X').unwrap()..])
 }
 

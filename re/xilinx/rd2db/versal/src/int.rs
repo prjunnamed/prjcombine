@@ -1174,7 +1174,7 @@ impl IntMaker<'_> {
                             cell: cle_tile,
                             wire: w,
                         }) {
-                            let n = self.builder.rd.wires.get(n).unwrap();
+                            let n = self.builder.rd.wires.get(&n.name).unwrap();
                             if let &TkWire::Connected(idx) = tk.wires.get(&n).unwrap().1 {
                                 nodes.insert(tile.conn_wires[idx], w);
                             }
@@ -1188,7 +1188,7 @@ impl IntMaker<'_> {
                             cell: int_subtile,
                             wire: w,
                         }) {
-                            let n = self.builder.rd.wires.get(n).unwrap();
+                            let n = self.builder.rd.wires.get(&n.name).unwrap();
                             if let &TkWire::Connected(idx) = int_tk.wires.get(&n).unwrap().1 {
                                 nodes.insert(int_tile.conn_wires[idx], w);
                             }
@@ -1203,7 +1203,7 @@ impl IntMaker<'_> {
                             cell: int_subtile,
                             wire: w,
                         }) {
-                            let n = self.builder.rd.wires.get(n).unwrap();
+                            let n = self.builder.rd.wires.get(&n.name).unwrap();
                             if let &TkWire::Connected(idx) = int_tk.wires.get(&n).unwrap().1
                                 && let Some(&cw) = nodes.get(&int_tile.conn_wires[idx])
                             {

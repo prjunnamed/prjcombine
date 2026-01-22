@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
     dir::DirV,
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FuzzerFeature, FuzzerProp};
+use prjcombine_re_fpga_hammer::{DiffKey, FeatureId, FuzzerFeature, FuzzerProp, SpecialId};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_xilinx_bitstream::{BitRect, Reg};
 
@@ -57,6 +57,42 @@ impl ExtraKeyBelAttrValue {
 impl KeyMaker for ExtraKeyBelAttrValue {
     fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
         DiffKey::BelAttrValue(tcid, self.bel, self.attr, self.val)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ExtraKeyBelAttrBits {
+    pub bel: BelSlotId,
+    pub attr: BelAttributeId,
+}
+
+impl ExtraKeyBelAttrBits {
+    pub fn new(bel: BelSlotId, attr: BelAttributeId) -> Self {
+        Self { bel, attr }
+    }
+}
+
+impl KeyMaker for ExtraKeyBelAttrBits {
+    fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
+        DiffKey::BelAttrBit(tcid, self.bel, self.attr, 0)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ExtraKeyBelSpecial {
+    pub bel: BelSlotId,
+    pub spec: SpecialId,
+}
+
+impl ExtraKeyBelSpecial {
+    pub fn new(bel: BelSlotId, spec: SpecialId) -> Self {
+        Self { bel, spec }
+    }
+}
+
+impl KeyMaker for ExtraKeyBelSpecial {
+    fn make_key(&self, _backend: &IseBackend, _main_key: &DiffKey, tcid: TileClassId) -> DiffKey {
+        DiffKey::BelSpecial(tcid, self.bel, self.spec)
     }
 }
 

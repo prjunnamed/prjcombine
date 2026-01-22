@@ -249,9 +249,10 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntSrcFilter {
                     && wire_name.starts_with("OUT")
                     && intdb.tile_classes.key(tile.class).starts_with("INT_DCM")
                 {
-                    let ndcm =
-                        &backend.ngrid.tiles[&tcrd.tile(prjcombine_virtex2::defs::tslots::BEL)];
-                    let site = &ndcm.bels[prjcombine_virtex2::defs::bslots::DCM];
+                    let site = backend
+                        .ngrid
+                        .get_bel_name(tcrd.bel(prjcombine_virtex2::defs::bslots::DCM))
+                        .unwrap();
                     fuzzer = fuzzer.base(Key::SiteMode(site), "DCM").base(
                         Key::BelMutex(
                             tcrd.bel(prjcombine_virtex2::defs::bslots::DCM),
@@ -328,8 +329,8 @@ pub fn resolve_int_pip<'a>(
         } else {
             (
                 &ntile.names[RawTileId::from_idx(0)],
-                tile_naming.wires.get(&wire_to)?,
-                tile_naming.wires.get(&wire_from)?,
+                &tile_naming.wires.get(&wire_to)?.name,
+                &tile_naming.wires.get(&wire_from)?.name,
             )
         },
     )
@@ -431,7 +432,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLH {
                     let int_tcrd = tcrd
                         .cell
                         .with_col(src_col)
-                        .tile(prjcombine_xc2000::tslots::MAIN);
+                        .tile(prjcombine_xc2000::xc4000::tslots::MAIN);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
                         let dwire = TileWireCoord::new_idx(0, self.wire.wire);
                         if let Some(ins) =
@@ -543,7 +544,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for DriveLLV {
                     let int_tcrd = tcrd
                         .cell
                         .with_row(src_row)
-                        .tile(prjcombine_xc2000::tslots::MAIN);
+                        .tile(prjcombine_xc2000::xc4000::tslots::MAIN);
                     if let Some(src_tile) = backend.edev.get_tile(int_tcrd) {
                         let dwire = TileWireCoord::new_idx(0, self.wire.wire);
                         if let Some(ins) =
@@ -631,9 +632,9 @@ fn resolve_intf_delay<'a>(
     backend
         .edev
         .resolve_wire(backend.edev.tile_wire(tcrd, delay.src.tw))?;
-    let name_out = tile_naming.wires[&delay.dst].as_str();
+    let name_out = tile_naming.wires[&delay.dst].name.as_str();
     let name_delay = tile_naming.delay_wires[&delay.dst].as_str();
-    let name_in = tile_naming.wires[&delay.src.tw].as_str();
+    let name_in = tile_naming.wires[&delay.src.tw].name.as_str();
     Some((
         &ntile.names[RawTileId::from_idx(0)],
         name_in,

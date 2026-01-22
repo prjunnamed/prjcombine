@@ -1,18 +1,18 @@
 # Input/Output
 
-{{tile xc4000e IO.L}}
-{{tile xc4000e IO.L.T}}
-{{tile xc4000e IO.LS}}
-{{tile xc4000e IO.LS.B}}
-{{tile xc4000e IO.R}}
-{{tile xc4000e IO.R.T}}
-{{tile xc4000e IO.RS}}
-{{tile xc4000e IO.RS.B}}
-{{tile xc4000e IO.B}}
-{{tile xc4000e IO.B.R}}
-{{tile xc4000e IO.BS}}
-{{tile xc4000e IO.BS.L}}
-{{tile xc4000e IO.T}}
-{{tile xc4000e IO.T.R}}
-{{tile xc4000e IO.TS}}
-{{tile xc4000e IO.TS.L}}
+{{tile xc4000e IO_W0}}
+{{tile xc4000e IO_W0_N}}
+{{tile xc4000e IO_W1}}
+{{tile xc4000e IO_W1_S}}
+{{tile xc4000e IO_E0}}
+{{tile xc4000e IO_E0_N}}
+{{tile xc4000e IO_E1}}
+{{tile xc4000e IO_E1_S}}
+{{tile xc4000e IO_S0}}
+{{tile xc4000e IO_S0_E}}
+{{tile xc4000e IO_S1}}
+{{tile xc4000e IO_S1_W}}
+{{tile xc4000e IO_N0}}
+{{tile xc4000e IO_N0_E}}
+{{tile xc4000e IO_N1}}
+{{tile xc4000e IO_N1_W}}

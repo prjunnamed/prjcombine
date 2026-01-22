@@ -59,12 +59,36 @@ fn main() {
                 .unwrap()
                 .0
         }
+        "xc4000" => {
+            bincode::decode_from_slice(
+                prjcombine_xc2000::xc4000::xc4000::INIT,
+                bincode::config::standard(),
+            )
+            .unwrap()
+            .0
+        }
+        "xc4000a" => {
+            bincode::decode_from_slice(
+                prjcombine_xc2000::xc4000::xc4000a::INIT,
+                bincode::config::standard(),
+            )
+            .unwrap()
+            .0
+        }
+        "xc4000h" => {
+            bincode::decode_from_slice(
+                prjcombine_xc2000::xc4000::xc4000h::INIT,
+                bincode::config::standard(),
+            )
+            .unwrap()
+            .0
+        }
         "xc5200" => {
             bincode::decode_from_slice(prjcombine_xc2000::xc5200::INIT, bincode::config::standard())
                 .unwrap()
                 .0
         }
-        _ => IntDb::default(),
+        _ => unreachable!(),
     };
     for part in &parts {
         if part.kind != family {
@@ -182,9 +206,21 @@ fn main() {
                 assert_eq!(io_xtl1, BondPad::Io(endev.chip.io_xtl1()));
                 assert_eq!(io_xtl2, BondPad::Io(endev.chip.io_xtl2()));
                 let pad_tclk = &part.kv["TCLKIOB"][0];
-                assert_eq!(pad_tclk, endev.get_io_name(endev.chip.io_tclk()));
+                assert_eq!(
+                    pad_tclk,
+                    endev
+                        .ngrid
+                        .get_bel_name(endev.chip.bel_clock_io(0))
+                        .unwrap()
+                );
                 let pad_bclk = &part.kv["BCLKIOB"][0];
-                assert_eq!(pad_bclk, endev.get_io_name(endev.chip.io_xtl2()));
+                assert_eq!(
+                    pad_bclk,
+                    endev
+                        .ngrid
+                        .get_bel_name(endev.chip.bel_clock_io(1))
+                        .unwrap()
+                );
                 if !cfg_io.is_empty() {
                     let chip = &mut db.chips[chip];
                     if chip.cfg_io.is_empty() {

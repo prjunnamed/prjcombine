@@ -637,7 +637,7 @@ impl IntMaker<'_> {
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wf)) else {
                     continue;
                 };
-                let node = self.builder.rd.lookup_wire_force(int_xy, name);
+                let node = self.builder.rd.lookup_wire_force(int_xy, &name.name);
                 let mut twf = (cell, wf);
                 // sigh. no hope. no hope at all.
                 if wf == wires::X1_E1[0] {
@@ -668,7 +668,7 @@ impl IntMaker<'_> {
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wt)) else {
                     continue;
                 };
-                let node = self.builder.rd.lookup_wire_force(int_xy, name);
+                let node = self.builder.rd.lookup_wire_force(int_xy, &name.name);
                 if let Some(&(tf, wf)) = node2target.get(&node) {
                     assert_eq!(cell, tf);
                     wires.insert(wt, ConnectorWire::Reflect(wf));

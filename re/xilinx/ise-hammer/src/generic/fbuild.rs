@@ -11,7 +11,10 @@ use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
     backend::{IseBackend, Key, MultiValue, PinFromKind, Value},
-    generic::props::extra::{ExtraKeyBelAttrValue, ExtraKeyLegacy, ExtraKeyLegacyAttr},
+    generic::props::extra::{
+        ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyLegacy,
+        ExtraKeyLegacyAttr,
+    },
 };
 
 use super::props::{
@@ -338,6 +341,26 @@ pub trait FuzzBuilderBase<'b>: Sized {
         ))
     }
 
+    fn extra_fixed_bel_attr_bits(
+        self,
+        tcrd: TileCoord,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+    ) -> Self {
+        self.prop(ExtraTile::new(
+            FixedRelation(tcrd),
+            ExtraKeyBelAttrBits::new(bslot, attr),
+        ))
+    }
+
+    #[allow(dead_code)]
+    fn extra_fixed_bel_special(self, tcrd: TileCoord, bslot: BelSlotId, spec: SpecialId) -> Self {
+        self.prop(ExtraTile::new(
+            FixedRelation(tcrd),
+            ExtraKeyBelSpecial::new(bslot, spec),
+        ))
+    }
+
     fn null_bits(self) -> Self {
         self.prop(NullBits)
     }
@@ -398,6 +421,10 @@ impl<'sm, 'b> FuzzBuilder<'sm, 'b> {
             val: val.into(),
         });
         self.test_raw(key)
+    }
+
+    pub fn test_global_special(self, spec: SpecialId) -> FuzzBuilderTestManual<'sm, 'b> {
+        self.test_raw(DiffKey::GlobalSpecial(spec))
     }
 
     pub fn test_reg(
@@ -734,12 +761,6 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_manual(attr, "#LUT").prop(prop).commit();
     }
 
-    pub fn test_multi_attr(self, attr: impl Into<String>, value: MultiValue, width: usize) {
-        let attr = attr.into();
-        let prop = FuzzBelMultiAttr::new(self.bel, attr.clone(), value, width);
-        self.test_manual(attr, "").prop(prop).commit();
-    }
-
     pub fn test_bel_attr_multi(self, attr: BelAttributeId, value: MultiValue) {
         let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
             unreachable!()
@@ -792,6 +813,15 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
 
     pub fn test_bel_special(self, spec: SpecialId) -> FuzzBuilderBelTestManual<'sm, 'b> {
         let key = DiffKey::BelSpecial(self.tile_class, self.bel, spec);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_special_val(
+        self,
+        spec: SpecialId,
+        val: EnumValueId,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelSpecialVal(self.tile_class, self.bel, spec, val);
         self.test_raw(key)
     }
 
@@ -852,6 +882,23 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
             .test_bel_attr_enum_bool(attr, true)
             .global(opt, val1)
             .commit();
+    }
+
+    pub fn test_global_attr_rename(&mut self, opt: impl Into<String>, attr: BelAttributeId) {
+        let opt = opt.into();
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::Enum(ecid) = self.backend.edev.db[bcid].attributes[attr].typ else {
+            unreachable!()
+        };
+        let ecls = &self.backend.edev.db[ecid];
+        for (vid, val) in &ecls.values {
+            self.clone()
+                .test_bel_attr_val(attr, vid)
+                .global(&opt, val)
+                .commit();
+        }
     }
 
     pub fn test_bel_attr_rename(mut self, rattr: impl AsRef<str>, attr: BelAttributeId) {

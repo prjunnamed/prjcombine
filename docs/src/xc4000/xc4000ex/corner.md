@@ -1,6 +1,6 @@
 # Corners
 
-{{tile xc4000ex CNR.BL}}
-{{tile xc4000ex CNR.TL}}
-{{tile xc4000ex CNR.BR}}
-{{tile xc4000ex CNR.TR}}
+{{tile xc4000ex CNR_SW}}
+{{tile xc4000ex CNR_NW}}
+{{tile xc4000ex CNR_SE}}
+{{tile xc4000ex CNR_NE}}

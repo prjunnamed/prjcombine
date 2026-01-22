@@ -1355,11 +1355,35 @@ fn gen_bits(tcgen: &mut TileClassGen, buf: &mut String) {
 }
 
 fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClassId) {
-    let tname = intdb.tile_classes.key(tcid);
+    let tname = intdb.tile_classes.key(tcid).as_str();
     let tcls = &intdb[tcid];
     let mut buf = String::new();
 
     if matches!(dbname, "ultrascale" | "ultrascaleplus") && tcls.bels.iter().next().is_none() {
+        return;
+    }
+    if matches!(
+        dbname,
+        "xc4000" | "xc4000a" | "xc4000h" | "xc4000e" | "spartanxl"
+    ) && (tname.starts_with("LLHC_")
+        || tname.starts_with("LLHQ_")
+        || tname.starts_with("LLVC_")
+        || tname.starts_with("LLVQ_")
+        || tname.ends_with("_F0")
+        || tname.ends_with("_F1")
+        || matches!(tname, "CLKQ" | "CLKQC"))
+    {
+        return;
+    }
+    if matches!(dbname, "xc4000ex" | "xc4000xla" | "xc4000xv")
+        && (tname.starts_with("LLH_") || tname.starts_with("LLV_"))
+    {
+        return;
+    }
+    if matches!(dbname, "xc4000ex" | "xc4000xla") && tname == "CLKQ" {
+        return;
+    }
+    if dbname == "xc4000xv" && tname == "CLKQC" {
         return;
     }
 

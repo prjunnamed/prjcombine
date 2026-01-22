@@ -5,6 +5,7 @@ version.workspace = true
 
 [dependencies]
 bincode.workspace = true
+itertools.workspace = true
 prjcombine-entity.workspace = true
 prjcombine-interconnect.workspace = true
 

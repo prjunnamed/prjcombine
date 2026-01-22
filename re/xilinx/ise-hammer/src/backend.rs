@@ -8,7 +8,6 @@ use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
 };
-use prjcombine_re_xilinx_naming::db::BelNaming;
 use prjcombine_re_xilinx_naming::grid::ExpandedGridNaming;
 use prjcombine_re_xilinx_xdl::{
     Design, Instance, Net, NetPin, NetPip, NetType, Pcf, Placement, run_bitgen,
@@ -235,13 +234,11 @@ impl<'a> Backend for IseBackend<'a> {
             if let Some(ref name) = ntile.tie_name {
                 site_to_tile.insert(name.to_string(), ntile.names[ntile.tie_rt].to_string());
             }
-            for (id, name) in &ntile.bels {
-                let BelNaming::Bel(bn) = &self.ngrid.db.tile_class_namings[ntile.naming].bels[id]
-                else {
-                    unreachable!()
-                };
-                let rt = bn.tile;
-                site_to_tile.insert(name.to_string(), ntile.names[rt].to_string());
+            for (id, names) in &ntile.bels {
+                for (idx, name) in names.iter().enumerate() {
+                    let rt = self.ngrid.db.tile_class_namings[ntile.naming].bels[id].tiles[idx];
+                    site_to_tile.insert(name.to_string(), ntile.names[rt].to_string());
+                }
             }
         }
         if let ExpandedNamedDevice::Virtex4(endev) = self.endev {

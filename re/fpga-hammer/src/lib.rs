@@ -299,6 +299,12 @@ impl Diff {
         }
     }
 
+    pub fn discard_bits_enum(&mut self, attr: &BelAttributeEnum) {
+        for bit in &attr.bits {
+            self.bits.remove(bit);
+        }
+    }
+
     pub fn apply_bitvec_diff_raw(&mut self, bits: &[PolTileBit], from: &BitVec, to: &BitVec) {
         for (idx, &pbit) in bits.iter().enumerate() {
             if from[idx] != to[idx] {
@@ -348,6 +354,23 @@ impl Diff {
             item,
             &to_bitvec(from, item.bits.len()),
             &to_bitvec(to, item.bits.len()),
+        );
+    }
+
+    pub fn apply_bitvec_diff_int_raw(&mut self, bits: &[PolTileBit], from: u64, to: u64) {
+        fn to_bitvec(n: u64, len: usize) -> BitVec {
+            let mut res = BitVec::repeat(false, len);
+            for i in 0..64 {
+                if (n & 1 << i) != 0 {
+                    res.set(i, true);
+                }
+            }
+            res
+        }
+        self.apply_bitvec_diff_raw(
+            bits,
+            &to_bitvec(from, bits.len()),
+            &to_bitvec(to, bits.len()),
         );
     }
 
@@ -902,12 +925,21 @@ pub enum DiffKey {
     BelAttrSpecial(TileClassId, BelSlotId, BelAttributeId, SpecialId),
     BelAttrSpecialBit(TileClassId, BelSlotId, BelAttributeId, SpecialId, usize),
     BelSpecial(TileClassId, BelSlotId, SpecialId),
+    BelSpecialVal(TileClassId, BelSlotId, SpecialId, EnumValueId),
     BelSpecialString(TileClassId, BelSlotId, SpecialId, String),
     BelInputInv(TileClassId, BelSlotId, BelInputId, bool),
+    GlobalSpecial(SpecialId),
+    GlobalSpecialVal(SpecialId, EnumValueId),
     GlobalBelAttrBit(BelCoord, BelAttributeId, usize),
     GlobalBelAttrSpecial(BelCoord, BelAttributeId, SpecialId),
     GlobalRouting(WireCoord, PolWireCoord),
     Routing(TileClassId, TileWireCoord, PolTileWireCoord),
+    RoutingVia(
+        TileClassId,
+        TileWireCoord,
+        PolTileWireCoord,
+        PolTileWireCoord,
+    ),
     RoutingBidi(TileClassId, ConnectorSlotId, TileWireCoord, bool),
     RoutingInv(TileClassId, TileWireCoord, bool),
     RoutingSpecial(TileClassId, TileWireCoord, SpecialId),
@@ -1470,6 +1502,17 @@ impl<'a, 'b> Collector<'a, 'b> {
             .get_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, attr, val))
     }
 
+    pub fn get_diff_attr_bit(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        bit: usize,
+    ) -> Diff {
+        self.state
+            .get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, bit))
+    }
+
     pub fn get_diff_bel_special(
         &mut self,
         tcid: TileClassId,
@@ -1560,6 +1603,26 @@ impl<'a, 'b> Collector<'a, 'b> {
             )),
             BelAttributeType::BitvecArray(_, _) => todo!(),
         };
+        self.insert_bel_attr_raw(tcid, bslot, aid, attr);
+    }
+
+    pub fn collect_bel_attr_subset(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        vals: &[EnumValueId],
+    ) {
+        let mut diffs = vec![];
+        for &vid in vals {
+            diffs.push((
+                vid,
+                self.state
+                    .get_diff_raw(&DiffKey::BelAttrValue(tcid, bslot, aid, vid)),
+            ));
+        }
+
+        let attr = xlat_enum_attr(diffs);
         self.insert_bel_attr_raw(tcid, bslot, aid, attr);
     }
 
@@ -1655,6 +1718,15 @@ impl<'a, 'b> Collector<'a, 'b> {
         self.insert_bel_input_inv(tcid, bslot, pin, bit);
     }
 
+    pub fn bel_attr_raw(
+        &self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+    ) -> &BelAttribute {
+        &self.data.bel_attrs[&(tcid, bslot, aid)]
+    }
+
     pub fn bel_attr_bitvec(
         &self,
         tcid: TileClassId,
@@ -1715,14 +1787,13 @@ impl<'a, 'b> Collector<'a, 'b> {
         }
     }
 
-    pub fn collect_progbuf(
+    pub fn insert_progbuf(
         &mut self,
         tcid: TileClassId,
         dst: TileWireCoord,
         src: PolTileWireCoord,
+        bit: PolTileBit,
     ) {
-        let diff = self.state.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
-        let bit = xlat_bit_raw(diff);
         match self.data.sb_buf.entry((tcid, dst, src)) {
             hash_map::Entry::Occupied(e) => {
                 assert_eq!(*e.get(), bit);
@@ -1731,6 +1802,17 @@ impl<'a, 'b> Collector<'a, 'b> {
                 e.insert(bit);
             }
         }
+    }
+
+    pub fn collect_progbuf(
+        &mut self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+        src: PolTileWireCoord,
+    ) {
+        let diff = self.state.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
+        let bit = xlat_bit_raw(diff);
+        self.insert_progbuf(tcid, dst, src, bit);
     }
 
     pub fn insert_pass(

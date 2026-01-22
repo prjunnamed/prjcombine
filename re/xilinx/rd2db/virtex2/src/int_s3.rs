@@ -5,9 +5,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, BelPin, GroupTestMux, GroupTestMuxWire, IntDb, LegacyBel, TileWireCoord},
     dir::{Dir, DirMap},
 };
-use prjcombine_re_xilinx_naming::db::{
-    BelNaming, BelPinNaming, NamingDb, PipNaming, ProperBelNaming, RawTileId,
-};
+use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, PipNaming, RawTileId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_types::bitvec::BitVec;
 use prjcombine_virtex2::{defs, defs::spartan3::ccls, defs::spartan3::tcls, defs::spartan3::wires};
@@ -1944,21 +1942,20 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             let tcls = &mut builder.db.tile_classes[tcid];
             tcls.bels.insert(defs::bslots::MISR, BelInfo::Legacy(bel));
             let pin_naming = BelPinNaming {
+                tile: RawTileId::from_idx(0),
                 name: "CNR_CLK3".into(),
                 name_far: "CNR_CLK3".into(),
                 pips: vec![],
                 int_pips: BTreeMap::new(),
                 is_intf: false,
             };
-            let mut bel_naming = ProperBelNaming {
-                tile: RawTileId::from_idx(0),
+            let mut bel_naming = BelNaming {
+                tiles: vec![RawTileId::from_idx(0)],
                 pins: BTreeMap::new(),
             };
             bel_naming.pins.insert("CLK".into(), pin_naming);
             let naming = builder.ndb.tile_class_namings.get_mut(nn).unwrap().1;
-            naming
-                .bels
-                .insert(defs::bslots::MISR, BelNaming::Bel(bel_naming));
+            naming.bels.insert(defs::bslots::MISR, bel_naming);
         }
     } else if rd.family == "spartan3e" {
         builder.extract_int_bels_id(tcls::CNR_SW_S3E, "LL", "CNR_SW_S3E", &[]);

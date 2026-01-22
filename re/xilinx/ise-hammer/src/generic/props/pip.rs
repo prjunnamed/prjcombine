@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
-use prjcombine_re_xilinx_naming::db::{BelNaming, RawTileId};
+use prjcombine_re_xilinx_naming::db::RawTileId;
 
 use crate::backend::{IseBackend, Key};
 
@@ -130,46 +130,30 @@ impl PipWire {
                     .resolve_wire(backend.edev.tile_wire(tcrd, *wire))?;
                 (
                     &ntile.names[RawTileId::from_idx(0)],
-                    tile_naming.wires.get(wire)?,
+                    &tile_naming.wires.get(wire)?.name,
                 )
             }
             PipWire::BelPinNear(bel, pin) => {
-                let BelNaming::Bel(bel_naming) = &tile_naming.bels[*bel] else {
-                    unreachable!()
-                };
-                (
-                    &ntile.names[bel_naming.tile],
-                    &bel_naming
-                        .pins
-                        .get(pin)
-                        .unwrap_or_else(|| {
-                            panic!(
-                                "missing pin {pin} in bel {bel} tile {tile}",
-                                bel = backend.edev.db.bel_slots.key(*bel),
-                                tile = backend.edev.db.tile_classes.key(tile.class),
-                            )
-                        })
-                        .name,
-                )
+                let bel_naming = backend.ngrid.get_bel_naming(tcrd.bel(*bel));
+                let pin_naming = bel_naming.pins.get(pin).unwrap_or_else(|| {
+                    panic!(
+                        "missing pin {pin} in bel {bel} tile {tile}",
+                        bel = backend.edev.db.bel_slots.key(*bel),
+                        tile = backend.edev.db.tile_classes.key(tile.class),
+                    )
+                });
+                (&ntile.names[pin_naming.tile], &pin_naming.name)
             }
             PipWire::BelPinFar(bel, pin) => {
-                let BelNaming::Bel(bel_naming) = &tile_naming.bels[*bel] else {
-                    unreachable!()
-                };
-                (
-                    &ntile.names[bel_naming.tile],
-                    &bel_naming
-                        .pins
-                        .get(pin)
-                        .unwrap_or_else(|| {
-                            panic!(
-                                "missing pin {pin} in bel {bel} tile {tile}",
-                                bel = backend.edev.db.bel_slots.key(*bel),
-                                tile = backend.edev.db.tile_classes.key(tile.class),
-                            )
-                        })
-                        .name_far,
-                )
+                let bel_naming = backend.ngrid.get_bel_naming(tcrd.bel(*bel));
+                let pin_naming = bel_naming.pins.get(pin).unwrap_or_else(|| {
+                    panic!(
+                        "missing pin {pin} in bel {bel} tile {tile}",
+                        bel = backend.edev.db.bel_slots.key(*bel),
+                        tile = backend.edev.db.tile_classes.key(tile.class),
+                    )
+                });
+                (&ntile.names[pin_naming.tile], &pin_naming.name_far)
             }
         })
     }

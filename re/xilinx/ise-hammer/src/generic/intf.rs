@@ -50,7 +50,7 @@ fn resolve_intf_test_pip<'a>(
     }
     Some((
         &ntile.names[RawTileId::from_idx(0)],
-        tile_naming.wires.get(&wire_to)?,
+        &tile_naming.wires.get(&wire_to)?.name,
         match tile_naming.intf_wires_in.get(&wire_from)? {
             IntfWireInNaming::Simple { name } => name,
             IntfWireInNaming::Buf { name_in, .. } => name_in,

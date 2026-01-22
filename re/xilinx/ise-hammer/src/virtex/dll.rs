@@ -104,8 +104,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzGlobalDll {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let ntile = &backend.ngrid.tiles[&tcrd];
-        let site = &ntile.bels[self.0];
+        let site = backend.ngrid.get_bel_name(tcrd.bel(self.0)).unwrap();
         let opt = self.1;
         let ExpandedDevice::Virtex(edev) = backend.edev else {
             unreachable!()

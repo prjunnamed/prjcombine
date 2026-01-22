@@ -290,8 +290,7 @@ pub fn finish(
     };
 
     let bsdata = core::mem::take(&mut bitdb.bsdata);
-    // TODO: change to false when legacy stuff fully gone
-    bitdb.insert_into(&mut int, true);
+    bitdb.insert_into(&mut int, false);
 
     Database {
         chips,

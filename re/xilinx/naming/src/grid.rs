@@ -10,7 +10,7 @@ use prjcombine_interconnect::{
 
 use crate::db::{
     BelNaming, ConnectorClassNamingId, ConnectorWireInFarNaming, ConnectorWireOutNaming, NamingDb,
-    ProperBelNaming, RawTileId, TileClassNamingId,
+    RawTileId, TileClassNamingId,
 };
 
 #[derive(Clone, Debug)]
@@ -31,12 +31,16 @@ pub struct TileNaming {
     pub tie_name: Option<String>,
     pub tie_rt: RawTileId,
     pub naming: TileClassNamingId,
-    pub bels: EntityPartVec<BelSlotId, String>,
+    pub bels: EntityPartVec<BelSlotId, Vec<String>>,
 }
 
 impl TileNaming {
     pub fn add_bel(&mut self, slot: BelSlotId, name: String) {
-        self.bels.insert(slot, name);
+        self.bels.insert(slot, vec![name]);
+    }
+
+    pub fn add_bel_multi(&mut self, slot: BelSlotId, names: Vec<String>) {
+        self.bels.insert(slot, names);
     }
 }
 
@@ -263,8 +267,8 @@ impl<'a> ExpandedGridNaming<'a> {
         } else {
             TracePip {
                 tile: &tile.names[RawTileId::from_idx(0)],
-                wire_to: &naming.wires[&np.tile_wire_out],
-                wire_from: &naming.wires[&np.tile_wire_in],
+                wire_to: &naming.wires[&np.tile_wire_out].name,
+                wire_from: &naming.wires[&np.tile_wire_in].name,
             }
         }
     }
@@ -371,20 +375,20 @@ impl<'a> ExpandedGridNaming<'a> {
         BelMultiGrid { xlut, ylut }
     }
 
-    pub fn get_bel_name(&self, bel: BelCoord) -> Option<&str> {
-        if let Some(loc) = self.egrid.find_tile_by_bel(bel) {
-            let ntile = &self.tiles[&loc];
-            Some(&ntile.bels[bel.slot])
-        } else {
-            None
-        }
+    pub fn get_bel_name_sub(&self, bel: BelCoord, sub: usize) -> Option<&str> {
+        let tcrd = self.egrid.find_tile_by_bel(bel)?;
+        let ntile = &self.tiles[&tcrd];
+        Some(ntile.bels.get(bel.slot)?.get(sub)?.as_str())
     }
 
-    pub fn get_bel_naming(&self, bel: BelCoord) -> &ProperBelNaming {
+    pub fn get_bel_name(&self, bel: BelCoord) -> Option<&str> {
+        self.get_bel_name_sub(bel, 0)
+    }
+
+    pub fn get_bel_naming(&self, bel: BelCoord) -> &BelNaming {
         let tcrd = self.egrid.get_tile_by_bel(bel);
         let ntile = &self.tiles[&tcrd];
         let naming = &self.db.tile_class_namings[ntile.naming];
-        let BelNaming::Bel(ref naming) = naming.bels[bel.slot];
-        naming
+        &naming.bels[bel.slot]
     }
 }

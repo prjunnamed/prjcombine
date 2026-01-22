@@ -1,9 +1,9 @@
 # Splitters
 
-{{tile spartanxl LLH.CLB}}
-{{tile spartanxl LLH.CLB.B}}
-{{tile spartanxl LLH.IO.B}}
-{{tile spartanxl LLH.IO.T}}
-{{tile spartanxl LLV.CLB}}
-{{tile spartanxl LLV.IO.L}}
-{{tile spartanxl LLV.IO.R}}
+{{tile spartanxl LLH_CLB}}
+{{tile spartanxl LLH_CLB_S}}
+{{tile spartanxl LLH_IO_S}}
+{{tile spartanxl LLH_IO_N}}
+{{tile spartanxl LLV_CLB}}
+{{tile spartanxl LLV_IO_W}}
+{{tile spartanxl LLV_IO_E}}

@@ -2,8 +2,8 @@ use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId};
 use prjcombine_re_xilinx_rawdump::{Part, TkSiteSlot};
 use prjcombine_xc2000::{
-    bels::xc4000 as bels,
     chip::{Chip, ChipKind, SharedCfgPad},
+    xc4000::bslots,
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -36,7 +36,7 @@ fn handle_spec_io(rd: &Part, chip: &mut Chip, int: &IntGrid) {
                             int.lookup_column(crd.x.into()),
                             int.lookup_row(crd.y.into()),
                         )
-                        .bel(bels::IO[idx as usize - 1]),
+                        .bel(bslots::IO[idx as usize - 1]),
                     ),
                 );
             }

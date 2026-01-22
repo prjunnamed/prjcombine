@@ -619,24 +619,19 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
 
     let finisher = extractor.finish();
-    finisher.finish(
-        &mut intdb,
-        &mut ndb,
-        |db, _, wt, _| {
-            let wtn = db.wires.key(wt.wire);
-            if wires::IO_M_BUF.contains(wt.wire)
-                || wires::CLB_M_BUF.contains(wt.wire)
-                || wires::OMUX_BUF.contains(wt.wire)
-            {
-                PipMode::PermaBuf
-            } else if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
-                PipMode::Mux
-            } else {
-                PipMode::Pass
-            }
-        },
-        false,
-    );
+    finisher.finish(&mut intdb, &mut ndb, |db, _, wt, _| {
+        let wtn = db.wires.key(wt.wire);
+        if wires::IO_M_BUF.contains(wt.wire)
+            || wires::CLB_M_BUF.contains(wt.wire)
+            || wires::OMUX_BUF.contains(wt.wire)
+        {
+            PipMode::PermaBuf
+        } else if wtn.starts_with("IMUX") || wtn.starts_with("OMUX") {
+            PipMode::Mux
+        } else {
+            PipMode::Pass
+        }
+    });
     for tcid in [tcls::IO_S, tcls::IO_N] {
         let tcls = &mut intdb.tile_classes[tcid];
         let BelInfo::SwitchBox(ref mut sb) = tcls.bels[bslots::INT] else {

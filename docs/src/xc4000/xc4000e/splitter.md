@@ -1,9 +1,9 @@
 # Splitters
 
-{{tile xc4000e LLH.CLB}}
-{{tile xc4000e LLH.CLB.B}}
-{{tile xc4000e LLH.IO.B}}
-{{tile xc4000e LLH.IO.T}}
-{{tile xc4000e LLV.CLB}}
-{{tile xc4000e LLV.IO.L}}
-{{tile xc4000e LLV.IO.R}}
+{{tile xc4000e LLH_CLB}}
+{{tile xc4000e LLH_CLB_S}}
+{{tile xc4000e LLH_IO_S}}
+{{tile xc4000e LLH_IO_N}}
+{{tile xc4000e LLV_CLB}}
+{{tile xc4000e LLV_IO_W}}
+{{tile xc4000e LLV_IO_E}}

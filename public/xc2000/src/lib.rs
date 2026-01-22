@@ -1,13 +1,10 @@
-pub mod bels;
 pub mod bond;
 pub mod bscan;
 pub mod chip;
-pub mod cslots;
 pub mod db;
 mod expand;
 pub mod expanded;
-pub mod regions;
-pub mod tslots;
 pub mod xc2000;
 pub mod xc3000;
+pub mod xc4000;
 pub mod xc5200;

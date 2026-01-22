@@ -2,8 +2,8 @@
 
 use prjcombine_entity::{EntityBitVec, EntityBundleItemIndex, EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{
-    BelInfo, BelInput, BelKind, BelSlotId, ConnectorWire, IntDb, LegacyBel, PinDir, SwitchBoxItem,
-    TileClassId, TileWireCoord, WireKind, WireSlotId,
+    BelBidirId, BelInfo, BelInput, BelInputId, BelKind, BelOutputId, BelSlotId, ConnectorWire,
+    IntDb, LegacyBel, PinDir, SwitchBoxItem, TileClassId, TileWireCoord, WireKind, WireSlotId,
 };
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,
@@ -11,12 +11,18 @@ use prjcombine_interconnect::grid::{
 };
 use prjcombine_re_xilinx_naming::db::{
     BelNaming, ConnectorWireInFarNaming, ConnectorWireOutNaming, IntfWireInNaming, NamingDb,
-    ProperBelNaming, RawTileId,
+    PipNaming, RawTileId,
 };
 use prjcombine_re_xilinx_naming::grid::{ExpandedGridNaming, TileNaming};
 use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap, HashSet};
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct RawWireCoord<'a> {
+    pub crd: Coord,
+    pub wire: &'a str,
+}
 
 #[derive(Debug)]
 pub struct LegacyBelContext<'a> {
@@ -30,64 +36,64 @@ pub struct LegacyBelContext<'a> {
     pub ntile: &'a TileNaming,
     pub tcls: &'a str,
     pub info: &'a LegacyBel,
-    pub naming: &'a ProperBelNaming,
+    pub naming: &'a BelNaming,
     pub name: Option<&'a str>,
     pub crds: EntityPartVec<RawTileId, Coord>,
 }
 
 impl<'a> LegacyBelContext<'a> {
     pub fn crd(&self) -> Coord {
-        self.crds[self.naming.tile]
+        self.crds[self.naming.tiles[0]]
     }
 
     #[track_caller]
-    pub fn wire(&self, name: &str) -> &'a str {
-        &self.naming.pins[name].name
+    pub fn wire(&self, name: &str) -> RawWireCoord<'a> {
+        RawWireCoord {
+            crd: self.crd(),
+            wire: &self.naming.pins[name].name,
+        }
     }
 
     #[track_caller]
-    pub fn wire_far(&self, name: &str) -> &'a str {
-        &self.naming.pins[name].name_far
+    pub fn wire_far(&self, name: &str) -> RawWireCoord<'a> {
+        RawWireCoord {
+            crd: self.crd(),
+            wire: &self.naming.pins[name].name_far,
+        }
     }
 
     #[track_caller]
-    pub fn fwire(&self, name: &str) -> (Coord, &'a str) {
-        (self.crd(), self.wire(name))
-    }
-
-    #[track_caller]
-    pub fn fwire_far(&self, name: &str) -> (Coord, &'a str) {
-        (self.crd(), self.wire_far(name))
-    }
-
-    #[track_caller]
-    pub fn pip(&self, pin: &str, idx: usize) -> (Coord, &'a str, &'a str) {
+    pub fn pip(&self, pin: &str, idx: usize) -> (RawWireCoord<'a>, RawWireCoord<'a>) {
         let pip = &self.naming.pins[pin].pips[idx];
-        (self.crds[pip.tile], &pip.wire_to, &pip.wire_from)
+        name_pip(&self.crds, pip)
     }
 
     #[track_caller]
-    pub fn pip_owire(&self, pin: &str, idx: usize) -> (Coord, &'a str) {
-        let (crd, wire, _) = self.pip(pin, idx);
-        (crd, wire)
+    pub fn pip_owire(&self, pin: &str, idx: usize) -> RawWireCoord<'a> {
+        self.pip(pin, idx).0
     }
 
     #[track_caller]
-    pub fn pip_iwire(&self, pin: &str, idx: usize) -> (Coord, &'a str) {
-        let (crd, _, wire) = self.pip(pin, idx);
-        (crd, wire)
+    pub fn pip_iwire(&self, pin: &str, idx: usize) -> RawWireCoord<'a> {
+        self.pip(pin, idx).1
     }
 }
 
 pub struct BelVerifier<'a, 'b> {
     pub vrf: &'b mut Verifier<'a>,
     pub ntile: &'a TileNaming,
-    pub naming: &'a ProperBelNaming,
+    pub naming: &'a BelNaming,
     pub crds: EntityPartVec<RawTileId, Coord>,
     bcrd: BelCoord,
     kind: String,
-    extra_ins: Vec<String>,
-    extra_outs: Vec<String>,
+    extra_ins: Vec<(String, String)>,
+    extra_outs: Vec<(String, String)>,
+    bidir_dirs: EntityPartVec<BelBidirId, SitePinDir>,
+    skip_ins: HashSet<BelInputId>,
+    skip_outs: HashSet<BelOutputId>,
+    rename_ins: EntityPartVec<BelInputId, String>,
+    rename_outs: EntityPartVec<BelOutputId, String>,
+    sub: usize,
 }
 
 impl<'a, 'b> BelVerifier<'a, 'b> {
@@ -97,65 +103,94 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
     }
 
     pub fn extra_in(mut self, name: impl Into<String>) -> Self {
-        self.extra_ins.push(name.into());
+        let name = name.into();
+        self.extra_ins.push((name.clone(), name));
         self
     }
 
     pub fn extra_out(mut self, name: impl Into<String>) -> Self {
-        self.extra_outs.push(name.into());
+        let name = name.into();
+        self.extra_outs.push((name.clone(), name));
+        self
+    }
+
+    pub fn extra_in_rename(mut self, pin: impl Into<String>, name: impl Into<String>) -> Self {
+        let pin = pin.into();
+        let name = name.into();
+        self.extra_ins.push((pin, name));
+        self
+    }
+
+    pub fn extra_out_rename(mut self, pin: impl Into<String>, name: impl Into<String>) -> Self {
+        let pin = pin.into();
+        let name = name.into();
+        self.extra_outs.push((pin, name));
         self
     }
 
     pub fn crd(&self) -> Coord {
-        self.crds[self.naming.tile]
+        self.crds[self.naming.tiles[self.sub]]
     }
 
     #[track_caller]
-    pub fn wire(&self, name: &str) -> &'a str {
-        &self.naming.pins[name].name
+    pub fn wire(&self, name: &str) -> RawWireCoord<'a> {
+        self.vrf.bel_wire(self.bcrd, name)
     }
 
     #[track_caller]
-    pub fn wire_far(&self, name: &str) -> &'a str {
-        &self.naming.pins[name].name_far
+    pub fn wire_far(&self, name: &str) -> RawWireCoord<'a> {
+        self.vrf.bel_wire_far(self.bcrd, name)
     }
 
-    #[track_caller]
-    pub fn fwire(&self, name: &str) -> (Coord, &'a str) {
-        (self.crd(), self.wire(name))
-    }
-
-    #[track_caller]
-    pub fn fwire_far(&self, name: &str) -> (Coord, &'a str) {
-        (self.crd(), self.wire_far(name))
-    }
-
-    pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> &'a str {
+    pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
         self.vrf.bel_wire(bcrd, name)
     }
 
-    pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> &'a str {
+    pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
         self.vrf.bel_wire_far(bcrd, name)
     }
 
-    pub fn bel_fwire(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
-        self.vrf.bel_fwire(bcrd, name)
-    }
-
-    pub fn bel_fwire_far(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
-        self.vrf.bel_fwire_far(bcrd, name)
-    }
-
-    pub fn claim_net(&mut self, tiles: &[(Coord, &str)]) {
+    pub fn claim_net(&mut self, tiles: &[RawWireCoord]) {
         self.vrf.claim_net(tiles);
     }
 
-    pub fn verify_net(&mut self, tiles: &[(Coord, &str)]) {
+    pub fn verify_net(&mut self, tiles: &[RawWireCoord]) {
         self.vrf.verify_net(tiles);
     }
 
-    pub fn claim_pip(&mut self, crd: Coord, wt: &str, wf: &str) {
-        self.vrf.claim_pip(crd, wt, wf);
+    pub fn claim_pip(&mut self, wt: RawWireCoord, wf: RawWireCoord) {
+        self.vrf.claim_pip(wt, wf);
+    }
+
+    pub fn bidir_dir(mut self, pin: BelBidirId, dir: SitePinDir) -> Self {
+        self.bidir_dirs.insert(pin, dir);
+        self
+    }
+
+    pub fn skip_in(mut self, pin: BelInputId) -> Self {
+        self.skip_ins.insert(pin);
+        self
+    }
+
+    pub fn skip_out(mut self, pin: BelOutputId) -> Self {
+        self.skip_outs.insert(pin);
+        self
+    }
+
+    pub fn rename_in(mut self, pin: BelInputId, arg: impl Into<String>) -> Self {
+        self.rename_ins.insert(pin, arg.into());
+        self
+    }
+
+    pub fn rename_out(mut self, pin: BelOutputId, arg: impl Into<String>) -> Self {
+        self.rename_outs.insert(pin, arg.into());
+        self
+    }
+
+    #[allow(clippy::should_implement_trait)]
+    pub fn sub(mut self, sub: usize) -> Self {
+        self.sub = sub;
+        self
     }
 
     pub fn commit(self) {
@@ -163,7 +198,6 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         let tcrd = self.vrf.grid.get_tile_by_bel(self.bcrd);
         let tile = &self.vrf.grid[tcrd];
         let tcls = &db[tile.class];
-        let ntile = &self.vrf.ngrid.tiles[&tcrd];
         let BelKind::Class(bcid) = db.bel_slots[self.bcrd.slot].kind else {
             unreachable!()
         };
@@ -173,22 +207,38 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         let bcls = &db[bcid];
         let mut pins = vec![];
         for pid in bel.inputs.ids() {
+            if self.skip_ins.contains(&pid) {
+                continue;
+            }
             let (name, idx) = bcls.inputs.key(pid);
             let name = self.vrf.pin_index(name, idx);
             let n = &self.naming.pins[&name];
+            let pin = if let Some(pin) = self.rename_ins.get(pid) {
+                pin.into()
+            } else {
+                name.into()
+            };
             pins.push(SitePin {
                 dir: SitePinDir::In,
-                pin: name.into(),
+                pin,
                 wire: Some(&n.name),
             });
         }
         for pid in bel.outputs.ids() {
+            if self.skip_outs.contains(&pid) {
+                continue;
+            }
             let (name, idx) = bcls.outputs.key(pid);
             let name = self.vrf.pin_index(name, idx);
             let n = &self.naming.pins[&name];
+            let pin = if let Some(pin) = self.rename_outs.get(pid) {
+                pin.into()
+            } else {
+                name.into()
+            };
             pins.push(SitePin {
                 dir: SitePinDir::Out,
-                pin: name.into(),
+                pin,
                 wire: Some(&n.name),
             });
         }
@@ -196,29 +246,34 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
             let (name, idx) = bcls.bidirs.key(pid);
             let name = self.vrf.pin_index(name, idx);
             let n = &self.naming.pins[&name];
+            let dir = self
+                .bidir_dirs
+                .get(pid)
+                .copied()
+                .unwrap_or(SitePinDir::Inout);
             pins.push(SitePin {
-                dir: SitePinDir::Inout,
+                dir,
                 pin: name.into(),
                 wire: Some(&n.name),
             });
         }
-        for name in self.extra_ins {
+        for (pin, name) in self.extra_ins {
             let wire = Some(self.naming.pins[&name].name.as_ref());
             pins.push(SitePin {
                 dir: SitePinDir::In,
-                pin: name.into(),
+                pin: pin.into(),
                 wire,
             });
         }
-        for name in self.extra_outs {
+        for (pin, name) in self.extra_outs {
             let wire = Some(self.naming.pins[&name].name.as_ref());
             pins.push(SitePin {
                 dir: SitePinDir::Out,
-                pin: name.into(),
+                pin: pin.into(),
                 wire,
             });
         }
-        if let Some(name) = ntile.bels.get(self.bcrd.slot) {
+        if let Some(name) = self.vrf.ngrid.get_bel_name_sub(self.bcrd, self.sub) {
             let crd = self.vrf.bel_rcrd(self.bcrd);
             self.vrf.claim_site(crd, name, &self.kind, &pins);
         } else {
@@ -254,6 +309,8 @@ pub struct Verifier<'a> {
     pub tile_lut: HashMap<String, Coord>,
     wire_slot_aliases: HashMap<WireSlotId, WireSlotId>,
     intf_int_aliases: HashMap<WireCoord, WireCoord>,
+    skip_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
+    inject_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
     dummy_in_nodes: HashSet<NodeOrWire>,
     dummy_out_nodes: HashSet<NodeOrWire>,
     claimed_nodes: EntityBitVec<rawdump::NodeId>,
@@ -404,6 +461,21 @@ fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo
     TileClassUsedInfo { used_o, used_i }
 }
 
+fn name_pip<'a>(
+    crds: &EntityPartVec<RawTileId, Coord>,
+    pip: &'a PipNaming,
+) -> (RawWireCoord<'a>, RawWireCoord<'a>) {
+    let nwt = RawWireCoord {
+        crd: crds[pip.tile],
+        wire: &pip.wire_to,
+    };
+    let nwf = RawWireCoord {
+        crd: crds[pip.tile],
+        wire: &pip.wire_from,
+    };
+    (nwt, nwf)
+}
+
 impl<'a> Verifier<'a> {
     pub fn new(rd: &'a Part, ngrid: &'a ExpandedGridNaming) -> Self {
         let mut node_used = EntityVec::new();
@@ -419,6 +491,8 @@ impl<'a> Verifier<'a> {
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
             wire_slot_aliases: HashMap::new(),
             intf_int_aliases: HashMap::new(),
+            skip_tcls_pips: EntityPartVec::new(),
+            inject_tcls_pips: EntityPartVec::new(),
             dummy_in_nodes: HashSet::new(),
             dummy_out_nodes: HashSet::new(),
             claimed_nodes: EntityBitVec::repeat(false, rd.nodes.len()),
@@ -476,6 +550,20 @@ impl<'a> Verifier<'a> {
         self.intf_int_aliases.insert(from, to);
     }
 
+    pub fn skip_tcls_pip(&mut self, tcid: TileClassId, dst: TileWireCoord, src: TileWireCoord) {
+        if !self.skip_tcls_pips.contains_id(tcid) {
+            self.skip_tcls_pips.insert(tcid, Default::default());
+        }
+        self.skip_tcls_pips[tcid].insert((dst, src));
+    }
+
+    pub fn inject_tcls_pip(&mut self, tcid: TileClassId, dst: TileWireCoord, src: TileWireCoord) {
+        if !self.inject_tcls_pips.contains_id(tcid) {
+            self.inject_tcls_pips.insert(tcid, Default::default());
+        }
+        self.inject_tcls_pips[tcid].insert((dst, src));
+    }
+
     pub fn prep_int_wires(&mut self) {
         for (tcrd, tile) in self.grid.tiles() {
             let nui = &self.node_used[tile.class];
@@ -528,14 +616,15 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    fn claim_raw_node(&mut self, nw: NodeOrWire, crd: rawdump::Coord, wn: &str) {
+    fn claim_raw_node(&mut self, nw: NodeOrWire, rw: RawWireCoord) {
         match nw {
             NodeOrWire::Node(nidx) => {
                 if self.claimed_nodes[nidx] {
-                    let tname = &self.rd.tiles[&crd].name;
+                    let tname = &self.rd.tiles[&rw.crd].name;
                     println!(
                         "DOUBLE CLAIMED NODE {part} {tname} {wn}",
-                        part = self.rd.part
+                        part = self.rd.part,
+                        wn = rw.wire,
                     );
                 }
                 self.claimed_nodes.set(nidx, true);
@@ -546,7 +635,8 @@ impl<'a> Verifier<'a> {
                     let tname = &self.rd.tiles[&crd].name;
                     println!(
                         "DOUBLE CLAIMED NODE {part} {tname} {wn}",
-                        part = self.rd.part
+                        part = self.rd.part,
+                        wn = rw.wire,
                     );
                 }
                 ctw.set(widx, true);
@@ -554,20 +644,21 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn pin_int_wire(&mut self, crd: Coord, wire: &str, mut iw: WireCoord) -> bool {
+    pub fn pin_int_wire(&mut self, rw: RawWireCoord, mut iw: WireCoord) -> bool {
         if let Some(&nslot) = self.wire_slot_aliases.get(&iw.slot) {
             iw.slot = nslot;
         }
-        if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
+        if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if iwd.used_i && iwd.used_o {
                 if iwd.node.is_none() {
                     iwd.node = Some(cnw);
-                    self.claim_raw_node(cnw, crd, wire);
+                    self.claim_raw_node(cnw, rw);
                 } else if iwd.node != Some(cnw) {
-                    let tname = &self.rd.tiles[&crd].name;
+                    let tname = &self.rd.tiles[&rw.crd].name;
                     println!(
                         "INT NODE MISMATCH FOR {p} {tname} {wire} {iw}",
+                        wire = rw.wire,
                         p = self.rd.part,
                         iw = iw.to_string(self.db),
                     );
@@ -575,12 +666,12 @@ impl<'a> Verifier<'a> {
             } else if iwd.used_o {
                 if !self.dummy_out_nodes.contains(&cnw) {
                     self.dummy_out_nodes.insert(cnw);
-                    self.claim_raw_node(cnw, crd, wire);
+                    self.claim_raw_node(cnw, rw);
                 }
             } else {
                 if !self.dummy_in_nodes.contains(&cnw) {
                     self.dummy_in_nodes.insert(cnw);
-                    self.claim_raw_node(cnw, crd, wire);
+                    self.claim_raw_node(cnw, rw);
                 }
             }
             true
@@ -589,59 +680,64 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn claim_dummy_in(&mut self, wire: (Coord, &str)) {
-        let (crd, wn) = wire;
-        if let Some(cnw) = self.rd.lookup_wire(crd, wn)
+    pub fn claim_dummy_in(&mut self, rw: RawWireCoord) {
+        if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire)
             && !self.dummy_in_nodes.contains(&cnw)
         {
             self.dummy_in_nodes.insert(cnw);
-            self.claim_raw_node(cnw, crd, wn);
+            self.claim_raw_node(cnw, rw);
         }
     }
 
-    pub fn claim_dummy_out(&mut self, wire: (Coord, &str)) {
-        let (crd, wn) = wire;
-        if let Some(cnw) = self.rd.lookup_wire(crd, wn)
+    pub fn claim_dummy_out(&mut self, rw: RawWireCoord) {
+        if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire)
             && !self.dummy_out_nodes.contains(&cnw)
         {
             self.dummy_out_nodes.insert(cnw);
-            self.claim_raw_node(cnw, crd, wn);
+            self.claim_raw_node(cnw, rw);
         }
     }
 
-    pub fn pin_int_intf_wire(&mut self, crd: Coord, wire: &str, iw: WireCoord) -> bool {
+    pub fn pin_int_intf_wire(&mut self, rw: RawWireCoord, iw: WireCoord) -> bool {
         if let Some(&iw) = self.intf_int_aliases.get(&iw) {
-            return self.pin_int_wire(crd, wire, iw);
+            return self.pin_int_wire(rw, iw);
         }
-        if let Some(cnw) = self.rd.lookup_wire(crd, wire) {
+        if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if let Some(nw) = iwd.intf_node {
                 if nw != cnw {
-                    let tname = &self.rd.tiles[&crd].name;
+                    let tname = &self.rd.tiles[&rw.crd].name;
                     println!(
                         "INT INTF NODE MISMATCH FOR {p} {tname} {wire} {iw}",
+                        wire = rw.wire,
                         p = self.rd.part,
                         iw = iw.to_string(self.db)
                     );
                 }
             } else if iwd.intf_missing {
-                let tname = &self.rd.tiles[&crd].name;
-                println!("INT INTF NODE PRESENT FOR {tname} {wire} BUT WAS MISSING PREVIOUSLY");
+                let tname = &self.rd.tiles[&rw.crd].name;
+                println!(
+                    "INT INTF NODE PRESENT FOR {tname} {wire} BUT WAS MISSING PREVIOUSLY",
+                    wire = rw.wire,
+                );
                 iwd.intf_node = Some(cnw);
-                self.claim_net(&[(crd, wire)]);
+                self.claim_net(&[rw]);
             } else {
                 iwd.intf_node = Some(cnw);
-                self.claim_net(&[(crd, wire)]);
+                self.claim_net(&[rw]);
             }
             true
         } else {
             let iwd = self.int_wire_data.get_mut(&iw).unwrap();
             if iwd.intf_node.is_some() {
-                let tname = &self.rd.tiles[&crd].name;
-                println!("INT INTF NODE PRESENT FOR {tname} {wire} BUT WIRE NOT FOUND");
+                let tname = &self.rd.tiles[&rw.crd].name;
+                println!(
+                    "INT INTF NODE PRESENT FOR {tname} {wire} BUT WIRE NOT FOUND",
+                    wire = rw.wire,
+                );
             } else if iwd.intf_missing {
-                let tname = &self.rd.tiles[&crd].name;
-                println!("INT INTF WIRE {tname} {wire} MISSING TWICE");
+                let tname = &self.rd.tiles[&rw.crd].name;
+                println!("INT INTF WIRE {tname} {wire} MISSING TWICE", wire = rw.wire,);
             } else {
                 iwd.intf_missing = true;
             }
@@ -649,26 +745,31 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn verify_net(&mut self, tiles: &[(Coord, &str)]) {
+    pub fn verify_net(&mut self, tiles: &[RawWireCoord]) {
         let mut nw = None;
-        for &(crd, wn) in tiles {
-            let tile = &self.rd.tiles[&crd];
+        for &rw in tiles {
+            let tile = &self.rd.tiles[&rw.crd];
             let tname = &tile.name;
-            if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
+            if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
                 if let Some((pnw, pcrd, pwn)) = nw {
                     if pnw != cnw {
                         let ptile = &self.rd.tiles[&pcrd];
                         let ptname = &ptile.name;
                         println!(
                             "NODE MISMATCH FOR {p} {tname} {wn} != {ptname} {pwn}",
-                            p = self.rd.part
+                            p = self.rd.part,
+                            wn = rw.wire,
                         );
                     }
                 } else {
-                    nw = Some((cnw, crd, wn));
+                    nw = Some((cnw, rw.crd, rw.wire));
                 }
             } else {
-                println!("MISSING WIRE {part} {tname} {wn}", part = self.rd.part);
+                println!(
+                    "MISSING WIRE {part} {tname} {wn}",
+                    part = self.rd.part,
+                    wn = rw.wire,
+                );
             }
         }
     }
@@ -688,43 +789,59 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn claim_net(&mut self, tiles: &[(Coord, &str)]) {
+    pub fn claim_net(&mut self, tiles: &[RawWireCoord]) {
         let mut nw = None;
-        for &(crd, wn) in tiles {
-            let tile = &self.rd.tiles[&crd];
+        for &rw in tiles {
+            let tile = &self.rd.tiles[&rw.crd];
             let tname = &tile.name;
-            if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
+            if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
                 if let Some(pnw) = nw {
                     if pnw != cnw {
-                        println!("NODE MISMATCH FOR {p} {tname} {wn}", p = self.rd.part);
+                        println!(
+                            "NODE MISMATCH FOR {p} {tname} {wn}",
+                            p = self.rd.part,
+                            wn = rw.wire
+                        );
                     }
                 } else {
                     nw = Some(cnw);
-                    self.claim_raw_node(cnw, crd, wn);
+                    self.claim_raw_node(cnw, rw);
                 }
             } else {
-                println!("MISSING NODE WIRE {part} {tname} {wn}", part = self.rd.part);
+                println!(
+                    "MISSING NODE WIRE {part} {tname} {wn}",
+                    part = self.rd.part,
+                    wn = rw.wire
+                );
             }
         }
     }
 
-    pub fn claim_vcc_node(&mut self, node: (Coord, &str)) {
-        let (crd, wn) = node;
-        let tile = &self.rd.tiles[&crd];
+    pub fn claim_vcc_node(&mut self, rw: RawWireCoord) {
+        let tile = &self.rd.tiles[&rw.crd];
         let tname = &tile.name;
-        if let Some(cnw) = self.rd.lookup_wire(crd, wn) {
+        if let Some(cnw) = self.rd.lookup_wire(rw.crd, rw.wire) {
             if self.vcc_nodes.insert(cnw) {
-                self.claim_raw_node(cnw, crd, wn);
+                self.claim_raw_node(cnw, rw);
             }
         } else {
             println!(
                 "MISSING VCC NODE WIRE {part} {tname} {wn}",
+                wn = rw.wire,
                 part = self.rd.part
             );
         }
     }
 
-    pub fn claim_pip(&mut self, crd: Coord, wt: &str, wf: &str) {
+    pub fn claim_pip(&mut self, wtn: RawWireCoord, wfn: RawWireCoord) {
+        assert_eq!(wtn.crd, wfn.crd);
+        let crd = wtn.crd;
+        let wt = wtn.wire;
+        let wf = wfn.wire;
+        self.claim_pip_tri(crd, wt, wf);
+    }
+
+    pub fn claim_pip_tri(&mut self, crd: Coord, wt: &str, wf: &str) {
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
         let tname = &tile.name;
@@ -785,7 +902,10 @@ impl<'a> Verifier<'a> {
                         }
                         let act_wire = tkp.wire.map(|x| &*self.rd.wires[x]);
                         if act_wire.is_some() && pin.wire.is_none() {
-                            self.claim_net(&[(crd, act_wire.unwrap())]);
+                            self.claim_net(&[RawWireCoord {
+                                crd,
+                                wire: act_wire.unwrap(),
+                            }]);
                         } else if pin.wire != act_wire {
                             println!(
                                 "PIN WIRE MISMATCH {} {} {} {} {} {:?} {:?}",
@@ -870,8 +990,14 @@ impl<'a> Verifier<'a> {
                 BelInfo::TestMux(tm) => {
                     for (&wt, tmux) in &tm.wires {
                         let wti = self.grid.tile_wire(tcrd, wt);
-                        let wtn = &naming.wires[&wt];
-                        if !self.pin_int_wire(crds[def_rt], wtn, wti) {
+                        let wtn = &naming.wires[&wt].name;
+                        if !self.pin_int_wire(
+                            RawWireCoord {
+                                crd: crds[def_rt],
+                                wire: wtn,
+                            },
+                            wti,
+                        ) {
                             let tname = &ntile.names[def_rt];
                             println!(
                                 "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
@@ -889,8 +1015,14 @@ impl<'a> Verifier<'a> {
                 BelInfo::GroupTestMux(tm) => {
                     for (&wt, tmux) in &tm.wires {
                         let wti = self.grid.tile_wire(tcrd, wt);
-                        let wtn = &naming.wires[&wt];
-                        if !self.pin_int_wire(crds[def_rt], wtn, wti) {
+                        let wtn = &naming.wires[&wt].name;
+                        if !self.pin_int_wire(
+                            RawWireCoord {
+                                crd: crds[def_rt],
+                                wire: wtn,
+                            },
+                            wti,
+                        ) {
                             let tname = &ntile.names[def_rt];
                             println!(
                                 "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
@@ -984,37 +1116,61 @@ impl<'a> Verifier<'a> {
                         let Some(wfi) = wire_lut[&delay.src.tw] else {
                             continue;
                         };
-                        let wtn = &naming.wires[&delay.dst];
-                        let wdn = &naming.delay_wires[&delay.dst];
-                        let wfn = &naming.wires[&delay.src];
-                        if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
+                        let wtn = RawWireCoord {
+                            crd: crds[def_rt],
+                            wire: &naming.wires[&delay.dst].name,
+                        };
+                        let wdn = RawWireCoord {
+                            crd: crds[def_rt],
+                            wire: &naming.delay_wires[&delay.dst],
+                        };
+                        let wfn = RawWireCoord {
+                            crd: crds[def_rt],
+                            wire: &naming.wires[&delay.src].name,
+                        };
+                        if !self.pin_int_wire(wfn, wfi) {
                             let tname = &ntile.names[def_rt];
                             println!(
                                 "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
                                 p = self.rd.part,
+                                wfn = wfn.wire,
                                 wn = self.print_nw(delay.src.tw),
                             );
                         }
-                        if !self.pin_int_wire(crds[def_rt], wtn, wti)
-                            && self.int_wire_data[&wti].used_i
-                        {
+                        if !self.pin_int_wire(wtn, wti) && self.int_wire_data[&wti].used_i {
                             let tname = &ntile.names[def_rt];
                             println!(
                                 "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
                                 p = self.rd.part,
+                                wtn = wtn.wire,
                                 wn = self.print_nw(delay.dst),
                             );
                         }
-                        self.claim_net(&[(crds[def_rt], wdn)]);
-                        self.claim_pip(crds[def_rt], wtn, wfn);
-                        self.claim_pip(crds[def_rt], wtn, wdn);
-                        self.claim_pip(crds[def_rt], wdn, wfn);
+                        self.claim_net(&[wdn]);
+                        self.claim_pip(wtn, wfn);
+                        self.claim_pip(wtn, wdn);
+                        self.claim_pip(wdn, wfn);
                     }
                     _ => (),
                 }
             }
         }
+        if let Some(skip) = self.skip_tcls_pips.get(tile.class) {
+            for pip in skip {
+                pips.remove(pip);
+            }
+        }
+        if let Some(inject) = self.inject_tcls_pips.get(tile.class) {
+            for &pip in inject {
+                pips.insert(pip);
+            }
+        }
+        let mut alt_wires_dst = BTreeSet::new();
+        let mut alt_wires_src = BTreeSet::new();
         for (wt, wf) in pips {
+            if matches!(self.db[wf.wire], WireKind::Special) {
+                continue;
+            }
             if wt.cell == wf.cell
                 && (self.wire_slot_aliases.get(&wt.wire) == Some(&wf.wire)
                     || self.wire_slot_aliases.get(&wf.wire) == Some(&wt.wire))
@@ -1027,33 +1183,97 @@ impl<'a> Verifier<'a> {
             if let Some(en) = naming.ext_pips.get(&(wt, wf)) {
                 if !crds.contains_id(en.tile) {
                     pip_found = false;
-                } else if wftie {
-                    if !wires_pinned.contains(&wf) {
-                        wires_pinned.insert(wf);
-                        self.claim_net(&[(crds[en.tile], &en.wire_from)]);
-                        tie_pins_extra.insert(wf.wire, &en.wire_from);
-                    }
-                    pip_found = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
-                    if pip_found {
-                        self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
-                    }
                 } else {
-                    let Some(wfi) = wire_lut[&wf] else { continue };
-                    let wtf = self.pin_int_wire(crds[en.tile], &en.wire_to, wti);
-                    let wff = self.pin_int_wire(crds[en.tile], &en.wire_from, wfi);
-                    pip_found = wtf && wff;
-                    if pip_found {
-                        self.claim_pip(crds[en.tile], &en.wire_to, &en.wire_from);
+                    let wtn = RawWireCoord {
+                        crd: crds[en.tile],
+                        wire: &en.wire_to,
+                    };
+                    let wfn = RawWireCoord {
+                        crd: crds[en.tile],
+                        wire: &en.wire_from,
+                    };
+                    if wftie {
+                        if !wires_pinned.contains(&wf) {
+                            wires_pinned.insert(wf);
+                            self.claim_net(&[wfn]);
+                            tie_pins_extra.insert(wf.wire, &en.wire_from);
+                        }
+                        pip_found = self.pin_int_wire(wtn, wti);
+                        if pip_found {
+                            self.claim_pip(wtn, wfn);
+                        }
+                    } else {
+                        let Some(wfi) = wire_lut[&wf] else { continue };
+                        let wtf = self.pin_int_wire(wtn, wti);
+                        let wff = self.pin_int_wire(wfn, wfi);
+                        pip_found = wtf && wff;
+                        if pip_found {
+                            self.claim_pip(wtn, wfn);
+                        }
                     }
                 }
+            } else if let Some(wn) = naming.wires.get(&wt)
+                && wn.alt_pips_to.contains(&wf)
+            {
+                let wtn = RawWireCoord {
+                    crd: crds[def_rt],
+                    wire: wn.alt_name.as_ref().unwrap(),
+                };
+                if !alt_wires_dst.contains(&wt) && !alt_wires_src.contains(&wt) {
+                    self.claim_net(&[wtn]);
+                }
+                if !alt_wires_dst.contains(&wt) {
+                    let rwtn = RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: &wn.name,
+                    };
+                    self.pin_int_wire(rwtn, wire_lut[&wt].unwrap());
+                    self.claim_pip(rwtn, wtn);
+                }
+                alt_wires_dst.insert(wt);
+                let wfn = RawWireCoord {
+                    crd: crds[def_rt],
+                    wire: &naming.wires[&wf].name,
+                };
+                pip_found = self.pin_int_wire(wfn, wire_lut[&wf].unwrap());
+                self.claim_pip(wtn, wfn);
+            } else if let Some(wn) = naming.wires.get(&wf)
+                && wn.alt_pips_from.contains(&wt)
+            {
+                let wfn = RawWireCoord {
+                    crd: crds[def_rt],
+                    wire: wn.alt_name.as_ref().unwrap(),
+                };
+                if !alt_wires_dst.contains(&wf) && !alt_wires_src.contains(&wf) {
+                    self.claim_net(&[wfn]);
+                }
+                if !alt_wires_src.contains(&wf) {
+                    let rwfn = RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: &wn.name,
+                    };
+                    self.pin_int_wire(rwfn, wire_lut[&wf].unwrap());
+                    self.claim_pip(wfn, rwfn);
+                }
+                alt_wires_src.insert(wf);
+                let wtn = RawWireCoord {
+                    crd: crds[def_rt],
+                    wire: &naming.wires[&wt].name,
+                };
+                pip_found = self.pin_int_wire(wtn, wire_lut[&wt].unwrap());
+                self.claim_pip(wtn, wfn);
             } else {
                 let wtf;
                 if wires_pinned.contains(&wt) {
                     wtf = true;
                 } else if wires_missing.contains(&wt) {
                     wtf = false;
-                } else if let Some(n) = naming.wires.get(&wt) {
-                    wtf = self.pin_int_wire(crds[def_rt], n, wti);
+                } else if let Some(wn) = naming.wires.get(&wt) {
+                    let wtn = RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: &wn.name,
+                    };
+                    wtf = self.pin_int_wire(wtn, wti);
                     if wtf {
                         wires_pinned.insert(wt);
                     } else {
@@ -1069,26 +1289,36 @@ impl<'a> Verifier<'a> {
                 } else if wires_missing.contains(&wf) {
                     wff = false;
                 } else if wftie {
-                    self.claim_net(&[(crds[def_rt], &naming.wires[&wf])]);
+                    let wfn = RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: &naming.wires[&wf].name,
+                    };
+                    self.claim_net(&[wfn]);
                     wires_pinned.insert(wf);
                     wff = true;
-                } else if let Some(n) = naming.wires.get(&wf) {
-                    let wfi = &wire_lut[&wf];
-                    if wfi.is_none() {
+                } else if let Some(wn) = naming.wires.get(&wf) {
+                    let Some(wfi) = wire_lut[&wf] else {
                         continue;
-                    }
-                    let wfi = wfi.unwrap();
+                    };
                     if let Some(pip) = naming.wire_bufs.get(&wf) {
-                        wff = self.pin_int_wire(crds[pip.tile], &pip.wire_from, wfi);
+                        let (wtn, wfn) = name_pip(&crds, pip);
+                        wff = self.pin_int_wire(wfn, wfi);
                         if wff {
-                            self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
+                            self.claim_pip(wtn, wfn);
                             self.claim_net(&[
-                                (crds[pip.tile], &pip.wire_to),
-                                (crds[def_rt], &naming.wires[&wf]),
+                                wtn,
+                                RawWireCoord {
+                                    crd: crds[def_rt],
+                                    wire: &naming.wires[&wf].name,
+                                },
                             ]);
                         }
                     } else {
-                        wff = self.pin_int_wire(crds[def_rt], n, wfi);
+                        let wfn = RawWireCoord {
+                            crd: crds[def_rt],
+                            wire: &wn.name,
+                        };
+                        wff = self.pin_int_wire(wfn, wfi);
                     }
                     if wff {
                         wires_pinned.insert(wf);
@@ -1102,7 +1332,15 @@ impl<'a> Verifier<'a> {
 
                 pip_found = wtf && wff;
                 if pip_found {
-                    self.claim_pip(crds[def_rt], &naming.wires[&wt], &naming.wires[&wf]);
+                    let wtn = RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: &naming.wires[&wt].name,
+                    };
+                    let wfn = RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: &naming.wires[&wf].name,
+                    };
+                    self.claim_pip(wtn, wfn);
                 }
             }
             if !pip_found {
@@ -1127,7 +1365,7 @@ impl<'a> Verifier<'a> {
         }
         if let Some(ref tn) = ntile.tie_name {
             let mut pins = vec![];
-            for (&k, v) in &naming.wires {
+            for (&k, wn) in &naming.wires {
                 let pin = match self.db[k.wire] {
                     WireKind::Tie0 => self.ngrid.tie_pin_gnd.as_ref().unwrap(),
                     WireKind::Tie1 => self.ngrid.tie_pin_vcc.as_ref().unwrap(),
@@ -1135,12 +1373,15 @@ impl<'a> Verifier<'a> {
                     _ => continue,
                 };
                 if !wires_pinned.contains(&k) {
-                    self.claim_net(&[(crds[ntile.tie_rt], v)]);
+                    self.claim_net(&[RawWireCoord {
+                        crd: crds[ntile.tie_rt],
+                        wire: &wn.name,
+                    }]);
                 }
                 pins.push(SitePin {
                     dir: SitePinDir::Out,
                     pin: pin.into(),
-                    wire: Some(v),
+                    wire: Some(&wn.name),
                 });
             }
             for (k, v) in tie_pins_extra {
@@ -1165,12 +1406,11 @@ impl<'a> Verifier<'a> {
         }
 
         for (slot, bel) in &tcls.bels {
+            let bcrd = tcrd.bel(slot);
             match bel {
                 BelInfo::SwitchBox(_) => (),
                 BelInfo::Bel(bel) => {
-                    let BelNaming::Bel(bn) = &naming.bels[slot] else {
-                        unreachable!()
-                    };
+                    let bn = self.ngrid.get_bel_naming(bcrd);
                     let BelKind::Class(bcid) = self.db.bel_slots[slot].kind else {
                         unreachable!()
                     };
@@ -1179,17 +1419,18 @@ impl<'a> Verifier<'a> {
                         let (name, idx) = bcls.inputs.key(pin);
                         let pin = self.pin_index(name, idx);
                         let n = &bn.pins[&pin];
-                        let mut crd = crds[bn.tile];
-                        let mut wn: &str = &n.name;
+                        let mut wc = RawWireCoord {
+                            crd: crds[n.tile],
+                            wire: &n.name,
+                        };
                         for pip in &n.pips {
-                            let ncrd = crds[pip.tile];
-                            self.claim_net(&[(crd, wn), (ncrd, &pip.wire_to)]);
-                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
-                            wn = &pip.wire_from;
-                            crd = ncrd;
+                            let (wtn, wfn) = name_pip(&crds, pip);
+                            self.claim_net(&[wc, wtn]);
+                            self.claim_pip(wtn, wfn);
+                            wc = wfn;
                         }
                         if n.pips.is_empty() {
-                            wn = &n.name_far;
+                            wc.wire = &n.name_far;
                         }
 
                         let w = match inp {
@@ -1201,20 +1442,18 @@ impl<'a> Verifier<'a> {
                             .ngrid
                             .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
                             .unwrap();
-                        let wcrd;
-                        let ww: &str;
+                        let wwc;
                         if let Some(pip) = n.int_pips.get(&w) {
-                            self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
-                            self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
-                            wcrd = crds[pip.tile];
-                            ww = &pip.wire_from;
-                            self.claim_net(&[(crd, wn)]);
+                            let (wtn, wfn) = name_pip(&crds, pip);
+                            self.claim_pip(wtn, wfn);
+                            self.verify_net(&[wc, wtn]);
+                            self.claim_net(&[wc]);
+                            wwc = wfn;
                         } else {
-                            wcrd = crd;
-                            ww = wn;
+                            wwc = wc;
                         }
                         if n.is_intf {
-                            if !self.pin_int_intf_wire(wcrd, ww, wire) {
+                            if !self.pin_int_intf_wire(wwc, wire) {
                                 println!(
                                     "MISSING BEL PIN INTF WIRE {part} {tile} {pin} {wire}",
                                     part = self.rd.part,
@@ -1223,7 +1462,7 @@ impl<'a> Verifier<'a> {
                                 );
                             }
                         } else {
-                            if !self.pin_int_wire(wcrd, ww, wire) {
+                            if !self.pin_int_wire(wwc, wire) {
                                 let iwd = &self.int_wire_data[&wire];
                                 if iwd.used_o {
                                     println!(
@@ -1240,17 +1479,18 @@ impl<'a> Verifier<'a> {
                         let (name, idx) = bcls.outputs.key(pin);
                         let pin = self.pin_index(name, idx);
                         let n = &bn.pins[&pin];
-                        let mut crd = crds[bn.tile];
-                        let mut wn: &str = &n.name;
+                        let mut wc = RawWireCoord {
+                            crd: crds[n.tile],
+                            wire: &n.name,
+                        };
                         for pip in &n.pips {
-                            let ncrd = crds[pip.tile];
-                            self.claim_net(&[(crd, wn), (ncrd, &pip.wire_from)]);
-                            self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
-                            wn = &pip.wire_to;
-                            crd = ncrd;
+                            let (wtn, wfn) = name_pip(&crds, pip);
+                            self.claim_net(&[wc, wfn]);
+                            self.claim_pip(wtn, wfn);
+                            wc = wtn;
                         }
                         if n.pips.is_empty() {
-                            wn = &n.name_far;
+                            wc.wire = &n.name_far;
                         }
 
                         let mut claim = true;
@@ -1259,19 +1499,17 @@ impl<'a> Verifier<'a> {
                                 .ngrid
                                 .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
                                 .unwrap();
-                            let wcrd;
-                            let ww: &str;
+                            let wwc;
                             if let Some(pip) = n.int_pips.get(&w) {
-                                self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
-                                self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_from)]);
-                                wcrd = crds[pip.tile];
-                                ww = &pip.wire_to;
+                                let (wtn, wfn) = name_pip(&crds, pip);
+                                self.claim_pip(wtn, wfn);
+                                self.verify_net(&[wc, wfn]);
+                                wwc = wtn;
                             } else {
-                                wcrd = crd;
-                                ww = wn;
+                                wwc = wc;
                                 claim = false;
                             }
-                            if !self.pin_int_wire(wcrd, ww, wire) {
+                            if !self.pin_int_wire(wwc, wire) {
                                 let iwd = &self.int_wire_data[&wire];
                                 if iwd.used_i {
                                     println!(
@@ -1284,23 +1522,24 @@ impl<'a> Verifier<'a> {
                             }
                         }
                         if claim {
-                            self.claim_net(&[(crd, wn)]);
+                            self.claim_net(&[wc]);
                         }
                     }
                     for (pin, &w) in &bel.bidirs {
                         let (name, idx) = bcls.bidirs.key(pin);
                         let pin = self.pin_index(name, idx);
                         let n = &bn.pins[&pin];
-                        let crd = crds[bn.tile];
-                        let wn = &n.name_far;
-                        assert!(n.pips.is_empty());
+                        let wn = RawWireCoord {
+                            crd: crds[n.tile],
+                            wire: &n.name_far,
+                        };
 
                         let wire = self
                             .ngrid
                             .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
                             .unwrap();
                         assert!(n.int_pips.is_empty());
-                        if !self.pin_int_wire(crd, wn, wire) {
+                        if !self.pin_int_wire(wn, wire) {
                             println!(
                                 "MISSING BEL PIN INT WIRE {part} {tile} {pin} {wire}",
                                 part = self.rd.part,
@@ -1311,35 +1550,34 @@ impl<'a> Verifier<'a> {
                     }
                 }
                 BelInfo::Legacy(bel) => {
-                    let BelNaming::Bel(bn) = &naming.bels[slot] else {
-                        unreachable!()
-                    };
+                    let bn = self.ngrid.get_bel_naming(bcrd);
                     for (k, v) in &bel.pins {
                         if self.skip_bel_pins.contains(&(tcrd.bel(slot), k)) {
                             continue;
                         }
                         let n = &bn.pins[k];
-                        let mut crd = crds[bn.tile];
-                        let mut wn: &str = &n.name;
+                        let mut wc = RawWireCoord {
+                            crd: crds[n.tile],
+                            wire: &n.name,
+                        };
                         for pip in &n.pips {
-                            let ncrd = crds[pip.tile];
-                            wn = match v.dir {
+                            let (wtn, wfn) = name_pip(&crds, pip);
+                            wc = match v.dir {
                                 PinDir::Input => {
-                                    self.claim_net(&[(crd, wn), (ncrd, &pip.wire_to)]);
-                                    self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
-                                    &pip.wire_from
+                                    self.claim_net(&[wc, wtn]);
+                                    self.claim_pip(wtn, wfn);
+                                    wfn
                                 }
                                 PinDir::Output => {
-                                    self.claim_net(&[(crd, wn), (ncrd, &pip.wire_from)]);
-                                    self.claim_pip(ncrd, &pip.wire_to, &pip.wire_from);
-                                    &pip.wire_to
+                                    self.claim_net(&[wc, wfn]);
+                                    self.claim_pip(wtn, wfn);
+                                    wtn
                                 }
                                 PinDir::Inout => unreachable!(),
                             };
-                            crd = ncrd;
                         }
                         if n.pips.is_empty() {
-                            wn = &n.name_far;
+                            wc.wire = &n.name_far;
                         }
                         let mut claim = true;
                         for &w in &v.wires {
@@ -1347,26 +1585,23 @@ impl<'a> Verifier<'a> {
                                 .ngrid
                                 .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
                                 .unwrap();
-                            let wcrd;
-                            let ww: &str;
+                            let wwc;
                             if let Some(pip) = n.int_pips.get(&w) {
-                                self.claim_pip(crds[pip.tile], &pip.wire_to, &pip.wire_from);
+                                let (wtn, wfn) = name_pip(&crds, pip);
+                                self.claim_pip(wtn, wfn);
                                 if v.dir == PinDir::Input {
-                                    self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_to)]);
-                                    wcrd = crds[pip.tile];
-                                    ww = &pip.wire_from;
+                                    self.verify_net(&[wc, wtn]);
+                                    wwc = wfn;
                                 } else {
-                                    self.verify_net(&[(crd, wn), (crds[pip.tile], &pip.wire_from)]);
-                                    wcrd = crds[pip.tile];
-                                    ww = &pip.wire_to;
+                                    self.verify_net(&[wc, wfn]);
+                                    wwc = wtn;
                                 }
                             } else {
-                                wcrd = crd;
-                                ww = wn;
+                                wwc = wc;
                                 claim = false;
                             }
                             if n.is_intf {
-                                if !self.pin_int_intf_wire(wcrd, ww, wire) {
+                                if !self.pin_int_intf_wire(wwc, wire) {
                                     println!(
                                         "MISSING BEL PIN INTF WIRE {part} {tile} {k} {wire}",
                                         part = self.rd.part,
@@ -1375,7 +1610,7 @@ impl<'a> Verifier<'a> {
                                     );
                                 }
                             } else {
-                                if !self.pin_int_wire(wcrd, ww, wire) {
+                                if !self.pin_int_wire(wwc, wire) {
                                     let iwd = &self.int_wire_data[&wire];
                                     if (v.dir == PinDir::Input && iwd.used_o)
                                         || (v.dir == PinDir::Output && iwd.used_i)
@@ -1391,19 +1626,23 @@ impl<'a> Verifier<'a> {
                             }
                         }
                         if claim {
-                            self.claim_net(&[(crd, wn)]);
+                            self.claim_net(&[wc]);
                         }
                     }
                 }
                 BelInfo::TestMux(tm) => {
                     for (&wt, tmux) in &tm.wires {
                         let wti = self.grid.tile_wire(tcrd, wt);
-                        let wtn = &naming.wires[&wt];
-                        if !self.pin_int_wire(crds[def_rt], wtn, wti) {
+                        let wtn = RawWireCoord {
+                            crd: crds[def_rt],
+                            wire: &naming.wires[&wt].name,
+                        };
+                        if !self.pin_int_wire(wtn, wti) {
                             let tname = &ntile.names[def_rt];
                             println!(
                                 "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
                                 p = self.rd.part,
+                                wtn = wtn.wire,
                                 wn = self.print_nw(wt),
                             );
                         }
@@ -1411,8 +1650,12 @@ impl<'a> Verifier<'a> {
                             let wf = tmux.primary_src.tw;
                             let wfi = self.grid.tile_wire(tcrd, wf);
                             if let Some(wfn) = naming.wires.get(&wf) {
-                                if self.pin_int_wire(crds[def_rt], wfn, wfi) {
-                                    self.claim_pip(crds[def_rt], wtn, wfn);
+                                let wfn = RawWireCoord {
+                                    crd: crds[def_rt],
+                                    wire: &wfn.name,
+                                };
+                                if self.pin_int_wire(wfn, wfi) {
+                                    self.claim_pip(wtn, wfn);
                                 } else {
                                     let iwd = &self.int_wire_data[&wfi];
                                     if iwd.used_o {
@@ -1420,6 +1663,7 @@ impl<'a> Verifier<'a> {
                                         println!(
                                             "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
                                             p = self.rd.part,
+                                            wfn = wfn.wire,
                                             wn = self.print_nw(wf),
                                         );
                                     }
@@ -1441,29 +1685,47 @@ impl<'a> Verifier<'a> {
                             if let Some(iwi) = naming.intf_wires_in.get(&wf) {
                                 let wfn = match *iwi {
                                     IntfWireInNaming::Simple { name: ref wfn } => {
-                                        self.claim_pip(crds[def_rt], wtn, wfn);
+                                        let wfn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfn,
+                                        };
+
+                                        self.claim_pip(wtn, wfn);
                                         wfn
                                     }
                                     IntfWireInNaming::TestBuf {
                                         name_out: ref wfbn,
                                         name_in: ref wfn,
                                     } => {
-                                        self.claim_pip(crds[def_rt], wtn, wfbn);
+                                        let wfn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfn,
+                                        };
+                                        let wfbn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfbn,
+                                        };
+                                        self.claim_pip(wtn, wfbn);
                                         wfn
                                     }
                                     IntfWireInNaming::Buf {
                                         name_in: ref wfn, ..
                                     } => {
-                                        self.claim_pip(crds[def_rt], wtn, wfn);
+                                        let wfn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfn,
+                                        };
+                                        self.claim_pip(wtn, wfn);
                                         wfn
                                     }
                                 };
-                                if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
+                                if !self.pin_int_wire(wfn, wfi) {
                                     let iwd = &self.int_wire_data[&wfi];
                                     if iwd.used_o {
                                         let tname = &ntile.names[def_rt];
                                         println!(
                                             "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
+                                            wfn = wfn.wire,
                                             p = self.rd.part,
                                             wn = self.print_nw(wf.tw),
                                         );
@@ -1486,11 +1748,15 @@ impl<'a> Verifier<'a> {
                 BelInfo::GroupTestMux(tm) => {
                     for (&wt, tmux) in &tm.wires {
                         let wti = self.grid.tile_wire(tcrd, wt);
-                        let wtn = &naming.wires[&wt];
-                        if !self.pin_int_wire(crds[def_rt], wtn, wti) {
+                        let wtn = RawWireCoord {
+                            crd: crds[def_rt],
+                            wire: &naming.wires[&wt].name,
+                        };
+                        if !self.pin_int_wire(wtn, wti) {
                             let tname = &ntile.names[def_rt];
                             println!(
                                 "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
+                                wtn = wtn.wire,
                                 p = self.rd.part,
                                 wn = self.print_nw(wt),
                             );
@@ -1499,14 +1765,19 @@ impl<'a> Verifier<'a> {
                             let wf = tmux.primary_src.tw;
                             let wfi = self.grid.tile_wire(tcrd, wf);
                             if let Some(wfn) = naming.wires.get(&wf) {
-                                if self.pin_int_wire(crds[def_rt], wfn, wfi) {
-                                    self.claim_pip(crds[def_rt], wtn, wfn);
+                                let wfn = RawWireCoord {
+                                    crd: crds[def_rt],
+                                    wire: &wfn.name,
+                                };
+                                if self.pin_int_wire(wfn, wfi) {
+                                    self.claim_pip(wtn, wfn);
                                 } else {
                                     let iwd = &self.int_wire_data[&wfi];
                                     if iwd.used_o {
                                         let tname = &ntile.names[def_rt];
                                         println!(
                                             "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
+                                            wfn = wfn.wire,
                                             p = self.rd.part,
                                             wn = self.print_nw(wf),
                                         );
@@ -1530,30 +1801,47 @@ impl<'a> Verifier<'a> {
                             if let Some(iwi) = naming.intf_wires_in.get(&wf) {
                                 let wfn = match *iwi {
                                     IntfWireInNaming::Simple { name: ref wfn } => {
-                                        self.claim_pip(crds[def_rt], wtn, wfn);
+                                        let wfn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfn,
+                                        };
+                                        self.claim_pip(wtn, wfn);
                                         wfn
                                     }
                                     IntfWireInNaming::TestBuf {
                                         name_out: ref wfbn,
                                         name_in: ref wfn,
                                     } => {
-                                        self.claim_pip(crds[def_rt], wtn, wfbn);
+                                        let wfbn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfbn,
+                                        };
+                                        let wfn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfn,
+                                        };
+                                        self.claim_pip(wtn, wfbn);
                                         wfn
                                     }
                                     IntfWireInNaming::Buf {
                                         name_in: ref wfn, ..
                                     } => {
-                                        self.claim_pip(crds[def_rt], wtn, wfn);
+                                        let wfn = RawWireCoord {
+                                            crd: crds[def_rt],
+                                            wire: wfn,
+                                        };
+                                        self.claim_pip(wtn, wfn);
                                         wfn
                                     }
                                 };
-                                if !self.pin_int_wire(crds[def_rt], wfn, wfi) {
+                                if !self.pin_int_wire(wfn, wfi) {
                                     let iwd = &self.int_wire_data[&wfi];
                                     if iwd.used_o {
                                         let tname = &ntile.names[def_rt];
                                         println!(
                                             "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
                                             p = self.rd.part,
+                                            wfn = wfn.wire,
                                             wn = self.print_nw(wf.tw),
                                         );
                                     }
@@ -1577,13 +1865,22 @@ impl<'a> Verifier<'a> {
 
         for (&wf, iwin) in &naming.intf_wires_in {
             if let IntfWireInNaming::TestBuf { name_out, name_in } = iwin {
-                self.claim_net(&[(crds[def_rt], name_out)]);
-                self.claim_pip(crds[def_rt], name_out, name_in);
+                self.claim_net(&[RawWireCoord {
+                    crd: crds[def_rt],
+                    wire: name_out,
+                }]);
+                self.claim_pip_tri(crds[def_rt], name_out, name_in);
             }
             if let IntfWireInNaming::Buf { name_out, name_in } = iwin
-                && self.pin_int_intf_wire(crds[def_rt], name_out, self.grid.tile_wire(tcrd, wf))
+                && self.pin_int_intf_wire(
+                    RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: name_out,
+                    },
+                    self.grid.tile_wire(tcrd, wf),
+                )
             {
-                self.claim_pip(crds[def_rt], name_out, name_in);
+                self.claim_pip_tri(crds[def_rt], name_out, name_in);
             }
         }
     }
@@ -1633,34 +1930,39 @@ impl<'a> Verifier<'a> {
             let pip_found;
             match *twn {
                 ConnectorWireOutNaming::Simple { name: ref wtn } => {
-                    let wtf = self.pin_int_wire(crd, wtn, wt);
+                    let wtn = RawWireCoord { crd, wire: wtn };
+                    let wtf = self.pin_int_wire(wtn, wt);
                     match *tkw {
                         ConnectorWire::Reflect(wfw) => {
                             let wfn = &tn.wires_in_near[wfw];
-                            let wff = self.pin_int_wire(crd, wfn, wf);
+                            let wfn = RawWireCoord { crd, wire: wfn };
+                            let wff = self.pin_int_wire(wfn, wf);
                             pip_found = wtf && wff;
                             if pip_found {
-                                self.claim_pip(crd, wtn, wfn);
+                                self.claim_pip(wtn, wfn);
                             }
                         }
                         ConnectorWire::Pass(wfw) => match tn.wires_in_far[wfw] {
                             ConnectorWireInFarNaming::Simple { name: ref wfn } => {
-                                let wff = self.pin_int_wire(crd, wfn, wf);
+                                let wfn = RawWireCoord { crd, wire: wfn };
+                                let wff = self.pin_int_wire(wfn, wf);
                                 pip_found = wtf && wff;
                                 if pip_found {
-                                    self.claim_pip(crd, wtn, wfn);
+                                    self.claim_pip(wtn, wfn);
                                 }
                             }
                             ConnectorWireInFarNaming::Buf {
                                 name_out: ref wfn,
                                 name_in: ref wfin,
                             } => {
-                                let wff = self.pin_int_wire(crd, wfin, wf);
+                                let wfn = RawWireCoord { crd, wire: wfn };
+                                let wfin = RawWireCoord { crd, wire: wfin };
+                                let wff = self.pin_int_wire(wfin, wf);
                                 pip_found = wtf && wff;
                                 if pip_found {
-                                    self.claim_net(&[(crd, wfn)]);
-                                    self.claim_pip(crd, wtn, wfn);
-                                    self.claim_pip(crd, wfn, wfin);
+                                    self.claim_net(&[wfn]);
+                                    self.claim_pip(wtn, wfn);
+                                    self.claim_pip(wfn, wfin);
                                 }
                             }
                             ConnectorWireInFarNaming::BufFar {
@@ -1668,12 +1970,21 @@ impl<'a> Verifier<'a> {
                                 name_far_out: ref wffon,
                                 name_far_in: ref wffin,
                             } => {
-                                let wff = self.pin_int_wire(crd_far.unwrap(), wffin, wf);
+                                let wfn = RawWireCoord { crd, wire: wfn };
+                                let wffin = RawWireCoord {
+                                    crd: crd_far.unwrap(),
+                                    wire: wffin,
+                                };
+                                let wffon = RawWireCoord {
+                                    crd: crd_far.unwrap(),
+                                    wire: wffon,
+                                };
+                                let wff = self.pin_int_wire(wffin, wf);
                                 pip_found = wtf && wff;
                                 if pip_found {
-                                    self.claim_net(&[(crd, wfn), (crd_far.unwrap(), wffon)]);
-                                    self.claim_pip(crd_far.unwrap(), wffon, wffin);
-                                    self.claim_pip(crd, wtn, wfn);
+                                    self.claim_net(&[wfn, wffon]);
+                                    self.claim_pip(wffon, wffin);
+                                    self.claim_pip(wtn, wfn);
                                 }
                             }
                         },
@@ -1684,11 +1995,13 @@ impl<'a> Verifier<'a> {
                     name_out: ref wtn,
                     name_in: ref wfn,
                 } => {
-                    let wtf = self.pin_int_wire(crd, wtn, wt);
-                    let wff = self.pin_int_wire(crd, wfn, wf);
+                    let wtn = RawWireCoord { crd, wire: wtn };
+                    let wfn = RawWireCoord { crd, wire: wfn };
+                    let wtf = self.pin_int_wire(wtn, wt);
+                    let wff = self.pin_int_wire(wfn, wf);
                     pip_found = wtf && wff;
                     if pip_found {
-                        self.claim_pip(crd, wtn, wfn);
+                        self.claim_pip(wtn, wfn);
                     }
                 }
             }
@@ -1775,39 +2088,31 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    pub fn bel_naming(&self, bcrd: BelCoord) -> &'a ProperBelNaming {
-        let tcrd = self.grid.get_tile_by_bel(bcrd);
-        let ntile = &self.ngrid.tiles[&tcrd];
-        let nn = &self.ndb.tile_class_namings[ntile.naming];
-        let BelNaming::Bel(naming) = &nn.bels[bcrd.slot] else {
-            unreachable!()
-        };
-        naming
+    pub fn bel_rcrd(&self, bcrd: BelCoord) -> Coord {
+        self.bel_rcrd_sub(bcrd, 0)
     }
 
-    pub fn bel_rcrd(&self, bcrd: BelCoord) -> Coord {
-        let naming = self.bel_naming(bcrd);
+    pub fn bel_rcrd_sub(&self, bcrd: BelCoord, sub: usize) -> Coord {
+        let naming = self.ngrid.get_bel_naming(bcrd);
         let tcrd = self.grid.get_tile_by_bel(bcrd);
         let crds = self.get_node_crds(tcrd).unwrap();
-        crds[naming.tile]
+        crds[naming.tiles[sub]]
     }
 
-    pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> &'a str {
-        let naming = self.bel_naming(bcrd);
-        &naming.pins[name].name
+    pub fn bel_wire(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
+        let naming = self.ngrid.get_bel_naming(bcrd);
+        RawWireCoord {
+            crd: self.bel_rcrd(bcrd),
+            wire: &naming.pins[name].name,
+        }
     }
 
-    pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> &'a str {
-        let naming = self.bel_naming(bcrd);
-        &naming.pins[name].name_far
-    }
-
-    pub fn bel_fwire(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
-        (self.bel_rcrd(bcrd), self.bel_wire(bcrd, name))
-    }
-
-    pub fn bel_fwire_far(&self, bcrd: BelCoord, name: &str) -> (Coord, &'a str) {
-        (self.bel_rcrd(bcrd), self.bel_wire_far(bcrd, name))
+    pub fn bel_wire_far(&self, bcrd: BelCoord, name: &str) -> RawWireCoord<'a> {
+        let naming = self.ngrid.get_bel_naming(bcrd);
+        RawWireCoord {
+            crd: self.bel_rcrd(bcrd),
+            wire: &naming.pins[name].name_far,
+        }
     }
 
     pub fn verify_bel<'b>(&'b mut self, bcrd: BelCoord) -> BelVerifier<'a, 'b> {
@@ -1819,11 +2124,8 @@ impl<'a> Verifier<'a> {
         .to_string();
         let tcrd = self.grid.get_tile_by_bel(bcrd);
         let ntile = &self.ngrid.tiles[&tcrd];
-        let nn = &self.ndb.tile_class_namings[ntile.naming];
         let crds = self.get_node_crds(tcrd).unwrap();
-        let BelNaming::Bel(naming) = &nn.bels[bcrd.slot] else {
-            unreachable!()
-        };
+        let naming = self.ngrid.get_bel_naming(bcrd);
         BelVerifier {
             vrf: self,
             naming,
@@ -1833,6 +2135,12 @@ impl<'a> Verifier<'a> {
             extra_outs: vec![],
             ntile,
             crds,
+            bidir_dirs: Default::default(),
+            skip_ins: Default::default(),
+            skip_outs: Default::default(),
+            rename_ins: Default::default(),
+            rename_outs: Default::default(),
+            sub: 0,
         }
     }
 
@@ -1857,13 +2165,11 @@ impl<'a> Verifier<'a> {
         let crds = self.get_node_crds(tcrd).unwrap();
         let nk = &self.db[tile.class];
         let ntile = &self.ngrid.tiles[&tcrd];
-        let nn = &self.ndb.tile_class_namings[ntile.naming];
+        let name = self.ngrid.get_bel_name(bel);
         let BelInfo::Legacy(info) = &nk.bels[bel.slot] else {
             unreachable!()
         };
-        let BelNaming::Bel(naming) = &nn.bels[bel.slot] else {
-            unreachable!()
-        };
+        let naming = self.ngrid.get_bel_naming(bel);
         Some(LegacyBelContext {
             die: bel.cell.die,
             col: bel.cell.col,
@@ -1877,7 +2183,7 @@ impl<'a> Verifier<'a> {
             info,
             naming,
             crds,
-            name: ntile.bels.get(bel.slot).map(|x| &**x),
+            name,
         })
     }
 
@@ -2010,7 +2316,10 @@ impl<'a> Verifier<'a> {
             let tk = &self.rd.tile_kinds[tile.kind];
             for &w in tk.wires.keys() {
                 if self.stub_outs.contains(&w) || self.stub_ins.contains(&w) {
-                    self.claim_net(&[(crd, &self.rd.wires[w])]);
+                    self.claim_net(&[RawWireCoord {
+                        crd,
+                        wire: &self.rd.wires[w],
+                    }]);
                 }
                 if let Some(nw) = self.rd.lookup_wire_raw(crd, w) {
                     if self.cond_stub_outs.contains(&w) && !self.is_claimed_raw(crd, w) {
@@ -2026,10 +2335,22 @@ impl<'a> Verifier<'a> {
             }
         }
         for (&nw, &(crd, w)) in &cond_stub_outs {
-            self.claim_raw_node(nw, crd, &self.rd.wires[w]);
+            self.claim_raw_node(
+                nw,
+                RawWireCoord {
+                    crd,
+                    wire: &self.rd.wires[w],
+                },
+            );
         }
         for (&nw, &(crd, w)) in &cond_stub_ins {
-            self.claim_raw_node(nw, crd, &self.rd.wires[w]);
+            self.claim_raw_node(
+                nw,
+                RawWireCoord {
+                    crd,
+                    wire: &self.rd.wires[w],
+                },
+            );
         }
         for (&crd, tile) in &self.rd.tiles {
             let tk = &self.rd.tile_kinds[tile.kind];
@@ -2041,7 +2362,7 @@ impl<'a> Verifier<'a> {
                         || cond_stub_outs.contains_key(&nwt)
                         || cond_stub_ins.contains_key(&nwf))
                 {
-                    self.claim_pip(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
+                    self.claim_pip_tri(crd, &self.rd.wires[wt], &self.rd.wires[wf]);
                 }
             }
         }

@@ -417,19 +417,14 @@ pub fn dump_chip(die: &Die) -> (Chip, IntDb, NamingDb) {
     }
 
     let finisher = extractor.finish();
-    finisher.finish(
-        &mut intdb,
-        &mut ndb,
-        |db, _, wt, _| {
-            let wtn = db.wires.key(wt.wire);
-            if wtn.starts_with("IMUX") || wtn.starts_with("IOCLK") {
-                PipMode::Mux
-            } else {
-                PipMode::Pass
-            }
-        },
-        true,
-    );
+    finisher.finish(&mut intdb, &mut ndb, |db, _, wt, _| {
+        let wtn = db.wires.key(wt.wire);
+        if wtn.starts_with("IMUX") || wtn.starts_with("IOCLK") {
+            PipMode::Mux
+        } else {
+            PipMode::Pass
+        }
+    });
     (chip, intdb, ndb)
 }
 

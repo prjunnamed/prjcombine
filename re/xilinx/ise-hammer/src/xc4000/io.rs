@@ -1,12 +1,15 @@
 use prjcombine_interconnect::{
-    db::{BelInfo, BelSlotId, TileWireCoord},
+    db::{BelInputId, BelSlotId, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit_raw, xlat_enum_attr};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_xc2000::{bels::xc4000 as bels, chip::ChipKind, tslots};
+use prjcombine_types::bsdata::TileBit;
+use prjcombine_xc2000::{
+    chip::ChipKind,
+    xc4000::{bslots, enums, tslots, wires, xc4000::bcls},
+};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -16,17 +19,18 @@ use crate::{
         int::resolve_int_pip,
         props::{DynProp, pip::PinFar},
     },
+    xc4000::specials,
 };
 
 #[derive(Clone, Debug)]
 pub struct Xc4000DriveImux {
     pub slot: BelSlotId,
-    pub pin: &'static str,
+    pub pin: BelInputId,
     pub drive: bool,
 }
 
 impl Xc4000DriveImux {
-    pub fn new(slot: BelSlotId, pin: &'static str, drive: bool) -> Self {
+    pub fn new(slot: BelSlotId, pin: BelInputId, drive: bool) -> Self {
         Self { slot, pin, drive }
     }
 }
@@ -42,16 +46,14 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
         tcrd: TileCoord,
         mut fuzzer: Fuzzer<IseBackend<'a>>,
     ) -> Option<(Fuzzer<IseBackend<'a>>, bool)> {
-        let tile = &backend.edev[tcrd];
-        let tcls = &backend.edev.db[tile.class];
-        let bel_data = &tcls.bels[self.slot];
-        let BelInfo::Legacy(bel_data) = bel_data else {
-            unreachable!()
-        };
-        let wire = *bel_data.pins[self.pin].wires.iter().next().unwrap();
         let res_wire = backend
             .edev
-            .resolve_wire(backend.edev.tile_wire(tcrd, wire))
+            .resolve_wire(
+                backend
+                    .edev
+                    .get_bel_input(tcrd.bel(self.slot), self.pin)
+                    .wire,
+            )
             .unwrap();
         fuzzer = fuzzer.fuzz(Key::WireMutex(res_wire), None, "EXCLUSIVE");
         if self.drive {
@@ -60,7 +62,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for Xc4000DriveImux {
             let otcls = &backend.edev.db_index[otile.class];
             let wt = TileWireCoord::new_idx(0, res_wire.slot);
             let ins = &otcls.pips_bwd[&wt];
-            let wf = ins.iter().next().unwrap().tw;
+            let wf = ins.iter().find(|w| w.wire != wires::TIE_0).unwrap().tw;
             let res_wf = backend
                 .edev
                 .resolve_wire(backend.edev.tile_wire(otcrd, wf))
@@ -80,103 +82,170 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let ExpandedDevice::Xc2000(edev) = backend.edev else {
         unreachable!()
     };
-    for tile in backend.edev.db.tile_classes.keys() {
-        if !tile.starts_with("IO") {
-            continue;
-        }
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tile) else {
+    for (tcid, _, tcls) in &backend.edev.db.tile_classes {
+        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
             continue;
         };
         for i in 0..2 {
-            let mut bctx = ctx.bel(bels::IO[i]);
+            if !tcls.bels.contains_id(bslots::IO[i]) {
+                continue;
+            }
+            let mut bctx = ctx.bel(bslots::IO[i]);
             let mode = "IOB";
-            bctx.mode(mode).test_enum("SLEW", &["SLOW", "FAST"]);
-            bctx.mode(mode).test_enum("PULL", &["PULLDOWN", "PULLUP"]);
-            bctx.mode(mode).test_enum("ISR", &["RESET", "SET"]);
-            bctx.mode(mode).test_enum("OSR", &["RESET", "SET"]);
-            bctx.mode(mode).test_enum("IKMUX", &["IK", "IKNOT"]);
-            bctx.mode(mode).test_enum("OKMUX", &["OK", "OKNOT"]);
-            bctx.mode(mode).test_enum("OCE", &["CE"]);
+            for (val, vname) in [
+                (enums::IO_SLEW::SLOW, "SLOW"),
+                (enums::IO_SLEW::FAST, "FAST"),
+            ] {
+                bctx.mode(mode)
+                    .test_bel_attr_val(bcls::IO::SLEW, val)
+                    .attr("SLEW", vname)
+                    .commit();
+            }
+            bctx.mode(mode)
+                .test_bel_attr_default(bcls::IO::PULL, enums::IO_PULL::NONE);
+            bctx.mode(mode)
+                .test_bel_attr_bool_rename("ISR", bcls::IO::IFF_SRVAL, "RESET", "SET");
+            bctx.mode(mode)
+                .test_bel_attr_bool_rename("OSR", bcls::IO::OFF_SRVAL, "RESET", "SET");
+            bctx.mode(mode)
+                .test_bel_input_inv_enum("IKMUX", bcls::IO::IK, "IK", "IKNOT");
+            bctx.mode(mode)
+                .test_bel_input_inv_enum("OKMUX", bcls::IO::OK, "OK", "OKNOT");
+            bctx.mode(mode)
+                .test_bel_attr_bits(bcls::IO::OFF_CE_ENABLE)
+                .attr("OCE", "CE")
+                .commit();
             bctx.mode(mode)
                 .attr("ICE", "")
                 .attr("I2MUX", "IQ")
                 .attr("IKMUX", "IK")
-                .test_enum("I1MUX", &["I", "IQ", "IQL"]);
+                .test_bel_attr_rename("I1MUX", bcls::IO::MUX_I1);
             bctx.mode(mode)
                 .attr("ICE", "")
                 .attr("I1MUX", "IQ")
                 .attr("IKMUX", "IK")
-                .test_enum("I2MUX", &["I", "IQ", "IQL"]);
+                .test_bel_attr_rename("I2MUX", bcls::IO::MUX_I2);
             bctx.mode(mode)
                 .attr("I1MUX", "IQ")
                 .attr("I2MUX", "IQ")
                 .attr("IKMUX", "IK")
-                .test_enum("ICE", &["CE"]);
+                .test_bel_attr_bits(bcls::IO::IFF_CE_ENABLE)
+                .attr("ICE", "CE")
+                .commit();
             bctx.mode(mode)
                 .attr("I1MUX", "IQL")
                 .attr("I2MUX", "IQL")
-                .test_enum_suffix("ICE", "IQL", &["CE"]);
+                .test_bel_special(specials::IO_ICE_IQL_CE)
+                .attr("ICE", "CE")
+                .commit();
             bctx.mode(mode)
                 .attr("OUTMUX", "O")
-                .test_manual("INV.T", "1")
+                .test_bel_input_inv(bcls::IO::T, true)
                 .attr_diff("TRI", "T", "TNOT")
                 .commit();
             if edev.chip.kind == ChipKind::Xc4000E {
-                bctx.mode(mode).test_enum("IMUX", &["DELAY", "I"]);
-                for outmux in ["OQ", "O"] {
-                    for omux in ["O", "ONOT"] {
-                        bctx.mode(mode)
-                            .attr("OKMUX", "OK")
-                            .attr("TRI", "TNOT")
-                            .prop(Xc4000DriveImux::new(bels::IO[i], "O", true))
-                            .prop(Xc4000DriveImux::new(bels::IO[i], "EC", false))
-                            .test_manual("OUTMUX", format!("{outmux}.{omux}.O"))
-                            .attr("OUTMUX", outmux)
-                            .attr("OMUX", omux)
-                            .commit();
-                        bctx.mode(mode)
-                            .attr("OKMUX", "OK")
-                            .attr("TRI", "TNOT")
-                            .prop(Xc4000DriveImux::new(bels::IO[i], "O", false))
-                            .prop(Xc4000DriveImux::new(bels::IO[i], "EC", true))
-                            .pip("O", (PinFar, "EC"))
-                            .test_manual("OUTMUX", format!("{outmux}.{omux}.CE"))
-                            .attr("OUTMUX", outmux)
-                            .attr("OMUX", omux)
-                            .commit();
-                    }
+                for (val, vname) in [(enums::IO_IFF_D::I, "I"), (enums::IO_IFF_D::DELAY, "DELAY")] {
+                    bctx.mode(mode)
+                        .test_bel_attr_val(bcls::IO::IFF_D, val)
+                        .attr("IMUX", vname)
+                        .commit();
+                }
+                for (outmux, omux, spec_o1, spec_o2) in [
+                    ("O", "O", specials::IO_OUTMUX_O_O1, specials::IO_OUTMUX_O_O2),
+                    (
+                        "O",
+                        "ONOT",
+                        specials::IO_OUTMUX_OI_O1,
+                        specials::IO_OUTMUX_OI_O2,
+                    ),
+                    (
+                        "OQ",
+                        "O",
+                        specials::IO_OUTMUX_OQ_O1,
+                        specials::IO_OUTMUX_OQ_O2,
+                    ),
+                    (
+                        "OQ",
+                        "ONOT",
+                        specials::IO_OUTMUX_OQI_O1,
+                        specials::IO_OUTMUX_OQI_O2,
+                    ),
+                ] {
+                    bctx.mode(mode)
+                        .attr("OKMUX", "OK")
+                        .attr("TRI", "TNOT")
+                        .prop(Xc4000DriveImux::new(bslots::IO[i], bcls::IO::O2, false))
+                        .prop(Xc4000DriveImux::new(bslots::IO[i], bcls::IO::O1, true))
+                        .pip("O2", (PinFar, "O1"))
+                        .test_bel_special(spec_o1)
+                        .attr("OUTMUX", outmux)
+                        .attr("OMUX", omux)
+                        .commit();
+                    bctx.mode(mode)
+                        .attr("OKMUX", "OK")
+                        .attr("TRI", "TNOT")
+                        .prop(Xc4000DriveImux::new(bslots::IO[i], bcls::IO::O2, true))
+                        .prop(Xc4000DriveImux::new(bslots::IO[i], bcls::IO::O1, false))
+                        .test_bel_special(spec_o2)
+                        .attr("OUTMUX", outmux)
+                        .attr("OMUX", omux)
+                        .commit();
                 }
             } else {
-                bctx.mode(mode).test_enum("DELAYMUX", &["DELAY", "I"]);
                 bctx.mode(mode)
-                    .test_enum("IMUX", &["SYNC", "MEDDELAY", "DELAY", "I"]);
-                for val in ["O", "ONOT", "CE", "CENOT", "ACTIVE", "OQ"] {
+                    .test_bel_attr_rename("DELAYMUX", bcls::IO::SYNC_D);
+                bctx.mode(mode)
+                    .test_bel_attr_rename("IMUX", bcls::IO::IFF_D);
+                for (val, vname) in [
+                    (enums::IO_MUX_O::O1, "CE"),
+                    (enums::IO_MUX_O::O1_INV, "CENOT"),
+                    (enums::IO_MUX_O::O2, "O"),
+                    (enums::IO_MUX_O::O2_INV, "ONOT"),
+                    (enums::IO_MUX_O::OQ, "OQ"),
+                    (enums::IO_MUX_O::MUX, "ACTIVE"),
+                ] {
                     bctx.mode(mode)
                         .attr("OINVMUX", "")
                         .attr("OCEMUX", "")
                         .attr("OKMUX", "OK")
-                        .test_manual("OUTMUX", val)
-                        .attr_diff("OUTMUX", "ACTIVE", val)
+                        .test_bel_attr_val(bcls::IO::MUX_O, val)
+                        .attr_diff("OUTMUX", "ACTIVE", vname)
                         .commit();
                 }
                 bctx.mode(mode)
                     .attr("OUTMUX", "OQ")
                     .attr("OKMUX", "OK")
-                    .test_enum("OINVMUX", &["O", "ONOT"]);
-                bctx.mode(mode)
-                    .attr("OUTMUX", "OQ")
-                    .attr("OKMUX", "OK")
-                    .test_enum("OCEMUX", &["O", "CE"]);
+                    .test_bel_attr_bool_rename("OINVMUX", bcls::IO::OFF_D_INV, "O", "ONOT");
+                for (val, vname) in [
+                    (enums::IO_MUX_OFF_D::O1, "CE"),
+                    (enums::IO_MUX_OFF_D::O2, "O"),
+                ] {
+                    bctx.mode(mode)
+                        .attr("OUTMUX", "OQ")
+                        .attr("OKMUX", "OK")
+                        .test_bel_attr_val(bcls::IO::MUX_OFF_D, val)
+                        .attr("OCEMUX", vname)
+                        .commit();
+                }
             }
             if matches!(
                 edev.chip.kind,
                 ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
             ) {
-                bctx.mode(mode).test_enum("DRIVE", &["12", "24"]);
-                bctx.mode(mode)
-                    .attr("TRI", "T")
-                    .attr("OKMUX", "OK")
-                    .test_enum("TRIFFMUX", &["TRI", "TRIQ"]);
+                for (val, vname) in [(enums::IO_DRIVE::_12, "12"), (enums::IO_DRIVE::_24, "24")] {
+                    bctx.mode(mode)
+                        .test_bel_attr_val(bcls::IO::DRIVE, val)
+                        .attr("DRIVE", vname)
+                        .commit();
+                }
+                for (val, vname) in [(enums::IO_MUX_T::T, "TRI"), (enums::IO_MUX_T::TQ, "TRIQ")] {
+                    bctx.mode(mode)
+                        .attr("TRI", "T")
+                        .attr("OKMUX", "OK")
+                        .test_bel_attr_val(bcls::IO::MUX_T, val)
+                        .attr("TRIFFMUX", vname)
+                        .commit();
+                }
             }
         }
     }
@@ -186,238 +255,286 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Xc2000(edev) = ctx.edev else {
         unreachable!()
     };
-    for tile in edev.db.tile_classes.keys() {
-        if !tile.starts_with("IO") {
+    for (tcid, tile, tcls) in &edev.db.tile_classes {
+        if !ctx.has_tile_id(tcid) {
             continue;
         }
-        if !ctx.has_tile(tile) {
-            continue;
-        }
-        for bel in ["IO0", "IO1"] {
-            ctx.collect_enum(tile, bel, "SLEW", &["SLOW", "FAST"]);
-            ctx.collect_enum_default(tile, bel, "PULL", &["PULLUP", "PULLDOWN"], "NONE");
-            let item = ctx.extract_enum_bool(tile, bel, "ISR", "RESET", "SET");
-            ctx.insert(tile, bel, "IFF_SRVAL", item);
-            let item = ctx.extract_enum_bool(tile, bel, "OSR", "RESET", "SET");
-            ctx.insert(tile, bel, "OFF_SRVAL", item);
-            let item = ctx.extract_enum_bool(tile, bel, "IKMUX", "IK", "IKNOT");
-            ctx.insert(tile, bel, "INV.IFF_CLK", item);
-            let item = ctx.extract_enum_bool(tile, bel, "OKMUX", "OK", "OKNOT");
-            ctx.insert(tile, bel, "INV.OFF_CLK", item);
-            let item = ctx.extract_bit(tile, bel, "OCE", "CE");
-            ctx.insert(tile, bel, "OFF_CE_ENABLE", item);
-            ctx.collect_enum(tile, bel, "I1MUX", &["I", "IQ", "IQL"]);
-            ctx.collect_enum(tile, bel, "I2MUX", &["I", "IQ", "IQL"]);
-            let item = ctx.extract_bit(tile, bel, "ICE", "CE");
-            ctx.insert(tile, bel, "IFF_CE_ENABLE", item);
-            ctx.collect_bit(tile, bel, "INV.T", "1");
-            if edev.chip.kind == ChipKind::Xc4000E {
-                let item = ctx.extract_enum(tile, bel, "IMUX", &["I", "DELAY"]);
-                ctx.insert(tile, bel, "IFF_D", item);
-                let item = ctx.extract_bit(tile, bel, "ICE.IQL", "CE");
-                ctx.insert(tile, bel, "IFF_CE_ENABLE", item);
+        for i in 0..2 {
+            let bslot = bslots::IO[i];
+            if !tcls.bels.contains_id(bslot) {
+                continue;
+            }
+            ctx.collect_bel_attr_subset(
+                tcid,
+                bslot,
+                bcls::IO::SLEW,
+                &[enums::IO_SLEW::FAST, enums::IO_SLEW::SLOW],
+            );
+            ctx.collect_bel_attr_default(tcid, bslot, bcls::IO::PULL, enums::IO_PULL::NONE);
+            ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::IO::IFF_SRVAL);
+            ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::IO::OFF_SRVAL);
+            ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::IK);
+            ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::OK);
+            ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::T);
+            ctx.collect_bel_attr(tcid, bslot, bcls::IO::IFF_CE_ENABLE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::IO::OFF_CE_ENABLE);
+            ctx.collect_bel_attr(tcid, bslot, bcls::IO::MUX_I1);
+            ctx.collect_bel_attr(tcid, bslot, bcls::IO::MUX_I2);
 
-                let diff_oq = ctx.state.get_diff(tile, bel, "OUTMUX", "OQ.O.CE");
-                assert_eq!(diff_oq, ctx.state.get_diff(tile, bel, "OUTMUX", "OQ.O.O"));
-                let diff_oq_not = ctx.state.get_diff(tile, bel, "OUTMUX", "OQ.ONOT.CE");
+            if edev.chip.kind == ChipKind::Xc4000E {
+                ctx.collect_bel_attr_subset(
+                    tcid,
+                    bslot,
+                    bcls::IO::IFF_D,
+                    &[enums::IO_IFF_D::I, enums::IO_IFF_D::DELAY],
+                );
+                let item =
+                    xlat_bit_raw(ctx.get_diff_bel_special(tcid, bslot, specials::IO_ICE_IQL_CE));
+                ctx.insert_bel_attr_bool(tcid, bslot, bcls::IO::IFF_CE_ENABLE, item);
+
+                let diff_oq = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_OQ_O1);
+                assert_eq!(
+                    diff_oq,
+                    ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_OQ_O2)
+                );
+                let diff_oq_not = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_OQI_O1);
                 assert_eq!(
                     diff_oq_not,
-                    ctx.state.get_diff(tile, bel, "OUTMUX", "OQ.ONOT.O")
+                    ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_OQI_O2)
                 );
                 let diff_inv_off_d = diff_oq_not.combine(&!&diff_oq);
-                let diff_o = ctx.state.get_diff(tile, bel, "OUTMUX", "O.O.O");
-                let diff_onot = ctx.state.get_diff(tile, bel, "OUTMUX", "O.ONOT.O");
-                let diff_ce = ctx.state.get_diff(tile, bel, "OUTMUX", "O.O.CE");
-                let diff_cenot = ctx.state.get_diff(tile, bel, "OUTMUX", "O.ONOT.CE");
-                let diff_onot = diff_onot.combine(&!&diff_inv_off_d);
-                let diff_cenot = diff_cenot.combine(&!&diff_inv_off_d);
-                ctx.insert(tile, bel, "INV.OFF_D", xlat_bit(diff_inv_off_d));
+                let diff_o2 = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_O_O2);
+                let diff_o2i = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_OI_O2);
+                let diff_o1 = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_O_O1);
+                let diff_o1i = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUTMUX_OI_O1);
+                let diff_o2not = diff_o2i.combine(&!&diff_inv_off_d);
+                let diff_o1not = diff_o1i.combine(&!&diff_inv_off_d);
+                ctx.insert_bel_attr_bool(
+                    tcid,
+                    bslot,
+                    bcls::IO::OFF_D_INV,
+                    xlat_bit_raw(diff_inv_off_d),
+                );
                 let mut diff_off_used = diff_oq.clone();
                 diff_off_used
                     .bits
-                    .retain(|bit, _| !diff_ce.bits.contains_key(bit));
+                    .retain(|bit, _| !diff_o1.bits.contains_key(bit));
                 diff_off_used
                     .bits
-                    .retain(|bit, _| !diff_cenot.bits.contains_key(bit));
+                    .retain(|bit, _| !diff_o1not.bits.contains_key(bit));
                 let diff_oq = diff_oq.combine(&!&diff_off_used);
-                ctx.insert(
-                    tile,
-                    bel,
-                    "OMUX",
-                    xlat_enum(vec![
-                        ("CE", diff_ce),
-                        ("CE.INV", diff_cenot),
-                        ("O", diff_o),
-                        ("O.INV", diff_onot),
-                        ("OFF", diff_oq),
+                ctx.insert_bel_attr_raw(
+                    tcid,
+                    bslot,
+                    bcls::IO::MUX_O,
+                    xlat_enum_attr(vec![
+                        (enums::IO_MUX_O::O1, diff_o1),
+                        (enums::IO_MUX_O::O1_INV, diff_o1not),
+                        (enums::IO_MUX_O::O2, diff_o2),
+                        (enums::IO_MUX_O::O2_INV, diff_o2not),
+                        (enums::IO_MUX_O::OQ, diff_oq),
                     ]),
                 );
-                ctx.insert(tile, bel, "OFF_USED", xlat_bit(diff_off_used));
+                ctx.insert_bel_attr_bool(
+                    tcid,
+                    bslot,
+                    bcls::IO::OFF_USED,
+                    xlat_bit_raw(diff_off_used),
+                );
             } else {
-                let item = ctx.extract_enum(tile, bel, "IMUX", &["I", "DELAY", "MEDDELAY", "SYNC"]);
-                ctx.insert(tile, bel, "IFF_D", item);
-                let item = ctx.extract_enum(tile, bel, "DELAYMUX", &["I", "DELAY"]);
-                ctx.insert(tile, bel, "SYNC_D", item);
+                ctx.collect_bel_attr(tcid, bslot, bcls::IO::IFF_D);
+                ctx.collect_bel_attr(tcid, bslot, bcls::IO::SYNC_D);
+
                 // ?!?
-                let mut diff = ctx.state.get_diff(tile, bel, "ICE.IQL", "CE");
-                diff.apply_bit_diff(ctx.item(tile, bel, "IFF_CE_ENABLE"), true, false);
-                ctx.insert(tile, bel, "IFF_CE_ENABLE_NO_IQ", xlat_bit(diff));
+                let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::IO_ICE_IQL_CE);
+                diff.apply_bit_diff_raw(
+                    ctx.bel_attr_bit(tcid, bslot, bcls::IO::IFF_CE_ENABLE),
+                    true,
+                    false,
+                );
+                ctx.insert_bel_attr_bool(
+                    tcid,
+                    bslot,
+                    bcls::IO::IFF_CE_ENABLE_NO_IQ,
+                    xlat_bit_raw(diff),
+                );
 
-                let item = ctx.extract_enum(tile, bel, "OCEMUX", &["O", "CE"]);
-                ctx.insert(tile, bel, "MUX.OFF_D", item);
-                let item = ctx.extract_enum_bool(tile, bel, "OINVMUX", "O", "ONOT");
-                ctx.insert(tile, bel, "INV.OFF_D", item);
+                ctx.collect_bel_attr(tcid, bslot, bcls::IO::MUX_OFF_D);
+                ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::IO::OFF_D_INV);
 
-                let mut diff_oq = ctx.state.get_diff(tile, bel, "OUTMUX", "OQ");
-                let diff_ce = ctx.state.get_diff(tile, bel, "OUTMUX", "CE");
-                let mut diff_cenot = ctx.state.get_diff(tile, bel, "OUTMUX", "CENOT");
-                let mut diff_o = ctx.state.get_diff(tile, bel, "OUTMUX", "O");
-                let mut diff_onot = ctx.state.get_diff(tile, bel, "OUTMUX", "ONOT");
-                let diff_mux = ctx.state.get_diff(tile, bel, "OUTMUX", "ACTIVE");
-                diff_cenot.apply_bit_diff(ctx.item(tile, bel, "INV.OFF_D"), true, false);
-                diff_onot.apply_bit_diff(ctx.item(tile, bel, "INV.OFF_D"), true, false);
-                diff_o.apply_enum_diff(ctx.item(tile, bel, "MUX.OFF_D"), "O", "CE");
-                diff_onot.apply_enum_diff(ctx.item(tile, bel, "MUX.OFF_D"), "O", "CE");
+                let mut diff_oq =
+                    ctx.get_diff_attr_val(tcid, bslot, bcls::IO::MUX_O, enums::IO_MUX_O::OQ);
+                let diff_o1 =
+                    ctx.get_diff_attr_val(tcid, bslot, bcls::IO::MUX_O, enums::IO_MUX_O::O1);
+                let mut diff_o1not =
+                    ctx.get_diff_attr_val(tcid, bslot, bcls::IO::MUX_O, enums::IO_MUX_O::O1_INV);
+                let mut diff_o2 =
+                    ctx.get_diff_attr_val(tcid, bslot, bcls::IO::MUX_O, enums::IO_MUX_O::O2);
+                let mut diff_o2not =
+                    ctx.get_diff_attr_val(tcid, bslot, bcls::IO::MUX_O, enums::IO_MUX_O::O2_INV);
+                let diff_mux =
+                    ctx.get_diff_attr_val(tcid, bslot, bcls::IO::MUX_O, enums::IO_MUX_O::MUX);
+                diff_o1not.apply_bit_diff_raw(
+                    ctx.bel_attr_bit(tcid, bslot, bcls::IO::OFF_D_INV),
+                    true,
+                    false,
+                );
+                diff_o2not.apply_bit_diff_raw(
+                    ctx.bel_attr_bit(tcid, bslot, bcls::IO::OFF_D_INV),
+                    true,
+                    false,
+                );
+                diff_o2.apply_enum_diff_attr(
+                    ctx.bel_attr_enum(tcid, bslot, bcls::IO::MUX_OFF_D),
+                    enums::IO_MUX_OFF_D::O2,
+                    enums::IO_MUX_OFF_D::O1,
+                );
+                diff_o2not.apply_enum_diff_attr(
+                    ctx.bel_attr_enum(tcid, bslot, bcls::IO::MUX_OFF_D),
+                    enums::IO_MUX_OFF_D::O2,
+                    enums::IO_MUX_OFF_D::O1,
+                );
                 let mut diff_off_used = diff_oq.clone();
                 diff_off_used
                     .bits
-                    .retain(|bit, _| !diff_ce.bits.contains_key(bit));
+                    .retain(|bit, _| !diff_o1.bits.contains_key(bit));
                 diff_oq = diff_oq.combine(&!&diff_off_used);
-                ctx.insert(
-                    tile,
-                    bel,
-                    "OMUX",
-                    xlat_enum(vec![
-                        ("CE", diff_ce),
-                        ("CE.INV", diff_cenot),
-                        ("O", diff_o),
-                        ("O.INV", diff_onot),
-                        ("OFF", diff_oq),
-                        ("MUX", diff_mux),
+                ctx.insert_bel_attr_raw(
+                    tcid,
+                    bslot,
+                    bcls::IO::MUX_O,
+                    xlat_enum_attr(vec![
+                        (enums::IO_MUX_O::O1, diff_o1),
+                        (enums::IO_MUX_O::O1_INV, diff_o1not),
+                        (enums::IO_MUX_O::O2, diff_o2),
+                        (enums::IO_MUX_O::O2_INV, diff_o2not),
+                        (enums::IO_MUX_O::OQ, diff_oq),
+                        (enums::IO_MUX_O::MUX, diff_mux),
                     ]),
                 );
-                ctx.insert(tile, bel, "OFF_USED", xlat_bit(diff_off_used));
+                ctx.insert_bel_attr_bool(
+                    tcid,
+                    bslot,
+                    bcls::IO::OFF_USED,
+                    xlat_bit_raw(diff_off_used),
+                );
             }
             if matches!(
                 edev.chip.kind,
                 ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
             ) {
-                ctx.collect_enum(tile, bel, "DRIVE", &["12", "24"]);
-                let item = xlat_enum(vec![
-                    ("T", ctx.state.get_diff(tile, bel, "TRIFFMUX", "TRI")),
-                    ("TFF", ctx.state.get_diff(tile, bel, "TRIFFMUX", "TRIQ")),
-                ]);
-                ctx.insert(tile, bel, "TMUX", item);
+                ctx.collect_bel_attr(tcid, bslot, bcls::IO::DRIVE);
+                ctx.collect_bel_attr(tcid, bslot, bcls::IO::MUX_T);
             }
-            let rb_bits = match (&tile[..4], edev.chip.kind, bel) {
-                ("IO.L", ChipKind::Xc4000E | ChipKind::SpartanXl, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 25, 8)),
-                    ("READBACK_I2", TileBit::new(0, 23, 8)),
-                    ("READBACK_OFF", TileBit::new(0, 22, 8)),
+            let rb_bits = match (&tile[..4], edev.chip.kind, i) {
+                ("IO_W", ChipKind::Xc4000E | ChipKind::SpartanXl, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 25, 8)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 23, 8)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 22, 8)),
                 ],
-                ("IO.L", ChipKind::Xc4000E | ChipKind::SpartanXl, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 21, 3)),
-                    ("READBACK_I2", TileBit::new(0, 22, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 23, 2)),
+                ("IO_W", ChipKind::Xc4000E | ChipKind::SpartanXl, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 21, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 22, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 23, 2)),
                 ],
-                ("IO.L", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 26, 8)),
-                    ("READBACK_I2", TileBit::new(0, 24, 8)),
-                    ("READBACK_OFF", TileBit::new(0, 23, 8)),
+                ("IO_W", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 26, 8)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 24, 8)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 23, 8)),
                 ],
-                ("IO.L", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 22, 3)),
-                    ("READBACK_I2", TileBit::new(0, 23, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 24, 2)),
-                ],
-
-                ("IO.R", _, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 0, 8)),
-                    ("READBACK_I2", TileBit::new(0, 2, 8)),
-                    ("READBACK_OFF", TileBit::new(0, 3, 8)),
-                ],
-                ("IO.R", _, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 4, 3)),
-                    ("READBACK_I2", TileBit::new(0, 3, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 2, 2)),
+                ("IO_W", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 22, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 23, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 24, 2)),
                 ],
 
-                ("IO.B", ChipKind::Xc4000E, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 18, 3)),
-                    ("READBACK_I2", TileBit::new(0, 18, 2)),
-                    ("READBACK_OFF", TileBit::new(0, 14, 2)),
+                ("IO_E", _, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 0, 8)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 2, 8)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 3, 8)),
                 ],
-                ("IO.B", ChipKind::Xc4000E, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 16, 2)),
-                    ("READBACK_I2", TileBit::new(0, 17, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 15, 2)),
-                ],
-                ("IO.B", ChipKind::SpartanXl, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 18, 3)),
-                    ("READBACK_I2", TileBit::new(0, 18, 2)),
-                    ("READBACK_OFF", TileBit::new(0, 16, 3)),
-                ],
-                ("IO.B", ChipKind::SpartanXl, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 17, 2)),
-                    ("READBACK_I2", TileBit::new(0, 17, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 16, 2)),
-                ],
-                ("IO.B", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 19, 3)),
-                    ("READBACK_I2", TileBit::new(0, 19, 2)),
-                    ("READBACK_OFF", TileBit::new(0, 17, 3)),
-                ],
-                ("IO.B", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 18, 2)),
-                    ("READBACK_I2", TileBit::new(0, 18, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 17, 2)),
+                ("IO_E", _, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 4, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 3, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 2, 2)),
                 ],
 
-                ("IO.T", ChipKind::Xc4000E, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 18, 3)),
-                    ("READBACK_I2", TileBit::new(0, 18, 4)),
-                    ("READBACK_OFF", TileBit::new(0, 14, 4)),
+                ("IO_S", ChipKind::Xc4000E, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 18, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 18, 2)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 14, 2)),
                 ],
-                ("IO.T", ChipKind::Xc4000E, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 16, 4)),
-                    ("READBACK_I2", TileBit::new(0, 17, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 15, 4)),
+                ("IO_S", ChipKind::Xc4000E, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 16, 2)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 17, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 15, 2)),
                 ],
-                ("IO.T", ChipKind::SpartanXl, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 18, 3)),
-                    ("READBACK_I2", TileBit::new(0, 18, 4)),
-                    ("READBACK_OFF", TileBit::new(0, 16, 3)),
+                ("IO_S", ChipKind::SpartanXl, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 18, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 18, 2)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 16, 3)),
                 ],
-                ("IO.T", ChipKind::SpartanXl, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 17, 4)),
-                    ("READBACK_I2", TileBit::new(0, 17, 3)),
-                    ("READBACK_OFF", TileBit::new(0, 16, 4)),
+                ("IO_S", ChipKind::SpartanXl, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 17, 2)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 17, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 16, 2)),
                 ],
-                ("IO.T", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 19, 4)),
-                    ("READBACK_I2", TileBit::new(0, 19, 5)),
-                    ("READBACK_OFF", TileBit::new(0, 17, 4)),
+                ("IO_S", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 19, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 19, 2)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 17, 3)),
                 ],
-                ("IO.T", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 18, 5)),
-                    ("READBACK_I2", TileBit::new(0, 18, 4)),
-                    ("READBACK_OFF", TileBit::new(0, 17, 5)),
+                ("IO_S", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 18, 2)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 18, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 17, 2)),
                 ],
-                ("IO.T", ChipKind::Xc4000Xv, "IO0") => [
-                    ("READBACK_I1", TileBit::new(0, 19, 5)),
-                    ("READBACK_I2", TileBit::new(0, 19, 6)),
-                    ("READBACK_OFF", TileBit::new(0, 17, 5)),
+
+                ("IO_N", ChipKind::Xc4000E, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 18, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 18, 4)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 14, 4)),
                 ],
-                ("IO.T", ChipKind::Xc4000Xv, "IO1") => [
-                    ("READBACK_I1", TileBit::new(0, 18, 6)),
-                    ("READBACK_I2", TileBit::new(0, 18, 5)),
-                    ("READBACK_OFF", TileBit::new(0, 17, 6)),
+                ("IO_N", ChipKind::Xc4000E, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 16, 4)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 17, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 15, 4)),
+                ],
+                ("IO_N", ChipKind::SpartanXl, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 18, 3)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 18, 4)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 16, 3)),
+                ],
+                ("IO_N", ChipKind::SpartanXl, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 17, 4)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 17, 3)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 16, 4)),
+                ],
+                ("IO_N", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 19, 4)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 19, 5)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 17, 4)),
+                ],
+                ("IO_N", ChipKind::Xc4000Ex | ChipKind::Xc4000Xla, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 18, 5)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 18, 4)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 17, 5)),
+                ],
+                ("IO_N", ChipKind::Xc4000Xv, 0) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 19, 5)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 19, 6)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 17, 5)),
+                ],
+                ("IO_N", ChipKind::Xc4000Xv, 1) => [
+                    (bcls::IO::READBACK_I1, TileBit::new(0, 18, 6)),
+                    (bcls::IO::READBACK_I2, TileBit::new(0, 18, 5)),
+                    (bcls::IO::READBACK_OQ, TileBit::new(0, 17, 6)),
                 ],
 
                 _ => unreachable!(),
             };
             for (attr, bit) in rb_bits {
-                ctx.insert(tile, bel, attr, TileItem::from_bit(bit, true));
+                ctx.insert_bel_attr_bool(tcid, bslot, attr, bit.neg());
             }
         }
     }

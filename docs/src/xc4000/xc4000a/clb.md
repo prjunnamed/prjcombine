@@ -1,11 +1,11 @@
 # Configurable Logic Block
 
 {{tile xc4000a CLB}}
-{{tile xc4000a CLB.L}}
-{{tile xc4000a CLB.R}}
-{{tile xc4000a CLB.B}}
-{{tile xc4000a CLB.LB}}
-{{tile xc4000a CLB.RB}}
-{{tile xc4000a CLB.T}}
-{{tile xc4000a CLB.LT}}
-{{tile xc4000a CLB.RT}}
+{{tile xc4000a CLB_W}}
+{{tile xc4000a CLB_E}}
+{{tile xc4000a CLB_S}}
+{{tile xc4000a CLB_SW}}
+{{tile xc4000a CLB_SE}}
+{{tile xc4000a CLB_N}}
+{{tile xc4000a CLB_NW}}
+{{tile xc4000a CLB_NE}}

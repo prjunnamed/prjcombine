@@ -3,9 +3,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, BelPin, IntDb, LegacyBel, TileWireCoord},
     dir::{Dir, DirMap},
 };
-use prjcombine_re_xilinx_naming::db::{
-    BelNaming, BelPinNaming, NamingDb, PipNaming, ProperBelNaming, RawTileId,
-};
+use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, PipNaming, RawTileId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 use prjcombine_virtex::defs::{self, wires};
 use std::collections::BTreeMap;
@@ -1029,6 +1027,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     (
                         k.clone(),
                         BelPinNaming {
+                            tile: RawTileId::from_idx(1),
                             name: name.clone(),
                             name_far: name,
                             pips: Vec::new(),
@@ -1040,10 +1039,10 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 .collect();
             naming.bels.insert(
                 defs::bslots::DLL,
-                BelNaming::Bel(ProperBelNaming {
-                    tile: RawTileId::from_idx(1),
+                BelNaming {
+                    tiles: vec![RawTileId::from_idx(1)],
                     pins,
-                }),
+                },
             );
         }
     }

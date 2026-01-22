@@ -23,20 +23,20 @@ fn verify_lc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
             2 => bslots::LC[3],
             _ => unreachable!(),
         };
-        bvrf.claim_net(&[bvrf.fwire("F5I")]);
+        bvrf.claim_net(&[bvrf.wire("F5I")]);
         let obel = bcrd.bel(oslot);
-        bvrf.claim_pip(bvrf.crd(), bvrf.wire("F5I"), bvrf.bel_wire(obel, "X"));
+        bvrf.claim_pip(bvrf.wire("F5I"), bvrf.bel_wire(obel, "X"));
     }
-    bvrf.claim_net(&[bvrf.fwire("CI")]);
-    bvrf.claim_net(&[bvrf.fwire("CO")]);
+    bvrf.claim_net(&[bvrf.wire("CI")]);
+    bvrf.claim_net(&[bvrf.wire("CO")]);
     if bcrd.slot == bslots::LC[0] {
-        bvrf.claim_pip(bvrf.crd(), bvrf.wire("CI"), bvrf.wire_far("CI"));
+        bvrf.claim_pip(bvrf.wire("CI"), bvrf.wire_far("CI"));
         let obel = bcrd.delta(0, -1).bel(bslots::LC[3]);
         if endev.edev.has_bel(obel) {
-            bvrf.claim_net(&[bvrf.fwire_far("CI"), bvrf.bel_fwire_far(obel, "CO")]);
+            bvrf.claim_net(&[bvrf.wire_far("CI"), bvrf.bel_wire_far(obel, "CO")]);
         } else {
             let obel = bcrd.delta(0, -1).bel(bslots::CIN);
-            bvrf.verify_net(&[bvrf.fwire_far("CI"), bvrf.bel_fwire(obel, "IN")]);
+            bvrf.verify_net(&[bvrf.wire_far("CI"), bvrf.bel_wire(obel, "IN")]);
         }
     } else {
         let okey = match idx {
@@ -46,10 +46,10 @@ fn verify_lc(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
             _ => unreachable!(),
         };
         let obel = bcrd.bel(okey);
-        bvrf.claim_pip(bvrf.crd(), bvrf.wire("CI"), bvrf.bel_wire(obel, "CO"));
+        bvrf.claim_pip(bvrf.wire("CI"), bvrf.bel_wire(obel, "CO"));
     }
     if bcrd.slot == bslots::LC[3] {
-        bvrf.claim_pip(bvrf.crd(), bvrf.wire_far("CO"), bvrf.wire("CO"));
+        bvrf.claim_pip(bvrf.wire_far("CO"), bvrf.wire("CO"));
     }
     bvrf.commit();
 }
@@ -70,7 +70,7 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
             unreachable!()
         };
         let obel = bcrd.cell.with_cr(col, row).bel(bslots::CLKIOB);
-        bvrf.verify_net(&[bvrf.fwire("CLKIN"), bvrf.bel_fwire(obel, "OUT")]);
+        bvrf.verify_net(&[bvrf.wire("CLKIN"), bvrf.bel_wire(obel, "OUT")]);
         "CLKIOB"
     } else {
         "IOB"
@@ -80,12 +80,8 @@ fn verify_iob(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
 
 fn verify_bufg(vrf: &mut Verifier, bcrd: BelCoord) {
     let name = vrf.ngrid.get_bel_name(bcrd).unwrap();
-    vrf.claim_pip(
-        vrf.bel_rcrd(bcrd),
-        vrf.bel_wire_far(bcrd, "O"),
-        vrf.bel_wire(bcrd, "O"),
-    );
-    vrf.claim_net(&[vrf.bel_fwire(bcrd, "O")]);
+    vrf.claim_pip(vrf.bel_wire_far(bcrd, "O"), vrf.bel_wire(bcrd, "O"));
+    vrf.claim_net(&[vrf.bel_wire(bcrd, "O")]);
     vrf.claim_site(
         vrf.bel_rcrd(bcrd),
         name,
@@ -94,12 +90,12 @@ fn verify_bufg(vrf: &mut Verifier, bcrd: BelCoord) {
             SitePin {
                 dir: SitePinDir::In,
                 pin: "I".into(),
-                wire: Some(vrf.bel_wire(bcrd, "I")),
+                wire: Some(vrf.bel_wire(bcrd, "I").wire),
             },
             SitePin {
                 dir: SitePinDir::Out,
                 pin: "O".into(),
-                wire: Some(vrf.bel_wire(bcrd, "O")),
+                wire: Some(vrf.bel_wire(bcrd, "O").wire),
             },
         ],
     );
@@ -107,14 +103,14 @@ fn verify_bufg(vrf: &mut Verifier, bcrd: BelCoord) {
 
 fn verify_top_cout(vrf: &mut Verifier, bcrd: BelCoord) {
     let obel = bcrd.delta(0, -1).bel(bslots::LC[3]);
-    vrf.verify_net(&[vrf.bel_fwire(bcrd, "OUT"), vrf.bel_fwire_far(obel, "CO")]);
+    vrf.verify_net(&[vrf.bel_wire(bcrd, "OUT"), vrf.bel_wire_far(obel, "CO")]);
     // artifact of unbuffered pip representation — disregard
-    vrf.claim_pip(vrf.bel_rcrd(bcrd), "WIRE_COUT_TOP", "WIRE_M14_TOP");
+    vrf.claim_pip_tri(vrf.bel_rcrd(bcrd), "WIRE_COUT_TOP", "WIRE_M14_TOP");
 }
 
 fn verify_bot_cin(vrf: &mut Verifier, bcrd: BelCoord) {
     // artifact of unbuffered pip representation — disregard
-    vrf.claim_pip(vrf.bel_rcrd(bcrd), "WIRE_M14_BOT", "WIRE_COUT_BOT");
+    vrf.claim_pip_tri(vrf.bel_rcrd(bcrd), "WIRE_M14_BOT", "WIRE_COUT_BOT");
 }
 
 fn verify_bel(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {

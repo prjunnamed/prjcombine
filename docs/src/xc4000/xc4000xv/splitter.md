@@ -1,20 +1,20 @@
 # Splitters
 
-{{tile xc4000xv LLHC.CLB}}
-{{tile xc4000xv LLHC.CLB.B}}
-{{tile xc4000xv LLHC.IO.B}}
-{{tile xc4000xv LLHC.IO.T}}
-{{tile xc4000xv LLHQ.CLB}}
-{{tile xc4000xv LLHQ.CLB.B}}
-{{tile xc4000xv LLHQ.CLB.T}}
-{{tile xc4000xv LLHQ.IO.B}}
-{{tile xc4000xv LLHQ.IO.T}}
-{{tile xc4000xv LLVC.CLB}}
-{{tile xc4000xv LLVC.IO.L}}
-{{tile xc4000xv LLVC.IO.R}}
-{{tile xc4000xv LLVQ.CLB}}
-{{tile xc4000xv LLVQ.IO.L.B}}
-{{tile xc4000xv LLVQ.IO.L.T}}
-{{tile xc4000xv LLVQ.IO.R.B}}
-{{tile xc4000xv LLVQ.IO.R.T}}
+{{tile xc4000xv LLHC_CLB}}
+{{tile xc4000xv LLHC_CLB_S}}
+{{tile xc4000xv LLHC_IO_S}}
+{{tile xc4000xv LLHC_IO_N}}
+{{tile xc4000xv LLHQ_CLB}}
+{{tile xc4000xv LLHQ_CLB_S}}
+{{tile xc4000xv LLHQ_CLB_N}}
+{{tile xc4000xv LLHQ_IO_S}}
+{{tile xc4000xv LLHQ_IO_N}}
+{{tile xc4000xv LLVC_CLB}}
+{{tile xc4000xv LLVC_IO_W}}
+{{tile xc4000xv LLVC_IO_E}}
+{{tile xc4000xv LLVQ_CLB}}
+{{tile xc4000xv LLVQ_IO_SW}}
+{{tile xc4000xv LLVQ_IO_NW}}
+{{tile xc4000xv LLVQ_IO_SE}}
+{{tile xc4000xv LLVQ_IO_NE}}
 {{tile xc4000xv CLKQ}}

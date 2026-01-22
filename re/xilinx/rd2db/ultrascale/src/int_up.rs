@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_xilinx_rawdump::{Coord, Part, TkSiteSlot};
 
 use prjcombine_entity::{EntityId, EntityPartVec};
-use prjcombine_re_xilinx_naming::db::{BelNaming, NamingDb};
+use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_naming_ultrascale::DeviceNaming;
 use prjcombine_re_xilinx_rd2db_interconnect::{IntBuilder, XTileInfo, XTileRef};
 use prjcombine_ultrascale::{
@@ -619,7 +619,7 @@ impl IntMaker<'_> {
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wf)) else {
                     continue;
                 };
-                let node = self.builder.rd.lookup_wire_force(int_xy, name);
+                let node = self.builder.rd.lookup_wire_force(int_xy, &name.name);
                 let mut twf = (cell, wf);
                 // sigh. no hope. no hope at all.
                 if wf == wires::X2_W2[0] {
@@ -650,7 +650,7 @@ impl IntMaker<'_> {
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(cid, wt)) else {
                     continue;
                 };
-                let node = self.builder.rd.lookup_wire_force(int_xy, name);
+                let node = self.builder.rd.lookup_wire_force(int_xy, &name.name);
                 if let Some(&(tf, wf)) = node2target.get(&node) {
                     assert_eq!(cell, tf);
                     wires.insert(wt, ConnectorWire::Reflect(wf));
@@ -720,7 +720,7 @@ impl IntMaker<'_> {
                     } else {
                         continue;
                     };
-                let node = self.builder.rd.lookup_wire_force(xy_from, name);
+                let node = self.builder.rd.lookup_wire_force(xy_from, &name.name);
                 assert!(node2target.insert(node, wf).is_none());
             }
             let mut wires = EntityPartVec::new();
@@ -739,7 +739,7 @@ impl IntMaker<'_> {
                 } else {
                     continue;
                 };
-                let node = self.builder.rd.lookup_wire_force(xy_to, name);
+                let node = self.builder.rd.lookup_wire_force(xy_to, &name.name);
                 if let Some(&wf) = node2target.get(&node) {
                     wires.insert(wt, ConnectorWire::Pass(wf));
                 }
@@ -765,7 +765,7 @@ impl IntMaker<'_> {
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(0, wf)) else {
                     continue;
                 };
-                let node = self.builder.rd.lookup_wire_force(xy_from, name);
+                let node = self.builder.rd.lookup_wire_force(xy_from, &name.name);
                 assert!(node2target.insert(node, wf).is_none());
             }
             let mut wires = EntityPartVec::new();
@@ -773,7 +773,7 @@ impl IntMaker<'_> {
                 let Some(name) = naming.wires.get(&TileWireCoord::new_idx(0, wt)) else {
                     continue;
                 };
-                let node = self.builder.rd.lookup_wire_force(xy_to, name);
+                let node = self.builder.rd.lookup_wire_force(xy_to, &name.name);
                 if let Some(&wf) = node2target.get(&node) {
                     wires.insert(wt, ConnectorWire::Pass(wf));
                 }
@@ -3294,9 +3294,7 @@ impl IntMaker<'_> {
                 .get_mut("XP5IO")
                 .unwrap()
                 .1;
-            let BelNaming::Bel(ref mut beln) = tncls.bels[bslots::LPDDRMC] else {
-                unreachable!()
-            };
+            let beln = &mut tncls.bels[bslots::LPDDRMC];
             for (pin, wire) in [
                 ("CFG2IOB_PUDC_B", wires::IMUX_IMUX_DELAY[27]),
                 ("IJTAG_RESET_TAP", wires::IMUX_IMUX_DELAY[28]),

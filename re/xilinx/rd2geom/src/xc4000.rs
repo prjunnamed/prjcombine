@@ -1,4 +1,3 @@
-use prjcombine_interconnect::db::IntDb;
 use prjcombine_re_xilinx_geom::{Bond, Chip};
 use prjcombine_re_xilinx_naming_xc2000::name_device;
 use prjcombine_re_xilinx_rawdump::Part;
@@ -30,7 +29,19 @@ pub fn ingest(rd: &Part, verify: bool) -> PreDevice {
         bonds,
         BTreeSet::new(),
         rd.family.to_string(),
-        IntDb::default(),
+        bincode::decode_from_slice(
+            match rd.family.as_str() {
+                "xc4000e" => prjcombine_xc2000::xc4000::xc4000e::INIT,
+                "xc4000ex" => prjcombine_xc2000::xc4000::xc4000ex::INIT,
+                "xc4000xla" => prjcombine_xc2000::xc4000::xc4000xla::INIT,
+                "xc4000xv" => prjcombine_xc2000::xc4000::xc4000xv::INIT,
+                "spartanxl" => prjcombine_xc2000::xc4000::spartanxl::INIT,
+                _ => unreachable!(),
+            },
+            bincode::config::standard(),
+        )
+        .unwrap()
+        .0,
         intdb,
         ndb,
     )

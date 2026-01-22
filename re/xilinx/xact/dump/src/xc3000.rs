@@ -685,33 +685,28 @@ pub fn dump_chip(die: &Die, kind: ChipKind) -> (Chip, IntDb, NamingDb) {
     }
 
     let finisher = extractor.finish();
-    finisher.finish(
-        &mut intdb,
-        &mut ndb,
-        |db, tslot, wt, wf| {
-            if tslot != defs::tslots::MAIN {
-                PipMode::Pass
+    finisher.finish(&mut intdb, &mut ndb, |db, tslot, wt, wf| {
+        if tslot != defs::tslots::MAIN {
+            PipMode::Pass
+        } else {
+            let wtn = db.wires.key(wt.wire);
+            if is_single_stub(wt.wire, wf.wire) || is_single_stub(wf.wire, wt.wire) {
+                PipMode::Buf
+            } else if wtn.starts_with("IMUX") {
+                PipMode::Mux
+            } else if wt.wire == wires::GCLK_V && chip.is_small {
+                PipMode::PermaBuf
+            } else if wtn.starts_with("LONG")
+                || wt.wire == wires::ACLK_V
+                || wt.wire == wires::GCLK_V
+                || wire_as_ioclk(wt.wire).is_some()
+            {
+                PipMode::Buf
             } else {
-                let wtn = db.wires.key(wt.wire);
-                if is_single_stub(wt.wire, wf.wire) || is_single_stub(wf.wire, wt.wire) {
-                    PipMode::Buf
-                } else if wtn.starts_with("IMUX") {
-                    PipMode::Mux
-                } else if wt.wire == wires::GCLK_V && chip.is_small {
-                    PipMode::PermaBuf
-                } else if wtn.starts_with("LONG")
-                    || wt.wire == wires::ACLK_V
-                    || wt.wire == wires::GCLK_V
-                    || wire_as_ioclk(wt.wire).is_some()
-                {
-                    PipMode::Buf
-                } else {
-                    PipMode::Pass
-                }
+                PipMode::Pass
             }
-        },
-        true,
-    );
+        }
+    });
 
     // fix up IOCLK
     for tcls in intdb.tile_classes.values_mut() {

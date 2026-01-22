@@ -1,0 +1,22 @@
+use prjcombine_re_fpga_hammer::specials;
+
+specials![
+    CLB_RAMCLK_CLK,
+    CLB_RAMCLK_CLKNOT,
+    IO_ICE_IQL_CE,
+    IO_OUTMUX_O_O1,
+    IO_OUTMUX_O_O2,
+    IO_OUTMUX_OI_O1,
+    IO_OUTMUX_OI_O2,
+    IO_OUTMUX_OQ_O1,
+    IO_OUTMUX_OQ_O2,
+    IO_OUTMUX_OQI_O1,
+    IO_OUTMUX_OQI_O2,
+    READCLK,
+    OSC_MUX_OUT0,
+    OSC_MUX_OUT1,
+    OSC_ENABLE,
+    _5V_TOLERANT_IO_OFF,
+    PUMP_EXTERNAL,
+    PUMP_INTERNAL,
+];

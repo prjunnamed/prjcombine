@@ -2,9 +2,9 @@ use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::grid::{ColId, DieId, RowId};
 use prjcombine_re_xilinx_xact_naming::{db::NamingDb, grid::ExpandedGridNaming};
 use prjcombine_xc2000::{
-    bels::xc4000 as bels,
     chip::{Chip, ChipKind},
     expanded::ExpandedDevice,
+    xc4000::{bslots, xc4000::tcls},
 };
 
 use crate::ExpandedNamedDevice;
@@ -42,7 +42,7 @@ fn name_b(grid: &Chip, prefix: &str, suffix: &str, col: ColId, row: RowId) -> St
 }
 
 pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> ExpandedNamedDevice<'a> {
-    let grid = edev.chip;
+    let chip = edev.chip;
     let mut ngrid = ExpandedGridNaming::new(ndb, edev);
     ngrid.tie_pin_gnd = Some("O".to_string());
 
@@ -53,15 +53,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     let mut clk_y = 0..0;
     let mut x = 0;
     for col in edev.cols(die) {
-        if col == grid.col_mid() {
+        if col == chip.col_mid() {
             let ox = x;
             x += ndb.tile_widths["CLK"];
             clk_x = ox..x;
         }
         let ox = x;
-        x += if col == grid.col_w() {
+        x += if col == chip.col_w() {
             ndb.tile_widths["L"]
-        } else if col == grid.col_e() {
+        } else if col == chip.col_e() {
             ndb.tile_widths["R"]
         } else {
             ndb.tile_widths["C"]
@@ -70,15 +70,15 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     }
     let mut y = 0;
     for row in edev.rows(die) {
-        if row == grid.row_mid() {
+        if row == chip.row_mid() {
             let oy = y;
             y += ndb.tile_heights["CLK"];
             clk_y = oy..y;
         }
         let oy = y;
-        y += if row == grid.row_s() {
+        y += if row == chip.row_s() {
             ndb.tile_heights["B"]
-        } else if row == grid.row_n() {
+        } else if row == chip.row_n() {
             ndb.tile_heights["T"]
         } else {
             ndb.tile_heights["C"]
@@ -89,9 +89,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
         let col = tcrd.col;
         let row = tcrd.row;
         let kind = edev.db.tile_classes.key(tile.class);
-        match &kind[..] {
-            "CLB.LB" | "CLB.B" | "CLB.RB" | "CLB.L" | "CLB" | "CLB.R" | "CLB.LT" | "CLB.T"
-            | "CLB.RT" => {
+        match tile.class {
+            tcls::CLB
+            | tcls::CLB_W
+            | tcls::CLB_E
+            | tcls::CLB_S
+            | tcls::CLB_SW
+            | tcls::CLB_SE
+            | tcls::CLB_N
+            | tcls::CLB_NW
+            | tcls::CLB_NE => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -102,47 +109,60 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ],
                 );
                 ntile.tie_names = vec![
-                    name_a(grid, "TIE.", ".1", col, row),
-                    name_b(grid, "TIE_", ".1", col, row),
+                    name_a(chip, "TIE.", ".1", col, row),
+                    name_b(chip, "TIE_", ".1", col, row),
                 ];
-                if kind == "CLB.LB" {
+                if tile.class == tcls::CLB_SW {
                     ntile
                         .coords
                         .push((col_x[col - 1].clone(), row_y[row - 1].clone()));
-                } else if kind == "CLB.B" || kind == "CLB.RB" || kind == "CLB.T" || kind == "CLB.RT"
+                } else if tile.class == tcls::CLB_S
+                    || tile.class == tcls::CLB_SE
+                    || tile.class == tcls::CLB_N
+                    || tile.class == tcls::CLB_NE
                 {
                     ntile
                         .coords
                         .push((col_x[col - 1].clone(), row_y[row].clone()));
-                } else if kind == "CLB.LT" {
+                } else if tile.class == tcls::CLB_NW {
                     ntile
                         .coords
                         .push((col_x[col - 1].clone(), row_y[row + 1].clone()));
                 }
 
+                let mut clb_names = vec![
+                    name_a(chip, "", "", col, row),
+                    name_b(chip, "CLB_", "", col, row),
+                ];
+                if col == chip.col_w() + 1 && row == chip.row_s() + 1 {
+                    clb_names.push("ci_bl".to_string());
+                }
+                if col == chip.col_w() + 1 && row == chip.row_n() - 1 {
+                    clb_names.push("ci_tl".to_string());
+                }
+                if col == chip.col_e() - 1 && row == chip.row_s() + 1 {
+                    clb_names.push("co_br".to_string());
+                }
+                if col == chip.col_e() - 1 && row == chip.row_n() - 1 {
+                    clb_names.push("co_tr".to_string());
+                }
+                ntile.add_bel(bslots::CLB, clb_names);
                 ntile.add_bel(
-                    bels::CLB,
+                    bslots::TBUF[0],
                     vec![
-                        name_a(grid, "", "", col, row),
-                        name_b(grid, "CLB_", "", col, row),
+                        name_a(chip, "TBUF.", ".2", col, row),
+                        name_b(chip, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[1],
                     vec![
-                        name_a(grid, "TBUF.", ".2", col, row),
-                        name_b(grid, "TBUF_", ".2", col, row),
-                    ],
-                );
-                ntile.add_bel(
-                    bels::TBUF1,
-                    vec![
-                        name_a(grid, "TBUF.", ".1", col, row),
-                        name_b(grid, "TBUF_", ".1", col, row),
+                        name_a(chip, "TBUF.", ".1", col, row),
+                        name_b(chip, "TBUF_", ".1", col, row),
                     ],
                 );
             }
-            "IO.B" | "IO.B.R" | "IO.BS" | "IO.BS.L" => {
+            tcls::IO_S0 | tcls::IO_S1 | tcls::IO_S0_E | tcls::IO_S1_W => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -153,57 +173,57 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ],
                 );
                 ntile.tie_names = vec![
-                    name_a(grid, "TIE.", ".1", col, row),
-                    name_b(grid, "TIE_", ".1", col, row),
+                    name_a(chip, "TIE.", ".1", col, row),
+                    name_b(chip, "TIE_", ".1", col, row),
                 ];
-                let (slot0, slot1) = if grid.kind == ChipKind::Xc4000H {
-                    let p = (grid.columns - 2) * 4
-                        + (grid.rows - 2) * 4
-                        + (grid.col_e().to_idx() - col.to_idx() - 1) * 4
+                let (slot0, slot1) = if chip.kind == ChipKind::Xc4000H {
+                    let p = (chip.columns - 2) * 4
+                        + (chip.rows - 2) * 4
+                        + (chip.col_e().to_idx() - col.to_idx() - 1) * 4
                         + 1;
-                    ntile.add_bel(bels::HIO0, vec![format!("PAD{}", p + 3)]);
-                    ntile.add_bel(bels::HIO1, vec![format!("PAD{}", p + 2)]);
-                    ntile.add_bel(bels::HIO2, vec![format!("PAD{}", p + 1)]);
-                    ntile.add_bel(bels::HIO3, vec![format!("PAD{p}")]);
-                    (bels::HIO0, bels::HIO3)
+                    ntile.add_bel(bslots::HIO[0], vec![format!("PAD{}", p + 3)]);
+                    ntile.add_bel(bslots::HIO[1], vec![format!("PAD{}", p + 2)]);
+                    ntile.add_bel(bslots::HIO[2], vec![format!("PAD{}", p + 1)]);
+                    ntile.add_bel(bslots::HIO[3], vec![format!("PAD{p}")]);
+                    (bslots::HIO[0], bslots::HIO[3])
                 } else {
-                    let p = (grid.columns - 2) * 2
-                        + (grid.rows - 2) * 2
-                        + (grid.col_e().to_idx() - col.to_idx() - 1) * 2
+                    let p = (chip.columns - 2) * 2
+                        + (chip.rows - 2) * 2
+                        + (chip.col_e().to_idx() - col.to_idx() - 1) * 2
                         + 1;
-                    ntile.add_bel(bels::IO0, vec![format!("PAD{}", p + 1)]);
-                    ntile.add_bel(bels::IO1, vec![format!("PAD{p}")]);
-                    (bels::IO0, bels::IO1)
+                    ntile.add_bel(bslots::IO[0], vec![format!("PAD{}", p + 1)]);
+                    ntile.add_bel(bslots::IO[1], vec![format!("PAD{p}")]);
+                    (bslots::IO[0], bslots::IO[1])
                 };
-                if kind == "IO.B.R" {
+                if tile.class == tcls::IO_S0_E {
                     ntile.bels[slot1].push("i_bufgs_br".into());
                 }
-                if kind == "IO.BS.L" {
+                if tile.class == tcls::IO_S1_W {
                     ntile.bels[slot0].push("i_bufgp_bl".into());
                 }
                 ntile.add_bel(
-                    bels::DEC0,
+                    bslots::DEC[0],
                     vec![
-                        name_a(grid, "DEC.", ".1", col, row),
-                        name_b(grid, "DEC_", ".1", col, row),
+                        name_a(chip, "DEC.", ".1", col, row),
+                        name_b(chip, "DEC_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC1,
+                    bslots::DEC[1],
                     vec![
-                        name_a(grid, "DEC.", ".2", col, row),
-                        name_b(grid, "DEC_", ".2", col, row),
+                        name_a(chip, "DEC.", ".2", col, row),
+                        name_b(chip, "DEC_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC2,
+                    bslots::DEC[2],
                     vec![
-                        name_a(grid, "DEC.", ".3", col, row),
-                        name_b(grid, "DEC_", ".3", col, row),
+                        name_a(chip, "DEC.", ".3", col, row),
+                        name_b(chip, "DEC_", ".3", col, row),
                     ],
                 );
             }
-            "IO.T" | "IO.T.R" | "IO.TS" | "IO.TS.L" => {
+            tcls::IO_N0 | tcls::IO_N1 | tcls::IO_N0_E | tcls::IO_N1_W => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -212,48 +232,55 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         (col_x[col + 1].clone(), row_y[row].clone()),
                     ],
                 );
-                let (slot0, slot1) = if grid.kind == ChipKind::Xc4000H {
+                let (slot0, slot1) = if chip.kind == ChipKind::Xc4000H {
                     let p = (col.to_idx() - 1) * 4 + 1;
-                    ntile.add_bel(bels::HIO0, vec![format!("PAD{p}")]);
-                    ntile.add_bel(bels::HIO1, vec![format!("PAD{}", p + 1)]);
-                    ntile.add_bel(bels::HIO2, vec![format!("PAD{}", p + 2)]);
-                    ntile.add_bel(bels::HIO3, vec![format!("PAD{}", p + 3)]);
-                    (bels::HIO0, bels::HIO2)
+                    ntile.add_bel(bslots::HIO[0], vec![format!("PAD{p}")]);
+                    ntile.add_bel(bslots::HIO[1], vec![format!("PAD{}", p + 1)]);
+                    ntile.add_bel(bslots::HIO[2], vec![format!("PAD{}", p + 2)]);
+                    ntile.add_bel(bslots::HIO[3], vec![format!("PAD{}", p + 3)]);
+                    (bslots::HIO[0], bslots::HIO[2])
                 } else {
                     let p = (col.to_idx() - 1) * 2 + 1;
-                    ntile.add_bel(bels::IO0, vec![format!("PAD{p}")]);
-                    ntile.add_bel(bels::IO1, vec![format!("PAD{}", p + 1)]);
-                    (bels::IO0, bels::IO0)
+                    ntile.add_bel(bslots::IO[0], vec![format!("PAD{p}")]);
+                    ntile.add_bel(bslots::IO[1], vec![format!("PAD{}", p + 1)]);
+                    (bslots::IO[0], bslots::IO[0])
                 };
-                if kind == "IO.T.R" {
+                if tile.class == tcls::IO_N0_E {
                     ntile.bels[slot1].push("i_bufgp_tr".into());
                 }
-                if kind == "IO.TS.L" {
+                if tile.class == tcls::IO_N1_W {
                     ntile.bels[slot0].push("i_bufgs_tl".into());
                 }
                 ntile.add_bel(
-                    bels::DEC0,
+                    bslots::DEC[0],
                     vec![
-                        name_a(grid, "DEC.", ".1", col, row),
-                        name_b(grid, "DEC_", ".1", col, row),
+                        name_a(chip, "DEC.", ".1", col, row),
+                        name_b(chip, "DEC_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC1,
+                    bslots::DEC[1],
                     vec![
-                        name_a(grid, "DEC.", ".2", col, row),
-                        name_b(grid, "DEC_", ".2", col, row),
+                        name_a(chip, "DEC.", ".2", col, row),
+                        name_b(chip, "DEC_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC2,
+                    bslots::DEC[2],
                     vec![
-                        name_a(grid, "DEC.", ".3", col, row),
-                        name_b(grid, "DEC_", ".3", col, row),
+                        name_a(chip, "DEC.", ".3", col, row),
+                        name_b(chip, "DEC_", ".3", col, row),
                     ],
                 );
             }
-            "IO.L" | "IO.L.T" | "IO.LS" | "IO.LS.B" => {
+            tcls::IO_W0
+            | tcls::IO_W1
+            | tcls::IO_W0_N
+            | tcls::IO_W1_S
+            | tcls::IO_W0_F1
+            | tcls::IO_W1_F1
+            | tcls::IO_W0_F0
+            | tcls::IO_W1_F0 => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -262,78 +289,85 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         (col_x[col].clone(), row_y[row - 1].clone()),
                     ],
                 );
-                let (slot0, slot1) = if grid.kind == ChipKind::Xc4000H {
+                let (slot0, slot1) = if chip.kind == ChipKind::Xc4000H {
                     let p =
-                        (grid.columns - 2) * 8 + (grid.rows - 2) * 4 + (row.to_idx() - 1) * 4 + 1;
-                    ntile.add_bel(bels::HIO0, vec![format!("PAD{}", p + 3)]);
-                    ntile.add_bel(bels::HIO1, vec![format!("PAD{}", p + 2)]);
-                    ntile.add_bel(bels::HIO2, vec![format!("PAD{}", p + 1)]);
-                    ntile.add_bel(bels::HIO3, vec![format!("PAD{p}")]);
-                    (bels::HIO0, bels::HIO3)
+                        (chip.columns - 2) * 8 + (chip.rows - 2) * 4 + (row.to_idx() - 1) * 4 + 1;
+                    ntile.add_bel(bslots::HIO[0], vec![format!("PAD{}", p + 3)]);
+                    ntile.add_bel(bslots::HIO[1], vec![format!("PAD{}", p + 2)]);
+                    ntile.add_bel(bslots::HIO[2], vec![format!("PAD{}", p + 1)]);
+                    ntile.add_bel(bslots::HIO[3], vec![format!("PAD{p}")]);
+                    (bslots::HIO[0], bslots::HIO[3])
                 } else {
                     let p =
-                        (grid.columns - 2) * 4 + (grid.rows - 2) * 2 + (row.to_idx() - 1) * 2 + 1;
-                    ntile.add_bel(bels::IO0, vec![format!("PAD{}", p + 1)]);
-                    ntile.add_bel(bels::IO1, vec![format!("PAD{p}")]);
-                    (bels::IO0, bels::IO1)
+                        (chip.columns - 2) * 4 + (chip.rows - 2) * 2 + (row.to_idx() - 1) * 2 + 1;
+                    ntile.add_bel(bslots::IO[0], vec![format!("PAD{}", p + 1)]);
+                    ntile.add_bel(bslots::IO[1], vec![format!("PAD{p}")]);
+                    (bslots::IO[0], bslots::IO[1])
                 };
-                if kind == "IO.L.T" {
+                if tile.class == tcls::IO_W0_N {
                     ntile.bels[slot0].push("i_bufgp_tl".into());
                 }
-                if kind == "IO.LS.B" {
+                if tile.class == tcls::IO_W1_S {
                     ntile.bels[slot1].push("i_bufgs_bl".into());
                 }
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[0],
                     vec![
-                        name_a(grid, "TBUF.", ".2", col, row),
-                        name_b(grid, "TBUF_", ".2", col, row),
+                        name_a(chip, "TBUF.", ".2", col, row),
+                        name_b(chip, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF1,
+                    bslots::TBUF[1],
                     vec![
-                        name_a(grid, "TBUF.", ".1", col, row),
-                        name_b(grid, "TBUF_", ".1", col, row),
+                        name_a(chip, "TBUF.", ".1", col, row),
+                        name_b(chip, "TBUF_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::PULLUP_TBUF0,
+                    bslots::PULLUP_TBUF[0],
                     vec![
-                        name_a(grid, "PULLUP.", ".2", col, row),
-                        name_b(grid, "PULLUP_", ".2", col, row),
+                        name_a(chip, "PULLUP.", ".2", col, row),
+                        name_b(chip, "PULLUP_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::PULLUP_TBUF1,
+                    bslots::PULLUP_TBUF[1],
                     vec![
-                        name_a(grid, "PULLUP.", ".1", col, row),
-                        name_b(grid, "PULLUP_", ".1", col, row),
+                        name_a(chip, "PULLUP.", ".1", col, row),
+                        name_b(chip, "PULLUP_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC0,
+                    bslots::DEC[0],
                     vec![
-                        name_a(grid, "DEC.", ".1", col, row),
-                        name_b(grid, "DEC_", ".1", col, row),
+                        name_a(chip, "DEC.", ".1", col, row),
+                        name_b(chip, "DEC_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC1,
+                    bslots::DEC[1],
                     vec![
-                        name_a(grid, "DEC.", ".2", col, row),
-                        name_b(grid, "DEC_", ".2", col, row),
+                        name_a(chip, "DEC.", ".2", col, row),
+                        name_b(chip, "DEC_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC2,
+                    bslots::DEC[2],
                     vec![
-                        name_a(grid, "DEC.", ".3", col, row),
-                        name_b(grid, "DEC_", ".3", col, row),
+                        name_a(chip, "DEC.", ".3", col, row),
+                        name_b(chip, "DEC_", ".3", col, row),
                     ],
                 );
             }
-            "IO.R" | "IO.R.T" | "IO.RS" | "IO.RS.B" => {
+            tcls::IO_E0
+            | tcls::IO_E1
+            | tcls::IO_E0_N
+            | tcls::IO_E1_S
+            | tcls::IO_E0_F1
+            | tcls::IO_E1_F1
+            | tcls::IO_E0_F0
+            | tcls::IO_E1_F0 => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -342,86 +376,86 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                         (col_x[col].clone(), row_y[row - 1].clone()),
                     ],
                 );
-                if grid.kind != ChipKind::Xc4000A {
+                if chip.kind != ChipKind::Xc4000A {
                     ntile.tie_names = vec![
-                        name_a(grid, "TIE.", ".1", col, row),
-                        name_b(grid, "TIE_", ".1", col, row),
+                        name_a(chip, "TIE.", ".1", col, row),
+                        name_b(chip, "TIE_", ".1", col, row),
                     ];
                 }
 
-                let (slot0, slot1) = if grid.kind == ChipKind::Xc4000H {
+                let (slot0, slot1) = if chip.kind == ChipKind::Xc4000H {
                     let p =
-                        (grid.columns - 2) * 4 + (grid.row_n().to_idx() - row.to_idx() - 1) * 4 + 1;
-                    ntile.add_bel(bels::HIO0, vec![format!("PAD{p}")]);
-                    ntile.add_bel(bels::HIO1, vec![format!("PAD{}", p + 1)]);
-                    ntile.add_bel(bels::HIO2, vec![format!("PAD{}", p + 2)]);
-                    ntile.add_bel(bels::HIO3, vec![format!("PAD{}", p + 3)]);
-                    (bels::HIO0, bels::HIO2)
+                        (chip.columns - 2) * 4 + (chip.row_n().to_idx() - row.to_idx() - 1) * 4 + 1;
+                    ntile.add_bel(bslots::HIO[0], vec![format!("PAD{p}")]);
+                    ntile.add_bel(bslots::HIO[1], vec![format!("PAD{}", p + 1)]);
+                    ntile.add_bel(bslots::HIO[2], vec![format!("PAD{}", p + 2)]);
+                    ntile.add_bel(bslots::HIO[3], vec![format!("PAD{}", p + 3)]);
+                    (bslots::HIO[0], bslots::HIO[2])
                 } else {
                     let p =
-                        (grid.columns - 2) * 2 + (grid.row_n().to_idx() - row.to_idx() - 1) * 2 + 1;
-                    ntile.add_bel(bels::IO0, vec![format!("PAD{p}")]);
-                    ntile.add_bel(bels::IO1, vec![format!("PAD{}", p + 1)]);
-                    (bels::IO0, bels::IO0)
+                        (chip.columns - 2) * 2 + (chip.row_n().to_idx() - row.to_idx() - 1) * 2 + 1;
+                    ntile.add_bel(bslots::IO[0], vec![format!("PAD{p}")]);
+                    ntile.add_bel(bslots::IO[1], vec![format!("PAD{}", p + 1)]);
+                    (bslots::IO[0], bslots::IO[0])
                 };
-                if kind == "IO.R.T" {
+                if tile.class == tcls::IO_E0_N {
                     ntile.bels[slot0].push("i_bufgs_tr".into());
                 }
-                if kind == "IO.RS.B" {
+                if tile.class == tcls::IO_E1_S {
                     ntile.bels[slot1].push("i_bufgp_br".into());
                 }
                 ntile.add_bel(
-                    bels::TBUF0,
+                    bslots::TBUF[0],
                     vec![
-                        name_a(grid, "TBUF.", ".2", col, row),
-                        name_b(grid, "TBUF_", ".2", col, row),
+                        name_a(chip, "TBUF.", ".2", col, row),
+                        name_b(chip, "TBUF_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::TBUF1,
+                    bslots::TBUF[1],
                     vec![
-                        name_a(grid, "TBUF.", ".1", col, row),
-                        name_b(grid, "TBUF_", ".1", col, row),
+                        name_a(chip, "TBUF.", ".1", col, row),
+                        name_b(chip, "TBUF_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::PULLUP_TBUF0,
+                    bslots::PULLUP_TBUF[0],
                     vec![
-                        name_a(grid, "PULLUP.", ".2", col, row),
-                        name_b(grid, "PULLUP_", ".2", col, row),
+                        name_a(chip, "PULLUP.", ".2", col, row),
+                        name_b(chip, "PULLUP_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::PULLUP_TBUF1,
+                    bslots::PULLUP_TBUF[1],
                     vec![
-                        name_a(grid, "PULLUP.", ".1", col, row),
-                        name_b(grid, "PULLUP_", ".1", col, row),
+                        name_a(chip, "PULLUP.", ".1", col, row),
+                        name_b(chip, "PULLUP_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC0,
+                    bslots::DEC[0],
                     vec![
-                        name_a(grid, "DEC.", ".1", col, row),
-                        name_b(grid, "DEC_", ".1", col, row),
+                        name_a(chip, "DEC.", ".1", col, row),
+                        name_b(chip, "DEC_", ".1", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC1,
+                    bslots::DEC[1],
                     vec![
-                        name_a(grid, "DEC.", ".2", col, row),
-                        name_b(grid, "DEC_", ".2", col, row),
+                        name_a(chip, "DEC.", ".2", col, row),
+                        name_b(chip, "DEC_", ".2", col, row),
                     ],
                 );
                 ntile.add_bel(
-                    bels::DEC2,
+                    bslots::DEC[2],
                     vec![
-                        name_a(grid, "DEC.", ".3", col, row),
-                        name_b(grid, "DEC_", ".3", col, row),
+                        name_a(chip, "DEC.", ".3", col, row),
+                        name_b(chip, "DEC_", ".3", col, row),
                     ],
                 );
             }
 
-            "CNR.BL" => {
+            tcls::CNR_SW => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -431,102 +465,101 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ],
                 );
 
-                if grid.kind == ChipKind::Xc4000A {
+                if chip.kind == ChipKind::Xc4000A {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".0", col, row),
-                            name_b(grid, "PULLUP_", ".0", col, row),
+                            name_a(chip, "PULLUP.", ".0", col, row),
+                            name_b(chip, "PULLUP_", ".0", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                 } else {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".8", col, row),
-                            name_b(grid, "PULLUP_", ".8", col, row),
+                            name_a(chip, "PULLUP.", ".8", col, row),
+                            name_b(chip, "PULLUP_", ".8", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".7", col, row),
-                            name_b(grid, "PULLUP_", ".7", col, row),
+                            name_a(chip, "PULLUP.", ".7", col, row),
+                            name_b(chip, "PULLUP_", ".7", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_H,
+                        bslots::PULLUP_DEC_H[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".6", col, row),
-                            name_b(grid, "PULLUP_", ".6", col, row),
+                            name_a(chip, "PULLUP.", ".6", col, row),
+                            name_b(chip, "PULLUP_", ".6", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_H,
+                        bslots::PULLUP_DEC_H[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".5", col, row),
-                            name_b(grid, "PULLUP_", ".5", col, row),
+                            name_a(chip, "PULLUP.", ".5", col, row),
+                            name_b(chip, "PULLUP_", ".5", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".4", col, row),
-                            name_b(grid, "PULLUP_", ".4", col, row),
+                            name_a(chip, "PULLUP.", ".4", col, row),
+                            name_b(chip, "PULLUP_", ".4", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_V,
+                        bslots::PULLUP_DEC_V[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_V,
+                        bslots::PULLUP_DEC_V[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                 }
-                ntile.add_bel(bels::BUFGLS_H, vec!["bufgp_bl".to_string()]);
-                ntile.add_bel(bels::BUFGLS_V, vec!["bufgs_bl".to_string()]);
-                ntile.add_bel(bels::CIN, vec!["ci_bl".to_string()]);
-                ntile.add_bel(bels::MD0, vec!["md0".to_string()]);
-                ntile.add_bel(bels::MD1, vec!["md1".to_string()]);
-                ntile.add_bel(bels::MD2, vec!["md2".to_string()]);
-                ntile.add_bel(bels::RDBK, vec!["rdbk".to_string()]);
+                ntile.add_bel(bslots::BUFG_H, vec!["bufgp_bl".to_string()]);
+                ntile.add_bel(bslots::BUFG_V, vec!["bufgs_bl".to_string()]);
+                ntile.add_bel(bslots::MD0, vec!["md0".to_string()]);
+                ntile.add_bel(bslots::MD1, vec!["md1".to_string()]);
+                ntile.add_bel(bslots::MD2, vec!["md2".to_string()]);
+                ntile.add_bel(bslots::RDBK, vec!["rdbk".to_string()]);
             }
-            "CNR.TL" => {
+            tcls::CNR_NW => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -537,99 +570,98 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ],
                 );
 
-                if grid.kind == ChipKind::Xc4000A {
+                if chip.kind == ChipKind::Xc4000A {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".0", col, row),
-                            name_b(grid, "PULLUP_", ".0", col, row),
+                            name_a(chip, "PULLUP.", ".0", col, row),
+                            name_b(chip, "PULLUP_", ".0", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                 } else {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_H,
+                        bslots::PULLUP_DEC_H[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_H,
+                        bslots::PULLUP_DEC_H[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".4", col, row),
-                            name_b(grid, "PULLUP_", ".4", col, row),
+                            name_a(chip, "PULLUP.", ".4", col, row),
+                            name_b(chip, "PULLUP_", ".4", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".5", col, row),
-                            name_b(grid, "PULLUP_", ".5", col, row),
+                            name_a(chip, "PULLUP.", ".5", col, row),
+                            name_b(chip, "PULLUP_", ".5", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".6", col, row),
-                            name_b(grid, "PULLUP_", ".6", col, row),
+                            name_a(chip, "PULLUP.", ".6", col, row),
+                            name_b(chip, "PULLUP_", ".6", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_V,
+                        bslots::PULLUP_DEC_V[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".7", col, row),
-                            name_b(grid, "PULLUP_", ".7", col, row),
+                            name_a(chip, "PULLUP.", ".7", col, row),
+                            name_b(chip, "PULLUP_", ".7", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_V,
+                        bslots::PULLUP_DEC_V[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".8", col, row),
-                            name_b(grid, "PULLUP_", ".8", col, row),
+                            name_a(chip, "PULLUP.", ".8", col, row),
+                            name_b(chip, "PULLUP_", ".8", col, row),
                         ],
                     );
                 }
-                ntile.add_bel(bels::BUFGLS_H, vec!["bufgs_tl".to_string()]);
-                ntile.add_bel(bels::BUFGLS_V, vec!["bufgp_tl".to_string()]);
-                ntile.add_bel(bels::CIN, vec!["ci_tl".to_string()]);
-                ntile.add_bel(bels::BSCAN, vec!["bscan".to_string()]);
+                ntile.add_bel(bslots::BUFG_H, vec!["bufgs_tl".to_string()]);
+                ntile.add_bel(bslots::BUFG_V, vec!["bufgp_tl".to_string()]);
+                ntile.add_bel(bslots::BSCAN, vec!["bscan".to_string()]);
             }
-            "CNR.BR" => {
+            tcls::CNR_SE => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -639,107 +671,106 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ],
                 );
 
-                if grid.kind != ChipKind::Xc4000A {
+                if chip.kind != ChipKind::Xc4000A {
                     ntile.tie_names = vec![
-                        name_a(grid, "TIE.", ".1", col, row),
-                        name_b(grid, "TIE_", ".1", col, row),
+                        name_a(chip, "TIE.", ".1", col, row),
+                        name_b(chip, "TIE_", ".1", col, row),
                     ];
                 }
 
-                if grid.kind == ChipKind::Xc4000A {
+                if chip.kind == ChipKind::Xc4000A {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".0", col, row),
-                            name_b(grid, "PULLUP_", ".0", col, row),
+                            name_a(chip, "PULLUP.", ".0", col, row),
+                            name_b(chip, "PULLUP_", ".0", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                 } else {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".8", col, row),
-                            name_b(grid, "PULLUP_", ".8", col, row),
+                            name_a(chip, "PULLUP.", ".8", col, row),
+                            name_b(chip, "PULLUP_", ".8", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".7", col, row),
-                            name_b(grid, "PULLUP_", ".7", col, row),
+                            name_a(chip, "PULLUP.", ".7", col, row),
+                            name_b(chip, "PULLUP_", ".7", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_H,
+                        bslots::PULLUP_DEC_H[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".6", col, row),
-                            name_b(grid, "PULLUP_", ".6", col, row),
+                            name_a(chip, "PULLUP.", ".6", col, row),
+                            name_b(chip, "PULLUP_", ".6", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_H,
+                        bslots::PULLUP_DEC_H[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".5", col, row),
-                            name_b(grid, "PULLUP_", ".5", col, row),
+                            name_a(chip, "PULLUP.", ".5", col, row),
+                            name_b(chip, "PULLUP_", ".5", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".4", col, row),
-                            name_b(grid, "PULLUP_", ".4", col, row),
+                            name_a(chip, "PULLUP.", ".4", col, row),
+                            name_b(chip, "PULLUP_", ".4", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_V,
+                        bslots::PULLUP_DEC_V[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_V,
+                        bslots::PULLUP_DEC_V[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                 }
-                ntile.add_bel(bels::BUFGLS_H, vec!["bufgs_br".to_string()]);
-                ntile.add_bel(bels::BUFGLS_V, vec!["bufgp_br".to_string()]);
-                ntile.add_bel(bels::COUT, vec!["co_br".to_string()]);
-                ntile.add_bel(bels::STARTUP, vec!["startup".to_string()]);
-                ntile.add_bel(bels::READCLK, vec!["rdclk".to_string()]);
+                ntile.add_bel(bslots::BUFG_H, vec!["bufgs_br".to_string()]);
+                ntile.add_bel(bslots::BUFG_V, vec!["bufgp_br".to_string()]);
+                ntile.add_bel(bslots::STARTUP, vec!["startup".to_string()]);
+                ntile.add_bel(bslots::READCLK, vec!["rdclk".to_string()]);
             }
-            "CNR.TR" => {
+            tcls::CNR_NE => {
                 let ntile = ngrid.name_tile(
                     tcrd,
                     kind,
@@ -750,118 +781,117 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     ],
                 );
 
-                if grid.kind == ChipKind::Xc4000A {
+                if chip.kind == ChipKind::Xc4000A {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".0", col, row),
-                            name_b(grid, "PULLUP_", ".0", col, row),
+                            name_a(chip, "PULLUP.", ".0", col, row),
+                            name_b(chip, "PULLUP_", ".0", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                 } else {
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_H,
+                        bslots::PULLUP_DEC_H[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".1", col, row),
-                            name_b(grid, "PULLUP_", ".1", col, row),
+                            name_a(chip, "PULLUP.", ".1", col, row),
+                            name_b(chip, "PULLUP_", ".1", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_H,
+                        bslots::PULLUP_DEC_H[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".2", col, row),
-                            name_b(grid, "PULLUP_", ".2", col, row),
+                            name_a(chip, "PULLUP.", ".2", col, row),
+                            name_b(chip, "PULLUP_", ".2", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_H,
+                        bslots::PULLUP_DEC_H[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".3", col, row),
-                            name_b(grid, "PULLUP_", ".3", col, row),
+                            name_a(chip, "PULLUP.", ".3", col, row),
+                            name_b(chip, "PULLUP_", ".3", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_H,
+                        bslots::PULLUP_DEC_H[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".4", col, row),
-                            name_b(grid, "PULLUP_", ".4", col, row),
+                            name_a(chip, "PULLUP.", ".4", col, row),
+                            name_b(chip, "PULLUP_", ".4", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC0_V,
+                        bslots::PULLUP_DEC_V[0],
                         vec![
-                            name_a(grid, "PULLUP.", ".5", col, row),
-                            name_b(grid, "PULLUP_", ".5", col, row),
+                            name_a(chip, "PULLUP.", ".5", col, row),
+                            name_b(chip, "PULLUP_", ".5", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC1_V,
+                        bslots::PULLUP_DEC_V[1],
                         vec![
-                            name_a(grid, "PULLUP.", ".6", col, row),
-                            name_b(grid, "PULLUP_", ".6", col, row),
+                            name_a(chip, "PULLUP.", ".6", col, row),
+                            name_b(chip, "PULLUP_", ".6", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC2_V,
+                        bslots::PULLUP_DEC_V[2],
                         vec![
-                            name_a(grid, "PULLUP.", ".7", col, row),
-                            name_b(grid, "PULLUP_", ".7", col, row),
+                            name_a(chip, "PULLUP.", ".7", col, row),
+                            name_b(chip, "PULLUP_", ".7", col, row),
                         ],
                     );
                     ntile.add_bel(
-                        bels::PULLUP_DEC3_V,
+                        bslots::PULLUP_DEC_V[3],
                         vec![
-                            name_a(grid, "PULLUP.", ".8", col, row),
-                            name_b(grid, "PULLUP_", ".8", col, row),
+                            name_a(chip, "PULLUP.", ".8", col, row),
+                            name_b(chip, "PULLUP_", ".8", col, row),
                         ],
                     );
                 }
-                ntile.add_bel(bels::BUFGLS_H, vec!["bufgp_tr".to_string()]);
-                ntile.add_bel(bels::BUFGLS_V, vec!["bufgs_tr".to_string()]);
-                ntile.add_bel(bels::COUT, vec!["co_tr".to_string()]);
-                ntile.add_bel(bels::UPDATE, vec!["update".to_string()]);
-                ntile.add_bel(bels::OSC, vec!["osc".to_string()]);
-                ntile.add_bel(bels::TDO, vec!["tdo".to_string()]);
+                ntile.add_bel(bslots::BUFG_H, vec!["bufgp_tr".to_string()]);
+                ntile.add_bel(bslots::BUFG_V, vec!["bufgs_tr".to_string()]);
+                ntile.add_bel(bslots::UPDATE, vec!["update".to_string()]);
+                ntile.add_bel(bslots::OSC, vec!["osc".to_string()]);
+                ntile.add_bel(bslots::TDO, vec!["tdo".to_string()]);
             }
 
-            "LLV.IO.L" | "LLV.IO.R" | "LLV.CLB" => {
+            tcls::LLV_IO_W | tcls::LLV_IO_E | tcls::LLV_CLB => {
                 let ntile = ngrid.name_tile(tcrd, kind, [(col_x[col].clone(), clk_y.clone())]);
-                if grid.kind == ChipKind::Xc4000H {
-                    let cidx = if col < grid.col_mid() {
+                if chip.kind == ChipKind::Xc4000H {
+                    let cidx = if col < chip.col_mid() {
                         col.to_idx()
                     } else {
                         col.to_idx() + 1
                     };
-                    let ridx = grid.rows - row.to_idx();
+                    let ridx = chip.rows - row.to_idx();
                     let cidx = u32::try_from(cidx).unwrap();
                     let ridx = u32::try_from(ridx).unwrap();
                     let r = char::from_u32(u32::from('A') + ridx).unwrap();
                     let c = char::from_u32(u32::from('A') + cidx).unwrap();
-                    ntile.add_bel(bels::CLKH, vec![format!("SRC0.{r}{c}.1")]);
+                    ntile.tie_names = vec![format!("SRC0.{r}{c}.1")];
                 }
             }
-            "LLH.IO.B" | "LLH.IO.T" | "LLH.CLB" | "LLH.CLB.B" => {
+            tcls::LLH_IO_S | tcls::LLH_IO_N | tcls::LLH_CLB | tcls::LLH_CLB_S => {
                 ngrid.name_tile(tcrd, kind, [(clk_x.clone(), row_y[row].clone())]);
             }
 
@@ -872,7 +902,7 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
     ExpandedNamedDevice {
         edev,
         ngrid,
-        chip: grid,
+        chip,
         col_x,
         row_y,
         clk_x: Some(clk_x),

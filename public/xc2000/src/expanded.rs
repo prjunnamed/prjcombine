@@ -8,7 +8,7 @@ use prjcombine_xilinx_bitstream::{BitRect, BitstreamGeom};
 
 use crate::{
     chip::{Chip, ChipKind},
-    xc2000, xc3000, xc5200,
+    xc2000, xc3000, xc4000, xc5200,
 };
 
 pub struct ExpandedDevice<'a> {
@@ -26,7 +26,6 @@ impl ExpandedDevice<'_> {
         let col = tcrd.col;
         let row = tcrd.row;
         let tile = &self[tcrd];
-        let kind = self.db.tile_classes.key(tile.class);
         match self.chip.kind {
             ChipKind::Xc2000 => {
                 if tile.class == xc2000::tcls::BIDIV_E {
@@ -66,7 +65,7 @@ impl ExpandedDevice<'_> {
             | ChipKind::Xc4000Xla
             | ChipKind::Xc4000Xv
             | ChipKind::SpartanXl => {
-                if kind.starts_with("LLH") {
+                if tcrd.slot == xc4000::tslots::LLH {
                     if row == self.chip.row_s() {
                         EntityVec::from_iter([
                             self.btile_llh(col, row),
@@ -90,7 +89,7 @@ impl ExpandedDevice<'_> {
                             self.btile_llh(col, row - 1),
                         ])
                     }
-                } else if kind.starts_with("LLV") {
+                } else if tcrd.slot == xc4000::tslots::LLV {
                     if col == self.chip.col_w() {
                         EntityVec::from_iter([
                             self.btile_llv(col, row),

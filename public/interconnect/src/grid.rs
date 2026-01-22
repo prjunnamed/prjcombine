@@ -1063,55 +1063,6 @@ impl ExpandedGrid<'_> {
         let ccls = self.db.get_conn_class(kind);
         self.fill_conn_term_id(xy, ccls);
     }
-
-    pub fn fill_main_passes(&mut self, die: DieId) {
-        let pass_w = "MAIN.W";
-        let pass_e = "MAIN.E";
-        let pass_s = "MAIN.S";
-        let pass_n = "MAIN.N";
-        let slot_w = self.db.get_conn_slot("W");
-        let slot_e = self.db.get_conn_slot("E");
-        let slot_s = self.db.get_conn_slot("S");
-        let slot_n = self.db.get_conn_slot("N");
-        // horizontal
-        for row in self.rows(die) {
-            let mut prev = None;
-            for cell in self.row(die, row) {
-                if self[cell].tiles.iter().count() == 0 {
-                    continue;
-                }
-                if let Some(prev) = prev
-                    && !self[cell].conns.contains_id(slot_w)
-                {
-                    self.fill_conn_pair(prev, cell, pass_e, pass_w);
-                }
-                if !self[cell].conns.contains_id(slot_e) {
-                    prev = Some(cell);
-                } else {
-                    prev = None;
-                }
-            }
-        }
-        // vertical
-        for col in self.cols(die) {
-            let mut prev = None;
-            for cell in self.column(die, col) {
-                if self[cell].tiles.iter().count() == 0 {
-                    continue;
-                }
-                if let Some(prev) = prev
-                    && !self[cell].conns.contains_id(slot_s)
-                {
-                    self.fill_conn_pair(prev, cell, pass_n, pass_s);
-                }
-                if !self[cell].conns.contains_id(slot_n) {
-                    prev = Some(cell);
-                } else {
-                    prev = None;
-                }
-            }
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
