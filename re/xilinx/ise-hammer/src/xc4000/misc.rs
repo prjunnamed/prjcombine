@@ -3,10 +3,8 @@ use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{DiffKey, xlat_bit_raw},
-};
+use prjcombine_re_collector::diff::{DiffKey, xlat_bit_raw};
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;

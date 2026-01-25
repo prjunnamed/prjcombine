@@ -7,10 +7,8 @@ use prjcombine_interconnect::{
     dir::Dir,
     grid::{BelCoord, TileCoord, WireCoord},
 };
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{Diff, DiffKey, OcdMode, xlat_bool_raw, xlat_enum_raw},
-};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bool_raw, xlat_enum_raw};
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_types::bsdata::BitRectId;
 use prjcombine_xc2000::xc2000::{bcls, bslots, ccls, cslots, tcls, tslots, wires};

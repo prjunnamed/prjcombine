@@ -2,7 +2,7 @@ use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ExpandedGrid, RowId, TileCoord, WireCoord,
 };
-use prjcombine_re_fpga_hammer::backend::{FpgaBackend, FuzzerInfo, State};
+use prjcombine_re_fpga_hammer::{FpgaBackend, FuzzerInfo, State};
 use prjcombine_re_hammer::{Backend, FuzzerId};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{

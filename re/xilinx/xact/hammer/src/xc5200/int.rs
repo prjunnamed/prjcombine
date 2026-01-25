@@ -5,10 +5,8 @@ use prjcombine_interconnect::{
     db::{BelInfo, PolTileWireCoord, SwitchBoxItem, TileWireCoord},
     grid::{BelCoord, TileCoord, WireCoord},
 };
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw},
-};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw};
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_xc2000::xc5200::{bcls, bslots, tcls, tslots, wires};
 use prjcombine_xilinx_bitstream::BitRect;

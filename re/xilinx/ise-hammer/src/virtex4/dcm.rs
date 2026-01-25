@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use prjcombine_re_fpga_hammer::diff::{
+use prjcombine_re_collector::diff::{
     Diff, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_ocd,
 };
 use prjcombine_re_hammer::Session;

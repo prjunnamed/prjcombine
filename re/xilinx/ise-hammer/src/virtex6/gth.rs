@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::diff::{xlat_bitvec, xlat_enum};
+use prjcombine_re_collector::diff::{xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::defs;

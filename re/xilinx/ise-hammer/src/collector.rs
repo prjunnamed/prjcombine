@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::db::{BelInfo, TileClassId};
-use prjcombine_re_fpga_hammer::collect::Collector;
+use prjcombine_re_collector::collect::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::bsdata::{BitRectId, DbValue, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;

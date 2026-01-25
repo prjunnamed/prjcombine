@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::TileWireCoord;
-use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
+use prjcombine_re_collector::diff::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};

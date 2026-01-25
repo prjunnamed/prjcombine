@@ -1,10 +1,8 @@
 use core::ops::Range;
 
 use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
-use prjcombine_re_fpga_hammer::{
-    backend::FuzzerProp,
-    diff::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum},
-};
+use prjcombine_re_collector::diff::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
+use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::{chip::Gts, defs};

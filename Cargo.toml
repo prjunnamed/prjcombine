@@ -7,6 +7,7 @@ resolver = "3"
 members = [
 	"re/toolchain",
 	"re/hammer",
+	"re/collector",
 	"re/fpga-hammer",
 	"re/harvester",
 	"re/sdf",
@@ -110,6 +111,7 @@ clap = { version = "4.1", features = ["derive"] }
 # RE-only crates and their dependencies
 prjcombine-re-toolchain = { path = "re/toolchain" }
 prjcombine-re-hammer = { path = "re/hammer" }
+prjcombine-re-collector = { path = "re/collector" }
 prjcombine-re-fpga-hammer = { path = "re/fpga-hammer" }
 prjcombine-re-harvester = { path = "re/harvester" }
 prjcombine-re-sdf = { path = "re/sdf" }

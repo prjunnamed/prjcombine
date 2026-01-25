@@ -5,10 +5,8 @@ use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_fpga_hammer::{
-    backend::FuzzerProp,
-    diff::{Diff, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum},
-};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,

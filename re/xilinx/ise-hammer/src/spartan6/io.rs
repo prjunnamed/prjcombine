@@ -4,13 +4,11 @@ use prjcombine_interconnect::{
     dir::DirV,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{
-        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
-        xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
-    },
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
+    xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
 };
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
 use prjcombine_spartan6::defs;

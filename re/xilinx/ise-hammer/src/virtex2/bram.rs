@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_fpga_hammer::diff::{
+use prjcombine_re_collector::diff::{
     Diff, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bitvec, xlat_enum,
 };
 use prjcombine_re_hammer::Session;

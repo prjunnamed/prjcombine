@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::diff::xlat_bool;
+use prjcombine_re_collector::diff::xlat_bool;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 

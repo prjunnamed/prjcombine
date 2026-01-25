@@ -1,8 +1,6 @@
 use prjcombine_interconnect::{dir::Dir, grid::TileCoord};
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{Diff, DiffKey, FeatureId, xlat_bit, xlat_bit_wide, xlat_bool},
-};
+use prjcombine_re_collector::diff::{Diff, DiffKey, FeatureId, xlat_bit, xlat_bit_wide, xlat_bool};
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};

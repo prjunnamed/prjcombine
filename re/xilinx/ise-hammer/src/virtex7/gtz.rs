@@ -1,5 +1,5 @@
 use prjcombine_interconnect::dir::Dir;
-use prjcombine_re_fpga_hammer::diff::OcdMode;
+use prjcombine_re_collector::diff::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::{ExpandedDevice, ExpandedNamedDevice};
 

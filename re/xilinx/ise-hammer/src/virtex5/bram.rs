@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
 use prjcombine_virtex4::defs;

@@ -1,10 +1,8 @@
 use std::collections::BTreeMap;
 
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::{
-    backend::FuzzerProp,
-    diff::{DiffKey, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum},
-};
+use prjcombine_re_collector::diff::{DiffKey, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_spartan6::defs;
 use prjcombine_types::{

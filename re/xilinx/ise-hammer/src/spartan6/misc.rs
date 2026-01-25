@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::diff::{OcdMode, concat_bitvec, xlat_bit};
+use prjcombine_re_collector::diff::{OcdMode, concat_bitvec, xlat_bit};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::defs;

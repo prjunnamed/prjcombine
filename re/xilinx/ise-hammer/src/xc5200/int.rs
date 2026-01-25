@@ -3,10 +3,8 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw},
-};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw};
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;

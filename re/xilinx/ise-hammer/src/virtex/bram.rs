@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::diff::{xlat_bitvec, xlat_bool};
+use prjcombine_re_collector::diff::{xlat_bitvec, xlat_bool};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex::defs;
 

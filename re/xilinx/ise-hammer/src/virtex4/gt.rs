@@ -1,12 +1,10 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{
-        Diff, DiffKey, FeatureId, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default,
-        xlat_enum_ocd,
-    },
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, FeatureId, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default,
+    xlat_enum_ocd,
 };
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};

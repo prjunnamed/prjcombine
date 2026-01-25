@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::diff::{OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_collector::diff::{OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_spartan6::defs;
 use prjcombine_types::{

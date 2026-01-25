@@ -6,7 +6,7 @@ version.workspace = true
 [dependencies]
 prjcombine-entity.workspace = true
 prjcombine-types.workspace = true
-prjcombine-re-fpga-hammer.workspace = true
+prjcombine-re-collector.workspace = true
 
 [lints]
 workspace = true

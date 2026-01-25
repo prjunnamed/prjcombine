@@ -8,7 +8,7 @@ use backend::XactBackend;
 use clap::Parser;
 use collector::CollectorCtx;
 use itertools::Itertools;
-use prjcombine_re_fpga_hammer::{bitdata::CollectorData, collect::Collector};
+use prjcombine_re_collector::{bitdata::CollectorData, collect::Collector};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_xact_geom::{Device, GeomDb};
 use prjcombine_xc2000::chip::ChipKind;

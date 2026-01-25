@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     db::{BelKind, TileWireCoord},
     grid::{CellCoord, DieId},
 };
-use prjcombine_re_fpga_hammer::diff::{Diff, DiffKey, OcdMode, xlat_enum_attr, xlat_enum_raw};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_attr, xlat_enum_raw};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::PolTileBit;
 use prjcombine_xc2000::xc3000::{bcls, bslots, enums, tslots, wires};

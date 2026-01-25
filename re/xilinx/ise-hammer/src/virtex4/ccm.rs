@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_enum_ocd};
+use prjcombine_re_collector::diff::{OcdMode, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::defs;

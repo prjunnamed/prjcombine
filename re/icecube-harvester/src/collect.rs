@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirV},
     grid::{BelCoord, CellCoord, DieId},
 };
-use prjcombine_re_fpga_hammer::{
+use prjcombine_re_collector::{
     bitdata::CollectorData,
     collect::Collector,
     diff::{

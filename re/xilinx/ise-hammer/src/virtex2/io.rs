@@ -5,13 +5,11 @@ use prjcombine_interconnect::{
     db::{BelSlotId, CellSlotId, TileClassId},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{
-    backend::FuzzerProp,
-    diff::{
-        Diff, DiffKey, OcdMode, enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec,
-        xlat_enum, xlat_enum_ocd,
-    },
+use prjcombine_re_collector::diff::{
+    Diff, DiffKey, OcdMode, enum_ocd_swap_bits, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum,
+    xlat_enum_ocd,
 };
+use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,

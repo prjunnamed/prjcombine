@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use prjcombine_interconnect::db::TileClassId;
-use prjcombine_re_fpga_hammer::collect::Collector;
+use prjcombine_re_collector::collect::Collector;
 use prjcombine_re_xilinx_xact_geom::Device;
 use prjcombine_xc2000::expanded::ExpandedDevice;
 

@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bool, xlat_enum};
+use prjcombine_re_collector::diff::{Diff, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_spartan6::defs;
 use prjcombine_types::bsdata::{BitRectId, TileBit, TileItem};

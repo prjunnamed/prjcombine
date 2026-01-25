@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::{BelInfo, PinDir};
-use prjcombine_re_fpga_hammer::diff::OcdMode;
+use prjcombine_re_collector::diff::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{bits, bitvec::BitVec};
 use prjcombine_virtex2::{defs, defs::virtex2::tcls};

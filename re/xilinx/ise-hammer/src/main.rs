@@ -1,6 +1,6 @@
 use clap::Parser;
 use prjcombine_interconnect::dir::DirV;
-use prjcombine_re_fpga_hammer::{bitdata::CollectorData, collect::Collector};
+use prjcombine_re_collector::{bitdata::CollectorData, collect::Collector};
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};

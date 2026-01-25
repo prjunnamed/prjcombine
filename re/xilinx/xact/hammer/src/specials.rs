@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::specials;
+use prjcombine_re_collector::specials;
 
 specials![
     // xc2000

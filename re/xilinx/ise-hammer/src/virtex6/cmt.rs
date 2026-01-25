@@ -1,8 +1,6 @@
 use prjcombine_entity::{EntityId, EntityVec};
 use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
-use prjcombine_re_fpga_hammer::diff::{
-    Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum,
-};
+use prjcombine_re_collector::diff::{Diff, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{

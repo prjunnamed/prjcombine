@@ -5,10 +5,8 @@ use prjcombine_interconnect::{
     },
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{
-    backend::{FpgaFuzzerGen, FuzzerProp},
-    diff::{DiffKey, SpecialId},
-};
+use prjcombine_re_collector::diff::{DiffKey, SpecialId};
+use prjcombine_re_fpga_hammer::{FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bitvec::BitVec;
 

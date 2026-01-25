@@ -1,6 +1,6 @@
 use core::ops::Range;
 
-use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bit, xlat_enum};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::defs;

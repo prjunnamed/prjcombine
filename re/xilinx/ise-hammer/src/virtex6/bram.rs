@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::diff::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
+use prjcombine_re_collector::diff::{xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;

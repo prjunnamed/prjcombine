@@ -24,6 +24,7 @@ prjcombine-virtex4.workspace = true
 prjcombine-xilinx-bitstream.workspace = true
 prjcombine-re-toolchain.workspace = true
 prjcombine-re-hammer.workspace = true
+prjcombine-re-collector.workspace = true
 prjcombine-re-fpga-hammer.workspace = true
 prjcombine-re-xilinx-xdl.workspace = true
 prjcombine-re-xilinx-naming.workspace = true

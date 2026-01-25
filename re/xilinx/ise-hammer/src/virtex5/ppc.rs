@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::diff::extract_bitvec_val;
+use prjcombine_re_collector::diff::extract_bitvec_val;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
 use prjcombine_virtex4::defs;

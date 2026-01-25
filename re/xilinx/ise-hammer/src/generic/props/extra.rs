@@ -4,10 +4,8 @@ use prjcombine_interconnect::{
     dir::DirV,
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{
-    backend::{FuzzerFeature, FuzzerProp},
-    diff::{DiffKey, FeatureId, SpecialId},
-};
+use prjcombine_re_collector::diff::{DiffKey, FeatureId, SpecialId};
+use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_xilinx_bitstream::{BitRect, Reg};
 

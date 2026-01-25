@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashSet};
 
-use prjcombine_re_fpga_hammer::diff::{Diff, extract_bitvec_val, xlat_bit, xlat_bitvec};
+use prjcombine_re_collector::diff::{Diff, extract_bitvec_val, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
