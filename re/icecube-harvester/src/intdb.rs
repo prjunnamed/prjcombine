@@ -3,8 +3,8 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, btree_map};
 use prjcombine_entity::{EntityBundleIndex, EntityVec};
 use prjcombine_interconnect::{
     db::{
-        BelInfo, BelInput, BelKind, BelPin, BelSlotId, CellSlotId, IntDb, LegacyBel, TileClass,
-        TileClassId, TileWireCoord,
+        BelInfo, BelInput, BelKind, BelSlotId, CellSlotId, IntDb, TileClass, TileClassId,
+        TileWireCoord,
     },
     grid::{BelCoord, CellCoord},
 };
@@ -43,129 +43,94 @@ impl<'a> MiscTileBuilder<'a> {
     }
 
     pub fn add_bel(&mut self, slot: BelSlotId, pins: &BelPins) {
-        match self.intdb.bel_slots[slot].kind {
-            BelKind::Routing => unreachable!(),
-            BelKind::Class(bcid) => {
-                let bcls = &self.intdb.bel_classes[bcid];
-                let BelInfo::Bel(mut bel) = self.tcls.bels[slot].clone() else {
-                    unreachable!()
-                };
-                for (pin, &wire) in &pins.ins {
-                    let cell = self.get_cell(wire.cell);
-                    let pid = match pin {
-                        InstPin::Simple(pname) => {
-                            if let Some((bidx, _)) = bcls.inputs.get(pname) {
-                                match bidx {
-                                    EntityBundleIndex::Single(pid) => pid,
-                                    EntityBundleIndex::Array(_) => unreachable!(),
-                                }
-                            } else {
-                                let idx: usize = pname[pname.len() - 1..].parse().unwrap();
-                                let pname = &pname[..pname.len() - 1];
-                                let bidx = bcls.inputs.get(pname).unwrap().0;
-                                match bidx {
-                                    EntityBundleIndex::Single(_) => unreachable!(),
-                                    EntityBundleIndex::Array(range) => range.index(idx),
-                                }
-                            }
+        let BelKind::Class(bcid) = self.intdb.bel_slots[slot].kind else {
+            unreachable!()
+        };
+        let bcls = &self.intdb.bel_classes[bcid];
+        let BelInfo::Bel(mut bel) = self.tcls.bels[slot].clone() else {
+            unreachable!()
+        };
+        for (pin, &wire) in &pins.ins {
+            let cell = self.get_cell(wire.cell);
+            let pid = match pin {
+                InstPin::Simple(pname) => {
+                    if let Some((bidx, _)) = bcls.inputs.get(pname) {
+                        match bidx {
+                            EntityBundleIndex::Single(pid) => pid,
+                            EntityBundleIndex::Array(_) => unreachable!(),
                         }
-                        InstPin::Indexed(pname, idx) => {
-                            let bidx = bcls.inputs.get(pname).unwrap().0;
-                            match bidx {
-                                EntityBundleIndex::Single(_) => unreachable!(),
-                                EntityBundleIndex::Array(range) => range.index(*idx),
-                            }
-                        }
-                    };
-                    let inp = BelInput::Fixed(
-                        TileWireCoord {
-                            cell,
-                            wire: wire.slot,
-                        }
-                        .pos(),
-                    );
-                    if bel.inputs.contains_id(pid) {
-                        assert_eq!(bel.inputs[pid], inp);
                     } else {
-                        bel.inputs.insert(pid, inp);
-                    }
-                }
-                for (pin, iwires) in &pins.outs {
-                    let mut wires = BTreeSet::new();
-                    let pid = match pin {
-                        InstPin::Simple(pname) => {
-                            if let Some((bidx, _)) = bcls.outputs.get(pname) {
-                                match bidx {
-                                    EntityBundleIndex::Single(pid) => pid,
-                                    EntityBundleIndex::Array(_) => unreachable!(),
-                                }
-                            } else {
-                                let idx: usize = pname[pname.len() - 1..].parse().unwrap();
-                                let pname = &pname[..pname.len() - 1];
-                                let bidx = bcls.outputs.get(pname).unwrap().0;
-                                match bidx {
-                                    EntityBundleIndex::Single(_) => unreachable!(),
-                                    EntityBundleIndex::Array(range) => range.index(idx),
-                                }
-                            }
+                        let idx: usize = pname[pname.len() - 1..].parse().unwrap();
+                        let pname = &pname[..pname.len() - 1];
+                        let bidx = bcls.inputs.get(pname).unwrap().0;
+                        match bidx {
+                            EntityBundleIndex::Single(_) => unreachable!(),
+                            EntityBundleIndex::Array(range) => range.index(idx),
                         }
-                        InstPin::Indexed(pname, idx) => {
-                            let bidx = bcls.outputs.get(pname).unwrap().0;
-                            match bidx {
-                                EntityBundleIndex::Single(_) => unreachable!(),
-                                EntityBundleIndex::Array(range) => range.index(*idx),
-                            }
-                        }
-                    };
-                    for &wire in iwires {
-                        let cell = self.get_cell(wire.cell);
-                        wires.insert(TileWireCoord {
-                            cell,
-                            wire: wire.slot,
-                        });
-                    }
-                    if bel.outputs.contains_id(pid) {
-                        assert_eq!(bel.outputs[pid], wires);
-                    } else {
-                        bel.outputs.insert(pid, wires);
                     }
                 }
-                self.tcls.bels.insert(slot, BelInfo::Bel(bel));
-            }
-            BelKind::Legacy => {
-                let mut bel = LegacyBel::default();
-                for (pin, &wire) in &pins.ins {
-                    let cell = self.get_cell(wire.cell);
-                    let pname = match pin {
-                        InstPin::Simple(pin) => pin.to_string(),
-                        InstPin::Indexed(pin, idx) => format!("{pin}_{idx}"),
-                    };
-                    bel.pins.insert(
-                        pname,
-                        BelPin::new_in(TileWireCoord {
-                            cell,
-                            wire: wire.slot,
-                        }),
-                    );
-                }
-                for (pin, iwires) in &pins.outs {
-                    let mut wires = BTreeSet::new();
-                    let pname = match pin {
-                        InstPin::Simple(pin) => pin.to_string(),
-                        InstPin::Indexed(pin, idx) => format!("{pin}_{idx}"),
-                    };
-                    for &wire in iwires {
-                        let cell = self.get_cell(wire.cell);
-                        wires.insert(TileWireCoord {
-                            cell,
-                            wire: wire.slot,
-                        });
+                InstPin::Indexed(pname, idx) => {
+                    let bidx = bcls.inputs.get(pname).unwrap().0;
+                    match bidx {
+                        EntityBundleIndex::Single(_) => unreachable!(),
+                        EntityBundleIndex::Array(range) => range.index(*idx),
                     }
-                    bel.pins.insert(pname, BelPin::new_out_multi(wires));
                 }
-                self.tcls.bels.insert(slot, BelInfo::Legacy(bel));
+            };
+            let inp = BelInput::Fixed(
+                TileWireCoord {
+                    cell,
+                    wire: wire.slot,
+                }
+                .pos(),
+            );
+            if bel.inputs.contains_id(pid) {
+                assert_eq!(bel.inputs[pid], inp);
+            } else {
+                bel.inputs.insert(pid, inp);
             }
         }
+        for (pin, iwires) in &pins.outs {
+            let mut wires = BTreeSet::new();
+            let pid = match pin {
+                InstPin::Simple(pname) => {
+                    if let Some((bidx, _)) = bcls.outputs.get(pname) {
+                        match bidx {
+                            EntityBundleIndex::Single(pid) => pid,
+                            EntityBundleIndex::Array(_) => unreachable!(),
+                        }
+                    } else {
+                        let idx: usize = pname[pname.len() - 1..].parse().unwrap();
+                        let pname = &pname[..pname.len() - 1];
+                        let bidx = bcls.outputs.get(pname).unwrap().0;
+                        match bidx {
+                            EntityBundleIndex::Single(_) => unreachable!(),
+                            EntityBundleIndex::Array(range) => range.index(idx),
+                        }
+                    }
+                }
+                InstPin::Indexed(pname, idx) => {
+                    let bidx = bcls.outputs.get(pname).unwrap().0;
+                    match bidx {
+                        EntityBundleIndex::Single(_) => unreachable!(),
+                        EntityBundleIndex::Array(range) => range.index(*idx),
+                    }
+                }
+            };
+            for &wire in iwires {
+                let cell = self.get_cell(wire.cell);
+                wires.insert(TileWireCoord {
+                    cell,
+                    wire: wire.slot,
+                });
+            }
+            if bel.outputs.contains_id(pid) {
+                assert_eq!(bel.outputs[pid], wires);
+            } else {
+                bel.outputs.insert(pid, wires);
+            }
+        }
+        self.tcls.bels.insert(slot, BelInfo::Bel(bel));
     }
 
     pub fn insert_io(&mut self, key: SpecialIoKey, io: BelCoord) {
