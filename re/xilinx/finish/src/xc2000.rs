@@ -142,7 +142,7 @@ fn sort_key<'a>(name: &'a str, chip: &'a Chip) -> SortKey<'a> {
 pub fn finish(
     xact: Option<prjcombine_re_xilinx_xact_geom::GeomDb>,
     geom: Option<prjcombine_re_xilinx_geom::GeomDb>,
-    mut bitdb: CollectorData,
+    bitdb: CollectorData,
 ) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     if let Some(ref xact) = xact {
@@ -289,7 +289,7 @@ pub fn finish(
         _ => unreachable!(),
     };
 
-    let bsdata = core::mem::take(&mut bitdb.bsdata);
+    assert!(bitdb.bsdata.is_empty());
     bitdb.insert_into(&mut int, false);
 
     Database {
@@ -297,6 +297,5 @@ pub fn finish(
         bonds,
         devices: parts,
         int,
-        bsdata,
     }
 }

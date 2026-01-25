@@ -328,6 +328,10 @@ impl BsData {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.tiles.is_empty() && self.device_data.is_empty() && self.misc_data.is_empty()
+    }
+
     pub fn from_file(path: impl AsRef<Path>) -> Result<Self, Box<dyn Error>> {
         let f = File::open(path)?;
         let mut cf = zstd::stream::Decoder::new(f)?;
