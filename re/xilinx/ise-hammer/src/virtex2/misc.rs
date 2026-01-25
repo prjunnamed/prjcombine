@@ -1605,12 +1605,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.extract_bit_bi_legacy(int_tiles[0], bel, "GTSINV", "GTS", "GTS_B")
     };
     ctx.insert_int_inv(int_tiles, tile, bel, "GTS", item);
-    let item = if edev.chip.kind.is_virtex2() {
-        // caution: invert
-        ctx.extract_bit_bi_legacy(int_tiles[0], bel, "GSRINV", "GSR_B", "GSR")
-    } else {
-        ctx.extract_bit_bi_legacy(int_tiles[0], bel, "GSRINV", "GSR", "GSR_B")
-    };
+    let item = ctx.extract_bit_bi_legacy(int_tiles[0], bel, "GSRINV", "GSR", "GSR_B");
     ctx.insert_int_inv(int_tiles, tile, bel, "GSR", item);
     let diff0_gts = ctx.get_diff_legacy(tile, bel, "GTSINV", "GTS");
     let diff1_gts = ctx.get_diff_legacy(tile, bel, "GTSINV", "GTS_B");
@@ -1630,30 +1625,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         .assert_empty();
     let item = ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CLKINV", "CLK", "CLK_B");
     ctx.insert_int_inv(int_tiles, tile, bel, "CLK", item);
-    let item = if edev.chip.kind.is_virtex2() {
-        // caution: inverted
-        ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CAPINV", "CAP_B", "CAP")
-    } else {
-        ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CAPINV", "CAP", "CAP_B")
-    };
+    let item = ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CAPINV", "CAP", "CAP_B");
     ctx.insert_int_inv(int_tiles, tile, bel, "CAP", item);
     let bel = "ICAP";
     if edev.chip.kind != ChipKind::Spartan3E {
         let item = ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CLKINV", "CLK", "CLK_B");
         ctx.insert_int_inv(int_tiles, tile, bel, "CLK", item);
-        let item = if edev.chip.kind.is_virtex2() {
-            ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CEINV", "CE", "CE_B")
-        } else {
-            // caution: inverted
-            ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CEINV", "CE_B", "CE")
-        };
+        // caution: inverted
+        let item = ctx.extract_bit_bi_legacy(int_tiles[0], bel, "CEINV", "CE_B", "CE");
         ctx.insert_int_inv(int_tiles, tile, bel, "CE", item);
-        let item = if edev.chip.kind.is_virtex2() {
-            ctx.extract_bit_bi_legacy(int_tiles[0], bel, "WRITEINV", "WRITE", "WRITE_B")
-        } else {
-            // caution: inverted
-            ctx.extract_bit_bi_legacy(int_tiles[0], bel, "WRITEINV", "WRITE_B", "WRITE")
-        };
+        // caution: inverted
+        let item = ctx.extract_bit_bi_legacy(int_tiles[0], bel, "WRITEINV", "WRITE_B", "WRITE");
         ctx.insert_int_inv(int_tiles, tile, bel, "WRITE", item);
         if !edev.chip.kind.is_spartan3a() {
             ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");

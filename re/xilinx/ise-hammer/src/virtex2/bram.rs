@@ -298,11 +298,11 @@ pub fn add_fuzzers<'a>(
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
-    let grid_kind = match ctx.edev {
+    let chip_kind = match ctx.edev {
         ExpandedDevice::Virtex2(edev) => edev.chip.kind,
         _ => unreachable!(),
     };
-    let int_tiles = match grid_kind {
+    let int_tiles = match chip_kind {
         ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &["INT_BRAM"; 4],
         ChipKind::Spartan3 => &["INT_BRAM_S3"; 4],
         ChipKind::FpgaCore => unreachable!(),
@@ -315,7 +315,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         ChipKind::Spartan3ADsp => &["INT_BRAM_S3ADSP"; 4],
     };
-    let tile = match grid_kind {
+    let tile = match chip_kind {
         ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => "BRAM",
         ChipKind::Spartan3 => "BRAM_S3",
         ChipKind::FpgaCore => unreachable!(),
@@ -344,7 +344,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         )
     }
     if devdata_only {
-        if !grid_kind.is_virtex2() {
+        if !chip_kind.is_virtex2() {
             let present_base = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "BASE");
             let all_0 = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "ALL_0");
             let mut diff = present_base.combine(&!all_0);
@@ -354,7 +354,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 &mut diff,
             );
             ctx.insert_device_data("BRAM:DDEL_A_DEFAULT", adef);
-            if grid_kind != ChipKind::Spartan3 {
+            if chip_kind != ChipKind::Spartan3 {
                 let bdef = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "BRAM", "DDEL_B"),
                     &bits![0, 0],
@@ -369,7 +369,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 &mut diff,
             );
             ctx.insert_device_data("BRAM:WDEL_A_DEFAULT", adef);
-            if grid_kind != ChipKind::Spartan3 {
+            if chip_kind != ChipKind::Spartan3 {
                 let bdef = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "BRAM", "WDEL_B"),
                     &bits![0, 0, 0],
@@ -383,7 +383,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
     let present_base = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "BASE");
     let mut present = present_base.clone();
-    if !grid_kind.is_virtex2() {
+    if !chip_kind.is_virtex2() {
         let diff_base = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "DDEL_00");
         let diff0 = ctx
             .get_diff_legacy(tile, "BRAM", "PRESENT", "DDEL_01")
@@ -400,7 +400,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.insert(tile, "BRAM", "DDEL_A", ddel_a);
         ctx.insert_device_data("BRAM:DDEL_A_DEFAULT", adef);
         present.discard_bits_legacy(ctx.item(tile, "BRAM", "DDEL_A"));
-        if grid_kind == ChipKind::Spartan3 {
+        if chip_kind == ChipKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
             bdef.assert_empty();
@@ -432,7 +432,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ctx.insert_device_data("BRAM:WDEL_A_DEFAULT", adef);
         ctx.insert(tile, "BRAM", "WDEL_A", wdel_a);
         present.discard_bits_legacy(ctx.item(tile, "BRAM", "WDEL_A"));
-        if grid_kind == ChipKind::Spartan3 {
+        if chip_kind == ChipKind::Spartan3 {
             b0.assert_empty();
             b1.assert_empty();
             b2.assert_empty();
@@ -471,11 +471,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let mut diffs_datap = vec![];
     ctx.collect_int_inv(int_tiles, tile, "BRAM", "CLKA", false);
     ctx.collect_int_inv(int_tiles, tile, "BRAM", "CLKB", false);
-    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENA", grid_kind.is_virtex2());
-    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENB", grid_kind.is_virtex2());
+    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENA", false);
+    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENB", false);
     present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENA"));
     present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENB"));
-    match grid_kind {
+    match chip_kind {
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
             for pin in [
                 "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
@@ -506,7 +506,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.get_diff_legacy(tile, "BRAM", attr, "0").assert_empty();
                 ctx.collect_enum_legacy(tile, "BRAM", attr, &["1", "2", "4", "9", "18", "36"]);
             }
-            if grid_kind == ChipKind::Spartan3ADsp {
+            if chip_kind == ChipKind::Spartan3ADsp {
                 for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
                     ctx.collect_int_inv(int_tiles, tile, "BRAM", pin, false);
                     present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
@@ -524,8 +524,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         _ => {
             ctx.collect_int_inv(int_tiles, tile, "BRAM", "WEA", false);
             ctx.collect_int_inv(int_tiles, tile, "BRAM", "WEB", false);
-            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRA", grid_kind.is_virtex2());
-            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRB", grid_kind.is_virtex2());
+            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRA", false);
+            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRB", false);
             for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
                 present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
@@ -567,7 +567,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 .collect();
                 ctx.insert(tile, "BRAM", dattr, xlat_enum_legacy(diffs));
             }
-            if grid_kind.is_virtex2() {
+            if chip_kind.is_virtex2() {
                 ctx.get_diff_legacy(tile, "BRAM", "SAVEDATA", "FALSE")
                     .assert_empty();
                 let diff = ctx.get_diff_legacy(tile, "BRAM", "SAVEDATA", "TRUE");
@@ -596,7 +596,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.collect_bitvec_legacy(tile, "BRAM", "SRVAL_B", "");
     present.discard_bits_legacy(ctx.item(tile, "BRAM", "DATA_WIDTH_A"));
     present.discard_bits_legacy(ctx.item(tile, "BRAM", "DATA_WIDTH_B"));
-    if grid_kind.is_spartan3a() {
+    if chip_kind.is_spartan3a() {
         ctx.insert(
             tile,
             "BRAM",
@@ -607,17 +607,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present.assert_empty();
     }
 
-    if grid_kind != ChipKind::Spartan3ADsp {
+    if chip_kind != ChipKind::Spartan3ADsp {
         let mut present = ctx.get_diff_legacy(tile, "MULT", "PRESENT", "1");
-        if grid_kind.is_virtex2() || grid_kind == ChipKind::Spartan3 {
+        if chip_kind.is_virtex2() || chip_kind == ChipKind::Spartan3 {
             let f_clk = ctx.get_diff_legacy(tile, "MULT", "CLKINV", "CLK");
             let f_clk_b = ctx.get_diff_legacy(tile, "MULT", "CLKINV", "CLK_B");
             let (f_clk, f_clk_b, f_reg) = Diff::split(f_clk, f_clk_b);
             f_clk.assert_empty();
             ctx.insert(tile, "MULT", "REG", xlat_bit_legacy(f_reg));
             ctx.insert_int_inv(int_tiles, tile, "MULT", "CLK", xlat_bit_legacy(f_clk_b));
-            ctx.collect_int_inv(int_tiles, tile, "MULT", "CE", grid_kind.is_virtex2());
-            ctx.collect_int_inv(int_tiles, tile, "MULT", "RST", grid_kind.is_virtex2());
+            ctx.collect_int_inv(int_tiles, tile, "MULT", "CE", false);
+            ctx.collect_int_inv(int_tiles, tile, "MULT", "RST", false);
             present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CE"));
         } else {
             for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
@@ -640,7 +640,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEA"));
             present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEB"));
             present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEP"));
-            if grid_kind == ChipKind::Spartan3A {
+            if chip_kind == ChipKind::Spartan3A {
                 for ab in ['A', 'B'] {
                     for i in 0..18 {
                         let name = &*format!("MUX.{ab}{i}");

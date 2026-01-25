@@ -178,8 +178,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             let int_tiles = &["INT_GT_CLKPAD", "INT_PPC", "INT_PPC", "INT_PPC", "INT_PPC"];
-            let flip = ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_SR");
-            ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
+            ctx.collect_int_inv(int_tiles, tile, bel, pin, false);
         }
         for attr in [
             "ALIGN_COMMA_MSB",

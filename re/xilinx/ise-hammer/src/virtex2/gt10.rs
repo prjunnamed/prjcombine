@@ -194,8 +194,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "INT_PPC",
                 "INT_PPC",
             ];
-            let flip = ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_SR");
-            ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
+            ctx.collect_int_inv(int_tiles, tile, bel, pin, false);
         }
         for attr in [
             "PCOMMA_DETECT",

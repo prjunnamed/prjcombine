@@ -143,7 +143,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
             } else {
                 ctx.collect_int_inv(&["INT_CLB"], tile, bel, "T", false);
-                ctx.collect_int_inv(&["INT_CLB"], tile, bel, "I", true);
+                ctx.collect_int_inv(&["INT_CLB"], tile, bel, "I", false);
             }
             for attr in ["OUT_A", "OUT_B"] {
                 ctx.collect_bit_legacy(tile, bel, attr, "1");

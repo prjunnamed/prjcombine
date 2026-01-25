@@ -2487,8 +2487,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_inv(tile, bel, "OTCLK2");
             ctx.collect_inv(tile, bel, "ICLK1");
             ctx.collect_inv(tile, bel, "ICLK2");
-            ctx.collect_int_inv(int_tiles, tile, bel, "SR", edev.chip.kind.is_virtex2());
-            ctx.collect_int_inv(int_tiles, tile, bel, "OCE", edev.chip.kind.is_virtex2());
+            ctx.collect_int_inv(int_tiles, tile, bel, "SR", false);
+            ctx.collect_int_inv(int_tiles, tile, bel, "OCE", false);
             ctx.collect_inv(tile, bel, "REV");
             ctx.collect_inv(tile, bel, "ICE");
             ctx.collect_inv(tile, bel, "TCE");

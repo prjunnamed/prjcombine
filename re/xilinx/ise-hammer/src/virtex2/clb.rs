@@ -912,8 +912,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "INT_CLB"
         };
         ctx.collect_int_inv(&[int], "CLB", bel, "CLK", false);
-        ctx.collect_int_inv(&[int], "CLB", bel, "SR", mode == Mode::Virtex2);
-        ctx.collect_int_inv(&[int], "CLB", bel, "CE", mode == Mode::Virtex2);
+        ctx.collect_int_inv(&[int], "CLB", bel, "SR", false);
+        ctx.collect_int_inv(&[int], "CLB", bel, "CE", false);
         if mode == Mode::Virtex2 {
             ctx.collect_int_inv(&[int], "CLB", bel, "BX", false);
             ctx.collect_int_inv(&[int], "CLB", bel, "BY", false);
