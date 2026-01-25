@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_collector::diff::{
-    Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_attr, xlat_enum_raw,
+    Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_attr, xlat_enum_raw,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -1467,7 +1467,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     *diff = diff.combine(&!&odiff);
                                 }
                                 {
-                                    ctx.insert_pass(tcid, wire_to, wire_mid, xlat_bit_raw(odiff));
+                                    ctx.insert_pass(tcid, wire_to, wire_mid, xlat_bit(odiff));
                                 }
                                 mux_diffs.extend(diffs);
                             }
@@ -1531,14 +1531,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     tcid,
                                     bel,
                                     bcls::TBUF::DRIVE1_DUP,
-                                    xlat_bit_raw(dup),
+                                    xlat_bit(dup),
                                 );
                             }
                             ctx.insert_bel_attr_bool(
                                 tcid,
                                 bel,
                                 bcls::TBUF::DRIVE1,
-                                xlat_bit_raw(drive1),
+                                xlat_bit(drive1),
                             );
                             inps.push((
                                 Some(TileWireCoord::new_idx(0, wires::TIE_1).pos()),
@@ -1605,7 +1605,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                 }
                                 assert!(got_empty);
-                                ctx.insert_bel_attr_bool(tcid, rbel, rattr, xlat_bit_raw(common));
+                                ctx.insert_bel_attr_bool(tcid, rbel, rattr, xlat_bit(common));
                             }
                         }
 
@@ -1758,9 +1758,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 for (src, diff) in diffs {
                     let diff = diff.combine(&!&odiff);
-                    ctx.insert_progbuf(tcid, obuf, src, xlat_bit_raw(diff));
+                    ctx.insert_progbuf(tcid, obuf, src, xlat_bit(diff));
                 }
-                ctx.insert_progbuf(tcid, dst, obuf.pos(), xlat_bit_raw(odiff));
+                ctx.insert_progbuf(tcid, dst, obuf.pos(), xlat_bit(odiff));
             }
 
             for (dst, mut diffs) in gclk_diffs {
@@ -1778,7 +1778,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     wire: wires::BUFGLS[idx],
                     ..dst.tw
                 };
-                ctx.insert_progbuf(tcid, dst.tw, bufg.pos(), xlat_bit_raw(diff));
+                ctx.insert_progbuf(tcid, dst.tw, bufg.pos(), xlat_bit(diff));
             }
         }
         for slots in [

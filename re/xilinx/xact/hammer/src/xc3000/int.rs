@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     dir::Dir,
     grid::{BelCoord, TileCoord, WireCoord},
 };
-use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_xc2000::xc3000::{bcls, bslots, tslots, wires};
@@ -724,7 +724,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         tcid,
                                         slot,
                                         bcls::IO::OSC_PULLUP,
-                                        vec![xlat_bit_raw(!diff_i_spec)],
+                                        vec![xlat_bit(!diff_i_spec)],
                                     );
                                 }
                                 assert_eq!(diff_i, !&diff_pullup);
@@ -766,7 +766,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.collect_bipass(tcid, pass.a, pass.b);
                     }
                     SwitchBoxItem::ProgInv(inv) => {
-                        ctx.collect_inv_pair(tcid, inv.dst);
+                        ctx.collect_inv_bi(tcid, inv.dst);
                     }
                     _ => unreachable!(),
                 }

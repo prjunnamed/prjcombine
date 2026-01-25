@@ -7,7 +7,7 @@ use prjcombine_interconnect::{
     dir::Dir,
     grid::{BelCoord, TileCoord, WireCoord},
 };
-use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bool_raw, xlat_enum_raw};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit_bi, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_types::bsdata::BitRectId;
@@ -557,7 +557,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff0 =
                     ctx.get_diff_raw(&DiffKey::RoutingBidi(tcid, bidi.conn, bidi.wire, false));
                 let diff1 = diff_s;
-                let bit = xlat_bool_raw(diff0, diff1);
+                let bit = xlat_bit_bi(diff0, diff1);
                 ctx.insert_bidi(tcid, bidi.conn, bidi.wire, bit);
             } else {
                 ctx.collect_bidi(tcid, bidi.conn, bidi.wire);

@@ -1,4 +1,7 @@
-use prjcombine_re_collector::diff::{Diff, xlat_bool, xlat_enum};
+use prjcombine_re_collector::{
+    diff::Diff,
+    legacy::{xlat_bit_bi_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex4::defs;
 
@@ -169,23 +172,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         for &pin in DSP48E1_TIEPINS {
             let attr = format!("MUX.{pin}");
-            let gnd = ctx.get_diff(tile, bel, &attr, "GND");
-            let vcc = ctx.get_diff(tile, bel, &attr, "VCC");
+            let gnd = ctx.get_diff_legacy(tile, bel, &attr, "GND");
+            let vcc = ctx.get_diff_legacy(tile, bel, &attr, "VCC");
             ctx.insert(
                 tile,
                 bel,
                 attr,
-                xlat_enum(vec![("INT", Diff::default()), ("GND", gnd), ("VCC", vcc)]),
+                xlat_enum_legacy(vec![("INT", Diff::default()), ("GND", gnd), ("VCC", vcc)]),
             );
         }
 
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "AREG_ACASCREG",
             &["0_0", "1_1_INMODE0_GND", "1_1", "2_1", "2_2"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "BREG_BCASCREG",
@@ -203,36 +206,37 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "DREG",
             "ADREG",
         ] {
-            ctx.collect_enum(tile, bel, attr, &["0", "1"]);
+            ctx.collect_enum_legacy(tile, bel, attr, &["0", "1"]);
         }
-        ctx.collect_enum(tile, bel, "A_INPUT", &["DIRECT", "CASCADE"]);
-        ctx.collect_enum(tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
-        ctx.get_diff(tile, bel, "USE_PATTERN_DETECT", "PATDET")
+        ctx.collect_enum_legacy(tile, bel, "A_INPUT", &["DIRECT", "CASCADE"]);
+        ctx.collect_enum_legacy(tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
+        ctx.get_diff_legacy(tile, bel, "USE_PATTERN_DETECT", "PATDET")
             .assert_empty();
-        ctx.get_diff(tile, bel, "USE_PATTERN_DETECT", "NO_PATDET")
+        ctx.get_diff_legacy(tile, bel, "USE_PATTERN_DETECT", "NO_PATDET")
             .assert_empty();
-        ctx.collect_enum(tile, bel, "USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
-        let d0 = ctx.get_diff(tile, bel, "USE_MULT", "NONE");
-        let d1 = ctx.get_diff(tile, bel, "USE_MULT", "MULTIPLY");
-        assert_eq!(d1, ctx.get_diff(tile, bel, "USE_MULT", "DYNAMIC"));
-        ctx.insert(tile, bel, "USE_MULT", xlat_bool(d0, d1));
-        ctx.collect_enum_bool(tile, bel, "USE_DPORT", "FALSE", "TRUE");
-        ctx.collect_enum(tile, bel, "SEL_PATTERN", &["PATTERN", "C"]);
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(tile, bel, "USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
+        let d0 = ctx.get_diff_legacy(tile, bel, "USE_MULT", "NONE");
+        let d1 = ctx.get_diff_legacy(tile, bel, "USE_MULT", "MULTIPLY");
+        assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "USE_MULT", "DYNAMIC"));
+        ctx.insert(tile, bel, "USE_MULT", xlat_bit_bi_legacy(d0, d1));
+        ctx.collect_bit_bi_legacy(tile, bel, "USE_DPORT", "FALSE", "TRUE");
+        ctx.collect_enum_legacy(tile, bel, "SEL_PATTERN", &["PATTERN", "C"]);
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "SEL_MASK",
             &["MASK", "C", "ROUNDING_MODE1", "ROUNDING_MODE2"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "AUTORESET_PATDET",
             &["RESET_MATCH", "RESET_NOT_MATCH", "NO_RESET"],
         );
 
-        ctx.collect_bitvec(tile, bel, "PATTERN", "");
-        ctx.collect_bitvec(tile, bel, "MASK", "");
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.collect_bitvec_legacy(tile, bel, "PATTERN", "");
+        ctx.collect_bitvec_legacy(tile, bel, "MASK", "");
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
     }
 }

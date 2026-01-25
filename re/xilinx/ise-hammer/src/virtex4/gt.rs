@@ -1,8 +1,11 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
-use prjcombine_re_collector::diff::{
-    Diff, DiffKey, FeatureId, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default,
-    xlat_enum_ocd,
+use prjcombine_re_collector::{
+    diff::{Diff, DiffKey, FeatureId, OcdMode},
+    legacy::{
+        xlat_bit_legacy, xlat_bitvec_legacy, xlat_enum_default_legacy, xlat_enum_legacy,
+        xlat_enum_legacy_ocd,
+    },
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -649,23 +652,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         TileBit::new(tile, 19, bit)
     }
     let (_, _, synclk_enable) = Diff::split(
-        ctx.peek_diff(tile, "GT11[1]", "MUX.SYNCLK_OUT", "SYNCLK1")
+        ctx.peek_diff_legacy(tile, "GT11[1]", "MUX.SYNCLK_OUT", "SYNCLK1")
             .clone(),
-        ctx.peek_diff(tile, "GT11[0]", "MUX.SYNCLK_OUT", "SYNCLK1")
+        ctx.peek_diff_legacy(tile, "GT11[0]", "MUX.SYNCLK_OUT", "SYNCLK1")
             .clone(),
     );
     for idx in 0..2 {
         let bel = &format!("GT11[{idx}]");
-        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
         for i in 0x40..0x80 {
             ctx.insert(
                 tile,
                 bel,
                 format!("DRP{i:02X}"),
-                TileItem::from_bitvec((0..16).map(|j| drp_bit(idx, i, j)).collect(), false),
+                TileItem::from_bitvec_inv((0..16).map(|j| drp_bit(idx, i, j)).collect(), false),
             );
-            let item = TileItem::from_bit(drp_bit(idx, i, 17), false);
-            present.apply_bit_diff(&item, true, false);
+            let item = TileItem::from_bit_inv(drp_bit(idx, i, 17), false);
+            present.apply_bit_diff_legacy(&item, true, false);
             ctx.insert(tile, bel, format!("DRP{i:02X}_MASK"), item);
         }
         for &pin in GT11_INVPINS {
@@ -688,15 +691,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "DEN",
             "DWE",
         ] {
-            present.apply_bit_diff(&ctx.item_int_inv(&["INT"; 32], tile, bel, pin), false, true);
+            present.apply_bit_diff_legacy(
+                &ctx.item_int_inv(&["INT"; 32], tile, bel, pin),
+                false,
+                true,
+            );
         }
         present.assert_empty();
         for &attr in GT11_BOOL_ATTRS {
             if attr == "PMACLKENABLE" {
-                ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
-                ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
+                ctx.get_diff_legacy(tile, bel, attr, "FALSE").assert_empty();
+                ctx.get_diff_legacy(tile, bel, attr, "TRUE").assert_empty();
             } else {
-                ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
             }
         }
         for &(attr, vals) in GT11_ENUM_ATTRS {
@@ -704,43 +711,43 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             // TODO: intify RXUSRDIVISOR, RX_LOS_INVALID_INCR, RX_LOS_THRESHOLD (div4!)
             if attr == "GT11_MODE" {
                 for &val in vals {
-                    ctx.get_diff(tile, bel, attr, val).assert_empty();
+                    ctx.get_diff_legacy(tile, bel, attr, val).assert_empty();
                 }
             } else {
-                ctx.collect_enum(tile, bel, attr, vals);
+                ctx.collect_enum_legacy(tile, bel, attr, vals);
             }
         }
         for &(attr, _) in GT11_DEC_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GT11_BIN_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GT11_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
 
-        let diffs_10 = ctx.get_diffs(tile, bel, "MCOMMA_10B_VALUE", "");
-        let diffs_32 = ctx.get_diffs(tile, bel, "MCOMMA_32B_VALUE", "");
+        let diffs_10 = ctx.get_diffs_legacy(tile, bel, "MCOMMA_10B_VALUE", "");
+        let diffs_32 = ctx.get_diffs_legacy(tile, bel, "MCOMMA_32B_VALUE", "");
         assert!(diffs_32.starts_with(&diffs_10));
-        ctx.insert(tile, bel, "MCOMMA_VALUE", xlat_bitvec(diffs_32));
-        let diffs_10 = ctx.get_diffs(tile, bel, "PCOMMA_10B_VALUE", "");
-        let diffs_32 = ctx.get_diffs(tile, bel, "PCOMMA_32B_VALUE", "");
+        ctx.insert(tile, bel, "MCOMMA_VALUE", xlat_bitvec_legacy(diffs_32));
+        let diffs_10 = ctx.get_diffs_legacy(tile, bel, "PCOMMA_10B_VALUE", "");
+        let diffs_32 = ctx.get_diffs_legacy(tile, bel, "PCOMMA_32B_VALUE", "");
         assert!(diffs_32.starts_with(&diffs_10));
-        ctx.insert(tile, bel, "PCOMMA_VALUE", xlat_bitvec(diffs_32));
+        ctx.insert(tile, bel, "PCOMMA_VALUE", xlat_bitvec_legacy(diffs_32));
 
         for &attr in GT11_SHARED_BOOL_ATTRS {
-            let item = ctx.extract_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            let item = ctx.extract_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
             ctx.insert(tile, "GT11_COMMON", attr, item);
         }
-        let item = ctx.extract_enum(
+        let item = ctx.extract_enum_legacy(
             tile,
             bel,
             "TXABPMACLKSEL",
             &["REFCLK1", "REFCLK2", "GREFCLK"],
         );
         ctx.insert(tile, "GT11_COMMON", "TXABPMACLKSEL", item);
-        let item = ctx.extract_enum(
+        let item = ctx.extract_enum_legacy(
             tile,
             bel,
             "TXPLLNDIVSEL",
@@ -748,16 +755,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
         ctx.insert(tile, "GT11_COMMON", "TXPLLNDIVSEL", item);
         for &(attr, _) in GT11_SHARED_BIN_ATTRS {
-            let item = ctx.extract_bitvec(tile, bel, attr, "");
+            let item = ctx.extract_bitvec_legacy(tile, bel, attr, "");
             ctx.insert(tile, "GT11_COMMON", attr, item);
         }
         for &(attr, _) in GT11_SHARED_HEX_ATTRS {
-            let item = ctx.extract_bitvec(tile, bel, attr, "");
+            let item = ctx.extract_bitvec_legacy(tile, bel, attr, "");
             ctx.insert(tile, "GT11_COMMON", attr, item);
         }
 
         for attr in ["MUX.PMACLK", "MUX.REFCLK"] {
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 attr,
@@ -775,7 +782,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             _ => unreachable!(),
         };
         for i in 1..=4 {
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 &format!("MUX.FWDCLK{i}"),
@@ -792,15 +799,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         let (_, _, fwdclk_out_enable) = Diff::split(
-            ctx.peek_diff(tile, bel, "MUX.FWDCLK0_OUT", "FWDCLK1")
+            ctx.peek_diff_legacy(tile, bel, "MUX.FWDCLK0_OUT", "FWDCLK1")
                 .clone(),
-            ctx.peek_diff(tile, bel, "MUX.FWDCLK1_OUT", "FWDCLK1")
+            ctx.peek_diff_legacy(tile, bel, "MUX.FWDCLK1_OUT", "FWDCLK1")
                 .clone(),
         );
         for i in 0..2 {
             let mut diffs = vec![];
             for j in 1..=4 {
-                let mut diff = ctx.get_diff(
+                let mut diff = ctx.get_diff_legacy(
                     tile,
                     bel,
                     format!("MUX.FWDCLK{i}_OUT"),
@@ -813,18 +820,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tile,
                 bel,
                 format!("MUX.FWDCLK{i}_OUT"),
-                xlat_enum_ocd(diffs, OcdMode::BitOrder),
+                xlat_enum_legacy_ocd(diffs, OcdMode::BitOrder),
             );
         }
         ctx.insert(
             tile,
             "GT11_COMMON",
             "FWDCLK_OUT_ENABLE",
-            xlat_bit(fwdclk_out_enable),
+            xlat_bit_legacy(fwdclk_out_enable),
         );
 
         for i in 0..2 {
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 &format!("MUX.MGT{i}"),
@@ -835,7 +842,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let mut diffs = vec![];
         for inp in ["SYNCLK1", "SYNCLK2"] {
-            let mut diff = ctx.get_diff(tile, bel, "MUX.SYNCLK_OUT", inp);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "MUX.SYNCLK_OUT", inp);
             diff = diff.combine(&!&synclk_enable);
             diffs.push((inp.to_string(), diff));
         }
@@ -843,41 +850,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             "MUX.SYNCLK_OUT",
-            xlat_enum_default(diffs, "NONE"),
+            xlat_enum_default_legacy(diffs, "NONE"),
         );
     }
-    ctx.get_diff(tile, "GT11CLK", "PRESENT", "1").assert_empty();
+    ctx.get_diff_legacy(tile, "GT11CLK", "PRESENT", "1")
+        .assert_empty();
 
     let (_, _, mut synclk_drive_enable) = Diff::split(
-        ctx.peek_diff(tile, "GT11CLK", "SYNCLK1", "BUF_DOWN")
+        ctx.peek_diff_legacy(tile, "GT11CLK", "SYNCLK1", "BUF_DOWN")
             .clone(),
-        ctx.peek_diff(tile, "GT11CLK", "SYNCLK2", "BUF_DOWN")
+        ctx.peek_diff_legacy(tile, "GT11CLK", "SYNCLK2", "BUF_DOWN")
             .clone(),
     );
     for attr in ["SYNCLK1", "SYNCLK2"] {
         let mut diffs = vec![("NONE", Diff::default())];
         for val in ["BUF_UP", "BUF_DOWN", "DRIVE_UP", "DRIVE_DOWN", "DRIVE_BOTH"] {
-            let mut diff = ctx.get_diff(tile, "GT11CLK", attr, val);
+            let mut diff = ctx.get_diff_legacy(tile, "GT11CLK", attr, val);
             diff = diff.combine(&!&synclk_drive_enable);
             diffs.push((val, diff));
         }
-        ctx.insert(tile, "GT11_COMMON", attr, xlat_enum(diffs));
+        ctx.insert(tile, "GT11_COMMON", attr, xlat_enum_legacy(diffs));
     }
     synclk_drive_enable = synclk_drive_enable.combine(&!&synclk_enable);
     ctx.insert(
         tile,
         "GT11_COMMON",
         "SYNCLK_DRIVE_ENABLE",
-        xlat_bit(synclk_drive_enable),
+        xlat_bit_legacy(synclk_drive_enable),
     );
     ctx.insert(
         tile,
         "GT11_COMMON",
         "SYNCLK_ENABLE",
-        xlat_bit(synclk_enable),
+        xlat_bit_legacy(synclk_enable),
     );
 
-    let item = ctx.extract_enum(
+    let item = ctx.extract_enum_legacy(
         tile,
         "GT11CLK",
         "REFCLKSEL",
@@ -885,7 +893,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     );
     ctx.insert(tile, "GT11_COMMON", "REFCLKSEL", item);
 
-    let item = ctx.extract_enum_default_ocd(
+    let item = ctx.extract_enum_default_legacy_ocd(
         tile,
         "GT11CLK",
         "MUX.REFCLK",
@@ -894,7 +902,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         OcdMode::BitOrder,
     );
     ctx.insert(tile, "GT11_COMMON", "MUX.REFCLK", item);
-    let item = ctx.extract_enum_default_ocd(
+    let item = ctx.extract_enum_default_legacy_ocd(
         tile,
         "GT11CLK",
         "MUX.PMACLK",
@@ -907,18 +915,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "HCLK_MGT";
     let bel = "HCLK_MGT";
     for i in 0..8 {
-        ctx.collect_bit(tile, bel, &format!("BUF.HCLK{i}"), "1");
+        ctx.collect_bit_legacy(tile, bel, &format!("BUF.HCLK{i}"), "1");
     }
     for i in 0..2 {
-        ctx.collect_bit(tile, bel, &format!("BUF.MGT{i}"), "1");
+        ctx.collect_bit_legacy(tile, bel, &format!("BUF.MGT{i}"), "1");
     }
 
     if !edev.chips[DieId::from_idx(0)].cols_vbrk.is_empty() {
         let tile = "HCLK_MGT_BUF";
         let bel = "HCLK_MGT_BUF";
-        let item = ctx.extract_bit(tile, bel, "BUF.MGT0.MGT", "1");
+        let item = ctx.extract_bit_legacy(tile, bel, "BUF.MGT0.MGT", "1");
         ctx.insert(tile, bel, "BUF.MGT0", item);
-        let item = ctx.extract_bit(tile, bel, "BUF.MGT1.MGT", "1");
+        let item = ctx.extract_bit_legacy(tile, bel, "BUF.MGT1.MGT", "1");
         ctx.insert(tile, bel, "BUF.MGT1", item);
     }
 }

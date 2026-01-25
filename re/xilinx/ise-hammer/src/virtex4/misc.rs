@@ -1,5 +1,8 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_collector::diff::{OcdMode, xlat_bitvec, xlat_enum_ocd};
+use prjcombine_re_collector::{
+    diff::OcdMode,
+    legacy::{xlat_bitvec_legacy, xlat_enum_legacy_ocd},
+};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
@@ -370,9 +373,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
     let tile = "CFG";
     let bel = "MISC";
-    ctx.collect_enum_default(tile, bel, "PROBESEL", &["0", "1", "2", "3"], "NONE");
+    ctx.collect_enum_default_legacy(tile, bel, "PROBESEL", &["0", "1", "2", "3"], "NONE");
     for attr in ["CCLKPIN", "DONEPIN", "POWERDOWNPIN", "PROGPIN", "INITPIN"] {
-        ctx.collect_enum(tile, bel, attr, &["PULLUP", "PULLNONE"]);
+        ctx.collect_enum_legacy(tile, bel, attr, &["PULLUP", "PULLNONE"]);
     }
     for attr in [
         "HSWAPENPIN",
@@ -388,25 +391,26 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "TDOPIN",
         "TMSPIN",
     ] {
-        ctx.collect_enum(tile, bel, attr, &["PULLUP", "PULLDOWN", "PULLNONE"]);
+        ctx.collect_enum_legacy(tile, bel, attr, &["PULLUP", "PULLDOWN", "PULLNONE"]);
     }
 
     for bel in [
         "BSCAN[0]", "BSCAN[1]", "BSCAN[2]", "BSCAN[3]", "JTAGPPC", "DCIRESET", "ICAP[0]", "ICAP[1]",
     ] {
-        let item = ctx.extract_bit(tile, bel, "PRESENT", "1");
+        let item = ctx.extract_bit_legacy(tile, bel, "PRESENT", "1");
         ctx.insert(tile, bel, "ENABLE", item);
     }
 
     let bel = "BSCAN_COMMON";
-    let item = xlat_bitvec(ctx.get_diffs(tile, bel, "USERID", ""));
+    let item = xlat_bitvec_legacy(ctx.get_diffs_legacy(tile, bel, "USERID", ""));
     ctx.insert(tile, bel, "USERID", item);
 
     let bel = "STARTUP";
-    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-    ctx.collect_enum_bool(tile, bel, "GSR_SYNC", "NO", "YES");
-    ctx.collect_enum_bool(tile, bel, "GWE_SYNC", "NO", "YES");
-    ctx.collect_enum_bool(tile, bel, "GTS_SYNC", "NO", "YES");
+    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+        .assert_empty();
+    ctx.collect_bit_bi_legacy(tile, bel, "GSR_SYNC", "NO", "YES");
+    ctx.collect_bit_bi_legacy(tile, bel, "GWE_SYNC", "NO", "YES");
+    ctx.collect_bit_bi_legacy(tile, bel, "GTS_SYNC", "NO", "YES");
     for pin in [
         "CLK",
         "GSR",
@@ -418,15 +422,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_int_inv(&["INT"; 16], tile, bel, pin, false);
     }
     ctx.collect_int_inv(&["INT"; 16], tile, bel, "GTS", true);
-    let item0 = ctx.extract_bit(tile, bel, "PIN.GSR", "1");
-    let item1 = ctx.extract_bit(tile, bel, "PIN.GTS", "1");
+    let item0 = ctx.extract_bit_legacy(tile, bel, "PIN.GSR", "1");
+    let item1 = ctx.extract_bit_legacy(tile, bel, "PIN.GTS", "1");
     assert_eq!(item0, item1);
     ctx.insert(tile, "STARTUP", "GTS_GSR_ENABLE", item0);
-    let item = ctx.extract_bit(tile, bel, "PIN.USRCCLKO", "1");
+    let item = ctx.extract_bit_legacy(tile, bel, "PIN.USRCCLKO", "1");
     ctx.insert(tile, "STARTUP", "USRCCLK_ENABLE", item);
 
-    let item0 = ctx.extract_enum(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X32"]);
-    let item1 = ctx.extract_enum(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X32"]);
+    let item0 = ctx.extract_enum_legacy(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X32"]);
+    let item1 = ctx.extract_enum_legacy(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X32"]);
     assert_eq!(item0, item1);
     ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
     for bel in ["ICAP[0]", "ICAP[1]"] {
@@ -436,7 +440,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     let bel = "CAPTURE";
-    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+        .assert_empty();
     ctx.collect_int_inv(&["INT"; 16], tile, bel, "CLK", false);
     ctx.collect_int_inv(&["INT"; 16], tile, bel, "CAP", true);
 
@@ -444,38 +449,38 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     let tile = "REG.COR";
     let bel = "STARTUP";
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         bel,
         "GWE_CYCLE",
         &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
     );
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         bel,
         "GTS_CYCLE",
         &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
     );
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         bel,
         "DONE_CYCLE",
         &["1", "2", "3", "4", "5", "6", "KEEP"],
     );
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         bel,
         "LCK_CYCLE",
         &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
     );
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         bel,
         "MATCH_CYCLE",
         &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
     );
-    ctx.collect_enum(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
-    ctx.collect_enum_ocd(
+    ctx.collect_enum_legacy(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
+    ctx.collect_enum_legacy_ocd(
         tile,
         bel,
         "CONFIG_RATE",
@@ -485,21 +490,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ],
         OcdMode::BitOrder,
     );
-    ctx.collect_enum_bool(tile, bel, "DRIVE_DONE", "NO", "YES");
-    ctx.collect_enum_bool(tile, bel, "DONE_PIPE", "NO", "YES");
-    ctx.collect_enum_bool(tile, bel, "DCM_SHUTDOWN", "DISABLE", "ENABLE");
-    ctx.collect_enum_bool(tile, bel, "POWERDOWN_STATUS", "DISABLE", "ENABLE");
-    ctx.collect_enum_bool(tile, bel, "CRC", "DISABLE", "ENABLE");
+    ctx.collect_bit_bi_legacy(tile, bel, "DRIVE_DONE", "NO", "YES");
+    ctx.collect_bit_bi_legacy(tile, bel, "DONE_PIPE", "NO", "YES");
+    ctx.collect_bit_bi_legacy(tile, bel, "DCM_SHUTDOWN", "DISABLE", "ENABLE");
+    ctx.collect_bit_bi_legacy(tile, bel, "POWERDOWN_STATUS", "DISABLE", "ENABLE");
+    ctx.collect_bit_bi_legacy(tile, bel, "CRC", "DISABLE", "ENABLE");
     let bel = "CAPTURE";
-    ctx.collect_enum_bool(tile, bel, "ONESHOT", "FALSE", "TRUE");
+    ctx.collect_bit_bi_legacy(tile, bel, "ONESHOT", "FALSE", "TRUE");
 
     let tile = "REG.CTL";
     let bel = "MISC";
-    ctx.collect_enum_bool(tile, bel, "GTS_USR_B", "NO", "YES");
-    ctx.collect_enum_bool(tile, bel, "VGG_TEST", "NO", "YES");
-    ctx.collect_enum_bool(tile, bel, "EN_VTEST", "NO", "YES");
-    ctx.collect_enum_bool(tile, bel, "ENCRYPT", "NO", "YES");
-    ctx.collect_enum(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
+    ctx.collect_bit_bi_legacy(tile, bel, "GTS_USR_B", "NO", "YES");
+    ctx.collect_bit_bi_legacy(tile, bel, "VGG_TEST", "NO", "YES");
+    ctx.collect_bit_bi_legacy(tile, bel, "EN_VTEST", "NO", "YES");
+    ctx.collect_bit_bi_legacy(tile, bel, "ENCRYPT", "NO", "YES");
+    ctx.collect_enum_legacy(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
     // these are too much trouble to deal with the normal way.
     ctx.insert(
         tile,
@@ -540,9 +545,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !edev.tile_index[sysmon].is_empty() {
         let tile = "SYSMON";
         let bel = "SYSMON";
-        ctx.collect_enum(tile, bel, "MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);
+        ctx.collect_enum_legacy(tile, bel, "MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);
         for i in 0x40..0x70 {
-            ctx.collect_bitvec(tile, bel, &format!("INIT_{i:02X}"), "");
+            ctx.collect_bitvec_legacy(tile, bel, &format!("INIT_{i:02X}"), "");
         }
         for pin in [
             "DEN",
@@ -558,7 +563,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_int_inv(&["INT"; 8], tile, bel, pin, false);
         }
         ctx.collect_inv(tile, bel, "CONVST");
-        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
         for (attr, val) in [
             ("DCLK_DIVID_2", 0),
             ("LW_DIVID_2_4", 0),
@@ -571,28 +576,39 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("FEATURE_ENABLE", 0),
             ("PROM_DATA", 0),
         ] {
-            ctx.collect_bitvec(tile, bel, attr, "");
-            present.apply_bitvec_diff_int(ctx.item(tile, bel, attr), val, 0);
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
+            present.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, attr), val, 0);
         }
         present.assert_empty();
 
         let mut diffs = vec![];
-        let diff = ctx.get_diff(tile, bel, "CONVST", "INT_IMUX");
-        assert_eq!(diff, ctx.get_diff(tile, bel, "CONVST_TEST", "INT_IMUX"));
+        let diff = ctx.get_diff_legacy(tile, bel, "CONVST", "INT_IMUX");
+        assert_eq!(
+            diff,
+            ctx.get_diff_legacy(tile, bel, "CONVST_TEST", "INT_IMUX")
+        );
         diffs.push(("INT_IMUX".to_string(), diff));
-        let mut diff = ctx.get_diff(tile, bel, "CONVST", "INT_CLK");
-        assert_eq!(diff, ctx.get_diff(tile, bel, "CONVST_TEST", "INT_CLK"));
+        let mut diff = ctx.get_diff_legacy(tile, bel, "CONVST", "INT_CLK");
+        assert_eq!(
+            diff,
+            ctx.get_diff_legacy(tile, bel, "CONVST_TEST", "INT_CLK")
+        );
         let item = ctx.item_int_inv(&["INT"; 8], tile, bel, "CONVST_INT_CLK");
-        diff.apply_bit_diff(&item, false, true);
+        diff.apply_bit_diff_legacy(&item, false, true);
         diffs.push(("INT_CLK".to_string(), diff));
         for i in 0..16 {
-            let diff = ctx.get_diff(tile, bel, "CONVST", format!("GIOB{i}"));
+            let diff = ctx.get_diff_legacy(tile, bel, "CONVST", format!("GIOB{i}"));
             assert_eq!(
                 diff,
-                ctx.get_diff(tile, bel, "CONVST_TEST", format!("GIOB{i}"))
+                ctx.get_diff_legacy(tile, bel, "CONVST_TEST", format!("GIOB{i}"))
             );
             diffs.push((format!("GIOB{i}"), diff));
         }
-        ctx.insert(tile, bel, "MUX.CONVST", xlat_enum_ocd(diffs, OcdMode::Mux));
+        ctx.insert(
+            tile,
+            bel,
+            "MUX.CONVST",
+            xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
+        );
     }
 }

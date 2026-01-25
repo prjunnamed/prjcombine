@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{Diff, xlat_bit_raw, xlat_enum_attr};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;
@@ -451,8 +451,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_Y);
         ctx.collect_bel_attr_default(tcid, bslot, bcls::CLB::MUX_XQ, enums::CLB_MUX_XQ::FFX);
         ctx.collect_bel_attr_default(tcid, bslot, bcls::CLB::MUX_YQ, enums::CLB_MUX_YQ::FFY);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::CLB::FFX_SRVAL);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::CLB::FFY_SRVAL);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFX_SRVAL);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFY_SRVAL);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFX_CLK_INV);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFY_CLK_INV);
         ctx.collect_bel_attr_default(
@@ -488,13 +488,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let diff_inv = ctx
             .get_diff_bel_special(tcid, bslot, specials::CLB_RAMCLK_CLKNOT)
             .combine(&!&diff_s);
-        ctx.insert_bel_attr_bool(
-            tcid,
-            bslot,
-            bcls::CLB::RAM_SYNC_ENABLE,
-            xlat_bit_raw(diff_s),
-        );
-        ctx.insert_bel_attr_bool(tcid, bslot, bcls::CLB::RAM_CLK_INV, xlat_bit_raw(diff_inv));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::CLB::RAM_SYNC_ENABLE, xlat_bit(diff_s));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::CLB::RAM_CLK_INV, xlat_bit(diff_inv));
 
         let diff0 = ctx.get_diff_attr_val(
             tcid,

@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{Diff, xlat_bit_raw, xlat_enum_attr};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_xc2000::xc4000::{bslots, enums, xc4000::bcls};
 
@@ -166,8 +166,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_YQ);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_DX);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::MUX_DY);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::CLB::FFX_SRVAL);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::CLB::FFY_SRVAL);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFX_SRVAL);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::CLB::FFY_SRVAL);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFX_EC_ENABLE);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFY_EC_ENABLE);
         ctx.collect_bel_attr(tcid, bslot, bcls::CLB::FFX_SR_ENABLE);
@@ -211,27 +211,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             (enums::CLB_CARRY_PROP::CONST_1, Diff::default()),
         ]);
         ctx.insert_bel_attr_raw(tcid, bslot, bcls::CLB::CARRY_GPROP, item);
-        ctx.insert_bel_attr_bool(tcid, bslot, bcls::CLB::CARRY_OP2_ENABLE, xlat_bit_raw(bit7));
+        ctx.insert_bel_attr_bool(tcid, bslot, bcls::CLB::CARRY_OP2_ENABLE, xlat_bit(bit7));
 
         if !ctx.device.name.ends_with('d') {
             ctx.collect_bel_attr(tcid, bslot, bcls::CLB::F_RAM_ENABLE);
             ctx.collect_bel_attr(tcid, bslot, bcls::CLB::G_RAM_ENABLE);
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::CLB_RAM_FG);
-            diff.apply_bit_diff_raw(
+            diff.apply_bit_diff(
                 ctx.bel_attr_bit(tcid, bslot, bcls::CLB::F_RAM_ENABLE),
                 true,
                 false,
             );
-            diff.apply_bit_diff_raw(
+            diff.apply_bit_diff(
                 ctx.bel_attr_bit(tcid, bslot, bcls::CLB::G_RAM_ENABLE),
                 true,
                 false,
             );
-            diff.apply_bitvec_diff_int_raw(
-                ctx.bel_attr_bitvec(tcid, bslot, bcls::CLB::H),
-                0xca,
-                0x00,
-            );
+            diff.apply_bitvec_diff_int(ctx.bel_attr_bitvec(tcid, bslot, bcls::CLB::H), 0xca, 0x00);
             let item = xlat_enum_attr(vec![
                 (enums::CLB_RAM_DIMS::_16X2, Diff::default()),
                 (enums::CLB_RAM_DIMS::_32X1, diff),

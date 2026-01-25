@@ -163,7 +163,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tile in ["GIGABIT_S", "GIGABIT_N"] {
         let tcid = ctx.edev.db.get_tile_class(tile);
         let bel = "GT";
-        ctx.collect_bit(tile, bel, "ENABLE", "1");
+        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
         let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::GT];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
@@ -208,58 +208,59 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "TX_CRC_USE",
             "RX_CRC_USE",
         ] {
-            ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
         for val in ["ETHERNET", "AURORA", "FIBRE_CHAN", "INFINIBAND", "XAUI"] {
-            ctx.get_diff(tile, bel, "IOSTANDARD", val).assert_empty();
+            ctx.get_diff_legacy(tile, bel, "IOSTANDARD", val)
+                .assert_empty();
         }
-        ctx.collect_enum_int(tile, bel, "TX_PREEMPHASIS", 0..4, 0);
-        ctx.collect_enum(tile, bel, "TERMINATION_IMP", &["50", "75"]);
-        ctx.collect_enum(tile, bel, "CLK_COR_SEQ_LEN", &["1", "2", "3", "4"]);
-        ctx.collect_enum(tile, bel, "CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4"]);
-        ctx.collect_bitvec(tile, bel, "CLK_COR_REPEAT_WAIT", "");
-        ctx.collect_enum_default(
+        ctx.collect_enum_legacy_int(tile, bel, "TX_PREEMPHASIS", 0..4, 0);
+        ctx.collect_enum_legacy(tile, bel, "TERMINATION_IMP", &["50", "75"]);
+        ctx.collect_enum_legacy(tile, bel, "CLK_COR_SEQ_LEN", &["1", "2", "3", "4"]);
+        ctx.collect_enum_legacy(tile, bel, "CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4"]);
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_REPEAT_WAIT", "");
+        ctx.collect_enum_default_legacy(
             tile,
             bel,
             "CHAN_BOND_MODE",
             &["MASTER", "SLAVE_1_HOP", "SLAVE_2_HOPS"],
             "NONE",
         );
-        ctx.collect_enum_int(tile, bel, "CHAN_BOND_WAIT", 1..16, 0);
-        ctx.collect_enum_int(tile, bel, "CHAN_BOND_LIMIT", 1..32, 0);
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_OFFSET", "");
-        ctx.collect_enum(tile, bel, "RX_DATA_WIDTH", &["1", "2", "4"]);
-        ctx.collect_enum(tile, bel, "TX_DATA_WIDTH", &["1", "2", "4"]);
-        ctx.collect_bitvec(tile, bel, "RX_BUFFER_LIMIT", "");
+        ctx.collect_enum_legacy_int(tile, bel, "CHAN_BOND_WAIT", 1..16, 0);
+        ctx.collect_enum_legacy_int(tile, bel, "CHAN_BOND_LIMIT", 1..32, 0);
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_OFFSET", "");
+        ctx.collect_enum_legacy(tile, bel, "RX_DATA_WIDTH", &["1", "2", "4"]);
+        ctx.collect_enum_legacy(tile, bel, "TX_DATA_WIDTH", &["1", "2", "4"]);
+        ctx.collect_bitvec_legacy(tile, bel, "RX_BUFFER_LIMIT", "");
         let item = ctx.item(tile, bel, "RX_BUFFER_LIMIT").clone();
         for (name, val) in [
             ("15.MASTER", bits![0, 0, 1, 1]),
             ("15.SLAVE_1_HOP", bits![0, 0, 1, 0]),
             ("15.SLAVE_2_HOPS", bits![0, 0, 1, 0]),
         ] {
-            let mut diff = ctx.get_diff(tile, bel, "RX_BUFFER_LIMIT", name);
-            diff.apply_bitvec_diff(&item, &val, &BitVec::repeat(false, 4));
+            let mut diff = ctx.get_diff_legacy(tile, bel, "RX_BUFFER_LIMIT", name);
+            diff.apply_bitvec_diff_legacy(&item, &val, &BitVec::repeat(false, 4));
             diff.assert_empty();
         }
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "RX_LOS_INVALID_INCR",
             &["1", "2", "4", "8", "16", "32", "64", "128"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "RX_LOS_THRESHOLD",
             &["4", "8", "16", "32", "64", "128", "256", "512"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "CRC_FORMAT",
             &["USER_MODE", "ETHERNET", "INFINIBAND", "FIBRE_CHAN"],
         );
-        ctx.collect_enum_ocd(
+        ctx.collect_enum_legacy_ocd(
             tile,
             bel,
             "CRC_START_OF_PKT",
@@ -269,7 +270,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ],
             OcdMode::BitOrder,
         );
-        ctx.collect_enum_ocd(
+        ctx.collect_enum_legacy_ocd(
             tile,
             bel,
             "CRC_END_OF_PKT",
@@ -279,32 +280,32 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ],
             OcdMode::BitOrder,
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "TX_DIFF_CTRL",
             &["400", "500", "600", "700", "800"],
         );
-        ctx.collect_enum_bool(tile, bel, "REF_CLK_V_SEL", "0", "1");
-        ctx.collect_bitvec(tile, bel, "TX_CRC_FORCE_VALUE", "");
-        ctx.collect_bitvec(tile, bel, "COMMA_10B_MASK", "");
-        ctx.collect_bitvec(tile, bel, "MCOMMA_10B_VALUE", "");
-        ctx.collect_bitvec(tile, bel, "PCOMMA_10B_VALUE", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_1", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_2", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_3", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_4", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_1", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_2", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_3", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_4", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_1", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_2", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_3", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_4", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_1", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_2", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_3", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_4", "");
+        ctx.collect_bit_bi_legacy(tile, bel, "REF_CLK_V_SEL", "0", "1");
+        ctx.collect_bitvec_legacy(tile, bel, "TX_CRC_FORCE_VALUE", "");
+        ctx.collect_bitvec_legacy(tile, bel, "COMMA_10B_MASK", "");
+        ctx.collect_bitvec_legacy(tile, bel, "MCOMMA_10B_VALUE", "");
+        ctx.collect_bitvec_legacy(tile, bel, "PCOMMA_10B_VALUE", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_4", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_4", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_4", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_4", "");
     }
 }

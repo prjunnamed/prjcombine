@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     grid::{BelCoord, TileCoord, WireCoord},
 };
 use prjcombine_re_collector::diff::{
-    Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_attr, xlat_enum_raw,
+    Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_attr, xlat_enum_raw,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -1192,7 +1192,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 tcid,
                                 bslots::TBUF[idx],
                                 bcls::TBUF::DRIVE1,
-                                xlat_bit_raw(!common),
+                                xlat_bit(!common),
                             );
                         } else {
                             let mut inps = vec![];
@@ -1268,12 +1268,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         }
                                     }
                                     assert!(got_empty);
-                                    ctx.insert_bel_attr_bool(
-                                        tcid,
-                                        rbel,
-                                        rattr,
-                                        xlat_bit_raw(common),
-                                    );
+                                    ctx.insert_bel_attr_bool(tcid, rbel, rattr, xlat_bit(common));
                                 }
                             }
                             if !got_empty {
@@ -1319,7 +1314,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for diff in diffs.values_mut() {
             *diff = diff.combine(&!&common);
         }
-        let item = xlat_bit_raw(!common);
+        let item = xlat_bit(!common);
         ctx.insert_bel_input_inv(tcid, bel, bcls::IO::T, item);
 
         let diff_o1_o = diffs.remove(&("O1", specials::INT_IO_O)).unwrap();
@@ -1337,7 +1332,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         diff_o1_oqi = diff_o1_oqi.combine(&!&diff_inv_off_d);
         diff_o2_oi = diff_o2_oi.combine(&!&diff_inv_off_d);
         diff_o2_oqi = diff_o2_oqi.combine(&!&diff_inv_off_d);
-        let item = xlat_bit_raw(diff_inv_off_d);
+        let item = xlat_bit(diff_inv_off_d);
         ctx.insert_bel_attr_bool(tcid, bel, bcls::IO::OFF_D_INV, item);
 
         assert_eq!(diff_o1_oq, diff_o1_oqi);
@@ -1370,7 +1365,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ]);
         ctx.insert_bel_attr_raw(tcid, bel, bcls::IO::MUX_O, item);
 
-        let item = xlat_bit_raw(diff_off_used);
+        let item = xlat_bit(diff_off_used);
         ctx.insert_bel_attr_bool(tcid, bel, bcls::IO::OFF_USED, item);
     }
 }

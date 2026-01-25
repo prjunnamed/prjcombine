@@ -80,14 +80,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::O);
             }
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::IO_IN_I);
-            diff.apply_enum_diff_attr(
+            diff.apply_enum_diff(
                 ctx.bel_attr_enum(tcid, bslot, bcls::IO::PULL),
                 enums::IO_PULL::NONE,
                 enums::IO_PULL::PULLUP,
             );
             diff.assert_empty();
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUT_O);
-            diff.apply_bit_diff_raw(ctx.bel_input_inv(tcid, bslot, bcls::IO::T), false, true);
+            diff.apply_bit_diff(ctx.bel_input_inv(tcid, bslot, bcls::IO::T), false, true);
             diff.assert_empty();
         }
         if tcid == tcls::IO_S {

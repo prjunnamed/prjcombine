@@ -122,16 +122,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         };
         let bel = ctx.edev.db.bel_slots.key(slot);
         if slot == defs::bslots::PPC {
-            let mut diff = ctx.get_diff(tile, bel, "PRESENT", "1");
+            let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
             for pin in bel_data.pins.keys() {
                 if pin.starts_with("LSSDSCANIN") {
                     let item = ctx.item_int_inv(&["INT"; 62], tile, bel, pin);
-                    diff.discard_bits(&item);
+                    diff.discard_bits_legacy(&item);
                 }
             }
             diff.assert_empty();
         } else {
-            ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+            ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+                .assert_empty();
         }
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {

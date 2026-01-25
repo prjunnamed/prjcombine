@@ -5,7 +5,10 @@ use prjcombine_interconnect::{
     db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_collector::{
+    diff::{Diff, OcdMode},
+    legacy::{xlat_bit_legacy, xlat_enum_legacy_ocd},
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -807,7 +810,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                             };
-                            let diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
+                            let diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
                             if let ExpandedDevice::Virtex2(edev) = ctx.edev
                                 && edev.chip.kind
                                     == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
@@ -849,7 +852,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         if !got_empty {
                             inps.push(("NONE".to_string(), Diff::default()));
                         }
-                        let ti = xlat_enum_ocd(inps, OcdMode::Mux);
+                        let ti = xlat_enum_legacy_ocd(inps, OcdMode::Mux);
                         if ti.bits.is_empty()
                             && !(tcname == "INT_GT_CLKPAD"
                                 && matches!(
@@ -878,7 +881,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
                         };
-                        let diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
+                        let diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
                         let buf_name = if tcls.cells.len() == 1 {
                             format!(
                                 "BUF.{dst}.{src}",
@@ -894,7 +897,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 src = intdb.wires.key(buf.src.wire)
                             )
                         };
-                        ctx.insert(tcname, bel, buf_name, xlat_bit(diff));
+                        ctx.insert(tcname, bel, buf_name, xlat_bit_legacy(diff));
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
                         let mux_name = if tcls.cells.len() == 1 {
@@ -907,13 +910,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
                         };
-                        let diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
+                        let diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
                         diff.assert_empty();
                     }
                     SwitchBoxItem::ProgInv(_) => (),
                     SwitchBoxItem::ProgDelay(delay) => {
                         let del_name = format!("DELAY.{}", intdb.wires.key(delay.dst.wire));
-                        ctx.collect_enum_bool(tcname, bel, &del_name, "0", "1");
+                        ctx.collect_bit_bi_legacy(tcname, bel, &del_name, "0", "1");
                     }
                     _ => unreachable!(),
                 }

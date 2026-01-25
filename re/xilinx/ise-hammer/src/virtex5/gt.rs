@@ -676,85 +676,86 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tile,
                 bel,
                 format!("DRP{i:02X}"),
-                TileItem::from_bitvec((0..16).map(|j| drp_bit(i, j)).collect(), false),
+                TileItem::from_bitvec_inv((0..16).map(|j| drp_bit(i, j)).collect(), false),
             );
         }
-        ctx.collect_bit(tile, bel, "ENABLE", "1");
+        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
         for &pin in GT_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         if tile == "GTP" {
             for &attr in GTP_BOOL_ATTRS {
-                ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
             }
             for &(attr, vals) in GTP_ENUM_ATTRS {
-                ctx.collect_enum(tile, bel, attr, vals);
+                ctx.collect_enum_legacy(tile, bel, attr, vals);
             }
             for &(attr, ref vals) in GTP_ENUM_INT_ATTRS {
-                ctx.collect_enum_int(tile, bel, attr, vals.clone(), 0);
+                ctx.collect_enum_legacy_int(tile, bel, attr, vals.clone(), 0);
             }
             for &(attr, _) in GTP_DEC_ATTRS {
-                ctx.collect_bitvec(tile, bel, attr, "");
+                ctx.collect_bitvec_legacy(tile, bel, attr, "");
             }
             for &(attr, _) in GTP_BIN_ATTRS {
-                ctx.collect_bitvec(tile, bel, attr, "");
+                ctx.collect_bitvec_legacy(tile, bel, attr, "");
             }
             for &(attr, _) in GTP_HEX_ATTRS {
-                ctx.collect_bitvec(tile, bel, attr, "");
+                ctx.collect_bitvec_legacy(tile, bel, attr, "");
             }
         } else {
             for &attr in GTX_BOOL_ATTRS {
-                ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
             }
             for &(attr, vals) in GTX_ENUM_ATTRS {
-                ctx.collect_enum(tile, bel, attr, vals);
+                ctx.collect_enum_legacy(tile, bel, attr, vals);
             }
             for &(attr, ref vals) in GTX_ENUM_INT_ATTRS {
-                ctx.collect_enum_int(tile, bel, attr, vals.clone(), 0);
+                ctx.collect_enum_legacy_int(tile, bel, attr, vals.clone(), 0);
             }
             for &(attr, _) in GTX_DEC_ATTRS {
-                ctx.collect_bitvec(tile, bel, attr, "");
+                ctx.collect_bitvec_legacy(tile, bel, attr, "");
             }
             for &(attr, _) in GTX_BIN_ATTRS {
-                ctx.collect_bitvec(tile, bel, attr, "");
+                ctx.collect_bitvec_legacy(tile, bel, attr, "");
             }
             for &(attr, _) in GTX_HEX_ATTRS {
-                ctx.collect_bitvec(tile, bel, attr, "");
+                ctx.collect_bitvec_legacy(tile, bel, attr, "");
             }
         }
 
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "MUX.CLKIN",
             &["CLKPN", "GREFCLK", "CLKOUT_NORTH_S", "CLKOUT_SOUTH_N"],
         );
-        ctx.collect_enum(tile, bel, "MUX.CLKOUT_SOUTH", &["CLKPN", "CLKOUT_SOUTH_N"]);
-        ctx.collect_enum(tile, bel, "MUX.CLKOUT_NORTH", &["CLKPN", "CLKOUT_NORTH_S"]);
+        ctx.collect_enum_legacy(tile, bel, "MUX.CLKOUT_SOUTH", &["CLKPN", "CLKOUT_SOUTH_N"]);
+        ctx.collect_enum_legacy(tile, bel, "MUX.CLKOUT_NORTH", &["CLKPN", "CLKOUT_NORTH_S"]);
 
-        let item_rx = ctx.extract_bit(tile, bel, "RXUSRCLK0", "1");
-        let item_tx = ctx.extract_bit(tile, bel, "TXUSRCLK0", "1");
+        let item_rx = ctx.extract_bit_legacy(tile, bel, "RXUSRCLK0", "1");
+        let item_tx = ctx.extract_bit_legacy(tile, bel, "TXUSRCLK0", "1");
         assert_eq!(item_rx, item_tx);
         ctx.insert(tile, bel, "USRCLK0", item_rx);
-        let item_rx = ctx.extract_bit(tile, bel, "RXUSRCLK1", "1");
-        let item_tx = ctx.extract_bit(tile, bel, "TXUSRCLK1", "1");
+        let item_rx = ctx.extract_bit_legacy(tile, bel, "RXUSRCLK1", "1");
+        let item_tx = ctx.extract_bit_legacy(tile, bel, "TXUSRCLK1", "1");
         assert_eq!(item_rx, item_tx);
         ctx.insert(tile, bel, "USRCLK1", item_rx);
 
         for i in 0..4 {
             let bel = &format!("CRC32[{i}]");
             ctx.collect_inv(tile, bel, "CRCCLK");
-            ctx.collect_bitvec(tile, bel, "CRC_INIT", "");
-            ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+            ctx.collect_bitvec_legacy(tile, bel, "CRC_INIT", "");
+            ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+                .assert_empty();
         }
         for i in 0..2 {
             let bel = &format!("CRC64[{i}]");
             let bel32 = &format!("CRC32[{ii}]", ii = i * 3);
             let item = ctx.extract_inv(tile, bel, "CRCCLK");
             ctx.insert(tile, bel32, "INV.CRCCLK", item);
-            let item = ctx.extract_bitvec(tile, bel, "CRC_INIT", "");
+            let item = ctx.extract_bitvec_legacy(tile, bel, "CRC_INIT", "");
             ctx.insert(tile, bel32, "CRC_INIT", item);
-            let item = ctx.extract_bit(tile, bel, "PRESENT", "1");
+            let item = ctx.extract_bit_legacy(tile, bel, "PRESENT", "1");
             ctx.insert(tile, bel32, "ENABLE64", item);
         }
     }

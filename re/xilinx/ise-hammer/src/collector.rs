@@ -61,7 +61,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     pub fn extract_inv(&mut self, tile: &str, bel: &str, pin: &str) -> TileItem {
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
-        self.extract_enum_bool(tile, bel, &pininv, pin, &pin_b)
+        self.extract_bit_bi_legacy(tile, bel, &pininv, pin, &pin_b)
     }
 
     pub fn collect_inv(&mut self, tile: &str, bel: &str, pin: &str) {
@@ -151,7 +151,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
     ) {
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
-        let item = self.extract_enum_bool(
+        let item = self.extract_bit_bi_legacy(
             tile,
             bel,
             &pininv,

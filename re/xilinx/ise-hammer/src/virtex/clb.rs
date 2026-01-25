@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{xlat_bit, xlat_bool, xlat_enum};
+use prjcombine_re_collector::legacy::{xlat_bit_bi_legacy, xlat_bit_legacy, xlat_enum_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex::defs;
@@ -219,7 +219,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
     for bel in ["SLICE[0]", "SLICE[1]"] {
-        let item = ctx.extract_enum_bool(tile, bel, "CKINV", "1", "0");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "CKINV", "1", "0");
         ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
         for (pinmux, pin, pin_b) in [
             ("BXMUX", "BX", "BX_B"),
@@ -227,16 +227,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("CEMUX", "CE", "CE_B"),
             ("SRMUX", "SR", "SR_B"),
         ] {
-            let d0 = ctx.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
-            let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
-            ctx.insert_int_inv(&[tile], tile, bel, pin, xlat_bool(d0, d1));
+            let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
+            let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
+            ctx.insert_int_inv(&[tile], tile, bel, pin, xlat_bit_bi_legacy(d0, d1));
         }
 
-        ctx.collect_bitvec(tile, bel, "F", "#LUT");
-        ctx.collect_bitvec(tile, bel, "G", "#LUT");
-        ctx.collect_enum_default(
+        ctx.collect_bitvec_legacy(tile, bel, "F", "#LUT");
+        ctx.collect_bitvec_legacy(tile, bel, "G", "#LUT");
+        ctx.collect_enum_default_legacy(
             tile,
             bel,
             "RAMCONFIG",
@@ -245,22 +245,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
 
         // carry chain
-        ctx.collect_enum(tile, bel, "CYINIT", &["BX", "CIN"]);
-        ctx.collect_enum(tile, bel, "CYSELF", &["F", "1"]);
-        ctx.collect_enum(tile, bel, "CYSELG", &["G", "1"]);
-        let d_0 = ctx.get_diff(tile, bel, "CY0F", "0");
-        let d_1 = ctx.get_diff(tile, bel, "CY0F", "1");
-        let d_f1_g1 = ctx.get_diff(tile, bel, "CY0F", "F1");
-        let d_prod = ctx.get_diff(tile, bel, "CY0F", "PROD");
-        assert_eq!(d_0, ctx.get_diff(tile, bel, "CY0G", "0"));
-        assert_eq!(d_1, ctx.get_diff(tile, bel, "CY0G", "1"));
-        assert_eq!(d_f1_g1, ctx.get_diff(tile, bel, "CY0G", "G1"));
-        assert_eq!(d_prod, ctx.get_diff(tile, bel, "CY0G", "PROD"));
+        ctx.collect_enum_legacy(tile, bel, "CYINIT", &["BX", "CIN"]);
+        ctx.collect_enum_legacy(tile, bel, "CYSELF", &["F", "1"]);
+        ctx.collect_enum_legacy(tile, bel, "CYSELG", &["G", "1"]);
+        let d_0 = ctx.get_diff_legacy(tile, bel, "CY0F", "0");
+        let d_1 = ctx.get_diff_legacy(tile, bel, "CY0F", "1");
+        let d_f1_g1 = ctx.get_diff_legacy(tile, bel, "CY0F", "F1");
+        let d_prod = ctx.get_diff_legacy(tile, bel, "CY0F", "PROD");
+        assert_eq!(d_0, ctx.get_diff_legacy(tile, bel, "CY0G", "0"));
+        assert_eq!(d_1, ctx.get_diff_legacy(tile, bel, "CY0G", "1"));
+        assert_eq!(d_f1_g1, ctx.get_diff_legacy(tile, bel, "CY0G", "G1"));
+        assert_eq!(d_prod, ctx.get_diff_legacy(tile, bel, "CY0G", "PROD"));
         ctx.insert(
             tile,
             bel,
             "CY0",
-            xlat_enum(vec![
+            xlat_enum_legacy(vec![
                 ("0", d_0),
                 ("1", d_1),
                 ("F1_G1", d_f1_g1),
@@ -269,49 +269,50 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
 
         // muxes
-        let yb_by = ctx.get_diff(tile, bel, "YBMUX", "0");
-        let yb_cy = ctx.get_diff(tile, bel, "YBMUX", "1");
+        let yb_by = ctx.get_diff_legacy(tile, bel, "YBMUX", "0");
+        let yb_cy = ctx.get_diff_legacy(tile, bel, "YBMUX", "1");
         ctx.insert(
             tile,
             bel,
             "YBMUX",
-            xlat_enum(vec![("BY", yb_by), ("CY", yb_cy)]),
+            xlat_enum_legacy(vec![("BY", yb_by), ("CY", yb_cy)]),
         );
-        let dx_bx = ctx.get_diff(tile, bel, "DXMUX", "0");
-        let dx_x = ctx.get_diff(tile, bel, "DXMUX", "1");
+        let dx_bx = ctx.get_diff_legacy(tile, bel, "DXMUX", "0");
+        let dx_x = ctx.get_diff_legacy(tile, bel, "DXMUX", "1");
         ctx.insert(
             tile,
             bel,
             "DXMUX",
-            xlat_enum(vec![("BX", dx_bx), ("X", dx_x)]),
+            xlat_enum_legacy(vec![("BX", dx_bx), ("X", dx_x)]),
         );
-        let dy_by = ctx.get_diff(tile, bel, "DYMUX", "0");
-        let dy_y = ctx.get_diff(tile, bel, "DYMUX", "1");
+        let dy_by = ctx.get_diff_legacy(tile, bel, "DYMUX", "0");
+        let dy_y = ctx.get_diff_legacy(tile, bel, "DYMUX", "1");
         ctx.insert(
             tile,
             bel,
             "DYMUX",
-            xlat_enum(vec![("BY", dy_by), ("Y", dy_y)]),
+            xlat_enum_legacy(vec![("BY", dy_by), ("Y", dy_y)]),
         );
-        ctx.collect_enum(tile, bel, "FXMUX", &["F", "F5", "FXOR"]);
-        ctx.collect_enum(tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
+        ctx.collect_enum_legacy(tile, bel, "FXMUX", &["F", "F5", "FXOR"]);
+        ctx.collect_enum_legacy(tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
 
         // FFs
-        let ff_sync = ctx.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
-        ctx.get_diff(tile, bel, "SYNC_ATTR", "ASYNC").assert_empty();
-        ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
+        let ff_sync = ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "SYNC");
+        ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "ASYNC")
+            .assert_empty();
+        ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
 
-        let revused = ctx.get_diff(tile, bel, "REVUSED", "0");
-        ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
+        let revused = ctx.get_diff_legacy(tile, bel, "REVUSED", "0");
+        ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));
 
-        let ff_latch = ctx.get_diff(tile, bel, "FFX", "#LATCH");
-        assert_eq!(ff_latch, ctx.get_diff(tile, bel, "FFY", "#LATCH"));
-        ctx.get_diff(tile, bel, "FFX", "#FF").assert_empty();
-        ctx.get_diff(tile, bel, "FFY", "#FF").assert_empty();
-        ctx.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
+        let ff_latch = ctx.get_diff_legacy(tile, bel, "FFX", "#LATCH");
+        assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, "FFY", "#LATCH"));
+        ctx.get_diff_legacy(tile, bel, "FFX", "#FF").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "FFY", "#FF").assert_empty();
+        ctx.insert(tile, bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
 
-        ctx.collect_enum_bool(tile, bel, "INITX", "LOW", "HIGH");
-        ctx.collect_enum_bool(tile, bel, "INITY", "LOW", "HIGH");
+        ctx.collect_bit_bi_legacy(tile, bel, "INITX", "LOW", "HIGH");
+        ctx.collect_bit_bi_legacy(tile, bel, "INITY", "LOW", "HIGH");
     }
     // extracted manually from .ll
     for (bel, attr, frame, bit) in [
@@ -324,7 +325,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             attr,
-            TileItem::from_bit(TileBit::new(0, frame, bit), false),
+            TileItem::from_bit_inv(TileBit::new(0, frame, bit), false),
         );
     }
 }

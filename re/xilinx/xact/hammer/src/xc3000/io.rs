@@ -177,7 +177,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 bcls::MISC_SE::REPROGRAM_ENABLE,
                 bits,
             );
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
             ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::DONETIME);
             ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::RESETTIME);
             let mut diffs = vec![(enums::OSC_MODE::DISABLE, Diff::default())];
@@ -189,13 +189,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     val,
                 ));
                 let item = &ctx.data.sb_mux[&(tcid, TileWireCoord::new_idx(0, wires::IMUX_BUFG))];
-                diff.discard_bits_raw(&item.bits);
-                diff.apply_bit_diff_raw(
+                diff.discard_bits(&item.bits);
+                diff.apply_bit_diff(
                     ctx.bel_attr_bit(tcid, bslots::IO_S[1], bcls::IO::OSC_PULLUP),
                     false,
                     true,
                 );
-                diff.apply_bit_diff_raw(
+                diff.apply_bit_diff(
                     ctx.bel_attr_bit(tcid, bslots::IO_E[0], bcls::IO::OSC_PULLUP),
                     false,
                     true,

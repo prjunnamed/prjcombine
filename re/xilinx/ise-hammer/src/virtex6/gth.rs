@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{xlat_bitvec, xlat_enum};
+use prjcombine_re_collector::legacy::{xlat_bitvec_legacy, xlat_enum_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::defs;
@@ -411,10 +411,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             format!("DRP{addr:03X}"),
-            TileItem::from_bitvec((0..16).map(|bit| drp_bit(addr, bit)).collect(), false),
+            TileItem::from_bitvec_inv((0..16).map(|bit| drp_bit(addr, bit)).collect(), false),
         );
     }
-    ctx.collect_bit(tile, bel, "ENABLE", "1");
+    ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
     for &pin in GTH_INVPINS {
         ctx.collect_inv(tile, bel, pin);
     }
@@ -432,18 +432,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("80", "80"),
                 ("6466", "6466"),
             ] {
-                diffs.push((val, ctx.get_diff(tile, bel, attr, sval)));
+                diffs.push((val, ctx.get_diff_legacy(tile, bel, attr, sval)));
             }
-            ctx.insert(tile, bel, attr, xlat_enum(diffs));
+            ctx.insert(tile, bel, attr, xlat_enum_legacy(diffs));
         } else {
-            ctx.collect_enum(tile, bel, attr, vals);
+            ctx.collect_enum_legacy(tile, bel, attr, vals);
         }
     }
     for &(attr, _) in GTH_BIN_ATTRS {
-        ctx.collect_bitvec(tile, bel, attr, "");
+        ctx.collect_bitvec_legacy(tile, bel, attr, "");
     }
     for &(attr, _) in GTH_HEX_ATTRS {
-        let mut diffs = ctx.get_diffs(tile, bel, attr, "");
+        let mut diffs = ctx.get_diffs_legacy(tile, bel, attr, "");
         if attr == "SLICE_NOISE_CTRL_1_LANE01" {
             let bit = TileBit::new(12, 29, 32);
             assert_eq!(diffs[1].bits.len(), 0);
@@ -451,9 +451,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diffs[1].bits.insert(bit, true);
             assert_eq!(diffs[2].bits.remove(&bit), Some(true));
         }
-        ctx.insert(tile, bel, attr, xlat_bitvec(diffs));
+        ctx.insert(tile, bel, attr, xlat_bitvec_legacy(diffs));
     }
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         bel,
         "MUX.REFCLK",
@@ -462,8 +462,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     let tile = "HCLK";
     let bel = "HCLK";
-    let mut diff = ctx.get_diff(tile, bel, "DRP_MASK_BOTH", "GTH");
-    diff.apply_bit_diff(ctx.item(tile, bel, "DRP_MASK_BELOW"), true, false);
-    diff.apply_bit_diff(ctx.item(tile, bel, "DRP_MASK_ABOVE"), true, false);
+    let mut diff = ctx.get_diff_legacy(tile, bel, "DRP_MASK_BOTH", "GTH");
+    diff.apply_bit_diff_legacy(ctx.item(tile, bel, "DRP_MASK_BELOW"), true, false);
+    diff.apply_bit_diff_legacy(ctx.item(tile, bel, "DRP_MASK_ABOVE"), true, false);
     diff.assert_empty();
 }

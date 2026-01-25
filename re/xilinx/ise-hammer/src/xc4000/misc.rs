@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_collector::diff::{DiffKey, xlat_bit_raw};
+use prjcombine_re_collector::diff::{DiffKey, xlat_bit};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -542,14 +542,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     {
         let tcid = tcls::CNR_SW;
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::RDBK, bcls::RDBK::READ_ABORT);
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::RDBK, bcls::RDBK::READ_CAPTURE);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::RDBK, bcls::RDBK::READ_ABORT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::RDBK, bcls::RDBK::READ_CAPTURE);
         ctx.collect_bel_attr(tcid, bslots::MD0, bcls::IBUF::PULL);
         ctx.collect_bel_attr(tcid, bslots::MD1, bcls::MD1::PULL);
         ctx.collect_bel_attr(tcid, bslots::MD2, bcls::IBUF::PULL);
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SW, bcls::MISC_SW::TM_BOT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SW, bcls::MISC_SW::TM_BOT);
         if matches!(edev.chip.kind, ChipKind::Xc4000Xla | ChipKind::Xc4000Xv) {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SW, bcls::MISC_SW::IO_5V_TOLERANT);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SW, bcls::MISC_SW::IO_5V_TOLERANT);
         }
         if edev.chip.kind == ChipKind::SpartanXl {
             let mut diff =
@@ -562,38 +562,38 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tcid,
                 bslots::MD0,
                 bcls::IBUF::_5V_TOLERANT,
-                xlat_bit_raw(!diff_m0),
+                xlat_bit(!diff_m0),
             );
             ctx.insert_bel_attr_bool(
                 tcid,
                 bslots::MD1,
                 bcls::MD1::_5V_TOLERANT,
-                xlat_bit_raw(!diff_m1),
+                xlat_bit(!diff_m1),
             );
             ctx.insert_bel_attr_bool(
                 tcid,
                 bslots::MD2,
                 bcls::IBUF::_5V_TOLERANT,
-                xlat_bit_raw(!diff_m2),
+                xlat_bit(!diff_m2),
             );
         }
     }
 
     {
         let tcid = tcls::CNR_SE;
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::TCTEST);
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::TCTEST);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
         if matches!(
             edev.chip.kind,
             ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv
         ) {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::FIX_DISCHARGE);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::FIX_DISCHARGE);
         }
         if matches!(
             edev.chip.kind,
             ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::TM_OSC);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::TM_OSC);
             ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::OSC_CLK);
         }
         ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::OSC_ENABLE);
@@ -610,17 +610,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tcid,
                 bslots::MISC_SE,
                 bcls::MISC_SE::PROG_5V_TOLERANT,
-                xlat_bit_raw(!diff_prog),
+                xlat_bit(!diff_prog),
             );
             ctx.insert_bel_attr_bool(
                 tcid,
                 bslots::MISC_SE,
                 bcls::MISC_SE::DONE_5V_TOLERANT,
-                xlat_bit_raw(!diff_done),
+                xlat_bit(!diff_done),
             );
         }
 
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::STARTUP, bcls::STARTUP::CRC);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::STARTUP, bcls::STARTUP::CRC);
         ctx.collect_bel_attr(tcid, bslots::STARTUP, bcls::STARTUP::CONFIG_RATE);
         ctx.collect_bel_attr(tcid, bslots::STARTUP, bcls::STARTUP::SYNC_TO_DONE);
         ctx.collect_bel_attr(tcid, bslots::STARTUP, bcls::STARTUP::DONE_TIMING);
@@ -633,31 +633,31 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             edev.chip.kind,
             ChipKind::Xc4000Ex | ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::STARTUP, bcls::STARTUP::EXPRESS_MODE);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::STARTUP, bcls::STARTUP::EXPRESS_MODE);
         }
     }
 
     {
         let tcid = tcls::CNR_NW;
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_NW, bcls::MISC_NW::TM_LEFT);
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_NW, bcls::MISC_NW::TM_TOP);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_NW, bcls::MISC_NW::TM_LEFT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_NW, bcls::MISC_NW::TM_TOP);
         ctx.collect_bel_attr(tcid, bslots::MISC_NW, bcls::MISC_NW::IO_ISTD);
         ctx.collect_bel_attr(tcid, bslots::MISC_NW, bcls::MISC_NW::IO_OSTD);
         if edev.chip.kind != ChipKind::Xc4000E {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_NW, bcls::MISC_NW::_3V);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_NW, bcls::MISC_NW::_3V);
         }
         ctx.collect_bel_attr(tcid, bslots::BSCAN, bcls::BSCAN::ENABLE);
         if matches!(
             edev.chip.kind,
             ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::BSCAN, bcls::BSCAN::CONFIG);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::BSCAN, bcls::BSCAN::CONFIG);
         }
     }
 
     {
         let tcid = tcls::CNR_NE;
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_NE, bcls::MISC_NE::TM_RIGHT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_NE, bcls::MISC_NE::TM_RIGHT);
         if edev.chip.kind == ChipKind::Xc4000E {
             // ??? mysteriously not supported in ISE
             ctx.insert_bel_attr_bool(
@@ -667,7 +667,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 TileBit::new(0, 15, 4).neg(),
             );
         } else {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_NE, bcls::MISC_NE::TAC);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_NE, bcls::MISC_NE::TAC);
             ctx.collect_bel_attr(tcid, bslots::MISC_NE, bcls::MISC_NE::ADDRESS_LINES);
         }
         ctx.collect_bel_attr(tcid, bslots::TDO, bcls::TDO::PULL);
@@ -676,7 +676,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             edev.chip.kind,
             ChipKind::Xc4000Xla | ChipKind::Xc4000Xv | ChipKind::SpartanXl
         ) {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::TDO, bcls::TDO::BSCAN_STATUS);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::TDO, bcls::TDO::BSCAN_STATUS);
         }
 
         if edev.chip.kind == ChipKind::SpartanXl {
@@ -689,13 +689,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tcid,
                 bslots::TDO,
                 bcls::TDO::_5V_TOLERANT,
-                xlat_bit_raw(!diff_tdo),
+                xlat_bit(!diff_tdo),
             );
             ctx.insert_bel_attr_bool(
                 tcid,
                 bslots::MISC_NE,
                 bcls::MISC_NE::CCLK_5V_TOLERANT,
-                xlat_bit_raw(!diff_cclk),
+                xlat_bit(!diff_cclk),
             );
         }
         ctx.collect_bel_attr(tcid, bslots::MISC_NE, bcls::MISC_NE::READCLK);
@@ -707,7 +707,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         } else {
             tcls::LLV_IO_E
         };
-        ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_E, bcls::MISC_E::TLC);
+        ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_E, bcls::MISC_E::TLC);
     }
 
     if edev.chip.kind == ChipKind::SpartanXl {
@@ -736,13 +736,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tcid,
                 bslots::IO[0],
                 bcls::IO::_5V_TOLERANT,
-                xlat_bit_raw(!diff_iob0),
+                xlat_bit(!diff_iob0),
             );
             ctx.insert_bel_attr_bool(
                 tcid,
                 bslots::IO[1],
                 bcls::IO::_5V_TOLERANT,
-                xlat_bit_raw(!diff_iob1),
+                xlat_bit(!diff_iob1),
             );
         }
     }

@@ -1,4 +1,7 @@
-use prjcombine_re_collector::diff::{Diff, xlat_bitvec, xlat_bool, xlat_enum};
+use prjcombine_re_collector::{
+    diff::Diff,
+    legacy::{xlat_bit_bi_legacy, xlat_bitvec_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex::defs;
 
@@ -160,10 +163,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bel = &bel;
             let mut diffs = vec![];
             for val in ["11110", "11101", "11011", "10111", "01111"] {
-                let diff = ctx.get_diff(tile, bel, "DELAY", val);
+                let diff = ctx.get_diff_legacy(tile, bel, "DELAY", val);
                 diffs.push(!diff);
             }
-            ctx.insert(tile, bel, "DELAY", xlat_bitvec(diffs));
+            ctx.insert(tile, bel, "DELAY", xlat_bitvec_legacy(diffs));
             let iostds = if !tile.ends_with("DLL") {
                 &[
                     ("CMOS", "LVTTL"),
@@ -208,20 +211,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             };
             let mut diffs = vec![("NONE", Diff::default())];
             for &(val, iostd) in iostds {
-                diffs.push((val, ctx.get_diff(tile, bel, "IOATTRBOX", iostd)));
+                diffs.push((val, ctx.get_diff_legacy(tile, bel, "IOATTRBOX", iostd)));
             }
-            ctx.insert(tile, bel, "IBUF", xlat_enum(diffs));
+            ctx.insert(tile, bel, "IBUF", xlat_enum_legacy(diffs));
         }
         for i in 0..2 {
             let bel = format!("BUFG[{i}]");
             let bel = &bel;
-            let d0 = ctx.get_diff(tile, bel, "CEMUX", "CE");
-            assert_eq!(d0, ctx.get_diff(tile, bel, "CEMUX", "1"));
-            let d1 = ctx.get_diff(tile, bel, "CEMUX", "CE_B");
-            assert_eq!(d1, ctx.get_diff(tile, bel, "CEMUX", "0"));
-            let item = xlat_bool(d0, d1);
+            let d0 = ctx.get_diff_legacy(tile, bel, "CEMUX", "CE");
+            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, "CEMUX", "1"));
+            let d1 = ctx.get_diff_legacy(tile, bel, "CEMUX", "CE_B");
+            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "CEMUX", "0"));
+            let item = xlat_bit_bi_legacy(d0, d1);
             ctx.insert_int_inv(&[tile], tile, bel, "CE", item);
-            ctx.collect_enum_bool(tile, bel, "DISABLE_ATTR", "LOW", "HIGH");
+            ctx.collect_bit_bi_legacy(tile, bel, "DISABLE_ATTR", "LOW", "HIGH");
         }
     }
     for tile in ["CLKV_CLKV", "CLKV_GCLKV"] {
@@ -231,7 +234,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "CLKV";
         for lr in ['L', 'R'] {
             for i in 0..4 {
-                ctx.collect_bit(tile, bel, &format!("BUF.GCLK_{lr}{i}"), "1");
+                ctx.collect_bit_legacy(tile, bel, &format!("BUF.GCLK_{lr}{i}"), "1");
             }
         }
     }
@@ -240,7 +243,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bel = tile;
             for lr in ['L', 'R'] {
                 for i in 0..4 {
-                    let item = ctx.extract_bit_wide(tile, bel, &format!("BUF.GCLK_{lr}{i}"), "1");
+                    let item =
+                        ctx.extract_bit_wide_legacy(tile, bel, &format!("BUF.GCLK_{lr}{i}"), "1");
                     if is_s2 {
                         ctx.insert(tile, bel, format!("BUF.GCLK{i}"), item);
                     } else {
@@ -256,10 +260,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for i in 0..4 {
                 for j in 0..4 {
                     if tile == t && !is_s2 {
-                        ctx.get_diff(tile, bel, format!("BUF.GCLK_{lr}{i}_{j}"), "1")
+                        ctx.get_diff_legacy(tile, bel, format!("BUF.GCLK_{lr}{i}_{j}"), "1")
                             .assert_empty();
                     } else {
-                        ctx.collect_bit(tile, bel, &format!("BUF.GCLK_{lr}{i}_{j}"), "1");
+                        ctx.collect_bit_legacy(tile, bel, &format!("BUF.GCLK_{lr}{i}_{j}"), "1");
                     }
                 }
             }

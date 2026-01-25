@@ -96,13 +96,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "OPMODEREG",
         "CARRYINREG",
     ] {
-        ctx.collect_enum("DSP", "DSP", attr, &["0", "1"]);
+        ctx.collect_enum_legacy("DSP", "DSP", attr, &["0", "1"]);
     }
     if mode == Mode::Spartan6 {
-        ctx.collect_enum("DSP", "DSP", "CARRYOUTREG", &["0", "1"]);
+        ctx.collect_enum_legacy("DSP", "DSP", "CARRYOUTREG", &["0", "1"]);
     }
-    ctx.collect_enum("DSP", "DSP", "B_INPUT", &["DIRECT", "CASCADE"]);
-    ctx.collect_enum("DSP", "DSP", "CARRYINSEL", &["OPMODE5", "CARRYIN"]);
-    ctx.collect_enum("DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
-    ctx.get_diff("DSP", "DSP", "PRESENT", "1").assert_empty();
+    ctx.collect_enum_legacy("DSP", "DSP", "B_INPUT", &["DIRECT", "CASCADE"]);
+    ctx.collect_enum_legacy("DSP", "DSP", "CARRYINSEL", &["OPMODE5", "CARRYIN"]);
+    ctx.collect_enum_legacy("DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
+    ctx.get_diff_legacy("DSP", "DSP", "PRESENT", "1")
+        .assert_empty();
 }

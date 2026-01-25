@@ -1,8 +1,12 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId, TileCoord};
-use prjcombine_re_collector::diff::{
-    Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
-    xlat_bit_wide, xlat_bitvec, xlat_bool, xlat_enum, xlat_enum_ocd,
+use prjcombine_re_collector::{
+    diff::{Diff, DiffKey, FeatureId, OcdMode},
+    legacy::{
+        extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_bi_legacy,
+        xlat_bit_legacy, xlat_bit_wide_legacy, xlat_bitvec_legacy, xlat_enum_legacy,
+        xlat_enum_legacy_ocd,
+    },
 };
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
@@ -1352,14 +1356,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     if devdata_only {
         for i in 0..2 {
             let bel = &format!("IODELAY[{i}]");
-            let mut diff = ctx.get_diff(tile, bel, "MODE", "I_DEFAULT");
-            let val = extract_bitvec_val_part(
+            let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "I_DEFAULT");
+            let val = extract_bitvec_val_part_legacy(
                 ctx.item(tile, bel, "IDELAY_VALUE_CUR"),
                 &bits![1; 5],
                 &mut diff,
             );
             ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
-            let val = extract_bitvec_val_part(
+            let val = extract_bitvec_val_part_legacy(
                 ctx.item(tile, bel, "IDELAY_VALUE_INIT"),
                 &bits![0; 5],
                 &mut diff,
@@ -1373,56 +1377,56 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
         ctx.collect_inv(tile, bel, "D");
         ctx.collect_inv(tile, bel, "CLKDIV");
-        let item = ctx.extract_enum_bool_wide(tile, bel, "CLKINV", "CLK", "CLK_B");
+        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "CLKINV", "CLK", "CLK_B");
         ctx.insert(tile, bel, "INV.CLK", item);
 
-        let diff1 = ctx.get_diff(tile, bel, "OCLKINV.DDR", "OCLK");
-        let diff2 = ctx.get_diff(tile, bel, "OCLKINV.DDR", "OCLK_B");
-        ctx.get_diff(tile, bel, "OCLKINV.SDR", "OCLK_B")
+        let diff1 = ctx.get_diff_legacy(tile, bel, "OCLKINV.DDR", "OCLK");
+        let diff2 = ctx.get_diff_legacy(tile, bel, "OCLKINV.DDR", "OCLK_B");
+        ctx.get_diff_legacy(tile, bel, "OCLKINV.SDR", "OCLK_B")
             .assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "OCLKINV.SDR", "OCLK");
+        let mut diff = ctx.get_diff_legacy(tile, bel, "OCLKINV.SDR", "OCLK");
         diff = diff.combine(&!&diff1);
         diff = diff.combine(&!&diff2);
         diff.assert_empty();
-        ctx.insert(tile, bel, "INV.OCLK1", xlat_bit(!diff1));
-        ctx.insert(tile, bel, "INV.OCLK2", xlat_bit(!diff2));
+        ctx.insert(tile, bel, "INV.OCLK1", xlat_bit_legacy(!diff1));
+        ctx.insert(tile, bel, "INV.OCLK2", xlat_bit_legacy(!diff2));
 
-        ctx.collect_enum_bool(tile, bel, "DYN_CLK_INV_EN", "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, "DYN_CLKDIV_INV_EN", "FALSE", "TRUE");
-        ctx.collect_enum_bool_wide(tile, bel, "DYN_OCLK_INV_EN", "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, "DYN_CLK_INV_EN", "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, "DYN_CLKDIV_INV_EN", "FALSE", "TRUE");
+        ctx.collect_bit_wide_bi_legacy(tile, bel, "DYN_OCLK_INV_EN", "FALSE", "TRUE");
 
-        let iff_rev_used = ctx.extract_bit(tile, bel, "REVUSED", "0");
+        let iff_rev_used = ctx.extract_bit_legacy(tile, bel, "REVUSED", "0");
         ctx.insert(tile, bel, "IFF_REV_USED", iff_rev_used);
-        let iff_sr_used = ctx.extract_bit(tile, bel, "SRUSED", "0");
+        let iff_sr_used = ctx.extract_bit_legacy(tile, bel, "SRUSED", "0");
         ctx.insert(tile, bel, "IFF_SR_USED", iff_sr_used);
-        ctx.collect_enum_bool(tile, bel, "SERDES", "FALSE", "TRUE");
-        ctx.collect_enum(tile, bel, "SERDES_MODE", &["MASTER", "SLAVE"]);
+        ctx.collect_bit_bi_legacy(tile, bel, "SERDES", "FALSE", "TRUE");
+        ctx.collect_enum_legacy(tile, bel, "SERDES_MODE", &["MASTER", "SLAVE"]);
         let mut diffs = vec![("NONE", Diff::default())];
         for val in ["2", "3", "4", "5", "6", "7", "8", "10"] {
-            diffs.push((val, ctx.get_diff(tile, bel, "DATA_WIDTH", val)));
+            diffs.push((val, ctx.get_diff_legacy(tile, bel, "DATA_WIDTH", val)));
         }
-        let mut bits = xlat_enum(diffs.clone()).bits;
+        let mut bits = xlat_enum_legacy(diffs.clone()).bits;
         bits.swap(0, 1);
         ctx.insert(
             tile,
             bel,
             "DATA_WIDTH",
-            xlat_enum_ocd(diffs, OcdMode::FixedOrder(&bits)),
+            xlat_enum_legacy_ocd(diffs, OcdMode::FixedOrder(&bits)),
         );
-        ctx.collect_enum(tile, bel, "NUM_CE", &["1", "2"]);
-        ctx.collect_bitvec(tile, bel, "INIT_RANK1_PARTIAL", "");
-        ctx.collect_bitvec(tile, bel, "INIT_RANK2", "");
-        ctx.collect_bitvec(tile, bel, "INIT_RANK3", "");
-        ctx.collect_bitvec(tile, bel, "INIT_BITSLIP", "");
-        ctx.collect_bitvec(tile, bel, "INIT_BITSLIPCNT", "");
-        ctx.collect_bitvec(tile, bel, "INIT_CE", "");
-        let item = ctx.extract_enum_bool(tile, bel, "SRTYPE.ILOGIC", "ASYNC", "SYNC");
+        ctx.collect_enum_legacy(tile, bel, "NUM_CE", &["1", "2"]);
+        ctx.collect_bitvec_legacy(tile, bel, "INIT_RANK1_PARTIAL", "");
+        ctx.collect_bitvec_legacy(tile, bel, "INIT_RANK2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "INIT_RANK3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "INIT_BITSLIP", "");
+        ctx.collect_bitvec_legacy(tile, bel, "INIT_BITSLIPCNT", "");
+        ctx.collect_bitvec_legacy(tile, bel, "INIT_CE", "");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "SRTYPE.ILOGIC", "ASYNC", "SYNC");
         ctx.insert(tile, bel, "IFF_SR_SYNC", item);
-        ctx.get_diff(tile, bel, "SRTYPE.ISERDES", "ASYNC")
+        ctx.get_diff_legacy(tile, bel, "SRTYPE.ISERDES", "ASYNC")
             .assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "SRTYPE.ISERDES", "SYNC");
-        diff.apply_bit_diff(ctx.item(tile, bel, "IFF_SR_SYNC"), true, false);
-        ctx.insert(tile, bel, "BITSLIP_SYNC", xlat_bit(diff));
+        let mut diff = ctx.get_diff_legacy(tile, bel, "SRTYPE.ISERDES", "SYNC");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF_SR_SYNC"), true, false);
+        ctx.insert(tile, bel, "BITSLIP_SYNC", xlat_bit_legacy(diff));
         for (sattr, attr) in [
             ("INIT_Q1", "IFF1_INIT"),
             ("INIT_Q2", "IFF2_INIT"),
@@ -1433,31 +1437,31 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ("SRVAL_Q3", "IFF3_SRVAL"),
             ("SRVAL_Q4", "IFF4_SRVAL"),
         ] {
-            let item = ctx.extract_enum_bool(tile, bel, sattr, "0", "1");
+            let item = ctx.extract_bit_bi_legacy(tile, bel, sattr, "0", "1");
             ctx.insert(tile, bel, attr, item);
         }
 
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "DDR_CLK_EDGE",
             &["OPPOSITE_EDGE", "SAME_EDGE", "SAME_EDGE_PIPELINED"],
         );
 
-        let diff_mem = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "MEMORY");
-        let diff_qdr = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "MEMORY_QDR");
-        let diff_net = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "NETWORKING");
-        let diff_ddr3 = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "MEMORY_DDR3");
-        let diff_os = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "OVERSAMPLE");
+        let diff_mem = ctx.get_diff_legacy(tile, bel, "INTERFACE_TYPE", "MEMORY");
+        let diff_qdr = ctx.get_diff_legacy(tile, bel, "INTERFACE_TYPE", "MEMORY_QDR");
+        let diff_net = ctx.get_diff_legacy(tile, bel, "INTERFACE_TYPE", "NETWORKING");
+        let diff_ddr3 = ctx.get_diff_legacy(tile, bel, "INTERFACE_TYPE", "MEMORY_DDR3");
+        let diff_os = ctx.get_diff_legacy(tile, bel, "INTERFACE_TYPE", "OVERSAMPLE");
         let bitslip_en = diff_net.combine(&!&diff_qdr);
         let diff_ddr3 = diff_ddr3.combine(&!&bitslip_en);
         let diff_os = diff_os.combine(&!&bitslip_en);
-        ctx.insert(tile, bel, "BITSLIP_ENABLE", xlat_bit(bitslip_en));
+        ctx.insert(tile, bel, "BITSLIP_ENABLE", xlat_bit_legacy(bitslip_en));
         ctx.insert(
             tile,
             bel,
             "INTERFACE_TYPE",
-            xlat_enum(vec![
+            xlat_enum_legacy(vec![
                 ("MEMORY", diff_mem),
                 ("NETWORKING", diff_qdr),
                 ("MEMORY_DDR3", diff_ddr3),
@@ -1465,104 +1469,107 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ]),
         );
 
-        let mut diff = ctx.get_diff(tile, bel, "IFFTYPE", "#LATCH");
-        diff.apply_enum_diff(
+        let mut diff = ctx.get_diff_legacy(tile, bel, "IFFTYPE", "#LATCH");
+        diff.apply_enum_diff_legacy(
             ctx.item(tile, bel, "DDR_CLK_EDGE"),
             "OPPOSITE_EDGE",
             "SAME_EDGE_PIPELINED",
         );
         diff.assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "IFFTYPE", "#FF");
-        diff.apply_enum_diff(
+        let mut diff = ctx.get_diff_legacy(tile, bel, "IFFTYPE", "#FF");
+        diff.apply_enum_diff_legacy(
             ctx.item(tile, bel, "DDR_CLK_EDGE"),
             "OPPOSITE_EDGE",
             "SAME_EDGE_PIPELINED",
         );
-        ctx.insert(tile, bel, "IFF_LATCH", xlat_bit(!diff));
-        let mut diff = ctx.get_diff(tile, bel, "IFFTYPE", "DDR");
-        diff.apply_enum_diff(
+        ctx.insert(tile, bel, "IFF_LATCH", xlat_bit_legacy(!diff));
+        let mut diff = ctx.get_diff_legacy(tile, bel, "IFFTYPE", "DDR");
+        diff.apply_enum_diff_legacy(
             ctx.item(tile, bel, "INTERFACE_TYPE"),
             "NETWORKING",
             "MEMORY",
         );
-        ctx.insert(tile, bel, "IFF_LATCH", xlat_bit(!diff));
+        ctx.insert(tile, bel, "IFF_LATCH", xlat_bit_legacy(!diff));
 
         let mut diffs = vec![];
         for val in ["SDR", "DDR"] {
-            let mut diff = ctx.get_diff(tile, bel, "DATA_RATE", val);
-            diff.apply_bit_diff(ctx.item(tile, bel, "IFF_SR_USED"), true, false);
-            diff.apply_bit_diff(ctx.item(tile, bel, "IFF_LATCH"), false, true);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "DATA_RATE", val);
+            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF_SR_USED"), true, false);
+            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF_LATCH"), false, true);
             diffs.push((val, diff));
         }
-        ctx.insert(tile, bel, "DATA_RATE", xlat_enum(diffs));
+        ctx.insert(tile, bel, "DATA_RATE", xlat_enum_legacy(diffs));
 
-        let item = ctx.extract_enum(tile, bel, "D2OBYP_SEL", &["GND", "T"]);
+        let item = ctx.extract_enum_legacy(tile, bel, "D2OBYP_SEL", &["GND", "T"]);
         ctx.insert(tile, bel, "TSBYPASS_MUX", item);
-        let item = ctx.extract_enum(tile, bel, "D2OFFBYP_SEL", &["GND", "T"]);
+        let item = ctx.extract_enum_legacy(tile, bel, "D2OFFBYP_SEL", &["GND", "T"]);
         ctx.insert(tile, bel, "TSBYPASS_MUX", item);
-        let item = xlat_enum(vec![
-            ("T", ctx.get_diff(tile, bel, "TFB_USED", "TRUE")),
-            ("GND", ctx.get_diff(tile, bel, "TFB_USED", "FALSE")),
+        let item = xlat_enum_legacy(vec![
+            ("T", ctx.get_diff_legacy(tile, bel, "TFB_USED", "TRUE")),
+            ("GND", ctx.get_diff_legacy(tile, bel, "TFB_USED", "FALSE")),
         ]);
         ctx.insert(tile, bel, "TSBYPASS_MUX", item);
 
-        let item = ctx.extract_enum_bool(tile, bel, "IDELMUX", "1", "0");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "IDELMUX", "1", "0");
         ctx.insert(tile, bel, "I_DELAY_ENABLE", item);
-        let item = ctx.extract_enum_bool(tile, bel, "IFFDELMUX", "1", "0");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFFDELMUX", "1", "0");
         ctx.insert(tile, bel, "IFF_DELAY_ENABLE", item);
 
-        ctx.get_diff(tile, bel, "IOBDELAY", "NONE").assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "IOBDELAY", "IBUF");
-        diff.apply_bit_diff(ctx.item(tile, bel, "I_DELAY_ENABLE"), true, false);
+        ctx.get_diff_legacy(tile, bel, "IOBDELAY", "NONE")
+            .assert_empty();
+        let mut diff = ctx.get_diff_legacy(tile, bel, "IOBDELAY", "IBUF");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "I_DELAY_ENABLE"), true, false);
         diff.assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "IOBDELAY", "IFD");
-        diff.apply_bit_diff(ctx.item(tile, bel, "IFF_DELAY_ENABLE"), true, false);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "IOBDELAY", "IFD");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF_DELAY_ENABLE"), true, false);
         diff.assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "IOBDELAY", "BOTH");
-        diff.apply_bit_diff(ctx.item(tile, bel, "I_DELAY_ENABLE"), true, false);
-        diff.apply_bit_diff(ctx.item(tile, bel, "IFF_DELAY_ENABLE"), true, false);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "IOBDELAY", "BOTH");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "I_DELAY_ENABLE"), true, false);
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF_DELAY_ENABLE"), true, false);
         diff.assert_empty();
 
-        let item = ctx.extract_enum_bool(tile, bel, "IMUX", "1", "0");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "IMUX", "1", "0");
         ctx.insert(tile, bel, "I_TSBYPASS_ENABLE", item);
         // the fuzzer is slightly fucked to work around some ridiculous ISE bug.
-        let _ = ctx.get_diff(tile, bel, "IFFMUX", "1");
-        let item = ctx.extract_bit(tile, bel, "IFFMUX", "0");
+        let _ = ctx.get_diff_legacy(tile, bel, "IFFMUX", "1");
+        let item = ctx.extract_bit_legacy(tile, bel, "IFFMUX", "0");
         ctx.insert(tile, bel, "IFF_TSBYPASS_ENABLE", item);
-        ctx.get_diff(tile, bel, "OFB_USED", "FALSE").assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "OFB_USED", "TRUE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "I_TSBYPASS_ENABLE"), true, false);
-        diff.apply_bit_diff(ctx.item(tile, bel, "IFF_TSBYPASS_ENABLE"), true, false);
+        ctx.get_diff_legacy(tile, bel, "OFB_USED", "FALSE")
+            .assert_empty();
+        let mut diff = ctx.get_diff_legacy(tile, bel, "OFB_USED", "TRUE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "I_TSBYPASS_ENABLE"), true, false);
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF_TSBYPASS_ENABLE"), true, false);
         diff.assert_empty();
 
-        ctx.collect_enum_bool(tile, bel, "D_EMU", "FALSE", "TRUE");
-        ctx.collect_enum(
+        ctx.collect_bit_bi_legacy(tile, bel, "D_EMU", "FALSE", "TRUE");
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "D_EMU_OPTION",
             &["DLY0", "DLY1", "DLY2", "DLY3", "MATCH_DLY0", "MATCH_DLY2"],
         );
-        ctx.collect_enum_bool(tile, bel, "RANK12_DLY", "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, "RANK23_DLY", "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, "RANK12_DLY", "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, "RANK23_DLY", "FALSE", "TRUE");
 
-        ctx.get_diff(tile, bel, "PRESENT", "ILOGIC").assert_empty();
-        let mut present_iserdes = ctx.get_diff(tile, bel, "PRESENT", "ISERDES");
-        present_iserdes.apply_enum_diff(ctx.item(tile, bel, "TSBYPASS_MUX"), "GND", "T");
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF1_SRVAL"), false, true);
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF2_SRVAL"), false, true);
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF3_SRVAL"), false, true);
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF4_SRVAL"), false, true);
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF1_INIT"), false, true);
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF2_INIT"), false, true);
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF3_INIT"), false, true);
-        present_iserdes.apply_bit_diff(ctx.item(tile, bel, "IFF4_INIT"), false, true);
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "ILOGIC")
+            .assert_empty();
+        let mut present_iserdes = ctx.get_diff_legacy(tile, bel, "PRESENT", "ISERDES");
+        present_iserdes.apply_enum_diff_legacy(ctx.item(tile, bel, "TSBYPASS_MUX"), "GND", "T");
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF1_SRVAL"), false, true);
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF2_SRVAL"), false, true);
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF3_SRVAL"), false, true);
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF4_SRVAL"), false, true);
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF1_INIT"), false, true);
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF2_INIT"), false, true);
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF3_INIT"), false, true);
+        present_iserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "IFF4_INIT"), false, true);
         present_iserdes.assert_empty();
 
         ctx.insert(
             tile,
             bel,
             "READBACK_I",
-            TileItem::from_bit([TileBit::new(0, 26, 61), TileBit::new(1, 27, 2)][i], false),
+            TileItem::from_bit_inv([TileBit::new(0, 26, 61), TileBit::new(1, 27, 2)][i], false),
         );
 
         let mut vals = vec![];
@@ -1575,8 +1582,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         for j in 0..8 {
             vals.push(format!("IOCLK{j}"));
         }
-        ctx.collect_enum_default_ocd(tile, bel, "MUX.CLK", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_ocd(tile, bel, "MUX.CLKB", &vals, "NONE", OcdMode::Mux);
+        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLK", &vals, "NONE", OcdMode::Mux);
+        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKB", &vals, "NONE", OcdMode::Mux);
     }
     for i in 0..2 {
         let bel = &format!("OLOGIC[{i}]");
@@ -1587,73 +1594,86 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ctx.collect_inv(tile, bel, pin);
         }
 
-        let diff0 = ctx.get_diff(tile, bel, "T1INV", "T1");
-        let diff1 = ctx.get_diff(tile, bel, "T1INV", "T1_B");
+        let diff0 = ctx.get_diff_legacy(tile, bel, "T1INV", "T1");
+        let diff1 = ctx.get_diff_legacy(tile, bel, "T1INV", "T1_B");
         let (diff0, diff1, _) = Diff::split(diff0, diff1);
-        ctx.insert(tile, bel, "INV.T1", xlat_bool(diff0, diff1));
+        ctx.insert(tile, bel, "INV.T1", xlat_bit_bi_legacy(diff0, diff1));
 
-        ctx.get_diff(tile, bel, "CLKINV.SAME", "CLK_B")
+        ctx.get_diff_legacy(tile, bel, "CLKINV.SAME", "CLK_B")
             .assert_empty();
-        let diff_clk1 = ctx.get_diff(tile, bel, "CLKINV.OPPOSITE", "CLK");
-        let diff_clk2 = ctx.get_diff(tile, bel, "CLKINV.OPPOSITE", "CLK_B");
-        let diff_clk12 = ctx.get_diff(tile, bel, "CLKINV.SAME", "CLK");
+        let diff_clk1 = ctx.get_diff_legacy(tile, bel, "CLKINV.OPPOSITE", "CLK");
+        let diff_clk2 = ctx.get_diff_legacy(tile, bel, "CLKINV.OPPOSITE", "CLK_B");
+        let diff_clk12 = ctx.get_diff_legacy(tile, bel, "CLKINV.SAME", "CLK");
         assert_eq!(diff_clk12, diff_clk1.combine(&diff_clk2));
-        ctx.insert(tile, bel, "INV.CLK1", xlat_bit(!diff_clk1));
-        ctx.insert(tile, bel, "INV.CLK2", xlat_bit(!diff_clk2));
+        ctx.insert(tile, bel, "INV.CLK1", xlat_bit_legacy(!diff_clk1));
+        ctx.insert(tile, bel, "INV.CLK2", xlat_bit_legacy(!diff_clk2));
 
-        let item_oq = ctx.extract_enum_bool_wide(tile, bel, "SRTYPE_OQ", "ASYNC", "SYNC");
-        let item_tq = ctx.extract_enum_bool_wide(tile, bel, "SRTYPE_TQ", "ASYNC", "SYNC");
-        ctx.get_diff(tile, bel, "SRTYPE", "ASYNC").assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "SRTYPE", "SYNC");
-        diff.apply_bitvec_diff(&item_oq, &bits![1; 4], &bits![0; 4]);
-        diff.apply_bitvec_diff(&item_tq, &bits![1; 2], &bits![0; 2]);
+        let item_oq = ctx.extract_bit_wide_bi_legacy(tile, bel, "SRTYPE_OQ", "ASYNC", "SYNC");
+        let item_tq = ctx.extract_bit_wide_bi_legacy(tile, bel, "SRTYPE_TQ", "ASYNC", "SYNC");
+        ctx.get_diff_legacy(tile, bel, "SRTYPE", "ASYNC")
+            .assert_empty();
+        let mut diff = ctx.get_diff_legacy(tile, bel, "SRTYPE", "SYNC");
+        diff.apply_bitvec_diff_legacy(&item_oq, &bits![1; 4], &bits![0; 4]);
+        diff.apply_bitvec_diff_legacy(&item_tq, &bits![1; 2], &bits![0; 2]);
         diff.assert_empty();
         ctx.insert(tile, bel, "OFF_SR_SYNC", item_oq);
         ctx.insert(tile, bel, "TFF_SR_SYNC", item_tq);
 
-        let item = ctx.extract_enum_bool(tile, bel, "INIT_OQ.OLOGIC", "0", "1");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "INIT_OQ.OLOGIC", "0", "1");
         ctx.insert(tile, bel, "OFF_INIT", item);
-        let item = ctx.extract_enum_bool(tile, bel, "INIT_OQ.OSERDES", "0", "1");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "INIT_OQ.OSERDES", "0", "1");
         ctx.insert(tile, bel, "OFF_INIT", item);
-        let item = ctx.extract_enum_bool(tile, bel, "INIT_TQ.OLOGIC", "0", "1");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "INIT_TQ.OLOGIC", "0", "1");
         ctx.insert(tile, bel, "TFF_INIT", item);
-        let item = ctx.extract_enum_bool(tile, bel, "INIT_TQ.OSERDES", "0", "1");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "INIT_TQ.OSERDES", "0", "1");
         ctx.insert(tile, bel, "TFF_INIT", item);
-        let item = ctx.extract_enum_bool_wide(tile, bel, "SRVAL_OQ.OLOGIC", "0", "1");
+        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "SRVAL_OQ.OLOGIC", "0", "1");
         ctx.insert(tile, bel, "OFF_SRVAL", item);
-        let item = ctx.extract_enum_bool_wide(tile, bel, "SRVAL_OQ.OSERDES", "0", "1");
+        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "SRVAL_OQ.OSERDES", "0", "1");
         ctx.insert(tile, bel, "OFF_SRVAL", item);
-        let item = ctx.extract_enum_bool_wide(tile, bel, "SRVAL_TQ.OLOGIC", "0", "1");
+        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "SRVAL_TQ.OLOGIC", "0", "1");
         ctx.insert(tile, bel, "TFF_SRVAL", item);
-        let item = ctx.extract_enum_bool_wide(tile, bel, "SRVAL_TQ.OSERDES", "0", "1");
+        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "SRVAL_TQ.OSERDES", "0", "1");
         ctx.insert(tile, bel, "TFF_SRVAL", item);
 
-        ctx.get_diff(tile, bel, "OREVUSED", "0").assert_empty();
-        ctx.get_diff(tile, bel, "TREVUSED", "0").assert_empty();
-        ctx.get_diff(tile, bel, "OCEUSED", "0").assert_empty();
-        ctx.get_diff(tile, bel, "TCEUSED", "0").assert_empty();
-        let osrused = ctx.extract_bit(tile, bel, "OSRUSED", "0");
-        let tsrused = ctx.extract_bit(tile, bel, "TSRUSED", "0");
+        ctx.get_diff_legacy(tile, bel, "OREVUSED", "0")
+            .assert_empty();
+        ctx.get_diff_legacy(tile, bel, "TREVUSED", "0")
+            .assert_empty();
+        ctx.get_diff_legacy(tile, bel, "OCEUSED", "0")
+            .assert_empty();
+        ctx.get_diff_legacy(tile, bel, "TCEUSED", "0")
+            .assert_empty();
+        let osrused = ctx.extract_bit_legacy(tile, bel, "OSRUSED", "0");
+        let tsrused = ctx.extract_bit_legacy(tile, bel, "TSRUSED", "0");
         ctx.insert(tile, bel, "OFF_SR_USED", osrused);
         ctx.insert(tile, bel, "TFF_SR_USED", tsrused);
 
         let mut diffs = vec![];
         for val in ["2", "3", "4", "5", "6", "7", "8"] {
-            diffs.push((val, val, ctx.get_diff(tile, bel, "DATA_WIDTH.SDR", val)));
+            diffs.push((
+                val,
+                val,
+                ctx.get_diff_legacy(tile, bel, "DATA_WIDTH.SDR", val),
+            ));
         }
         for (val, ratio) in [("4", "2"), ("6", "3"), ("8", "4"), ("10", "5")] {
-            diffs.push((val, ratio, ctx.get_diff(tile, bel, "DATA_WIDTH.DDR", val)));
+            diffs.push((
+                val,
+                ratio,
+                ctx.get_diff_legacy(tile, bel, "DATA_WIDTH.DDR", val),
+            ));
         }
         for (_, _, diff) in &mut diffs {
-            diff.apply_bit_diff(ctx.item(tile, bel, "OFF_SR_USED"), true, false);
+            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "OFF_SR_USED"), true, false);
         }
         let mut ddr3_byp = diffs[0].2.clone();
         for (_, _, diff) in &diffs {
             ddr3_byp.bits.retain(|k, _| diff.bits.contains_key(k));
         }
-        let ddr3_byp = xlat_bit(ddr3_byp);
+        let ddr3_byp = xlat_bit_legacy(ddr3_byp);
         for (_, _, diff) in &mut diffs {
-            diff.apply_bit_diff(&ddr3_byp, true, false);
+            diff.apply_bit_diff_legacy(&ddr3_byp, true, false);
         }
         ctx.insert(tile, bel, "DDR3_BYPASS", ddr3_byp);
         let mut diff_sdr = diffs[0].2.clone();
@@ -1690,61 +1710,64 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             };
             diffs_ratio.push((ratio, diff_ratio));
         }
-        ctx.insert(tile, bel, "DATA_WIDTH", xlat_enum(diffs_width));
-        ctx.insert(tile, bel, "CLK_RATIO", xlat_enum(diffs_ratio));
+        ctx.insert(tile, bel, "DATA_WIDTH", xlat_enum_legacy(diffs_width));
+        ctx.insert(tile, bel, "CLK_RATIO", xlat_enum_legacy(diffs_ratio));
 
-        let diff_buf = !ctx.get_diff(tile, bel, "DATA_RATE_OQ", "SDR");
+        let diff_buf = !ctx.get_diff_legacy(tile, bel, "DATA_RATE_OQ", "SDR");
         let diff_ddr = ctx
-            .get_diff(tile, bel, "DATA_RATE_OQ", "DDR")
+            .get_diff_legacy(tile, bel, "DATA_RATE_OQ", "DDR")
             .combine(&diff_buf);
-        let item = xlat_enum(vec![
+        let item = xlat_enum_legacy(vec![
             ("NONE", Diff::default()),
             ("D1", diff_buf),
             ("SERDES_SDR", diff_sdr),
             ("SERDES_DDR", diff_ddr),
-            ("FF", ctx.get_diff(tile, bel, "OUTFFTYPE", "#FF")),
-            ("DDR", ctx.get_diff(tile, bel, "OUTFFTYPE", "DDR")),
-            ("LATCH", ctx.get_diff(tile, bel, "OUTFFTYPE", "#LATCH")),
+            ("FF", ctx.get_diff_legacy(tile, bel, "OUTFFTYPE", "#FF")),
+            ("DDR", ctx.get_diff_legacy(tile, bel, "OUTFFTYPE", "DDR")),
+            (
+                "LATCH",
+                ctx.get_diff_legacy(tile, bel, "OUTFFTYPE", "#LATCH"),
+            ),
         ]);
         ctx.insert(tile, bel, "OMUX", item);
 
-        let mut diff_sdr = ctx.get_diff(tile, bel, "DATA_RATE_TQ", "SDR");
-        let mut diff_ddr = ctx.get_diff(tile, bel, "DATA_RATE_TQ", "DDR");
-        diff_sdr.apply_bit_diff(ctx.item(tile, bel, "TFF_SR_USED"), true, false);
-        diff_ddr.apply_bit_diff(ctx.item(tile, bel, "TFF_SR_USED"), true, false);
-        let item = xlat_enum(vec![
+        let mut diff_sdr = ctx.get_diff_legacy(tile, bel, "DATA_RATE_TQ", "SDR");
+        let mut diff_ddr = ctx.get_diff_legacy(tile, bel, "DATA_RATE_TQ", "DDR");
+        diff_sdr.apply_bit_diff_legacy(ctx.item(tile, bel, "TFF_SR_USED"), true, false);
+        diff_ddr.apply_bit_diff_legacy(ctx.item(tile, bel, "TFF_SR_USED"), true, false);
+        let item = xlat_enum_legacy(vec![
             ("NONE", Diff::default()),
-            ("T1", ctx.get_diff(tile, bel, "DATA_RATE_TQ", "BUF")),
+            ("T1", ctx.get_diff_legacy(tile, bel, "DATA_RATE_TQ", "BUF")),
             ("SERDES_SDR", diff_sdr),
             ("SERDES_DDR", diff_ddr),
-            ("FF", ctx.get_diff(tile, bel, "TFFTYPE", "#FF")),
-            ("DDR", ctx.get_diff(tile, bel, "TFFTYPE", "DDR")),
-            ("LATCH", ctx.get_diff(tile, bel, "TFFTYPE", "#LATCH")),
+            ("FF", ctx.get_diff_legacy(tile, bel, "TFFTYPE", "#FF")),
+            ("DDR", ctx.get_diff_legacy(tile, bel, "TFFTYPE", "DDR")),
+            ("LATCH", ctx.get_diff_legacy(tile, bel, "TFFTYPE", "#LATCH")),
         ]);
         ctx.insert(tile, bel, "TMUX", item);
 
-        ctx.get_diff(tile, bel, "INTERFACE_TYPE", "DEFAULT")
+        ctx.get_diff_legacy(tile, bel, "INTERFACE_TYPE", "DEFAULT")
             .assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "MEMORY_DDR3");
+        let mut diff = ctx.get_diff_legacy(tile, bel, "INTERFACE_TYPE", "MEMORY_DDR3");
 
-        diff.apply_enum_diff(ctx.item(tile, bel, "OMUX"), "SERDES_DDR", "NONE");
-        diff.apply_enum_diff(ctx.item(tile, bel, "DATA_WIDTH"), "4", "NONE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "OFF_SR_USED"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "OMUX"), "SERDES_DDR", "NONE");
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DATA_WIDTH"), "4", "NONE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "OFF_SR_USED"), true, false);
         assert_eq!(diff.bits.len(), 1);
         ctx.insert(
             tile,
             bel,
             "INTERFACE_TYPE",
-            xlat_enum(vec![("DEFAULT", Diff::default()), ("MEMORY_DDR3", diff)]),
+            xlat_enum_legacy(vec![("DEFAULT", Diff::default()), ("MEMORY_DDR3", diff)]),
         );
 
-        ctx.collect_enum_bool(tile, bel, "SERDES", "FALSE", "TRUE");
-        ctx.collect_enum(tile, bel, "SERDES_MODE", &["SLAVE", "MASTER"]);
-        ctx.collect_enum_bool(tile, bel, "SELFHEAL", "FALSE", "TRUE");
-        ctx.collect_enum(tile, bel, "TRISTATE_WIDTH", &["1", "4"]);
-        ctx.collect_enum_bool(tile, bel, "WC_DELAY", "0", "1");
-        ctx.collect_enum_bool(tile, bel, "DDR3_DATA", "0", "1");
-        ctx.collect_enum_bool(tile, bel, "ODELAY_USED", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "SERDES", "FALSE", "TRUE");
+        ctx.collect_enum_legacy(tile, bel, "SERDES_MODE", &["SLAVE", "MASTER"]);
+        ctx.collect_bit_bi_legacy(tile, bel, "SELFHEAL", "FALSE", "TRUE");
+        ctx.collect_enum_legacy(tile, bel, "TRISTATE_WIDTH", &["1", "4"]);
+        ctx.collect_bit_bi_legacy(tile, bel, "WC_DELAY", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "DDR3_DATA", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "ODELAY_USED", "0", "1");
         for attr in [
             "INIT_LOADCNT",
             "INIT_ORANK1",
@@ -1756,27 +1779,27 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             "INIT_PIPE_DATA0",
             "INIT_PIPE_DATA1",
         ] {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
 
-        ctx.collect_enum_bool(tile, bel, "MISR_ENABLE", "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, "MISR_ENABLE_FDBK", "FALSE", "TRUE");
-        ctx.collect_enum_default(tile, bel, "MISR_CLK_SELECT", &["CLK1", "CLK2"], "NONE");
+        ctx.collect_bit_bi_legacy(tile, bel, "MISR_ENABLE", "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, "MISR_ENABLE_FDBK", "FALSE", "TRUE");
+        ctx.collect_enum_default_legacy(tile, bel, "MISR_CLK_SELECT", &["CLK1", "CLK2"], "NONE");
 
-        let mut present_ologic = ctx.get_diff(tile, bel, "PRESENT", "OLOGIC");
-        present_ologic.apply_bit_diff(ctx.item(tile, bel, "DDR3_BYPASS"), true, false);
-        present_ologic.apply_bitvec_diff_int(ctx.item(tile, bel, "TFF_SRVAL"), 0, 7);
-        present_ologic.apply_enum_diff(ctx.item(tile, bel, "TMUX"), "T1", "NONE");
+        let mut present_ologic = ctx.get_diff_legacy(tile, bel, "PRESENT", "OLOGIC");
+        present_ologic.apply_bit_diff_legacy(ctx.item(tile, bel, "DDR3_BYPASS"), true, false);
+        present_ologic.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "TFF_SRVAL"), 0, 7);
+        present_ologic.apply_enum_diff_legacy(ctx.item(tile, bel, "TMUX"), "T1", "NONE");
         present_ologic.assert_empty();
 
-        let mut present_oserdes = ctx.get_diff(tile, bel, "PRESENT", "OSERDES");
-        present_oserdes.apply_bitvec_diff_int(ctx.item(tile, bel, "OFF_SRVAL"), 0, 7);
-        present_oserdes.apply_bitvec_diff_int(ctx.item(tile, bel, "TFF_SRVAL"), 0, 7);
-        present_oserdes.apply_bit_diff(ctx.item(tile, bel, "OFF_INIT"), false, true);
-        present_oserdes.apply_bit_diff(ctx.item(tile, bel, "TFF_INIT"), false, true);
-        present_oserdes.apply_bit_diff(ctx.item(tile, bel, "INV.CLKPERF"), false, true);
-        present_oserdes.apply_enum_diff(ctx.item(tile, bel, "OMUX"), "D1", "NONE");
-        present_oserdes.apply_enum_diff(ctx.item(tile, bel, "TMUX"), "T1", "NONE");
+        let mut present_oserdes = ctx.get_diff_legacy(tile, bel, "PRESENT", "OSERDES");
+        present_oserdes.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "OFF_SRVAL"), 0, 7);
+        present_oserdes.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "TFF_SRVAL"), 0, 7);
+        present_oserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "OFF_INIT"), false, true);
+        present_oserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "TFF_INIT"), false, true);
+        present_oserdes.apply_bit_diff_legacy(ctx.item(tile, bel, "INV.CLKPERF"), false, true);
+        present_oserdes.apply_enum_diff_legacy(ctx.item(tile, bel, "OMUX"), "D1", "NONE");
+        present_oserdes.apply_enum_diff_legacy(ctx.item(tile, bel, "TMUX"), "T1", "NONE");
         present_oserdes.assert_empty();
 
         let mut vals = vec![];
@@ -1786,30 +1809,31 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         for j in 0..6 {
             vals.push(format!("RCLK{j}"));
         }
-        ctx.collect_enum_default_ocd(tile, bel, "MUX.CLKDIV", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_ocd(tile, bel, "MUX.CLKDIVB", &vals, "NONE", OcdMode::Mux);
+        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKDIV", &vals, "NONE", OcdMode::Mux);
+        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKDIVB", &vals, "NONE", OcdMode::Mux);
         for j in 0..8 {
             vals.push(format!("IOCLK{j}"));
         }
-        ctx.collect_enum_default_ocd(tile, bel, "MUX.CLK", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum_default_ocd(tile, bel, "MUX.CLKB", &vals, "NONE", OcdMode::Mux);
-        ctx.collect_enum(tile, bel, "MUX.CLKPERF", &["OCLK0", "OCLK1"]);
+        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLK", &vals, "NONE", OcdMode::Mux);
+        ctx.collect_enum_default_legacy_ocd(tile, bel, "MUX.CLKB", &vals, "NONE", OcdMode::Mux);
+        ctx.collect_enum_legacy(tile, bel, "MUX.CLKPERF", &["OCLK0", "OCLK1"]);
     }
-    let mut diff = ctx.get_diff(tile, "OLOGIC_COMMON", "MISR_RESET", "1");
+    let mut diff = ctx.get_diff_legacy(tile, "OLOGIC_COMMON", "MISR_RESET", "1");
     let diff1 = diff.split_bits_by(|bit| bit.rect.to_idx() > 0);
-    ctx.insert(tile, "OLOGIC[0]", "MISR_RESET", xlat_bit(diff));
-    ctx.insert(tile, "OLOGIC[1]", "MISR_RESET", xlat_bit(diff1));
+    ctx.insert(tile, "OLOGIC[0]", "MISR_RESET", xlat_bit_legacy(diff));
+    ctx.insert(tile, "OLOGIC[1]", "MISR_RESET", xlat_bit_legacy(diff1));
     for i in 0..2 {
         let bel = &format!("IODELAY[{i}]");
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         ctx.collect_inv(tile, bel, "C");
         ctx.collect_inv(tile, bel, "DATAIN");
         ctx.collect_inv(tile, bel, "IDATAIN");
-        ctx.collect_enum_bool(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, "CINVCTRL_SEL", "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, "CINVCTRL_SEL", "FALSE", "TRUE");
         let mut diffs_t = vec![];
         let mut diffs_f = vec![];
-        for diff in ctx.get_diffs(tile, bel, "IDELAY_VALUE", "") {
+        for diff in ctx.get_diffs_legacy(tile, bel, "IDELAY_VALUE", "") {
             let mut diff_t = Diff::default();
             let mut diff_f = Diff::default();
             for (k, v) in diff.bits {
@@ -1822,116 +1846,127 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             diffs_t.push(diff_t);
             diffs_f.push(diff_f);
         }
-        ctx.insert(tile, bel, "IDELAY_VALUE_INIT", xlat_bitvec(diffs_t));
-        ctx.insert(tile, bel, "IDELAY_VALUE_CUR", xlat_bitvec(diffs_f));
-        let item = ctx.extract_bitvec(tile, bel, "ODELAY_VALUE", "");
+        ctx.insert(tile, bel, "IDELAY_VALUE_INIT", xlat_bitvec_legacy(diffs_t));
+        ctx.insert(tile, bel, "IDELAY_VALUE_CUR", xlat_bitvec_legacy(diffs_f));
+        let item = ctx.extract_bitvec_legacy(tile, bel, "ODELAY_VALUE", "");
         ctx.insert(tile, bel, "ALT_DELAY_VALUE", item);
         let (_, _, mut diff) = Diff::split(
-            ctx.peek_diff(tile, bel, "DELAY_SRC", "I").clone(),
-            ctx.peek_diff(tile, bel, "DELAY_SRC", "O").clone(),
+            ctx.peek_diff_legacy(tile, bel, "DELAY_SRC", "I").clone(),
+            ctx.peek_diff_legacy(tile, bel, "DELAY_SRC", "O").clone(),
         );
-        diff.discard_bits(ctx.item(tile, bel, "IDELAY_VALUE_CUR"));
-        ctx.insert(tile, bel, "ENABLE", xlat_bit(diff));
+        diff.discard_bits_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"));
+        ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(diff));
         let mut diffs = vec![("NONE", Diff::default())];
         for val in ["I", "IO", "O", "DATAIN", "CLKIN", "DELAYCHAIN_OSC"] {
-            let mut diff = ctx.get_diff(tile, bel, "DELAY_SRC", val);
-            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
-            diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "DELAY_SRC", val);
+            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+            diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
             diffs.push((val, diff));
         }
-        ctx.insert(tile, bel, "DELAY_SRC", xlat_enum(diffs));
+        ctx.insert(tile, bel, "DELAY_SRC", xlat_enum_legacy(diffs));
 
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "I_DEFAULT");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
-        let val = extract_bitvec_val_part(
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "I_DEFAULT");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
+        let val = extract_bitvec_val_part_legacy(
             ctx.item(tile, bel, "IDELAY_VALUE_CUR"),
             &bits![1; 5],
             &mut diff,
         );
         ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
-        let val = extract_bitvec_val_part(
+        let val = extract_bitvec_val_part_legacy(
             ctx.item(tile, bel, "IDELAY_VALUE_INIT"),
             &bits![0; 5],
             &mut diff,
         );
         ctx.insert_device_data("IODELAY:DEFAULT_IDELAY_VALUE", val);
-        ctx.insert(tile, bel, "EXTRA_DELAY", xlat_bit(diff));
+        ctx.insert(tile, bel, "EXTRA_DELAY", xlat_bit_legacy(diff));
 
         let mut diffs = vec![];
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "I_FIXED");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "I_FIXED");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("FIXED", diff));
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "I_VARIABLE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "I_VARIABLE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("VARIABLE", diff));
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "I_VAR_LOADABLE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "I_VAR_LOADABLE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "I", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("VAR_LOADABLE", diff));
 
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "O_FIXED");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "O", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "O_FIXED");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "O", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("FIXED", diff));
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "O_VARIABLE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "O", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "O_VARIABLE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "O", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("VARIABLE", diff));
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "O_VAR_LOADABLE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "O", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "O_VAR_LOADABLE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "O", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("VAR_LOADABLE", diff));
 
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "IO_FIXED");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "IO_FIXED");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("FIXED", diff));
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "I_FIXED_O_VARIABLE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "I_FIXED_O_VARIABLE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("VARIABLE_SWAPPED", diff));
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "I_VARIABLE_O_FIXED");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "I_VARIABLE_O_FIXED");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("VARIABLE", diff));
-        let mut diff = ctx.get_diff(tile, bel, "MODE", "IO_VAR_LOADABLE");
-        diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
-        diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "MODE", "IO_VAR_LOADABLE");
+        diff.apply_bit_diff_legacy(ctx.item(tile, bel, "ENABLE"), true, false);
+        diff.apply_enum_diff_legacy(ctx.item(tile, bel, "DELAY_SRC"), "IO", "NONE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "IDELAY_VALUE_CUR"), 0, 0x1f);
         diffs.push(("IO_VAR_LOADABLE", diff));
-        ctx.insert(tile, bel, "DELAY_TYPE", xlat_enum(diffs));
+        ctx.insert(tile, bel, "DELAY_TYPE", xlat_enum_legacy(diffs));
     }
-    let mut present_vr = ctx.get_diff(tile, "IOB_COMMON", "PRESENT", "VR");
+    let mut present_vr = ctx.get_diff_legacy(tile, "IOB_COMMON", "PRESENT", "VR");
     for i in 0..2 {
         let bel = &format!("IOB[{i}]");
-        ctx.collect_enum_default(tile, bel, "PULL", &["PULLDOWN", "PULLUP", "KEEPER"], "NONE");
-        ctx.collect_enum_bool(tile, bel, "OUTPUT_DELAY", "0", "1");
-        let mut present = ctx.get_diff(tile, bel, "PRESENT", "IOB");
+        ctx.collect_enum_default_legacy(
+            tile,
+            bel,
+            "PULL",
+            &["PULLDOWN", "PULLUP", "KEEPER"],
+            "NONE",
+        );
+        ctx.collect_bit_bi_legacy(tile, bel, "OUTPUT_DELAY", "0", "1");
+        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "IOB");
         let diff = ctx
-            .get_diff(tile, bel, "PRESENT", "IPAD")
+            .get_diff_legacy(tile, bel, "PRESENT", "IPAD")
             .combine(&!&present);
-        ctx.insert(tile, bel, "VREF_SYSMON", xlat_bit(diff));
+        ctx.insert(tile, bel, "VREF_SYSMON", xlat_bit_legacy(diff));
         let diff = ctx
-            .get_diff(tile, bel, "PRESENT", "IOB.CONTINUOUS")
+            .get_diff_legacy(tile, bel, "PRESENT", "IOB.CONTINUOUS")
             .combine(&!&present);
-        ctx.insert(tile, bel, "DCIUPDATEMODE_ASREQUIRED", xlat_bit(!diff));
-        present.apply_enum_diff(ctx.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
+        ctx.insert(
+            tile,
+            bel,
+            "DCIUPDATEMODE_ASREQUIRED",
+            xlat_bit_legacy(!diff),
+        );
+        present.apply_enum_diff_legacy(ctx.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
 
-        let oprog = ctx.extract_bitvec(tile, bel, "OPROGRAMMING", "");
-        let lvds = TileItem::from_bitvec(oprog.bits[0..9].to_vec(), false);
-        let dci_t = TileItem::from_bit(oprog.bits[11], false);
+        let oprog = ctx.extract_bitvec_legacy(tile, bel, "OPROGRAMMING", "");
+        let lvds = TileItem::from_bitvec_inv(oprog.bits[0..9].to_vec(), false);
+        let dci_t = TileItem::from_bit_inv(oprog.bits[11], false);
         let dci_mode = TileItem {
             bits: oprog.bits[12..15].to_vec(),
             kind: TileItemKind::Enum {
@@ -1946,8 +1981,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 .collect(),
             },
         };
-        let output_misc = TileItem::from_bitvec(oprog.bits[15..19].to_vec(), false);
-        let dci_misc = TileItem::from_bitvec(oprog.bits[9..11].to_vec(), false);
+        let output_misc = TileItem::from_bitvec_inv(oprog.bits[15..19].to_vec(), false);
+        let dci_misc = TileItem::from_bitvec_inv(oprog.bits[9..11].to_vec(), false);
         let pdrive_bits = oprog.bits[19..25].to_vec();
         let ndrive_bits = oprog.bits[25..31].to_vec();
         let pdrive_invert: BitVec = pdrive_bits
@@ -2001,11 +2036,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ],
             )
         };
-        let pslew = TileItem::from_bitvec(pslew_bits, false);
-        let nslew = TileItem::from_bitvec(nslew_bits, false);
+        let pslew = TileItem::from_bitvec_inv(pslew_bits, false);
+        let nslew = TileItem::from_bitvec_inv(nslew_bits, false);
 
         let mut diff = ctx
-            .peek_diff(tile, bel, "OSTD", "LVCMOS25.12.SLOW")
+            .peek_diff_legacy(tile, bel, "OSTD", "LVCMOS25.12.SLOW")
             .combine(&present);
         for &bit in &pdrive_bits {
             diff.bits.remove(&bit);
@@ -2013,19 +2048,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         for &bit in &ndrive_bits {
             diff.bits.remove(&bit);
         }
-        extract_bitvec_val_part(&pslew, &bits![0; 5], &mut diff);
-        extract_bitvec_val_part(&nslew, &bits![0; 5], &mut diff);
-        ctx.insert(tile, bel, "OUTPUT_ENABLE", xlat_bit_wide(diff));
+        extract_bitvec_val_part_legacy(&pslew, &bits![0; 5], &mut diff);
+        extract_bitvec_val_part_legacy(&nslew, &bits![0; 5], &mut diff);
+        ctx.insert(tile, bel, "OUTPUT_ENABLE", xlat_bit_wide_legacy(diff));
 
-        let diff_cmos = ctx.peek_diff(tile, bel, "ISTD", "LVCMOS18.LP");
-        let diff_cmos12 = ctx.peek_diff(tile, bel, "ISTD", "LVCMOS12.LP");
-        let diff_vref_lp = ctx.peek_diff(tile, bel, "ISTD", "HSTL_I.LP");
-        let diff_vref_hp = ctx.peek_diff(tile, bel, "ISTD", "HSTL_I.HP");
-        let mut diff_diff_lp = ctx.peek_diff(tile, bel, "ISTD", "LVDS_25.LP").clone();
+        let diff_cmos = ctx.peek_diff_legacy(tile, bel, "ISTD", "LVCMOS18.LP");
+        let diff_cmos12 = ctx.peek_diff_legacy(tile, bel, "ISTD", "LVCMOS12.LP");
+        let diff_vref_lp = ctx.peek_diff_legacy(tile, bel, "ISTD", "HSTL_I.LP");
+        let diff_vref_hp = ctx.peek_diff_legacy(tile, bel, "ISTD", "HSTL_I.HP");
+        let mut diff_diff_lp = ctx
+            .peek_diff_legacy(tile, bel, "ISTD", "LVDS_25.LP")
+            .clone();
         let diff_diff_lp = diff_diff_lp.split_bits_by(|bit| bit.rect.to_idx() == i);
-        let mut diff_diff_hp = ctx.peek_diff(tile, bel, "ISTD", "LVDS_25.HP").clone();
+        let mut diff_diff_hp = ctx
+            .peek_diff_legacy(tile, bel, "ISTD", "LVDS_25.HP")
+            .clone();
         let diff_diff_hp = diff_diff_hp.split_bits_by(|bit| bit.rect.to_idx() == i);
-        let item = xlat_enum(vec![
+        let item = xlat_enum_legacy(vec![
             ("OFF", Diff::default()),
             ("CMOS", diff_cmos.clone()),
             ("CMOS12", diff_cmos12.clone()),
@@ -2052,8 +2091,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     } else {
                         format!("{name}.{drive}.{slew}", name = std.name)
                     };
-                    let mut diff = ctx.get_diff(tile, bel, "OSTD", val);
-                    diff.apply_bitvec_diff(
+                    let mut diff = ctx.get_diff_legacy(tile, bel, "OSTD", val);
+                    diff.apply_bitvec_diff_legacy(
                         ctx.item(tile, bel, "OUTPUT_ENABLE"),
                         &bits![1; 2],
                         &bits![0; 2],
@@ -2113,21 +2152,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     match std.dci {
                         DciKind::None | DciKind::InputVcc | DciKind::InputSplit => {}
                         DciKind::Output => {
-                            diff.apply_enum_diff(&dci_mode, "OUTPUT", "NONE");
+                            diff.apply_enum_diff_legacy(&dci_mode, "OUTPUT", "NONE");
                         }
                         DciKind::OutputHalf => {
-                            diff.apply_enum_diff(&dci_mode, "OUTPUT_HALF", "NONE");
+                            diff.apply_enum_diff_legacy(&dci_mode, "OUTPUT_HALF", "NONE");
                         }
                         DciKind::BiVcc => {
-                            diff.apply_enum_diff(&dci_mode, "TERM_VCC", "NONE");
-                            diff.apply_bitvec_diff(&dci_misc, &bits![1, 1], &bits![0, 0]);
+                            diff.apply_enum_diff_legacy(&dci_mode, "TERM_VCC", "NONE");
+                            diff.apply_bitvec_diff_legacy(&dci_misc, &bits![1, 1], &bits![0, 0]);
                         }
                         DciKind::BiSplit => {
-                            diff.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
+                            diff.apply_enum_diff_legacy(&dci_mode, "TERM_SPLIT", "NONE");
                         }
                         DciKind::BiSplitT => {
-                            diff.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
-                            diff.apply_bit_diff(&dci_t, true, false);
+                            diff.apply_enum_diff_legacy(&dci_mode, "TERM_SPLIT", "NONE");
+                            diff.apply_bit_diff_legacy(&dci_t, true, false);
                         }
                     }
                     diff.assert_empty();
@@ -2152,13 +2191,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 .collect();
             ctx.insert_misc_data(format!("IOSTD:{attr}:VR"), value);
         }
-        present_vr.apply_enum_diff(ctx.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
-        present_vr.apply_enum_diff(&dci_mode, "TERM_SPLIT", "NONE");
+        present_vr.apply_enum_diff_legacy(ctx.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
+        present_vr.apply_enum_diff_legacy(&dci_mode, "TERM_SPLIT", "NONE");
 
         if i == 0 {
-            let mut present_vref = ctx.get_diff(tile, bel, "PRESENT", "VREF");
-            present_vref.apply_bit_diff(ctx.item(tile, bel, "VREF_SYSMON"), true, false);
-            present_vref.apply_enum_diff(ctx.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
+            let mut present_vref = ctx.get_diff_legacy(tile, bel, "PRESENT", "VREF");
+            present_vref.apply_bit_diff_legacy(ctx.item(tile, bel, "VREF_SYSMON"), true, false);
+            present_vref.apply_enum_diff_legacy(ctx.item(tile, bel, "PULL"), "NONE", "PULLDOWN");
 
             for (attr, bits, invert) in [
                 ("PDRIVE", &pdrive_bits, &pdrive_invert),
@@ -2220,46 +2259,47 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         present.assert_empty();
     }
     let diff1 = present_vr.split_bits_by(|bit| bit.rect.to_idx() == 1);
-    ctx.insert(tile, "IOB[0]", "VR", xlat_bit(present_vr));
-    ctx.insert(tile, "IOB[1]", "VR", xlat_bit(diff1));
+    ctx.insert(tile, "IOB[0]", "VR", xlat_bit_legacy(present_vr));
+    ctx.insert(tile, "IOB[1]", "VR", xlat_bit_legacy(diff1));
     // ISE bug.
-    let mut diff = ctx.get_diff(tile, "IOB[0]", "PULL_DYNAMIC", "1");
+    let mut diff = ctx.get_diff_legacy(tile, "IOB[0]", "PULL_DYNAMIC", "1");
     let diff1 = diff.split_bits_by(|bit| bit.rect.to_idx() == 1);
-    ctx.insert(tile, "IOB[0]", "PULL_DYNAMIC", xlat_bit(diff));
-    ctx.insert(tile, "IOB[1]", "PULL_DYNAMIC", xlat_bit(diff1));
-    ctx.get_diff(tile, "IOB[1]", "PULL_DYNAMIC", "1")
+    ctx.insert(tile, "IOB[0]", "PULL_DYNAMIC", xlat_bit_legacy(diff));
+    ctx.insert(tile, "IOB[1]", "PULL_DYNAMIC", xlat_bit_legacy(diff1));
+    ctx.get_diff_legacy(tile, "IOB[1]", "PULL_DYNAMIC", "1")
         .assert_empty();
 
     for i in 0..2 {
         let bel = &format!("IOB[{i}]");
         for &std in IOSTDS {
             for lp in ["HP", "LP"] {
-                let mut diff = ctx.get_diff(tile, bel, "ISTD", format!("{sn}.{lp}", sn = std.name));
+                let mut diff =
+                    ctx.get_diff_legacy(tile, bel, "ISTD", format!("{sn}.{lp}", sn = std.name));
                 if std.diff != DiffKind::None {
                     for bel in ["IOB[0]", "IOB[1]"] {
                         match std.dci {
                             DciKind::None | DciKind::Output | DciKind::OutputHalf => {}
                             DciKind::InputVcc | DciKind::BiVcc => {
-                                diff.apply_enum_diff(
+                                diff.apply_enum_diff_legacy(
                                     ctx.item(tile, bel, "DCI_MODE"),
                                     "TERM_VCC",
                                     "NONE",
                                 );
-                                diff.apply_bitvec_diff(
+                                diff.apply_bitvec_diff_legacy(
                                     ctx.item(tile, bel, "DCI_MISC"),
                                     &bits![1, 1],
                                     &bits![0, 0],
                                 );
                             }
                             DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
-                                diff.apply_enum_diff(
+                                diff.apply_enum_diff_legacy(
                                     ctx.item(tile, bel, "DCI_MODE"),
                                     "TERM_SPLIT",
                                     "NONE",
                                 );
                             }
                         }
-                        diff.apply_enum_diff(
+                        diff.apply_enum_diff_legacy(
                             ctx.item(tile, bel, "IBUF_MODE"),
                             if lp == "LP" { "DIFF_LP" } else { "DIFF_HP" },
                             "OFF",
@@ -2270,19 +2310,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     match std.dci {
                         DciKind::None | DciKind::Output | DciKind::OutputHalf => {}
                         DciKind::InputVcc | DciKind::BiVcc => {
-                            diff.apply_enum_diff(
+                            diff.apply_enum_diff_legacy(
                                 ctx.item(tile, bel, "DCI_MODE"),
                                 "TERM_VCC",
                                 "NONE",
                             );
-                            diff.apply_bitvec_diff(
+                            diff.apply_bitvec_diff_legacy(
                                 ctx.item(tile, bel, "DCI_MISC"),
                                 &bits![1, 1],
                                 &bits![0, 0],
                             );
                         }
                         DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
-                            diff.apply_enum_diff(
+                            diff.apply_enum_diff_legacy(
                                 ctx.item(tile, bel, "DCI_MODE"),
                                 "TERM_SPLIT",
                                 "NONE",
@@ -2296,18 +2336,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     } else {
                         "CMOS"
                     };
-                    diff.apply_enum_diff(ctx.item(tile, bel, "IBUF_MODE"), mode, "OFF");
+                    diff.apply_enum_diff_legacy(ctx.item(tile, bel, "IBUF_MODE"), mode, "OFF");
                     diff.assert_empty();
                 }
             }
             if std.diff == DiffKind::True && i == 0 {
-                let mut diff = ctx.get_diff(tile, bel, "DIFF_TERM", std.name);
-                let val_c = extract_bitvec_val_part(
+                let mut diff = ctx.get_diff_legacy(tile, bel, "DIFF_TERM", std.name);
+                let val_c = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "IOB[0]", "LVDS"),
                     &bits![0; 9],
                     &mut diff,
                 );
-                let val_t = extract_bitvec_val_part(
+                let val_t = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "IOB[1]", "LVDS"),
                     &bits![0; 9],
                     &mut diff,
@@ -2315,13 +2355,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.insert_misc_data(format!("IOSTD:LVDS_T:TERM_{}", std.name), val_t);
                 ctx.insert_misc_data(format!("IOSTD:LVDS_C:TERM_{}", std.name), val_c);
                 diff.assert_empty();
-                let mut diff = ctx.get_diff(tile, bel, "DIFF_TERM_DYNAMIC", std.name);
-                let val_c = extract_bitvec_val_part(
+                let mut diff = ctx.get_diff_legacy(tile, bel, "DIFF_TERM_DYNAMIC", std.name);
+                let val_c = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "IOB[0]", "LVDS"),
                     &bits![0; 9],
                     &mut diff,
                 );
-                let val_t = extract_bitvec_val_part(
+                let val_t = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "IOB[1]", "LVDS"),
                     &bits![0; 9],
                     &mut diff,
@@ -2331,20 +2371,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 diff.assert_empty();
             }
             if std.diff == DiffKind::True && i == 1 {
-                let mut diff = ctx.get_diff(tile, bel, "OSTD", std.name);
-                let val_c = extract_bitvec_val_part(
+                let mut diff = ctx.get_diff_legacy(tile, bel, "OSTD", std.name);
+                let val_c = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "IOB[0]", "LVDS"),
                     &bits![0; 9],
                     &mut diff,
                 );
-                let val_t = extract_bitvec_val_part(
+                let val_t = extract_bitvec_val_part_legacy(
                     ctx.item(tile, "IOB[1]", "LVDS"),
                     &bits![0; 9],
                     &mut diff,
                 );
                 ctx.insert_misc_data(format!("IOSTD:LVDS_T:OUTPUT_{}", std.name), val_t);
                 ctx.insert_misc_data(format!("IOSTD:LVDS_C:OUTPUT_{}", std.name), val_c);
-                diff.apply_bitvec_diff(
+                diff.apply_bitvec_diff_legacy(
                     ctx.item(tile, "IOB[1]", "OUTPUT_ENABLE"),
                     &bits![1; 2],
                     &bits![0; 2],
@@ -2353,16 +2393,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             }
             if std.diff == DiffKind::Pseudo && i == 1 {
                 let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
-                let mut diff = ctx.get_diff(tile, bel, "OSTD", std.name);
+                let mut diff = ctx.get_diff_legacy(tile, bel, "OSTD", std.name);
                 for bel in ["IOB[0]", "IOB[1]"] {
-                    diff.apply_bitvec_diff(
+                    diff.apply_bitvec_diff_legacy(
                         ctx.item(tile, bel, "OUTPUT_ENABLE"),
                         &bits![1; 2],
                         &bits![0; 2],
                     );
                     for attr in ["PDRIVE", "NDRIVE", "PSLEW", "NSLEW", "OUTPUT_MISC"] {
                         let item = ctx.item(tile, bel, attr);
-                        let value = extract_bitvec_val_part(
+                        let value = extract_bitvec_val_part_legacy(
                             item,
                             &BitVec::repeat(false, item.bits.len()),
                             &mut diff,
@@ -2375,21 +2415,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     match std.dci {
                         DciKind::None | DciKind::InputVcc | DciKind::InputSplit => {}
                         DciKind::Output => {
-                            diff.apply_enum_diff(dci_mode, "OUTPUT", "NONE");
+                            diff.apply_enum_diff_legacy(dci_mode, "OUTPUT", "NONE");
                         }
                         DciKind::OutputHalf => {
-                            diff.apply_enum_diff(dci_mode, "OUTPUT_HALF", "NONE");
+                            diff.apply_enum_diff_legacy(dci_mode, "OUTPUT_HALF", "NONE");
                         }
                         DciKind::BiVcc => {
-                            diff.apply_enum_diff(dci_mode, "TERM_VCC", "NONE");
-                            diff.apply_bitvec_diff(dci_misc, &bits![1, 1], &bits![0, 0]);
+                            diff.apply_enum_diff_legacy(dci_mode, "TERM_VCC", "NONE");
+                            diff.apply_bitvec_diff_legacy(dci_misc, &bits![1, 1], &bits![0, 0]);
                         }
                         DciKind::BiSplit => {
-                            diff.apply_enum_diff(dci_mode, "TERM_SPLIT", "NONE");
+                            diff.apply_enum_diff_legacy(dci_mode, "TERM_SPLIT", "NONE");
                         }
                         DciKind::BiSplitT => {
-                            diff.apply_enum_diff(dci_mode, "TERM_SPLIT", "NONE");
-                            diff.apply_bit_diff(dci_t, true, false);
+                            diff.apply_enum_diff_legacy(dci_mode, "TERM_SPLIT", "NONE");
+                            diff.apply_bit_diff_legacy(dci_t, true, false);
                         }
                     }
                 }
@@ -2397,14 +2437,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     tile,
                     "IOB[0]",
                     "OMUX",
-                    xlat_enum(vec![("O", Diff::default()), ("OTHER_O_INV", diff)]),
+                    xlat_enum_legacy(vec![("O", Diff::default()), ("OTHER_O_INV", diff)]),
                 );
             }
         }
     }
 
     let tile = "HCLK_IO";
-    let lvdsbias = TileItem::from_bitvec(
+    let lvdsbias = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 42, 30),
             TileBit::new(0, 42, 28),
@@ -2427,44 +2467,44 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         false,
     );
     let bel = "DCI";
-    let dci_en = ctx.get_diff(tile, bel, "ENABLE", "1");
+    let dci_en = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
     let test_en = ctx
-        .get_diff(tile, bel, "TEST_ENABLE", "1")
+        .get_diff_legacy(tile, bel, "TEST_ENABLE", "1")
         .combine(&!&dci_en);
     let dyn_en = ctx
-        .get_diff(tile, bel, "DYNAMIC_ENABLE", "1")
+        .get_diff_legacy(tile, bel, "DYNAMIC_ENABLE", "1")
         .combine(&!&dci_en);
-    ctx.insert(tile, bel, "TEST_ENABLE", xlat_bit_wide(test_en));
-    ctx.insert(tile, bel, "DYNAMIC_ENABLE", xlat_bit(dyn_en));
+    ctx.insert(tile, bel, "TEST_ENABLE", xlat_bit_wide_legacy(test_en));
+    ctx.insert(tile, bel, "DYNAMIC_ENABLE", xlat_bit_legacy(dyn_en));
     let casc_from_above = ctx
-        .get_diff(tile, bel, "CASCADE_FROM_ABOVE", "1")
+        .get_diff_legacy(tile, bel, "CASCADE_FROM_ABOVE", "1")
         .combine(&!&dci_en);
     ctx.insert(
         tile,
         bel,
         "CASCADE_FROM_ABOVE",
-        xlat_bit_wide(casc_from_above),
+        xlat_bit_wide_legacy(casc_from_above),
     );
     let casc_from_below = ctx
-        .get_diff(tile, bel, "CASCADE_FROM_BELOW", "1")
+        .get_diff_legacy(tile, bel, "CASCADE_FROM_BELOW", "1")
         .combine(&!&dci_en);
     ctx.insert(
         tile,
         bel,
         "CASCADE_FROM_BELOW",
-        xlat_bit_wide(casc_from_below),
+        xlat_bit_wide_legacy(casc_from_below),
     );
 
-    let dci_en = xlat_bit(dci_en);
-    let nref_output = TileItem::from_bitvec(
+    let dci_en = xlat_bit_legacy(dci_en);
+    let nref_output = TileItem::from_bitvec_inv(
         vec![TileBit::new(0, 40, 16), TileBit::new(0, 40, 17)],
         false,
     );
-    let pref_output = TileItem::from_bitvec(
+    let pref_output = TileItem::from_bitvec_inv(
         vec![TileBit::new(0, 41, 14), TileBit::new(0, 41, 15)],
         false,
     );
-    let nref_output_half = TileItem::from_bitvec(
+    let nref_output_half = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 40, 18),
             TileBit::new(0, 40, 19),
@@ -2472,7 +2512,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         false,
     );
-    let pref_output_half = TileItem::from_bitvec(
+    let pref_output_half = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 41, 16),
             TileBit::new(0, 41, 17),
@@ -2480,11 +2520,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         false,
     );
-    let pref_term_vcc = TileItem::from_bitvec(
+    let pref_term_vcc = TileItem::from_bitvec_inv(
         vec![TileBit::new(0, 40, 14), TileBit::new(0, 40, 15)],
         false,
     );
-    let pmask_term_vcc = TileItem::from_bitvec(
+    let pmask_term_vcc = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 43, 14),
             TileBit::new(0, 43, 27),
@@ -2495,7 +2535,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         false,
     );
-    let nref_term_split = TileItem::from_bitvec(
+    let nref_term_split = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 40, 23),
             TileBit::new(0, 40, 24),
@@ -2503,7 +2543,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         false,
     );
-    let pref_term_split = TileItem::from_bitvec(
+    let pref_term_split = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 41, 19),
             TileBit::new(0, 41, 20),
@@ -2511,7 +2551,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         false,
     );
-    let pmask_term_split = TileItem::from_bitvec(
+    let pmask_term_split = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 43, 21),
             TileBit::new(0, 43, 22),
@@ -2522,7 +2562,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         false,
     );
-    let nmask_term_split = TileItem::from_bitvec(
+    let nmask_term_split = TileItem::from_bitvec_inv(
         vec![
             TileBit::new(0, 43, 15),
             TileBit::new(0, 43, 16),
@@ -2533,7 +2573,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ],
         false,
     );
-    ctx.collect_enum_default(
+    ctx.collect_enum_default_legacy(
         tile,
         "INTERNAL_VREF",
         "VREF",
@@ -2543,46 +2583,54 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     for std in IOSTDS {
         if std.diff == DiffKind::True {
             let bel = "LVDS";
-            let diff = ctx.get_diff(tile, bel, "STD", std.name);
-            let val = extract_bitvec_val(&lvdsbias, &bits![0; 17], diff);
+            let diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
+            let val = extract_bitvec_val_legacy(&lvdsbias, &bits![0; 17], diff);
             ctx.insert_misc_data(format!("IOSTD:LVDSBIAS:{}", std.name), val);
         }
         if std.dci != DciKind::None {
             let bel = "DCI";
             let stdname = std.name.strip_prefix("DIFF_").unwrap_or(std.name);
-            let mut diff = ctx.get_diff(tile, bel, "STD", std.name);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "STD", std.name);
             match std.dci {
                 DciKind::Output => {
-                    let val = extract_bitvec_val_part(&nref_output, &bits![0; 2], &mut diff);
+                    let val = extract_bitvec_val_part_legacy(&nref_output, &bits![0; 2], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:NREF_OUTPUT:{stdname}"), val);
-                    let val = extract_bitvec_val_part(&pref_output, &bits![0; 2], &mut diff);
+                    let val = extract_bitvec_val_part_legacy(&pref_output, &bits![0; 2], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:PREF_OUTPUT:{stdname}"), val);
                 }
                 DciKind::OutputHalf => {
-                    let val = extract_bitvec_val_part(&nref_output_half, &bits![0; 3], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&nref_output_half, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:NREF_OUTPUT_HALF:{stdname}"), val);
-                    let val = extract_bitvec_val_part(&pref_output_half, &bits![0; 3], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&pref_output_half, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:PREF_OUTPUT_HALF:{stdname}"), val);
                 }
                 DciKind::InputVcc | DciKind::BiVcc => {
-                    let val = extract_bitvec_val_part(&pref_term_vcc, &bits![0; 2], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&pref_term_vcc, &bits![0; 2], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:PREF_TERM_VCC:{stdname}"), val);
-                    let val = extract_bitvec_val_part(&pmask_term_vcc, &bits![0; 6], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&pmask_term_vcc, &bits![0; 6], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:PMASK_TERM_VCC:{stdname}"), val);
                 }
                 DciKind::InputSplit | DciKind::BiSplit | DciKind::BiSplitT => {
-                    let val = extract_bitvec_val_part(&nref_term_split, &bits![0; 3], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&nref_term_split, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:NREF_TERM_SPLIT:{stdname}"), val);
-                    let val = extract_bitvec_val_part(&pref_term_split, &bits![0; 3], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&pref_term_split, &bits![0; 3], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:PREF_TERM_SPLIT:{stdname}"), val);
-                    let val = extract_bitvec_val_part(&pmask_term_split, &bits![0; 6], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&pmask_term_split, &bits![0; 6], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:PMASK_TERM_SPLIT:{stdname}"), val);
-                    let val = extract_bitvec_val_part(&nmask_term_split, &bits![0; 6], &mut diff);
+                    let val =
+                        extract_bitvec_val_part_legacy(&nmask_term_split, &bits![0; 6], &mut diff);
                     ctx.insert_misc_data(format!("IOSTD:DCI:NMASK_TERM_SPLIT:{stdname}"), val);
                 }
                 _ => {}
             }
-            diff.apply_bit_diff(&dci_en, true, false);
+            diff.apply_bit_diff_legacy(&dci_en, true, false);
             diff.assert_empty();
         }
     }
@@ -2602,7 +2650,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.insert(tile, bel, "PMASK_TERM_VCC", pmask_term_vcc);
     ctx.insert(tile, bel, "PMASK_TERM_SPLIT", pmask_term_split);
     ctx.insert(tile, bel, "NMASK_TERM_SPLIT", nmask_term_split);
-    ctx.collect_bit(tile, bel, "QUIET", "1");
+    ctx.collect_bit_legacy(tile, bel, "QUIET", "1");
 
     ctx.insert_misc_data("IOSTD:DCI:PREF_OUTPUT:OFF", bits![0; 2]);
     ctx.insert_misc_data("IOSTD:DCI:NREF_OUTPUT:OFF", bits![0; 2]);
@@ -2616,5 +2664,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     ctx.insert_misc_data("IOSTD:DCI:NMASK_TERM_SPLIT:OFF", bits![0; 6]);
     let tile = "CFG";
     let bel = "MISC";
-    ctx.collect_bit_wide(tile, bel, "DCI_CLK_ENABLE", "1");
+    ctx.collect_bit_wide_legacy(tile, bel, "DCI_CLK_ENABLE", "1");
 }

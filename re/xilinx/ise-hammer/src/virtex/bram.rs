@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{xlat_bitvec, xlat_bool};
+use prjcombine_re_collector::legacy::{xlat_bit_bi_legacy, xlat_bitvec_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex::defs;
 
@@ -57,9 +57,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "BRAM";
-        let ti = ctx.extract_enum_bool(tile, bel, "CLKAMUX", "1", "0");
+        let ti = ctx.extract_bit_bi_legacy(tile, bel, "CLKAMUX", "1", "0");
         ctx.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKA", ti);
-        let ti = ctx.extract_enum_bool(tile, bel, "CLKBMUX", "1", "0");
+        let ti = ctx.extract_bit_bi_legacy(tile, bel, "CLKBMUX", "1", "0");
         ctx.insert(tile, "INT", "INV.0.IMUX.BRAM.CLKB", ti);
         for (wire, pinmux, pin, pin_b) in [
             ("SELA", "ENAMUX", "ENA", "ENA_B"),
@@ -69,33 +69,33 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("RSTA", "RSTAMUX", "RSTA", "RSTA_B"),
             ("RSTB", "RSTBMUX", "RSTB", "RSTB_B"),
         ] {
-            let d0 = ctx.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
-            let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
+            let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
+            let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
             ctx.insert(
                 tile,
                 "INT",
                 format!("INV.0.IMUX.BRAM.{wire}"),
-                xlat_bool(d0, d1),
+                xlat_bit_bi_legacy(d0, d1),
             );
         }
         let mut diffs_data = vec![];
         for i in 0..0x10 {
-            diffs_data.extend(ctx.get_diffs(tile, bel, format!("INIT_{i:02x}"), ""));
+            diffs_data.extend(ctx.get_diffs_legacy(tile, bel, format!("INIT_{i:02x}"), ""));
         }
         for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
-            ctx.collect_enum(
+            ctx.collect_enum_legacy(
                 tile,
                 bel,
                 attr,
                 &["4096X1", "2048X2", "1024X4", "512X8", "256X16"],
             );
         }
-        ctx.insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
-        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
-        present.discard_bits(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELA"));
-        present.discard_bits(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELB"));
+        ctx.insert(tile, bel, "DATA", xlat_bitvec_legacy(diffs_data));
+        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
+        present.discard_bits_legacy(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELA"));
+        present.discard_bits_legacy(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELB"));
         present.assert_empty();
     }
 }

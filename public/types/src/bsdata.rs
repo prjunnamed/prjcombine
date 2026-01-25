@@ -107,6 +107,12 @@ pub enum FrameOrientation {
     Vertical,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
+pub struct EnumData<K: Ord> {
+    pub bits: Vec<TileBit>,
+    pub values: BTreeMap<K, BitVec>,
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Default)]
 pub struct Tile {
     pub items: BTreeMap<String, TileItem>,
@@ -247,7 +253,7 @@ impl TileItem {
         }
     }
 
-    pub fn from_bit(bit: TileBit, invert: bool) -> Self {
+    pub fn from_bit_inv(bit: TileBit, invert: bool) -> Self {
         Self {
             bits: vec![bit],
             kind: TileItemKind::BitVec {
@@ -256,11 +262,72 @@ impl TileItem {
         }
     }
 
-    pub fn from_bitvec(bits: Vec<TileBit>, invert: bool) -> Self {
+    pub fn from_bitvec_inv(bits: Vec<TileBit>, invert: bool) -> Self {
         let invert = BitVec::repeat(invert, bits.len());
         Self {
             bits,
             kind: TileItemKind::BitVec { invert },
+        }
+    }
+
+    pub fn as_bitvec(&self) -> Vec<PolTileBit> {
+        let TileItemKind::BitVec { ref invert } = self.kind else {
+            unreachable!()
+        };
+        self.bits
+            .iter()
+            .zip(invert)
+            .map(|(&bit, inv)| PolTileBit { bit, inv })
+            .collect()
+    }
+
+    pub fn as_bit(&self) -> PolTileBit {
+        assert_eq!(self.bits.len(), 1);
+        let TileItemKind::BitVec { ref invert } = self.kind else {
+            unreachable!()
+        };
+        PolTileBit {
+            bit: self.bits[0],
+            inv: invert[0],
+        }
+    }
+}
+
+impl From<PolTileBit> for TileItem {
+    fn from(value: PolTileBit) -> Self {
+        Self {
+            bits: vec![value.bit],
+            kind: TileItemKind::BitVec {
+                invert: BitVec::from_iter([value.inv]),
+            },
+        }
+    }
+}
+
+impl From<&[PolTileBit]> for TileItem {
+    fn from(value: &[PolTileBit]) -> Self {
+        Self {
+            bits: value.iter().map(|pbit| pbit.bit).collect(),
+            kind: TileItemKind::BitVec {
+                invert: value.iter().map(|pbit| pbit.inv).collect(),
+            },
+        }
+    }
+}
+
+impl From<Vec<PolTileBit>> for TileItem {
+    fn from(value: Vec<PolTileBit>) -> Self {
+        TileItem::from(value.as_slice())
+    }
+}
+
+impl From<EnumData<String>> for TileItem {
+    fn from(value: EnumData<String>) -> Self {
+        TileItem {
+            bits: value.bits,
+            kind: TileItemKind::Enum {
+                values: value.values,
+            },
         }
     }
 }

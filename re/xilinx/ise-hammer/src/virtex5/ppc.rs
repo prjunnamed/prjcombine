@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::extract_bitvec_val;
+use prjcombine_re_collector::legacy::extract_bitvec_val_legacy;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
 use prjcombine_virtex4::defs;
@@ -155,26 +155,27 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let tile = "PPC";
     let bel = "PPC";
     if !devdata_only {
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in PPC_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
-        ctx.collect_bitvec(tile, bel, "CLOCK_DELAY", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLOCK_DELAY", "");
         for &attr in PPC_BOOL_ATTRS {
             if attr == "MI_CONTROL_BIT6" {
-                ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
-                ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
+                ctx.get_diff_legacy(tile, bel, attr, "FALSE").assert_empty();
+                ctx.get_diff_legacy(tile, bel, attr, "TRUE").assert_empty();
             } else {
-                ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
             }
         }
         for &(attr, _) in PPC_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
-        ctx.get_diff(tile, bel, "CLOCK_DELAY", "TRUE")
+        ctx.get_diff_legacy(tile, bel, "CLOCK_DELAY", "TRUE")
             .assert_empty();
     }
-    let diff = ctx.get_diff(tile, bel, "CLOCK_DELAY", "FALSE");
-    let val = extract_bitvec_val(ctx.item(tile, bel, "CLOCK_DELAY"), &bits![0; 5], diff);
+    let diff = ctx.get_diff_legacy(tile, bel, "CLOCK_DELAY", "FALSE");
+    let val = extract_bitvec_val_legacy(ctx.item(tile, bel, "CLOCK_DELAY"), &bits![0; 5], diff);
     ctx.insert_device_data("PPC:CLOCK_DELAY", val);
 }

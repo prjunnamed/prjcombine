@@ -55,8 +55,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_attr(tcid, slot, bcls::IO::MUX_I);
         }
         if tcid == tcls::CLB_SE {
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::REPROGRAM_ENABLE);
-            ctx.collect_bel_attr_enum_bool(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::REPROGRAM_ENABLE);
+            ctx.collect_bel_attr_bool_bi(tcid, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
         }
         if tcid == tcls::CLB_SW {
             ctx.collect_bel_attr(tcid, bslots::MISC_SW, bcls::MISC_SW::READBACK_MODE);

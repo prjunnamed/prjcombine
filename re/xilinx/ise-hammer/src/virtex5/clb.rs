@@ -1,5 +1,8 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum};
+use prjcombine_re_collector::{
+    diff::{Diff, OcdMode},
+    legacy::{xlat_bit_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 
@@ -777,17 +780,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let is_m = idx == 0 && tile.ends_with('M');
 
             // LUTs
-            ctx.collect_bitvec(tile, bel, "A6LUT", "#LUT");
-            ctx.collect_bitvec(tile, bel, "B6LUT", "#LUT");
-            ctx.collect_bitvec(tile, bel, "C6LUT", "#LUT");
-            ctx.collect_bitvec(tile, bel, "D6LUT", "#LUT");
+            ctx.collect_bitvec_legacy(tile, bel, "A6LUT", "#LUT");
+            ctx.collect_bitvec_legacy(tile, bel, "B6LUT", "#LUT");
+            ctx.collect_bitvec_legacy(tile, bel, "C6LUT", "#LUT");
+            ctx.collect_bitvec_legacy(tile, bel, "D6LUT", "#LUT");
 
             // LUT RAM
             if is_m {
-                ctx.collect_enum(tile, bel, "WEMUX", &["WE", "CE"]);
+                ctx.collect_enum_legacy(tile, bel, "WEMUX", &["WE", "CE"]);
                 for attr in ["WA7USED", "WA8USED"] {
-                    let diff = ctx.get_diff(tile, bel, attr, "0");
-                    ctx.insert(tile, bel, attr, xlat_bit(diff));
+                    let diff = ctx.get_diff_legacy(tile, bel, attr, "0");
+                    ctx.insert(tile, bel, attr, xlat_bit_legacy(diff));
                 }
                 let di_muxes = match mode {
                     Mode::Virtex5 | Mode::Spartan6 => [
@@ -802,14 +805,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ],
                 };
                 for (attr, byp, alt_shift, alt_ram) in di_muxes {
-                    let d_byp = ctx.get_diff(tile, bel, attr, byp);
-                    let d_alt = ctx.get_diff(tile, bel, attr, alt_shift);
-                    assert_eq!(d_alt, ctx.get_diff(tile, bel, attr, alt_ram));
+                    let d_byp = ctx.get_diff_legacy(tile, bel, attr, byp);
+                    let d_alt = ctx.get_diff_legacy(tile, bel, attr, alt_shift);
+                    assert_eq!(d_alt, ctx.get_diff_legacy(tile, bel, attr, alt_ram));
                     ctx.insert(
                         tile,
                         bel,
                         attr,
-                        xlat_enum(vec![(byp, d_byp), ("ALT", d_alt)]),
+                        xlat_enum_legacy(vec![(byp, d_byp), ("ALT", d_alt)]),
                     );
                 }
                 for (dattr, sattr) in [
@@ -818,17 +821,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("CRAMMODE", "C6RAMMODE"),
                     ("DRAMMODE", "D6RAMMODE"),
                 ] {
-                    let d_ram32 = ctx.get_diff(tile, bel, sattr, "SPRAM32");
-                    let d_ram64 = ctx.get_diff(tile, bel, sattr, "SPRAM64");
-                    let d_srl16 = ctx.get_diff(tile, bel, sattr, "SRL16");
-                    let d_srl32 = ctx.get_diff(tile, bel, sattr, "SRL32");
-                    assert_eq!(d_ram32, ctx.get_diff(tile, bel, sattr, "DPRAM32"));
-                    assert_eq!(d_ram64, ctx.get_diff(tile, bel, sattr, "DPRAM64"));
+                    let d_ram32 = ctx.get_diff_legacy(tile, bel, sattr, "SPRAM32");
+                    let d_ram64 = ctx.get_diff_legacy(tile, bel, sattr, "SPRAM64");
+                    let d_srl16 = ctx.get_diff_legacy(tile, bel, sattr, "SRL16");
+                    let d_srl32 = ctx.get_diff_legacy(tile, bel, sattr, "SRL32");
+                    assert_eq!(d_ram32, ctx.get_diff_legacy(tile, bel, sattr, "DPRAM32"));
+                    assert_eq!(d_ram64, ctx.get_diff_legacy(tile, bel, sattr, "DPRAM64"));
                     ctx.insert(
                         tile,
                         bel,
                         dattr,
-                        xlat_enum(vec![
+                        xlat_enum_legacy(vec![
                             ("RAM32", d_ram32),
                             ("RAM64", d_ram64),
                             ("SRL16", d_srl16),
@@ -840,13 +843,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             // carry chain
             if !is_x {
-                ctx.collect_enum(tile, bel, "ACY0", &["O5", "AX"]);
-                ctx.collect_enum(tile, bel, "BCY0", &["O5", "BX"]);
-                ctx.collect_enum(tile, bel, "CCY0", &["O5", "CX"]);
-                ctx.collect_enum(tile, bel, "DCY0", &["O5", "DX"]);
-                ctx.collect_enum(tile, bel, "PRECYINIT", &["AX", "1", "0"]);
-                let item = xlat_enum(vec![
-                    ("CIN", ctx.get_diff(tile, bel, "CINUSED", "1")),
+                ctx.collect_enum_legacy(tile, bel, "ACY0", &["O5", "AX"]);
+                ctx.collect_enum_legacy(tile, bel, "BCY0", &["O5", "BX"]);
+                ctx.collect_enum_legacy(tile, bel, "CCY0", &["O5", "CX"]);
+                ctx.collect_enum_legacy(tile, bel, "DCY0", &["O5", "DX"]);
+                ctx.collect_enum_legacy(tile, bel, "PRECYINIT", &["AX", "1", "0"]);
+                let item = xlat_enum_legacy(vec![
+                    ("CIN", ctx.get_diff_legacy(tile, bel, "CINUSED", "1")),
                     ("PRECYINIT", Diff::default()),
                 ]);
                 ctx.insert(tile, bel, "CYINIT", item);
@@ -854,17 +857,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             // misc muxes
             if is_x {
-                ctx.collect_enum(tile, bel, "AOUTMUX", &["O5", "A5Q"]);
-                ctx.collect_enum(tile, bel, "BOUTMUX", &["O5", "B5Q"]);
-                ctx.collect_enum(tile, bel, "COUTMUX", &["O5", "C5Q"]);
-                ctx.collect_enum(tile, bel, "DOUTMUX", &["O5", "D5Q"]);
-                ctx.collect_enum(tile, bel, "AFFMUX", &["O6", "AX"]);
-                ctx.collect_enum(tile, bel, "BFFMUX", &["O6", "BX"]);
-                ctx.collect_enum(tile, bel, "CFFMUX", &["O6", "CX"]);
-                ctx.collect_enum(tile, bel, "DFFMUX", &["O6", "DX"]);
+                ctx.collect_enum_legacy(tile, bel, "AOUTMUX", &["O5", "A5Q"]);
+                ctx.collect_enum_legacy(tile, bel, "BOUTMUX", &["O5", "B5Q"]);
+                ctx.collect_enum_legacy(tile, bel, "COUTMUX", &["O5", "C5Q"]);
+                ctx.collect_enum_legacy(tile, bel, "DOUTMUX", &["O5", "D5Q"]);
+                ctx.collect_enum_legacy(tile, bel, "AFFMUX", &["O6", "AX"]);
+                ctx.collect_enum_legacy(tile, bel, "BFFMUX", &["O6", "BX"]);
+                ctx.collect_enum_legacy(tile, bel, "CFFMUX", &["O6", "CX"]);
+                ctx.collect_enum_legacy(tile, bel, "DFFMUX", &["O6", "DX"]);
             } else {
                 if mode == Mode::Virtex5 {
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "AOUTMUX",
@@ -872,7 +875,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "NONE",
                         OcdMode::Mux,
                     );
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "BOUTMUX",
@@ -880,7 +883,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "NONE",
                         OcdMode::Mux,
                     );
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "COUTMUX",
@@ -889,7 +892,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         OcdMode::Mux,
                     );
                     if is_m {
-                        ctx.collect_enum_default_ocd(
+                        ctx.collect_enum_default_legacy_ocd(
                             tile,
                             bel,
                             "DOUTMUX",
@@ -898,7 +901,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             OcdMode::Mux,
                         );
                     } else {
-                        ctx.collect_enum_default_ocd(
+                        ctx.collect_enum_default_legacy_ocd(
                             tile,
                             bel,
                             "DOUTMUX",
@@ -908,7 +911,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         );
                     }
                 } else {
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "AOUTMUX",
@@ -916,7 +919,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "NONE",
                         OcdMode::Mux,
                     );
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "BOUTMUX",
@@ -924,7 +927,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "NONE",
                         OcdMode::Mux,
                     );
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "COUTMUX",
@@ -933,7 +936,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         OcdMode::Mux,
                     );
                     if is_m {
-                        ctx.collect_enum_default_ocd(
+                        ctx.collect_enum_default_legacy_ocd(
                             tile,
                             bel,
                             "DOUTMUX",
@@ -942,7 +945,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             OcdMode::Mux,
                         );
                     } else {
-                        ctx.collect_enum_default_ocd(
+                        ctx.collect_enum_default_legacy_ocd(
                             tile,
                             bel,
                             "DOUTMUX",
@@ -953,21 +956,41 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                 }
                 if mode == Mode::Spartan6 {
-                    ctx.collect_enum(tile, bel, "AFFMUX", &["O6", "O5", "XOR", "CY", "AX", "F7"]);
-                    ctx.collect_enum(tile, bel, "BFFMUX", &["O6", "O5", "XOR", "CY", "BX", "F8"]);
-                    ctx.collect_enum(tile, bel, "CFFMUX", &["O6", "O5", "XOR", "CY", "CX", "F7"]);
+                    ctx.collect_enum_legacy(
+                        tile,
+                        bel,
+                        "AFFMUX",
+                        &["O6", "O5", "XOR", "CY", "AX", "F7"],
+                    );
+                    ctx.collect_enum_legacy(
+                        tile,
+                        bel,
+                        "BFFMUX",
+                        &["O6", "O5", "XOR", "CY", "BX", "F8"],
+                    );
+                    ctx.collect_enum_legacy(
+                        tile,
+                        bel,
+                        "CFFMUX",
+                        &["O6", "O5", "XOR", "CY", "CX", "F7"],
+                    );
                     if is_m {
-                        ctx.collect_enum(
+                        ctx.collect_enum_legacy(
                             tile,
                             bel,
                             "DFFMUX",
                             &["O6", "O5", "XOR", "CY", "DX", "MC31"],
                         );
                     } else {
-                        ctx.collect_enum(tile, bel, "DFFMUX", &["O6", "O5", "XOR", "CY", "DX"]);
+                        ctx.collect_enum_legacy(
+                            tile,
+                            bel,
+                            "DFFMUX",
+                            &["O6", "O5", "XOR", "CY", "DX"],
+                        );
                     }
                 } else {
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "AFFMUX",
@@ -975,7 +998,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "NONE",
                         OcdMode::Mux,
                     );
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "BFFMUX",
@@ -983,7 +1006,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "NONE",
                         OcdMode::Mux,
                     );
-                    ctx.collect_enum_default_ocd(
+                    ctx.collect_enum_default_legacy_ocd(
                         tile,
                         bel,
                         "CFFMUX",
@@ -992,7 +1015,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         OcdMode::Mux,
                     );
                     if is_m {
-                        ctx.collect_enum_default_ocd(
+                        ctx.collect_enum_default_legacy_ocd(
                             tile,
                             bel,
                             "DFFMUX",
@@ -1001,7 +1024,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             OcdMode::Mux,
                         );
                     } else {
-                        ctx.collect_enum_default_ocd(
+                        ctx.collect_enum_default_legacy_ocd(
                             tile,
                             bel,
                             "DFFMUX",
@@ -1018,69 +1041,81 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ("C5FFMUX", "CX"),
                         ("D5FFMUX", "DX"),
                     ] {
-                        let d_o5 = ctx.get_diff(tile, bel, attr, "IN_A");
-                        let d_byp = ctx.get_diff(tile, bel, attr, "IN_B");
+                        let d_o5 = ctx.get_diff_legacy(tile, bel, attr, "IN_A");
+                        let d_byp = ctx.get_diff_legacy(tile, bel, attr, "IN_B");
                         ctx.insert(
                             tile,
                             bel,
                             attr,
-                            xlat_enum(vec![("O5", d_o5), (byp, d_byp), ("NONE", Diff::default())]),
+                            xlat_enum_legacy(vec![
+                                ("O5", d_o5),
+                                (byp, d_byp),
+                                ("NONE", Diff::default()),
+                            ]),
                         );
                     }
                 }
             }
 
             // FFs
-            let ff_sync = ctx.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
-            ctx.get_diff(tile, bel, "SYNC_ATTR", "ASYNC").assert_empty();
-            ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
+            let ff_sync = ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "SYNC");
+            ctx.get_diff_legacy(tile, bel, "SYNC_ATTR", "ASYNC")
+                .assert_empty();
+            ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit_legacy(ff_sync));
             ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
-                let revused = ctx.get_diff(tile, bel, "REVUSED", "0");
-                ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
+                let revused = ctx.get_diff_legacy(tile, bel, "REVUSED", "0");
+                ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit_legacy(revused));
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
-                let ceused = ctx.get_diff(tile, bel, "CEUSED", "0");
-                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
-                let srused = ctx.get_diff(tile, bel, "SRUSED", "0");
-                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
+                let ceused = ctx.get_diff_legacy(tile, bel, "CEUSED", "0");
+                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit_legacy(ceused));
+                let srused = ctx.get_diff_legacy(tile, bel, "SRUSED", "0");
+                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit_legacy(srused));
             } else {
-                ctx.get_diff(tile, bel, "CEUSEDMUX", "1").assert_empty();
-                ctx.get_diff(tile, bel, "SRUSEDMUX", "0").assert_empty();
-                let ceused = ctx.get_diff(tile, bel, "CEUSEDMUX", "IN");
-                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
-                let srused = ctx.get_diff(tile, bel, "SRUSEDMUX", "IN");
-                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
+                ctx.get_diff_legacy(tile, bel, "CEUSEDMUX", "1")
+                    .assert_empty();
+                ctx.get_diff_legacy(tile, bel, "SRUSEDMUX", "0")
+                    .assert_empty();
+                let ceused = ctx.get_diff_legacy(tile, bel, "CEUSEDMUX", "IN");
+                ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit_legacy(ceused));
+                let srused = ctx.get_diff_legacy(tile, bel, "SRUSEDMUX", "IN");
+                ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit_legacy(srused));
             }
             if mode != Mode::Virtex6 {
-                let ff_latch = ctx.get_diff(tile, bel, "AFF", "#LATCH");
+                let ff_latch = ctx.get_diff_legacy(tile, bel, "AFF", "#LATCH");
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
-                    ctx.get_diff(tile, bel, attr, "#FF").assert_empty();
+                    ctx.get_diff_legacy(tile, bel, attr, "#FF").assert_empty();
                     if attr != "AFF" {
-                        assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "#LATCH"));
+                        assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "#LATCH"));
                     }
                     if mode != Mode::Virtex5 {
-                        assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "AND2L"));
-                        assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "OR2L"));
+                        assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "AND2L"));
+                        assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "OR2L"));
                     }
                 }
-                ctx.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
+                ctx.insert(tile, bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
             } else {
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
-                    ctx.get_diff(tile, bel, attr, "#FF").assert_empty();
-                    let ff_latch = ctx.get_diff(tile, bel, attr, "#LATCH");
-                    assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "AND2L"));
-                    assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "OR2L"));
-                    ctx.insert(tile, bel, format!("{attr}_LATCH"), xlat_bit(ff_latch));
+                    ctx.get_diff_legacy(tile, bel, attr, "#FF").assert_empty();
+                    let ff_latch = ctx.get_diff_legacy(tile, bel, attr, "#LATCH");
+                    assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "AND2L"));
+                    assert_eq!(ff_latch, ctx.get_diff_legacy(tile, bel, attr, "OR2L"));
+                    ctx.insert(
+                        tile,
+                        bel,
+                        format!("{attr}_LATCH"),
+                        xlat_bit_legacy(ff_latch),
+                    );
                 }
             }
             match mode {
                 Mode::Virtex5 => {
                     for attr in ["AFFINIT", "BFFINIT", "CFFINIT", "DFFINIT"] {
-                        ctx.collect_enum_bool(tile, bel, attr, "INIT0", "INIT1");
+                        ctx.collect_bit_bi_legacy(tile, bel, attr, "INIT0", "INIT1");
                     }
                     for attr in ["AFFSR", "BFFSR", "CFFSR", "DFFSR"] {
-                        ctx.collect_enum_bool(tile, bel, attr, "SRLOW", "SRHIGH");
+                        ctx.collect_bit_bi_legacy(tile, bel, attr, "SRLOW", "SRHIGH");
                     }
                 }
                 Mode::Virtex6 | Mode::Virtex7 => {
@@ -1088,12 +1123,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "AFFINIT", "BFFINIT", "CFFINIT", "DFFINIT", "A5FFINIT", "B5FFINIT",
                         "C5FFINIT", "D5FFINIT",
                     ] {
-                        ctx.collect_enum_bool(tile, bel, attr, "INIT0", "INIT1");
+                        ctx.collect_bit_bi_legacy(tile, bel, attr, "INIT0", "INIT1");
                     }
                     for attr in [
                         "AFFSR", "BFFSR", "CFFSR", "DFFSR", "A5FFSR", "B5FFSR", "C5FFSR", "D5FFSR",
                     ] {
-                        ctx.collect_enum_bool(tile, bel, attr, "SRLOW", "SRHIGH");
+                        ctx.collect_bit_bi_legacy(tile, bel, attr, "SRLOW", "SRHIGH");
                     }
                 }
                 Mode::Spartan6 => {
@@ -1107,7 +1142,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         "C5FFSRINIT",
                         "D5FFSRINIT",
                     ] {
-                        ctx.collect_enum_bool(tile, bel, attr, "SRINIT0", "SRINIT1");
+                        ctx.collect_bit_bi_legacy(tile, bel, attr, "SRINIT0", "SRINIT1");
                     }
                 }
             }

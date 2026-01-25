@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem},
     grid::TileCoord,
 };
-use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_bit, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -236,7 +236,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                 }
                                 assert!(got_empty);
-                                ctx.insert_bel_attr_bool(tcid, rbel, rattr, xlat_bit_raw(common));
+                                ctx.insert_bel_attr_bool(tcid, rbel, rattr, xlat_bit(common));
                             }
                         }
                         if !got_empty {
@@ -270,7 +270,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             }
                             _ => (),
                         }
-                        ctx.insert_pass(tcid, pass.dst, pass.src, xlat_bit_raw(diff));
+                        ctx.insert_pass(tcid, pass.dst, pass.src, xlat_bit(diff));
                     }
                     SwitchBoxItem::BiPass(pass) => {
                         ctx.collect_bipass(tcid, pass.a, pass.b);

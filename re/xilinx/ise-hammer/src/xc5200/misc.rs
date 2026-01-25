@@ -312,19 +312,19 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_bel_attr(tcls::CNR_SW, bslots::MISC_SW, bcls::MISC_SW::SCAN_TEST);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_ABORT);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_CAPTURE);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_ABORT);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::READ_CAPTURE);
     ctx.collect_bel_attr(tcls::CNR_SW, bslots::RDBK, bcls::RDBK::MUX_CLK);
 
     ctx.collect_bel_attr(tcls::CNR_NW, bslots::MISC_NW, bcls::MISC_NW::IO_INPUT_MODE);
     ctx.collect_bel_attr(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::ENABLE);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::READBACK);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::RECONFIG);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::READBACK);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_NW, bslots::BSCAN, bcls::BSCAN::RECONFIG);
 
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::TCTEST);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::PROG_PULLUP);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CRC);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::TCTEST);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::DONE_PULLUP);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::MISC_SE, bcls::MISC_SE::PROG_PULLUP);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CRC);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::CONFIG_RATE);
     ctx.collect_bel_input_inv_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GTS);
     ctx.collect_bel_input_inv_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::GR);
@@ -362,11 +362,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::MUX_CLK);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::SYNC_TO_DONE);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_SE, bslots::STARTUP, bcls::STARTUP::SYNC_TO_DONE);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::OSC1_DIV);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::OSC2_DIV);
     ctx.collect_bel_attr(tcls::CNR_SE, bslots::OSC_SE, bcls::OSC_SE::MUX_CLK);
 
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TLC);
-    ctx.collect_bel_attr_enum_bool(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TAC);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TLC);
+    ctx.collect_bel_attr_bool_bi(tcls::CNR_NE, bslots::MISC_NE, bcls::MISC_NE::TAC);
 }

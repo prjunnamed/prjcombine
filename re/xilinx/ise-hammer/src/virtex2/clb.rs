@@ -1,5 +1,8 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_collector::diff::{Diff, DiffKey, FeatureId, xlat_bit, xlat_enum};
+use prjcombine_re_collector::{
+    diff::{Diff, DiffKey, FeatureId},
+    legacy::{xlat_bit_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -623,96 +626,132 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         .into_iter()
         .enumerate()
     {
-        ctx.collect_bitvec("CLB", bel, "F", "#LUT");
-        ctx.collect_bitvec("CLB", bel, "G", "#LUT");
+        ctx.collect_bitvec_legacy("CLB", bel, "F", "#LUT");
+        ctx.collect_bitvec_legacy("CLB", bel, "G", "#LUT");
 
         // carry
-        ctx.collect_enum("CLB", bel, "CYINIT", &["CIN", "BX"]);
+        ctx.collect_enum_legacy("CLB", bel, "CYINIT", &["CIN", "BX"]);
         if mode != Mode::Virtex4 {
-            ctx.collect_enum("CLB", bel, "CYSELF", &["F", "1"]);
-            ctx.collect_enum("CLB", bel, "CYSELG", &["G", "1"]);
-            ctx.collect_enum("CLB", bel, "CY0F", &["BX", "F2", "F1", "0", "1", "PROD"]);
-            ctx.collect_enum("CLB", bel, "CY0G", &["BY", "G2", "G1", "0", "1", "PROD"]);
+            ctx.collect_enum_legacy("CLB", bel, "CYSELF", &["F", "1"]);
+            ctx.collect_enum_legacy("CLB", bel, "CYSELG", &["G", "1"]);
+            ctx.collect_enum_legacy("CLB", bel, "CY0F", &["BX", "F2", "F1", "0", "1", "PROD"]);
+            ctx.collect_enum_legacy("CLB", bel, "CY0G", &["BY", "G2", "G1", "0", "1", "PROD"]);
         } else {
-            ctx.collect_enum("CLB", bel, "CY0F", &["1", "0", "PROD", "F2", "F3", "BX"]);
-            ctx.collect_enum("CLB", bel, "CY0G", &["1", "0", "PROD", "G2", "G3", "BY"]);
+            ctx.collect_enum_legacy("CLB", bel, "CY0F", &["1", "0", "PROD", "F2", "F3", "BX"]);
+            ctx.collect_enum_legacy("CLB", bel, "CY0G", &["1", "0", "PROD", "G2", "G3", "BY"]);
         }
 
         // LUT RAM
         let is_m = mode == Mode::Virtex2 || matches!(idx, 0 | 2);
         if is_m {
-            ctx.get_diff("CLB", bel, "F_ATTR", "DUAL_PORT")
+            ctx.get_diff_legacy("CLB", bel, "F_ATTR", "DUAL_PORT")
                 .assert_empty();
-            ctx.get_diff("CLB", bel, "G_ATTR", "DUAL_PORT")
+            ctx.get_diff_legacy("CLB", bel, "G_ATTR", "DUAL_PORT")
                 .assert_empty();
-            let f_ram = ctx.get_diff("CLB", bel, "F", "#RAM:0");
-            let g_ram = ctx.get_diff("CLB", bel, "G", "#RAM:0");
+            let f_ram = ctx.get_diff_legacy("CLB", bel, "F", "#RAM:0");
+            let g_ram = ctx.get_diff_legacy("CLB", bel, "G", "#RAM:0");
             let (f_ram, g_ram, ram) = Diff::split(f_ram, g_ram);
-            ctx.insert("CLB", bel, "FF_SR_ENABLE", xlat_bit(!ram));
-            let f_shift_d = ctx.get_diff("CLB", bel, "F_ATTR", "SHIFT_REG");
-            let g_shift_d = ctx.get_diff("CLB", bel, "G_ATTR", "SHIFT_REG");
+            ctx.insert("CLB", bel, "FF_SR_ENABLE", xlat_bit_legacy(!ram));
+            let f_shift_d = ctx.get_diff_legacy("CLB", bel, "F_ATTR", "SHIFT_REG");
+            let g_shift_d = ctx.get_diff_legacy("CLB", bel, "G_ATTR", "SHIFT_REG");
             let f_shift = f_ram.combine(&f_shift_d);
             let g_shift = g_ram.combine(&g_shift_d);
-            ctx.insert("CLB", bel, "F_RAM", xlat_bit(f_ram));
-            ctx.insert("CLB", bel, "G_RAM", xlat_bit(g_ram));
-            ctx.insert("CLB", bel, "F_SHIFT", xlat_bit(f_shift));
-            ctx.insert("CLB", bel, "G_SHIFT", xlat_bit(g_shift));
+            ctx.insert("CLB", bel, "F_RAM", xlat_bit_legacy(f_ram));
+            ctx.insert("CLB", bel, "G_RAM", xlat_bit_legacy(g_ram));
+            ctx.insert("CLB", bel, "F_SHIFT", xlat_bit_legacy(f_shift));
+            ctx.insert("CLB", bel, "G_SHIFT", xlat_bit_legacy(g_shift));
 
-            let dif_bx = ctx.get_diff("CLB", bel, "DIF_MUX", "BX");
-            let dif_alt = ctx.get_diff("CLB", bel, "DIF_MUX", "ALTDIF");
-            assert_eq!(dif_alt, ctx.get_diff("CLB", bel, "DIF_MUX", "SHIFTIN"));
+            let dif_bx = ctx.get_diff_legacy("CLB", bel, "DIF_MUX", "BX");
+            let dif_alt = ctx.get_diff_legacy("CLB", bel, "DIF_MUX", "ALTDIF");
+            assert_eq!(
+                dif_alt,
+                ctx.get_diff_legacy("CLB", bel, "DIF_MUX", "SHIFTIN")
+            );
             ctx.insert(
                 "CLB",
                 bel,
                 "DIF_MUX",
-                xlat_enum(vec![("BX", dif_bx), ("ALT", dif_alt)]),
+                xlat_enum_legacy(vec![("BX", dif_bx), ("ALT", dif_alt)]),
             );
 
-            let dig_by = ctx.get_diff("CLB", bel, "DIG_MUX", "BY");
-            let dig_alt = ctx.get_diff("CLB", bel, "DIG_MUX", "ALTDIG");
-            assert_eq!(dig_alt, ctx.get_diff("CLB", bel, "DIG_MUX", "SHIFTIN"));
+            let dig_by = ctx.get_diff_legacy("CLB", bel, "DIG_MUX", "BY");
+            let dig_alt = ctx.get_diff_legacy("CLB", bel, "DIG_MUX", "ALTDIG");
+            assert_eq!(
+                dig_alt,
+                ctx.get_diff_legacy("CLB", bel, "DIG_MUX", "SHIFTIN")
+            );
             ctx.insert(
                 "CLB",
                 bel,
                 "DIG_MUX",
-                xlat_enum(vec![("BY", dig_by), ("ALT", dig_alt)]),
+                xlat_enum_legacy(vec![("BY", dig_by), ("ALT", dig_alt)]),
             );
 
             match mode {
                 Mode::Virtex2 => {
-                    ctx.get_diff("CLB", bel, "BXOUTUSED", "0").assert_empty();
-                    ctx.get_diff("CLB", bel, "SLICEWE1USED", "0").assert_empty();
-                    ctx.get_diff("CLB", bel, "SLICEWE2USED", "0").assert_empty();
-                    let slicewe0used = ctx.get_diff("CLB", bel, "SLICEWE0USED", "0");
-                    let byoutused = ctx.get_diff("CLB", bel, "BYOUTUSED", "0");
-                    assert_eq!(byoutused, ctx.get_diff("CLB", bel, "BYINVOUTUSED", "0"));
+                    ctx.get_diff_legacy("CLB", bel, "BXOUTUSED", "0")
+                        .assert_empty();
+                    ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED", "0")
+                        .assert_empty();
+                    ctx.get_diff_legacy("CLB", bel, "SLICEWE2USED", "0")
+                        .assert_empty();
+                    let slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED", "0");
+                    let byoutused = ctx.get_diff_legacy("CLB", bel, "BYOUTUSED", "0");
+                    assert_eq!(
+                        byoutused,
+                        ctx.get_diff_legacy("CLB", bel, "BYINVOUTUSED", "0")
+                    );
                     // TODO should these have better names?
-                    ctx.insert("CLB", bel, "SLICEWE0USED", xlat_bit(slicewe0used));
-                    ctx.insert("CLB", bel, "BYOUTUSED", xlat_bit(byoutused));
+                    ctx.insert("CLB", bel, "SLICEWE0USED", xlat_bit_legacy(slicewe0used));
+                    ctx.insert("CLB", bel, "BYOUTUSED", xlat_bit_legacy(byoutused));
                 }
                 Mode::Spartan3 => {
-                    ctx.get_diff("CLB", bel, "BYOUTUSED", "0").assert_empty();
-                    ctx.get_diff("CLB", bel, "BYINVOUTUSED", "0").assert_empty();
-                    let slicewe0used = ctx.get_diff("CLB", bel, "SLICEWE0USED", "0");
-                    let slicewe1used = ctx.get_diff("CLB", bel, "SLICEWE1USED", "0");
-                    ctx.insert("CLB", bel, "SLICEWE0USED", xlat_bit(slicewe0used));
+                    ctx.get_diff_legacy("CLB", bel, "BYOUTUSED", "0")
+                        .assert_empty();
+                    ctx.get_diff_legacy("CLB", bel, "BYINVOUTUSED", "0")
+                        .assert_empty();
+                    let slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED", "0");
+                    let slicewe1used = ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED", "0");
+                    ctx.insert("CLB", bel, "SLICEWE0USED", xlat_bit_legacy(slicewe0used));
                     if idx == 0 {
-                        ctx.insert("CLB", bel, "SLICEWE1USED", xlat_bit(slicewe1used));
+                        ctx.insert("CLB", bel, "SLICEWE1USED", xlat_bit_legacy(slicewe1used));
                     } else {
                         slicewe1used.assert_empty();
                     }
                 }
                 Mode::Virtex4 => {
-                    ctx.get_diff("CLB", bel, "BYOUTUSED", "0").assert_empty();
-                    ctx.get_diff("CLB", bel, "BYINVOUTUSED", "0").assert_empty();
-                    let f_slicewe0used = ctx.get_diff("CLB", bel, "SLICEWE0USED.F", "0");
-                    let f_slicewe1used = ctx.get_diff("CLB", bel, "SLICEWE1USED.F", "0");
-                    let g_slicewe0used = ctx.get_diff("CLB", bel, "SLICEWE0USED.G", "0");
-                    let g_slicewe1used = ctx.get_diff("CLB", bel, "SLICEWE1USED.G", "0");
-                    ctx.insert("CLB", bel, "F_SLICEWE0USED", xlat_bit(f_slicewe0used));
-                    ctx.insert("CLB", bel, "F_SLICEWE1USED", xlat_bit(f_slicewe1used));
-                    ctx.insert("CLB", bel, "G_SLICEWE0USED", xlat_bit(g_slicewe0used));
-                    ctx.insert("CLB", bel, "G_SLICEWE1USED", xlat_bit(g_slicewe1used));
+                    ctx.get_diff_legacy("CLB", bel, "BYOUTUSED", "0")
+                        .assert_empty();
+                    ctx.get_diff_legacy("CLB", bel, "BYINVOUTUSED", "0")
+                        .assert_empty();
+                    let f_slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED.F", "0");
+                    let f_slicewe1used = ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED.F", "0");
+                    let g_slicewe0used = ctx.get_diff_legacy("CLB", bel, "SLICEWE0USED.G", "0");
+                    let g_slicewe1used = ctx.get_diff_legacy("CLB", bel, "SLICEWE1USED.G", "0");
+                    ctx.insert(
+                        "CLB",
+                        bel,
+                        "F_SLICEWE0USED",
+                        xlat_bit_legacy(f_slicewe0used),
+                    );
+                    ctx.insert(
+                        "CLB",
+                        bel,
+                        "F_SLICEWE1USED",
+                        xlat_bit_legacy(f_slicewe1used),
+                    );
+                    ctx.insert(
+                        "CLB",
+                        bel,
+                        "G_SLICEWE0USED",
+                        xlat_bit_legacy(g_slicewe0used),
+                    );
+                    ctx.insert(
+                        "CLB",
+                        bel,
+                        "G_SLICEWE1USED",
+                        xlat_bit_legacy(g_slicewe1used),
+                    );
                 }
             }
         }
@@ -720,64 +759,70 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         // muxes
         match mode {
             Mode::Virtex2 => {
-                ctx.collect_enum("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
-                let gymux_g = ctx.get_diff("CLB", bel, "GYMUX", "G");
-                let gymux_fx = ctx.get_diff("CLB", bel, "GYMUX", "FX");
-                let gymux_gxor = ctx.get_diff("CLB", bel, "GYMUX", "GXOR");
-                let gymux_sopout = ctx.get_diff("CLB", bel, "GYMUX", "SOPEXT");
+                ctx.collect_enum_legacy("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
+                let gymux_g = ctx.get_diff_legacy("CLB", bel, "GYMUX", "G");
+                let gymux_fx = ctx.get_diff_legacy("CLB", bel, "GYMUX", "FX");
+                let gymux_gxor = ctx.get_diff_legacy("CLB", bel, "GYMUX", "GXOR");
+                let gymux_sopout = ctx.get_diff_legacy("CLB", bel, "GYMUX", "SOPEXT");
                 ctx.insert(
                     "CLB",
                     bel,
                     "GYMUX",
-                    xlat_enum(vec![
+                    xlat_enum_legacy(vec![
                         ("G", gymux_g),
                         ("FX", gymux_fx),
                         ("SOPOUT", gymux_sopout),
                         ("GXOR", gymux_gxor),
                     ]),
                 );
-                ctx.collect_enum("CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
+                ctx.collect_enum_legacy("CLB", bel, "SOPEXTSEL", &["SOPIN", "0"]);
             }
             Mode::Spartan3 => {
-                ctx.collect_enum("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
-                ctx.collect_enum("CLB", bel, "GYMUX", &["G", "FX", "GXOR"]);
+                ctx.collect_enum_legacy("CLB", bel, "FXMUX", &["F", "F5", "FXOR"]);
+                ctx.collect_enum_legacy("CLB", bel, "GYMUX", &["G", "FX", "GXOR"]);
             }
             Mode::Virtex4 => {
-                ctx.collect_enum("CLB", bel, "FXMUX", &["F5", "FXOR"]);
-                ctx.collect_enum("CLB", bel, "GYMUX", &["FX", "GXOR"]);
+                ctx.collect_enum_legacy("CLB", bel, "FXMUX", &["F5", "FXOR"]);
+                ctx.collect_enum_legacy("CLB", bel, "GYMUX", &["FX", "GXOR"]);
             }
         }
         if mode != Mode::Virtex4 {
-            let dx_bx = ctx.get_diff("CLB", bel, "DXMUX", "0");
-            let dx_x = ctx.get_diff("CLB", bel, "DXMUX", "1");
+            let dx_bx = ctx.get_diff_legacy("CLB", bel, "DXMUX", "0");
+            let dx_x = ctx.get_diff_legacy("CLB", bel, "DXMUX", "1");
             ctx.insert(
                 "CLB",
                 bel,
                 "DXMUX",
-                xlat_enum(vec![("BX", dx_bx), ("X", dx_x)]),
+                xlat_enum_legacy(vec![("BX", dx_bx), ("X", dx_x)]),
             );
-            let dy_by = ctx.get_diff("CLB", bel, "DYMUX", "0");
-            let dy_y = ctx.get_diff("CLB", bel, "DYMUX", "1");
+            let dy_by = ctx.get_diff_legacy("CLB", bel, "DYMUX", "0");
+            let dy_y = ctx.get_diff_legacy("CLB", bel, "DYMUX", "1");
             ctx.insert(
                 "CLB",
                 bel,
                 "DYMUX",
-                xlat_enum(vec![("BY", dy_by), ("Y", dy_y)]),
+                xlat_enum_legacy(vec![("BY", dy_by), ("Y", dy_y)]),
             );
         } else {
-            let dxmux_bx = ctx.get_diff("CLB", bel, "DXMUX.F5", "BX");
-            let dxmux_x = ctx.get_diff("CLB", bel, "DXMUX.F5", "X");
-            let dxmux_xb = ctx.get_diff("CLB", bel, "DXMUX.F5", "XB");
-            let dxmux_f5 = ctx.get_diff("CLB", bel, "DXMUX.F5", "XMUX");
-            assert_eq!(dxmux_bx, ctx.get_diff("CLB", bel, "DXMUX.FXOR", "BX"));
-            assert_eq!(dxmux_x, ctx.get_diff("CLB", bel, "DXMUX.FXOR", "X"));
-            assert_eq!(dxmux_xb, ctx.get_diff("CLB", bel, "DXMUX.FXOR", "XB"));
-            let dxmux_fxor = ctx.get_diff("CLB", bel, "DXMUX.FXOR", "XMUX");
+            let dxmux_bx = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "BX");
+            let dxmux_x = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "X");
+            let dxmux_xb = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "XB");
+            let dxmux_f5 = ctx.get_diff_legacy("CLB", bel, "DXMUX.F5", "XMUX");
+            assert_eq!(
+                dxmux_bx,
+                ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "BX")
+            );
+            assert_eq!(dxmux_x, ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "X"));
+            assert_eq!(
+                dxmux_xb,
+                ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "XB")
+            );
+            let dxmux_fxor = ctx.get_diff_legacy("CLB", bel, "DXMUX.FXOR", "XMUX");
             ctx.insert(
                 "CLB",
                 bel,
                 "DXMUX",
-                xlat_enum(vec![
+                xlat_enum_legacy(vec![
                     ("X", dxmux_x),
                     ("F5", dxmux_f5),
                     ("XB", dxmux_xb),
@@ -786,19 +831,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ]),
             );
 
-            let dymux_by = ctx.get_diff("CLB", bel, "DYMUX.FX", "BY");
-            let dymux_y = ctx.get_diff("CLB", bel, "DYMUX.FX", "Y");
-            let dymux_yb = ctx.get_diff("CLB", bel, "DYMUX.FX", "YB");
-            let dymux_fx = ctx.get_diff("CLB", bel, "DYMUX.FX", "YMUX");
-            assert_eq!(dymux_by, ctx.get_diff("CLB", bel, "DYMUX.GXOR", "BY"));
-            assert_eq!(dymux_y, ctx.get_diff("CLB", bel, "DYMUX.GXOR", "Y"));
-            assert_eq!(dymux_yb, ctx.get_diff("CLB", bel, "DYMUX.GXOR", "YB"));
-            let dymux_gxor = ctx.get_diff("CLB", bel, "DYMUX.GXOR", "YMUX");
+            let dymux_by = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "BY");
+            let dymux_y = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "Y");
+            let dymux_yb = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "YB");
+            let dymux_fx = ctx.get_diff_legacy("CLB", bel, "DYMUX.FX", "YMUX");
+            assert_eq!(
+                dymux_by,
+                ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "BY")
+            );
+            assert_eq!(dymux_y, ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "Y"));
+            assert_eq!(
+                dymux_yb,
+                ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "YB")
+            );
+            let dymux_gxor = ctx.get_diff_legacy("CLB", bel, "DYMUX.GXOR", "YMUX");
             ctx.insert(
                 "CLB",
                 bel,
                 "DYMUX",
-                xlat_enum(vec![
+                xlat_enum_legacy(vec![
                     ("Y", dymux_y),
                     ("FX", dymux_fx),
                     ("YB", dymux_yb),
@@ -808,46 +859,46 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
         if is_m {
-            let xbmux_shiftout = ctx.get_diff("CLB", bel, "XBMUX", "0");
-            let xbmux_cout = ctx.get_diff("CLB", bel, "XBMUX", "1");
+            let xbmux_shiftout = ctx.get_diff_legacy("CLB", bel, "XBMUX", "0");
+            let xbmux_cout = ctx.get_diff_legacy("CLB", bel, "XBMUX", "1");
             ctx.insert(
                 "CLB",
                 bel,
                 "XBMUX",
-                xlat_enum(vec![("FMC15", xbmux_shiftout), ("FCY", xbmux_cout)]),
+                xlat_enum_legacy(vec![("FMC15", xbmux_shiftout), ("FCY", xbmux_cout)]),
             );
 
-            let ybmux_shiftout = ctx.get_diff("CLB", bel, "YBMUX", "0");
-            let ybmux_cout = ctx.get_diff("CLB", bel, "YBMUX", "1");
+            let ybmux_shiftout = ctx.get_diff_legacy("CLB", bel, "YBMUX", "0");
+            let ybmux_cout = ctx.get_diff_legacy("CLB", bel, "YBMUX", "1");
             ctx.insert(
                 "CLB",
                 bel,
                 "YBMUX",
-                xlat_enum(vec![("GMC15", ybmux_shiftout), ("GCY", ybmux_cout)]),
+                xlat_enum_legacy(vec![("GMC15", ybmux_shiftout), ("GCY", ybmux_cout)]),
             );
         }
 
         // FFs
-        let item = ctx.extract_enum_bool("CLB", bel, "SYNC_ATTR", "ASYNC", "SYNC");
+        let item = ctx.extract_bit_bi_legacy("CLB", bel, "SYNC_ATTR", "ASYNC", "SYNC");
         ctx.insert("CLB", bel, "FF_SR_SYNC", item);
 
-        let ff_latch = ctx.get_diff("CLB", bel, "FFX", "#LATCH");
-        assert_eq!(ff_latch, ctx.get_diff("CLB", bel, "FFY", "#LATCH"));
-        ctx.get_diff("CLB", bel, "FFX", "#FF").assert_empty();
-        ctx.get_diff("CLB", bel, "FFY", "#FF").assert_empty();
-        ctx.insert("CLB", bel, "FF_LATCH", xlat_bit(ff_latch));
+        let ff_latch = ctx.get_diff_legacy("CLB", bel, "FFX", "#LATCH");
+        assert_eq!(ff_latch, ctx.get_diff_legacy("CLB", bel, "FFY", "#LATCH"));
+        ctx.get_diff_legacy("CLB", bel, "FFX", "#FF").assert_empty();
+        ctx.get_diff_legacy("CLB", bel, "FFY", "#FF").assert_empty();
+        ctx.insert("CLB", bel, "FF_LATCH", xlat_bit_legacy(ff_latch));
 
-        let item = ctx.extract_bit("CLB", bel, "REVUSED", "0");
+        let item = ctx.extract_bit_legacy("CLB", bel, "REVUSED", "0");
         ctx.insert("CLB", bel, "FF_REV_ENABLE", item);
 
-        let item = ctx.extract_enum_bool("CLB", bel, "FFX_SR_ATTR", "SRLOW", "SRHIGH");
+        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFX_SR_ATTR", "SRLOW", "SRHIGH");
         ctx.insert("CLB", bel, "FFX_SRVAL", item);
-        let item = ctx.extract_enum_bool("CLB", bel, "FFY_SR_ATTR", "SRLOW", "SRHIGH");
+        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFY_SR_ATTR", "SRLOW", "SRHIGH");
         ctx.insert("CLB", bel, "FFY_SRVAL", item);
 
-        let item = ctx.extract_enum_bool("CLB", bel, "FFX_INIT_ATTR", "INIT0", "INIT1");
+        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFX_INIT_ATTR", "INIT0", "INIT1");
         ctx.insert("CLB", bel, "FFX_INIT", item);
-        let item = ctx.extract_enum_bool("CLB", bel, "FFY_INIT_ATTR", "INIT0", "INIT1");
+        let item = ctx.extract_bit_bi_legacy("CLB", bel, "FFY_INIT_ATTR", "INIT0", "INIT1");
         ctx.insert("CLB", bel, "FFY_INIT", item);
 
         // inverts
@@ -884,12 +935,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if edev.chip.kind.is_spartan3a()
             || edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore
         {
-            ctx.get_diff(tile, bel, "ANDORMUX", "0").assert_empty();
-            ctx.get_diff(tile, bel, "ANDORMUX", "1").assert_empty();
+            ctx.get_diff_legacy(tile, bel, "ANDORMUX", "0")
+                .assert_empty();
+            ctx.get_diff_legacy(tile, bel, "ANDORMUX", "1")
+                .assert_empty();
         } else {
-            let item = xlat_enum(vec![
-                ("OR", ctx.get_diff(tile, bel, "ANDORMUX", "0")),
-                ("AND", ctx.get_diff(tile, bel, "ANDORMUX", "1")),
+            let item = xlat_enum_legacy(vec![
+                ("OR", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "0")),
+                ("AND", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "1")),
             ]);
             ctx.insert(tile, bel, "MODE", item);
         }
@@ -899,9 +952,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "RANDOR_INIT"
         };
         let bel = "RANDOR_INIT";
-        let item = xlat_enum(vec![
-            ("OR", ctx.get_diff(tile, bel, "ANDORMUX", "0")),
-            ("AND", ctx.get_diff(tile, bel, "ANDORMUX", "1")),
+        let item = xlat_enum_legacy(vec![
+            ("OR", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "0")),
+            ("AND", ctx.get_diff_legacy(tile, bel, "ANDORMUX", "1")),
         ]);
         ctx.insert(tile, bel, "MODE", item);
     }

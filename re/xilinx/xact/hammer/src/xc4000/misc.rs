@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{CellCoord, DieId};
-use prjcombine_re_collector::diff::{Diff, xlat_bit_raw, xlat_enum_attr};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_xc2000::xc4000::{bslots, enums, tslots, xc4000::bcls, xc4000::tcls};
 
@@ -294,17 +294,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
         let tcid = tcls::CNR_SW;
         let bslot = bslots::RDBK;
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::RDBK::READ_ABORT);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::RDBK::READ_CAPTURE);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::RDBK::READ_ABORT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::RDBK::READ_CAPTURE);
         let bslot = bslots::MD1;
         ctx.collect_bel_attr_default(tcid, bslot, bcls::MD1::PULL, enums::IO_PULL::NONE);
         let bslot = bslots::MISC_SW;
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_SW::TM_BOT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_SW::TM_BOT);
     }
     {
         let tcid = tcls::CNR_SE;
         let bslot = bslots::STARTUP;
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::STARTUP::CRC);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::STARTUP::CRC);
         ctx.collect_bel_attr(tcid, bslot, bcls::STARTUP::CONFIG_RATE);
         ctx.collect_bel_input_inv(tcid, bslot, bcls::STARTUP::GSR);
         ctx.collect_bel_input_inv(tcid, bslot, bcls::STARTUP::GTS);
@@ -333,12 +333,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let (diff0, diff1, diff_en) = Diff::split(diff0, diff1);
             diffs0.push((val, diff0));
             diffs1.push((val, diff1));
-            ctx.insert_bel_attr_bool(
-                tcid,
-                bslot,
-                bcls::MISC_SE::OSC_ENABLE,
-                xlat_bit_raw(diff_en),
-            );
+            ctx.insert_bel_attr_bool(tcid, bslot, bcls::MISC_SE::OSC_ENABLE, xlat_bit(diff_en));
         }
         ctx.insert_bel_attr_raw(
             tcid,
@@ -353,16 +348,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             xlat_enum_attr(diffs1),
         );
 
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_SE::DONE_PULLUP);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_SE::TCTEST);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_SE::DONE_PULLUP);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_SE::TCTEST);
     }
     {
         let tcid = tcls::CNR_NW;
         let bslot = bslots::BSCAN;
         ctx.collect_bel_attr(tcid, bslot, bcls::BSCAN::ENABLE);
         let bslot = bslots::MISC_NW;
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_NW::TM_LEFT);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_NW::TM_TOP);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_NW::TM_LEFT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_NW::TM_TOP);
         ctx.collect_bel_attr(tcid, bslot, bcls::MISC_NW::IO_ISTD);
     }
     {
@@ -373,13 +368,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_attr(tcid, bslot, bcls::TDO::BSCAN_ENABLE);
 
         let bslot = bslots::MISC_NE;
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_NE::TM_RIGHT);
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_NE::TAC);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_NE::TM_RIGHT);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_NE::TAC);
         ctx.collect_bel_attr(tcid, bslot, bcls::MISC_NE::READCLK);
     }
     {
         let tcid = tcls::LLV_IO_E;
         let bslot = bslots::MISC_E;
-        ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::MISC_E::TLC);
+        ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::MISC_E::TLC);
     }
 }

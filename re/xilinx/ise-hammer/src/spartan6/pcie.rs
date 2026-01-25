@@ -116,7 +116,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         return;
     }
     let bel = "PCIE";
-    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+        .assert_empty();
     for attr in [
         "DEV_CAP_EXT_TAG_SUPPORTED",
         "DEV_CAP_ROLE_BASED_ERROR",
@@ -143,7 +144,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "USR_EXT_CFG",
         "VC0_CPL_INFINITE",
     ] {
-        ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
     }
     for attr in [
         "BAR0",
@@ -203,6 +204,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "PM_DATA_SCALE6",
         "PM_DATA_SCALE7",
     ] {
-        ctx.collect_bitvec(tile, bel, attr, "");
+        ctx.collect_bitvec_legacy(tile, bel, attr, "");
     }
 }

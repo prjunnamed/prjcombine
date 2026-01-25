@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{Diff, xlat_enum};
+use prjcombine_re_collector::{diff::Diff, legacy::xlat_enum_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex4::defs;
 
@@ -74,22 +74,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "DSP";
     for (pininv, pin, pin_b) in [("CECINV", "CEC", "CEC_B"), ("RSTCINV", "RSTC", "RSTC_B")] {
-        let ti0 = ctx.extract_enum_bool(tile, "DSP[0]", pininv, pin, pin_b);
-        let ti1 = ctx.extract_enum_bool(tile, "DSP[1]", pininv, pin, pin_b);
+        let ti0 = ctx.extract_bit_bi_legacy(tile, "DSP[0]", pininv, pin, pin_b);
+        let ti1 = ctx.extract_bit_bi_legacy(tile, "DSP[1]", pininv, pin, pin_b);
         assert_eq!(ti0, ti1);
         ctx.insert_int_inv(&["INT"; 4], tile, "DSP[0]", pin, ti0);
     }
-    let d0_0 = ctx.get_diff(tile, "DSP[0]", "CREG", "0");
-    let d0_1 = ctx.get_diff(tile, "DSP[0]", "CREG", "1");
-    let d1_0 = ctx.get_diff(tile, "DSP[1]", "CREG", "0");
-    let d1_1 = ctx.get_diff(tile, "DSP[1]", "CREG", "1");
+    let d0_0 = ctx.get_diff_legacy(tile, "DSP[0]", "CREG", "0");
+    let d0_1 = ctx.get_diff_legacy(tile, "DSP[0]", "CREG", "1");
+    let d1_0 = ctx.get_diff_legacy(tile, "DSP[1]", "CREG", "0");
+    let d1_1 = ctx.get_diff_legacy(tile, "DSP[1]", "CREG", "1");
     let (d0_0, d1_0, dc_0) = Diff::split(d0_0, d1_0);
     let (d0_1, d1_1, dc_1) = Diff::split(d0_1, d1_1);
     ctx.insert(
         tile,
         "DSP_COMMON",
         "CREG",
-        xlat_enum(vec![("0", dc_0), ("1", dc_1)]),
+        xlat_enum_legacy(vec![("0", dc_0), ("1", dc_1)]),
     );
     d0_0.assert_empty();
     d1_0.assert_empty();
@@ -97,7 +97,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         tile,
         "DSP_COMMON",
         "CLKC_MUX",
-        xlat_enum(vec![("DSP0", d0_1), ("DSP1", d1_1)]),
+        xlat_enum_legacy(vec![("DSP0", d0_1), ("DSP1", d1_1)]),
     );
     for bel in ["DSP[0]", "DSP[1]"] {
         for &pin in DSP48_INVPINS {
@@ -107,10 +107,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_inv(tile, bel, pin);
             }
         }
-        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
         for attr in ["AREG", "BREG"] {
-            ctx.collect_enum(tile, bel, attr, &["0", "1", "2"]);
-            present.discard_bits(ctx.item(tile, bel, attr));
+            ctx.collect_enum_legacy(tile, bel, attr, &["0", "1", "2"]);
+            present.discard_bits_legacy(ctx.item(tile, bel, attr));
         }
         for attr in [
             "MREG",
@@ -120,17 +120,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "CARRYINSELREG",
             "SUBTRACTREG",
         ] {
-            ctx.collect_enum(tile, bel, attr, &["0", "1"]);
-            present.discard_bits(ctx.item(tile, bel, attr));
+            ctx.collect_enum_legacy(tile, bel, attr, &["0", "1"]);
+            present.discard_bits_legacy(ctx.item(tile, bel, attr));
         }
-        ctx.collect_enum(tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
-        present.discard_bits(ctx.item(tile, "DSP_COMMON", "CREG"));
-        present.discard_bits(ctx.item(tile, "DSP_COMMON", "CLKC_MUX"));
+        ctx.collect_enum_legacy(tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
+        present.discard_bits_legacy(ctx.item(tile, "DSP_COMMON", "CREG"));
+        present.discard_bits_legacy(ctx.item(tile, "DSP_COMMON", "CLKC_MUX"));
         ctx.insert(
             tile,
             bel,
             "UNK_PRESENT",
-            xlat_enum(vec![("0", Diff::default()), ("1", present)]),
+            xlat_enum_legacy(vec![("0", Diff::default()), ("1", present)]),
         );
     }
 }

@@ -1,7 +1,10 @@
 use std::{collections::BTreeMap, ops::Range};
 
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum};
+use prjcombine_re_collector::{
+    diff::{Diff, OcdMode},
+    legacy::{xlat_bit_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -1867,35 +1870,39 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "GTP_COMMON";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in GTP_COMMON_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         for &(attr, vals) in GTP_COMMON_ENUM_ATTRS {
-            ctx.collect_enum_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
+            ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
         }
         for &(attr, _) in GTP_COMMON_BIN_ATTRS {
             if matches!(
                 attr,
                 "EAST_REFCLK0_SEL" | "EAST_REFCLK1_SEL" | "WEST_REFCLK0_SEL" | "WEST_REFCLK1_SEL"
             ) {
-                let [diff0, diff1] = ctx.get_diffs(tile, bel, attr, "").try_into().unwrap();
+                let [diff0, diff1] = ctx
+                    .get_diffs_legacy(tile, bel, attr, "")
+                    .try_into()
+                    .unwrap();
                 ctx.insert(
                     tile,
                     bel,
                     attr,
-                    xlat_enum(vec![
+                    xlat_enum_legacy(vec![
                         ("NONE", Diff::default()),
                         ("REFCLK0", diff0),
                         ("REFCLK1", diff1),
                     ]),
                 );
             } else {
-                ctx.collect_bitvec(tile, bel, attr, "");
+                ctx.collect_bitvec_legacy(tile, bel, attr, "");
             }
         }
         for &(attr, _) in GTP_COMMON_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         // too annoying to bother fuzzing cleanly, given that east/west clocks are only present on 7a200t
         ctx.insert(
@@ -1978,35 +1985,37 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tile("GTX_COMMON") {
         let tile = "GTX_COMMON";
         let bel = "GTX_COMMON";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         for &(attr, vals) in GTXH_COMMON_ENUM_ATTRS {
-            ctx.collect_enum_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
+            ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
         }
         for &(attr, _) in GTX_COMMON_BIN_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTX_COMMON_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     if ctx.has_tile("GTH_COMMON") {
         let tile = "GTH_COMMON";
         let bel = "GTH_COMMON";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         for &(attr, vals) in GTXH_COMMON_ENUM_ATTRS {
-            ctx.collect_enum_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
+            ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
         }
         for &(attr, _) in GTH_COMMON_BIN_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTH_COMMON_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     for tile in ["GTX_COMMON", "GTH_COMMON"] {
@@ -2014,7 +2023,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = tile;
-        ctx.collect_enum_default_ocd(
+        ctx.collect_enum_default_legacy_ocd(
             tile,
             bel,
             "QPLLREFCLKSEL_STATIC",
@@ -2030,10 +2039,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "NONE",
             OcdMode::BitOrderDrpV6,
         );
-        ctx.collect_enum_default(tile, bel, "QPLLREFCLKSEL_MODE", &["DYNAMIC"], "STATIC");
+        ctx.collect_enum_default_legacy(tile, bel, "QPLLREFCLKSEL_MODE", &["DYNAMIC"], "STATIC");
         let tcid = ctx.edev.db.get_tile_class(tile);
         if ctx.edev.tile_index[tcid].len() > 1 {
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 "MUX.NORTHREFCLK0_N",
@@ -2041,7 +2050,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "NONE",
                 OcdMode::BitOrderDrpV6,
             );
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 "MUX.NORTHREFCLK1_N",
@@ -2049,7 +2058,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "NONE",
                 OcdMode::BitOrderDrpV6,
             );
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 "MUX.SOUTHREFCLK0_S",
@@ -2057,7 +2066,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "NONE",
                 OcdMode::BitOrderDrpV6,
             );
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 "MUX.SOUTHREFCLK1_S",
@@ -2081,7 +2090,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tile,
                 bel_common,
                 format!("DRP{reg:02X}"),
-                TileItem::from_bitvec(
+                TileItem::from_bitvec_inv(
                     (0..16)
                         .map(|bit| common_drp_bit(tile == "GTP_COMMON_MID", reg, bit))
                         .collect(),
@@ -2091,11 +2100,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         for bel in ["BUFDS[0]", "BUFDS[1]"] {
             ctx.collect_inv(tile, bel, "CLKTESTSIG");
-            ctx.collect_enum_bool(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
-            ctx.collect_enum_bool(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");
-            let item = ctx.extract_bitvec(tile, bel, "CLKSWING_CFG", "");
+            ctx.collect_bit_bi_legacy(tile, bel, "CLKCM_CFG", "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, "CLKRCV_TRST", "FALSE", "TRUE");
+            let item = ctx.extract_bitvec_legacy(tile, bel, "CLKSWING_CFG", "");
             ctx.insert(tile, bel_common, "CLKSWING_CFG", item);
-            ctx.collect_enum_default_ocd(
+            ctx.collect_enum_default_legacy_ocd(
                 tile,
                 bel,
                 "MUX.MGTCLKOUT",
@@ -2103,8 +2112,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "NONE",
                 OcdMode::BitOrderDrpV6,
             );
-            let mut diff = ctx.get_diff(tile, bel, "PRESENT", "1");
-            diff.apply_enum_diff(ctx.item(tile, bel, "MUX.MGTCLKOUT"), "NONE", "O");
+            let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
+            diff.apply_enum_diff_legacy(ctx.item(tile, bel, "MUX.MGTCLKOUT"), "NONE", "O");
             diff.assert_empty();
         }
     }
@@ -2113,13 +2122,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "GTP_COMMON";
         for i in 0..14 {
             let diff = ctx
-                .get_diff(tile, bel, format!("MUX.HOUT{i}"), format!("HIN{i}.EXCL"))
-                .combine(&!ctx.peek_diff(tile, bel, format!("MUX.HOUT{i}"), format!("HIN{i}")));
+                .get_diff_legacy(tile, bel, format!("MUX.HOUT{i}"), format!("HIN{i}.EXCL"))
+                .combine(&!ctx.peek_diff_legacy(
+                    tile,
+                    bel,
+                    format!("MUX.HOUT{i}"),
+                    format!("HIN{i}"),
+                ));
             ctx.insert(
                 tile,
                 "HCLK_GTP_MID",
                 format!("ENABLE.HIN{i}"),
-                xlat_bit(diff),
+                xlat_bit_legacy(diff),
             );
         }
         for pin in [
@@ -2135,17 +2149,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "MGTCLKOUT1",
         ] {
             let diff = ctx
-                .get_diff(tile, bel, "MUX.HOUT0", format!("{pin}.EXCL"))
-                .combine(&!ctx.peek_diff(tile, bel, "MUX.HOUT0", pin));
+                .get_diff_legacy(tile, bel, "MUX.HOUT0", format!("{pin}.EXCL"))
+                .combine(&!ctx.peek_diff_legacy(tile, bel, "MUX.HOUT0", pin));
             ctx.insert(
                 tile,
                 "HCLK_GTP_MID",
                 format!("ENABLE.{pin}"),
-                xlat_bit(diff),
+                xlat_bit_legacy(diff),
             );
         }
         for i in 0..14 {
-            let item = ctx.extract_enum_default_ocd(
+            let item = ctx.extract_enum_default_legacy_ocd(
                 tile,
                 bel,
                 &format!("MUX.HOUT{i}"),
@@ -2173,13 +2187,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             "HCLK_GTP_MID",
             "DRP_MASK_BELOW",
-            TileItem::from_bit(TileBit::new(6, 0, 13), false),
+            TileItem::from_bit_inv(TileBit::new(6, 0, 13), false),
         );
         ctx.insert(
             tile,
             "HCLK_GTP_MID",
             "DRP_MASK_ABOVE",
-            TileItem::from_bit(TileBit::new(6, 1, 13), false),
+            TileItem::from_bit_inv(TileBit::new(6, 1, 13), false),
         );
     }
     for (tile, bel) in [
@@ -2196,7 +2210,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tile,
                 bel,
                 format!("DRP{reg:02X}"),
-                TileItem::from_bitvec(
+                TileItem::from_bitvec_inv(
                     (0..16)
                         .map(|bit| channel_drp_bit(tile == "GTP_CHANNEL_MID", reg, bit))
                         .collect(),
@@ -2211,79 +2225,82 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "GTP_CHANNEL";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in GTP_CHANNEL_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         for &attr in GTP_CHANNEL_BOOL_ATTRS {
-            ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
         for &(attr, vals) in GTP_CHANNEL_ENUM_ATTRS {
-            ctx.collect_enum_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
+            ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
         }
         for &(attr, ref vals, delta) in GTP_CHANNEL_ENUM_INT_ATTRS {
-            ctx.collect_enum_int(tile, bel, attr, vals.clone(), delta);
+            ctx.collect_enum_legacy_int(tile, bel, attr, vals.clone(), delta);
         }
         for &(attr, _) in GTP_CHANNEL_DEC_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTP_CHANNEL_BIN_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTP_CHANNEL_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     if ctx.has_tile("GTX_CHANNEL") {
         let tile = "GTX_CHANNEL";
         let bel = "GTX_CHANNEL";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in GTX_CHANNEL_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         for &attr in GTX_CHANNEL_BOOL_ATTRS {
-            ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
         for &(attr, vals) in GTX_CHANNEL_ENUM_ATTRS {
-            ctx.collect_enum_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
+            ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
         }
         for &(attr, ref vals, delta) in GTX_CHANNEL_ENUM_INT_ATTRS {
-            ctx.collect_enum_int(tile, bel, attr, vals.clone(), delta);
+            ctx.collect_enum_legacy_int(tile, bel, attr, vals.clone(), delta);
         }
         for &(attr, _) in GTX_CHANNEL_DEC_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTX_CHANNEL_BIN_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTX_CHANNEL_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     if ctx.has_tile("GTH_CHANNEL") {
         let tile = "GTH_CHANNEL";
         let bel = "GTH_CHANNEL";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in GTH_CHANNEL_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         for &attr in GTH_CHANNEL_BOOL_ATTRS {
-            ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
         for &(attr, vals) in GTH_CHANNEL_ENUM_ATTRS {
-            ctx.collect_enum_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
+            ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrderDrpV6);
         }
         for &(attr, ref vals, delta) in GTH_CHANNEL_ENUM_INT_ATTRS {
-            ctx.collect_enum_int(tile, bel, attr, vals.clone(), delta);
+            ctx.collect_enum_legacy_int(tile, bel, attr, vals.clone(), delta);
         }
         for &(attr, _) in GTH_CHANNEL_DEC_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTH_CHANNEL_BIN_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTH_CHANNEL_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     for tile in ["GTX_CHANNEL", "GTH_CHANNEL"] {
@@ -2291,7 +2308,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = tile;
-        ctx.collect_enum_default_ocd(
+        ctx.collect_enum_default_legacy_ocd(
             tile,
             bel,
             "CPLLREFCLKSEL_STATIC",
@@ -2307,6 +2324,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "NONE",
             OcdMode::BitOrderDrpV6,
         );
-        ctx.collect_enum_default(tile, bel, "CPLLREFCLKSEL_MODE", &["DYNAMIC"], "STATIC");
+        ctx.collect_enum_default_legacy(tile, bel, "CPLLREFCLKSEL_MODE", &["DYNAMIC"], "STATIC");
     }
 }

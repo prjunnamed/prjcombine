@@ -1,4 +1,7 @@
-use prjcombine_re_collector::diff::{Diff, xlat_bitvec, xlat_enum};
+use prjcombine_re_collector::{
+    diff::Diff,
+    legacy::{xlat_bitvec_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex4::defs;
 
@@ -170,67 +173,68 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ] {
         ctx.collect_inv(tile, "BRAM", pin);
     }
-    ctx.collect_enum_bool(tile, "BRAM", "INVERT_CLK_DOA_REG", "FALSE", "TRUE");
-    ctx.collect_enum_bool(tile, "BRAM", "INVERT_CLK_DOB_REG", "FALSE", "TRUE");
-    ctx.collect_enum(tile, "BRAM", "DOA_REG", &["0", "1"]);
-    ctx.collect_enum(tile, "BRAM", "DOB_REG", &["0", "1"]);
+    ctx.collect_bit_bi_legacy(tile, "BRAM", "INVERT_CLK_DOA_REG", "FALSE", "TRUE");
+    ctx.collect_bit_bi_legacy(tile, "BRAM", "INVERT_CLK_DOB_REG", "FALSE", "TRUE");
+    ctx.collect_enum_legacy(tile, "BRAM", "DOA_REG", &["0", "1"]);
+    ctx.collect_enum_legacy(tile, "BRAM", "DOB_REG", &["0", "1"]);
     for attr in [
         "READ_WIDTH_A",
         "READ_WIDTH_B",
         "WRITE_WIDTH_A",
         "WRITE_WIDTH_B",
     ] {
-        ctx.get_diff(tile, "BRAM", attr, "0").assert_empty();
-        ctx.collect_enum(tile, "BRAM", attr, &["1", "2", "4", "9", "18", "36"]);
+        ctx.get_diff_legacy(tile, "BRAM", attr, "0").assert_empty();
+        ctx.collect_enum_legacy(tile, "BRAM", attr, &["1", "2", "4", "9", "18", "36"]);
     }
     for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
-        let d_none = ctx.get_diff(tile, "BRAM", attr, "NONE");
-        assert_eq!(d_none, ctx.get_diff(tile, "BRAM", attr, "UPPER"));
-        let d_lower = ctx.get_diff(tile, "BRAM", attr, "LOWER");
+        let d_none = ctx.get_diff_legacy(tile, "BRAM", attr, "NONE");
+        assert_eq!(d_none, ctx.get_diff_legacy(tile, "BRAM", attr, "UPPER"));
+        let d_lower = ctx.get_diff_legacy(tile, "BRAM", attr, "LOWER");
         ctx.insert(
             tile,
             "BRAM",
             attr,
-            xlat_enum(vec![("NONE_UPPER", d_none), ("LOWER", d_lower)]),
+            xlat_enum_legacy(vec![("NONE_UPPER", d_none), ("LOWER", d_lower)]),
         );
     }
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         "BRAM",
         "WRITE_MODE_A",
         &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"],
     );
-    ctx.collect_enum(
+    ctx.collect_enum_legacy(
         tile,
         "BRAM",
         "WRITE_MODE_B",
         &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"],
     );
-    ctx.collect_bitvec(tile, "BRAM", "INIT_A", "");
-    ctx.collect_bitvec(tile, "BRAM", "INIT_B", "");
-    ctx.collect_bitvec(tile, "BRAM", "SRVAL_A", "");
-    ctx.collect_bitvec(tile, "BRAM", "SRVAL_B", "");
+    ctx.collect_bitvec_legacy(tile, "BRAM", "INIT_A", "");
+    ctx.collect_bitvec_legacy(tile, "BRAM", "INIT_B", "");
+    ctx.collect_bitvec_legacy(tile, "BRAM", "SRVAL_A", "");
+    ctx.collect_bitvec_legacy(tile, "BRAM", "SRVAL_B", "");
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
     for i in 0..0x40 {
-        diffs_data.extend(ctx.get_diffs(tile, "BRAM", format!("INIT_{i:02X}"), ""));
+        diffs_data.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INIT_{i:02X}"), ""));
     }
     for i in 0..0x08 {
-        diffs_datap.extend(ctx.get_diffs(tile, "BRAM", format!("INITP_{i:02X}"), ""));
+        diffs_datap.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INITP_{i:02X}"), ""));
     }
-    ctx.insert(tile, "BRAM", "DATA", xlat_bitvec(diffs_data));
-    ctx.insert(tile, "BRAM", "DATAP", xlat_bitvec(diffs_datap));
+    ctx.insert(tile, "BRAM", "DATA", xlat_bitvec_legacy(diffs_data));
+    ctx.insert(tile, "BRAM", "DATAP", xlat_bitvec_legacy(diffs_datap));
 
     for attr in ["EN_ECC_READ", "EN_ECC_WRITE", "SAVEDATA"] {
-        ctx.get_diff(tile, "BRAM", attr, "FALSE").assert_empty();
-        let diff = ctx.get_diff(tile, "BRAM", attr, "TRUE");
+        ctx.get_diff_legacy(tile, "BRAM", attr, "FALSE")
+            .assert_empty();
+        let diff = ctx.get_diff_legacy(tile, "BRAM", attr, "TRUE");
         let mut bits: Vec<_> = diff.bits.into_iter().collect();
         bits.sort();
         ctx.insert(
             tile,
             "BRAM",
             attr,
-            xlat_bitvec(
+            xlat_bitvec_legacy(
                 bits.into_iter()
                     .map(|(k, v)| Diff {
                         bits: [(k, v)].into_iter().collect(),
@@ -240,79 +244,95 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
 
-    let ti = ctx.extract_enum_bool(tile, "FIFO", "FIRST_WORD_FALL_THROUGH", "FALSE", "TRUE");
+    let ti = ctx.extract_bit_bi_legacy(tile, "FIFO", "FIRST_WORD_FALL_THROUGH", "FALSE", "TRUE");
     ctx.insert(tile, "BRAM", "FIRST_WORD_FALL_THROUGH", ti);
     let mut diffs = vec![];
     let item_ra = ctx.item(tile, "BRAM", "READ_WIDTH_A").clone();
     let item_wb = ctx.item(tile, "BRAM", "WRITE_WIDTH_B").clone();
     for val in ["4", "9", "18", "36"] {
-        let mut diff = ctx.get_diff(tile, "FIFO", "DATA_WIDTH", val);
-        diff.apply_enum_diff(&item_ra, val, "1");
-        diff.apply_enum_diff(&item_wb, val, "1");
+        let mut diff = ctx.get_diff_legacy(tile, "FIFO", "DATA_WIDTH", val);
+        diff.apply_enum_diff_legacy(&item_ra, val, "1");
+        diff.apply_enum_diff_legacy(&item_wb, val, "1");
         diffs.push((val, diff));
     }
-    ctx.insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum(diffs));
-    ctx.get_diff(tile, "FIFO", "EN_ECC_READ", "FALSE")
+    ctx.insert(tile, "BRAM", "FIFO_WIDTH", xlat_enum_legacy(diffs));
+    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_READ", "FALSE")
         .assert_empty();
-    ctx.get_diff(tile, "FIFO", "EN_ECC_READ", "TRUE")
+    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_READ", "TRUE")
         .assert_empty();
-    ctx.get_diff(tile, "FIFO", "EN_ECC_WRITE", "FALSE")
+    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_WRITE", "FALSE")
         .assert_empty();
-    ctx.get_diff(tile, "FIFO", "EN_ECC_WRITE", "TRUE")
+    ctx.get_diff_legacy(tile, "FIFO", "EN_ECC_WRITE", "TRUE")
         .assert_empty();
 
-    let diffs = ctx.get_diffs(tile, "FIFO", "ALMOST_FULL_OFFSET:NFWFT", "");
+    let diffs = ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_FULL_OFFSET:NFWFT", "");
     assert_eq!(
         diffs,
-        ctx.get_diffs(tile, "FIFO", "ALMOST_FULL_OFFSET:FWFT", "")
+        ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_FULL_OFFSET:FWFT", "")
     );
-    ctx.insert(tile, "BRAM", "ALMOST_FULL_OFFSET", xlat_bitvec(diffs));
-    let diffs = ctx.get_diffs(tile, "FIFO", "ALMOST_EMPTY_OFFSET:NFWFT", "");
+    ctx.insert(
+        tile,
+        "BRAM",
+        "ALMOST_FULL_OFFSET",
+        xlat_bitvec_legacy(diffs),
+    );
+    let diffs = ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_EMPTY_OFFSET:NFWFT", "");
     assert_eq!(
         diffs,
-        ctx.get_diffs(tile, "FIFO", "ALMOST_EMPTY_OFFSET:FWFT", "")
+        ctx.get_diffs_legacy(tile, "FIFO", "ALMOST_EMPTY_OFFSET:FWFT", "")
     );
-    ctx.insert(tile, "BRAM", "ALMOST_EMPTY_OFFSET", xlat_bitvec(diffs));
+    ctx.insert(
+        tile,
+        "BRAM",
+        "ALMOST_EMPTY_OFFSET",
+        xlat_bitvec_legacy(diffs),
+    );
 
-    let mut present_bram = ctx.get_diff(tile, "BRAM", "PRESENT", "1");
-    let mut present_fifo = ctx.get_diff(tile, "FIFO", "PRESENT", "1");
+    let mut present_bram = ctx.get_diff_legacy(tile, "BRAM", "PRESENT", "1");
+    let mut present_fifo = ctx.get_diff_legacy(tile, "FIFO", "PRESENT", "1");
     for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
-        present_bram.discard_bits(ctx.item(tile, "BRAM", attr));
-        present_fifo.discard_bits(ctx.item(tile, "BRAM", attr));
+        present_bram.discard_bits_legacy(ctx.item(tile, "BRAM", attr));
+        present_fifo.discard_bits_legacy(ctx.item(tile, "BRAM", attr));
     }
-    present_bram.apply_enum_diff(
+    present_bram.apply_enum_diff_legacy(
         ctx.item(tile, "BRAM", "WRITE_MODE_A"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
-    present_bram.apply_enum_diff(
+    present_bram.apply_enum_diff_legacy(
         ctx.item(tile, "BRAM", "WRITE_MODE_B"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
-    present_fifo.apply_enum_diff(
+    present_fifo.apply_enum_diff_legacy(
         ctx.item(tile, "BRAM", "WRITE_MODE_A"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
-    present_fifo.apply_enum_diff(
+    present_fifo.apply_enum_diff_legacy(
         ctx.item(tile, "BRAM", "WRITE_MODE_B"),
         "WRITE_FIRST",
         "READ_FIRST",
     );
-    present_fifo.apply_enum_diff(ctx.item(tile, "BRAM", "DOA_REG"), "1", "0");
-    present_fifo.apply_enum_diff(ctx.item(tile, "BRAM", "DOB_REG"), "1", "0");
+    present_fifo.apply_enum_diff_legacy(ctx.item(tile, "BRAM", "DOA_REG"), "1", "0");
+    present_fifo.apply_enum_diff_legacy(ctx.item(tile, "BRAM", "DOB_REG"), "1", "0");
     ctx.insert(
         tile,
         "BRAM",
         "MODE",
-        xlat_enum(vec![("RAM", present_bram), ("FIFO", present_fifo)]),
+        xlat_enum_legacy(vec![("RAM", present_bram), ("FIFO", present_fifo)]),
     );
 
-    let item = xlat_enum(vec![
+    let item = xlat_enum_legacy(vec![
         ("NONE", Diff::default()),
-        ("0", ctx.get_diff(tile, "BRAM", "Ibram_ww_value", "0")),
-        ("1", ctx.get_diff(tile, "BRAM", "Ibram_ww_value", "1")),
+        (
+            "0",
+            ctx.get_diff_legacy(tile, "BRAM", "Ibram_ww_value", "0"),
+        ),
+        (
+            "1",
+            ctx.get_diff_legacy(tile, "BRAM", "Ibram_ww_value", "1"),
+        ),
     ]);
 
     ctx.insert(tile, "BRAM", "WW_VALUE", item);

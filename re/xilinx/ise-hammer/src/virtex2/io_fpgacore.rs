@@ -1,5 +1,8 @@
 use prjcombine_interconnect::{dir::Dir, grid::TileCoord};
-use prjcombine_re_collector::diff::{Diff, DiffKey, FeatureId, xlat_bit, xlat_bit_wide, xlat_bool};
+use prjcombine_re_collector::{
+    diff::{Diff, DiffKey, FeatureId},
+    legacy::{xlat_bit_bi_legacy, xlat_bit_legacy, xlat_bit_wide_legacy},
+};
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -199,85 +202,91 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         let tile = "IOI_FC";
         let bel = &format!("IBUF[{i}]");
-        ctx.get_diff(tile, bel, "ENABLE", "1").assert_empty();
-        ctx.get_diff(tile, bel, "ENABLE_O2IPADPATH", "1")
+        ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "ENABLE_O2IPADPATH", "1")
             .assert_empty();
-        let diff_i = ctx.get_diff(tile, bel, "ENABLE_O2IPATH", "1");
-        let diff_iq = ctx.get_diff(tile, bel, "ENABLE_O2IQPATH", "1");
+        let diff_i = ctx.get_diff_legacy(tile, bel, "ENABLE_O2IPATH", "1");
+        let diff_iq = ctx.get_diff_legacy(tile, bel, "ENABLE_O2IQPATH", "1");
         let (diff_i, diff_iq, diff_common) = Diff::split(diff_i, diff_iq);
-        ctx.insert(tile, bel, "ENABLE_O2IPATH", xlat_bit(diff_i));
-        ctx.insert(tile, bel, "ENABLE_O2IQPATH", xlat_bit(diff_iq));
-        ctx.insert(tile, bel, "ENABLE_O2I_O2IQ_PATH", xlat_bit(diff_common));
+        ctx.insert(tile, bel, "ENABLE_O2IPATH", xlat_bit_legacy(diff_i));
+        ctx.insert(tile, bel, "ENABLE_O2IQPATH", xlat_bit_legacy(diff_iq));
+        ctx.insert(
+            tile,
+            bel,
+            "ENABLE_O2I_O2IQ_PATH",
+            xlat_bit_legacy(diff_common),
+        );
         for pin in ["CLK", "CE"] {
             ctx.collect_inv(tile, bel, pin);
         }
         for pin in ["REV", "SR"] {
-            let d0 = ctx.get_diff(tile, bel, format!("{pin}INV"), pin);
-            let d1 = ctx.get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
+            let d0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), pin);
+            let d1 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
             let (d0, d1, de) = Diff::split(d0, d1);
-            ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
-            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
+            ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
+            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit_legacy(de));
         }
-        ctx.get_diff(tile, bel, "IMUX", "1").assert_empty();
-        ctx.get_diff(tile, bel, "IFFDMUX", "1").assert_empty();
-        let diff_i = ctx.get_diff(tile, bel, "IMUX", "0");
-        let diff_iff = ctx.get_diff(tile, bel, "IFFDMUX", "0");
+        ctx.get_diff_legacy(tile, bel, "IMUX", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "IFFDMUX", "1")
+            .assert_empty();
+        let diff_i = ctx.get_diff_legacy(tile, bel, "IMUX", "0");
+        let diff_iff = ctx.get_diff_legacy(tile, bel, "IFFDMUX", "0");
         let (diff_i, diff_iff, diff_common) = Diff::split(diff_i, diff_iff);
-        ctx.insert(tile, bel, "I_DELAY_ENABLE", xlat_bit(diff_i));
-        ctx.insert(tile, bel, "IFF_DELAY_ENABLE", xlat_bit(diff_iff));
-        ctx.insert(tile, bel, "DELAY_ENABLE", xlat_bit_wide(diff_common));
-        let item = ctx.extract_enum_bool(tile, bel, "IFF", "#FF", "#LATCH");
+        ctx.insert(tile, bel, "I_DELAY_ENABLE", xlat_bit_legacy(diff_i));
+        ctx.insert(tile, bel, "IFF_DELAY_ENABLE", xlat_bit_legacy(diff_iff));
+        ctx.insert(tile, bel, "DELAY_ENABLE", xlat_bit_wide_legacy(diff_common));
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFF", "#FF", "#LATCH");
         ctx.insert(tile, bel, "FF_LATCH", item);
-        let item = ctx.extract_enum_bool(tile, bel, "IFFATTRBOX", "ASYNC", "SYNC");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFFATTRBOX", "ASYNC", "SYNC");
         ctx.insert(tile, bel, "FF_SR_SYNC", item);
-        let item = ctx.extract_enum_bool(tile, bel, "IFF_INIT_ATTR", "INIT0", "INIT1");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFF_INIT_ATTR", "INIT0", "INIT1");
         ctx.insert(tile, bel, "FF_INIT", item);
-        let item = ctx.extract_enum_bool(tile, bel, "IFF_SR_ATTR", "SRLOW", "SRHIGH");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "IFF_SR_ATTR", "SRLOW", "SRHIGH");
         ctx.insert(tile, bel, "FF_SRVAL", item);
         ctx.insert(
             tile,
             bel,
             "READBACK_I",
-            TileItem::from_bit(TileBit::new(0, 3, [0, 31, 32, 63][i]), false),
+            TileItem::from_bit_inv(TileBit::new(0, 3, [0, 31, 32, 63][i]), false),
         );
         for tile in ["IOB_FC_S", "IOB_FC_N", "IOB_FC_W", "IOB_FC_E"] {
-            ctx.collect_bit(tile, bel, "ENABLE", "1");
-            ctx.collect_bit(tile, bel, "ENABLE_O2IPADPATH", "1");
+            ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
+            ctx.collect_bit_legacy(tile, bel, "ENABLE_O2IPADPATH", "1");
         }
     }
     for i in 0..4 {
         let tile = "IOI_FC";
         let bel = &format!("OBUF[{i}]");
-        ctx.get_diff(tile, bel, "ENABLE", "1").assert_empty();
-        ctx.get_diff(tile, bel, "ENABLE_MISR", "TRUE")
+        ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "ENABLE_MISR", "TRUE")
             .assert_empty();
         for pin in ["CLK", "O"] {
             ctx.collect_inv(tile, bel, pin);
         }
         ctx.collect_int_inv(&["INT_IOI_FC"], tile, bel, "CE", false);
         for pin in ["REV", "SR"] {
-            let d0 = ctx.get_diff(tile, bel, format!("{pin}INV"), pin);
-            let d1 = ctx.get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
+            let d0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), pin);
+            let d1 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
             let (d0, d1, de) = Diff::split(d0, d1);
             if pin == "REV" {
-                ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
+                ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
             } else {
-                ctx.insert_int_inv(&["INT_IOI_FC"], tile, bel, pin, xlat_bool(d0, d1));
+                ctx.insert_int_inv(&["INT_IOI_FC"], tile, bel, pin, xlat_bit_bi_legacy(d0, d1));
             }
-            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
+            ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit_legacy(de));
         }
-        let item = ctx.extract_enum_bool(tile, bel, "OFF", "#FF", "#LATCH");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFF", "#FF", "#LATCH");
         ctx.insert(tile, bel, "FF_LATCH", item);
-        let item = ctx.extract_enum_bool(tile, bel, "OFFATTRBOX", "ASYNC", "SYNC");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFFATTRBOX", "ASYNC", "SYNC");
         ctx.insert(tile, bel, "FF_SR_SYNC", item);
-        let item = ctx.extract_enum_bool(tile, bel, "OFF_INIT_ATTR", "INIT0", "INIT1");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFF_INIT_ATTR", "INIT0", "INIT1");
         ctx.insert(tile, bel, "FF_INIT", item);
-        let item = ctx.extract_enum_bool(tile, bel, "OFF_SR_ATTR", "SRLOW", "SRHIGH");
+        let item = ctx.extract_bit_bi_legacy(tile, bel, "OFF_SR_ATTR", "SRLOW", "SRHIGH");
         ctx.insert(tile, bel, "FF_SRVAL", item);
-        ctx.collect_enum_default(tile, bel, "OMUX", &["O", "OFF"], "NONE");
+        ctx.collect_enum_default_legacy(tile, bel, "OMUX", &["O", "OFF"], "NONE");
         for tile in ["IOB_FC_S", "IOB_FC_N", "IOB_FC_W", "IOB_FC_E"] {
-            ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
-            ctx.collect_bit(tile, bel, "ENABLE_MISR", "TRUE");
+            ctx.collect_bit_wide_legacy(tile, bel, "ENABLE", "1");
+            ctx.collect_bit_legacy(tile, bel, "ENABLE_MISR", "TRUE");
         }
     }
 }

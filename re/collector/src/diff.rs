@@ -1,7 +1,6 @@
 use core::fmt::Debug;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, btree_map, hash_map};
 
-use bincode::{Decode, Encode};
 use itertools::Itertools;
 use prjcombine_entity::{
     EntityPartVec, EntityVec,
@@ -16,14 +15,8 @@ use prjcombine_interconnect::{
 };
 use prjcombine_types::{
     bitvec::BitVec,
-    bsdata::{BitRectId, PolTileBit, TileBit, TileItem, TileItemKind},
+    bsdata::{BitRectId, EnumData, PolTileBit, TileBit},
 };
-
-#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
-pub struct EnumData<K: Ord> {
-    pub bits: Vec<TileBit>,
-    pub values: BTreeMap<K, BitVec>,
-}
 
 pub struct SpecialTag;
 impl EntityTag for SpecialTag {
@@ -163,25 +156,17 @@ impl Diff {
         self.split_bits_by(|bit| bits.contains(&bit))
     }
 
-    pub fn discard_bits(&mut self, item: &TileItem) {
-        for bit in item.bits.iter() {
-            self.bits.remove(bit);
-        }
-    }
-
-    pub fn discard_bits_raw(&mut self, bits: &[TileBit]) {
+    pub fn discard_bits(&mut self, bits: &[TileBit]) {
         for bit in bits {
             self.bits.remove(bit);
         }
     }
 
     pub fn discard_bits_enum(&mut self, attr: &BelAttributeEnum) {
-        for bit in &attr.bits {
-            self.bits.remove(bit);
-        }
+        self.discard_bits(&attr.bits);
     }
 
-    pub fn apply_bitvec_diff_raw(&mut self, bits: &[PolTileBit], from: &BitVec, to: &BitVec) {
+    pub fn apply_bitvec_diff(&mut self, bits: &[PolTileBit], from: &BitVec, to: &BitVec) {
         for (idx, &pbit) in bits.iter().enumerate() {
             if from[idx] != to[idx] {
                 match self.bits.entry(pbit.bit) {
@@ -197,26 +182,7 @@ impl Diff {
         }
     }
 
-    pub fn apply_bitvec_diff(&mut self, item: &TileItem, from: &BitVec, to: &BitVec) {
-        let TileItemKind::BitVec { ref invert } = item.kind else {
-            unreachable!()
-        };
-        for (idx, &bit) in item.bits.iter().enumerate() {
-            if from[idx] != to[idx] {
-                match self.bits.entry(bit) {
-                    hash_map::Entry::Occupied(e) => {
-                        assert_eq!(*e.get(), from[idx] ^ invert[idx]);
-                        e.remove();
-                    }
-                    hash_map::Entry::Vacant(e) => {
-                        e.insert(to[idx] ^ invert[idx]);
-                    }
-                }
-            }
-        }
-    }
-
-    pub fn apply_bitvec_diff_int(&mut self, item: &TileItem, from: u64, to: u64) {
+    pub fn apply_bitvec_diff_int(&mut self, bits: &[PolTileBit], from: u64, to: u64) {
         fn to_bitvec(n: u64, len: usize) -> BitVec {
             let mut res = BitVec::repeat(false, len);
             for i in 0..64 {
@@ -227,44 +193,18 @@ impl Diff {
             res
         }
         self.apply_bitvec_diff(
-            item,
-            &to_bitvec(from, item.bits.len()),
-            &to_bitvec(to, item.bits.len()),
-        );
-    }
-
-    pub fn apply_bitvec_diff_int_raw(&mut self, bits: &[PolTileBit], from: u64, to: u64) {
-        fn to_bitvec(n: u64, len: usize) -> BitVec {
-            let mut res = BitVec::repeat(false, len);
-            for i in 0..64 {
-                if (n & 1 << i) != 0 {
-                    res.set(i, true);
-                }
-            }
-            res
-        }
-        self.apply_bitvec_diff_raw(
             bits,
             &to_bitvec(from, bits.len()),
             &to_bitvec(to, bits.len()),
         );
     }
 
-    pub fn apply_bit_diff(&mut self, item: &TileItem, from: bool, to: bool) {
-        self.apply_bitvec_diff(item, &BitVec::from_iter([from]), &BitVec::from_iter([to]))
+    pub fn apply_bit_diff(&mut self, bit: PolTileBit, from: bool, to: bool) {
+        self.apply_bitvec_diff(&[bit], &BitVec::from_iter([from]), &BitVec::from_iter([to]))
     }
 
-    pub fn apply_bit_diff_raw(&mut self, bit: PolTileBit, from: bool, to: bool) {
-        self.apply_bitvec_diff_raw(&[bit], &BitVec::from_iter([from]), &BitVec::from_iter([to]))
-    }
-
-    pub fn apply_enum_diff(&mut self, item: &TileItem, from: &str, to: &str) {
-        let TileItemKind::Enum { ref values } = item.kind else {
-            unreachable!()
-        };
-        let from = &values[from];
-        let to = &values[to];
-        for (idx, &bit) in item.bits.iter().enumerate() {
+    pub fn apply_enum_diff_raw(&mut self, bits: &[TileBit], from: &BitVec, to: &BitVec) {
+        for (idx, &bit) in bits.iter().enumerate() {
             if from[idx] != to[idx] {
                 match self.bits.entry(bit) {
                     hash_map::Entry::Occupied(e) => {
@@ -279,27 +219,10 @@ impl Diff {
         }
     }
 
-    pub fn apply_enum_diff_attr(
-        &mut self,
-        item: &BelAttributeEnum,
-        from: EnumValueId,
-        to: EnumValueId,
-    ) {
+    pub fn apply_enum_diff(&mut self, item: &BelAttributeEnum, from: EnumValueId, to: EnumValueId) {
         let from = &item.values[from];
         let to = &item.values[to];
-        for (idx, &bit) in item.bits.iter().enumerate() {
-            if from[idx] != to[idx] {
-                match self.bits.entry(bit) {
-                    hash_map::Entry::Occupied(e) => {
-                        assert_eq!(*e.get(), from[idx]);
-                        e.remove();
-                    }
-                    hash_map::Entry::Vacant(e) => {
-                        e.insert(to[idx]);
-                    }
-                }
-            }
-        }
+        self.apply_enum_diff_raw(&item.bits, from, to);
     }
 
     pub fn split_rects(&self, split: &[&EntityVec<BitRectId, BitRectId>]) -> Vec<Diff> {
@@ -342,16 +265,6 @@ impl Diff {
         }
         res
     }
-
-    pub fn from_bool_item(item: &TileItem) -> Self {
-        assert_eq!(item.bits.len(), 1);
-        let TileItemKind::BitVec { ref invert } = item.kind else {
-            unreachable!()
-        };
-        let mut res = Diff::default();
-        res.bits.insert(item.bits[0], !invert[0]);
-        res
-    }
 }
 
 impl core::ops::Not for Diff {
@@ -374,107 +287,50 @@ impl core::ops::Not for &Diff {
     }
 }
 
-pub fn enum_ocd_swap_bits(item: &mut TileItem, a: usize, b: usize) {
-    item.bits.swap(a, b);
-    let TileItemKind::Enum { ref mut values } = item.kind else {
-        unreachable!()
-    };
-    for val in values.values_mut() {
-        val.swap(a, b);
+pub fn xlat_bit_wide(diff: Diff) -> Vec<PolTileBit> {
+    let mut res = vec![];
+    for (&bit, &val) in &diff.bits {
+        res.push(PolTileBit { bit, inv: !val });
     }
+    res.sort();
+    res
 }
 
-pub fn xlat_item_tile_fwd(item: TileItem, xlat: &EntityVec<BitRectId, BitRectId>) -> TileItem {
-    TileItem {
-        bits: item
-            .bits
-            .into_iter()
-            .map(|bit| TileBit {
-                rect: xlat[bit.rect],
-                ..bit
-            })
-            .collect(),
-        kind: item.kind,
-    }
-}
-
-pub fn xlat_item_tile(item: TileItem, xlat: &EntityVec<BitRectId, BitRectId>) -> TileItem {
-    let mut rxlat = EntityPartVec::new();
-    for (dst_rect, &src_rect) in xlat {
-        assert!(!rxlat.contains_id(src_rect));
-        rxlat.insert(src_rect, dst_rect);
-    }
-    TileItem {
-        bits: item
-            .bits
-            .into_iter()
-            .map(|bit| TileBit {
-                rect: rxlat[bit.rect],
-                ..bit
-            })
-            .collect(),
-        kind: item.kind,
-    }
-}
-
-pub fn xlat_bit_raw(diff: Diff) -> PolTileBit {
+pub fn xlat_bit(diff: Diff) -> PolTileBit {
     assert_eq!(diff.bits.len(), 1);
     let (&bit, &val) = diff.bits.iter().next().unwrap();
     PolTileBit { bit, inv: !val }
 }
 
-pub fn xlat_bitvec_raw(diffs: Vec<Diff>) -> Vec<PolTileBit> {
-    diffs.into_iter().map(xlat_bit_raw).collect()
+pub fn xlat_bitvec(diffs: Vec<Diff>) -> Vec<PolTileBit> {
+    diffs.into_iter().map(xlat_bit).collect()
 }
 
-pub fn xlat_bitvec(diffs: Vec<Diff>) -> TileItem {
-    let mut invert = BitVec::new();
-    let mut bits = vec![];
-    for diff in diffs {
-        assert_eq!(diff.bits.len(), 1);
-        for (k, v) in diff.bits {
-            bits.push(k);
-            invert.push(!v);
-        }
-    }
-    TileItem {
-        bits,
-        kind: TileItemKind::BitVec { invert },
-    }
+pub fn xlat_bit_bi_default(diff0: Diff, diff1: Diff) -> (PolTileBit, bool) {
+    let (diff, res) = if diff0.bits.is_empty() {
+        diff0.assert_empty();
+        (diff1, false)
+    } else {
+        diff1.assert_empty();
+        (!diff0, true)
+    };
+    (xlat_bit(diff), res)
 }
 
-pub fn xlat_bit(diff: Diff) -> TileItem {
-    xlat_bitvec(vec![diff])
+pub fn xlat_bit_bi(diff0: Diff, diff1: Diff) -> PolTileBit {
+    xlat_bit_bi_default(diff0, diff1).0
 }
 
-pub fn xlat_bit_wide(diff: Diff) -> TileItem {
-    let mut invert = BitVec::new();
-    let mut bits = vec![];
-    for (k, v) in diff.bits.into_iter().sorted() {
-        bits.push(k);
-        invert.push(!v);
-    }
-    assert!(invert.all() || !invert.any());
-    TileItem {
-        bits,
-        kind: TileItemKind::BitVec { invert },
-    }
+pub fn xlat_bit_wide_bi_default(diff0: Diff, diff1: Diff) -> (Vec<PolTileBit>, BitVec) {
+    let mut bits = xlat_bit_wide(diff1.combine(&!&diff0));
+    assert_eq!(bits.len(), diff0.bits.len() + diff1.bits.len());
+    bits.sort();
+    let default = BitVec::from_iter(bits.iter().map(|bit| diff0.bits.contains_key(&bit.bit)));
+    (bits, default)
 }
 
-pub fn concat_bitvec(vecs: impl IntoIterator<Item = TileItem>) -> TileItem {
-    let mut invert = BitVec::new();
-    let mut bits = vec![];
-    for vec in vecs {
-        let TileItemKind::BitVec { invert: cur_invert } = vec.kind else {
-            unreachable!()
-        };
-        invert.extend(cur_invert);
-        bits.extend(vec.bits);
-    }
-    TileItem {
-        bits,
-        kind: TileItemKind::BitVec { invert },
-    }
+pub fn xlat_bit_wide_bi(diff0: Diff, diff1: Diff) -> Vec<PolTileBit> {
+    xlat_bit_wide_bi_default(diff0, diff1).0
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -654,41 +510,7 @@ pub fn xlat_enum_attr(diffs: Vec<(EnumValueId, Diff)>) -> BelAttribute {
     xlat_enum_attr_ocd(diffs, OcdMode::ValueOrder)
 }
 
-pub fn xlat_enum_ocd(diffs: Vec<(impl Into<String>, Diff)>, ocd: OcdMode) -> TileItem {
-    let edata = xlat_enum_raw(
-        diffs
-            .into_iter()
-            .map(|(key, diff)| (key.into(), diff))
-            .collect(),
-        ocd,
-    );
-    TileItem {
-        bits: edata.bits,
-        kind: TileItemKind::Enum {
-            values: edata.values,
-        },
-    }
-}
-
-pub fn xlat_enum(diffs: Vec<(impl Into<String>, Diff)>) -> TileItem {
-    xlat_enum_ocd(diffs, OcdMode::ValueOrder)
-}
-
-pub fn xlat_enum_default(mut diffs: Vec<(String, Diff)>, default: impl Into<String>) -> TileItem {
-    diffs.insert(0, (default.into(), Diff::default()));
-    xlat_enum(diffs)
-}
-
-pub fn xlat_enum_default_ocd(
-    mut diffs: Vec<(String, Diff)>,
-    default: impl Into<String>,
-    ocd: OcdMode,
-) -> TileItem {
-    diffs.insert(0, (default.into(), Diff::default()));
-    xlat_enum_ocd(diffs, ocd)
-}
-
-pub fn xlat_enum_int(diffs: Vec<(u32, Diff)>) -> TileItem {
+pub fn xlat_bitvec_sparse(diffs: Vec<(u32, Diff)>) -> Vec<PolTileBit> {
     let mut bits: Vec<Option<TileBit>> = vec![];
     let mut xor = 0;
     for (val, diff) in &diffs {
@@ -726,12 +548,10 @@ pub fn xlat_enum_int(diffs: Vec<(u32, Diff)>) -> TileItem {
             }
         }
         if done {
-            return TileItem {
-                bits: bits.iter().map(|bit| bit.unwrap()).collect(),
-                kind: TileItemKind::BitVec {
-                    invert: BitVec::repeat(false, bits.len()),
-                },
-            };
+            return Vec::from_iter(bits.iter().map(|bit| PolTileBit {
+                bit: bit.unwrap(),
+                inv: false,
+            }));
         }
         if !progress {
             panic!("NO PROGRESS: {bits:?} {diffs:?}")
@@ -739,37 +559,7 @@ pub fn xlat_enum_int(diffs: Vec<(u32, Diff)>) -> TileItem {
     }
 }
 
-pub fn xlat_bool_default_raw(diff0: Diff, diff1: Diff) -> (PolTileBit, bool) {
-    let (diff, res) = if diff0.bits.is_empty() {
-        diff0.assert_empty();
-        (diff1, false)
-    } else {
-        diff1.assert_empty();
-        (!diff0, true)
-    };
-    (xlat_bit_raw(diff), res)
-}
-
-pub fn xlat_bool_default(diff0: Diff, diff1: Diff) -> (TileItem, bool) {
-    let (diff, res) = if diff0.bits.is_empty() {
-        diff0.assert_empty();
-        (diff1, false)
-    } else {
-        diff1.assert_empty();
-        (!diff0, true)
-    };
-    (xlat_bit(diff), res)
-}
-
-pub fn xlat_bool_raw(diff0: Diff, diff1: Diff) -> PolTileBit {
-    xlat_bool_default_raw(diff0, diff1).0
-}
-
-pub fn xlat_bool(diff0: Diff, diff1: Diff) -> TileItem {
-    xlat_bool_default(diff0, diff1).0
-}
-
-pub fn extract_bitvec_val_part_raw(bits: &[PolTileBit], base: &BitVec, diff: &mut Diff) -> BitVec {
+pub fn extract_bitvec_val_part(bits: &[PolTileBit], base: &BitVec, diff: &mut Diff) -> BitVec {
     assert_eq!(bits.len(), base.len());
     let mut res = base.clone();
     let rev: HashMap<_, _> = bits
@@ -790,48 +580,19 @@ pub fn extract_bitvec_val_part_raw(bits: &[PolTileBit], base: &BitVec, diff: &mu
     res
 }
 
-pub fn extract_bitvec_val_part(item: &TileItem, base: &BitVec, diff: &mut Diff) -> BitVec {
-    let TileItemKind::BitVec { ref invert } = item.kind else {
-        unreachable!()
-    };
-    assert_eq!(item.bits.len(), base.len());
+pub fn extract_bitvec_val(bits: &[PolTileBit], base: &BitVec, diff: Diff) -> BitVec {
+    assert_eq!(bits.len(), base.len());
     let mut res = base.clone();
-    let rev: HashMap<_, _> = item
-        .bits
+    let rev: HashMap<_, _> = bits
         .iter()
         .copied()
         .enumerate()
-        .map(|(i, v)| (v, i))
-        .collect();
-    diff.bits.retain(|&bit, &mut val| {
-        if let Some(&bitidx) = rev.get(&bit) {
-            assert_eq!(res[bitidx], !(val ^ invert[bitidx]));
-            res.set(bitidx, val ^ invert[bitidx]);
-            false
-        } else {
-            true
-        }
-    });
-    res
-}
-
-pub fn extract_bitvec_val(item: &TileItem, base: &BitVec, diff: Diff) -> BitVec {
-    let TileItemKind::BitVec { ref invert } = item.kind else {
-        unreachable!()
-    };
-    assert_eq!(item.bits.len(), base.len());
-    let mut res = base.clone();
-    let rev: HashMap<_, _> = item
-        .bits
-        .iter()
-        .copied()
-        .enumerate()
-        .map(|(i, v)| (v, i))
+        .map(|(i, v)| (v.bit, i))
         .collect();
     for (&bit, &val) in diff.bits.iter() {
         let bitidx = rev[&bit];
-        assert_eq!(res[bitidx], !(val ^ invert[bitidx]));
-        res.set(bitidx, val ^ invert[bitidx]);
+        assert_eq!(res[bitidx], !(val ^ bits[bitidx].inv));
+        res.set(bitidx, val ^ bits[bitidx].inv);
     }
     res
 }

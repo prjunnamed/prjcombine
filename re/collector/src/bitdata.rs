@@ -12,9 +12,7 @@ use prjcombine_interconnect::db::{
     PolTileWireCoord, SwitchBoxItem, TableFieldId, TableId, TableRowId, TableValue, TileClassId,
     TileWireCoord,
 };
-use prjcombine_types::bsdata::{BsData, PolTileBit};
-
-use crate::diff::EnumData;
+use prjcombine_types::bsdata::{BsData, EnumData, PolTileBit};
 
 #[derive(Clone, Debug, Default, Encode, Decode)]
 pub struct CollectorData {

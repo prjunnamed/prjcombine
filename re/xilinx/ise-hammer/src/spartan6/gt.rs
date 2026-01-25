@@ -1,7 +1,10 @@
 use core::ops::Range;
 
 use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
-use prjcombine_re_collector::diff::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
+use prjcombine_re_collector::{
+    diff::OcdMode,
+    legacy::{xlat_bit_legacy, xlat_bitvec_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -371,69 +374,70 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             format!("DRP{i:02X}"),
-            TileItem::from_bitvec((0..16).map(|j| drp_bit(i, j)).collect(), false),
+            TileItem::from_bitvec_inv((0..16).map(|j| drp_bit(i, j)).collect(), false),
         );
     }
 
-    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+        .assert_empty();
     for &pin in GTP_INVPINS {
         ctx.collect_inv(tile, bel, pin);
     }
     for &attr in GTP_BOOL_ATTRS {
-        ctx.collect_enum_bool(tile, bel, &format!("{attr}_0"), "FALSE", "TRUE");
-        ctx.collect_enum_bool(tile, bel, &format!("{attr}_1"), "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, &format!("{attr}_0"), "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, &format!("{attr}_1"), "FALSE", "TRUE");
     }
     for &(attr, vals) in GTP_ENUM_ATTRS {
-        ctx.collect_enum_ocd(tile, bel, &format!("{attr}_0"), vals, OcdMode::BitOrder);
-        ctx.collect_enum_ocd(tile, bel, &format!("{attr}_1"), vals, OcdMode::BitOrder);
+        ctx.collect_enum_legacy_ocd(tile, bel, &format!("{attr}_0"), vals, OcdMode::BitOrder);
+        ctx.collect_enum_legacy_ocd(tile, bel, &format!("{attr}_1"), vals, OcdMode::BitOrder);
     }
     for &(attr, ref vals) in GTP_ENUM_INT_ATTRS {
-        ctx.collect_enum_int(tile, bel, &format!("{attr}_0"), vals.clone(), 0);
-        ctx.collect_enum_int(tile, bel, &format!("{attr}_1"), vals.clone(), 0);
+        ctx.collect_enum_legacy_int(tile, bel, &format!("{attr}_0"), vals.clone(), 0);
+        ctx.collect_enum_legacy_int(tile, bel, &format!("{attr}_1"), vals.clone(), 0);
     }
-    ctx.collect_enum(tile, bel, "CLK_OUT_GTP_SEL_0", &["TXOUTCLK0", "REFCLKPLL0"]);
-    ctx.collect_enum(tile, bel, "CLK_OUT_GTP_SEL_1", &["TXOUTCLK1", "REFCLKPLL1"]);
+    ctx.collect_enum_legacy(tile, bel, "CLK_OUT_GTP_SEL_0", &["TXOUTCLK0", "REFCLKPLL0"]);
+    ctx.collect_enum_legacy(tile, bel, "CLK_OUT_GTP_SEL_1", &["TXOUTCLK1", "REFCLKPLL1"]);
     for &(attr, _) in GTP_DEC_ATTRS {
-        ctx.collect_bitvec(tile, bel, &format!("{attr}_0"), "");
-        ctx.collect_bitvec(tile, bel, &format!("{attr}_1"), "");
+        ctx.collect_bitvec_legacy(tile, bel, &format!("{attr}_0"), "");
+        ctx.collect_bitvec_legacy(tile, bel, &format!("{attr}_1"), "");
     }
     for &(attr, _) in GTP_BIN_ATTRS {
         if attr == "RXPRBSERR_LOOPBACK" || attr == "COMMA_10B_ENABLE" {
             continue;
         }
-        ctx.collect_bitvec(tile, bel, &format!("{attr}_0"), "");
-        ctx.collect_bitvec(tile, bel, &format!("{attr}_1"), "");
+        ctx.collect_bitvec_legacy(tile, bel, &format!("{attr}_0"), "");
+        ctx.collect_bitvec_legacy(tile, bel, &format!("{attr}_1"), "");
     }
     // sigh. bugs.
-    ctx.collect_bitvec(tile, bel, "COMMA_10B_ENABLE_0", "");
-    let mut diffs = ctx.get_diffs(tile, bel, "COMMA_10B_ENABLE_1", "");
+    ctx.collect_bitvec_legacy(tile, bel, "COMMA_10B_ENABLE_0", "");
+    let mut diffs = ctx.get_diffs_legacy(tile, bel, "COMMA_10B_ENABLE_1", "");
     diffs[3].bits.insert(TileBit::new(11, 23, 3), true);
     assert_eq!(diffs[4].bits.remove(&TileBit::new(11, 23, 3)), Some(true));
-    ctx.insert(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec(diffs));
-    ctx.collect_bitvec(tile, bel, "RXPRBSERR_LOOPBACK_0", "");
-    ctx.get_diff(tile, bel, "RXPRBSERR_LOOPBACK_1", "")
+    ctx.insert(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec_legacy(diffs));
+    ctx.collect_bitvec_legacy(tile, bel, "RXPRBSERR_LOOPBACK_0", "");
+    ctx.get_diff_legacy(tile, bel, "RXPRBSERR_LOOPBACK_1", "")
         .assert_empty();
     ctx.insert(
         tile,
         bel,
         "RXPRBSERR_LOOPBACK_1",
-        TileItem::from_bit(TileBit::new(8, 22, 48), false),
+        TileItem::from_bit_inv(TileBit::new(8, 22, 48), false),
     );
     for &(attr, _) in GTP_HEX_ATTRS {
-        ctx.collect_bitvec(tile, bel, &format!("{attr}_0"), "");
-        ctx.collect_bitvec(tile, bel, &format!("{attr}_1"), "");
+        ctx.collect_bitvec_legacy(tile, bel, &format!("{attr}_0"), "");
+        ctx.collect_bitvec_legacy(tile, bel, &format!("{attr}_1"), "");
     }
-    ctx.collect_bitvec(tile, bel, "PMA_COM_CFG_EAST", "");
-    ctx.collect_bitvec(tile, bel, "PMA_COM_CFG_WEST", "");
+    ctx.collect_bitvec_legacy(tile, bel, "PMA_COM_CFG_EAST", "");
+    ctx.collect_bitvec_legacy(tile, bel, "PMA_COM_CFG_WEST", "");
 
-    ctx.collect_enum(tile, bel, "MUX.CLKOUT_EAST", &["REFCLKPLL0", "REFCLKPLL1"]);
+    ctx.collect_enum_legacy(tile, bel, "MUX.CLKOUT_EAST", &["REFCLKPLL0", "REFCLKPLL1"]);
     if matches!(edev.chip.gts, Gts::Double(..) | Gts::Quad(..)) {
-        ctx.collect_enum(tile, bel, "MUX.CLKOUT_WEST", &["REFCLKPLL0", "REFCLKPLL1"]);
+        ctx.collect_enum_legacy(tile, bel, "MUX.CLKOUT_WEST", &["REFCLKPLL0", "REFCLKPLL1"]);
     }
 
     for i in 0..2 {
         let refselpll_static = ctx
-            .peek_diff(tile, bel, format!("REFSELPLL{i}"), "CLK0")
+            .peek_diff_legacy(tile, bel, format!("REFSELPLL{i}"), "CLK0")
             .clone();
         let mut diffs = vec![];
         for val in [
@@ -446,16 +450,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "PLLCLK1",
             "CLKINWEST",
         ] {
-            let mut diff = ctx.get_diff(tile, bel, format!("REFSELPLL{i}"), val);
+            let mut diff = ctx.get_diff_legacy(tile, bel, format!("REFSELPLL{i}"), val);
             diff = diff.combine(&!&refselpll_static);
             diffs.push((val, diff));
         }
-        ctx.insert(tile, bel, format!("REFSELPLL{i}_STATIC"), xlat_enum(diffs));
+        ctx.insert(
+            tile,
+            bel,
+            format!("REFSELPLL{i}_STATIC"),
+            xlat_enum_legacy(diffs),
+        );
         ctx.insert(
             tile,
             bel,
             format!("REFSELPLL{i}_STATIC_ENABLE"),
-            xlat_bit(refselpll_static),
+            xlat_bit_legacy(refselpll_static),
         );
     }
 }

@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{Diff, DiffKey, xlat_bool_raw, xlat_enum_attr};
+use prjcombine_re_collector::diff::{Diff, DiffKey, xlat_bit_bi, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::TileBit;
 use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls};
@@ -116,7 +116,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::LC::CK);
         let diff0 = ctx.get_diff_bel_special(tcid, bslot, specials::CKNOT_LATCH);
         let diff1 = ctx.get_diff_bel_special(tcid, bslot, specials::CK_LATCH);
-        ctx.insert_bel_input_inv(tcid, bslot, bcls::LC::CK, xlat_bool_raw(diff0, diff1));
+        ctx.insert_bel_input_inv(tcid, bslot, bcls::LC::CK, xlat_bit_bi(diff0, diff1));
         let mut diffs = vec![
             (
                 enums::LC_MUX_DO::DI,
@@ -144,5 +144,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         ctx.collect_bel_attr(tcid, bslots::TBUF[i], bcls::TBUF::T_ENABLE);
     }
-    ctx.collect_bel_attr_enum_bool(tcid, bslots::PROGTIE, bcls::PROGTIE::VAL)
+    ctx.collect_bel_attr_bool_bi(tcid, bslots::PROGTIE, bcls::PROGTIE::VAL)
 }

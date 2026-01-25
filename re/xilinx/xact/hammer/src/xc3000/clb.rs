@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{Diff, xlat_bitvec_raw, xlat_enum_attr};
+use prjcombine_re_collector::diff::{Diff, xlat_bitvec, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{
     bits,
@@ -305,14 +305,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     assert_eq!(lut_diffs[i], diff);
                 }
             }
-            ctx.insert_bel_attr_bitvec(tcid, bslots::CLB, attr, xlat_bitvec_raw(lut_diffs));
+            ctx.insert_bel_attr_bitvec(tcid, bslots::CLB, attr, xlat_bitvec(lut_diffs));
             let mut diff = diff_abcd;
             let mux_i2 = ctx.bel_attr_enum(tcid, bslots::CLB, attr_i2);
             let mux_i3 = ctx.bel_attr_enum(tcid, bslots::CLB, attr_i3);
             let mux_i4 = ctx.bel_attr_enum(tcid, bslots::CLB, attr_i4);
-            diff.apply_enum_diff_attr(mux_i2, enums::CLB_MUX_I2::B, enums::CLB_MUX_I2::QY);
-            diff.apply_enum_diff_attr(mux_i3, enums::CLB_MUX_I3::C, enums::CLB_MUX_I3::QY);
-            diff.apply_enum_diff_attr(mux_i4, enums::CLB_MUX_I4::D, enums::CLB_MUX_I4::E);
+            diff.apply_enum_diff(mux_i2, enums::CLB_MUX_I2::B, enums::CLB_MUX_I2::QY);
+            diff.apply_enum_diff(mux_i3, enums::CLB_MUX_I3::C, enums::CLB_MUX_I3::QY);
+            diff.apply_enum_diff(mux_i4, enums::CLB_MUX_I4::D, enums::CLB_MUX_I4::E);
             diff.assert_empty();
         }
         let diff_abcde =
@@ -328,12 +328,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 i,
             );
             diff = diff.combine(&!&diff_abcde);
-            diff.apply_bitvec_diff_raw(
+            diff.apply_bitvec_diff(
                 ctx.bel_attr_bitvec(tcid, bslots::CLB, bcls::CLB::F),
                 &bits.slice(..16),
                 &bits![0; 16],
             );
-            diff.apply_bitvec_diff_raw(
+            diff.apply_bitvec_diff(
                 ctx.bel_attr_bitvec(tcid, bslots::CLB, bcls::CLB::G),
                 &bits.slice(16..),
                 &bits![0; 16],
@@ -341,32 +341,32 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff.assert_empty();
         }
         let mut diff = diff_abcde;
-        diff.apply_enum_diff_attr(
+        diff.apply_enum_diff(
             ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_F2),
             enums::CLB_MUX_I2::B,
             enums::CLB_MUX_I2::QY,
         );
-        diff.apply_enum_diff_attr(
+        diff.apply_enum_diff(
             ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_F3),
             enums::CLB_MUX_I3::C,
             enums::CLB_MUX_I3::QY,
         );
-        diff.apply_enum_diff_attr(
+        diff.apply_enum_diff(
             ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_F4),
             enums::CLB_MUX_I4::D,
             enums::CLB_MUX_I4::E,
         );
-        diff.apply_enum_diff_attr(
+        diff.apply_enum_diff(
             ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_G2),
             enums::CLB_MUX_I2::B,
             enums::CLB_MUX_I2::QY,
         );
-        diff.apply_enum_diff_attr(
+        diff.apply_enum_diff(
             ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_G3),
             enums::CLB_MUX_I3::C,
             enums::CLB_MUX_I3::QY,
         );
-        diff.apply_enum_diff_attr(
+        diff.apply_enum_diff(
             ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_G4),
             enums::CLB_MUX_I4::D,
             enums::CLB_MUX_I4::E,

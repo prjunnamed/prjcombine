@@ -9,10 +9,7 @@ use prjcombine_interconnect::{
 use prjcombine_re_collector::{
     bitdata::CollectorData,
     collect::Collector,
-    diff::{
-        Diff, DiffKey, OcdMode, extract_bitvec_val_part_raw, xlat_bit_raw, xlat_bitvec_raw,
-        xlat_enum_raw,
-    },
+    diff::{Diff, DiffKey, OcdMode, extract_bitvec_val_part, xlat_bit, xlat_bitvec, xlat_enum_raw},
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
@@ -332,7 +329,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                         "SB_LVCMOS18_10".to_string(),
                     ))
                     .clone();
-                let bit = xlat_bit_raw(diff_cmos.clone());
+                let bit = xlat_bit(diff_cmos.clone());
                 collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::CMOS_INPUT, bit);
                 let diff = collector.peek_diff_raw(&DiffKey::BelSpecialString(
                     tcid,
@@ -340,7 +337,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     specials::IOSTD,
                     "SB_SSTL18_FULL".to_string(),
                 ));
-                let bit = xlat_bit_raw(diff.clone());
+                let bit = xlat_bit(diff.clone());
                 collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::IOSTD_MISC, bit);
                 let diff0 = collector
                     .peek_diff_raw(&DiffKey::BelSpecialString(
@@ -358,7 +355,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                         "SB_LVCMOS18_4".to_string(),
                     ))
                     .combine(&!&diff_cmos);
-                let bits = xlat_bitvec_raw(vec![diff0, diff1]);
+                let bits = xlat_bitvec(vec![diff0, diff1]);
                 collector.insert_bel_attr_bitvec(tcid, bel, defs::bcls::IOB::DRIVE, bits);
                 let table = &edev.db.tables[defs::tables::IOSTD];
                 for std in [
@@ -391,7 +388,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     if !std.starts_with("SB_SSTL") {
                         diff = diff.combine(&!&diff_cmos);
                     }
-                    let drive = extract_bitvec_val_part_raw(
+                    let drive = extract_bitvec_val_part(
                         collector.bel_attr_bitvec(tcid, bel, defs::bcls::IOB::DRIVE),
                         &bits![0, 0],
                         &mut diff,
@@ -403,7 +400,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                         defs::tables::IOSTD::DRIVE,
                         drive,
                     );
-                    let misc = extract_bitvec_val_part_raw(
+                    let misc = extract_bitvec_val_part(
                         collector.bel_attr_bitvec(tcid, bel, defs::bcls::IOB::IOSTD_MISC),
                         &bits![0],
                         &mut diff,
@@ -423,7 +420,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     defs::bcls::IOB::PULLUP,
                     specials::DISABLE,
                 ));
-                let bit = xlat_bit_raw(!diff);
+                let bit = xlat_bit(!diff);
                 collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::PULLUP, bit);
                 if edev.chip.kind.has_multi_pullup() {
                     let diff = collector.get_diff_raw(&DiffKey::BelAttrSpecial(
@@ -432,7 +429,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                         defs::bcls::IOB::WEAK_PULLUP,
                         specials::DISABLE,
                     ));
-                    let bit = xlat_bit_raw(!diff);
+                    let bit = xlat_bit(!diff);
                     collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::WEAK_PULLUP, bit);
                     for attr in [
                         defs::bcls::IOB::PULLUP_3P3K,
@@ -470,7 +467,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                         std.to_string(),
                     ));
                     for bel in defs::bslots::IOB {
-                        let misc = extract_bitvec_val_part_raw(
+                        let misc = extract_bitvec_val_part(
                             collector.bel_attr_bitvec(tcid, bel, defs::bcls::IOB::IOSTD_MISC),
                             &bits![0],
                             &mut diff,
@@ -483,7 +480,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                             misc,
                         );
                     }
-                    let bit = xlat_bit_raw(diff);
+                    let bit = xlat_bit(diff);
                     collector.insert_bel_attr_bool(
                         tcid,
                         defs::bslots::IOB_PAIR,
@@ -593,7 +590,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     },
                     inv: bit.inv,
                 }));
-                diff.apply_bitvec_diff_raw(&damd, &bits![1; 4], &bits![0; 4]);
+                diff.apply_bitvec_diff(&damd, &bits![1; 4], &bits![0; 4]);
                 diff.assert_empty();
                 collector.insert_bel_attr_bitvec(tcid, bslot, attr, damd);
             } else {
@@ -690,13 +687,13 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                 tcid,
                 defs::bslots::IR_DRV,
                 defs::bcls::IR_DRV::IR_CURRENT,
-                xlat_bitvec_raw(diffs),
+                xlat_bitvec(diffs),
             );
             collector.insert_bel_attr_bool(
                 tcid,
                 defs::bslots::IR_DRV,
                 defs::bcls::IR_DRV::ENABLE,
-                xlat_bit_raw(en),
+                xlat_bit(en),
             );
         } else {
             for attr in [
@@ -718,13 +715,13 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                         tcid,
                         defs::bslots::RGB_DRV,
                         attr,
-                        xlat_bit_raw(diff),
+                        xlat_bit(diff),
                     );
                     collector.insert_bel_attr_bool(
                         tcid,
                         defs::bslots::LED_DRV_CUR,
                         defs::bcls::LED_DRV_CUR::RGB_ENABLE,
-                        xlat_bit_raw(led_drv_cur_en),
+                        xlat_bit(led_drv_cur_en),
                     );
                 } else {
                     collector.collect_bel_attr(tcid, defs::bslots::RGB_DRV, attr);

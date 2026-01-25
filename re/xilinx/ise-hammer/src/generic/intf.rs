@@ -5,7 +5,10 @@ use prjcombine_interconnect::{
     db::{BelInfo, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum, xlat_enum_default};
+use prjcombine_re_collector::{
+    diff::Diff,
+    legacy::{xlat_bit_legacy, xlat_enum_default_legacy, xlat_enum_legacy},
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -193,7 +196,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
                             };
-                            let diff = ctx.get_diff(tcname, bname, &mux_name, &in_name);
+                            let diff = ctx.get_diff_legacy(tcname, bname, &mux_name, &in_name);
 
                             match test_bits {
                                 Some(ref mut bits) => {
@@ -217,7 +220,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             *diff = diff.combine(&!&test_diff);
                         }
                     }
-                    ctx.insert(tcname, bname, "TEST_ENABLE", xlat_bit(test_diff));
+                    ctx.insert(tcname, bname, "TEST_ENABLE", xlat_bit_legacy(test_diff));
                     if let ExpandedDevice::Virtex4(edev) = ctx.edev {
                         match edev.kind {
                             prjcombine_virtex4::chip::ChipKind::Virtex4 => {
@@ -227,7 +230,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                             || in_name.starts_with("IMUX_SR")
                                             || in_name.starts_with("IMUX_CE")
                                         {
-                                            diff.discard_bits(ctx.item(
+                                            diff.discard_bits_legacy(ctx.item(
                                                 "INT",
                                                 "INT",
                                                 &format!("INV.{in_name}"),
@@ -278,9 +281,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 .collect();
 
                             let item = if has_empty {
-                                xlat_enum(diffs)
+                                xlat_enum_legacy(diffs)
                             } else {
-                                xlat_enum_default(diffs, "NONE")
+                                xlat_enum_default_legacy(diffs, "NONE")
                             };
                             ctx.insert(tcname, bname, mux_name, item);
                         }
@@ -302,7 +305,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
                             };
-                            let mut diff = ctx.get_diff(tcname, bname, &mux_name, &in_name);
+                            let mut diff = ctx.get_diff_legacy(tcname, bname, &mux_name, &in_name);
 
                             if in_name.contains("IMUX_SR") || in_name.contains("IMUX_CE") {
                                 let mut item = ctx
@@ -318,7 +321,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 for bit in &mut item.bits {
                                     bit.rect = BitRectId::from_idx(src.cell.to_idx());
                                 }
-                                diff.discard_bits(&item);
+                                diff.discard_bits_legacy(&item);
                             }
 
                             diffs.push((group.to_string(), diff));
@@ -328,7 +331,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         tcname,
                         bname,
                         "TEST_GROUP",
-                        xlat_enum_default(diffs, "NONE"),
+                        xlat_enum_default_legacy(diffs, "NONE"),
                     );
                 }
                 _ => (),

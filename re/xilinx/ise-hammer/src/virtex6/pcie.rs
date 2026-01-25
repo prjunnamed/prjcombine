@@ -297,22 +297,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             tile,
             bel,
             format!("DRP{reg:02X}"),
-            TileItem::from_bitvec((0..16).map(|bit| pcie_drp_bit(reg, bit)).collect(), false),
+            TileItem::from_bitvec_inv((0..16).map(|bit| pcie_drp_bit(reg, bit)).collect(), false),
         );
     }
 
-    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+        .assert_empty();
     for &attr in PCIE_BOOL_ATTRS {
-        ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+        ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
     }
     for &(attr, _) in PCIE_HEX_ATTRS {
-        ctx.collect_bitvec(tile, bel, attr, "");
+        ctx.collect_bitvec_legacy(tile, bel, attr, "");
     }
     for &(attr, _) in PCIE_DEC_ATTRS {
-        ctx.collect_bitvec(tile, bel, attr, "");
+        ctx.collect_bitvec_legacy(tile, bel, attr, "");
     }
     let tile = "HCLK";
     let bel = "HCLK";
-    let item = ctx.extract_bit(tile, bel, "DRP_MASK_PCIE", "1");
+    let item = ctx.extract_bit_legacy(tile, bel, "DRP_MASK_PCIE", "1");
     ctx.insert(tile, bel, "DRP_MASK_BELOW", item);
 }

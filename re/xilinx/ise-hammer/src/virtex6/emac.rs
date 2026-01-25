@@ -75,16 +75,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let tile = "EMAC";
     let bel = "EMAC";
-    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+        .assert_empty();
     for &attr in EMAC_BOOL_ATTRS {
         if attr == "EMAC_MDIO_IGNORE_PHYADZERO" {
-            ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
-            ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
+            ctx.get_diff_legacy(tile, bel, attr, "FALSE").assert_empty();
+            ctx.get_diff_legacy(tile, bel, attr, "TRUE").assert_empty();
         } else {
-            ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
     }
     for &(attr, _) in EMAC_HEX_ATTRS {
-        ctx.collect_bitvec(tile, bel, attr, "");
+        ctx.collect_bitvec_legacy(tile, bel, attr, "");
     }
 }

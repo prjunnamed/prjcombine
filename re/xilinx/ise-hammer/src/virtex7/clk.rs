@@ -3,7 +3,10 @@ use prjcombine_interconnect::{
     dir::{DirH, DirV},
     grid::{RowId, TileCoord},
 };
-use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_collector::{
+    diff::{Diff, OcdMode},
+    legacy::{xlat_bit_legacy, xlat_enum_legacy_ocd},
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -858,21 +861,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         let bel = "HCLK";
         for i in 0..12 {
             let (_, _, diff) = Diff::split(
-                ctx.peek_diff(tile, "HCLK_E", "MUX.LCLK0_D", format!("HCLK{i}"))
+                ctx.peek_diff_legacy(tile, "HCLK_E", "MUX.LCLK0_D", format!("HCLK{i}"))
                     .clone(),
-                ctx.peek_diff(tile, "HCLK_E", "MUX.LCLK0_U", format!("HCLK{i}"))
+                ctx.peek_diff_legacy(tile, "HCLK_E", "MUX.LCLK0_U", format!("HCLK{i}"))
                     .clone(),
             );
-            ctx.insert(tile, bel, format!("ENABLE.HCLK{i}"), xlat_bit(diff));
+            ctx.insert(tile, bel, format!("ENABLE.HCLK{i}"), xlat_bit_legacy(diff));
         }
         for i in 0..4 {
             let (_, _, diff) = Diff::split(
-                ctx.peek_diff(tile, "HCLK_E", "MUX.LCLK0_D", format!("RCLK{i}"))
+                ctx.peek_diff_legacy(tile, "HCLK_E", "MUX.LCLK0_D", format!("RCLK{i}"))
                     .clone(),
-                ctx.peek_diff(tile, "HCLK_E", "MUX.LCLK0_U", format!("RCLK{i}"))
+                ctx.peek_diff_legacy(tile, "HCLK_E", "MUX.LCLK0_U", format!("RCLK{i}"))
                     .clone(),
             );
-            ctx.insert(tile, bel, format!("ENABLE.RCLK{i}"), xlat_bit(diff));
+            ctx.insert(tile, bel, format!("ENABLE.RCLK{i}"), xlat_bit_legacy(diff));
         }
         for i in 0..12 {
             let sbel = if i < 6 { "HCLK_E" } else { "HCLK_W" };
@@ -881,8 +884,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                 let mut diffs = vec![("NONE".to_string(), Diff::default())];
                 for i in 0..12 {
                     let val = format!("HCLK{i}");
-                    let mut diff = ctx.get_diff(tile, sbel, mux, &val);
-                    diff.apply_bit_diff(
+                    let mut diff = ctx.get_diff_legacy(tile, sbel, mux, &val);
+                    diff.apply_bit_diff_legacy(
                         ctx.item(tile, bel, &format!("ENABLE.HCLK{i}")),
                         true,
                         false,
@@ -891,15 +894,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                 }
                 for i in 0..4 {
                     let val = format!("RCLK{i}");
-                    let mut diff = ctx.get_diff(tile, sbel, mux, &val);
-                    diff.apply_bit_diff(
+                    let mut diff = ctx.get_diff_legacy(tile, sbel, mux, &val);
+                    diff.apply_bit_diff_legacy(
                         ctx.item(tile, bel, &format!("ENABLE.RCLK{i}")),
                         true,
                         false,
                     );
                     diffs.push((val, diff));
                 }
-                ctx.insert(tile, bel, mux, xlat_enum_ocd(diffs, OcdMode::Mux));
+                ctx.insert(tile, bel, mux, xlat_enum_legacy_ocd(diffs, OcdMode::Mux));
             }
         }
     }
@@ -911,12 +914,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                 ctx.collect_inv(tile, bel, pin);
             }
             for attr in ["PRESELECT_I0", "PRESELECT_I1", "CREATE_EDGE"] {
-                ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+                ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
             }
-            ctx.collect_enum_bool(tile, bel, "INIT_OUT", "0", "1");
+            ctx.collect_bit_bi_legacy(tile, bel, "INIT_OUT", "0", "1");
 
             for attr in ["MUX.I0", "MUX.I1"] {
-                ctx.collect_enum_ocd(
+                ctx.collect_enum_legacy_ocd(
                     tile,
                     bel,
                     attr,
@@ -924,11 +927,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                     OcdMode::Mux,
                 );
             }
-            ctx.collect_bit(tile, bel, "ENABLE.FB", "1");
-            ctx.collect_bit(tile, bel, "ENABLE", "1");
-            ctx.collect_bit(tile, bel, "ENABLE.GCLK", "1");
-            ctx.collect_bit(tile, bel, "TEST_I0", "1");
-            ctx.collect_bit(tile, bel, "TEST_I1", "1");
+            ctx.collect_bit_legacy(tile, bel, "ENABLE.FB", "1");
+            ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
+            ctx.collect_bit_legacy(tile, bel, "ENABLE.GCLK", "1");
+            ctx.collect_bit_legacy(tile, bel, "TEST_I0", "1");
+            ctx.collect_bit_legacy(tile, bel, "TEST_I1", "1");
         }
     }
     if !bali_only {
@@ -936,22 +939,27 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         let bel = "CLK_HROW_V7";
         for i in 0..32 {
             let (_, _, diff) = Diff::split(
-                ctx.peek_diff(tile, "BUFHCE_W[0]", "MUX.I", format!("GCLK{i}"))
+                ctx.peek_diff_legacy(tile, "BUFHCE_W[0]", "MUX.I", format!("GCLK{i}"))
                     .clone(),
-                ctx.peek_diff(tile, "BUFHCE_E[0]", "MUX.I", format!("GCLK{i}"))
+                ctx.peek_diff_legacy(tile, "BUFHCE_E[0]", "MUX.I", format!("GCLK{i}"))
                     .clone(),
             );
-            ctx.insert(tile, bel, format!("ENABLE.GCLK{i}"), xlat_bit(diff));
+            ctx.insert(tile, bel, format!("ENABLE.GCLK{i}"), xlat_bit_legacy(diff));
         }
         for lr in ['L', 'R'] {
             for i in 0..14 {
                 let (_, _, diff) = Diff::split(
-                    ctx.peek_diff(tile, "BUFHCE_W[0]", "MUX.I", format!("HIN{i}_{lr}"))
+                    ctx.peek_diff_legacy(tile, "BUFHCE_W[0]", "MUX.I", format!("HIN{i}_{lr}"))
                         .clone(),
-                    ctx.peek_diff(tile, "BUFHCE_E[0]", "MUX.I", format!("HIN{i}_{lr}"))
+                    ctx.peek_diff_legacy(tile, "BUFHCE_E[0]", "MUX.I", format!("HIN{i}_{lr}"))
                         .clone(),
                 );
-                ctx.insert(tile, bel, format!("ENABLE.HIN{i}_{lr}"), xlat_bit(diff));
+                ctx.insert(
+                    tile,
+                    bel,
+                    format!("ENABLE.HIN{i}_{lr}"),
+                    xlat_bit_legacy(diff),
+                );
             }
         }
         for (pin, sbel_a, sbel_b) in [
@@ -961,22 +969,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
             ("CKINT3", "BUFHCE_W[0]", "BUFHCE_W[1]"),
         ] {
             let (_, _, diff) = Diff::split(
-                ctx.peek_diff(tile, sbel_a, "MUX.I", pin).clone(),
-                ctx.peek_diff(tile, sbel_b, "MUX.I", pin).clone(),
+                ctx.peek_diff_legacy(tile, sbel_a, "MUX.I", pin).clone(),
+                ctx.peek_diff_legacy(tile, sbel_b, "MUX.I", pin).clone(),
             );
-            ctx.insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit(diff));
+            ctx.insert(tile, bel, format!("ENABLE.{pin}"), xlat_bit_legacy(diff));
         }
         for we in ['W', 'E'] {
             for i in 0..12 {
                 let bel = &format!("BUFHCE_{we}[{i}]");
-                ctx.collect_bit(tile, bel, "ENABLE", "1");
+                ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
                 ctx.collect_inv(tile, bel, "CE");
-                ctx.collect_enum_bool(tile, bel, "INIT_OUT", "0", "1");
-                ctx.collect_enum(tile, bel, "CE_TYPE", &["SYNC", "ASYNC"]);
+                ctx.collect_bit_bi_legacy(tile, bel, "INIT_OUT", "0", "1");
+                ctx.collect_enum_legacy(tile, bel, "CE_TYPE", &["SYNC", "ASYNC"]);
                 let mut diffs = vec![];
                 for j in 0..32 {
-                    let mut diff = ctx.get_diff(tile, bel, "MUX.I", format!("GCLK{j}"));
-                    diff.apply_bit_diff(
+                    let mut diff = ctx.get_diff_legacy(tile, bel, "MUX.I", format!("GCLK{j}"));
+                    diff.apply_bit_diff_legacy(
                         ctx.item(tile, "CLK_HROW_V7", &format!("ENABLE.GCLK{j}")),
                         true,
                         false,
@@ -985,15 +993,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                 }
                 for lr in ['L', 'R'] {
                     for j in 0..14 {
-                        let mut diff = ctx.get_diff(tile, bel, "MUX.I", format!("HIN{j}_{lr}"));
-                        diff.apply_bit_diff(
+                        let mut diff =
+                            ctx.get_diff_legacy(tile, bel, "MUX.I", format!("HIN{j}_{lr}"));
+                        diff.apply_bit_diff_legacy(
                             ctx.item(tile, "CLK_HROW_V7", &format!("ENABLE.HIN{j}_{lr}")),
                             true,
                             false,
                         );
                         diffs.push((format!("HIN{j}_{lr}"), diff));
                     }
-                    let diff = ctx.get_diff(tile, bel, "MUX.I", format!("HCLK_TEST_{lr}"));
+                    let diff = ctx.get_diff_legacy(tile, bel, "MUX.I", format!("HCLK_TEST_{lr}"));
                     diffs.push((format!("HCLK_TEST_{lr}"), diff));
                 }
                 let ckints = if (we == 'E' && i < 6) || (we == 'W' && i >= 6) {
@@ -1002,8 +1011,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                     2..4
                 };
                 for j in ckints {
-                    let mut diff = ctx.get_diff(tile, bel, "MUX.I", format!("CKINT{j}"));
-                    diff.apply_bit_diff(
+                    let mut diff = ctx.get_diff_legacy(tile, bel, "MUX.I", format!("CKINT{j}"));
+                    diff.apply_bit_diff_legacy(
                         ctx.item(tile, "CLK_HROW_V7", &format!("ENABLE.CKINT{j}")),
                         true,
                         false,
@@ -1011,22 +1020,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                     diffs.push((format!("CKINT{j}"), diff));
                 }
                 diffs.push(("NONE".to_string(), Diff::default()));
-                ctx.insert(tile, bel, "MUX.I", xlat_enum_ocd(diffs, OcdMode::Mux));
+                ctx.insert(
+                    tile,
+                    bel,
+                    "MUX.I",
+                    xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
+                );
             }
         }
         for (lr, we) in [('L', 'W'), ('R', 'E')] {
             let sbel = &format!("GCLK_TEST_BUF_HROW_BUFH_{we}");
-            ctx.get_diff(tile, sbel, "ENABLE", "1").assert_empty();
-            ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
+            ctx.get_diff_legacy(tile, sbel, "ENABLE", "1")
                 .assert_empty();
-            ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
+            ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
                 .assert_empty();
-            let item = ctx.extract_enum_bool(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
+            ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
+                .assert_empty();
+            let item = ctx.extract_bit_bi_legacy(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
             ctx.insert(tile, bel, format!("INV.HCLK_TEST_{we}"), item);
             let mut diffs = vec![("NONE".to_string(), Diff::default())];
             for j in 0..14 {
-                let mut diff = ctx.get_diff(tile, sbel, "MUX.I", format!("HIN{j}"));
-                diff.apply_bit_diff(
+                let mut diff = ctx.get_diff_legacy(tile, sbel, "MUX.I", format!("HIN{j}"));
+                diff.apply_bit_diff_legacy(
                     ctx.item(tile, "CLK_HROW_V7", &format!("ENABLE.HIN{j}_{lr}")),
                     true,
                     false,
@@ -1037,32 +1052,36 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                 tile,
                 bel,
                 format!("MUX.HCLK_TEST_{we}"),
-                xlat_enum_ocd(diffs, OcdMode::Mux),
+                xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
             );
         }
         for i in 0..32 {
             let sbel = &format!("GCLK_TEST_BUF_HROW_GCLK[{i}]");
-            let item = ctx.extract_bit(tile, sbel, "ENABLE", "1");
+            let item = ctx.extract_bit_legacy(tile, sbel, "ENABLE", "1");
             ctx.insert(tile, bel, format!("ENABLE.GCLK_TEST{i}"), item);
-            ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
+            ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
                 .assert_empty();
-            ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
+            ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
                 .assert_empty();
-            let item = ctx.extract_enum_bool(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
+            let item = ctx.extract_bit_bi_legacy(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
             ctx.insert(tile, bel, format!("INV.GCLK_TEST{i}"), item);
 
             let mut diffs = vec![("NONE".to_string(), Diff::default())];
             for val in ["CASCI", "HCLK_TEST_L", "HCLK_TEST_R"] {
                 diffs.push((
                     val.to_string(),
-                    ctx.get_diff(tile, bel, format!("MUX.CASCO{i}"), val),
+                    ctx.get_diff_legacy(tile, bel, format!("MUX.CASCO{i}"), val),
                 ));
             }
             for lr in ['L', 'R'] {
                 for j in 0..14 {
-                    let mut diff =
-                        ctx.get_diff(tile, bel, format!("MUX.CASCO{i}"), format!("HIN{j}_{lr}"));
-                    diff.apply_bit_diff(
+                    let mut diff = ctx.get_diff_legacy(
+                        tile,
+                        bel,
+                        format!("MUX.CASCO{i}"),
+                        format!("HIN{j}_{lr}"),
+                    );
+                    diff.apply_bit_diff_legacy(
                         ctx.item(tile, bel, &format!("ENABLE.HIN{j}_{lr}")),
                         true,
                         false,
@@ -1070,29 +1089,38 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                     diffs.push((format!("HIN{j}_{lr}"), diff));
                 }
                 for j in 0..4 {
-                    let diff =
-                        ctx.get_diff(tile, bel, format!("MUX.CASCO{i}"), format!("RCLK{j}_{lr}"));
+                    let diff = ctx.get_diff_legacy(
+                        tile,
+                        bel,
+                        format!("MUX.CASCO{i}"),
+                        format!("RCLK{j}_{lr}"),
+                    );
                     if i == 0 {
                         let xdiff = ctx
-                            .get_diff(
+                            .get_diff_legacy(
                                 tile,
                                 bel,
                                 format!("MUX.CASCO{i}"),
                                 format!("RCLK{j}_{lr}.EXCL"),
                             )
                             .combine(&!&diff);
-                        ctx.insert(tile, bel, format!("ENABLE.RCLK{j}_{lr}"), xlat_bit(xdiff));
+                        ctx.insert(
+                            tile,
+                            bel,
+                            format!("ENABLE.RCLK{j}_{lr}"),
+                            xlat_bit_legacy(xdiff),
+                        );
                     }
                     diffs.push((format!("RCLK{j}_{lr}"), diff));
                 }
             }
             for j in [i, i ^ 1] {
                 let mut diff = ctx
-                    .peek_diff(tile, bel, format!("GCLK{j}_TEST_IN"), "1")
+                    .peek_diff_legacy(tile, bel, format!("GCLK{j}_TEST_IN"), "1")
                     .clone();
                 diff.bits
                     .retain(|&bit, _| diffs.iter().any(|(_, odiff)| odiff.bits.contains_key(&bit)));
-                diff = diff.combine(&ctx.get_diff(
+                diff = diff.combine(&ctx.get_diff_legacy(
                     tile,
                     bel,
                     format!("MUX.CASCO{i}"),
@@ -1104,12 +1132,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                 tile,
                 bel,
                 format!("MUX.CASCO{i}"),
-                xlat_enum_ocd(diffs, OcdMode::Mux),
+                xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
             );
         }
         for i in 0..32 {
             // slurped above bit by bit
-            ctx.get_diff(tile, bel, format!("GCLK{i}_TEST_IN"), "1");
+            ctx.get_diff_legacy(tile, bel, format!("GCLK{i}_TEST_IN"), "1");
         }
     }
     for tile in ["CLK_BUFG_REBUF", "CLK_BALI_REBUF"] {
@@ -1123,48 +1151,50 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         for i in 0..16 {
             let sbel = &format!("GCLK_TEST_BUF_REBUF_S[{i}]");
             let item = if tile == "CLK_BUFG_REBUF" {
-                ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
+                ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
                     .assert_empty();
-                ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
+                ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
                     .assert_empty();
-                ctx.extract_bit(tile, sbel, "ENABLE", "1")
+                ctx.extract_bit_legacy(tile, sbel, "ENABLE", "1")
             } else {
-                ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
+                ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
                     .assert_empty();
-                ctx.get_diff(tile, sbel, "ENABLE", "1").assert_empty();
-                ctx.extract_bit(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
+                ctx.get_diff_legacy(tile, sbel, "ENABLE", "1")
+                    .assert_empty();
+                ctx.extract_bit_legacy(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
             };
             let s = i * 2;
             let d = i * 2 + 1;
             ctx.insert(tile, bel, format!("BUF.GCLK{d}_D.GCLK{s}_D"), item);
-            let item = ctx.extract_enum_bool(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
+            let item = ctx.extract_bit_bi_legacy(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
             ctx.insert(tile, bel, format!("INV.GCLK{d}_D.GCLK{s}_D"), item);
 
             let sbel = &format!("GCLK_TEST_BUF_REBUF_N[{i}]");
             let item = if tile == "CLK_BUFG_REBUF" {
-                ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
+                ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
                     .assert_empty();
-                ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
+                ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
                     .assert_empty();
-                ctx.extract_bit(tile, sbel, "ENABLE", "1")
+                ctx.extract_bit_legacy(tile, sbel, "ENABLE", "1")
             } else {
-                ctx.get_diff(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
+                ctx.get_diff_legacy(tile, sbel, "GCLK_TEST_ENABLE", "FALSE")
                     .assert_empty();
-                ctx.get_diff(tile, sbel, "ENABLE", "1").assert_empty();
-                ctx.extract_bit(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
+                ctx.get_diff_legacy(tile, sbel, "ENABLE", "1")
+                    .assert_empty();
+                ctx.extract_bit_legacy(tile, sbel, "GCLK_TEST_ENABLE", "TRUE")
             };
             let s = i * 2 + 1;
             let d = i * 2;
             ctx.insert(tile, bel, format!("BUF.GCLK{d}_U.GCLK{s}_U"), item);
-            let item = ctx.extract_enum_bool(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
+            let item = ctx.extract_bit_bi_legacy(tile, sbel, "INVERT_INPUT", "FALSE", "TRUE");
             ctx.insert(tile, bel, format!("INV.GCLK{d}_U.GCLK{s}_U"), item);
         }
         for i in 0..32 {
-            ctx.collect_bit(tile, bel, &format!("ENABLE.GCLK{i}_D"), "1");
-            ctx.collect_bit(tile, bel, &format!("ENABLE.GCLK{i}_U"), "1");
+            ctx.collect_bit_legacy(tile, bel, &format!("ENABLE.GCLK{i}_D"), "1");
+            ctx.collect_bit_legacy(tile, bel, &format!("ENABLE.GCLK{i}_U"), "1");
             if edev.chips.values().any(|grid| grid.regs > 1) {
-                ctx.collect_bit(tile, bel, &format!("BUF.GCLK{i}_D"), "1");
-                ctx.collect_bit(tile, bel, &format!("BUF.GCLK{i}_U"), "1");
+                ctx.collect_bit_legacy(tile, bel, &format!("BUF.GCLK{i}_D"), "1");
+                ctx.collect_bit_legacy(tile, bel, &format!("BUF.GCLK{i}_U"), "1");
             }
         }
     }
@@ -1172,25 +1202,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
         let tile = "CMT";
         let bel = "HCLK_CMT";
         for i in 0..4 {
-            ctx.collect_bit(tile, bel, &format!("ENABLE.RCLK{i}"), "HROW");
+            ctx.collect_bit_legacy(tile, bel, &format!("ENABLE.RCLK{i}"), "HROW");
         }
         for tile in ["HCLK_IO_HP", "HCLK_IO_HR"] {
             for i in 0..4 {
                 let bel = &format!("BUFIO[{i}]");
-                ctx.collect_bit(tile, bel, "ENABLE", "1");
-                ctx.collect_enum_bool(tile, bel, "DELAY_BYPASS", "FALSE", "TRUE");
-                ctx.collect_enum(tile, bel, "MUX.I", &["CCIO", "PERF"]);
+                ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
+                ctx.collect_bit_bi_legacy(tile, bel, "DELAY_BYPASS", "FALSE", "TRUE");
+                ctx.collect_enum_legacy(tile, bel, "MUX.I", &["CCIO", "PERF"]);
             }
             for i in 0..4 {
                 let bel = &format!("BUFR[{i}]");
-                ctx.collect_bit(tile, bel, "ENABLE", "1");
-                ctx.collect_enum(
+                ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
+                ctx.collect_enum_legacy(
                     tile,
                     bel,
                     "BUFR_DIVIDE",
                     &["BYPASS", "1", "2", "3", "4", "5", "6", "7", "8"],
                 );
-                ctx.collect_enum_default(
+                ctx.collect_enum_default_legacy(
                     tile,
                     bel,
                     "MUX.I",
@@ -1203,7 +1233,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
             }
             {
                 let bel = "IDELAYCTRL";
-                ctx.collect_enum_default(
+                ctx.collect_enum_default_legacy(
                     tile,
                     bel,
                     "MUX.REFCLK",
@@ -1223,9 +1253,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                     ],
                     "NONE",
                 );
-                ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-                ctx.collect_enum_bool(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
-                ctx.collect_enum_default(
+                ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+                    .assert_empty();
+                ctx.collect_bit_bi_legacy(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
+                ctx.collect_enum_default_legacy(
                     tile,
                     bel,
                     "MODE",
@@ -1236,16 +1267,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
             {
                 let bel = "HCLK_IO";
                 for i in 0..4 {
-                    ctx.collect_bit(tile, bel, &format!("BUF.RCLK{i}"), "1");
+                    ctx.collect_bit_legacy(tile, bel, &format!("BUF.RCLK{i}"), "1");
                 }
                 for i in 0..12 {
                     let (_, _, diff) = Diff::split(
-                        ctx.peek_diff(tile, bel, "MUX.HCLK_IO_D0", format!("HCLK{i}"))
+                        ctx.peek_diff_legacy(tile, bel, "MUX.HCLK_IO_D0", format!("HCLK{i}"))
                             .clone(),
-                        ctx.peek_diff(tile, bel, "MUX.HCLK_IO_U0", format!("HCLK{i}"))
+                        ctx.peek_diff_legacy(tile, bel, "MUX.HCLK_IO_U0", format!("HCLK{i}"))
                             .clone(),
                     );
-                    ctx.insert(tile, bel, format!("ENABLE.HCLK{i}"), xlat_bit(diff));
+                    ctx.insert(tile, bel, format!("ENABLE.HCLK{i}"), xlat_bit_legacy(diff));
                 }
                 for i in 0..6 {
                     for ud in ['U', 'D'] {
@@ -1253,15 +1284,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, bali_only: bool) {
                         let mut diffs = vec![("NONE".to_string(), Diff::default())];
                         for i in 0..12 {
                             let val = format!("HCLK{i}");
-                            let mut diff = ctx.get_diff(tile, bel, mux, &val);
-                            diff.apply_bit_diff(
+                            let mut diff = ctx.get_diff_legacy(tile, bel, mux, &val);
+                            diff.apply_bit_diff_legacy(
                                 ctx.item(tile, bel, &format!("ENABLE.HCLK{i}")),
                                 true,
                                 false,
                             );
                             diffs.push((val, diff));
                         }
-                        ctx.insert(tile, bel, mux, xlat_enum_ocd(diffs, OcdMode::Mux));
+                        ctx.insert(tile, bel, mux, xlat_enum_legacy_ocd(diffs, OcdMode::Mux));
                     }
                 }
             }

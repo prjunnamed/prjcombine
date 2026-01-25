@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{Diff, xlat_bit_raw, xlat_enum_attr};
+use prjcombine_re_collector::diff::{Diff, xlat_bit, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
 use prjcombine_xc2000::xc2000::{bcls, bslots, enums, tslots};
@@ -161,7 +161,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bit_inv = ctx.bel_input_inv(tcid, bslots::CLB, bcls::CLB::K);
         let diff_latch =
             ctx.get_diff_attr_val(tcid, bslots::CLB, bcls::CLB::FF_MODE, enums::FF_MODE::LATCH);
-        assert_eq!(xlat_bit_raw(diff_latch), bit_inv);
+        assert_eq!(xlat_bit(diff_latch), bit_inv);
         ctx.collect_bel_attr_default(tcid, bslots::CLB, bcls::CLB::FF_MODE, enums::FF_MODE::LATCH);
         ctx.collect_bel_attr(tcid, bslots::CLB, bcls::CLB::F);
         ctx.collect_bel_attr(tcid, bslots::CLB, bcls::CLB::G);
@@ -256,30 +256,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.get_diff_attr_special_bit(tcid, bslots::CLB, attr, spec, bit);
                     let mut bits = bits![0; 8];
                     bits.set(bit, true);
-                    diff.apply_bitvec_diff_raw(&lut_bits, &bits, &bits![0; 8]);
+                    diff.apply_bitvec_diff(&lut_bits, &bits, &bits![0; 8]);
                     if spec == specials::CLB_LUT_EQ_ABC {
-                        diff.apply_enum_diff_attr(
-                            &mux_i1,
-                            enums::CLB_MUX_I1::A,
-                            enums::CLB_MUX_I1::B,
-                        );
-                        diff.apply_enum_diff_attr(
-                            &mux_i2,
-                            enums::CLB_MUX_I2::B,
-                            enums::CLB_MUX_I2::C,
-                        );
-                        diff.apply_enum_diff_attr(
-                            &mux_i3,
-                            enums::CLB_MUX_I3::C,
-                            enums::CLB_MUX_I3::Q,
-                        );
+                        diff.apply_enum_diff(&mux_i1, enums::CLB_MUX_I1::A, enums::CLB_MUX_I1::B);
+                        diff.apply_enum_diff(&mux_i2, enums::CLB_MUX_I2::B, enums::CLB_MUX_I2::C);
+                        diff.apply_enum_diff(&mux_i3, enums::CLB_MUX_I3::C, enums::CLB_MUX_I3::Q);
                     }
                     if spec == specials::CLB_LUT_EQ_BCD {
-                        diff.apply_enum_diff_attr(
-                            &mux_i3,
-                            enums::CLB_MUX_I3::D,
-                            enums::CLB_MUX_I3::Q,
-                        );
+                        diff.apply_enum_diff(&mux_i3, enums::CLB_MUX_I3::D, enums::CLB_MUX_I3::Q);
                     }
                     diff.assert_empty();
                 }
@@ -302,13 +286,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mux_f3 = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_F3);
             let mux_g3 = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MUX_G3);
             let mode = ctx.bel_attr_enum(tcid, bslots::CLB, bcls::CLB::MODE);
-            diff.apply_bitvec_diff_raw(g_bits, &bits.slice(..8), &bits![0; 8]);
-            diff.apply_bitvec_diff_raw(f_bits, &bits.slice(8..), &bits![0; 8]);
-            diff.apply_enum_diff_attr(mux_f1, enums::CLB_MUX_I1::A, enums::CLB_MUX_I1::B);
-            diff.apply_enum_diff_attr(mux_g1, enums::CLB_MUX_I1::A, enums::CLB_MUX_I1::B);
-            diff.apply_enum_diff_attr(mux_f3, enums::CLB_MUX_I3::D, enums::CLB_MUX_I3::Q);
-            diff.apply_enum_diff_attr(mux_g3, enums::CLB_MUX_I3::D, enums::CLB_MUX_I3::Q);
-            diff.apply_enum_diff_attr(mode, enums::CLB_MODE::FGM, enums::CLB_MODE::FG);
+            diff.apply_bitvec_diff(g_bits, &bits.slice(..8), &bits![0; 8]);
+            diff.apply_bitvec_diff(f_bits, &bits.slice(8..), &bits![0; 8]);
+            diff.apply_enum_diff(mux_f1, enums::CLB_MUX_I1::A, enums::CLB_MUX_I1::B);
+            diff.apply_enum_diff(mux_g1, enums::CLB_MUX_I1::A, enums::CLB_MUX_I1::B);
+            diff.apply_enum_diff(mux_f3, enums::CLB_MUX_I3::D, enums::CLB_MUX_I3::Q);
+            diff.apply_enum_diff(mux_g3, enums::CLB_MUX_I3::D, enums::CLB_MUX_I3::Q);
+            diff.apply_enum_diff(mode, enums::CLB_MODE::FGM, enums::CLB_MODE::FG);
             diff.assert_empty();
         }
     }

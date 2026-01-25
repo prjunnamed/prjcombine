@@ -59,8 +59,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bslot = bslots::IO[i];
             ctx.collect_bel_attr(tcid, bslot, bcls::IO::SLEW);
             ctx.collect_bel_attr_default(tcid, bslot, bcls::IO::PULL, enums::IO_PULL::NONE);
-            ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::IO::DELAY_ENABLE);
-            ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::IO::INV_I);
+            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::DELAY_ENABLE);
+            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::INV_I);
             ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::T);
             if matches!(tcid, tcls::IO_W | tcls::IO_E) {
                 ctx.collect_bel_input_inv_bi(tcid, bslot, bcls::IO::O);

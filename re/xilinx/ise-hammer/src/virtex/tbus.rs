@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_collector::diff::xlat_bool;
+use prjcombine_re_collector::legacy::xlat_bit_bi_legacy;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 
@@ -134,11 +134,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for bel in ["TBUF[0]", "TBUF[1]"] {
             if mode == Mode::Virtex {
                 for (pinmux, pin, pin_b) in [("TMUX", "T", "T_B"), ("IMUX", "I", "I_B")] {
-                    let d0 = ctx.get_diff(tile, bel, pinmux, pin);
-                    assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
-                    let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
-                    assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
-                    let item = xlat_bool(d0, d1);
+                    let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
+                    assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
+                    let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
+                    assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
+                    let item = xlat_bit_bi_legacy(d0, d1);
                     ctx.insert_int_inv(&[tile], tile, bel, pin, item);
                 }
             } else {
@@ -146,15 +146,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_int_inv(&["INT_CLB"], tile, bel, "I", true);
             }
             for attr in ["OUT_A", "OUT_B"] {
-                ctx.collect_bit(tile, bel, attr, "1");
+                ctx.collect_bit_legacy(tile, bel, attr, "1");
             }
         }
         let bel = "TBUS";
         if tile == "IO_W" {
-            ctx.collect_bit(tile, bel, "JOINER", "1");
+            ctx.collect_bit_legacy(tile, bel, "JOINER", "1");
         }
         if tile != "IO_E" {
-            ctx.collect_bit(tile, bel, "JOINER_E", "1");
+            ctx.collect_bit_legacy(tile, bel, "JOINER_E", "1");
         }
     }
 }

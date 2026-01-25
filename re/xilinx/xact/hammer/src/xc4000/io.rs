@@ -217,8 +217,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             ctx.collect_bel_attr_default(tcid, bslot, bcls::IO::PULL, enums::IO_PULL::NONE);
-            ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::IO::OFF_SRVAL);
-            ctx.collect_bel_attr_enum_bool(tcid, bslot, bcls::IO::IFF_SRVAL);
+            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::OFF_SRVAL);
+            ctx.collect_bel_attr_bool_bi(tcid, bslot, bcls::IO::IFF_SRVAL);
             ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::IK);
             ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::OK);
             ctx.collect_bel_input_inv(tcid, bslot, bcls::IO::T);
@@ -245,14 +245,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert_bel_attr_raw(tcid, bslot, bcls::IO::IFF_D, item);
 
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::IO_INFF_IK);
-            diff.apply_enum_diff_attr(
+            diff.apply_enum_diff(
                 ctx.bel_attr_enum(tcid, bslot, bcls::IO::PULL),
                 enums::IO_PULL::NONE,
                 enums::IO_PULL::PULLUP,
             );
             diff.assert_empty();
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::IO_OUT_OK);
-            diff.apply_enum_diff_attr(
+            diff.apply_enum_diff(
                 ctx.bel_attr_enum(tcid, bslot, bcls::IO::PULL),
                 enums::IO_PULL::NONE,
                 enums::IO_PULL::PULLUP,
@@ -273,20 +273,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_input_inv(tcid, bslot, bcls::HIO::O);
 
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::HIO_IN_I);
-            diff.apply_enum_diff_attr(
+            diff.apply_enum_diff(
                 ctx.bel_attr_enum(tcid, bslot, bcls::HIO::PULL),
                 enums::IO_PULL::NONE,
                 enums::IO_PULL::PULLUP,
             );
             diff.assert_empty();
             let mut diff = ctx.get_diff_bel_special(tcid, bslot, specials::HIO_OUT_O);
-            diff.apply_enum_diff_attr(
+            diff.apply_enum_diff(
                 ctx.bel_attr_enum(tcid, bslot, bcls::HIO::OSTD),
                 enums::IO_STD::TTL,
                 enums::IO_STD::CMOS,
             );
-            diff.apply_bit_diff_raw(ctx.bel_input_inv(tcid, bslot, bcls::HIO::T), false, true);
-            diff.apply_enum_diff_attr(
+            diff.apply_bit_diff(ctx.bel_input_inv(tcid, bslot, bcls::HIO::T), false, true);
+            diff.apply_enum_diff(
                 ctx.bel_attr_enum(tcid, bslot, bcls::HIO::OMODE),
                 enums::HIO_OMODE::RES,
                 enums::HIO_OMODE::CAP,

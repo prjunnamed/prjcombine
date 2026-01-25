@@ -2785,21 +2785,22 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !edev.gtz.is_empty() {
         let tile = "GTZ";
         let bel = "GTZ";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         for &pin in GTZ_INVPINS {
-            ctx.collect_enum_bool(tile, bel, &format!("INV.{pin}"), "0", "1");
+            ctx.collect_bit_bi_legacy(tile, bel, &format!("INV.{pin}"), "0", "1");
         }
         for &attr in GTZ_BOOL_ATTRS {
-            ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
         for &(attr, vals) in GTZ_ENUM_ATTRS {
-            ctx.collect_enum_ocd(tile, bel, attr, vals, OcdMode::BitOrder);
+            ctx.collect_enum_legacy_ocd(tile, bel, attr, vals, OcdMode::BitOrder);
         }
         for &(attr, _) in GTZ_BIN_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
         for &(attr, _) in GTZ_HEX_ATTRS {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
 }

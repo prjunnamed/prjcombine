@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     dir::DirH,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_collector::diff::{xlat_bit, xlat_bool, xlat_enum};
+use prjcombine_re_collector::legacy::{xlat_bit_bi_legacy, xlat_bit_legacy, xlat_enum_legacy};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -272,51 +272,55 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "DLL";
 
-        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
 
-        let item = ctx.extract_enum_bool_wide(tile, bel, "DUTY_ATTR", "FALSE", "TRUE");
-        present.apply_bitvec_diff(&item, &BitVec::repeat(true, 4), &BitVec::repeat(false, 4));
+        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "DUTY_ATTR", "FALSE", "TRUE");
+        present.apply_bitvec_diff_legacy(
+            &item,
+            &BitVec::repeat(true, 4),
+            &BitVec::repeat(false, 4),
+        );
         ctx.insert(tile, bel, "DUTY_CYCLE_CORRECTION", item);
 
-        ctx.collect_bit(tile, bel, "HIGH_FREQUENCY", "1");
+        ctx.collect_bit_legacy(tile, bel, "HIGH_FREQUENCY", "1");
 
-        let d0 = ctx.get_diff(tile, bel, "RSTMUX", "RST");
-        assert_eq!(d0, ctx.get_diff(tile, bel, "RSTMUX", "1"));
-        let d1 = ctx.get_diff(tile, bel, "RSTMUX", "RST_B");
-        assert_eq!(d1, ctx.get_diff(tile, bel, "RSTMUX", "0"));
-        let item = xlat_bool(d0, d1);
+        let d0 = ctx.get_diff_legacy(tile, bel, "RSTMUX", "RST");
+        assert_eq!(d0, ctx.get_diff_legacy(tile, bel, "RSTMUX", "1"));
+        let d1 = ctx.get_diff_legacy(tile, bel, "RSTMUX", "RST_B");
+        assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "RSTMUX", "0"));
+        let item = xlat_bit_bi_legacy(d0, d1);
         ctx.insert_int_inv(&[tile], tile, bel, "RST", item);
 
         let item_jf2 =
-            TileItem::from_bitvec((0..8).map(|bit| TileBit::new(0, 17, bit)).collect(), false);
+            TileItem::from_bitvec_inv((0..8).map(|bit| TileBit::new(0, 17, bit)).collect(), false);
         let item_jf1 =
-            TileItem::from_bitvec((8..16).map(|bit| TileBit::new(0, 17, bit)).collect(), false);
+            TileItem::from_bitvec_inv((8..16).map(|bit| TileBit::new(0, 17, bit)).collect(), false);
         for (attr, item, base) in [
             ("JF_ZD2_ATTR", &item_jf2, 0x80),
             ("JF_ZD1_ATTR", &item_jf1, 0xc0),
         ] {
             for val in [0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff] {
-                let mut diff = ctx.get_diff(tile, bel, attr, format!("0X{val:02X}"));
-                diff.apply_bitvec_diff_int(item, val, base);
+                let mut diff = ctx.get_diff_legacy(tile, bel, attr, format!("0X{val:02X}"));
+                diff.apply_bitvec_diff_int_legacy(item, val, base);
                 diff.assert_empty();
             }
-            present.apply_bitvec_diff_int(item, base, 0xf0);
+            present.apply_bitvec_diff_int_legacy(item, base, 0xf0);
         }
         ctx.insert(tile, bel, "FACTORY_JF2", item_jf2);
         ctx.insert(tile, bel, "FACTORY_JF1", item_jf1);
 
         let clkdv_count_max =
-            TileItem::from_bitvec((4..8).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
+            TileItem::from_bitvec_inv((4..8).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
         let clkdv_count_fall =
-            TileItem::from_bitvec((8..12).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
-        let clkdv_count_fall_2 = TileItem::from_bitvec(
+            TileItem::from_bitvec_inv((8..12).map(|bit| TileBit::new(0, 18, bit)).collect(), false);
+        let clkdv_count_fall_2 = TileItem::from_bitvec_inv(
             (12..16).map(|bit| TileBit::new(0, 18, bit)).collect(),
             false,
         );
         let clkdv_phase_rise =
-            TileItem::from_bitvec((1..3).map(|bit| TileBit::new(0, 16, bit)).collect(), false);
+            TileItem::from_bitvec_inv((1..3).map(|bit| TileBit::new(0, 16, bit)).collect(), false);
         let clkdv_phase_fall =
-            TileItem::from_bitvec((3..5).map(|bit| TileBit::new(0, 16, bit)).collect(), false);
+            TileItem::from_bitvec_inv((3..5).map(|bit| TileBit::new(0, 16, bit)).collect(), false);
         let clkdv_mode = TileItem {
             bits: vec![TileBit::new(0, 16, 15)],
             kind: TileItemKind::Enum {
@@ -327,30 +331,30 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             },
         };
         for i in 2..=16 {
-            let mut diff = ctx.get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}"));
-            diff.apply_bitvec_diff_int(&clkdv_count_max, i - 1, 1);
-            diff.apply_bitvec_diff_int(&clkdv_count_fall, (i - 1) / 2, 0);
-            diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2, 0);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "DIVIDE_ATTR", format!("{i}"));
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_max, i - 1, 1);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall, (i - 1) / 2, 0);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_phase_fall, (i % 2) * 2, 0);
             diff.assert_empty();
         }
         for i in 1..=7 {
-            let mut diff = ctx.get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}_5.LOW"));
-            diff.apply_enum_diff(&clkdv_mode, "HALF", "INT");
-            diff.apply_bitvec_diff_int(&clkdv_count_max, 2 * i, 1);
-            diff.apply_bitvec_diff_int(&clkdv_count_fall, i / 2, 0);
-            diff.apply_bitvec_diff_int(&clkdv_count_fall_2, 3 * i / 2 + 1, 0);
-            diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2 + 1, 0);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "DIVIDE_ATTR", format!("{i}_5.LOW"));
+            diff.apply_enum_diff_legacy(&clkdv_mode, "HALF", "INT");
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_max, 2 * i, 1);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall, i / 2, 0);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall_2, 3 * i / 2 + 1, 0);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_phase_fall, (i % 2) * 2 + 1, 0);
             diff.assert_empty();
-            let mut diff = ctx.get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}_5.HIGH"));
-            diff.apply_enum_diff(&clkdv_mode, "HALF", "INT");
-            diff.apply_bitvec_diff_int(&clkdv_count_max, 2 * i, 1);
-            diff.apply_bitvec_diff_int(&clkdv_count_fall, (i - 1) / 2, 0);
-            diff.apply_bitvec_diff_int(&clkdv_count_fall_2, (3 * i).div_ceil(2), 0);
-            diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2, 0);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "DIVIDE_ATTR", format!("{i}_5.HIGH"));
+            diff.apply_enum_diff_legacy(&clkdv_mode, "HALF", "INT");
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_max, 2 * i, 1);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall, (i - 1) / 2, 0);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_count_fall_2, (3 * i).div_ceil(2), 0);
+            diff.apply_bitvec_diff_int_legacy(&clkdv_phase_fall, (i % 2) * 2, 0);
             diff.assert_empty();
         }
-        present.apply_bitvec_diff_int(&clkdv_count_max, 1, 0);
-        present.apply_enum_diff(&clkdv_mode, "INT", "HALF");
+        present.apply_bitvec_diff_int_legacy(&clkdv_count_max, 1, 0);
+        present.apply_enum_diff_legacy(&clkdv_mode, "INT", "HALF");
         ctx.insert(tile, bel, "CLKDV_COUNT_MAX", clkdv_count_max);
         ctx.insert(tile, bel, "CLKDV_COUNT_FALL", clkdv_count_fall);
         ctx.insert(tile, bel, "CLKDV_COUNT_FALL_2", clkdv_count_fall_2);
@@ -358,33 +362,33 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.insert(tile, bel, "CLKDV_PHASE_FALL", clkdv_phase_fall);
         ctx.insert(tile, bel, "CLKDV_MODE", clkdv_mode);
 
-        ctx.collect_enum_bool(tile, bel, "CFG_O_14", "0", "1");
-        ctx.collect_enum_bool(tile, bel, "LVL1_MUX_20", "0", "1");
-        ctx.collect_bit(tile, bel, "LVL1_MUX_21", "1");
-        ctx.collect_enum_bool(tile, bel, "LVL1_MUX_22", "0", "1");
-        ctx.collect_enum_bool(tile, bel, "LVL1_MUX_23", "0", "1");
-        ctx.collect_enum_bool(tile, bel, "LVL1_MUX_24", "0", "1");
-        ctx.collect_enum_bool(tile, bel, "TESTZD2OSC", "NO", "YES");
-        ctx.collect_enum_bool_wide(tile, bel, "TESTDLL", "NO", "YES");
-        let item = xlat_enum(vec![
-            ("1X", ctx.get_diff(tile, bel, "CLK_FEEDBACK_2X", "0")),
-            ("2X", ctx.get_diff(tile, bel, "CLK_FEEDBACK_2X", "1")),
+        ctx.collect_bit_bi_legacy(tile, bel, "CFG_O_14", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "LVL1_MUX_20", "0", "1");
+        ctx.collect_bit_legacy(tile, bel, "LVL1_MUX_21", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "LVL1_MUX_22", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "LVL1_MUX_23", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "LVL1_MUX_24", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "TESTZD2OSC", "NO", "YES");
+        ctx.collect_bit_wide_bi_legacy(tile, bel, "TESTDLL", "NO", "YES");
+        let item = xlat_enum_legacy(vec![
+            ("1X", ctx.get_diff_legacy(tile, bel, "CLK_FEEDBACK_2X", "0")),
+            ("2X", ctx.get_diff_legacy(tile, bel, "CLK_FEEDBACK_2X", "1")),
         ]);
         ctx.insert(tile, bel, "CLK_FEEDBACK", item);
 
-        present.apply_bit_diff(ctx.item(tile, bel, "CFG_O_14"), true, false);
+        present.apply_bit_diff_legacy(ctx.item(tile, bel, "CFG_O_14"), true, false);
         if ctx.device.name.ends_with('e') {
-            ctx.insert(tile, bel, "ENABLE", xlat_bit(present));
+            ctx.insert(tile, bel, "ENABLE", xlat_bit_legacy(present));
         } else {
             present.assert_empty();
         }
-        ctx.collect_enum(tile, "DLL", "TEST_OSC", &["90", "180", "270", "360"]);
+        ctx.collect_enum_legacy(tile, "DLL", "TEST_OSC", &["90", "180", "270", "360"]);
     }
-    ctx.collect_bit("CNR_NW", "MISC", "DLL_ENABLE", "1");
+    ctx.collect_bit_legacy("CNR_NW", "MISC", "DLL_ENABLE", "1");
     let tile = "REG.COR";
     let bel = "STARTUP";
-    ctx.collect_bit(tile, bel, "DLL_WAIT_BL", "1");
-    ctx.collect_bit(tile, bel, "DLL_WAIT_BR", "1");
-    ctx.collect_bit(tile, bel, "DLL_WAIT_TL", "1");
-    ctx.collect_bit(tile, bel, "DLL_WAIT_TR", "1");
+    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_BL", "1");
+    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_BR", "1");
+    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_TL", "1");
+    ctx.collect_bit_legacy(tile, bel, "DLL_WAIT_TR", "1");
 }

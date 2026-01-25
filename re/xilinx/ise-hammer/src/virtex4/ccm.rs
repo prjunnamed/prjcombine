@@ -1,4 +1,4 @@
-use prjcombine_re_collector::diff::{OcdMode, xlat_enum_ocd};
+use prjcombine_re_collector::{diff::OcdMode, legacy::xlat_enum_legacy_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::defs;
@@ -277,15 +277,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let tile = "CCM";
     for bel in ["PMCD[0]", "PMCD[1]"] {
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         ctx.collect_int_inv(&["INT"; 4], tile, bel, "RST", false);
         ctx.collect_inv(tile, bel, "REL");
-        ctx.collect_bit_wide(tile, bel, "CLKA_ENABLE", "1");
-        ctx.collect_bit(tile, bel, "CLKB_ENABLE", "1");
-        ctx.collect_bit(tile, bel, "CLKC_ENABLE", "1");
-        ctx.collect_bit(tile, bel, "CLKD_ENABLE", "1");
-        ctx.collect_enum_bool(tile, bel, "EN_REL", "FALSE", "TRUE");
-        ctx.collect_enum(
+        ctx.collect_bit_wide_legacy(tile, bel, "CLKA_ENABLE", "1");
+        ctx.collect_bit_legacy(tile, bel, "CLKB_ENABLE", "1");
+        ctx.collect_bit_legacy(tile, bel, "CLKC_ENABLE", "1");
+        ctx.collect_bit_legacy(tile, bel, "CLKD_ENABLE", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "EN_REL", "FALSE", "TRUE");
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "RST_DEASSERT_CLK",
@@ -301,71 +302,72 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             let mut diffs = vec![];
             for i in 0..8 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("HCLK{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("HCLK{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
                 );
                 diffs.push((format!("HCLK{i}"), diff));
             }
             for i in 0..16 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("GIOB{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("GIOB{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
                 );
                 diffs.push((format!("GIOB{i}"), diff));
             }
             for i in 0..4 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("MGT{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("MGT{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
                 );
                 diffs.push((format!("MGT{i}"), diff));
             }
             for i in 0..24 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("BUSIN{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("BUSIN{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
                 );
                 diffs.push((format!("BUSIN{i}"), diff));
             }
             for i in 0..4 {
-                let mut diff = ctx.get_diff(tile, bel, pin, format!("CKINT{abc}{i}"));
+                let mut diff = ctx.get_diff_legacy(tile, bel, pin, format!("CKINT{abc}{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
                 );
                 if i < 2 {
                     let item = ctx.item_int_inv(&["INT"; 4], tile, bel, &format!("CKINT{abc}{i}"));
-                    diff.apply_bit_diff(&item, false, true);
+                    diff.apply_bit_diff_legacy(&item, false, true);
                 }
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }
             if abc != 'C' {
-                let diff = ctx.get_diff(tile, bel, pin, "CLKA1D8");
+                let diff = ctx.get_diff_legacy(tile, bel, pin, "CLKA1D8");
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), "CLKA1D8")
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), "CLKA1D8")
                 );
                 diffs.push(("CLKA1D8".to_string(), diff));
             } else {
-                let diff = ctx.get_diff(tile, bel, pin, "REL_INT");
+                let diff = ctx.get_diff_legacy(tile, bel, pin, "REL_INT");
                 diffs.push(("REL_INT".to_string(), diff));
             }
             ctx.insert(
                 tile,
                 bel,
                 format!("MUX.{pin}"),
-                xlat_enum_ocd(diffs, OcdMode::Mux),
+                xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
             );
         }
     }
     {
         let bel = "DPM";
-        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
+            .assert_empty();
         ctx.collect_int_inv(&["INT"; 4], tile, bel, "RST", false);
         for pin in [
             "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
@@ -376,46 +378,46 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for (pin, abc) in [("REFCLK", 'A'), ("TESTCLK1", 'B'), ("TESTCLK2", 'B')] {
             let mut diffs = vec![];
             for i in 0..8 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("HCLK{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("HCLK{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
                 );
                 diffs.push((format!("HCLK{i}"), diff));
             }
             for i in 0..16 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("GIOB{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("GIOB{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
                 );
                 diffs.push((format!("GIOB{i}"), diff));
             }
             for i in 0..4 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("MGT{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("MGT{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
                 );
                 diffs.push((format!("MGT{i}"), diff));
             }
             for i in 0..24 {
-                let diff = ctx.get_diff(tile, bel, pin, format!("BUSIN{i}"));
+                let diff = ctx.get_diff_legacy(tile, bel, pin, format!("BUSIN{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
                 );
                 diffs.push((format!("BUSIN{i}"), diff));
             }
             for i in 0..4 {
-                let mut diff = ctx.get_diff(tile, bel, pin, format!("CKINT{abc}{i}"));
+                let mut diff = ctx.get_diff_legacy(tile, bel, pin, format!("CKINT{abc}{i}"));
                 assert_eq!(
                     diff,
-                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
+                    ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
                 );
                 if i < 2 {
                     let item = ctx.item_int_inv(&["INT"; 4], tile, bel, &format!("CKINT{abc}{i}"));
-                    diff.apply_bit_diff(&item, false, true);
+                    diff.apply_bit_diff_legacy(&item, false, true);
                 }
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }
@@ -423,16 +425,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tile,
                 bel,
                 format!("MUX.{pin}"),
-                xlat_enum_ocd(diffs, OcdMode::Mux),
+                xlat_enum_legacy_ocd(diffs, OcdMode::Mux),
             );
         }
     }
     for bel in ["PMCD[0]", "PMCD[1]", "DPM"] {
-        let vreg_enable = ctx.extract_enum_bool(tile, bel, "CCM_VREG_ENABLE", "FALSE", "TRUE");
+        let vreg_enable = ctx.extract_bit_bi_legacy(tile, bel, "CCM_VREG_ENABLE", "FALSE", "TRUE");
         ctx.insert(tile, "CCM", "VREG_ENABLE", vreg_enable);
         // ???
         for attr in ["CCM_VBG_SEL", "CCM_VBG_PD", "CCM_VREG_PHASE_MARGIN"] {
-            for diff in ctx.get_diffs(tile, bel, attr, "") {
+            for diff in ctx.get_diffs_legacy(tile, bel, attr, "") {
                 diff.assert_empty();
             }
         }
@@ -440,7 +442,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
         let bel = "CCM";
         for i in 0..12 {
-            ctx.collect_enum_ocd(
+            ctx.collect_enum_legacy_ocd(
                 tile,
                 bel,
                 &format!("MUX.TO_BUFG{i}"),

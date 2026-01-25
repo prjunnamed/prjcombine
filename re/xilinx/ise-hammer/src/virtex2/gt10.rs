@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::{BelInfo, PinDir};
-use prjcombine_re_collector::diff::{OcdMode, extract_bitvec_val};
+use prjcombine_re_collector::{diff::OcdMode, legacy::extract_bitvec_val_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bitvec::BitVec;
 use prjcombine_virtex2::{defs, defs::virtex2::tcls};
@@ -169,7 +169,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tile in ["GIGABIT10_S", "GIGABIT10_N"] {
         let tcid = ctx.edev.db.get_tile_class(tile);
         let bel = "GT10";
-        ctx.collect_bit(tile, bel, "ENABLE", "1");
+        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
         let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::GT10];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
@@ -224,7 +224,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "TX_CRC_USE",
             "RX_CRC_USE",
         ] {
-            ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
         }
         for val in [
             "XAUI",
@@ -238,44 +238,45 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "10GFC",
             "10GE",
         ] {
-            ctx.get_diff(tile, bel, "IOSTANDARD", val).assert_empty();
+            ctx.get_diff_legacy(tile, bel, "IOSTANDARD", val)
+                .assert_empty();
         }
-        ctx.get_diff(tile, bel, "PMA_SPEED_USE", "PMA_SPEED")
+        ctx.get_diff_legacy(tile, bel, "PMA_SPEED_USE", "PMA_SPEED")
             .assert_empty();
-        ctx.get_diff(tile, bel, "PMA_SPEED_USE", "PMA_SPEED_HEX")
+        ctx.get_diff_legacy(tile, bel, "PMA_SPEED_USE", "PMA_SPEED_HEX")
             .assert_empty();
 
-        ctx.collect_enum(tile, bel, "CLK_COR_SEQ_LEN", &["1", "2", "3", "4", "8"]);
-        ctx.collect_enum(tile, bel, "CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4", "8"]);
-        ctx.collect_bitvec(tile, bel, "CLK_COR_REPEAT_WAIT", "");
-        ctx.collect_enum_default(
+        ctx.collect_enum_legacy(tile, bel, "CLK_COR_SEQ_LEN", &["1", "2", "3", "4", "8"]);
+        ctx.collect_enum_legacy(tile, bel, "CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4", "8"]);
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_REPEAT_WAIT", "");
+        ctx.collect_enum_default_legacy(
             tile,
             bel,
             "CHAN_BOND_MODE",
             &["MASTER", "SLAVE_1_HOP", "SLAVE_2_HOPS"],
             "NONE",
         );
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_LIMIT", "");
-        ctx.collect_enum(tile, bel, "ALIGN_COMMA_WORD", &["1", "2", "4"]);
-        ctx.collect_enum(
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_LIMIT", "");
+        ctx.collect_enum_legacy(tile, bel, "ALIGN_COMMA_WORD", &["1", "2", "4"]);
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "RX_LOS_INVALID_INCR",
             &["1", "2", "4", "8", "16", "32", "64", "128"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "RX_LOS_THRESHOLD",
             &["4", "8", "16", "32", "64", "128", "256", "512"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "CRC_FORMAT",
             &["USER_MODE", "ETHERNET", "INFINIBAND", "FIBRE_CHAN"],
         );
-        ctx.collect_enum_ocd(
+        ctx.collect_enum_legacy_ocd(
             tile,
             bel,
             "CRC_START_OF_PKT",
@@ -285,7 +286,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ],
             OcdMode::BitOrder,
         );
-        ctx.collect_enum_ocd(
+        ctx.collect_enum_legacy_ocd(
             tile,
             bel,
             "CRC_END_OF_PKT",
@@ -295,37 +296,37 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ],
             OcdMode::BitOrder,
         );
-        ctx.collect_bitvec(tile, bel, "TX_CRC_FORCE_VALUE", "");
-        ctx.collect_bitvec(tile, bel, "COMMA_10B_MASK", "");
-        ctx.collect_bitvec(tile, bel, "MCOMMA_10B_VALUE", "");
-        ctx.collect_bitvec(tile, bel, "PCOMMA_10B_VALUE", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_1", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_2", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_3", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_4", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_1", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_2", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_3", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_4", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_1", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_2", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_3", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_4", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_1", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_2", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_3", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_4", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_1_MASK", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_SEQ_2_MASK", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_1_MASK", "");
-        ctx.collect_bitvec(tile, bel, "CHAN_BOND_SEQ_2_MASK", "");
-        ctx.collect_bitvec(tile, bel, "PMA_PWR_CNTRL", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_MAX_LAT", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_MIN_LAT", "");
-        ctx.collect_bitvec(tile, bel, "CLK_COR_ADJ_MAX", "");
-        ctx.collect_bitvec(tile, bel, "SH_CNT_MAX", "");
-        ctx.collect_bitvec(tile, bel, "SH_INVALID_CNT_MAX", "");
-        let item = ctx.extract_bitvec(tile, bel, "PMA_SPEED_HEX", "");
+        ctx.collect_bitvec_legacy(tile, bel, "TX_CRC_FORCE_VALUE", "");
+        ctx.collect_bitvec_legacy(tile, bel, "COMMA_10B_MASK", "");
+        ctx.collect_bitvec_legacy(tile, bel, "MCOMMA_10B_VALUE", "");
+        ctx.collect_bitvec_legacy(tile, bel, "PCOMMA_10B_VALUE", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_4", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_4", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_4", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_1", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_2", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_3", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_4", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_MASK", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_MASK", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_MASK", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_MASK", "");
+        ctx.collect_bitvec_legacy(tile, bel, "PMA_PWR_CNTRL", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_MAX_LAT", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_MIN_LAT", "");
+        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_ADJ_MAX", "");
+        ctx.collect_bitvec_legacy(tile, bel, "SH_CNT_MAX", "");
+        ctx.collect_bitvec_legacy(tile, bel, "SH_INVALID_CNT_MAX", "");
+        let item = ctx.extract_bitvec_legacy(tile, bel, "PMA_SPEED_HEX", "");
         let base = BitVec::repeat(false, 120);
         for val in [
             "15_64", "15_32", "14_80", "14_40", "13_80", "13_40", "12_80", "12_40", "11_64",
@@ -337,8 +338,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "18_80", "18_40", "17_64", "17_32", "16_64", "16_32", "31_8", "31_32", "31_16", "30_8",
             "30_32", "30_16", "29_40", "29_20", "29_10",
         ] {
-            let diff = ctx.get_diff(tile, bel, "PMA_SPEED", val);
-            let bits = extract_bitvec_val(&item, &base, diff);
+            let diff = ctx.get_diff_legacy(tile, bel, "PMA_SPEED", val);
+            let bits = extract_bitvec_val_legacy(&item, &base, diff);
             ctx.insert_misc_data(format!("GT10:PMA_SPEED:{val}"), bits);
         }
         ctx.insert(tile, bel, "PMA_SPEED", item);

@@ -5,7 +5,10 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord, WireSlotId},
     grid::{ColId, RowId, TileCoord},
 };
-use prjcombine_re_collector::diff::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_collector::{
+    diff::{Diff, OcdMode},
+    legacy::{xlat_bit_legacy, xlat_enum_legacy_ocd},
+};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -1298,12 +1301,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                             };
-                            let mut diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
+                            let mut diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
                             if matches!(mux.dst.wire, wires::IMUX_DLL_CLKIN | wires::IMUX_DLL_CLKFB)
                                 && (wires::OUT_CLKPAD.contains(wire_from.wire)
                                     || wires::OUT_IOFB.contains(wire_from.wire))
                             {
-                                let noalt_diff = ctx.get_diff(
+                                let noalt_diff = ctx.get_diff_legacy(
                                     tcname,
                                     "INT",
                                     &mux_name,
@@ -1311,11 +1314,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 );
                                 let (alt, noalt, common) = Diff::split(diff, noalt_diff);
                                 if mux_name.contains("CLKIN") {
-                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit(noalt));
-                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit(!alt));
+                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit_legacy(noalt));
+                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit_legacy(!alt));
                                 } else {
-                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit(noalt));
-                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit(!alt));
+                                    ctx.insert(tcname, "DLL", "CLKFB_PAD", xlat_bit_legacy(noalt));
+                                    ctx.insert(tcname, "DLL", "CLKIN_PAD", xlat_bit_legacy(!alt));
                                 }
                                 diff = common;
                             }
@@ -1344,7 +1347,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     tcname,
                                     bel,
                                     format!("BUF.{out_name}.{in_name}"),
-                                    xlat_bit(diff),
+                                    xlat_bit_legacy(diff),
                                 );
                             } else {
                                 if diff.bits.is_empty() {
@@ -1411,14 +1414,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if inps.iter().all(|(_, diff)| !diff.bits.is_empty()) {
                                 inps.push(("NONE".to_string(), Diff::default()));
                             }
-                            let item = xlat_enum_ocd(inps, OcdMode::Mux);
+                            let item = xlat_enum_legacy_ocd(inps, OcdMode::Mux);
                             ctx.insert(tcname, bel, mux_name, item);
-                            ctx.insert(tcname, bel, format!("DRIVE.{out_name}"), xlat_bit(drive));
+                            ctx.insert(
+                                tcname,
+                                bel,
+                                format!("DRIVE.{out_name}"),
+                                xlat_bit_legacy(drive),
+                            );
                         } else {
                             if !got_empty {
                                 inps.push(("NONE".to_string(), Diff::default()));
                             }
-                            let item = xlat_enum_ocd(inps, OcdMode::Mux);
+                            let item = xlat_enum_legacy_ocd(inps, OcdMode::Mux);
                             if item.bits.is_empty() {
                                 if mux.dst.wire == wires::IMUX_IO_T[0] {
                                     // empty on Virtex E?
@@ -1447,7 +1455,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             format!("{:#}.{}", pass.src.cell, intdb.wires.key(pass.src.wire))
                         };
-                        let diff = ctx.get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
+                        let diff =
+                            ctx.get_diff_legacy(tcname, "INT", format!("MUX.{out_name}"), &in_name);
                         if (in_name.starts_with("OUT_IO") && in_name.ends_with("[0]"))
                             || (matches!(tcid, tcls::IO_S | tcls::IO_N)
                                 && in_name.starts_with("OUT_IO")
@@ -1460,7 +1469,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             println!("UMM {out_name} {in_name} PASS IS EMPTY");
                             continue;
                         }
-                        let item = xlat_bit(diff);
+                        let item = xlat_bit_legacy(diff);
                         let name = format!("PASS.{out_name}.{in_name}");
                         ctx.insert(tcname, bel, name, item);
                     }
@@ -1487,9 +1496,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", wsrc.cell, intdb.wires.key(wsrc.wire))
                             };
-                            let diff =
-                                ctx.get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
-                            let item = xlat_bit(diff);
+                            let diff = ctx.get_diff_legacy(
+                                tcname,
+                                "INT",
+                                format!("MUX.{out_name}"),
+                                &in_name,
+                            );
+                            let item = xlat_bit_legacy(diff);
                             ctx.insert(tcname, bel, &name, item);
                         }
                     }

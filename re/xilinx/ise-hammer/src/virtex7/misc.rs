@@ -1,4 +1,7 @@
-use prjcombine_re_collector::diff::{OcdMode, extract_bitvec_val, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_collector::{
+    diff::OcdMode,
+    legacy::{extract_bitvec_val_legacy, xlat_bit_legacy, xlat_enum_legacy_ocd},
+};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
@@ -636,103 +639,104 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("DONEPIN", &["PULLNONE", "PULLUP"][..]),
             ("CCLKPIN", &["PULLNONE", "PULLUP"][..]),
         ] {
-            ctx.collect_enum(tile, bel, attr, vals);
+            ctx.collect_enum_legacy(tile, bel, attr, vals);
         }
     }
     for i in 0..4 {
         let bel = &format!("BSCAN[{i}]");
-        ctx.collect_bit(tile, bel, "ENABLE", "1");
-        let item = ctx.extract_enum_bool_wide(tile, bel, "DISABLE_JTAG", "FALSE", "TRUE");
+        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
+        let item = ctx.extract_bit_wide_bi_legacy(tile, bel, "DISABLE_JTAG", "FALSE", "TRUE");
         ctx.insert(tile, "BSCAN_COMMON", "DISABLE_JTAG", item);
     }
     {
         let bel = "BSCAN_COMMON";
-        ctx.collect_bitvec(tile, bel, "USERID", "");
+        ctx.collect_bitvec_legacy(tile, bel, "USERID", "");
     }
     if edev.chips.len() == 1 && !edev.chips.first().unwrap().has_ps {
         for bel in ["ICAP[0]", "ICAP[1]"] {
-            ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
+            ctx.collect_bit_wide_legacy(tile, bel, "ENABLE", "1");
             // ???
-            ctx.get_diff(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
+            ctx.get_diff_legacy(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
                 .assert_empty();
-            ctx.get_diff(tile, bel, "ICAP_AUTO_SWITCH", "ENABLE")
+            ctx.get_diff_legacy(tile, bel, "ICAP_AUTO_SWITCH", "ENABLE")
                 .assert_empty();
         }
 
-        let item0 = ctx.extract_enum(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
-        let item1 = ctx.extract_enum(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
+        let item0 = ctx.extract_enum_legacy(tile, "ICAP[0]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
+        let item1 = ctx.extract_enum_legacy(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X16", "X32"]);
         assert_eq!(item0, item1);
         ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
     }
 
     {
         let bel = "STARTUP";
-        ctx.collect_enum_bool(tile, bel, "GSR_SYNC", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "GTS_SYNC", "NO", "YES");
-        let item0 = ctx.extract_bit_wide(tile, bel, "PIN.GSR", "1");
-        let item1 = ctx.extract_bit_wide(tile, bel, "PIN.GTS", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "GSR_SYNC", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "GTS_SYNC", "NO", "YES");
+        let item0 = ctx.extract_bit_wide_legacy(tile, bel, "PIN.GSR", "1");
+        let item1 = ctx.extract_bit_wide_legacy(tile, bel, "PIN.GTS", "1");
         assert_eq!(item0, item1);
         ctx.insert(tile, bel, "GTS_GSR_ENABLE", item0);
-        ctx.collect_enum_bool_wide(tile, bel, "PROG_USR", "FALSE", "TRUE");
-        let item = ctx.extract_bit_wide(tile, bel, "PIN.USRCCLKO", "1");
+        ctx.collect_bit_wide_bi_legacy(tile, bel, "PROG_USR", "FALSE", "TRUE");
+        let item = ctx.extract_bit_wide_legacy(tile, bel, "PIN.USRCCLKO", "1");
         ctx.insert(tile, bel, "USRCCLK_ENABLE", item);
         if edev.chips.first().unwrap().regs > 1 {
-            let item = ctx.extract_bit_wide(tile, bel, "PIN.KEYCLEARB", "1");
+            let item = ctx.extract_bit_wide_legacy(tile, bel, "PIN.KEYCLEARB", "1");
             ctx.insert(tile, bel, "KEY_CLEAR_ENABLE", item);
         }
     }
     {
         let bel = "DCIRESET";
-        ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
+        ctx.collect_bit_wide_legacy(tile, bel, "ENABLE", "1");
     }
     if edev.chips.len() == 1 {
         let bel = "CFG_IO_ACCESS";
-        ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
-        ctx.get_diff(tile, bel, "TDO", "UNCONNECTED").assert_empty();
+        ctx.collect_bit_wide_legacy(tile, bel, "ENABLE", "1");
+        ctx.get_diff_legacy(tile, bel, "TDO", "UNCONNECTED")
+            .assert_empty();
     }
     {
         let bel = "DNA_PORT";
-        ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
+        ctx.collect_bit_wide_legacy(tile, bel, "ENABLE", "1");
     }
 
     {
         let tile = "REG.COR";
         let bel = "STARTUP";
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "GWE_CYCLE",
             &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "GTS_CYCLE",
             &["1", "2", "3", "4", "5", "6", "DONE", "KEEP"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "DONE_CYCLE",
             &["1", "2", "3", "4", "5", "6", "KEEP"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "LCK_CYCLE",
             &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
         );
-        ctx.collect_enum(
+        ctx.collect_enum_legacy(
             tile,
             bel,
             "MATCH_CYCLE",
             &["0", "1", "2", "3", "4", "5", "6", "NOWAIT"],
         );
         if edev.chips.len() == 1 {
-            ctx.collect_enum(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
+            ctx.collect_enum_legacy(tile, bel, "STARTUPCLK", &["CCLK", "USERCLK", "JTAGCLK"]);
         }
         if !edev.chips.first().unwrap().has_ps {
-            ctx.collect_enum_ocd(
+            ctx.collect_enum_legacy_ocd(
                 tile,
                 bel,
                 "CONFIG_RATE",
@@ -742,18 +746,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 OcdMode::BitOrder,
             );
         }
-        ctx.collect_enum_bool(tile, bel, "DRIVE_DONE", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "DONE_PIPE", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "DONE_SIGNALS_POWERDOWN", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "DRIVE_DONE", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "DONE_PIPE", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "DONE_SIGNALS_POWERDOWN", "DISABLE", "ENABLE");
         let bel = "CAPTURE";
         if edev.chips.len() == 1 {
-            ctx.collect_enum_bool(tile, bel, "ONESHOT", "FALSE", "TRUE");
+            ctx.collect_bit_bi_legacy(tile, bel, "ONESHOT", "FALSE", "TRUE");
         }
         ctx.insert(
             tile,
             bel,
             "EXTMASTERCCLK_EN",
-            TileItem::from_bit(TileBit::new(0, 0, 26), false),
+            TileItem::from_bit_inv(TileBit::new(0, 0, 26), false),
         );
         ctx.insert(
             tile,
@@ -779,67 +783,68 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "MISC";
 
         if !edev.chips.first().unwrap().has_ps {
-            ctx.collect_enum(tile, bel, "BPI_PAGE_SIZE", &["1", "4", "8"]);
-            ctx.collect_enum(tile, bel, "BPI_1ST_READ_CYCLE", &["1", "2", "3", "4"]);
+            ctx.collect_enum_legacy(tile, bel, "BPI_PAGE_SIZE", &["1", "4", "8"]);
+            ctx.collect_enum_legacy(tile, bel, "BPI_1ST_READ_CYCLE", &["1", "2", "3", "4"]);
         }
-        ctx.collect_enum(tile, bel, "POST_CRC_CLK", &["CFG_CLK", "INTERNAL"]);
+        ctx.collect_enum_legacy(tile, bel, "POST_CRC_CLK", &["CFG_CLK", "INTERNAL"]);
         let mut diffs = vec![];
         for val in ["1", "2", "3", "6", "13", "25", "50"] {
-            let mut diff = ctx.get_diff(tile, bel, "POST_CRC_FREQ", val);
-            diff.apply_enum_diff(ctx.item(tile, bel, "POST_CRC_CLK"), "INTERNAL", "CFG_CLK");
+            let mut diff = ctx.get_diff_legacy(tile, bel, "POST_CRC_FREQ", val);
+            diff.apply_enum_diff_legacy(ctx.item(tile, bel, "POST_CRC_CLK"), "INTERNAL", "CFG_CLK");
             diffs.push((val, diff));
         }
         ctx.insert(
             tile,
             bel,
             "POST_CRC_FREQ",
-            xlat_enum_ocd(diffs, OcdMode::BitOrder),
+            xlat_enum_legacy_ocd(diffs, OcdMode::BitOrder),
         );
 
-        ctx.collect_enum_bool(tile, bel, "POST_CRC_EN", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "POST_CRC_RECONFIG", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "POST_CRC_KEEP", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "POST_CRC_CORRECT", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "POST_CRC_SEL", "0", "1");
-        ctx.collect_enum_bool(tile, bel, "POST_CRC_INIT_FLAG", "DISABLE", "ENABLE");
-        ctx.collect_enum_bool(tile, bel, "SYSMON_PARTIAL_RECONFIG", "DISABLE", "ENABLE");
-        ctx.collect_enum_bool(tile, bel, "TRIM_BITSTREAM", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_EN", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_RECONFIG", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_KEEP", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_CORRECT", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_SEL", "0", "1");
+        ctx.collect_bit_bi_legacy(tile, bel, "POST_CRC_INIT_FLAG", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "SYSMON_PARTIAL_RECONFIG", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "TRIM_BITSTREAM", "DISABLE", "ENABLE");
         ctx.insert(
             tile,
             bel,
             "PERSIST_DEASSERT_AT_DESYNC",
-            TileItem::from_bit(TileBit::new(0, 0, 17), false),
+            TileItem::from_bit_inv(TileBit::new(0, 0, 17), false),
         );
-        let item = ctx.extract_bit(tile, "CFG_IO_ACCESS", "ENABLE", "1");
-        let item2 = xlat_bit(!ctx.get_diff(tile, "CFG_IO_ACCESS", "TDO", "UNCONNECTED"));
+        let item = ctx.extract_bit_legacy(tile, "CFG_IO_ACCESS", "ENABLE", "1");
+        let item2 =
+            xlat_bit_legacy(!ctx.get_diff_legacy(tile, "CFG_IO_ACCESS", "TDO", "UNCONNECTED"));
         assert_eq!(item, item2);
         ctx.insert(tile, "MISC", "CFG_IO_ACCESS_TDO", item);
         ctx.insert(
             tile,
             bel,
             "TRIM_REG",
-            TileItem::from_bitvec(vec![TileBit::new(0, 0, 10), TileBit::new(0, 0, 11)], false),
+            TileItem::from_bitvec_inv(vec![TileBit::new(0, 0, 10), TileBit::new(0, 0, 11)], false),
         );
     }
     {
         let tile = "REG.CTL";
         let bel = "MISC";
-        ctx.collect_enum_bool(tile, bel, "GTS_USR_B", "0", "1");
-        ctx.collect_enum(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
-        ctx.collect_enum_bool(tile, bel, "OVERTEMP_POWERDOWN", "DISABLE", "ENABLE");
-        ctx.collect_enum_bool(tile, bel, "CONFIG_FALLBACK", "DISABLE", "ENABLE");
-        ctx.collect_enum_bool(tile, bel, "INIT_SIGNALS_ERROR", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "GTS_USR_B", "0", "1");
+        ctx.collect_enum_legacy(tile, bel, "SECURITY", &["NONE", "LEVEL1", "LEVEL2"]);
+        ctx.collect_bit_bi_legacy(tile, bel, "OVERTEMP_POWERDOWN", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "CONFIG_FALLBACK", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "INIT_SIGNALS_ERROR", "DISABLE", "ENABLE");
         if !edev.chips.first().unwrap().has_ps {
-            ctx.collect_enum_bool(tile, bel, "SELECTMAP_ABORT", "DISABLE", "ENABLE");
+            ctx.collect_bit_bi_legacy(tile, bel, "SELECTMAP_ABORT", "DISABLE", "ENABLE");
         }
-        ctx.collect_enum(tile, bel, "ENCRYPT_KEY_SELECT", &["BBRAM", "EFUSE"]);
-        ctx.collect_enum_bool(tile, bel, "SEC_ALL", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "SEC_ERROR", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "SEC_STATUS", "NO", "YES");
+        ctx.collect_enum_legacy(tile, bel, "ENCRYPT_KEY_SELECT", &["BBRAM", "EFUSE"]);
+        ctx.collect_bit_bi_legacy(tile, bel, "SEC_ALL", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "SEC_ERROR", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "SEC_STATUS", "NO", "YES");
         if edev.chips.first().unwrap().regs > 1 {
-            ctx.collect_bit(tile, bel, "ENCRYPT", "YES");
+            ctx.collect_bit_legacy(tile, bel, "ENCRYPT", "YES");
         }
-        ctx.collect_enum_bool(tile, bel, "PERSIST", "NO", "CTLREG");
+        ctx.collect_bit_bi_legacy(tile, bel, "PERSIST", "NO", "CTLREG");
         ctx.insert(
             tile,
             bel,
@@ -857,46 +862,46 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             },
         );
         let bel = "FRAME_ECC";
-        let item = ctx.extract_bit(tile, bel, "ENABLE", "1");
+        let item = ctx.extract_bit_legacy(tile, bel, "ENABLE", "1");
         ctx.insert(tile, "MISC", "GLUTMASK", item);
-        ctx.collect_enum(tile, bel, "FARSRC", &["FAR", "EFAR"]);
+        ctx.collect_enum_legacy(tile, bel, "FARSRC", &["FAR", "EFAR"]);
     }
     {
         let tile = "REG.CTL1";
         let bel = "MISC";
-        ctx.collect_enum_bool(tile, bel, "ICAP_ENCRYPTION", "DISABLE", "ENABLE");
-        ctx.collect_enum_bool(tile, bel, "DIS_VGG_REG", "NO", "YES");
-        ctx.collect_enum_bool(tile, bel, "ENABLE_VGG_CLAMP", "NO", "YES");
-        ctx.collect_enum(tile, bel, "MODE_PIN_TEST", &["DISABLE", "TEST0", "TEST1"]);
-        ctx.collect_bitvec(tile, bel, "VGG_SEL", "");
-        ctx.collect_bitvec(tile, bel, "VGG_NEG_GAIN_SEL", "");
-        ctx.collect_bitvec(tile, bel, "VGG_POS_GAIN_SEL", "");
+        ctx.collect_bit_bi_legacy(tile, bel, "ICAP_ENCRYPTION", "DISABLE", "ENABLE");
+        ctx.collect_bit_bi_legacy(tile, bel, "DIS_VGG_REG", "NO", "YES");
+        ctx.collect_bit_bi_legacy(tile, bel, "ENABLE_VGG_CLAMP", "NO", "YES");
+        ctx.collect_enum_legacy(tile, bel, "MODE_PIN_TEST", &["DISABLE", "TEST0", "TEST1"]);
+        ctx.collect_bitvec_legacy(tile, bel, "VGG_SEL", "");
+        ctx.collect_bitvec_legacy(tile, bel, "VGG_NEG_GAIN_SEL", "");
+        ctx.collect_bitvec_legacy(tile, bel, "VGG_POS_GAIN_SEL", "");
         if edev.chips.first().unwrap().regs > 1 {
-            let mut diff = ctx.get_diff(tile, bel, "ENCRYPT", "YES");
-            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
-            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_NEG_GAIN_SEL"), 0xf, 0);
-            diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_SEL"), 0xf, 0);
+            let mut diff = ctx.get_diff_legacy(tile, bel, "ENCRYPT", "YES");
+            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
+            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "VGG_NEG_GAIN_SEL"), 0xf, 0);
+            diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "VGG_SEL"), 0xf, 0);
             diff.assert_empty();
         }
     }
     if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.BSPI";
         let bel = "MISC";
-        ctx.collect_enum(tile, bel, "SPI_BUSWIDTH", &["1", "2", "4"]);
-        ctx.collect_bitvec(tile, bel, "SPI_OPCODE", "");
+        ctx.collect_enum_legacy(tile, bel, "SPI_BUSWIDTH", &["1", "2", "4"]);
+        ctx.collect_bitvec_legacy(tile, bel, "SPI_OPCODE", "");
         let mut item =
-            TileItem::from_bitvec((12..28).map(|i| TileBit::new(0, 0, i)).collect(), false);
-        ctx.get_diff(tile, bel, "BPI_SYNC_MODE", "DISABLE")
+            TileItem::from_bitvec_inv((12..28).map(|i| TileBit::new(0, 0, i)).collect(), false);
+        ctx.get_diff_legacy(tile, bel, "BPI_SYNC_MODE", "DISABLE")
             .assert_empty();
-        let type1 = extract_bitvec_val(
+        let type1 = extract_bitvec_val_legacy(
             &item,
             &bits![0; 16],
-            ctx.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE1"),
+            ctx.get_diff_legacy(tile, bel, "BPI_SYNC_MODE", "TYPE1"),
         );
-        let type2 = extract_bitvec_val(
+        let type2 = extract_bitvec_val_legacy(
             &item,
             &bits![0; 16],
-            ctx.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE2"),
+            ctx.get_diff_legacy(tile, bel, "BPI_SYNC_MODE", "TYPE2"),
         );
         item.kind = TileItemKind::Enum {
             values: [
@@ -912,16 +917,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.WBSTAR";
         let bel = "MISC";
-        ctx.collect_bitvec(tile, bel, "NEXT_CONFIG_ADDR", "");
-        ctx.collect_bitvec(tile, bel, "REVISION_SELECT", "");
-        ctx.collect_enum_bool(tile, bel, "REVISION_SELECT_TRISTATE", "DISABLE", "ENABLE");
+        ctx.collect_bitvec_legacy(tile, bel, "NEXT_CONFIG_ADDR", "");
+        ctx.collect_bitvec_legacy(tile, bel, "REVISION_SELECT", "");
+        ctx.collect_bit_bi_legacy(tile, bel, "REVISION_SELECT_TRISTATE", "DISABLE", "ENABLE");
     }
     if !edev.chips.first().unwrap().has_ps {
         let tile = "REG.TIMER";
         let bel = "MISC";
-        ctx.collect_bitvec(tile, bel, "TIMER", "");
-        ctx.collect_bit(tile, bel, "TIMER_CFG", "1");
-        ctx.collect_bit(tile, bel, "TIMER_USR", "1");
+        ctx.collect_bitvec_legacy(tile, bel, "TIMER", "");
+        ctx.collect_bit_legacy(tile, bel, "TIMER_CFG", "1");
+        ctx.collect_bit_legacy(tile, bel, "TIMER_USR", "1");
     }
     {
         let tile = "REG.TESTMODE";
@@ -932,69 +937,69 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "TEST_NEG_SLOPE_VGG",
             "TEST_VGG_ENABLE",
         ] {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     {
         let tile = "REG.TRIM0";
         let bel = "MISC";
         for attr in ["MPD_SEL", "TRIM_SPARE", "MPD_DIS_OVERRIDE", "MPD_OVERRIDE"] {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     {
         let tile = "REG.TRIM1";
         let bel = "MISC";
         for attr in ["VGGSEL", "VGGSEL2", "VBG_FLAT_SEL"] {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
     {
         let tile = "REG.TRIM2";
         let bel = "MISC";
         for attr in ["VGG_TRIM_BOT", "VGG_TRIM_TOP"] {
-            ctx.collect_bitvec(tile, bel, attr, "");
+            ctx.collect_bitvec_legacy(tile, bel, attr, "");
         }
     }
 
     if ctx.has_tile("SYSMON") {
         let tile = "SYSMON";
         let bel = "SYSMON";
-        ctx.get_diff(tile, bel, "ENABLE", "1").assert_empty();
+        ctx.get_diff_legacy(tile, bel, "ENABLE", "1").assert_empty();
         ctx.collect_inv(tile, bel, "CONVSTCLK");
         ctx.collect_inv(tile, bel, "DCLK");
         for i in 0x40..0x60 {
-            ctx.collect_bitvec(tile, bel, &format!("INIT_{i:02X}"), "");
+            ctx.collect_bitvec_legacy(tile, bel, &format!("INIT_{i:02X}"), "");
         }
-        ctx.collect_bitvec(tile, bel, "SYSMON_TEST_A", "");
-        ctx.collect_bitvec(tile, bel, "SYSMON_TEST_B", "");
-        ctx.collect_bitvec(tile, bel, "SYSMON_TEST_C", "");
-        ctx.collect_bitvec(tile, bel, "SYSMON_TEST_D", "");
-        ctx.collect_bitvec(tile, bel, "SYSMON_TEST_E", "");
+        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_A", "");
+        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_B", "");
+        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_C", "");
+        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_D", "");
+        ctx.collect_bitvec_legacy(tile, bel, "SYSMON_TEST_E", "");
 
-        ctx.get_diff(tile, bel, "JTAG_XADC", "ENABLE")
+        ctx.get_diff_legacy(tile, bel, "JTAG_XADC", "ENABLE")
             .assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "JTAG_XADC", "DISABLE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_E"), 7, 0);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "JTAG_XADC", "DISABLE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "SYSMON_TEST_E"), 7, 0);
         diff.assert_empty();
-        let mut diff = ctx.get_diff(tile, bel, "JTAG_XADC", "STATUSONLY");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_E"), 0xc8, 0);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "JTAG_XADC", "STATUSONLY");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "SYSMON_TEST_E"), 0xc8, 0);
         diff.assert_empty();
 
-        let mut diff = ctx.get_diff(tile, bel, "XADCENHANCEDLINEARITY", "ON");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_C"), 0x10, 0);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "XADCENHANCEDLINEARITY", "ON");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "SYSMON_TEST_C"), 0x10, 0);
         diff.assert_empty();
-        ctx.get_diff(tile, bel, "XADCENHANCEDLINEARITY", "OFF")
+        ctx.get_diff_legacy(tile, bel, "XADCENHANCEDLINEARITY", "OFF")
             .assert_empty();
 
-        let mut diff = ctx.get_diff(tile, bel, "XADCPOWERDOWN", "ENABLE");
-        diff.apply_bitvec_diff_int(ctx.item(tile, bel, "INIT_42"), 0x30, 0);
+        let mut diff = ctx.get_diff_legacy(tile, bel, "XADCPOWERDOWN", "ENABLE");
+        diff.apply_bitvec_diff_int_legacy(ctx.item(tile, bel, "INIT_42"), 0x30, 0);
         diff.assert_empty();
-        ctx.get_diff(tile, bel, "XADCPOWERDOWN", "DISABLE")
+        ctx.get_diff_legacy(tile, bel, "XADCPOWERDOWN", "DISABLE")
             .assert_empty();
 
         let tile = "HCLK";
         let bel = "HCLK";
-        ctx.collect_bit(tile, bel, "DRP_MASK_ABOVE_L", "SYSMON");
+        ctx.collect_bit_legacy(tile, bel, "DRP_MASK_ABOVE_L", "SYSMON");
     }
 }
