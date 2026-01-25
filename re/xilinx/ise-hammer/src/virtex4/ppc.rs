@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, PinDir},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::FuzzerProp;
+use prjcombine_re_fpga_hammer::backend::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::defs;
@@ -122,7 +122,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         };
         let bel = ctx.edev.db.bel_slots.key(slot);
         if slot == defs::bslots::PPC {
-            let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+            let mut diff = ctx.get_diff(tile, bel, "PRESENT", "1");
             for pin in bel_data.pins.keys() {
                 if pin.starts_with("LSSDSCANIN") {
                     let item = ctx.item_int_inv(&["INT"; 62], tile, bel, pin);
@@ -131,7 +131,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             diff.assert_empty();
         } else {
-            ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+            ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         }
         for (pin, pin_data) in &bel_data.pins {
             if pin_data.dir != PinDir::Input {

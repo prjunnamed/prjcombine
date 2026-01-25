@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{Diff, xlat_bitvec, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bitvec, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex::defs;
 
@@ -160,7 +160,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bel = &bel;
             let mut diffs = vec![];
             for val in ["11110", "11101", "11011", "10111", "01111"] {
-                let diff = ctx.state.get_diff(tile, bel, "DELAY", val);
+                let diff = ctx.get_diff(tile, bel, "DELAY", val);
                 diffs.push(!diff);
             }
             ctx.insert(tile, bel, "DELAY", xlat_bitvec(diffs));
@@ -208,17 +208,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             };
             let mut diffs = vec![("NONE", Diff::default())];
             for &(val, iostd) in iostds {
-                diffs.push((val, ctx.state.get_diff(tile, bel, "IOATTRBOX", iostd)));
+                diffs.push((val, ctx.get_diff(tile, bel, "IOATTRBOX", iostd)));
             }
             ctx.insert(tile, bel, "IBUF", xlat_enum(diffs));
         }
         for i in 0..2 {
             let bel = format!("BUFG[{i}]");
             let bel = &bel;
-            let d0 = ctx.state.get_diff(tile, bel, "CEMUX", "CE");
-            assert_eq!(d0, ctx.state.get_diff(tile, bel, "CEMUX", "1"));
-            let d1 = ctx.state.get_diff(tile, bel, "CEMUX", "CE_B");
-            assert_eq!(d1, ctx.state.get_diff(tile, bel, "CEMUX", "0"));
+            let d0 = ctx.get_diff(tile, bel, "CEMUX", "CE");
+            assert_eq!(d0, ctx.get_diff(tile, bel, "CEMUX", "1"));
+            let d1 = ctx.get_diff(tile, bel, "CEMUX", "CE_B");
+            assert_eq!(d1, ctx.get_diff(tile, bel, "CEMUX", "0"));
             let item = xlat_bool(d0, d1);
             ctx.insert_int_inv(&[tile], tile, bel, "CE", item);
             ctx.collect_enum_bool(tile, bel, "DISABLE_ATTR", "LOW", "HIGH");
@@ -256,8 +256,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for i in 0..4 {
                 for j in 0..4 {
                     if tile == t && !is_s2 {
-                        ctx.state
-                            .get_diff(tile, bel, format!("BUF.GCLK_{lr}{i}_{j}"), "1")
+                        ctx.get_diff(tile, bel, format!("BUF.GCLK_{lr}{i}_{j}"), "1")
                             .assert_empty();
                     } else {
                         ctx.collect_bit(tile, bel, &format!("BUF.GCLK_{lr}{i}_{j}"), "1");

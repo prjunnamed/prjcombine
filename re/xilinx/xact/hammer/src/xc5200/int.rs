@@ -6,7 +6,8 @@ use prjcombine_interconnect::{
     grid::{BelCoord, TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit_raw, xlat_enum_raw,
+    backend::{FuzzerFeature, FuzzerProp},
+    diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw},
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_xc2000::xc5200::{bcls, bslots, tcls, tslots, wires};
@@ -490,12 +491,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let mut oinps = vec![(Some(mux.dst.pos()), Diff::default())];
                             let mut got_empty = false;
                             for &wire_from in mux.src.keys() {
-                                let diff = ctx
-                                    .state
-                                    .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wire_from));
-                                let diff_i = ctx
-                                    .state
-                                    .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, !wire_from));
+                                let diff =
+                                    ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wire_from));
+                                let diff_i =
+                                    ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, !wire_from));
                                 if diff.bits.is_empty() {
                                     got_empty = true;
                                 }
@@ -506,14 +505,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 if wire_from.tw == mux.dst {
                                     continue;
                                 }
-                                let diff = ctx
-                                    .state
-                                    .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wire_from));
+                                let diff =
+                                    ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wire_from));
                                 oinps.push((Some(wire_from), diff));
                             }
                             assert!(got_empty);
                             let item = xlat_enum_raw(inps, OcdMode::Mux);
-                            if item.0.is_empty() {
+                            if item.bits.is_empty() {
                                 println!(
                                     "UMMM MUX {tcname} {mux_name} is empty",
                                     mux_name = mux.dst.to_string(ctx.edev.db, &ctx.edev.db[tcid])
@@ -527,9 +525,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             let mut inps = vec![];
                             let mut got_empty = false;
                             for &wire_from in mux.src.keys() {
-                                let diff = ctx
-                                    .state
-                                    .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wire_from));
+                                let diff =
+                                    ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wire_from));
                                 if diff.bits.is_empty() {
                                     got_empty = true;
                                 }
@@ -573,14 +570,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             if !got_empty {
                                 inps.push((None, Diff::default()));
                             }
-                            let (bits, values) = xlat_enum_raw(inps, OcdMode::Mux);
-                            if bits.is_empty() {
+                            let item = xlat_enum_raw(inps, OcdMode::Mux);
+                            if item.bits.is_empty() {
                                 println!(
                                     "UMMM MUX {tcname} {mux_name} is empty",
                                     mux_name = mux.dst.to_string(ctx.edev.db, &ctx.edev.db[tcid])
                                 );
                             }
-                            ctx.insert_mux(tcid, mux.dst, (bits, values));
+                            ctx.insert_mux(tcid, mux.dst, item);
                         }
                     }
                     SwitchBoxItem::Pass(pass) => {
@@ -590,9 +587,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.collect_bipass(tcid, pass.a, pass.b);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        let diff = ctx
-                            .state
-                            .get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
+                        let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
                         diff.assert_empty();
                     }
                     SwitchBoxItem::ProgInv(_) => (),

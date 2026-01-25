@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, extract_bitvec_val, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
@@ -653,11 +653,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for bel in ["ICAP[0]", "ICAP[1]"] {
             ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
             // ???
-            ctx.state
-                .get_diff(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
+            ctx.get_diff(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
                 .assert_empty();
-            ctx.state
-                .get_diff(tile, bel, "ICAP_AUTO_SWITCH", "ENABLE")
+            ctx.get_diff(tile, bel, "ICAP_AUTO_SWITCH", "ENABLE")
                 .assert_empty();
         }
 
@@ -690,9 +688,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if edev.chips.len() == 1 {
         let bel = "CFG_IO_ACCESS";
         ctx.collect_bit_wide(tile, bel, "ENABLE", "1");
-        ctx.state
-            .get_diff(tile, bel, "TDO", "UNCONNECTED")
-            .assert_empty();
+        ctx.get_diff(tile, bel, "TDO", "UNCONNECTED").assert_empty();
     }
     {
         let bel = "DNA_PORT";
@@ -789,7 +785,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "POST_CRC_CLK", &["CFG_CLK", "INTERNAL"]);
         let mut diffs = vec![];
         for val in ["1", "2", "3", "6", "13", "25", "50"] {
-            let mut diff = ctx.state.get_diff(tile, bel, "POST_CRC_FREQ", val);
+            let mut diff = ctx.get_diff(tile, bel, "POST_CRC_FREQ", val);
             diff.apply_enum_diff(ctx.item(tile, bel, "POST_CRC_CLK"), "INTERNAL", "CFG_CLK");
             diffs.push((val, diff));
         }
@@ -815,10 +811,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileItem::from_bit(TileBit::new(0, 0, 17), false),
         );
         let item = ctx.extract_bit(tile, "CFG_IO_ACCESS", "ENABLE", "1");
-        let item2 = xlat_bit(
-            !ctx.state
-                .get_diff(tile, "CFG_IO_ACCESS", "TDO", "UNCONNECTED"),
-        );
+        let item2 = xlat_bit(!ctx.get_diff(tile, "CFG_IO_ACCESS", "TDO", "UNCONNECTED"));
         assert_eq!(item, item2);
         ctx.insert(tile, "MISC", "CFG_IO_ACCESS_TDO", item);
         ctx.insert(
@@ -879,7 +872,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "VGG_NEG_GAIN_SEL", "");
         ctx.collect_bitvec(tile, bel, "VGG_POS_GAIN_SEL", "");
         if edev.chips.first().unwrap().regs > 1 {
-            let mut diff = ctx.state.get_diff(tile, bel, "ENCRYPT", "YES");
+            let mut diff = ctx.get_diff(tile, bel, "ENCRYPT", "YES");
             diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_POS_GAIN_SEL"), 1, 0);
             diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_NEG_GAIN_SEL"), 0xf, 0);
             diff.apply_bitvec_diff_int(ctx.item(tile, bel, "VGG_SEL"), 0xf, 0);
@@ -893,18 +886,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "SPI_OPCODE", "");
         let mut item =
             TileItem::from_bitvec((12..28).map(|i| TileBit::new(0, 0, i)).collect(), false);
-        ctx.state
-            .get_diff(tile, bel, "BPI_SYNC_MODE", "DISABLE")
+        ctx.get_diff(tile, bel, "BPI_SYNC_MODE", "DISABLE")
             .assert_empty();
         let type1 = extract_bitvec_val(
             &item,
             &bits![0; 16],
-            ctx.state.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE1"),
+            ctx.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE1"),
         );
         let type2 = extract_bitvec_val(
             &item,
             &bits![0; 16],
-            ctx.state.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE2"),
+            ctx.get_diff(tile, bel, "BPI_SYNC_MODE", "TYPE2"),
         );
         item.kind = TileItemKind::Enum {
             values: [
@@ -968,7 +960,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tile("SYSMON") {
         let tile = "SYSMON";
         let bel = "SYSMON";
-        ctx.state.get_diff(tile, bel, "ENABLE", "1").assert_empty();
+        ctx.get_diff(tile, bel, "ENABLE", "1").assert_empty();
         ctx.collect_inv(tile, bel, "CONVSTCLK");
         ctx.collect_inv(tile, bel, "DCLK");
         for i in 0x40..0x60 {
@@ -980,28 +972,25 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "SYSMON_TEST_D", "");
         ctx.collect_bitvec(tile, bel, "SYSMON_TEST_E", "");
 
-        ctx.state
-            .get_diff(tile, bel, "JTAG_XADC", "ENABLE")
+        ctx.get_diff(tile, bel, "JTAG_XADC", "ENABLE")
             .assert_empty();
-        let mut diff = ctx.state.get_diff(tile, bel, "JTAG_XADC", "DISABLE");
+        let mut diff = ctx.get_diff(tile, bel, "JTAG_XADC", "DISABLE");
         diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_E"), 7, 0);
         diff.assert_empty();
-        let mut diff = ctx.state.get_diff(tile, bel, "JTAG_XADC", "STATUSONLY");
+        let mut diff = ctx.get_diff(tile, bel, "JTAG_XADC", "STATUSONLY");
         diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_E"), 0xc8, 0);
         diff.assert_empty();
 
-        let mut diff = ctx.state.get_diff(tile, bel, "XADCENHANCEDLINEARITY", "ON");
+        let mut diff = ctx.get_diff(tile, bel, "XADCENHANCEDLINEARITY", "ON");
         diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_C"), 0x10, 0);
         diff.assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "XADCENHANCEDLINEARITY", "OFF")
+        ctx.get_diff(tile, bel, "XADCENHANCEDLINEARITY", "OFF")
             .assert_empty();
 
-        let mut diff = ctx.state.get_diff(tile, bel, "XADCPOWERDOWN", "ENABLE");
+        let mut diff = ctx.get_diff(tile, bel, "XADCPOWERDOWN", "ENABLE");
         diff.apply_bitvec_diff_int(ctx.item(tile, bel, "INIT_42"), 0x30, 0);
         diff.assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "XADCPOWERDOWN", "DISABLE")
+        ctx.get_diff(tile, bel, "XADCPOWERDOWN", "DISABLE")
             .assert_empty();
 
         let tile = "HCLK";

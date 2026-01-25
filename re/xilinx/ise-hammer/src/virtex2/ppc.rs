@@ -40,7 +40,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "PPC405";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::PPC405];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
@@ -58,11 +58,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let flip = ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_SR");
             ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
         }
-        ctx.state
-            .get_diff(tile, bel, "PPC405_TEST_MODE", "CORE_TEST")
+        ctx.get_diff(tile, bel, "PPC405_TEST_MODE", "CORE_TEST")
             .assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "PPC405_TEST_MODE", "GASKET_TEST")
+        ctx.get_diff(tile, bel, "PPC405_TEST_MODE", "GASKET_TEST")
             .assert_empty();
     }
 }

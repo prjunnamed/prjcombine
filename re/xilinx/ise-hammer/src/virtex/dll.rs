@@ -6,7 +6,10 @@ use prjcombine_interconnect::{
     dir::DirH,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{xlat_bit, xlat_bool, xlat_enum},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
@@ -271,7 +274,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "DLL";
 
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
 
         let item = ctx.extract_enum_bool_wide(tile, bel, "DUTY_ATTR", "FALSE", "TRUE");
         present.apply_bitvec_diff(&item, &BitVec::repeat(true, 4), &BitVec::repeat(false, 4));
@@ -279,10 +282,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         ctx.collect_bit(tile, bel, "HIGH_FREQUENCY", "1");
 
-        let d0 = ctx.state.get_diff(tile, bel, "RSTMUX", "RST");
-        assert_eq!(d0, ctx.state.get_diff(tile, bel, "RSTMUX", "1"));
-        let d1 = ctx.state.get_diff(tile, bel, "RSTMUX", "RST_B");
-        assert_eq!(d1, ctx.state.get_diff(tile, bel, "RSTMUX", "0"));
+        let d0 = ctx.get_diff(tile, bel, "RSTMUX", "RST");
+        assert_eq!(d0, ctx.get_diff(tile, bel, "RSTMUX", "1"));
+        let d1 = ctx.get_diff(tile, bel, "RSTMUX", "RST_B");
+        assert_eq!(d1, ctx.get_diff(tile, bel, "RSTMUX", "0"));
         let item = xlat_bool(d0, d1);
         ctx.insert_int_inv(&[tile], tile, bel, "RST", item);
 
@@ -295,7 +298,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("JF_ZD1_ATTR", &item_jf1, 0xc0),
         ] {
             for val in [0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff] {
-                let mut diff = ctx.state.get_diff(tile, bel, attr, format!("0X{val:02X}"));
+                let mut diff = ctx.get_diff(tile, bel, attr, format!("0X{val:02X}"));
                 diff.apply_bitvec_diff_int(item, val, base);
                 diff.assert_empty();
             }
@@ -326,25 +329,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             },
         };
         for i in 2..=16 {
-            let mut diff = ctx.state.get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}"));
+            let mut diff = ctx.get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}"));
             diff.apply_bitvec_diff_int(&clkdv_count_max, i - 1, 1);
             diff.apply_bitvec_diff_int(&clkdv_count_fall, (i - 1) / 2, 0);
             diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2, 0);
             diff.assert_empty();
         }
         for i in 1..=7 {
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}_5.LOW"));
+            let mut diff = ctx.get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}_5.LOW"));
             diff.apply_enum_diff(&clkdv_mode, "HALF", "INT");
             diff.apply_bitvec_diff_int(&clkdv_count_max, 2 * i, 1);
             diff.apply_bitvec_diff_int(&clkdv_count_fall, i / 2, 0);
             diff.apply_bitvec_diff_int(&clkdv_count_fall_2, 3 * i / 2 + 1, 0);
             diff.apply_bitvec_diff_int(&clkdv_phase_fall, (i % 2) * 2 + 1, 0);
             diff.assert_empty();
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}_5.HIGH"));
+            let mut diff = ctx.get_diff(tile, bel, "DIVIDE_ATTR", format!("{i}_5.HIGH"));
             diff.apply_enum_diff(&clkdv_mode, "HALF", "INT");
             diff.apply_bitvec_diff_int(&clkdv_count_max, 2 * i, 1);
             diff.apply_bitvec_diff_int(&clkdv_count_fall, (i - 1) / 2, 0);
@@ -370,8 +369,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum_bool(tile, bel, "TESTZD2OSC", "NO", "YES");
         ctx.collect_enum_bool_wide(tile, bel, "TESTDLL", "NO", "YES");
         let item = xlat_enum(vec![
-            ("1X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "0")),
-            ("2X", ctx.state.get_diff(tile, bel, "CLK_FEEDBACK_2X", "1")),
+            ("1X", ctx.get_diff(tile, bel, "CLK_FEEDBACK_2X", "0")),
+            ("2X", ctx.get_diff(tile, bel, "CLK_FEEDBACK_2X", "1")),
         ]);
         ctx.insert(tile, bel, "CLK_FEEDBACK", item);
 

@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{Diff, DiffKey, xlat_bool_raw, xlat_enum_attr};
+use prjcombine_re_fpga_hammer::diff::{Diff, DiffKey, xlat_bool_raw, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::TileBit;
 use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls};
@@ -104,7 +104,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             (
                 enums::FF_MODE::LATCH,
                 ctx.get_diff_attr_val(tcid, bslot, bcls::LC::FF_MODE, enums::FF_MODE::LATCH)
-                    .combine(&!ctx.state.peek_diff_raw(&DiffKey::BelInputInv(
+                    .combine(&!ctx.peek_diff_raw(&DiffKey::BelInputInv(
                         tcid,
                         bslot,
                         bcls::LC::CK,

@@ -5,7 +5,10 @@ use prjcombine_interconnect::{
     db::{BelInfo, SwitchBoxItem, TileWireCoord, WireSlotId},
     grid::{ColId, RowId, TileCoord},
 };
-use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{Diff, OcdMode, xlat_bit, xlat_enum_ocd},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bitrect::BitRect as _;
@@ -1297,12 +1300,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                             };
-                            let mut diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
+                            let mut diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
                             if matches!(mux.dst.wire, wires::IMUX_DLL_CLKIN | wires::IMUX_DLL_CLKFB)
                                 && (wires::OUT_CLKPAD.contains(wire_from.wire)
                                     || wires::OUT_IOFB.contains(wire_from.wire))
                             {
-                                let noalt_diff = ctx.state.get_diff(
+                                let noalt_diff = ctx.get_diff(
                                     tcname,
                                     "INT",
                                     &mux_name,
@@ -1446,9 +1449,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             format!("{:#}.{}", pass.src.cell, intdb.wires.key(pass.src.wire))
                         };
-                        let diff =
-                            ctx.state
-                                .get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
+                        let diff = ctx.get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
                         if (in_name.starts_with("OUT_IO") && in_name.ends_with("[0]"))
                             || (matches!(tcid, tcls::IO_S | tcls::IO_N)
                                 && in_name.starts_with("OUT_IO")
@@ -1488,12 +1489,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", wsrc.cell, intdb.wires.key(wsrc.wire))
                             };
-                            let diff = ctx.state.get_diff(
-                                tcname,
-                                "INT",
-                                format!("MUX.{out_name}"),
-                                &in_name,
-                            );
+                            let diff =
+                                ctx.get_diff(tcname, "INT", format!("MUX.{out_name}"), &in_name);
                             let item = xlat_bit(diff);
                             ctx.insert(tcname, bel, &name, item);
                         }

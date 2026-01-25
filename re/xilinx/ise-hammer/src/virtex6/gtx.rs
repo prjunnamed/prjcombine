@@ -1,6 +1,6 @@
 use core::ops::Range;
 
-use prjcombine_re_fpga_hammer::{Diff, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::defs;
@@ -563,8 +563,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         for &attr in GTX_BOOL_ATTRS {
             if attr == "GTX_CFG_PWRUP" {
-                ctx.state.get_diff(tile, bel, attr, "FALSE").assert_empty();
-                ctx.state.get_diff(tile, bel, attr, "TRUE").assert_empty();
+                ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
+                ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
             } else {
                 ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
             }
@@ -585,12 +585,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec(tile, bel, attr, "");
         }
 
-        let mut diff_cas_clk = ctx.state.get_diff(tile, bel, "PMA_CAS_CLK_EN", "TRUE");
+        let mut diff_cas_clk = ctx.get_diff(tile, bel, "PMA_CAS_CLK_EN", "TRUE");
         for rxtx in ["RX", "TX"] {
             let attr_static = &format!("{rxtx}PLLREFSEL_STATIC");
-            let diff_grefclk = ctx.state.get_diff(tile, bel, attr_static, "GREFCLK");
+            let diff_grefclk = ctx.get_diff(tile, bel, attr_static, "GREFCLK");
             let diff_perfclk = ctx
-                .state
                 .get_diff(tile, bel, attr_static, "PERFCLK")
                 .combine(&!&diff_grefclk);
             ctx.insert(
@@ -611,7 +610,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "SOUTHREFCLK0",
                 "SOUTHREFCLK1",
             ] {
-                diffs.push((val, ctx.state.get_diff(tile, bel, attr_static, val)))
+                diffs.push((val, ctx.get_diff(tile, bel, attr_static, val)))
             }
             diffs.push((
                 "CAS_CLK",

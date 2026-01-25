@@ -5,7 +5,10 @@ use prjcombine_interconnect::{
     db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{Diff, OcdMode, xlat_bit, xlat_enum_ocd},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::RawTileId;
@@ -806,7 +809,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
                             };
-                            let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
+                            let diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
                             if let ExpandedDevice::Virtex2(edev) = ctx.edev
                                 && edev.chip.kind
                                     == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
@@ -877,7 +880,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
                         };
-                        let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
+                        let diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
                         let buf_name = if tcls.cells.len() == 1 {
                             format!(
                                 "BUF.{dst}.{src}",
@@ -906,7 +909,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         } else {
                             format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
                         };
-                        let diff = ctx.state.get_diff(tcname, "INT", &mux_name, &in_name);
+                        let diff = ctx.get_diff(tcname, "INT", &mux_name, &in_name);
                         diff.assert_empty();
                     }
                     SwitchBoxItem::ProgInv(_) => (),

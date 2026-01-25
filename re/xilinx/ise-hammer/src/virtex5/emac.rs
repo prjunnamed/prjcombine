@@ -135,7 +135,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let tile = "EMAC";
     let bel = "EMAC";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for &pin in EMAC_INVPINS {
         ctx.collect_inv(tile, bel, pin);
     }

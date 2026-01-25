@@ -1,5 +1,5 @@
 use prjcombine_interconnect::dir::Dir;
-use prjcombine_re_fpga_hammer::OcdMode;
+use prjcombine_re_fpga_hammer::diff::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::{ExpandedDevice, ExpandedNamedDevice};
 
@@ -2785,7 +2785,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if !edev.gtz.is_empty() {
         let tile = "GTZ";
         let bel = "GTZ";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in GTZ_INVPINS {
             ctx.collect_enum_bool(tile, bel, &format!("INV.{pin}"), "0", "1");
         }

@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{OcdMode, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::defs;
@@ -277,7 +277,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let tile = "CCM";
     for bel in ["PMCD[0]", "PMCD[1]"] {
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_int_inv(&["INT"; 4], tile, bel, "RST", false);
         ctx.collect_inv(tile, bel, "REL");
         ctx.collect_bit_wide(tile, bel, "CLKA_ENABLE", "1");
@@ -301,47 +301,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ] {
             let mut diffs = vec![];
             for i in 0..8 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("HCLK{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("HCLK{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
                 );
                 diffs.push((format!("HCLK{i}"), diff));
             }
             for i in 0..16 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("GIOB{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("GIOB{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
                 );
                 diffs.push((format!("GIOB{i}"), diff));
             }
             for i in 0..4 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("MGT{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("MGT{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
                 );
                 diffs.push((format!("MGT{i}"), diff));
             }
             for i in 0..24 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("BUSIN{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("BUSIN{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
                 );
                 diffs.push((format!("BUSIN{i}"), diff));
             }
             for i in 0..4 {
-                let mut diff = ctx.state.get_diff(tile, bel, pin, format!("CKINT{abc}{i}"));
+                let mut diff = ctx.get_diff(tile, bel, pin, format!("CKINT{abc}{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
                 );
                 if i < 2 {
                     let item = ctx.item_int_inv(&["INT"; 4], tile, bel, &format!("CKINT{abc}{i}"));
@@ -350,15 +345,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }
             if abc != 'C' {
-                let diff = ctx.state.get_diff(tile, bel, pin, "CLKA1D8");
+                let diff = ctx.get_diff(tile, bel, pin, "CLKA1D8");
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), "CLKA1D8")
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), "CLKA1D8")
                 );
                 diffs.push(("CLKA1D8".to_string(), diff));
             } else {
-                let diff = ctx.state.get_diff(tile, bel, pin, "REL_INT");
+                let diff = ctx.get_diff(tile, bel, pin, "REL_INT");
                 diffs.push(("REL_INT".to_string(), diff));
             }
             ctx.insert(
@@ -371,7 +365,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     {
         let bel = "DPM";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_int_inv(&["INT"; 4], tile, bel, "RST", false);
         for pin in [
             "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
@@ -382,47 +376,42 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for (pin, abc) in [("REFCLK", 'A'), ("TESTCLK1", 'B'), ("TESTCLK2", 'B')] {
             let mut diffs = vec![];
             for i in 0..8 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("HCLK{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("HCLK{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("HCLK{i}"))
                 );
                 diffs.push((format!("HCLK{i}"), diff));
             }
             for i in 0..16 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("GIOB{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("GIOB{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("GIOB{i}"))
                 );
                 diffs.push((format!("GIOB{i}"), diff));
             }
             for i in 0..4 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("MGT{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("MGT{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("MGT{i}"))
                 );
                 diffs.push((format!("MGT{i}"), diff));
             }
             for i in 0..24 {
-                let diff = ctx.state.get_diff(tile, bel, pin, format!("BUSIN{i}"));
+                let diff = ctx.get_diff(tile, bel, pin, format!("BUSIN{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("BUSIN{i}"))
                 );
                 diffs.push((format!("BUSIN{i}"), diff));
             }
             for i in 0..4 {
-                let mut diff = ctx.state.get_diff(tile, bel, pin, format!("CKINT{abc}{i}"));
+                let mut diff = ctx.get_diff(tile, bel, pin, format!("CKINT{abc}{i}"));
                 assert_eq!(
                     diff,
-                    ctx.state
-                        .get_diff(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
+                    ctx.get_diff(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
                 );
                 if i < 2 {
                     let item = ctx.item_int_inv(&["INT"; 4], tile, bel, &format!("CKINT{abc}{i}"));
@@ -443,7 +432,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.insert(tile, "CCM", "VREG_ENABLE", vreg_enable);
         // ???
         for attr in ["CCM_VBG_SEL", "CCM_VBG_PD", "CCM_VREG_PHASE_MARGIN"] {
-            for diff in ctx.state.get_diffs(tile, bel, attr, "") {
+            for diff in ctx.get_diffs(tile, bel, attr, "") {
                 diff.assert_empty();
             }
         }

@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::xlat_enum_attr;
+use prjcombine_re_fpga_hammer::diff::xlat_enum_attr;
 use prjcombine_re_hammer::Session;
 use prjcombine_xc2000::xc5200::{bcls, bslots, enums, tcls};
 

@@ -6,8 +6,11 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, FuzzerProp, OcdMode, concat_bitvec, extract_bitvec_val, extract_bitvec_val_part,
-    xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
+    backend::FuzzerProp,
+    diff::{
+        Diff, OcdMode, concat_bitvec, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
+        xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
+    },
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice, ExpandedNamedDevice};
@@ -1409,7 +1412,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             }
         }
         if edev.chip.kind.is_virtex2() {
-            let diff = ctx.state.get_diff(tile, bel, "FREEZE_DCI", "1");
+            let diff = ctx.get_diff(tile, bel, "FREEZE_DCI", "1");
             let diff = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(4)]));
             let mut freeze_dci_nops = 0;
             for (bit, val) in diff.bits {
@@ -1431,7 +1434,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     if edev.chip.kind == ChipKind::Spartan3 {
         for tile in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
             for bel in ["DCIRESET[0]", "DCIRESET[1]"] {
-                let diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+                let diff = ctx.get_diff(tile, bel, "PRESENT", "1");
                 ctx.insert(tile, bel, "ENABLE", xlat_bit(diff));
             }
         }
@@ -1444,19 +1447,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_enum_bool(tile, bel, "DISABLEBANDGAP", "NO", "YES");
         ctx.collect_enum_bool_wide(tile, bel, "RAISEVGG", "NO", "YES");
         let item = xlat_bitvec(vec![
-            ctx.state.get_diff(tile, bel, "ZCLK_N2", "1"),
-            ctx.state.get_diff(tile, bel, "ZCLK_N4", "1"),
-            ctx.state.get_diff(tile, bel, "ZCLK_N8", "1"),
-            ctx.state.get_diff(tile, bel, "ZCLK_N16", "1"),
-            ctx.state.get_diff(tile, bel, "ZCLK_N32", "1"),
+            ctx.get_diff(tile, bel, "ZCLK_N2", "1"),
+            ctx.get_diff(tile, bel, "ZCLK_N4", "1"),
+            ctx.get_diff(tile, bel, "ZCLK_N8", "1"),
+            ctx.get_diff(tile, bel, "ZCLK_N16", "1"),
+            ctx.get_diff(tile, bel, "ZCLK_N32", "1"),
         ]);
         ctx.insert(tile, bel, "ZCLK_DIV2", item);
         let item = xlat_bitvec(vec![
-            ctx.state.get_diff(tile, bel, "IBCLK_N2", "1"),
-            ctx.state.get_diff(tile, bel, "IBCLK_N4", "1"),
-            ctx.state.get_diff(tile, bel, "IBCLK_N8", "1"),
-            ctx.state.get_diff(tile, bel, "IBCLK_N16", "1"),
-            ctx.state.get_diff(tile, bel, "IBCLK_N32", "1"),
+            ctx.get_diff(tile, bel, "IBCLK_N2", "1"),
+            ctx.get_diff(tile, bel, "IBCLK_N4", "1"),
+            ctx.get_diff(tile, bel, "IBCLK_N8", "1"),
+            ctx.get_diff(tile, bel, "IBCLK_N16", "1"),
+            ctx.get_diff(tile, bel, "IBCLK_N32", "1"),
         ]);
         ctx.insert(tile, bel, "BCLK_DIV2", item);
         for attr in [
@@ -1471,7 +1474,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             "IBCLK_N16",
             "IBCLK_N32",
         ] {
-            ctx.state.get_diff(tile, bel, attr, "0").assert_empty();
+            ctx.get_diff(tile, bel, attr, "0").assert_empty();
         }
         if edev.chip.kind.is_virtex2p() {
             ctx.collect_enum_bool(tile, bel, "DISABLEVGGGENERATION", "NO", "YES");
@@ -1503,13 +1506,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
     if edev.chip.kind == ChipKind::Spartan3 {
         let item = xlat_bitvec(vec![
-            ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL0", "1"),
-            ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL1", "1"),
-            ctx.state.get_diff(tile, bel, "IDCI_OSC_SEL2", "1"),
+            ctx.get_diff(tile, bel, "IDCI_OSC_SEL0", "1"),
+            ctx.get_diff(tile, bel, "IDCI_OSC_SEL1", "1"),
+            ctx.get_diff(tile, bel, "IDCI_OSC_SEL2", "1"),
         ]);
         ctx.insert(tile, bel, "DCI_OSC_SEL", item);
         for attr in ["IDCI_OSC_SEL0", "IDCI_OSC_SEL1", "IDCI_OSC_SEL2"] {
-            ctx.state.get_diff(tile, bel, attr, "0").assert_empty();
+            ctx.get_diff(tile, bel, attr, "0").assert_empty();
         }
         ctx.collect_enum_bool(tile, bel, "GATE_GHIGH", "NO", "YES");
     }
@@ -1530,7 +1533,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_enum(tile, bel, "M2PIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
     }
     if edev.chip.kind.is_virtex2() {
-        let diff = ctx.state.get_diff(tile, bel, "FREEZE_DCI", "1");
+        let diff = ctx.get_diff(tile, bel, "FREEZE_DCI", "1");
         let diff = diff.filter_rects(&EntityVec::from_iter([BitRectId::from_idx(4)]));
         let mut freeze_dci_nops = 0;
         for (bit, val) in diff.bits {
@@ -1555,12 +1558,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     }
     ctx.collect_enum_bool(tile, bel, "TEST_LL", "NO", "YES");
 
-    ctx.state
-        .get_diff(tile, "PMV", "PRESENT", "1")
-        .assert_empty();
+    ctx.get_diff(tile, "PMV", "PRESENT", "1").assert_empty();
     if edev.chip.kind.is_spartan3a() {
-        ctx.state
-            .get_diff(tile, "DNA_PORT", "PRESENT", "1")
+        ctx.get_diff(tile, "DNA_PORT", "PRESENT", "1")
             .assert_empty();
     }
 
@@ -1584,7 +1584,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.insert(tile, bel, "ABUFF", concat_bitvec(items));
     }
     let bel = "STARTUP";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     let item = ctx.extract_enum_bool(int_tiles[0], bel, "CLKINV", "CLK", "CLK_B");
     ctx.insert_int_inv(int_tiles, tile, bel, "CLK", item);
     let item = if edev.chip.kind.is_virtex2() {
@@ -1601,11 +1601,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.extract_enum_bool(int_tiles[0], bel, "GSRINV", "GSR", "GSR_B")
     };
     ctx.insert_int_inv(int_tiles, tile, bel, "GSR", item);
-    let diff0_gts = ctx.state.get_diff(tile, bel, "GTSINV", "GTS");
-    let diff1_gts = ctx.state.get_diff(tile, bel, "GTSINV", "GTS_B");
+    let diff0_gts = ctx.get_diff(tile, bel, "GTSINV", "GTS");
+    let diff1_gts = ctx.get_diff(tile, bel, "GTSINV", "GTS_B");
     assert_eq!(diff0_gts, diff1_gts);
-    let diff0_gsr = ctx.state.get_diff(tile, bel, "GSRINV", "GSR");
-    let diff1_gsr = ctx.state.get_diff(tile, bel, "GSRINV", "GSR_B");
+    let diff0_gsr = ctx.get_diff(tile, bel, "GSRINV", "GSR");
+    let diff1_gsr = ctx.get_diff(tile, bel, "GSRINV", "GSR_B");
     assert_eq!(diff0_gsr, diff1_gsr);
     assert_eq!(diff0_gts, diff0_gsr);
     ctx.insert(tile, bel, "GTS_GSR_ENABLE", xlat_bit(diff0_gsr));
@@ -1615,7 +1615,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_enum_bool(tile, bel, "GWE_SYNC", "NO", "YES");
     }
     let bel = "CAPTURE";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     let item = ctx.extract_enum_bool(int_tiles[0], bel, "CLKINV", "CLK", "CLK_B");
     ctx.insert_int_inv(int_tiles, tile, bel, "CLK", item);
     let item = if edev.chip.kind.is_virtex2() {
@@ -1650,7 +1650,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     if edev.chip.kind.is_spartan3a() {
         let bel = "SPI_ACCESS";
         ctx.collect_bit(tile, bel, "ENABLE", "1");
-        let mut diff = ctx.state.get_diff(int_tiles[0], bel, "ENABLE", "1");
+        let mut diff = ctx.get_diff(int_tiles[0], bel, "ENABLE", "1");
         diff.discard_bits(&ctx.item_int_inv(int_tiles, tile, bel, "MOSI"));
         diff.assert_empty();
     }
@@ -1672,10 +1672,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         ctx.collect_enum_bool(tile, bel, "TEST_LL", "NO", "YES");
     }
     let bel = "BSCAN";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     ctx.collect_bitvec(tile, bel, "USERID", "");
-    let diff = ctx.state.get_diff(tile, bel, "TDO1", "1");
-    assert_eq!(diff, ctx.state.get_diff(tile, bel, "TDO2", "1"));
+    let diff = ctx.get_diff(tile, bel, "TDO1", "1");
+    assert_eq!(diff, ctx.get_diff(tile, bel, "TDO2", "1"));
     let mut bits: Vec<_> = diff.bits.into_iter().collect();
     bits.sort();
     ctx.insert(
@@ -1693,7 +1693,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
 
     if edev.chip.kind.is_virtex2p() {
         let bel = "JTAGPPC";
-        let diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let diff = ctx.get_diff(tile, bel, "PRESENT", "1");
         ctx.insert(tile, bel, "ENABLE", xlat_bit(diff));
     }
 
@@ -1704,11 +1704,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             ctx.collect_enum_bool(tile, bel, "MISR_RESET", "NO", "YES");
         }
         // could be verified, but meh; they just route given GCLK to CLK3 of every corner tile.
-        ctx.state
-            .get_diff("INT_CLB_FC", "MISC", "MISR_CLOCK", "GCLK0");
-        ctx.state.get_diff("HCLK", "MISC", "MISR_CLOCK", "GCLK0");
-        ctx.state
-            .get_diff("CLKQC_S3", "MISC", "MISR_CLOCK", "GCLK0");
+        ctx.get_diff("INT_CLB_FC", "MISC", "MISR_CLOCK", "GCLK0");
+        ctx.get_diff("HCLK", "MISC", "MISR_CLOCK", "GCLK0");
+        ctx.get_diff("CLKQC_S3", "MISC", "MISR_CLOCK", "GCLK0");
     }
 
     // I/O bank misc control
@@ -1730,7 +1728,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     if std.diff != DiffKind::True {
                         continue;
                     }
-                    let diff = ctx.state.get_diff(tile, bel, "LVDSBIAS", std.name);
+                    let diff = ctx.get_diff(tile, bel, "LVDSBIAS", std.name);
                     vals.push((
                         std.name,
                         diff.filter_rects(&if edev.chip.kind.is_virtex2() {
@@ -1752,10 +1750,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     xlat_bitvec(
                         (0..13)
                             .rev()
-                            .map(|i| {
-                                ctx.state
-                                    .get_diff(tile, bel, format!("LVDSBIAS_OPT{i}"), "1")
-                            })
+                            .map(|i| ctx.get_diff(tile, bel, format!("LVDSBIAS_OPT{i}"), "1"))
                             .collect(),
                     )
                 } else {
@@ -1796,31 +1791,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 ctx.insert(tile, bel, "LVDSBIAS", item);
 
                 // DCI
-                let diff_fdh = !ctx.state.get_diff(tile, bel, "FORCE_DONE_HIGH", "#OFF");
+                let diff_fdh = !ctx.get_diff(tile, bel, "FORCE_DONE_HIGH", "#OFF");
                 if edev.chip.kind.is_virtex2() {
-                    let diff = ctx.state.get_diff(tile, bel, "DCI_OUT", "1").filter_rects(
+                    let diff = ctx.get_diff(tile, bel, "DCI_OUT", "1").filter_rects(
                         &EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)]),
                     );
-                    let diff_p = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-                    let diff_t = ctx.state.get_diff(tile, bel, "PRESENT", "TEST");
+                    let diff_p = ctx.get_diff(tile, bel, "PRESENT", "1");
+                    let diff_t = ctx.get_diff(tile, bel, "PRESENT", "TEST");
                     assert_eq!(diff_p, diff.combine(&diff_fdh));
                     ctx.insert(tile, bel, "ENABLE", xlat_bit(diff));
                     let diff_t = diff_t.combine(&!diff_p);
                     ctx.insert(tile, bel, "TEST_ENABLE", xlat_bit(diff_t));
                 } else {
                     let diff_ar = ctx
-                        .state
                         .get_diff(tile, bel, "DCI_OUT", "ASREQUIRED")
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let diff_c = ctx
-                        .state
                         .get_diff(tile, bel, "DCI_OUT", "CONTINUOUS")
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let diff_q = ctx
-                        .state
                         .get_diff(tile, bel, "DCI_OUT", "QUIET")
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
-                    let diff_p = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+                    let diff_p = ctx.get_diff(tile, bel, "PRESENT", "1");
                     assert_eq!(diff_c, diff_ar);
                     let diff_q = diff_q.combine(&!&diff_c);
                     let diff_p = diff_p.combine(&!&diff_c).combine(&!&diff_fdh);
@@ -1954,7 +1946,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                         DciKind::None | DciKind::Output | DciKind::OutputHalf => (),
                         DciKind::InputVcc | DciKind::BiVcc => {
                             let mut diff = ctx
-                                .state
                                 .get_diff(tile, bel, "DCI_TERM", std.name)
                                 .filter_rects(&if edev.chip.kind.is_virtex2() {
                                     EntityVec::from_iter([
@@ -1994,7 +1985,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                                 );
                             } else {
                                 let mut diff = ctx
-                                    .state
                                     .get_diff(tile, bel, "DCI_TERM", std.name)
                                     .filter_rects(&if edev.chip.kind.is_virtex2() {
                                         EntityVec::from_iter([
@@ -2056,8 +2046,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             if edev.chip.kind == ChipKind::Spartan3 {
                 for tile in [cnr_sw, cnr_nw, cnr_se, cnr_ne] {
                     let item = xlat_enum(vec![
-                        ("DCI0", ctx.state.get_diff(tile, "DCI[0]", "SELECT", "1")),
-                        ("DCI1", ctx.state.get_diff(tile, "DCI[1]", "SELECT", "1")),
+                        ("DCI0", ctx.get_diff(tile, "DCI[0]", "SELECT", "1")),
+                        ("DCI1", ctx.get_diff(tile, "DCI[1]", "SELECT", "1")),
                     ]);
                     ctx.insert(tile, "MISC", "DCI_TEST_MUX", item);
                 }
@@ -2066,13 +2056,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                 && !ctx.device.name.ends_with("2vp4")
                 && !ctx.device.name.ends_with("2vp7")
             {
-                ctx.state
-                    .get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "ASREQUIRED")
+                ctx.get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "ASREQUIRED")
                     .assert_empty();
-                ctx.state
-                    .get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "CONTINUOUS")
+                ctx.get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "CONTINUOUS")
                     .assert_empty();
-                let diff = ctx.state.get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "QUIET");
+                let diff = ctx.get_diff(cnr_sw, "MISC", "DCIUPDATEMODE", "QUIET");
                 let diff0 = diff.filter_rects(&EntityVec::from_iter([
                     BitRectId::from_idx(8),
                     BitRectId::from_idx(0),
@@ -2106,7 +2094,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             let tile = cnr_sw;
             let bel = "DCI[0]";
             let mut diff = ctx
-                .state
                 .get_diff(tile, bel, "DCI_OUT_ALONE", "1")
                 .filter_rects(&if edev.chip.kind.is_virtex2() {
                     EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
@@ -2116,14 +2103,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
             if edev.chip.dci_io_alt.contains_key(&5) {
                 let bel = "DCI[1]";
-                let mut alt_diff = ctx
-                    .state
-                    .get_diff(tile, bel, "DCI_OUT_ALONE", "1")
-                    .filter_rects(&if edev.chip.kind.is_virtex2() {
-                        EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
-                    } else {
-                        EntityVec::from_iter([BitRectId::from_idx(0)])
-                    });
+                let mut alt_diff =
+                    ctx.get_diff(tile, bel, "DCI_OUT_ALONE", "1")
+                        .filter_rects(&if edev.chip.kind.is_virtex2() {
+                            EntityVec::from_iter([BitRectId::from_idx(0), BitRectId::from_idx(1)])
+                        } else {
+                            EntityVec::from_iter([BitRectId::from_idx(0)])
+                        });
                 alt_diff.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
                 alt_diff = alt_diff.combine(&!&diff);
                 ctx.insert(tile, "MISC", "DCI_ALTVR", xlat_bit(alt_diff));
@@ -2383,14 +2369,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
                     }
                     if std.name != "LVDS_25" || edev.chip.kind.is_spartan3a() {
                         let diff_0 = ctx
-                            .state
                             .get_diff(tile, bel, "LVDSBIAS_0", std.name)
                             .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                         let val_0 = extract_bitvec_val(&lvdsbias_0, &base, diff_0);
                         ctx.insert_misc_data(format!("{prefix}:{sn}", sn = std.name), val_0)
                     }
                     let diff_1 = ctx
-                        .state
                         .get_diff(tile, bel, "LVDSBIAS_1", std.name)
                         .filter_rects(&EntityVec::from_iter([BitRectId::from_idx(0)]));
                     let val_1 = extract_bitvec_val(&lvdsbias_1, &base, diff_1);
@@ -2519,11 +2503,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
         }
         if edev.chip.kind.is_virtex2() {
             ctx.collect_enum_bool(tile, bel, "POWERDOWN_STATUS", "DISABLE", "ENABLE");
-            ctx.state
-                .get_diff(tile, bel, "DCI_SHUTDOWN", "ENABLE")
+            ctx.get_diff(tile, bel, "DCI_SHUTDOWN", "ENABLE")
                 .assert_empty();
-            ctx.state
-                .get_diff(tile, bel, "DCI_SHUTDOWN", "DISABLE")
+            ctx.get_diff(tile, bel, "DCI_SHUTDOWN", "DISABLE")
                 .assert_empty();
         }
         ctx.collect_enum_bool(tile, bel, "CRC", "DISABLE", "ENABLE");
@@ -2531,10 +2513,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
             ctx.collect_enum(tile, bel, "VRDSEL", &["100", "95", "90", "80"]);
         } else if edev.chip.kind == ChipKind::Spartan3E {
             // ??? 70 == 75?
-            let d70 = ctx.state.get_diff(tile, bel, "VRDSEL", "70");
-            let d75 = ctx.state.get_diff(tile, bel, "VRDSEL", "75");
-            let d80 = ctx.state.get_diff(tile, bel, "VRDSEL", "80");
-            let d90 = ctx.state.get_diff(tile, bel, "VRDSEL", "90");
+            let d70 = ctx.get_diff(tile, bel, "VRDSEL", "70");
+            let d75 = ctx.get_diff(tile, bel, "VRDSEL", "75");
+            let d80 = ctx.get_diff(tile, bel, "VRDSEL", "80");
+            let d90 = ctx.get_diff(tile, bel, "VRDSEL", "90");
             assert_eq!(d70, d75);
             ctx.insert(
                 tile,

@@ -4,7 +4,7 @@ use std::{
 };
 
 use prjcombine_entity::{EntityVec, entity_id};
-use prjcombine_re_fpga_hammer::DiffKey;
+use prjcombine_re_fpga_hammer::diff::DiffKey;
 use prjcombine_types::bsdata::{BitRectId, RectBitId, RectFrameId, TileBit};
 
 #[derive(Debug, Clone)]

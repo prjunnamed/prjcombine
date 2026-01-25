@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_fpga_hammer::{Diff, OcdMode, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{Diff, OcdMode, xlat_bit, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 
@@ -786,7 +786,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if is_m {
                 ctx.collect_enum(tile, bel, "WEMUX", &["WE", "CE"]);
                 for attr in ["WA7USED", "WA8USED"] {
-                    let diff = ctx.state.get_diff(tile, bel, attr, "0");
+                    let diff = ctx.get_diff(tile, bel, attr, "0");
                     ctx.insert(tile, bel, attr, xlat_bit(diff));
                 }
                 let di_muxes = match mode {
@@ -802,9 +802,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ],
                 };
                 for (attr, byp, alt_shift, alt_ram) in di_muxes {
-                    let d_byp = ctx.state.get_diff(tile, bel, attr, byp);
-                    let d_alt = ctx.state.get_diff(tile, bel, attr, alt_shift);
-                    assert_eq!(d_alt, ctx.state.get_diff(tile, bel, attr, alt_ram));
+                    let d_byp = ctx.get_diff(tile, bel, attr, byp);
+                    let d_alt = ctx.get_diff(tile, bel, attr, alt_shift);
+                    assert_eq!(d_alt, ctx.get_diff(tile, bel, attr, alt_ram));
                     ctx.insert(
                         tile,
                         bel,
@@ -818,12 +818,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("CRAMMODE", "C6RAMMODE"),
                     ("DRAMMODE", "D6RAMMODE"),
                 ] {
-                    let d_ram32 = ctx.state.get_diff(tile, bel, sattr, "SPRAM32");
-                    let d_ram64 = ctx.state.get_diff(tile, bel, sattr, "SPRAM64");
-                    let d_srl16 = ctx.state.get_diff(tile, bel, sattr, "SRL16");
-                    let d_srl32 = ctx.state.get_diff(tile, bel, sattr, "SRL32");
-                    assert_eq!(d_ram32, ctx.state.get_diff(tile, bel, sattr, "DPRAM32"));
-                    assert_eq!(d_ram64, ctx.state.get_diff(tile, bel, sattr, "DPRAM64"));
+                    let d_ram32 = ctx.get_diff(tile, bel, sattr, "SPRAM32");
+                    let d_ram64 = ctx.get_diff(tile, bel, sattr, "SPRAM64");
+                    let d_srl16 = ctx.get_diff(tile, bel, sattr, "SRL16");
+                    let d_srl32 = ctx.get_diff(tile, bel, sattr, "SRL32");
+                    assert_eq!(d_ram32, ctx.get_diff(tile, bel, sattr, "DPRAM32"));
+                    assert_eq!(d_ram64, ctx.get_diff(tile, bel, sattr, "DPRAM64"));
                     ctx.insert(
                         tile,
                         bel,
@@ -846,7 +846,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum(tile, bel, "DCY0", &["O5", "DX"]);
                 ctx.collect_enum(tile, bel, "PRECYINIT", &["AX", "1", "0"]);
                 let item = xlat_enum(vec![
-                    ("CIN", ctx.state.get_diff(tile, bel, "CINUSED", "1")),
+                    ("CIN", ctx.get_diff(tile, bel, "CINUSED", "1")),
                     ("PRECYINIT", Diff::default()),
                 ]);
                 ctx.insert(tile, bel, "CYINIT", item);
@@ -1018,8 +1018,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ("C5FFMUX", "CX"),
                         ("D5FFMUX", "DX"),
                     ] {
-                        let d_o5 = ctx.state.get_diff(tile, bel, attr, "IN_A");
-                        let d_byp = ctx.state.get_diff(tile, bel, attr, "IN_B");
+                        let d_o5 = ctx.get_diff(tile, bel, attr, "IN_A");
+                        let d_byp = ctx.get_diff(tile, bel, attr, "IN_B");
                         ctx.insert(
                             tile,
                             bel,
@@ -1031,52 +1031,46 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
 
             // FFs
-            let ff_sync = ctx.state.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
-            ctx.state
-                .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
-                .assert_empty();
+            let ff_sync = ctx.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
+            ctx.get_diff(tile, bel, "SYNC_ATTR", "ASYNC").assert_empty();
             ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
             ctx.collect_inv(tile, bel, "CLK");
             if mode == Mode::Virtex5 {
-                let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
+                let revused = ctx.get_diff(tile, bel, "REVUSED", "0");
                 ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
             }
             if matches!(mode, Mode::Virtex5 | Mode::Spartan6) {
-                let ceused = ctx.state.get_diff(tile, bel, "CEUSED", "0");
+                let ceused = ctx.get_diff(tile, bel, "CEUSED", "0");
                 ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
-                let srused = ctx.state.get_diff(tile, bel, "SRUSED", "0");
+                let srused = ctx.get_diff(tile, bel, "SRUSED", "0");
                 ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
             } else {
-                ctx.state
-                    .get_diff(tile, bel, "CEUSEDMUX", "1")
-                    .assert_empty();
-                ctx.state
-                    .get_diff(tile, bel, "SRUSEDMUX", "0")
-                    .assert_empty();
-                let ceused = ctx.state.get_diff(tile, bel, "CEUSEDMUX", "IN");
+                ctx.get_diff(tile, bel, "CEUSEDMUX", "1").assert_empty();
+                ctx.get_diff(tile, bel, "SRUSEDMUX", "0").assert_empty();
+                let ceused = ctx.get_diff(tile, bel, "CEUSEDMUX", "IN");
                 ctx.insert(tile, bel, "FF_CE_ENABLE", xlat_bit(ceused));
-                let srused = ctx.state.get_diff(tile, bel, "SRUSEDMUX", "IN");
+                let srused = ctx.get_diff(tile, bel, "SRUSEDMUX", "IN");
                 ctx.insert(tile, bel, "FF_SR_ENABLE", xlat_bit(srused));
             }
             if mode != Mode::Virtex6 {
-                let ff_latch = ctx.state.get_diff(tile, bel, "AFF", "#LATCH");
+                let ff_latch = ctx.get_diff(tile, bel, "AFF", "#LATCH");
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
-                    ctx.state.get_diff(tile, bel, attr, "#FF").assert_empty();
+                    ctx.get_diff(tile, bel, attr, "#FF").assert_empty();
                     if attr != "AFF" {
-                        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "#LATCH"));
+                        assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "#LATCH"));
                     }
                     if mode != Mode::Virtex5 {
-                        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "AND2L"));
-                        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
+                        assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "AND2L"));
+                        assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "OR2L"));
                     }
                 }
                 ctx.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
             } else {
                 for attr in ["AFF", "BFF", "CFF", "DFF"] {
-                    ctx.state.get_diff(tile, bel, attr, "#FF").assert_empty();
-                    let ff_latch = ctx.state.get_diff(tile, bel, attr, "#LATCH");
-                    assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "AND2L"));
-                    assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, attr, "OR2L"));
+                    ctx.get_diff(tile, bel, attr, "#FF").assert_empty();
+                    let ff_latch = ctx.get_diff(tile, bel, attr, "#LATCH");
+                    assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "AND2L"));
+                    assert_eq!(ff_latch, ctx.get_diff(tile, bel, attr, "OR2L"));
                     ctx.insert(tile, bel, format!("{attr}_LATCH"), xlat_bit(ff_latch));
                 }
             }

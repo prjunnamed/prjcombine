@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{xlat_bit, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{xlat_bit, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex::defs;
@@ -227,10 +227,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("CEMUX", "CE", "CE_B"),
             ("SRMUX", "SR", "SR_B"),
         ] {
-            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+            let d0 = ctx.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
+            let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
             ctx.insert_int_inv(&[tile], tile, bel, pin, xlat_bool(d0, d1));
         }
 
@@ -248,14 +248,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "CYINIT", &["BX", "CIN"]);
         ctx.collect_enum(tile, bel, "CYSELF", &["F", "1"]);
         ctx.collect_enum(tile, bel, "CYSELG", &["G", "1"]);
-        let d_0 = ctx.state.get_diff(tile, bel, "CY0F", "0");
-        let d_1 = ctx.state.get_diff(tile, bel, "CY0F", "1");
-        let d_f1_g1 = ctx.state.get_diff(tile, bel, "CY0F", "F1");
-        let d_prod = ctx.state.get_diff(tile, bel, "CY0F", "PROD");
-        assert_eq!(d_0, ctx.state.get_diff(tile, bel, "CY0G", "0"));
-        assert_eq!(d_1, ctx.state.get_diff(tile, bel, "CY0G", "1"));
-        assert_eq!(d_f1_g1, ctx.state.get_diff(tile, bel, "CY0G", "G1"));
-        assert_eq!(d_prod, ctx.state.get_diff(tile, bel, "CY0G", "PROD"));
+        let d_0 = ctx.get_diff(tile, bel, "CY0F", "0");
+        let d_1 = ctx.get_diff(tile, bel, "CY0F", "1");
+        let d_f1_g1 = ctx.get_diff(tile, bel, "CY0F", "F1");
+        let d_prod = ctx.get_diff(tile, bel, "CY0F", "PROD");
+        assert_eq!(d_0, ctx.get_diff(tile, bel, "CY0G", "0"));
+        assert_eq!(d_1, ctx.get_diff(tile, bel, "CY0G", "1"));
+        assert_eq!(d_f1_g1, ctx.get_diff(tile, bel, "CY0G", "G1"));
+        assert_eq!(d_prod, ctx.get_diff(tile, bel, "CY0G", "PROD"));
         ctx.insert(
             tile,
             bel,
@@ -269,24 +269,24 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
 
         // muxes
-        let yb_by = ctx.state.get_diff(tile, bel, "YBMUX", "0");
-        let yb_cy = ctx.state.get_diff(tile, bel, "YBMUX", "1");
+        let yb_by = ctx.get_diff(tile, bel, "YBMUX", "0");
+        let yb_cy = ctx.get_diff(tile, bel, "YBMUX", "1");
         ctx.insert(
             tile,
             bel,
             "YBMUX",
             xlat_enum(vec![("BY", yb_by), ("CY", yb_cy)]),
         );
-        let dx_bx = ctx.state.get_diff(tile, bel, "DXMUX", "0");
-        let dx_x = ctx.state.get_diff(tile, bel, "DXMUX", "1");
+        let dx_bx = ctx.get_diff(tile, bel, "DXMUX", "0");
+        let dx_x = ctx.get_diff(tile, bel, "DXMUX", "1");
         ctx.insert(
             tile,
             bel,
             "DXMUX",
             xlat_enum(vec![("BX", dx_bx), ("X", dx_x)]),
         );
-        let dy_by = ctx.state.get_diff(tile, bel, "DYMUX", "0");
-        let dy_y = ctx.state.get_diff(tile, bel, "DYMUX", "1");
+        let dy_by = ctx.get_diff(tile, bel, "DYMUX", "0");
+        let dy_y = ctx.get_diff(tile, bel, "DYMUX", "1");
         ctx.insert(
             tile,
             bel,
@@ -297,19 +297,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "GYMUX", &["G", "F6", "GXOR"]);
 
         // FFs
-        let ff_sync = ctx.state.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
-        ctx.state
-            .get_diff(tile, bel, "SYNC_ATTR", "ASYNC")
-            .assert_empty();
+        let ff_sync = ctx.get_diff(tile, bel, "SYNC_ATTR", "SYNC");
+        ctx.get_diff(tile, bel, "SYNC_ATTR", "ASYNC").assert_empty();
         ctx.insert(tile, bel, "FF_SR_SYNC", xlat_bit(ff_sync));
 
-        let revused = ctx.state.get_diff(tile, bel, "REVUSED", "0");
+        let revused = ctx.get_diff(tile, bel, "REVUSED", "0");
         ctx.insert(tile, bel, "FF_REV_ENABLE", xlat_bit(revused));
 
-        let ff_latch = ctx.state.get_diff(tile, bel, "FFX", "#LATCH");
-        assert_eq!(ff_latch, ctx.state.get_diff(tile, bel, "FFY", "#LATCH"));
-        ctx.state.get_diff(tile, bel, "FFX", "#FF").assert_empty();
-        ctx.state.get_diff(tile, bel, "FFY", "#FF").assert_empty();
+        let ff_latch = ctx.get_diff(tile, bel, "FFX", "#LATCH");
+        assert_eq!(ff_latch, ctx.get_diff(tile, bel, "FFY", "#LATCH"));
+        ctx.get_diff(tile, bel, "FFX", "#FF").assert_empty();
+        ctx.get_diff(tile, bel, "FFY", "#FF").assert_empty();
         ctx.insert(tile, bel, "FF_LATCH", xlat_bit(ff_latch));
 
         ctx.collect_enum_bool(tile, bel, "INITX", "LOW", "HIGH");

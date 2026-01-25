@@ -5,7 +5,10 @@ use prjcombine_interconnect::{
     db::{BelInfo, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{Diff, xlat_bit, xlat_enum, xlat_enum_default},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, RawTileId};
@@ -192,7 +195,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
                             };
-                            let diff = ctx.state.get_diff(tcname, bname, &mux_name, &in_name);
+                            let diff = ctx.get_diff(tcname, bname, &mux_name, &in_name);
 
                             match test_bits {
                                 Some(ref mut bits) => {
@@ -301,7 +304,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
                             };
-                            let mut diff = ctx.state.get_diff(tcname, bname, &mux_name, &in_name);
+                            let mut diff = ctx.get_diff(tcname, bname, &mux_name, &in_name);
 
                             if in_name.contains("IMUX_SR") || in_name.contains("IMUX_CE") {
                                 let mut item = ctx

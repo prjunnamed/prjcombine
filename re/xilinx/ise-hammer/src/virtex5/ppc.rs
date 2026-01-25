@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::extract_bitvec_val;
+use prjcombine_re_fpga_hammer::diff::extract_bitvec_val;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bits;
 use prjcombine_virtex4::defs;
@@ -155,15 +155,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let tile = "PPC";
     let bel = "PPC";
     if !devdata_only {
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in PPC_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
         ctx.collect_bitvec(tile, bel, "CLOCK_DELAY", "");
         for &attr in PPC_BOOL_ATTRS {
             if attr == "MI_CONTROL_BIT6" {
-                ctx.state.get_diff(tile, bel, attr, "FALSE").assert_empty();
-                ctx.state.get_diff(tile, bel, attr, "TRUE").assert_empty();
+                ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
+                ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
             } else {
                 ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
             }
@@ -171,11 +171,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         for &(attr, _) in PPC_HEX_ATTRS {
             ctx.collect_bitvec(tile, bel, attr, "");
         }
-        ctx.state
-            .get_diff(tile, bel, "CLOCK_DELAY", "TRUE")
+        ctx.get_diff(tile, bel, "CLOCK_DELAY", "TRUE")
             .assert_empty();
     }
-    let diff = ctx.state.get_diff(tile, bel, "CLOCK_DELAY", "FALSE");
+    let diff = ctx.get_diff(tile, bel, "CLOCK_DELAY", "FALSE");
     let val = extract_bitvec_val(ctx.item(tile, bel, "CLOCK_DELAY"), &bits![0; 5], diff);
     ctx.insert_device_data("PPC:CLOCK_DELAY", val);
 }

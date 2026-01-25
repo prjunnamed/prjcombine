@@ -2,7 +2,10 @@ use prjcombine_interconnect::{
     db::{BelInfo, PinDir},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit, xlat_enum, xlat_enum_default};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{xlat_bit, xlat_enum, xlat_enum_default},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{bitvec::BitVec, bsdata::TileItemKind};
@@ -572,7 +575,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             };
             for tile in [clkl, clkr] {
                 let bel = "PCILOGICSE";
-                let default = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+                let default = ctx.get_diff(tile, bel, "PRESENT", "1");
                 let item = ctx.item(tile, bel, "DELAY");
                 let val: BitVec = item
                     .bits
@@ -616,7 +619,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 let pin = &bel.pins["S"];
                 let bel = format!("BUFGMUX[{i}]");
                 let bel = &bel;
-                ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+                ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
                 assert_eq!(pin.wires.len(), 1);
                 let wire = pin.wires.first().unwrap();
                 let sinv = ctx.extract_enum_bool(tile, bel, "SINV", "S", "S_B");
@@ -636,7 +639,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             } else {
                 let bel = format!("BUFGMUX[{i}]");
                 let bel = &bel;
-                ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+                ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
                 ctx.collect_enum(tile, bel, "MUX.CLK", &["INT", "CKI"]);
             }
         }
@@ -653,20 +656,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         for tile in [clkl, clkr] {
             for i in 0..8 {
                 let bel = format!("BUFGMUX[{i}]");
-                ctx.state
-                    .get_diff(tile, &bel, "PRESENT", "1")
-                    .assert_empty();
+                ctx.get_diff(tile, &bel, "PRESENT", "1").assert_empty();
                 ctx.collect_inv(tile, &bel, "S");
                 ctx.collect_enum(tile, &bel, "DISABLE_ATTR", &["HIGH", "LOW"]);
                 ctx.collect_enum(tile, &bel, "MUX.CLK", &["INT", "CKI", "DCM_OUT"]);
             }
             let bel = "PCILOGICSE";
-            let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+            let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
             if grid_kind.is_spartan3a() {
                 let mut diffs = vec![];
                 let mut default = None;
                 for val in ["LOW", "MED", "HIGH", "NILL"] {
-                    let diff = ctx.state.get_diff(tile, bel, "DELAY", val);
+                    let diff = ctx.get_diff(tile, bel, "DELAY", val);
                     if diff.bits.is_empty() {
                         default = Some(val);
                     }
@@ -818,7 +819,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     if pin_data.dir == PinDir::Output {
                         continue;
                     }
-                    let mut diff = ctx.state.get_diff(
+                    let mut diff = ctx.get_diff(
                         tile,
                         format!("PTE2OMUX[{i}]"),
                         format!("MUX.{mux_name}"),

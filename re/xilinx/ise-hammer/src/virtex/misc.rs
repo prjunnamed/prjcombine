@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::TileWireCoord;
-use prjcombine_re_fpga_hammer::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_bitvec, xlat_bool, xlat_enum_int};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
@@ -267,23 +267,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     };
     for tile in ["PCI_W", "PCI_E"] {
         let bel = "PCILOGIC";
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
         for (pinmux, pin, pin_b) in [("I1MUX", "I1", "I1_B"), ("I2MUX", "I2", "I2_B")] {
             // this is different from other virtex muxes!
-            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "0"));
-            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "1"));
+            let d0 = ctx.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "0"));
+            let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "1"));
             let item = xlat_bool(d0, d1);
             present.discard_bits(&item);
             ctx.insert_int_inv(&[tile], tile, bel, pin, item);
         }
         present.assert_empty();
         if edev.chip.kind == ChipKind::Virtex {
-            let d0 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "00");
-            let d1 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "01");
-            let d2 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "10");
-            let d3 = ctx.state.get_diff(tile, bel, "PCI_DELAY", "11");
+            let d0 = ctx.get_diff(tile, bel, "PCI_DELAY", "00");
+            let d1 = ctx.get_diff(tile, bel, "PCI_DELAY", "01");
+            let d2 = ctx.get_diff(tile, bel, "PCI_DELAY", "10");
+            let d3 = ctx.get_diff(tile, bel, "PCI_DELAY", "11");
             // bug? bug.
             assert_eq!(d0, d1);
             ctx.insert(
@@ -294,9 +294,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         } else {
             for val in ["00", "01", "10", "11"] {
-                ctx.state
-                    .get_diff(tile, bel, "PCI_DELAY", val)
-                    .assert_empty();
+                ctx.get_diff(tile, bel, "PCI_DELAY", val).assert_empty();
             }
         }
     }
@@ -323,21 +321,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("DRIVE_PD_STATUS", "YES"),
                 ("DRIVE_PD_STATUS", "NO"),
             ] {
-                ctx.state.get_diff(tile, bel, attr, val).assert_empty();
+                ctx.get_diff(tile, bel, attr, val).assert_empty();
             }
         }
 
         let bel = "CAPTURE";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-        let d0 = ctx.state.get_diff(tile, bel, "CAPMUX", "CAP");
-        assert_eq!(d0, ctx.state.get_diff(tile, bel, "CAPMUX", "1"));
-        let d1 = ctx.state.get_diff(tile, bel, "CAPMUX", "CAP_B");
-        assert_eq!(d1, ctx.state.get_diff(tile, bel, "CAPMUX", "0"));
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        let d0 = ctx.get_diff(tile, bel, "CAPMUX", "CAP");
+        assert_eq!(d0, ctx.get_diff(tile, bel, "CAPMUX", "1"));
+        let d1 = ctx.get_diff(tile, bel, "CAPMUX", "CAP_B");
+        assert_eq!(d1, ctx.get_diff(tile, bel, "CAPMUX", "0"));
         let item = xlat_bool(d0, d1);
         ctx.insert_int_inv(&[tile], tile, bel, "CAP", item);
         let item = ctx.extract_enum_bool(tile, bel, "CLKINV", "1", "0");
         ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
-        ctx.state.get_diff(tile, bel, "ONESHOT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "ONESHOT", "1").assert_empty();
     }
     {
         let tile = "CNR_NW";
@@ -345,15 +343,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "TMSPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         ctx.collect_enum(tile, bel, "TCKPIN", &["PULLDOWN", "PULLUP", "PULLNONE"]);
         let item = xlat_bitvec(vec![
-            !ctx.state.get_diff(tile, bel, "IBCLK_N2", "0"),
-            !ctx.state.get_diff(tile, bel, "IBCLK_N4", "0"),
-            !ctx.state.get_diff(tile, bel, "IBCLK_N8", "0"),
-            !ctx.state.get_diff(tile, bel, "IBCLK_N16", "0"),
-            !ctx.state.get_diff(tile, bel, "IBCLK_N32", "0"),
+            !ctx.get_diff(tile, bel, "IBCLK_N2", "0"),
+            !ctx.get_diff(tile, bel, "IBCLK_N4", "0"),
+            !ctx.get_diff(tile, bel, "IBCLK_N8", "0"),
+            !ctx.get_diff(tile, bel, "IBCLK_N16", "0"),
+            !ctx.get_diff(tile, bel, "IBCLK_N32", "0"),
         ]);
         ctx.insert(tile, bel, "BCLK_DIV2", item);
         for attr in ["IBCLK_N2", "IBCLK_N4", "IBCLK_N8", "IBCLK_N16", "IBCLK_N32"] {
-            ctx.state.get_diff(tile, bel, attr, "1").assert_empty();
+            ctx.get_diff(tile, bel, attr, "1").assert_empty();
         }
         if edev.chip.kind == ChipKind::Virtex && ctx.device.name.contains("2s") {
             ctx.collect_enum(tile, bel, "POWERUP_CLK", &["USERCLK", "INTOSC", "CCLK"]);
@@ -363,12 +361,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("POWERUP_CLK", "INTOSC"),
                 ("POWERUP_CLK", "CCLK"),
             ] {
-                ctx.state.get_diff(tile, bel, attr, val).assert_empty();
+                ctx.get_diff(tile, bel, attr, val).assert_empty();
             }
         }
 
         let bel = "STARTUP";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for attr in ["GWE_SYNC", "GSR_SYNC", "GTS_SYNC"] {
             ctx.collect_enum_bool(tile, bel, attr, "NO", "YES");
         }
@@ -377,10 +375,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("GTSMUX", "GTS", "GTS_B"),
             ("GSRMUX", "GSR", "GSR_B"),
         ] {
-            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+            let d0 = ctx.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
+            let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
             let item = xlat_bool(d0, d1);
             ctx.insert_int_inv(&[tile], tile, bel, pin, item);
         }
@@ -393,18 +391,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_bit(tile, bel, "GTS", "1");
         ctx.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
         for val in ["JTAGCLK", "CCLK", "USERCLK"] {
-            ctx.state
-                .get_diff(tile, bel, "STARTUPCLK", val)
-                .assert_empty();
+            ctx.get_diff(tile, bel, "STARTUPCLK", val).assert_empty();
         }
 
         let bel = "BSCAN";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for (pinmux, pin, pin_b) in [("TDO1MUX", "TDO1", "TDO1_B"), ("TDO2MUX", "TDO2", "TDO2_B")] {
-            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+            let d0 = ctx.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
+            let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
             let item = xlat_bool(d0, d1);
             ctx.insert_int_inv(&[tile], tile, bel, pin, item);
         }

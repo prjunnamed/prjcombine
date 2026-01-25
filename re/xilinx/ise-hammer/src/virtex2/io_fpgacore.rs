@@ -1,6 +1,7 @@
 use prjcombine_interconnect::{dir::Dir, grid::TileCoord};
 use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, xlat_bit, xlat_bit_wide, xlat_bool,
+    backend::{FuzzerFeature, FuzzerProp},
+    diff::{Diff, DiffKey, FeatureId, xlat_bit, xlat_bit_wide, xlat_bool},
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -200,12 +201,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         let tile = "IOI_FC";
         let bel = &format!("IBUF[{i}]");
-        ctx.state.get_diff(tile, bel, "ENABLE", "1").assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "ENABLE_O2IPADPATH", "1")
+        ctx.get_diff(tile, bel, "ENABLE", "1").assert_empty();
+        ctx.get_diff(tile, bel, "ENABLE_O2IPADPATH", "1")
             .assert_empty();
-        let diff_i = ctx.state.get_diff(tile, bel, "ENABLE_O2IPATH", "1");
-        let diff_iq = ctx.state.get_diff(tile, bel, "ENABLE_O2IQPATH", "1");
+        let diff_i = ctx.get_diff(tile, bel, "ENABLE_O2IPATH", "1");
+        let diff_iq = ctx.get_diff(tile, bel, "ENABLE_O2IQPATH", "1");
         let (diff_i, diff_iq, diff_common) = Diff::split(diff_i, diff_iq);
         ctx.insert(tile, bel, "ENABLE_O2IPATH", xlat_bit(diff_i));
         ctx.insert(tile, bel, "ENABLE_O2IQPATH", xlat_bit(diff_iq));
@@ -214,18 +214,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_inv(tile, bel, pin);
         }
         for pin in ["REV", "SR"] {
-            let d0 = ctx.state.get_diff(tile, bel, format!("{pin}INV"), pin);
-            let d1 = ctx
-                .state
-                .get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
+            let d0 = ctx.get_diff(tile, bel, format!("{pin}INV"), pin);
+            let d1 = ctx.get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
             let (d0, d1, de) = Diff::split(d0, d1);
             ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));
             ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit(de));
         }
-        ctx.state.get_diff(tile, bel, "IMUX", "1").assert_empty();
-        ctx.state.get_diff(tile, bel, "IFFDMUX", "1").assert_empty();
-        let diff_i = ctx.state.get_diff(tile, bel, "IMUX", "0");
-        let diff_iff = ctx.state.get_diff(tile, bel, "IFFDMUX", "0");
+        ctx.get_diff(tile, bel, "IMUX", "1").assert_empty();
+        ctx.get_diff(tile, bel, "IFFDMUX", "1").assert_empty();
+        let diff_i = ctx.get_diff(tile, bel, "IMUX", "0");
+        let diff_iff = ctx.get_diff(tile, bel, "IFFDMUX", "0");
         let (diff_i, diff_iff, diff_common) = Diff::split(diff_i, diff_iff);
         ctx.insert(tile, bel, "I_DELAY_ENABLE", xlat_bit(diff_i));
         ctx.insert(tile, bel, "IFF_DELAY_ENABLE", xlat_bit(diff_iff));
@@ -252,19 +250,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         let tile = "IOI_FC";
         let bel = &format!("OBUF[{i}]");
-        ctx.state.get_diff(tile, bel, "ENABLE", "1").assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "ENABLE_MISR", "TRUE")
+        ctx.get_diff(tile, bel, "ENABLE", "1").assert_empty();
+        ctx.get_diff(tile, bel, "ENABLE_MISR", "TRUE")
             .assert_empty();
         for pin in ["CLK", "O"] {
             ctx.collect_inv(tile, bel, pin);
         }
         ctx.collect_int_inv(&["INT_IOI_FC"], tile, bel, "CE", false);
         for pin in ["REV", "SR"] {
-            let d0 = ctx.state.get_diff(tile, bel, format!("{pin}INV"), pin);
-            let d1 = ctx
-                .state
-                .get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
+            let d0 = ctx.get_diff(tile, bel, format!("{pin}INV"), pin);
+            let d1 = ctx.get_diff(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
             let (d0, d1, de) = Diff::split(d0, d1);
             if pin == "REV" {
                 ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bool(d0, d1));

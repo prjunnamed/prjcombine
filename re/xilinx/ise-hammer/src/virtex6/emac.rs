@@ -75,11 +75,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let tile = "EMAC";
     let bel = "EMAC";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for &attr in EMAC_BOOL_ATTRS {
         if attr == "EMAC_MDIO_IGNORE_PHYADZERO" {
-            ctx.state.get_diff(tile, bel, attr, "FALSE").assert_empty();
-            ctx.state.get_diff(tile, bel, attr, "TRUE").assert_empty();
+            ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
+            ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
         } else {
             ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
         }

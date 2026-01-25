@@ -1,7 +1,10 @@
 use std::{collections::BTreeMap, ops::Range};
 
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, OcdMode, xlat_bit, xlat_enum};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{Diff, OcdMode, xlat_bit, xlat_enum},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
@@ -1866,7 +1869,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "GTP_COMMON";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in GTP_COMMON_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -1878,7 +1881,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 attr,
                 "EAST_REFCLK0_SEL" | "EAST_REFCLK1_SEL" | "WEST_REFCLK0_SEL" | "WEST_REFCLK1_SEL"
             ) {
-                let [diff0, diff1] = ctx.state.get_diffs(tile, bel, attr, "").try_into().unwrap();
+                let [diff0, diff1] = ctx.get_diffs(tile, bel, attr, "").try_into().unwrap();
                 ctx.insert(
                     tile,
                     bel,
@@ -1977,7 +1980,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tile("GTX_COMMON") {
         let tile = "GTX_COMMON";
         let bel = "GTX_COMMON";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -1994,7 +1997,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tile("GTH_COMMON") {
         let tile = "GTH_COMMON";
         let bel = "GTH_COMMON";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in GTXH_COMMON_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -2102,7 +2105,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 "NONE",
                 OcdMode::BitOrderDrpV6,
             );
-            let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+            let mut diff = ctx.get_diff(tile, bel, "PRESENT", "1");
             diff.apply_enum_diff(ctx.item(tile, bel, "MUX.MGTCLKOUT"), "NONE", "O");
             diff.assert_empty();
         }
@@ -2112,14 +2115,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "GTP_COMMON";
         for i in 0..14 {
             let diff = ctx
-                .state
                 .get_diff(tile, bel, format!("MUX.HOUT{i}"), format!("HIN{i}.EXCL"))
-                .combine(&!ctx.state.peek_diff(
-                    tile,
-                    bel,
-                    format!("MUX.HOUT{i}"),
-                    format!("HIN{i}"),
-                ));
+                .combine(&!ctx.peek_diff(tile, bel, format!("MUX.HOUT{i}"), format!("HIN{i}")));
             ctx.insert(
                 tile,
                 "HCLK_GTP_MID",
@@ -2140,9 +2137,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "MGTCLKOUT1",
         ] {
             let diff = ctx
-                .state
                 .get_diff(tile, bel, "MUX.HOUT0", format!("{pin}.EXCL"))
-                .combine(&!ctx.state.peek_diff(tile, bel, "MUX.HOUT0", pin));
+                .combine(&!ctx.peek_diff(tile, bel, "MUX.HOUT0", pin));
             ctx.insert(
                 tile,
                 "HCLK_GTP_MID",
@@ -2217,7 +2213,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             continue;
         }
         let bel = "GTP_CHANNEL";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in GTP_CHANNEL_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -2243,7 +2239,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tile("GTX_CHANNEL") {
         let tile = "GTX_CHANNEL";
         let bel = "GTX_CHANNEL";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in GTX_CHANNEL_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }
@@ -2269,7 +2265,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     if ctx.has_tile("GTH_CHANNEL") {
         let tile = "GTH_CHANNEL";
         let bel = "GTH_CHANNEL";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         for &pin in GTH_CHANNEL_INVPINS {
             ctx.collect_inv(tile, bel, pin);
         }

@@ -254,14 +254,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let tile = "PCIE";
     let bel = "PCIE";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for &pin in PCIE_INVPINS {
         ctx.collect_inv(tile, bel, pin);
     }
     for &attr in PCIE_BOOL_ATTRS {
         if attr == "CLKDIVIDED" {
-            ctx.state.get_diff(tile, bel, attr, "FALSE").assert_empty();
-            ctx.state.get_diff(tile, bel, attr, "TRUE").assert_empty();
+            ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
+            ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
         } else {
             ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
         }

@@ -5,7 +5,10 @@ use prjcombine_interconnect::{
     db::BelSlotId,
     grid::{CellCoord, DieId, TileCoord},
 };
-use prjcombine_re_fpga_hammer::{Diff, FuzzerProp, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{Diff, xlat_bit, xlat_bitvec, xlat_bool, xlat_enum},
+};
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{
     Bond, Device, ExpandedBond, ExpandedDevice, ExpandedNamedDevice, GeomDb,
@@ -595,9 +598,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             // IOI
 
-            let present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+            let present = ctx.get_diff(tile, bel, "PRESENT", "1");
             let diff = ctx
-                .state
                 .get_diff(tile, bel, "SHORTEN_JTAG_CHAIN", "0")
                 .combine(&!&present);
             let item = xlat_bit(!diff);
@@ -610,10 +612,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("T", "T_TB", "TRIMUX"),
                 ("O", "O_B", "OMUX"),
             ] {
-                let diff0 = ctx.state.get_diff(tile, bel, pinmux, "1");
-                assert_eq!(diff0, ctx.state.get_diff(tile, bel, pinmux, pin));
-                let diff1 = ctx.state.get_diff(tile, bel, pinmux, "0");
-                assert_eq!(diff1, ctx.state.get_diff(tile, bel, pinmux, pin_b));
+                let diff0 = ctx.get_diff(tile, bel, pinmux, "1");
+                assert_eq!(diff0, ctx.get_diff(tile, bel, pinmux, pin));
+                let diff1 = ctx.get_diff(tile, bel, pinmux, "0");
+                assert_eq!(diff1, ctx.get_diff(tile, bel, pinmux, pin_b));
                 let item = xlat_bool(diff0, diff1);
                 ctx.insert_int_inv(&[tile], tile, bel, pin, item);
             }
@@ -629,10 +631,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, "OFF_INIT", item);
             let item = ctx.extract_enum_bool(tile, bel, "TFFATTRBOX", "LOW", "HIGH");
             ctx.insert(tile, bel, "TFF_INIT", item);
-            ctx.state
-                .get_diff(tile, bel, "FFATTRBOX", "ASYNC")
-                .assert_empty();
-            let mut diff = ctx.state.get_diff(tile, bel, "FFATTRBOX", "SYNC");
+            ctx.get_diff(tile, bel, "FFATTRBOX", "ASYNC").assert_empty();
+            let mut diff = ctx.get_diff(tile, bel, "FFATTRBOX", "SYNC");
             for iot in ['I', 'O', 'T'] {
                 let init = ctx.item(tile, bel, &format!("{iot}FF_INIT"));
                 let init_bit = init.bits[0];
@@ -721,8 +721,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             // IOI + IOB
 
-            ctx.state.get_diff(tile, bel, "TSEL", "1").assert_empty();
-            let mut diff = ctx.state.get_diff(tile, bel, "TSEL", "0");
+            ctx.get_diff(tile, bel, "TSEL", "1").assert_empty();
+            let mut diff = ctx.get_diff(tile, bel, "TSEL", "0");
             let diff_ioi =
                 diff.split_bits_by(|bit| bit.frame.to_idx() < 48 && bit.bit.to_idx() == 16);
             ctx.insert(
@@ -738,9 +738,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 xlat_enum(vec![("T", Diff::default()), ("TFF", diff)]),
             );
             let mut diff = ctx
-                .state
                 .get_diff(tile, bel, "OUTMUX", "0")
-                .combine(&!ctx.state.get_diff(tile, bel, "OUTMUX", "1"));
+                .combine(&!ctx.get_diff(tile, bel, "OUTMUX", "1"));
             let diff_ioi =
                 diff.split_bits_by(|bit| bit.frame.to_idx() < 48 && bit.bit.to_idx() == 16);
             ctx.insert(
@@ -784,7 +783,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile_iob, bel, "PULL", item);
 
             if has_any_vref(edev, ctx.device, ctx.db, tile, defs::bslots::IO[i]).is_some() {
-                let diff = present.combine(&!&ctx.state.get_diff(tile, bel, "PRESENT", "NOT_VREF"));
+                let diff = present.combine(&!&ctx.get_diff(tile, bel, "PRESENT", "NOT_VREF"));
                 ctx.insert(tile_iob, bel, "VREF", xlat_bit(diff));
             }
 
@@ -808,13 +807,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     .collect()
             };
             for &(kind, iostd) in &iostds {
-                let diff_i = ctx.state.get_diff(tile, bel, "ISTD", iostd);
+                let diff_i = ctx.get_diff(tile, bel, "ISTD", iostd);
                 let diff_o = if iostd == "LVTTL" {
-                    ctx.state
-                        .peek_diff(tile, bel, "OSTD", format!("{iostd}.12.SLOW"))
+                    ctx.peek_diff(tile, bel, "OSTD", format!("{iostd}.12.SLOW"))
                 } else {
-                    ctx.state
-                        .peek_diff(tile, bel, "OSTD", format!("{iostd}.SLOW"))
+                    ctx.peek_diff(tile, bel, "OSTD", format!("{iostd}.SLOW"))
                 }
                 .clone();
                 let (diff_i, _, diff_c) = Diff::split(diff_i, diff_o);
@@ -828,9 +825,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let mut pdrive = vec![None; 4];
             let mut ndrive = vec![None; 5];
             for drive in ["2", "4", "6", "8", "12", "16", "24"] {
-                let diff = ctx
-                    .state
-                    .peek_diff(tile, bel, "OSTD", format!("LVTTL.{drive}.SLOW"));
+                let diff = ctx.peek_diff(tile, bel, "OSTD", format!("LVTTL.{drive}.SLOW"));
                 for (i, bits) in pdrive_all.iter().enumerate() {
                     for &bit in bits {
                         if let Some(&pol) = diff.bits.get(&bit) {
@@ -856,9 +851,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let ndrive: Vec<_> = ndrive.into_iter().map(|x| x.unwrap()).collect();
 
             let slew_bits: HashSet<_> = ctx
-                .state
                 .peek_diff(tile, bel, "OSTD", "LVTTL.24.FAST")
-                .combine(&!ctx.state.peek_diff(tile, bel, "OSTD", "LVTTL.24.SLOW"))
+                .combine(&!ctx.peek_diff(tile, bel, "OSTD", "LVTTL.24.SLOW"))
                 .bits
                 .into_keys()
                 .collect();
@@ -875,12 +869,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 if iostd == "LVTTL" {
                     for drive in ["2", "4", "6", "8", "12", "16", "24"] {
                         for slew in ["SLOW", "FAST"] {
-                            let mut diff = ctx.state.get_diff(
-                                tile,
-                                bel,
-                                "OSTD",
-                                format!("{iostd}.{drive}.{slew}"),
-                            );
+                            let mut diff =
+                                ctx.get_diff(tile, bel, "OSTD", format!("{iostd}.{drive}.{slew}"));
                             let pdrive_val: BitVec = pdrive
                                 .iter()
                                 .map(|&(bit, inv)| {
@@ -920,9 +910,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                 } else {
                     for slew in ["SLOW", "FAST"] {
-                        let mut diff =
-                            ctx.state
-                                .get_diff(tile, bel, "OSTD", format!("{iostd}.{slew}"));
+                        let mut diff = ctx.get_diff(tile, bel, "OSTD", format!("{iostd}.{slew}"));
                         let pdrive_val: BitVec = pdrive
                             .iter()
                             .map(|&(bit, inv)| {

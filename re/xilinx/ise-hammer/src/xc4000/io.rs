@@ -2,7 +2,10 @@ use prjcombine_interconnect::{
     db::{BelInputId, BelSlotId, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{FuzzerProp, xlat_bit_raw, xlat_enum_attr};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{xlat_bit_raw, xlat_enum_attr},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::TileBit;

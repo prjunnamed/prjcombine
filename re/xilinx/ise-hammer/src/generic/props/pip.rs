@@ -5,7 +5,7 @@ use prjcombine_interconnect::{
     db::{BelSlotId, TileWireCoord, WireSlotId},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::FuzzerProp;
+use prjcombine_re_fpga_hammer::backend::FuzzerProp;
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_re_xilinx_naming::db::RawTileId;
 

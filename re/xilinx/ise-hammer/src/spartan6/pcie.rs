@@ -116,7 +116,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         return;
     }
     let bel = "PCIE";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for attr in [
         "DEV_CAP_EXT_TAG_SUPPORTED",
         "DEV_CAP_ROLE_BASED_ERROR",

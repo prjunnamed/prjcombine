@@ -2,7 +2,7 @@ use prjcombine_interconnect::{
     db::{BelInfo, BelSlotId},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{DiffKey, FuzzerProp};
+use prjcombine_re_fpga_hammer::{backend::FuzzerProp, diff::DiffKey};
 use prjcombine_re_hammer::Fuzzer;
 
 use crate::backend::{IseBackend, Key, MultiValue, PinFromKind, Value};

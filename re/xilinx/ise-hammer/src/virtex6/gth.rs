@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{xlat_bitvec, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{xlat_bitvec, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::{TileBit, TileItem};
 use prjcombine_virtex4::defs;
@@ -432,7 +432,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("80", "80"),
                 ("6466", "6466"),
             ] {
-                diffs.push((val, ctx.state.get_diff(tile, bel, attr, sval)));
+                diffs.push((val, ctx.get_diff(tile, bel, attr, sval)));
             }
             ctx.insert(tile, bel, attr, xlat_enum(diffs));
         } else {
@@ -443,7 +443,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, attr, "");
     }
     for &(attr, _) in GTH_HEX_ATTRS {
-        let mut diffs = ctx.state.get_diffs(tile, bel, attr, "");
+        let mut diffs = ctx.get_diffs(tile, bel, attr, "");
         if attr == "SLICE_NOISE_CTRL_1_LANE01" {
             let bit = TileBit::new(12, 29, 32);
             assert_eq!(diffs[1].bits.len(), 0);
@@ -462,7 +462,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     let tile = "HCLK";
     let bel = "HCLK";
-    let mut diff = ctx.state.get_diff(tile, bel, "DRP_MASK_BOTH", "GTH");
+    let mut diff = ctx.get_diff(tile, bel, "DRP_MASK_BOTH", "GTH");
     diff.apply_bit_diff(ctx.item(tile, bel, "DRP_MASK_BELOW"), true, false);
     diff.apply_bit_diff(ctx.item(tile, bel, "DRP_MASK_ABOVE"), true, false);
     diff.assert_empty();

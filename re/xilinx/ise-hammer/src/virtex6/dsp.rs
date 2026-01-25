@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{Diff, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex4::defs;
 
@@ -169,8 +169,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         for &pin in DSP48E1_TIEPINS {
             let attr = format!("MUX.{pin}");
-            let gnd = ctx.state.get_diff(tile, bel, &attr, "GND");
-            let vcc = ctx.state.get_diff(tile, bel, &attr, "VCC");
+            let gnd = ctx.get_diff(tile, bel, &attr, "GND");
+            let vcc = ctx.get_diff(tile, bel, &attr, "VCC");
             ctx.insert(
                 tile,
                 bel,
@@ -207,16 +207,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         ctx.collect_enum(tile, bel, "A_INPUT", &["DIRECT", "CASCADE"]);
         ctx.collect_enum(tile, bel, "B_INPUT", &["DIRECT", "CASCADE"]);
-        ctx.state
-            .get_diff(tile, bel, "USE_PATTERN_DETECT", "PATDET")
+        ctx.get_diff(tile, bel, "USE_PATTERN_DETECT", "PATDET")
             .assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "USE_PATTERN_DETECT", "NO_PATDET")
+        ctx.get_diff(tile, bel, "USE_PATTERN_DETECT", "NO_PATDET")
             .assert_empty();
         ctx.collect_enum(tile, bel, "USE_SIMD", &["TWO24", "ONE48", "FOUR12"]);
-        let d0 = ctx.state.get_diff(tile, bel, "USE_MULT", "NONE");
-        let d1 = ctx.state.get_diff(tile, bel, "USE_MULT", "MULTIPLY");
-        assert_eq!(d1, ctx.state.get_diff(tile, bel, "USE_MULT", "DYNAMIC"));
+        let d0 = ctx.get_diff(tile, bel, "USE_MULT", "NONE");
+        let d1 = ctx.get_diff(tile, bel, "USE_MULT", "MULTIPLY");
+        assert_eq!(d1, ctx.get_diff(tile, bel, "USE_MULT", "DYNAMIC"));
         ctx.insert(tile, bel, "USE_MULT", xlat_bool(d0, d1));
         ctx.collect_enum_bool(tile, bel, "USE_DPORT", "FALSE", "TRUE");
         ctx.collect_enum(tile, bel, "SEL_PATTERN", &["PATTERN", "C"]);
@@ -235,6 +233,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         ctx.collect_bitvec(tile, bel, "PATTERN", "");
         ctx.collect_bitvec(tile, bel, "MASK", "");
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     }
 }

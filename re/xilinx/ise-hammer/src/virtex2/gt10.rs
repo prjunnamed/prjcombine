@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::{BelInfo, PinDir};
-use prjcombine_re_fpga_hammer::{OcdMode, extract_bitvec_val};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, extract_bitvec_val};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bitvec::BitVec;
 use prjcombine_virtex2::{defs, defs::virtex2::tcls};
@@ -238,15 +238,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "10GFC",
             "10GE",
         ] {
-            ctx.state
-                .get_diff(tile, bel, "IOSTANDARD", val)
-                .assert_empty();
+            ctx.get_diff(tile, bel, "IOSTANDARD", val).assert_empty();
         }
-        ctx.state
-            .get_diff(tile, bel, "PMA_SPEED_USE", "PMA_SPEED")
+        ctx.get_diff(tile, bel, "PMA_SPEED_USE", "PMA_SPEED")
             .assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "PMA_SPEED_USE", "PMA_SPEED_HEX")
+        ctx.get_diff(tile, bel, "PMA_SPEED_USE", "PMA_SPEED_HEX")
             .assert_empty();
 
         ctx.collect_enum(tile, bel, "CLK_COR_SEQ_LEN", &["1", "2", "3", "4", "8"]);
@@ -341,7 +337,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "18_80", "18_40", "17_64", "17_32", "16_64", "16_32", "31_8", "31_32", "31_16", "30_8",
             "30_32", "30_16", "29_40", "29_20", "29_10",
         ] {
-            let diff = ctx.state.get_diff(tile, bel, "PMA_SPEED", val);
+            let diff = ctx.get_diff(tile, bel, "PMA_SPEED", val);
             let bits = extract_bitvec_val(&item, &base, diff);
             ctx.insert_misc_data(format!("GT10:PMA_SPEED:{val}"), bits);
         }

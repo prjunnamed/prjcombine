@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::{OcdMode, xlat_bitvec, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_bitvec, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::{
@@ -399,11 +399,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     let bel = "BSCAN_COMMON";
-    let item = xlat_bitvec(ctx.state.get_diffs(tile, bel, "USERID", ""));
+    let item = xlat_bitvec(ctx.get_diffs(tile, bel, "USERID", ""));
     ctx.insert(tile, bel, "USERID", item);
 
     let bel = "STARTUP";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     ctx.collect_enum_bool(tile, bel, "GSR_SYNC", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "GWE_SYNC", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "GTS_SYNC", "NO", "YES");
@@ -436,7 +436,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     let bel = "CAPTURE";
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     ctx.collect_int_inv(&["INT"; 16], tile, bel, "CLK", false);
     ctx.collect_int_inv(&["INT"; 16], tile, bel, "CAP", true);
 
@@ -558,7 +558,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_int_inv(&["INT"; 8], tile, bel, pin, false);
         }
         ctx.collect_inv(tile, bel, "CONVST");
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
         for (attr, val) in [
             ("DCLK_DIVID_2", 0),
             ("LW_DIVID_2_4", 0),
@@ -577,26 +577,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present.assert_empty();
 
         let mut diffs = vec![];
-        let diff = ctx.state.get_diff(tile, bel, "CONVST", "INT_IMUX");
-        assert_eq!(
-            diff,
-            ctx.state.get_diff(tile, bel, "CONVST_TEST", "INT_IMUX")
-        );
+        let diff = ctx.get_diff(tile, bel, "CONVST", "INT_IMUX");
+        assert_eq!(diff, ctx.get_diff(tile, bel, "CONVST_TEST", "INT_IMUX"));
         diffs.push(("INT_IMUX".to_string(), diff));
-        let mut diff = ctx.state.get_diff(tile, bel, "CONVST", "INT_CLK");
-        assert_eq!(
-            diff,
-            ctx.state.get_diff(tile, bel, "CONVST_TEST", "INT_CLK")
-        );
+        let mut diff = ctx.get_diff(tile, bel, "CONVST", "INT_CLK");
+        assert_eq!(diff, ctx.get_diff(tile, bel, "CONVST_TEST", "INT_CLK"));
         let item = ctx.item_int_inv(&["INT"; 8], tile, bel, "CONVST_INT_CLK");
         diff.apply_bit_diff(&item, false, true);
         diffs.push(("INT_CLK".to_string(), diff));
         for i in 0..16 {
-            let diff = ctx.state.get_diff(tile, bel, "CONVST", format!("GIOB{i}"));
+            let diff = ctx.get_diff(tile, bel, "CONVST", format!("GIOB{i}"));
             assert_eq!(
                 diff,
-                ctx.state
-                    .get_diff(tile, bel, "CONVST_TEST", format!("GIOB{i}"))
+                ctx.get_diff(tile, bel, "CONVST_TEST", format!("GIOB{i}"))
             );
             diffs.push((format!("GIOB{i}"), diff));
         }

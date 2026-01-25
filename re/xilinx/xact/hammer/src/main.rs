@@ -8,7 +8,7 @@ use backend::XactBackend;
 use clap::Parser;
 use collector::CollectorCtx;
 use itertools::Itertools;
-use prjcombine_re_fpga_hammer::{Collector, CollectorData};
+use prjcombine_re_fpga_hammer::{bitdata::CollectorData, collect::Collector};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_xact_geom::{Device, GeomDb};
 use prjcombine_xc2000::chip::ChipKind;
@@ -76,11 +76,16 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, data: &mut CollectorData, o
         | ChipKind::SpartanXl => xc4000::add_fuzzers(&mut hammer, &backend),
         ChipKind::Xc5200 => xc5200::add_fuzzers(&mut hammer, &backend),
     }
-    let mut state = hammer.run().unwrap();
+    let state = hammer.run().unwrap();
+    let mut diffs = state
+        .features
+        .into_iter()
+        .map(|(k, v)| (k, v.diffs))
+        .collect();
     let mut ctx = CollectorCtx {
         device: part,
         edev: &edev,
-        collector: Collector::new(&mut state, data, edev.db),
+        collector: Collector::new(&mut diffs, data, edev.db),
     };
     match edev.chip.kind {
         ChipKind::Xc2000 => xc2000::collect_fuzzers(&mut ctx),
@@ -95,8 +100,8 @@ fn run(xact_path: &Path, db: &GeomDb, part: &Device, data: &mut CollectorData, o
         | ChipKind::SpartanXl => xc4000::collect_fuzzers(&mut ctx),
         ChipKind::Xc5200 => xc5200::collect_fuzzers(&mut ctx),
     }
-    for (key, data) in state.features.iter().sorted_by_key(|&(k, _)| k) {
-        println!("{key:?}: {diffs:?}", diffs = data.diffs);
+    for (key, data) in diffs.iter().sorted_by_key(|&(k, _)| k) {
+        println!("{key:?}: {data:?}");
     }
 }
 

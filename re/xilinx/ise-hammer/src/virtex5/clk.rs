@@ -1,8 +1,8 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bit_wide,
-    xlat_enum_ocd,
+    backend::{FuzzerFeature, FuzzerProp},
+    diff::{Diff, DiffKey, FeatureId, OcdMode, xlat_bit, xlat_bit_wide, xlat_enum_ocd},
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -547,7 +547,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for i in 0..32 {
             let bel = format!("BUFGCTRL[{i}]");
             let bel = &bel;
-            ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+            ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
             for pin in ["CE0", "CE1", "S0", "S1", "IGNORE0", "IGNORE1"] {
                 ctx.collect_inv(tile, bel, pin);
             }
@@ -603,11 +603,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let mut inp_diffs = vec![];
         for i in 0..32 {
             let diff_l = ctx
-                .state
                 .peek_diff(tile, bel, "MUX.HCLK_L0", format!("GCLK{i}"))
                 .clone();
             let diff_r = ctx
-                .state
                 .peek_diff(tile, bel, "MUX.HCLK_R0", format!("GCLK{i}"))
                 .clone();
             let (_, _, diff) = Diff::split(diff_l, diff_r);
@@ -617,12 +615,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for lr in ['L', 'R'] {
                 let mut inps = vec![("NONE".to_string(), Diff::default())];
                 for j in 0..32 {
-                    let mut diff = ctx.state.get_diff(
-                        tile,
-                        bel,
-                        format!("MUX.HCLK_{lr}{i}"),
-                        format!("GCLK{j}"),
-                    );
+                    let mut diff =
+                        ctx.get_diff(tile, bel, format!("MUX.HCLK_{lr}{i}"), format!("GCLK{j}"));
                     diff = diff.combine(&!&inp_diffs[j]);
                     inps.push((format!("GCLK{j}"), diff));
                 }
@@ -655,11 +649,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     continue;
                 }
                 let diff_a = ctx
-                    .state
                     .peek_diff(tile, bel, "MUX.MUXBUS0", format!("MGT_{lr}{i}"))
                     .clone();
                 let diff_b = ctx
-                    .state
                     .peek_diff(tile, bel, "MUX.MUXBUS1", format!("MGT_{lr}{i}"))
                     .clone();
                 let (_, _, diff) = Diff::split(diff_a, diff_b);
@@ -671,8 +663,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ("NONE".to_string(), Diff::default()),
                 (
                     "PASS".to_string(),
-                    ctx.state
-                        .get_diff(tile, bel, format!("MUX.MUXBUS{i}"), "PASS"),
+                    ctx.get_diff(tile, bel, format!("MUX.MUXBUS{i}"), "PASS"),
                 ),
             ];
             for j in 0..5 {
@@ -680,12 +671,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     if lr == 'L' && edev.col_lgt.is_none() && bel != "CLK_IOB" {
                         continue;
                     }
-                    let mut diff = ctx.state.get_diff(
-                        tile,
-                        bel,
-                        format!("MUX.MUXBUS{i}"),
-                        format!("MGT_{lr}{j}"),
-                    );
+                    let mut diff =
+                        ctx.get_diff(tile, bel, format!("MUX.MUXBUS{i}"), format!("MGT_{lr}{j}"));
                     diff.apply_bit_diff(
                         ctx.item(tile, bel, &format!("BUF.MGT_{lr}{j}")),
                         true,
@@ -698,12 +685,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 for j in 0..28 {
                     diffs.push((
                         format!("CMT_CLK{j}"),
-                        ctx.state.get_diff(
-                            tile,
-                            bel,
-                            format!("MUX.MUXBUS{i}"),
-                            format!("CMT_CLK{j}"),
-                        ),
+                        ctx.get_diff(tile, bel, format!("MUX.MUXBUS{i}"), format!("CMT_CLK{j}")),
                     ));
                 }
             }
@@ -711,8 +693,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 for j in 0..10 {
                     diffs.push((
                         format!("GIOB{j}"),
-                        ctx.state
-                            .get_diff(tile, bel, format!("MUX.MUXBUS{i}"), format!("GIOB{j}")),
+                        ctx.get_diff(tile, bel, format!("MUX.MUXBUS{i}"), format!("GIOB{j}")),
                     ));
                 }
             }
@@ -749,10 +730,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if !tcls.bels.contains_id(defs::bslots::BUFIO[i]) {
                 continue;
             }
-            ctx.state
-                .get_diff(tile, &bel, "PRESENT", "1")
-                .assert_empty();
-            let diff = ctx.state.get_diff(tile, &bel, "ENABLE", "1");
+            ctx.get_diff(tile, &bel, "PRESENT", "1").assert_empty();
+            let diff = ctx.get_diff(tile, &bel, "ENABLE", "1");
             diffs.push((bel, diff));
         }
         let (_, _, enable) = Diff::split(diffs[0].1.clone(), diffs[1].1.clone());
@@ -830,9 +809,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let tile = "IO";
         let bel = "IODELAY_BOTH";
         // don't worry about it kitten
-        ctx.state
-            .get_diff(tile, bel, "IDELAYCTRL_MODE", "DEFAULT_ONLY");
-        ctx.state.get_diff(tile, bel, "IDELAYCTRL_MODE", "FULL");
+        ctx.get_diff(tile, bel, "IDELAYCTRL_MODE", "DEFAULT_ONLY");
+        ctx.get_diff(tile, bel, "IDELAYCTRL_MODE", "FULL");
     }
     {
         let tile = "HCLK_CMT";

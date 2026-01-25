@@ -7,7 +7,8 @@ use prjcombine_interconnect::{
     grid::{TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FuzzerProp, OcdMode, xlat_bit_raw, xlat_enum_attr, xlat_enum_raw,
+    backend::FuzzerProp,
+    diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_attr, xlat_enum_raw},
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -1418,7 +1419,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     wire: wires::BUFGLS[idx],
                                     ..src.tw
                                 };
-                                let diff = ctx.state.get_diff_raw(&DiffKey::RoutingVia(
+                                let diff = ctx.get_diff_raw(&DiffKey::RoutingVia(
                                     tcid,
                                     mux.dst,
                                     src,
@@ -1450,7 +1451,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     if wire_to == wire_from.tw {
                                         continue;
                                     }
-                                    let diff = ctx.state.get_diff_raw(&DiffKey::RoutingVia(
+                                    let diff = ctx.get_diff_raw(&DiffKey::RoutingVia(
                                         tcid,
                                         wire_to,
                                         wire_mid.pos(),
@@ -1491,9 +1492,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 got_empty = true;
                                 continue;
                             }
-                            let mut diff = ctx
-                                .state
-                                .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
+                            let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
                             if edev.chip.kind == ChipKind::Xc4000E
                                 && tcname.starts_with("IO_W")
                                 && mux.dst.wire == wires::IMUX_TBUF_I[1]
@@ -1700,7 +1699,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         }
                         inps.sort_by_key(|&(k, _)| k);
                         let item = xlat_enum_raw(inps, OcdMode::Mux);
-                        if item.0.is_empty() {
+                        if item.bits.is_empty() {
                             println!(
                                 "UMMM MUX {tcname} {mux_name} is empty",
                                 mux_name = mux.dst.to_string(intdb, &intdb[tcid])
@@ -1709,9 +1708,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         ctx.insert_mux(tcid, mux.dst, item);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        let diff = ctx
-                            .state
-                            .get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
+                        let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
                         diff.assert_empty();
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
@@ -1752,8 +1749,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                     diffs.push((
                         src,
-                        ctx.state
-                            .get_diff_raw(&DiffKey::RoutingVia(tcid, dst, obuf.pos(), src)),
+                        ctx.get_diff_raw(&DiffKey::RoutingVia(tcid, dst, obuf.pos(), src)),
                     ));
                 }
                 let mut odiff = diffs[0].1.clone();

@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     db::{BelKind, TileWireCoord},
     grid::{CellCoord, DieId},
 };
-use prjcombine_re_fpga_hammer::{Diff, DiffKey, OcdMode, xlat_enum_attr, xlat_enum_raw};
+use prjcombine_re_fpga_hammer::diff::{Diff, DiffKey, OcdMode, xlat_enum_attr, xlat_enum_raw};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bsdata::PolTileBit;
 use prjcombine_xc2000::xc3000::{bcls, bslots, enums, tslots, wires};
@@ -152,23 +152,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_attr(tcid, slot, bcls::IO::IFF_MODE);
         }
         if tcls.bels.contains_id(bslots::MISC_SE) {
-            let diff0 = ctx.state.get_diff_raw(&DiffKey::BelAttrEnumBool(
+            let diff0 = ctx.get_diff_raw(&DiffKey::BelAttrEnumBool(
                 tcid,
                 bslots::MISC_SE,
                 bcls::MISC_SE::REPROGRAM_ENABLE,
                 false,
             ));
-            let diff1 = ctx.state.get_diff_raw(&DiffKey::BelAttrEnumBool(
+            let diff1 = ctx.get_diff_raw(&DiffKey::BelAttrEnumBool(
                 tcid,
                 bslots::MISC_SE,
                 bcls::MISC_SE::REPROGRAM_ENABLE,
                 true,
             ));
-            let (bits, mut values) =
-                xlat_enum_raw(vec![(false, diff0), (true, diff1)], OcdMode::BitOrder);
+            let mut item = xlat_enum_raw(vec![(false, diff0), (true, diff1)], OcdMode::BitOrder);
             let bits = Vec::from_iter(
-                bits.into_iter()
-                    .zip(values.remove(&false).unwrap())
+                item.bits
+                    .into_iter()
+                    .zip(item.values.remove(&false).unwrap())
                     .map(|(bit, inv)| PolTileBit { bit, inv }),
             );
             ctx.insert_bel_attr_bitvec(
@@ -182,15 +182,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bel_attr(tcid, bslots::MISC_SE, bcls::MISC_SE::RESETTIME);
             let mut diffs = vec![(enums::OSC_MODE::DISABLE, Diff::default())];
             for val in [enums::OSC_MODE::ENABLE, enums::OSC_MODE::DIV2] {
-                let mut diff = ctx.state.get_diff_raw(&DiffKey::BelAttrValue(
+                let mut diff = ctx.get_diff_raw(&DiffKey::BelAttrValue(
                     tcid,
                     bslots::OSC,
                     bcls::OSC::MODE,
                     val,
                 ));
-                let (ref bits, _) =
-                    ctx.data.sb_mux[&(tcid, TileWireCoord::new_idx(0, wires::IMUX_BUFG))];
-                diff.discard_bits_raw(bits);
+                let item = &ctx.data.sb_mux[&(tcid, TileWireCoord::new_idx(0, wires::IMUX_BUFG))];
+                diff.discard_bits_raw(&item.bits);
                 diff.apply_bit_diff_raw(
                     ctx.bel_attr_bit(tcid, bslots::IO_S[1], bcls::IO::OSC_PULLUP),
                     false,

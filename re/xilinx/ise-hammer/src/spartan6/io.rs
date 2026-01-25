@@ -5,8 +5,11 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, TileCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, extract_bitvec_val,
-    extract_bitvec_val_part, xlat_bit, xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
+    backend::{FuzzerFeature, FuzzerProp},
+    diff::{
+        Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
+        xlat_bit_wide, xlat_bitvec, xlat_enum, xlat_enum_ocd,
+    },
 };
 use prjcombine_re_hammer::{Fuzzer, FuzzerValue, Session};
 use prjcombine_re_xilinx_geom::{ExpandedBond, ExpandedDevice};
@@ -1598,13 +1601,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for tile in ["IOI_WE", "IOI_SN"] {
         for i in 0..2 {
             let bel = &format!("ILOGIC[{i}]");
-            ctx.state
-                .get_diff(tile, bel, "MODE", "ILOGIC2")
-                .assert_empty();
+            ctx.get_diff(tile, bel, "MODE", "ILOGIC2").assert_empty();
             // TODO: wtf is this bit really? could be MUX.IOCE...
             ctx.collect_bit(tile, bel, "ENABLE", "1");
             ctx.collect_bit(tile, bel, "ENABLE.IOCE", "1");
-            let diff = ctx.state.get_diff(tile, bel, "MUX.CLK", format!("ICLK{i}"));
+            let diff = ctx.get_diff(tile, bel, "MUX.CLK", format!("ICLK{i}"));
             assert_eq!(diff.bits.len(), 1);
             let mut diff2 = Diff::default();
             for (&k, &v) in &diff.bits {
@@ -1637,10 +1638,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, "IFF_REV_USED", item);
             let item = ctx.extract_enum_bool(tile, bel, "SRTYPE_Q", "ASYNC", "SYNC");
             ctx.insert(tile, bel, "IFF_SR_SYNC", item);
-            ctx.state
-                .get_diff(tile, bel, "SRINIT_Q", "0")
-                .assert_empty();
-            let mut diff = ctx.state.get_diff(tile, bel, "SRINIT_Q", "1");
+            ctx.get_diff(tile, bel, "SRINIT_Q", "0").assert_empty();
+            let mut diff = ctx.get_diff(tile, bel, "SRINIT_Q", "1");
             let diff_init = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 38 | 41));
             ctx.insert(tile, bel, "IFF_SRVAL", xlat_bit(diff));
             ctx.insert(tile, bel, "IFF_INIT", xlat_bit(diff_init));
@@ -1658,13 +1657,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_enum_default(tile, bel, "MUX.D", &["OTHER_IOB_I"], "IOB_I");
             }
 
-            let mut serdes = ctx.state.get_diff(tile, bel, "MODE", "ISERDES2");
-            let mut diff_ff = ctx.state.get_diff(tile, bel, "IFFTYPE", "#FF");
+            let mut serdes = ctx.get_diff(tile, bel, "MODE", "ISERDES2");
+            let mut diff_ff = ctx.get_diff(tile, bel, "IFFTYPE", "#FF");
             let diff_latch = ctx
-                .state
                 .get_diff(tile, bel, "IFFTYPE", "#LATCH")
                 .combine(&!&diff_ff);
-            let mut diff_ddr = ctx.state.get_diff(tile, bel, "IFFTYPE", "DDR");
+            let mut diff_ddr = ctx.get_diff(tile, bel, "IFFTYPE", "DDR");
             ctx.insert(tile, bel, "IFF_LATCH", xlat_bit(diff_latch));
 
             diff_ff.apply_bit_diff(ctx.item(tile, bel, "IFF_CE_ENABLE"), false, true);
@@ -1672,13 +1670,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff_ff.assert_empty();
             diff_ddr.apply_bit_diff(ctx.item(tile, bel, "IFF_CE_ENABLE"), false, true);
 
-            let mut diff_n = ctx
-                .state
-                .get_diff(tile, bel, "INTERFACE_TYPE", "NETWORKING");
-            let mut diff_np =
-                ctx.state
-                    .get_diff(tile, bel, "INTERFACE_TYPE", "NETWORKING_PIPELINED");
-            let mut diff_r = ctx.state.get_diff(tile, bel, "INTERFACE_TYPE", "RETIMED");
+            let mut diff_n = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "NETWORKING");
+            let mut diff_np = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "NETWORKING_PIPELINED");
+            let mut diff_r = ctx.get_diff(tile, bel, "INTERFACE_TYPE", "RETIMED");
             for (attr, range) in [
                 ("MUX.Q1", 46..50),
                 ("MUX.Q2", 44..52),
@@ -1710,14 +1704,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff_np.assert_empty();
             diff_r.assert_empty();
 
-            let mut diff_1 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "1");
-            let mut diff_2 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "2");
-            let mut diff_3 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "3");
-            let mut diff_4 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "4");
-            let mut diff_5 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "5");
-            let mut diff_6 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "6");
-            let mut diff_7 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "7");
-            let mut diff_8 = ctx.state.get_diff(tile, bel, "DATA_WIDTH", "8");
+            let mut diff_1 = ctx.get_diff(tile, bel, "DATA_WIDTH", "1");
+            let mut diff_2 = ctx.get_diff(tile, bel, "DATA_WIDTH", "2");
+            let mut diff_3 = ctx.get_diff(tile, bel, "DATA_WIDTH", "3");
+            let mut diff_4 = ctx.get_diff(tile, bel, "DATA_WIDTH", "4");
+            let mut diff_5 = ctx.get_diff(tile, bel, "DATA_WIDTH", "5");
+            let mut diff_6 = ctx.get_diff(tile, bel, "DATA_WIDTH", "6");
+            let mut diff_7 = ctx.get_diff(tile, bel, "DATA_WIDTH", "7");
+            let mut diff_8 = ctx.get_diff(tile, bel, "DATA_WIDTH", "8");
             let mut diff_1_f = Diff::default();
             let mut diff_2_f = Diff::default();
             let mut diff_3_f = Diff::default();
@@ -1839,12 +1833,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         for i in 0..2 {
             let bel = &format!("OLOGIC[{i}]");
-            ctx.state
-                .get_diff(tile, bel, "MODE", "OLOGIC2")
-                .assert_empty();
+            ctx.get_diff(tile, bel, "MODE", "OLOGIC2").assert_empty();
             ctx.collect_bit(tile, bel, "ENABLE", "1");
             ctx.collect_bit(tile, bel, "ENABLE.IOCE", "1");
-            let diff = ctx.state.get_diff(tile, bel, "MUX.CLK", format!("OCLK{i}"));
+            let diff = ctx.get_diff(tile, bel, "MUX.CLK", format!("OCLK{i}"));
             assert_eq!(diff.bits.len(), 1);
             let mut diff2 = Diff::default();
             for (&k, &v) in &diff.bits {
@@ -1898,44 +1890,36 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.insert(tile, bel, "MISR_ENABLE_CLK", item);
             }
             for val in ["1", "2", "3", "4"] {
-                ctx.state
-                    .get_diff(tile, bel, "DATA_WIDTH", val)
-                    .assert_empty();
+                ctx.get_diff(tile, bel, "DATA_WIDTH", val).assert_empty();
             }
             for val in ["5", "6", "7", "8"] {
                 let item = ctx.extract_bit(tile, bel, "DATA_WIDTH", val);
                 ctx.insert(tile, bel, "CASCADE_ENABLE", item);
             }
             if i == 1 {
-                ctx.state
-                    .get_diff(tile, bel, "OUTPUT_MODE", "SINGLE_ENDED")
+                ctx.get_diff(tile, bel, "OUTPUT_MODE", "SINGLE_ENDED")
                     .assert_empty();
-                ctx.state
-                    .get_diff(tile, bel, "OUTPUT_MODE", "DIFFERENTIAL")
+                ctx.get_diff(tile, bel, "OUTPUT_MODE", "DIFFERENTIAL")
                     .assert_empty();
             } else {
                 ctx.collect_enum(tile, bel, "OUTPUT_MODE", &["SINGLE_ENDED", "DIFFERENTIAL"]);
             }
 
-            let mut serdes = ctx.state.get_diff(tile, bel, "MODE", "OSERDES2");
+            let mut serdes = ctx.get_diff(tile, bel, "MODE", "OSERDES2");
             serdes.apply_bit_diff(ctx.item(tile, bel, "ENABLE"), true, false);
 
-            ctx.state
-                .get_diff(tile, bel, "SRINIT_OQ", "0")
-                .assert_empty();
-            ctx.state
-                .get_diff(tile, bel, "SRINIT_TQ", "0")
-                .assert_empty();
-            let diff = ctx.state.get_diff(tile, bel, "SRINIT_TQ", "1");
+            ctx.get_diff(tile, bel, "SRINIT_OQ", "0").assert_empty();
+            ctx.get_diff(tile, bel, "SRINIT_TQ", "0").assert_empty();
+            let diff = ctx.get_diff(tile, bel, "SRINIT_TQ", "1");
             let (mut serdes, diff_init, diff_srval) = Diff::split(serdes, diff);
             ctx.insert(tile, bel, "TFF_INIT", xlat_bit(diff_init));
             ctx.insert(tile, bel, "TFF_SRVAL", xlat_bit(diff_srval));
-            let mut diff = ctx.state.get_diff(tile, bel, "SRINIT_OQ", "1");
+            let mut diff = ctx.get_diff(tile, bel, "SRINIT_OQ", "1");
             let diff_srval = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 8 | 24));
             ctx.insert(tile, bel, "OFF_INIT", xlat_bit(diff));
             ctx.insert(tile, bel, "OFF_SRVAL", xlat_bit(diff_srval));
 
-            let mut diff = ctx.state.get_diff(tile, bel, "MUX.D", "MCB");
+            let mut diff = ctx.get_diff(tile, bel, "MUX.D", "MCB");
             let diff_t = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 2 | 28));
             ctx.insert(
                 tile,
@@ -1951,7 +1935,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
 
             ctx.collect_enum(tile, bel, "OMUX", &["D1", "OUTFF"]);
-            let diff = ctx.state.get_diff(tile, bel, "OT1USED", "0");
+            let diff = ctx.get_diff(tile, bel, "OT1USED", "0");
             ctx.insert(
                 tile,
                 bel,
@@ -1969,21 +1953,21 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let item = ctx.extract_bit(tile, bel, "TDDR_ALIGNMENT", "C0");
             ctx.insert(tile, bel, "TFF_RANK2_CLK_ENABLE", item);
 
-            let mut diff = ctx.state.get_diff(tile, bel, "BYPASS_GCLK_FF", "FALSE");
+            let mut diff = ctx.get_diff(tile, bel, "BYPASS_GCLK_FF", "FALSE");
             let diff_t = diff.split_bits_by(|bit| matches!(bit.bit.to_idx(), 6 | 22));
             ctx.insert(tile, bel, "OFF_RANK1_CLK_ENABLE", xlat_bit(diff));
             ctx.insert(tile, bel, "TFF_RANK1_CLK_ENABLE", xlat_bit(diff_t));
 
-            let diff_bypass = ctx.state.get_diff(tile, bel, "BYPASS_GCLK_FF", "TRUE");
-            let diff_olatch = ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#LATCH");
-            let diff_off = ctx.state.get_diff(tile, bel, "OUTFFTYPE", "#FF");
-            let diff_oddr = ctx.state.get_diff(tile, bel, "OUTFFTYPE", "DDR");
-            let diff_tlatch = ctx.state.get_diff(tile, bel, "TFFTYPE", "#LATCH");
-            let diff_tff = ctx.state.get_diff(tile, bel, "TFFTYPE", "#FF");
-            let diff_tddr = ctx.state.get_diff(tile, bel, "TFFTYPE", "DDR");
-            let diff_oce = ctx.state.get_diff(tile, bel, "MUX.OCE", "INT");
-            let diff_oce_pci = ctx.state.get_diff(tile, bel, "MUX.OCE", "PCI_CE");
-            let diff_tce = ctx.state.get_diff(tile, bel, "MUX.TCE", "INT");
+            let diff_bypass = ctx.get_diff(tile, bel, "BYPASS_GCLK_FF", "TRUE");
+            let diff_olatch = ctx.get_diff(tile, bel, "OUTFFTYPE", "#LATCH");
+            let diff_off = ctx.get_diff(tile, bel, "OUTFFTYPE", "#FF");
+            let diff_oddr = ctx.get_diff(tile, bel, "OUTFFTYPE", "DDR");
+            let diff_tlatch = ctx.get_diff(tile, bel, "TFFTYPE", "#LATCH");
+            let diff_tff = ctx.get_diff(tile, bel, "TFFTYPE", "#FF");
+            let diff_tddr = ctx.get_diff(tile, bel, "TFFTYPE", "DDR");
+            let diff_oce = ctx.get_diff(tile, bel, "MUX.OCE", "INT");
+            let diff_oce_pci = ctx.get_diff(tile, bel, "MUX.OCE", "PCI_CE");
+            let diff_tce = ctx.get_diff(tile, bel, "MUX.TCE", "INT");
 
             let diff_oce_pci = diff_oce_pci.combine(&!&diff_oce);
             ctx.insert(
@@ -2025,25 +2009,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
             serdes.assert_empty();
 
-            let mut diff = ctx.state.get_diff(tile, bel, "IN_TERM", "1");
+            let mut diff = ctx.get_diff(tile, bel, "IN_TERM", "1");
             diff.apply_bit_diff(ctx.item(tile, bel, "TFF_INIT"), true, false);
             diff.apply_bit_diff(ctx.item(tile, bel, "TFF_CE_ENABLE"), true, false);
             diff.assert_empty();
         }
         let (_, _, diff) = Diff::split(
-            ctx.state
-                .peek_diff(tile, "IODELAY[0]", "MODE", "IODRP2")
-                .clone(),
-            ctx.state
-                .peek_diff(tile, "IODELAY[1]", "MODE", "IODRP2")
-                .clone(),
+            ctx.peek_diff(tile, "IODELAY[0]", "MODE", "IODRP2").clone(),
+            ctx.peek_diff(tile, "IODELAY[1]", "MODE", "IODRP2").clone(),
         );
         let (_, _, diff_mcb) = Diff::split(
-            ctx.state
-                .peek_diff(tile, "IODELAY[0]", "MODE", "IODRP2_MCB")
+            ctx.peek_diff(tile, "IODELAY[0]", "MODE", "IODRP2_MCB")
                 .clone(),
-            ctx.state
-                .peek_diff(tile, "IODELAY[1]", "MODE", "IODRP2_MCB")
+            ctx.peek_diff(tile, "IODELAY[1]", "MODE", "IODRP2_MCB")
                 .clone(),
         );
         let diff_mcb = diff_mcb.combine(&!&diff);
@@ -2052,7 +2030,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         for i in 0..2 {
             let bel = &format!("IODELAY[{i}]");
-            let diffs = ctx.state.get_diffs(tile, bel, "ODELAY_VALUE", "");
+            let diffs = ctx.get_diffs(tile, bel, "ODELAY_VALUE", "");
             let mut diffs_p = vec![];
             let mut diffs_n = vec![];
             for mut diff in diffs {
@@ -2070,7 +2048,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let item = ctx.extract_bitvec(tile, bel, "MCB_ADDRESS", "");
                 ctx.insert(tile, "IODELAY_COMMON", "MCB_ADDRESS", item);
             } else {
-                let diffs = ctx.state.get_diffs(tile, bel, "MCB_ADDRESS", "");
+                let diffs = ctx.get_diffs(tile, bel, "MCB_ADDRESS", "");
                 for diff in diffs {
                     diff.assert_empty();
                 }
@@ -2090,19 +2068,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 &["CHANGE_ON_CLOCK", "CHANGE_ON_DATA"],
             );
             let diff = ctx
-                .state
                 .get_diff(tile, bel, "MODE", "IODELAY2.TEST_NCOUNTER")
-                .combine(&!ctx.state.peek_diff(tile, bel, "MODE", "IODELAY2"));
+                .combine(&!ctx.peek_diff(tile, bel, "MODE", "IODELAY2"));
             ctx.insert(tile, bel, "TEST_NCOUNTER", xlat_bit(diff));
             let diff = ctx
-                .state
                 .get_diff(tile, bel, "MODE", "IODELAY2.TEST_PCOUNTER")
-                .combine(&!ctx.state.peek_diff(tile, bel, "MODE", "IODELAY2"));
+                .combine(&!ctx.peek_diff(tile, bel, "MODE", "IODELAY2"));
             ctx.insert(tile, bel, "TEST_PCOUNTER", xlat_bit(diff));
             let diff = ctx
-                .state
                 .get_diff(tile, bel, "MODE", "IODRP2.IOIENFFSCAN_DRP")
-                .combine(&!ctx.state.peek_diff(tile, bel, "MODE", "IODRP2"));
+                .combine(&!ctx.peek_diff(tile, bel, "MODE", "IODRP2"));
             ctx.insert(tile, "IODELAY_COMMON", "ENFFSCAN_DRP", xlat_bit_wide(diff));
 
             ctx.collect_bit(tile, bel, "ENABLE.ODATAIN", "1");
@@ -2112,8 +2087,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, "IDELAY_FIXED", item);
             let item = ctx.extract_bit(tile, bel, "IDELAY_TYPE", "FIXED");
             ctx.insert(tile, bel, "IDELAY_FIXED", item);
-            ctx.state
-                .get_diff(tile, bel, "IDELAY_TYPE", "VARIABLE_FROM_ZERO")
+            ctx.get_diff(tile, bel, "IDELAY_TYPE", "VARIABLE_FROM_ZERO")
                 .assert_empty();
             let item = ctx.extract_bit(tile, bel, "IDELAY_TYPE", "VARIABLE_FROM_HALF_MAX");
             ctx.insert(tile, bel, "IDELAY_FROM_HALF_MAX", item);
@@ -2121,8 +2095,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, "IDELAY_FIXED", item);
             let item = ctx.extract_bit(tile, bel, "IDELAY_TYPE.DPD", "FIXED");
             ctx.insert(tile, bel, "IDELAY_FIXED", item);
-            ctx.state
-                .get_diff(tile, bel, "IDELAY_TYPE.DPD", "VARIABLE_FROM_ZERO")
+            ctx.get_diff(tile, bel, "IDELAY_TYPE.DPD", "VARIABLE_FROM_ZERO")
                 .assert_empty();
             let item = ctx.extract_bit(tile, bel, "IDELAY_TYPE.DPD", "VARIABLE_FROM_HALF_MAX");
             ctx.insert(tile, bel, "IDELAY_FROM_HALF_MAX", item);
@@ -2214,10 +2187,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, "DRP07", drp07);
 
             ctx.collect_enum(tile, bel, "DELAY_SRC", &["IDATAIN", "ODATAIN", "IO"]);
-            ctx.state
-                .get_diff(tile, bel, "IDELAY_MODE", "NORMAL")
+            ctx.get_diff(tile, bel, "IDELAY_MODE", "NORMAL")
                 .assert_empty();
-            let mut diff = ctx.state.get_diff(tile, bel, "IDELAY_MODE", "PCI");
+            let mut diff = ctx.get_diff(tile, bel, "IDELAY_MODE", "PCI");
             diff.apply_enum_diff(ctx.item(tile, bel, "DELAY_SRC"), "ODATAIN", "IO");
             ctx.insert(
                 tile,
@@ -2226,13 +2198,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 xlat_enum(vec![("NORMAL", Diff::default()), ("PCI", diff)]),
             );
 
-            ctx.state
-                .get_diff(tile, bel, "DELAYCHAIN_OSC", "FALSE")
+            ctx.get_diff(tile, bel, "DELAYCHAIN_OSC", "FALSE")
                 .assert_empty();
-            let mut diff_iodelay2 = ctx.state.get_diff(tile, bel, "MODE", "IODELAY2");
-            let mut diff_iodrp2 = ctx.state.get_diff(tile, bel, "MODE", "IODRP2");
-            let mut diff_iodrp2_mcb = ctx.state.get_diff(tile, bel, "MODE", "IODRP2_MCB");
-            let diff_delaychain_osc = ctx.state.get_diff(tile, bel, "DELAYCHAIN_OSC", "TRUE");
+            let mut diff_iodelay2 = ctx.get_diff(tile, bel, "MODE", "IODELAY2");
+            let mut diff_iodrp2 = ctx.get_diff(tile, bel, "MODE", "IODRP2");
+            let mut diff_iodrp2_mcb = ctx.get_diff(tile, bel, "MODE", "IODRP2_MCB");
+            let diff_delaychain_osc = ctx.get_diff(tile, bel, "DELAYCHAIN_OSC", "TRUE");
             diff_iodrp2.apply_bit_diff(ctx.item(tile, "IODELAY_COMMON", "DRP_ENABLE"), true, false);
             diff_iodrp2_mcb.apply_bit_diff(
                 ctx.item(tile, "IODELAY_COMMON", "DRP_ENABLE"),
@@ -2276,11 +2247,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         {
             let mut diff0 =
-                ctx.state
-                    .get_diff(tile, "IODELAY[0]", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
+                ctx.get_diff(tile, "IODELAY[0]", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
             let mut diff1 =
-                ctx.state
-                    .get_diff(tile, "IODELAY[1]", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
+                ctx.get_diff(tile, "IODELAY[1]", "IDELAY_TYPE.DPD", "DIFF_PHASE_DETECTOR");
             diff0.apply_bit_diff(
                 ctx.item(tile, "IODELAY[0]", "DIFF_PHASE_DETECTOR"),
                 true,
@@ -2335,12 +2304,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             ctx.collect_enum_default(tile, bel, "MUX.CLK2", &["PLLCLK0", "PLLCLK1"], "NONE");
 
-            let diff_iddr = ctx.state.get_diff(tile, bel, "MUX.ICLK", "DDR");
-            let diff_iddr_ce = ctx.state.get_diff(tile, bel, "MUX.ICLK", "DDR.ILOGIC");
-            let diff_iddr_ce_c0 = ctx.state.get_diff(tile, bel, "MUX.ICLK", "DDR.ILOGIC.C0");
-            let diff_iddr_ce_c1 = ctx.state.get_diff(tile, bel, "MUX.ICLK", "DDR.ILOGIC.C1");
-            let diff_oddr = ctx.state.get_diff(tile, bel, "MUX.OCLK", "DDR");
-            let diff_oddr_ce = ctx.state.get_diff(tile, bel, "MUX.OCLK", "DDR.OLOGIC");
+            let diff_iddr = ctx.get_diff(tile, bel, "MUX.ICLK", "DDR");
+            let diff_iddr_ce = ctx.get_diff(tile, bel, "MUX.ICLK", "DDR.ILOGIC");
+            let diff_iddr_ce_c0 = ctx.get_diff(tile, bel, "MUX.ICLK", "DDR.ILOGIC.C0");
+            let diff_iddr_ce_c1 = ctx.get_diff(tile, bel, "MUX.ICLK", "DDR.ILOGIC.C1");
+            let diff_oddr = ctx.get_diff(tile, bel, "MUX.OCLK", "DDR");
+            let diff_oddr_ce = ctx.get_diff(tile, bel, "MUX.OCLK", "DDR.OLOGIC");
             let diff_c0 = diff_iddr_ce_c0.combine(&!&diff_iddr_ce);
             let diff_c1 = diff_iddr_ce_c1.combine(&!&diff_iddr_ce);
             let diff_iddr_ce = diff_iddr_ce.combine(&!&diff_iddr);
@@ -2358,34 +2327,34 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
             let item = xlat_enum(vec![
                 ("NONE", Diff::default()),
-                ("CLK0", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK0")),
-                ("CLK1", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK1")),
-                ("CLK2", ctx.state.get_diff(tile, bel, "MUX.ICLK", "CLK2")),
+                ("CLK0", ctx.get_diff(tile, bel, "MUX.ICLK", "CLK0")),
+                ("CLK1", ctx.get_diff(tile, bel, "MUX.ICLK", "CLK1")),
+                ("CLK2", ctx.get_diff(tile, bel, "MUX.ICLK", "CLK2")),
                 ("DDR", diff_iddr),
             ]);
             ctx.insert(tile, bel, "MUX.ICLK", item);
             let item = xlat_enum(vec![
                 ("NONE", Diff::default()),
-                ("CLK0", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK0")),
-                ("CLK1", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK1")),
-                ("CLK2", ctx.state.get_diff(tile, bel, "MUX.OCLK", "CLK2")),
+                ("CLK0", ctx.get_diff(tile, bel, "MUX.OCLK", "CLK0")),
+                ("CLK1", ctx.get_diff(tile, bel, "MUX.OCLK", "CLK1")),
+                ("CLK2", ctx.get_diff(tile, bel, "MUX.OCLK", "CLK2")),
                 ("DDR", diff_oddr),
             ]);
             ctx.insert(tile, bel, "MUX.OCLK", item);
             ctx.insert(tile, bel, "DDR_ENABLE", xlat_bit_wide(diff_ddr));
 
-            let diff_ice_ioce0 = ctx.state.get_diff(tile, bel, "MUX.ICE", "IOCE0");
-            let diff_ice_ioce1 = ctx.state.get_diff(tile, bel, "MUX.ICE", "IOCE1");
-            let diff_ice_ioce2 = ctx.state.get_diff(tile, bel, "MUX.ICE", "IOCE2");
-            let diff_ice_ioce3 = ctx.state.get_diff(tile, bel, "MUX.ICE", "IOCE3");
-            let diff_ice_pllce0 = ctx.state.get_diff(tile, bel, "MUX.ICE", "PLLCE0");
-            let diff_ice_pllce1 = ctx.state.get_diff(tile, bel, "MUX.ICE", "PLLCE1");
-            let diff_oce_ioce0 = ctx.state.get_diff(tile, bel, "MUX.OCE", "IOCE0");
-            let diff_oce_ioce1 = ctx.state.get_diff(tile, bel, "MUX.OCE", "IOCE1");
-            let diff_oce_ioce2 = ctx.state.get_diff(tile, bel, "MUX.OCE", "IOCE2");
-            let diff_oce_ioce3 = ctx.state.get_diff(tile, bel, "MUX.OCE", "IOCE3");
-            let diff_oce_pllce0 = ctx.state.get_diff(tile, bel, "MUX.OCE", "PLLCE0");
-            let diff_oce_pllce1 = ctx.state.get_diff(tile, bel, "MUX.OCE", "PLLCE1");
+            let diff_ice_ioce0 = ctx.get_diff(tile, bel, "MUX.ICE", "IOCE0");
+            let diff_ice_ioce1 = ctx.get_diff(tile, bel, "MUX.ICE", "IOCE1");
+            let diff_ice_ioce2 = ctx.get_diff(tile, bel, "MUX.ICE", "IOCE2");
+            let diff_ice_ioce3 = ctx.get_diff(tile, bel, "MUX.ICE", "IOCE3");
+            let diff_ice_pllce0 = ctx.get_diff(tile, bel, "MUX.ICE", "PLLCE0");
+            let diff_ice_pllce1 = ctx.get_diff(tile, bel, "MUX.ICE", "PLLCE1");
+            let diff_oce_ioce0 = ctx.get_diff(tile, bel, "MUX.OCE", "IOCE0");
+            let diff_oce_ioce1 = ctx.get_diff(tile, bel, "MUX.OCE", "IOCE1");
+            let diff_oce_ioce2 = ctx.get_diff(tile, bel, "MUX.OCE", "IOCE2");
+            let diff_oce_ioce3 = ctx.get_diff(tile, bel, "MUX.OCE", "IOCE3");
+            let diff_oce_pllce0 = ctx.get_diff(tile, bel, "MUX.OCE", "PLLCE0");
+            let diff_oce_pllce1 = ctx.get_diff(tile, bel, "MUX.OCE", "PLLCE1");
             let (diff_ice_ioce0, diff_oce_ioce0, diff_ioce0) =
                 Diff::split(diff_ice_ioce0, diff_oce_ioce0);
             let (diff_ice_ioce1, diff_oce_ioce1, diff_ioce1) =
@@ -2453,13 +2422,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let bel = "IOI";
         if tile == "IOI_SN" || ctx.has_tile("MCB") {
-            let mut diff = ctx.state.get_diff(tile, bel, "DRPSDO", "1");
+            let mut diff = ctx.get_diff(tile, bel, "DRPSDO", "1");
             let diff_de = ctx
-                .state
                 .get_diff(tile, bel, "DRPSDO", "1.DIV_EN")
                 .combine(&!&diff);
             let diff_ni = ctx
-                .state
                 .get_diff(tile, bel, "DRPSDO", "1.NOTINV")
                 .combine(&!&diff);
             ctx.insert(tile, bel, "MEM_PLL_DIV_EN", xlat_bit(diff_de));
@@ -2503,12 +2470,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum_bool(tile, bel, "IMUX", "I", "I_B");
         ctx.insert(tile, bel, "INV.I", item);
         ctx.collect_bit(tile, bel, "PRE_EMPHASIS", "ON");
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
         present.apply_enum_diff(ctx.item(tile, bel, "PULLTYPE"), "NONE", "PULLDOWN");
 
-        ctx.state
-            .get_diff(tile, bel, "BYPASS_MUX", "I")
-            .assert_empty();
+        ctx.get_diff(tile, bel, "BYPASS_MUX", "I").assert_empty();
 
         let pdrive_bits: Vec<_> = (0..6).map(|j| TileBit::new(0, 0, i * 64 + j)).collect();
         let pterm_bits: Vec<_> = (0..6).map(|j| TileBit::new(0, 0, i * 64 + 8 + j)).collect();
@@ -2586,7 +2551,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.insert_misc_data("IOSTD:NTERM:OFF", BitVec::repeat(false, 7));
 
         if i == 0 {
-            let mut diff = ctx.state.get_diff(tile, bel, "PRESENT", "NOTVREF");
+            let mut diff = ctx.get_diff(tile, bel, "PRESENT", "NOTVREF");
             diff.apply_bitvec_diff(
                 ctx.item(tile, bel, "PSLEW"),
                 &pslew_invert,
@@ -2601,68 +2566,53 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         let (_, _, diff) = Diff::split(
-            ctx.state
-                .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:SN")
-                .clone(),
-            ctx.state
-                .peek_diff(tile, bel, "OSTD", "PCI33_3:3.3:SN")
-                .clone(),
+            ctx.peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:SN").clone(),
+            ctx.peek_diff(tile, bel, "OSTD", "PCI33_3:3.3:SN").clone(),
         );
         ctx.insert(tile, bel, "PCI_CLAMP", xlat_bit(diff));
 
         let mut diff = ctx
-            .state
             .peek_diff(tile, bel, "ISTD", "PCI33_3:3.3:SN")
-            .combine(&!ctx.state.peek_diff(tile, bel, "ISTD", "MOBILE_DDR:3.3:SN"));
+            .combine(&!ctx.peek_diff(tile, bel, "ISTD", "MOBILE_DDR:3.3:SN"));
         diff.apply_bit_diff(ctx.item(tile, bel, "PCI_CLAMP"), true, false);
         ctx.insert(tile, bel, "PCI_INPUT", xlat_bit(diff));
 
-        let diff = ctx.state.get_diff(tile, bel, "VREF_LV", "1");
+        let diff = ctx.get_diff(tile, bel, "VREF_LV", "1");
         ctx.insert(tile, bel, "VREF_HV", xlat_bit(!diff));
 
         let item = xlat_enum(vec![
             ("NONE", Diff::default()),
-            ("BYPASS_T", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "T")),
-            ("BYPASS_O", ctx.state.get_diff(tile, bel, "BYPASS_MUX", "O")),
+            ("BYPASS_T", ctx.get_diff(tile, bel, "BYPASS_MUX", "T")),
+            ("BYPASS_O", ctx.get_diff(tile, bel, "BYPASS_MUX", "O")),
             (
                 "CMOS_VCCINT",
-                ctx.state
-                    .peek_diff(tile, bel, "ISTD", "LVCMOS12:3.3:SN")
-                    .clone(),
+                ctx.peek_diff(tile, bel, "ISTD", "LVCMOS12:3.3:SN").clone(),
             ),
             (
                 "CMOS_VCCO",
-                ctx.state
-                    .peek_diff(tile, bel, "ISTD", "LVCMOS12_JEDEC:3.3:SN")
+                ctx.peek_diff(tile, bel, "ISTD", "LVCMOS12_JEDEC:3.3:SN")
                     .clone(),
             ),
             (
                 "VREF",
-                ctx.state
-                    .peek_diff(tile, bel, "ISTD", "SSTL18_I:3.3:SN")
-                    .clone(),
+                ctx.peek_diff(tile, bel, "ISTD", "SSTL18_I:3.3:SN").clone(),
             ),
             (
                 "DIFF",
-                ctx.state
-                    .peek_diff(tile, bel, "ISTD", "DIFF_SSTL18_I:3.3:SN")
+                ctx.peek_diff(tile, bel, "ISTD", "DIFF_SSTL18_I:3.3:SN")
                     .clone(),
             ),
             (
                 "CMOS_VCCAUX",
-                ctx.state
-                    .peek_diff(tile, bel, "ISTD", "LVTTL:3.3:SN")
-                    .clone(),
+                ctx.peek_diff(tile, bel, "ISTD", "LVTTL:3.3:SN").clone(),
             ),
         ]);
         ctx.insert(tile, bel, "IBUF_MODE", item);
         if i == 1 {
             let diff_lvds = ctx
-                .state
                 .peek_diff(tile, bel, "OSTD", "LVDS_25:3.3:GROUP0")
                 .clone();
             let diff_tmds = ctx
-                .state
                 .peek_diff(tile, bel, "OSTD", "TMDS_33:3.3:GROUP0")
                 .clone();
             let (diff_lvds, diff_tmds, mut diff) = Diff::split(diff_lvds, diff_tmds);
@@ -2687,7 +2637,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ("TMDS", diff_tmds),
                 ]),
             );
-            let mut diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", "1");
+            let mut diff = ctx.get_diff(tile, bel, "DIFF_TERM", "1");
             diff.apply_bitvec_diff(
                 ctx.item(tile, bel, "PSLEW"),
                 &BitVec::repeat(false, 4),
@@ -2701,7 +2651,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff.apply_enum_diff(ctx.item(tile, bel, "DIFF_MODE"), "LVDS", "NONE");
             diff.assert_empty();
         } else {
-            let mut diff = ctx.state.get_diff(tile, bel, "DIFF_TERM", "1");
+            let mut diff = ctx.get_diff(tile, bel, "DIFF_TERM", "1");
             diff.apply_bitvec_diff(
                 ctx.item(tile, bel, "PSLEW"),
                 &BitVec::repeat(false, 4),
@@ -2726,7 +2676,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     if std.name == "TML_33" {
                         continue;
                     }
-                    let mut diff = ctx.state.get_diff(
+                    let mut diff = ctx.get_diff(
                         tile,
                         bel,
                         "ISTD",
@@ -2764,7 +2714,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         || std.name.contains("MOBILE_DDR")
                     {
                         for term in ["UNTUNED_SPLIT_25", "UNTUNED_SPLIT_50", "UNTUNED_SPLIT_75"] {
-                            let mut diff = ctx.state.get_diff(
+                            let mut diff = ctx.get_diff(
                                 tile,
                                 bel,
                                 "IN_TERM",
@@ -2813,14 +2763,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                         continue;
                     }
                     if std.diff == DiffKind::True {
-                        let mut diff0 = ctx.state.get_diff(
+                        let mut diff0 = ctx.get_diff(
                             tile,
                             bel,
                             "OSTD",
                             format!("{sn}:{vccaux}:GROUP0", sn = std.name),
                         );
                         let diff1 = ctx
-                            .state
                             .get_diff(
                                 tile,
                                 bel,
@@ -2899,7 +2848,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 } else {
                                     format!("{sn}:{drive}:{slew}:{vccaux}:{kind}", sn = std.name)
                                 };
-                                let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
+                                let mut diff = ctx.get_diff(tile, bel, "OSTD", val);
                                 if let Some(vcco) = std.vcco
                                     && vcco < 2500
                                 {
@@ -2966,7 +2915,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         slew = slews[0]
                                     )
                                 };
-                                let mut diff = ctx.state.get_diff(tile, bel, "OSTD", val);
+                                let mut diff = ctx.get_diff(tile, bel, "OSTD", val);
                                 if let Some(vcco) = std.vcco
                                     && vcco < 2500
                                 {
@@ -3096,7 +3045,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             for attr in ["LVDSBIAS_0", "LVDSBIAS_1"] {
-                let diff = ctx.state.get_diff(tile, bel, attr, std.name);
+                let diff = ctx.get_diff(tile, bel, attr, std.name);
                 let val =
                     extract_bitvec_val(ctx.item(tile, bel, attr), &BitVec::repeat(false, 12), diff);
                 ctx.insert_misc_data(format!("IOSTD:LVDSBIAS:{}", std.name), val);
@@ -3156,7 +3105,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             },
         };
         if bank < 4 || edev.chip.row_mcb_split.is_some() {
-            let mut diff = ctx.state.get_diff(tile, bel, "INTERNAL_VREF", "1");
+            let mut diff = ctx.get_diff(tile, bel, "INTERNAL_VREF", "1");
             diff.apply_enum_diff(&item, "0.5", "NONE");
             diff.assert_empty();
         }

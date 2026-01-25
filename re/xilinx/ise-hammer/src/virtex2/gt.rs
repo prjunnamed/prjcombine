@@ -1,5 +1,5 @@
 use prjcombine_interconnect::db::{BelInfo, PinDir};
-use prjcombine_re_fpga_hammer::OcdMode;
+use prjcombine_re_fpga_hammer::diff::OcdMode;
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{bits, bitvec::BitVec};
 use prjcombine_virtex2::{defs, defs::virtex2::tcls};
@@ -211,9 +211,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
         }
         for val in ["ETHERNET", "AURORA", "FIBRE_CHAN", "INFINIBAND", "XAUI"] {
-            ctx.state
-                .get_diff(tile, bel, "IOSTANDARD", val)
-                .assert_empty();
+            ctx.get_diff(tile, bel, "IOSTANDARD", val).assert_empty();
         }
         ctx.collect_enum_int(tile, bel, "TX_PREEMPHASIS", 0..4, 0);
         ctx.collect_enum(tile, bel, "TERMINATION_IMP", &["50", "75"]);
@@ -233,17 +231,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_enum(tile, bel, "RX_DATA_WIDTH", &["1", "2", "4"]);
         ctx.collect_enum(tile, bel, "TX_DATA_WIDTH", &["1", "2", "4"]);
         ctx.collect_bitvec(tile, bel, "RX_BUFFER_LIMIT", "");
-        let item = ctx.collector.data.bsdata.item(tile, bel, "RX_BUFFER_LIMIT");
+        let item = ctx.item(tile, bel, "RX_BUFFER_LIMIT").clone();
         for (name, val) in [
             ("15.MASTER", bits![0, 0, 1, 1]),
             ("15.SLAVE_1_HOP", bits![0, 0, 1, 0]),
             ("15.SLAVE_2_HOPS", bits![0, 0, 1, 0]),
         ] {
-            let mut diff = ctx
-                .collector
-                .state
-                .get_diff(tile, bel, "RX_BUFFER_LIMIT", name);
-            diff.apply_bitvec_diff(item, &val, &BitVec::repeat(false, 4));
+            let mut diff = ctx.get_diff(tile, bel, "RX_BUFFER_LIMIT", name);
+            diff.apply_bitvec_diff(&item, &val, &BitVec::repeat(false, 4));
             diff.assert_empty();
         }
         ctx.collect_enum(

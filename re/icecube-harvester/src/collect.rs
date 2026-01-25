@@ -7,8 +7,12 @@ use prjcombine_interconnect::{
     grid::{BelCoord, CellCoord, DieId},
 };
 use prjcombine_re_fpga_hammer::{
-    Collector, CollectorData, Diff, DiffKey, FeatureData, FeatureId, OcdMode, State,
-    extract_bitvec_val_part_raw, xlat_bit_raw, xlat_bitvec_raw, xlat_enum_raw,
+    bitdata::CollectorData,
+    collect::Collector,
+    diff::{
+        Diff, DiffKey, OcdMode, extract_bitvec_val_part_raw, xlat_bit_raw, xlat_bitvec_raw,
+        xlat_enum_raw,
+    },
 };
 use prjcombine_re_harvester::Harvester;
 use prjcombine_siliconblue::{
@@ -161,8 +165,7 @@ pub fn collect_iob(
 
 pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> CollectorData {
     let mut data = CollectorData::default();
-    let mut state = State::new();
-    let mut bitvec_diffs: BTreeMap<DiffKey, BTreeMap<usize, Diff>> = BTreeMap::new();
+    let mut diffs = BTreeMap::new();
     for (key, bits) in &harvester.known_global {
         println!("unhandled global: {key:?}: {bits:?}");
     }
@@ -170,36 +173,9 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
         let diff = Diff {
             bits: HashMap::from_iter(bits.iter().map(|(&k, &v)| (k, v))),
         };
-        if let DiffKey::Legacy(id) = key
-            && let Some(idx) = id.val.strip_prefix("BIT")
-        {
-            let key = DiffKey::Legacy(FeatureId {
-                val: "".to_string(),
-                ..id.clone()
-            });
-            let idx: usize = idx.parse().unwrap();
-            bitvec_diffs.entry(key).or_default().insert(idx, diff);
-        } else {
-            state.features.insert(
-                key.clone(),
-                FeatureData {
-                    diffs: vec![diff],
-                    fuzzers: vec![],
-                },
-            );
-        }
+        diffs.insert(key.clone(), vec![diff]);
     }
-    for (key, mut diffs) in bitvec_diffs {
-        let diffs = Vec::from_iter((0..diffs.len()).map(|idx| diffs.remove(&idx).unwrap()));
-        state.features.insert(
-            key,
-            FeatureData {
-                diffs,
-                fuzzers: vec![],
-            },
-        );
-    }
-    let mut collector = Collector::new(&mut state, &mut data, edev.db);
+    let mut collector = Collector::new(&mut diffs, &mut data, edev.db);
 
     for (tcid, _, tcls) in &edev.db.tile_classes {
         if edev.tile_index[tcid].is_empty() {
@@ -235,9 +211,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                             } else {
                                 diffs.push((
                                     Some(wf),
-                                    collector
-                                        .state
-                                        .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wf)),
+                                    collector.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wf)),
                                 ));
                             }
                         }
@@ -256,7 +230,6 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                                         continue;
                                     }
                                     let mut diff_global_out = collector
-                                        .state
                                         .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, wf));
                                     let diff = diff_global_out.split_bits(&bits_nog2l);
                                     diffs_global_out.push((Some(wf), diff_global_out));
@@ -352,7 +325,6 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
             }
             if edge == Dir::W && edev.chip.kind.has_vref() {
                 let diff_cmos = collector
-                    .state
                     .peek_diff_raw(&DiffKey::BelSpecialString(
                         tcid,
                         bel,
@@ -362,7 +334,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     .clone();
                 let bit = xlat_bit_raw(diff_cmos.clone());
                 collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::CMOS_INPUT, bit);
-                let diff = collector.state.peek_diff_raw(&DiffKey::BelSpecialString(
+                let diff = collector.peek_diff_raw(&DiffKey::BelSpecialString(
                     tcid,
                     bel,
                     specials::IOSTD,
@@ -371,7 +343,6 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                 let bit = xlat_bit_raw(diff.clone());
                 collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::IOSTD_MISC, bit);
                 let diff0 = collector
-                    .state
                     .peek_diff_raw(&DiffKey::BelSpecialString(
                         tcid,
                         bel,
@@ -380,7 +351,6 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     ))
                     .combine(&!&diff_cmos);
                 let diff1 = collector
-                    .state
                     .peek_diff_raw(&DiffKey::BelSpecialString(
                         tcid,
                         bel,
@@ -412,7 +382,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     "SB_SSTL2_CLASS_1",
                     "SB_LVCMOS33_8",
                 ] {
-                    let mut diff = collector.state.get_diff_raw(&DiffKey::BelSpecialString(
+                    let mut diff = collector.get_diff_raw(&DiffKey::BelSpecialString(
                         tcid,
                         bel,
                         specials::IOSTD,
@@ -447,7 +417,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     diff.assert_empty();
                 }
             } else {
-                let diff = collector.state.get_diff_raw(&DiffKey::BelAttrSpecial(
+                let diff = collector.get_diff_raw(&DiffKey::BelAttrSpecial(
                     tcid,
                     bel,
                     defs::bcls::IOB::PULLUP,
@@ -456,7 +426,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                 let bit = xlat_bit_raw(!diff);
                 collector.insert_bel_attr_bool(tcid, bel, defs::bcls::IOB::PULLUP, bit);
                 if edev.chip.kind.has_multi_pullup() {
-                    let diff = collector.state.get_diff_raw(&DiffKey::BelAttrSpecial(
+                    let diff = collector.get_diff_raw(&DiffKey::BelAttrSpecial(
                         tcid,
                         bel,
                         defs::bcls::IOB::WEAK_PULLUP,
@@ -493,7 +463,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
             } else {
                 let table = &edev.db.tables[defs::tables::IOSTD];
                 for std in ["SB_LVDS_INPUT", "SB_SUBLVDS_INPUT"] {
-                    let mut diff = collector.state.get_diff_raw(&DiffKey::BelSpecialString(
+                    let mut diff = collector.get_diff_raw(&DiffKey::BelSpecialString(
                         tcid,
                         defs::bslots::IOB[0],
                         specials::IOSTD,
@@ -610,9 +580,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                     collector.collect_bel_attr(tcid, bslot, attr);
                 }
                 let attr = defs::bcls::PLL65::DELAY_ADJUSTMENT_MODE_DYNAMIC;
-                let mut diff = collector
-                    .state
-                    .get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, 0));
+                let mut diff = collector.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, 0));
                 let fda = collector.bel_attr_bitvec(
                     tcid,
                     bslot,
@@ -710,7 +678,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                 collector.collect_bel_attr(tcid, defs::bslots::RGB_DRV, attr);
             }
             let mut diffs = Vec::from_iter((0..10).map(|i| {
-                collector.state.get_diff_raw(&DiffKey::BelAttrBit(
+                collector.get_diff_raw(&DiffKey::BelAttrBit(
                     tcid,
                     defs::bslots::IR_DRV,
                     defs::bcls::IR_DRV::IR_CURRENT,
@@ -739,7 +707,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
                 defs::bcls::RGB_DRV::CURRENT_MODE,
             ] {
                 if attr == defs::bcls::RGB_DRV::ENABLE && edev.chip.kind == ChipKind::Ice40T01 {
-                    let mut diff = collector.state.get_diff_raw(&DiffKey::BelAttrBit(
+                    let mut diff = collector.get_diff_raw(&DiffKey::BelAttrBit(
                         tcid,
                         defs::bslots::RGB_DRV,
                         attr,
@@ -793,9 +761,7 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
         for bslot in defs::bslots::FILTER {
             let tcid = defs::tcls::MISC_T05;
             let aid = defs::bcls::FILTER::ENABLE;
-            let diff = collector
-                .state
-                .get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, 0));
+            let diff = collector.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, 0));
             let mut bits = Vec::from_iter(
                 diff.bits
                     .into_iter()
@@ -814,8 +780,8 @@ pub fn collect(edev: &ExpandedDevice, harvester: &Harvester<BitOwner>) -> Collec
         );
     }
 
-    for (key, data) in &state.features {
-        println!("uncollected: {key:?}: {diffs:?}", diffs = data.diffs);
+    for (key, data) in &diffs {
+        println!("uncollected: {key:?}: {data:?}");
     }
 
     assert_eq!(data.bsdata, BsData::new());

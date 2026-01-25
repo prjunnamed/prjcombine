@@ -1,7 +1,10 @@
 use core::ops::Range;
 
 use prjcombine_interconnect::{dir::DirH, grid::TileCoord};
-use prjcombine_re_fpga_hammer::{FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::{chip::Gts, defs};
@@ -374,7 +377,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
 
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for &pin in GTP_INVPINS {
         ctx.collect_inv(tile, bel, pin);
     }
@@ -405,13 +408,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     // sigh. bugs.
     ctx.collect_bitvec(tile, bel, "COMMA_10B_ENABLE_0", "");
-    let mut diffs = ctx.state.get_diffs(tile, bel, "COMMA_10B_ENABLE_1", "");
+    let mut diffs = ctx.get_diffs(tile, bel, "COMMA_10B_ENABLE_1", "");
     diffs[3].bits.insert(TileBit::new(11, 23, 3), true);
     assert_eq!(diffs[4].bits.remove(&TileBit::new(11, 23, 3)), Some(true));
     ctx.insert(tile, bel, "COMMA_10B_ENABLE_1", xlat_bitvec(diffs));
     ctx.collect_bitvec(tile, bel, "RXPRBSERR_LOOPBACK_0", "");
-    ctx.state
-        .get_diff(tile, bel, "RXPRBSERR_LOOPBACK_1", "")
+    ctx.get_diff(tile, bel, "RXPRBSERR_LOOPBACK_1", "")
         .assert_empty();
     ctx.insert(
         tile,
@@ -433,7 +435,6 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     for i in 0..2 {
         let refselpll_static = ctx
-            .state
             .peek_diff(tile, bel, format!("REFSELPLL{i}"), "CLK0")
             .clone();
         let mut diffs = vec![];
@@ -447,7 +448,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "PLLCLK1",
             "CLKINWEST",
         ] {
-            let mut diff = ctx.state.get_diff(tile, bel, format!("REFSELPLL{i}"), val);
+            let mut diff = ctx.get_diff(tile, bel, format!("REFSELPLL{i}"), val);
             diff = diff.combine(&!&refselpll_static);
             diffs.push((val, diff));
         }

@@ -164,7 +164,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "MASK", "");
     }
     for bel in ["DSP[0]", "DSP[1]"] {
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
         present.discard_bits(ctx.item(tile, bel, "SCAN_IN_SET_M"));
         present.discard_bits(ctx.item(tile, bel, "SCAN_IN_SET_P"));
         present.discard_bits(ctx.item(tile, bel, "TEST_SET_M"));

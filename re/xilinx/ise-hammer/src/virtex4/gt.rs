@@ -1,8 +1,11 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::grid::{DieId, TileCoord};
 use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FeatureId, FuzzerFeature, FuzzerProp, OcdMode, xlat_bit, xlat_bitvec, xlat_enum,
-    xlat_enum_default, xlat_enum_ocd,
+    backend::{FuzzerFeature, FuzzerProp},
+    diff::{
+        Diff, DiffKey, FeatureId, OcdMode, xlat_bit, xlat_bitvec, xlat_enum, xlat_enum_default,
+        xlat_enum_ocd,
+    },
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -648,16 +651,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         TileBit::new(tile, 19, bit)
     }
     let (_, _, synclk_enable) = Diff::split(
-        ctx.state
-            .peek_diff(tile, "GT11[1]", "MUX.SYNCLK_OUT", "SYNCLK1")
+        ctx.peek_diff(tile, "GT11[1]", "MUX.SYNCLK_OUT", "SYNCLK1")
             .clone(),
-        ctx.state
-            .peek_diff(tile, "GT11[0]", "MUX.SYNCLK_OUT", "SYNCLK1")
+        ctx.peek_diff(tile, "GT11[0]", "MUX.SYNCLK_OUT", "SYNCLK1")
             .clone(),
     );
     for idx in 0..2 {
         let bel = &format!("GT11[{idx}]");
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
         for i in 0x40..0x80 {
             ctx.insert(
                 tile,
@@ -694,8 +695,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         present.assert_empty();
         for &attr in GT11_BOOL_ATTRS {
             if attr == "PMACLKENABLE" {
-                ctx.state.get_diff(tile, bel, attr, "FALSE").assert_empty();
-                ctx.state.get_diff(tile, bel, attr, "TRUE").assert_empty();
+                ctx.get_diff(tile, bel, attr, "FALSE").assert_empty();
+                ctx.get_diff(tile, bel, attr, "TRUE").assert_empty();
             } else {
                 ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
             }
@@ -705,7 +706,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             // TODO: intify RXUSRDIVISOR, RX_LOS_INVALID_INCR, RX_LOS_THRESHOLD (div4!)
             if attr == "GT11_MODE" {
                 for &val in vals {
-                    ctx.state.get_diff(tile, bel, attr, val).assert_empty();
+                    ctx.get_diff(tile, bel, attr, val).assert_empty();
                 }
             } else {
                 ctx.collect_enum(tile, bel, attr, vals);
@@ -721,12 +722,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_bitvec(tile, bel, attr, "");
         }
 
-        let diffs_10 = ctx.state.get_diffs(tile, bel, "MCOMMA_10B_VALUE", "");
-        let diffs_32 = ctx.state.get_diffs(tile, bel, "MCOMMA_32B_VALUE", "");
+        let diffs_10 = ctx.get_diffs(tile, bel, "MCOMMA_10B_VALUE", "");
+        let diffs_32 = ctx.get_diffs(tile, bel, "MCOMMA_32B_VALUE", "");
         assert!(diffs_32.starts_with(&diffs_10));
         ctx.insert(tile, bel, "MCOMMA_VALUE", xlat_bitvec(diffs_32));
-        let diffs_10 = ctx.state.get_diffs(tile, bel, "PCOMMA_10B_VALUE", "");
-        let diffs_32 = ctx.state.get_diffs(tile, bel, "PCOMMA_32B_VALUE", "");
+        let diffs_10 = ctx.get_diffs(tile, bel, "PCOMMA_10B_VALUE", "");
+        let diffs_32 = ctx.get_diffs(tile, bel, "PCOMMA_32B_VALUE", "");
         assert!(diffs_32.starts_with(&diffs_10));
         ctx.insert(tile, bel, "PCOMMA_VALUE", xlat_bitvec(diffs_32));
 
@@ -793,17 +794,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
 
         let (_, _, fwdclk_out_enable) = Diff::split(
-            ctx.state
-                .peek_diff(tile, bel, "MUX.FWDCLK0_OUT", "FWDCLK1")
+            ctx.peek_diff(tile, bel, "MUX.FWDCLK0_OUT", "FWDCLK1")
                 .clone(),
-            ctx.state
-                .peek_diff(tile, bel, "MUX.FWDCLK1_OUT", "FWDCLK1")
+            ctx.peek_diff(tile, bel, "MUX.FWDCLK1_OUT", "FWDCLK1")
                 .clone(),
         );
         for i in 0..2 {
             let mut diffs = vec![];
             for j in 1..=4 {
-                let mut diff = ctx.state.get_diff(
+                let mut diff = ctx.get_diff(
                     tile,
                     bel,
                     format!("MUX.FWDCLK{i}_OUT"),
@@ -838,7 +837,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let mut diffs = vec![];
         for inp in ["SYNCLK1", "SYNCLK2"] {
-            let mut diff = ctx.state.get_diff(tile, bel, "MUX.SYNCLK_OUT", inp);
+            let mut diff = ctx.get_diff(tile, bel, "MUX.SYNCLK_OUT", inp);
             diff = diff.combine(&!&synclk_enable);
             diffs.push((inp.to_string(), diff));
         }
@@ -849,22 +848,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             xlat_enum_default(diffs, "NONE"),
         );
     }
-    ctx.state
-        .get_diff(tile, "GT11CLK", "PRESENT", "1")
-        .assert_empty();
+    ctx.get_diff(tile, "GT11CLK", "PRESENT", "1").assert_empty();
 
     let (_, _, mut synclk_drive_enable) = Diff::split(
-        ctx.state
-            .peek_diff(tile, "GT11CLK", "SYNCLK1", "BUF_DOWN")
+        ctx.peek_diff(tile, "GT11CLK", "SYNCLK1", "BUF_DOWN")
             .clone(),
-        ctx.state
-            .peek_diff(tile, "GT11CLK", "SYNCLK2", "BUF_DOWN")
+        ctx.peek_diff(tile, "GT11CLK", "SYNCLK2", "BUF_DOWN")
             .clone(),
     );
     for attr in ["SYNCLK1", "SYNCLK2"] {
         let mut diffs = vec![("NONE", Diff::default())];
         for val in ["BUF_UP", "BUF_DOWN", "DRIVE_UP", "DRIVE_DOWN", "DRIVE_BOTH"] {
-            let mut diff = ctx.state.get_diff(tile, "GT11CLK", attr, val);
+            let mut diff = ctx.get_diff(tile, "GT11CLK", attr, val);
             diff = diff.combine(&!&synclk_drive_enable);
             diffs.push((val, diff));
         }

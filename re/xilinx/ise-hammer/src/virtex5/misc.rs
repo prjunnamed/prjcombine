@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{OcdMode, xlat_bit, xlat_bitvec};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_bit, xlat_bitvec};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{
     bits,
@@ -411,7 +411,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bit(tile, bel, "ENABLE", "1");
     }
     let bel = "BSCAN_COMMON";
-    let item = xlat_bitvec(ctx.state.get_diffs(tile, bel, "USERID", ""));
+    let item = xlat_bitvec(ctx.get_diffs(tile, bel, "USERID", ""));
     ctx.insert(tile, bel, "USERID", item);
 
     let bel = "STARTUP";
@@ -447,7 +447,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "SYSMON_TEST_D", "");
         ctx.collect_bitvec(tile, bel, "SYSMON_TEST_E", "");
 
-        let mut diff = ctx.state.get_diff(tile, bel, "JTAG_SYSMON", "DISABLE");
+        let mut diff = ctx.get_diff(tile, bel, "JTAG_SYSMON", "DISABLE");
         diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_A"), 2, 0);
         diff.assert_empty();
     }
@@ -566,7 +566,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     let tile = "REG.TESTMODE";
     let bel = "MISC";
-    let mut diff = ctx.state.get_diff(tile, bel, "DD_OVERRIDE", "YES");
+    let mut diff = ctx.get_diff(tile, bel, "DD_OVERRIDE", "YES");
     diff.bits.remove(&TileBit::new(1, 0, 0));
     ctx.insert(tile, bel, "DD_OVERRIDE", xlat_bit(diff));
 }

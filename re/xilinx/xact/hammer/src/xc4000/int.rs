@@ -6,7 +6,8 @@ use prjcombine_interconnect::{
     grid::{BelCoord, TileCoord, WireCoord},
 };
 use prjcombine_re_fpga_hammer::{
-    Diff, DiffKey, FuzzerProp, OcdMode, xlat_bit_raw, xlat_enum_attr, xlat_enum_raw,
+    backend::FuzzerProp,
+    diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_attr, xlat_enum_raw},
 };
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_types::bsdata::{BitRectId, TileBit};
@@ -933,20 +934,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     if src.wire == wires::TIE_0 {
                                         continue;
                                     }
-                                    let diff0 =
-                                        ctx.state.get_diff_raw(&DiffKey::RoutingPairSpecial(
-                                            tcid,
-                                            mux.dst,
-                                            src,
-                                            specials::INT_HIO0,
-                                        ));
-                                    let diff1 =
-                                        ctx.state.get_diff_raw(&DiffKey::RoutingPairSpecial(
-                                            tcid,
-                                            mux.dst,
-                                            src,
-                                            specials::INT_HIO1,
-                                        ));
+                                    let diff0 = ctx.get_diff_raw(&DiffKey::RoutingPairSpecial(
+                                        tcid,
+                                        mux.dst,
+                                        src,
+                                        specials::INT_HIO0,
+                                    ));
+                                    let diff1 = ctx.get_diff_raw(&DiffKey::RoutingPairSpecial(
+                                        tcid,
+                                        mux.dst,
+                                        src,
+                                        specials::INT_HIO1,
+                                    ));
                                     let (mut diff0, mut diff1, diff) = Diff::split(diff0, diff1);
                                     if diff.bits.is_empty() {
                                         got_empty = true;
@@ -1008,7 +1007,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                                 inps.sort_by_key(|&(k, _)| k);
                                 let item = xlat_enum_raw(inps, OcdMode::Mux);
-                                if item.0.is_empty() {
+                                if item.bits.is_empty() {
                                     println!(
                                         "UMMM MUX {tcname} {mux_name} is empty",
                                         mux_name =
@@ -1028,9 +1027,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                         if src.wire == wires::TIE_0 {
                                             continue;
                                         }
-                                        let diff = ctx.state.get_diff_raw(
-                                            &DiffKey::RoutingPairSpecial(tcid, mux.dst, src, spec),
-                                        );
+                                        let diff = ctx.get_diff_raw(&DiffKey::RoutingPairSpecial(
+                                            tcid, mux.dst, src, spec,
+                                        ));
                                         inps.push((Some(src), diff));
                                     }
                                     let mut common = inps[0].1.clone();
@@ -1055,7 +1054,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                     }
                                     inps.sort_by_key(|&(k, _)| k);
                                     let item = xlat_enum_raw(inps, OcdMode::Mux);
-                                    if item.0.is_empty() {
+                                    if item.bits.is_empty() {
                                         println!(
                                             "UMMM MUX {tcname} {mux_name} is empty",
                                             mux_name =
@@ -1107,8 +1106,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                                 t_inps.push((
                                     Some(src),
-                                    ctx.state
-                                        .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src)),
+                                    ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src)),
                                 ));
                             }
                             let imux_i = TileWireCoord::new_idx(0, wires::IMUX_TBUF_I[idx]);
@@ -1131,7 +1129,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 }
                                 i_inps.push((
                                     Some(src),
-                                    ctx.state.get_diff_raw(&DiffKey::Routing(tcid, imux_i, src)),
+                                    ctx.get_diff_raw(&DiffKey::Routing(tcid, imux_i, src)),
                                 ));
                             }
                             let mut t_bits = HashSet::new();
@@ -1153,7 +1151,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             ));
                             i_inps.sort_by_key(|&(k, _)| k);
                             let item_i = xlat_enum_raw(i_inps, OcdMode::Mux);
-                            if item_i.0.is_empty() {
+                            if item_i.bits.is_empty() {
                                 println!(
                                     "UMMM MUX {tcname} {imux_i} is empty",
                                     imux_i = imux_i.to_string(intdb, &intdb.tile_classes[tcid])
@@ -1183,7 +1181,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             ));
                             t_inps.sort_by_key(|&(k, _)| k);
                             let item_t = xlat_enum_raw(t_inps, OcdMode::Mux);
-                            if item_t.0.is_empty() {
+                            if item_t.bits.is_empty() {
                                 println!(
                                     "UMMM MUX {tcname} {mux_name} is empty",
                                     mux_name = mux.dst.to_string(intdb, &intdb.tile_classes[tcid])
@@ -1205,8 +1203,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 {
                                     Diff::default()
                                 } else {
-                                    ctx.state
-                                        .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src))
+                                    ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src))
                                 };
                                 if diff.bits.is_empty() {
                                     got_empty = true;
@@ -1284,7 +1281,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             }
                             inps.sort_by_key(|&(k, _)| k);
                             let item = xlat_enum_raw(inps, OcdMode::Mux);
-                            if item.0.is_empty() {
+                            if item.bits.is_empty() {
                                 println!(
                                     "UMMM MUX {tcname} {mux_name} is empty",
                                     mux_name = mux.dst.to_string(intdb, &intdb.tile_classes[tcid])

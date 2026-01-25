@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{OcdMode, concat_bitvec, xlat_bit};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, concat_bitvec, xlat_bit};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_spartan6::defs;
@@ -523,16 +523,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("CNR_SE", "OCT_CAL[1]"),
         ("CNR_NE", "OCT_CAL[5]"),
     ] {
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "VREF_VALUE", "0.25")
-            .assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "VREF_VALUE", "0.5")
-            .assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "VREF_VALUE", "0.75")
-            .assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "VREF_VALUE", "0.25").assert_empty();
+        ctx.get_diff(tile, bel, "VREF_VALUE", "0.5").assert_empty();
+        ctx.get_diff(tile, bel, "VREF_VALUE", "0.75").assert_empty();
         ctx.collect_enum(tile, bel, "ACCESS_MODE", &["STATIC", "USER"]);
     }
 
@@ -552,10 +546,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "MISC";
         ctx.collect_bit(tile, bel, "MISR_H_ENABLE", "1");
         ctx.collect_bit(tile, bel, "MISR_V_ENABLE", "1");
-        let mut diff = ctx.state.get_diff(tile, bel, "MISR_H_ENABLE_RESET", "1");
+        let mut diff = ctx.get_diff(tile, bel, "MISR_H_ENABLE_RESET", "1");
         diff.apply_bit_diff(ctx.item(tile, bel, "MISR_H_ENABLE"), true, false);
         ctx.insert(tile, bel, "MISR_H_RESET", xlat_bit(diff));
-        let mut diff = ctx.state.get_diff(tile, bel, "MISR_V_ENABLE_RESET", "1");
+        let mut diff = ctx.get_diff(tile, bel, "MISR_V_ENABLE_RESET", "1");
         diff.apply_bit_diff(ctx.item(tile, bel, "MISR_V_ENABLE"), true, false);
         ctx.insert(tile, bel, "MISR_V_RESET", xlat_bit(diff));
     }
@@ -585,7 +579,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     {
         let tile = "CNR_NW";
         let bel = "PMV";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_bitvec(tile, bel, "PSLEW", "");
         ctx.collect_bitvec(tile, bel, "NSLEW", "");
     }
@@ -600,17 +594,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bit(tile, "ICAP", "ENABLE", "1");
         ctx.collect_bit(tile, "SUSPEND_SYNC", "ENABLE", "1");
         ctx.collect_bit(tile, "SPI_ACCESS", "ENABLE", "1");
-        ctx.state
-            .get_diff(tile, "SLAVE_SPI", "PRESENT", "1")
+        ctx.get_diff(tile, "SLAVE_SPI", "PRESENT", "1")
             .assert_empty();
-        ctx.state
-            .get_diff(tile, "POST_CRC_INTERNAL", "PRESENT", "1")
+        ctx.get_diff(tile, "POST_CRC_INTERNAL", "PRESENT", "1")
             .assert_empty();
     }
     {
         let tile = "CNR_SE";
         let bel = "STARTUP";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_enum_bool(tile, bel, "GTS_SYNC", "NO", "YES");
         ctx.collect_enum_bool(tile, bel, "GSR_SYNC", "NO", "YES");
         ctx.collect_bit(tile, bel, "PIN.CFGCLK", "1");
@@ -638,12 +630,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let item = ctx.extract_enum_bool(tile, "BSCAN[0]", "JTAG_TEST", "0", "1");
         ctx.insert(tile, "BSCAN_COMMON", "JTAG_TEST", item);
         for bel in ["BSCAN[1]", "BSCAN[2]", "BSCAN[3]"] {
-            ctx.state
-                .get_diff(tile, bel, "JTAG_TEST", "0")
-                .assert_empty();
-            ctx.state
-                .get_diff(tile, bel, "JTAG_TEST", "1")
-                .assert_empty();
+            ctx.get_diff(tile, bel, "JTAG_TEST", "0").assert_empty();
+            ctx.get_diff(tile, bel, "JTAG_TEST", "1").assert_empty();
         }
     }
 
@@ -733,24 +721,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileItem::from_bitvec((0..10).map(|bit| TileBit::new(0, 0, bit)).collect(), false);
         for i in 0..10 {
             let val = 1 << i;
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, "EXTMASTERCCLK_DIVIDE", val.to_string());
+            let mut diff = ctx.get_diff(tile, bel, "EXTMASTERCCLK_DIVIDE", val.to_string());
             diff.apply_bitvec_diff_int(&item, val, 1);
             diff.assert_empty();
         }
-        ctx.state
-            .get_diff(tile, bel, "EXTMASTERCCLK_EN", "NO")
+        ctx.get_diff(tile, bel, "EXTMASTERCCLK_EN", "NO")
             .assert_empty();
-        let mut diff = ctx.state.get_diff(tile, bel, "EXTMASTERCCLK_EN", "YES");
+        let mut diff = ctx.get_diff(tile, bel, "EXTMASTERCCLK_EN", "YES");
         diff.apply_bitvec_diff_int(&item, 1, 0xc8);
         ctx.insert(tile, bel, "CCLK_DIVISOR", item);
         ctx.insert(tile, bel, "EXT_CCLK_ENABLE", xlat_bit(diff));
         ctx.collect_enum_int(tile, bel, "CCLK_DLY", 0..4, 0);
         ctx.collect_enum_int(tile, bel, "CCLK_SEP", 0..4, 0);
         for val in ["0", "1", "2", "3"] {
-            ctx.state
-                .get_diff(tile, bel, "CLK_SWITCH_OPT", val)
+            ctx.get_diff(tile, bel, "CLK_SWITCH_OPT", val)
                 .assert_empty();
         }
     }
@@ -788,9 +772,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileItem::from_bitvec((0..10).map(|bit| TileBit::new(0, 0, bit)).collect(), false);
         for i in 0..10 {
             let val = 1 << i;
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, "SW_GWE_CYCLE", val.to_string());
+            let mut diff = ctx.get_diff(tile, bel, "SW_GWE_CYCLE", val.to_string());
             diff.apply_bitvec_diff_int(&item, val, 5);
             diff.assert_empty();
         }
@@ -803,9 +785,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             TileItem::from_bitvec((0..10).map(|bit| TileBit::new(0, 0, bit)).collect(), false);
         for i in 0..10 {
             let val = 1 << i;
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, "SW_GTS_CYCLE", val.to_string());
+            let mut diff = ctx.get_diff(tile, bel, "SW_GTS_CYCLE", val.to_string());
             diff.apply_bitvec_diff_int(&item, val, 4);
             diff.assert_empty();
         }

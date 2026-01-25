@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use prjcombine_re_fpga_hammer::CollectorData;
+use prjcombine_re_fpga_hammer::bitdata::CollectorData;
 use prjcombine_re_xilinx_geom::Chip;
 use prjcombine_types::db::DumpFlags;
 

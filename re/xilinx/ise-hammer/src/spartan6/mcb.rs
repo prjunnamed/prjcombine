@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_fpga_hammer::{Diff, xlat_bool, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bool, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_spartan6::defs;
 use prjcombine_types::bsdata::{BitRectId, TileBit, TileItem};
@@ -266,12 +266,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "MCB";
     let bel = "MCB";
 
-    let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
-    present = present.combine(ctx.state.peek_diff(tile, bel, "MEM_PLL_DIV_EN", "DISABLED"));
-    present = present.combine(
-        ctx.state
-            .peek_diff(tile, bel, "MEM_PLL_POL_SEL", "INVERTED"),
-    );
+    let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
+    present = present.combine(ctx.peek_diff(tile, bel, "MEM_PLL_DIV_EN", "DISABLED"));
+    present = present.combine(ctx.peek_diff(tile, bel, "MEM_PLL_POL_SEL", "INVERTED"));
 
     for pin in [
         "P0CMDCLK", "P1CMDCLK", "P2CMDCLK", "P3CMDCLK", "P4CMDCLK", "P5CMDCLK", "P0CMDEN",
@@ -313,7 +310,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ] {
         let mut diffs: [Vec<_>; 9] = Default::default();
         for &val in vals {
-            let mut diff = ctx.state.get_diff(tile, bel, attr, val);
+            let mut diff = ctx.get_diff(tile, bel, attr, val);
             for i in 0..8 {
                 diffs[i + 1].push((
                     val,
@@ -344,8 +341,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, name, item);
         }
     }
-    ctx.state
-        .peek_diff(tile, bel, "PORT_CONFIG", "B32_B32_W32_W32_W32_W32")
+    ctx.peek_diff(tile, bel, "PORT_CONFIG", "B32_B32_W32_W32_W32_W32")
         .assert_empty();
     for (attr, val) in [
         ("MUI2_PORT_CONFIG", "B32_B32_R32_W32_W32_W32"),
@@ -353,7 +349,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ("MUI4_PORT_CONFIG", "B32_B32_W32_W32_R32_W32"),
         ("MUI5_PORT_CONFIG", "B32_B32_W32_W32_W32_R32"),
     ] {
-        let diff = ctx.state.peek_diff(tile, bel, "PORT_CONFIG", val).clone();
+        let diff = ctx.peek_diff(tile, bel, "PORT_CONFIG", val).clone();
         ctx.insert(
             tile,
             bel,
@@ -363,7 +359,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     let mut diffs = vec![("B32_B32_X32_X32_X32_X32", Diff::default())];
     for val in ["B32_B32_B32_B32", "B64_B32_B32", "B64_B64", "B128"] {
-        let mut diff = ctx.state.get_diff(tile, bel, "PORT_CONFIG", val);
+        let mut diff = ctx.get_diff(tile, bel, "PORT_CONFIG", val);
         diff.apply_enum_diff(ctx.item(tile, bel, "MUI2_PORT_CONFIG"), "READ", "WRITE");
         diff.apply_enum_diff(ctx.item(tile, bel, "MUI4_PORT_CONFIG"), "READ", "WRITE");
         diffs.push((val, diff));
@@ -377,7 +373,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             p4 = if (mask & 4) != 0 { 'R' } else { 'W' },
             p5 = if (mask & 8) != 0 { 'R' } else { 'W' },
         );
-        let mut diff = ctx.state.get_diff(tile, bel, "PORT_CONFIG", val);
+        let mut diff = ctx.get_diff(tile, bel, "PORT_CONFIG", val);
         for i in 0..4 {
             if (mask & (1 << i)) != 0 {
                 diff.apply_enum_diff(
@@ -419,10 +415,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for mem_type in ["MDDR", "DDR", "DDR2"] {
         let mut diffs = vec![];
         for val in ["4", "8"] {
-            let mut diff = ctx
-                .state
-                .get_diff(tile, bel, format!("MEM_BURST_LEN.{mem_type}"), val);
-            diff = diff.combine(&!ctx.state.peek_diff(tile, bel, "MEM_BURST_LEN.DDR3", val));
+            let mut diff = ctx.get_diff(tile, bel, format!("MEM_BURST_LEN.{mem_type}"), val);
+            diff = diff.combine(&!ctx.peek_diff(tile, bel, "MEM_BURST_LEN.DDR3", val));
             diffs.push((val, diff));
         }
         ctx.insert(tile, bel, "MEM_DDR_DDR2_MDDR_BURST_LEN", xlat_enum(diffs));

@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::xlat_bool;
+use prjcombine_re_fpga_hammer::diff::xlat_bool;
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 
@@ -134,10 +134,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for bel in ["TBUF[0]", "TBUF[1]"] {
             if mode == Mode::Virtex {
                 for (pinmux, pin, pin_b) in [("TMUX", "T", "T_B"), ("IMUX", "I", "I_B")] {
-                    let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
-                    assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
-                    let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
-                    assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+                    let d0 = ctx.get_diff(tile, bel, pinmux, pin);
+                    assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
+                    let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
+                    assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
                     let item = xlat_bool(d0, d1);
                     ctx.insert_int_inv(&[tile], tile, bel, pin, item);
                 }

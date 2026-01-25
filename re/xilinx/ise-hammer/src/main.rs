@@ -1,6 +1,6 @@
 use clap::Parser;
 use prjcombine_interconnect::dir::DirV;
-use prjcombine_re_fpga_hammer::{Collector, CollectorData};
+use prjcombine_re_fpga_hammer::{bitdata::CollectorData, collect::Collector};
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
@@ -405,17 +405,22 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
     if !opts.skip_core {
         generic::intf::add_fuzzers(&mut hammer, &backend);
     }
-    let (empty_bs, mut state) = std::thread::scope(|s| {
+    let (empty_bs, state) = std::thread::scope(|s| {
         let empty_bs_t = s.spawn(|| backend.bitgen(&HashMap::new()));
         let state = hammer.run().unwrap();
         let empty_bs = empty_bs_t.join().unwrap();
         (empty_bs, state)
     });
+    let mut diffs = state
+        .features
+        .into_iter()
+        .map(|(k, v)| (k, v.diffs))
+        .collect();
     let mut ctx = CollectorCtx {
         device: part,
         edev: &gedev,
         db,
-        collector: Collector::new(&mut state, data, gedev.db),
+        collector: Collector::new(&mut diffs, data, gedev.db),
         empty_bs: &empty_bs,
     };
     match gedev {
@@ -694,8 +699,8 @@ fn run(tc: &Toolchain, db: &GeomDb, part: &Device, data: &mut CollectorData, opt
         ctx.insert_device_data(format!("IDCODE:{which}"), idcode);
     }
 
-    for (key, data) in &ctx.state.features {
-        println!("{key:?}: {diffs:?}", diffs = data.diffs);
+    for (key, data) in diffs {
+        println!("{key:?}: {data:?}");
     }
 }
 

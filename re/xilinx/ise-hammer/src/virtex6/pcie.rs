@@ -301,7 +301,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         );
     }
 
-    ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+    ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
     for &attr in PCIE_BOOL_ATTRS {
         ctx.collect_enum_bool(tile, bel, attr, "FALSE", "TRUE");
     }

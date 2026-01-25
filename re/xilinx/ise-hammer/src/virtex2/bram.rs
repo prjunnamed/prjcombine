@@ -1,5 +1,5 @@
 use prjcombine_entity::EntityId;
-use prjcombine_re_fpga_hammer::{
+use prjcombine_re_fpga_hammer::diff::{
     Diff, extract_bitvec_val, extract_bitvec_val_part, xlat_bit, xlat_bitvec, xlat_enum,
 };
 use prjcombine_re_hammer::Session;
@@ -341,8 +341,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
     if devdata_only {
         if !grid_kind.is_virtex2() {
-            let present_base = ctx.state.get_diff(tile, "BRAM", "PRESENT", "BASE");
-            let all_0 = ctx.state.get_diff(tile, "BRAM", "PRESENT", "ALL_0");
+            let present_base = ctx.get_diff(tile, "BRAM", "PRESENT", "BASE");
+            let all_0 = ctx.get_diff(tile, "BRAM", "PRESENT", "ALL_0");
             let mut diff = present_base.combine(&!all_0);
             let adef =
                 extract_bitvec_val_part(ctx.item(tile, "BRAM", "DDEL_A"), &bits![0, 0], &mut diff);
@@ -374,16 +374,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
         return;
     }
-    let present_base = ctx.state.get_diff(tile, "BRAM", "PRESENT", "BASE");
+    let present_base = ctx.get_diff(tile, "BRAM", "PRESENT", "BASE");
     let mut present = present_base.clone();
     if !grid_kind.is_virtex2() {
-        let diff_base = ctx.state.get_diff(tile, "BRAM", "PRESENT", "DDEL_00");
+        let diff_base = ctx.get_diff(tile, "BRAM", "PRESENT", "DDEL_00");
         let diff0 = ctx
-            .state
             .get_diff(tile, "BRAM", "PRESENT", "DDEL_01")
             .combine(&!&diff_base);
         let diff1 = ctx
-            .state
             .get_diff(tile, "BRAM", "PRESENT", "DDEL_10")
             .combine(&!&diff_base);
         let diff_def = present_base.combine(&!diff_base);
@@ -407,17 +405,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             present.discard_bits(ctx.item(tile, "BRAM", "DDEL_B"));
         }
 
-        let diff_base = ctx.state.get_diff(tile, "BRAM", "PRESENT", "WDEL_000");
+        let diff_base = ctx.get_diff(tile, "BRAM", "PRESENT", "WDEL_000");
         let diff0 = ctx
-            .state
             .get_diff(tile, "BRAM", "PRESENT", "WDEL_001")
             .combine(&!&diff_base);
         let diff1 = ctx
-            .state
             .get_diff(tile, "BRAM", "PRESENT", "WDEL_010")
             .combine(&!&diff_base);
         let diff2 = ctx
-            .state
             .get_diff(tile, "BRAM", "PRESENT", "WDEL_100")
             .combine(&!&diff_base);
         let diff_def = present_base.combine(&!diff_base);
@@ -444,11 +439,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         }
 
         let diff0 = ctx
-            .state
             .get_diff(tile, "BRAM", "PRESENT", "WW_VALUE_0")
             .combine(&!&present_base);
         let diff1 = ctx
-            .state
             .get_diff(tile, "BRAM", "PRESENT", "WW_VALUE_1")
             .combine(&!&present_base);
         let (a0, b0) = filter_ab(diff0);
@@ -484,16 +477,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
-                diffs_data.extend(
-                    ctx.state
-                        .get_diffs(tile, "BRAM", format!("INIT_{i:02X}"), ""),
-                );
+                diffs_data.extend(ctx.get_diffs(tile, "BRAM", format!("INIT_{i:02X}"), ""));
             }
             for i in 0..0x08 {
-                diffs_datap.extend(
-                    ctx.state
-                        .get_diffs(tile, "BRAM", format!("INITP_{i:02X}"), ""),
-                );
+                diffs_datap.extend(ctx.get_diffs(tile, "BRAM", format!("INITP_{i:02X}"), ""));
             }
             for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
                 ctx.collect_enum(
@@ -504,7 +491,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 );
             }
             for attr in ["DATA_WIDTH_A", "DATA_WIDTH_B"] {
-                ctx.state.get_diff(tile, "BRAM", attr, "0").assert_empty();
+                ctx.get_diff(tile, "BRAM", attr, "0").assert_empty();
                 ctx.collect_enum(tile, "BRAM", attr, &["1", "2", "4", "9", "18", "36"]);
             }
             if grid_kind == ChipKind::Spartan3ADsp {
@@ -531,16 +518,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
             }
             for i in 0..0x40 {
-                diffs_data.extend(
-                    ctx.state
-                        .get_diffs(tile, "BRAM", format!("INIT_{i:02x}"), ""),
-                );
+                diffs_data.extend(ctx.get_diffs(tile, "BRAM", format!("INIT_{i:02x}"), ""));
             }
             for i in 0..0x08 {
-                diffs_datap.extend(
-                    ctx.state
-                        .get_diffs(tile, "BRAM", format!("INITP_{i:02x}"), ""),
-                );
+                diffs_datap.extend(ctx.get_diffs(tile, "BRAM", format!("INITP_{i:02x}"), ""));
             }
             for (dattr, sattr) in [
                 ("WRITE_MODE_A", "WRITEMODEA"),
@@ -548,7 +529,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ] {
                 let diffs = ["NO_CHANGE", "READ_FIRST", "WRITE_FIRST"]
                     .into_iter()
-                    .map(|val| (val, ctx.state.get_diff(tile, "BRAM", sattr, val)))
+                    .map(|val| (val, ctx.get_diff(tile, "BRAM", sattr, val)))
                     .collect();
                 ctx.insert(tile, "BRAM", dattr, xlat_enum(diffs));
             }
@@ -565,15 +546,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                     ("36", "512X36"),
                 ]
                 .into_iter()
-                .map(|(dval, sval)| (dval, ctx.state.get_diff(tile, "BRAM", sattr, sval)))
+                .map(|(dval, sval)| (dval, ctx.get_diff(tile, "BRAM", sattr, sval)))
                 .collect();
                 ctx.insert(tile, "BRAM", dattr, xlat_enum(diffs));
             }
             if grid_kind.is_virtex2() {
-                ctx.state
-                    .get_diff(tile, "BRAM", "SAVEDATA", "FALSE")
+                ctx.get_diff(tile, "BRAM", "SAVEDATA", "FALSE")
                     .assert_empty();
-                let diff = ctx.state.get_diff(tile, "BRAM", "SAVEDATA", "TRUE");
+                let diff = ctx.get_diff(tile, "BRAM", "SAVEDATA", "TRUE");
                 let mut bits: Vec<_> = diff.bits.into_iter().collect();
                 bits.sort();
                 ctx.insert(
@@ -611,10 +591,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
 
     if grid_kind != ChipKind::Spartan3ADsp {
-        let mut present = ctx.state.get_diff(tile, "MULT", "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, "MULT", "PRESENT", "1");
         if grid_kind.is_virtex2() || grid_kind == ChipKind::Spartan3 {
-            let f_clk = ctx.state.get_diff(tile, "MULT", "CLKINV", "CLK");
-            let f_clk_b = ctx.state.get_diff(tile, "MULT", "CLKINV", "CLK_B");
+            let f_clk = ctx.get_diff(tile, "MULT", "CLKINV", "CLK");
+            let f_clk_b = ctx.get_diff(tile, "MULT", "CLKINV", "CLK_B");
             let (f_clk, f_clk_b, f_reg) = Diff::split(f_clk, f_clk_b);
             f_clk.assert_empty();
             ctx.insert(tile, "MULT", "REG", xlat_bit(f_reg));
@@ -630,15 +610,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             ctx.collect_enum(tile, "MULT", "BREG", &["0", "1"]);
             ctx.collect_enum(tile, "MULT", "PREG", &["0", "1"]);
             ctx.collect_enum(tile, "MULT", "B_INPUT", &["DIRECT", "CASCADE"]);
-            ctx.state
-                .get_diff(tile, "MULT", "PREG_CLKINVERSION", "0")
+            ctx.get_diff(tile, "MULT", "PREG_CLKINVERSION", "0")
                 .assert_empty();
-            let item = xlat_bitvec(vec![ctx.state.get_diff(
-                tile,
-                "MULT",
-                "PREG_CLKINVERSION",
-                "1",
-            )]);
+            let item = xlat_bitvec(vec![ctx.get_diff(tile, "MULT", "PREG_CLKINVERSION", "1")]);
             ctx.insert(tile, "MULT", "PREG_CLKINVERSION", item);
             present.discard_bits(ctx.item(tile, "MULT", "PREG_CLKINVERSION"));
             present.discard_bits(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEA"));
@@ -650,7 +624,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                         let name = &*format!("MUX.{ab}{i}");
                         let item = xlat_enum(vec![
                             ("INT", Diff::default()),
-                            ("BRAM", ctx.state.get_diff(tile, "MULT", name, "BRAM")),
+                            ("BRAM", ctx.get_diff(tile, "MULT", name, "BRAM")),
                         ]);
                         ctx.insert(tile, "MULT", name, item);
                     }

@@ -104,7 +104,5 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum("DSP", "DSP", "B_INPUT", &["DIRECT", "CASCADE"]);
     ctx.collect_enum("DSP", "DSP", "CARRYINSEL", &["OPMODE5", "CARRYIN"]);
     ctx.collect_enum("DSP", "DSP", "RSTTYPE", &["SYNC", "ASYNC"]);
-    ctx.state
-        .get_diff("DSP", "DSP", "PRESENT", "1")
-        .assert_empty();
+    ctx.get_diff("DSP", "DSP", "PRESENT", "1").assert_empty();
 }

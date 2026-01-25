@@ -745,7 +745,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let bel = &format!("CRC32[{i}]");
             ctx.collect_inv(tile, bel, "CRCCLK");
             ctx.collect_bitvec(tile, bel, "CRC_INIT", "");
-            ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+            ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         }
         for i in 0..2 {
             let bel = &format!("CRC64[{i}]");

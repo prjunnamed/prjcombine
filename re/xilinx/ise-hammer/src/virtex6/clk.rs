@@ -1,5 +1,5 @@
 use prjcombine_interconnect::grid::TileCoord;
-use prjcombine_re_fpga_hammer::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::diff::{Diff, OcdMode, xlat_bit, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_virtex4::defs;
@@ -394,22 +394,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "HCLK";
         for i in 0..12 {
             let (_, _, diff) = Diff::split(
-                ctx.state
-                    .peek_diff(tile, bel, "MUX.LCLK0_D", format!("HCLK{i}"))
+                ctx.peek_diff(tile, bel, "MUX.LCLK0_D", format!("HCLK{i}"))
                     .clone(),
-                ctx.state
-                    .peek_diff(tile, bel, "MUX.LCLK0_U", format!("HCLK{i}"))
+                ctx.peek_diff(tile, bel, "MUX.LCLK0_U", format!("HCLK{i}"))
                     .clone(),
             );
             ctx.insert(tile, bel, format!("ENABLE.HCLK{i}"), xlat_bit(diff));
         }
         for i in 0..6 {
             let (_, _, diff) = Diff::split(
-                ctx.state
-                    .peek_diff(tile, bel, "MUX.LCLK0_D", format!("RCLK{i}"))
+                ctx.peek_diff(tile, bel, "MUX.LCLK0_D", format!("RCLK{i}"))
                     .clone(),
-                ctx.state
-                    .peek_diff(tile, bel, "MUX.LCLK0_U", format!("RCLK{i}"))
+                ctx.peek_diff(tile, bel, "MUX.LCLK0_U", format!("RCLK{i}"))
                     .clone(),
             );
             ctx.insert(tile, bel, format!("ENABLE.RCLK{i}"), xlat_bit(diff));
@@ -420,7 +416,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let mut diffs = vec![("NONE".to_string(), Diff::default())];
                 for i in 0..12 {
                     let val = format!("HCLK{i}");
-                    let mut diff = ctx.state.get_diff(tile, bel, mux, &val);
+                    let mut diff = ctx.get_diff(tile, bel, mux, &val);
                     diff.apply_bit_diff(
                         ctx.item(tile, bel, &format!("ENABLE.HCLK{i}")),
                         true,
@@ -430,7 +426,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
                 for i in 0..6 {
                     let val = format!("RCLK{i}");
-                    let mut diff = ctx.state.get_diff(tile, bel, mux, &val);
+                    let mut diff = ctx.get_diff(tile, bel, mux, &val);
                     diff.apply_bit_diff(
                         ctx.item(tile, bel, &format!("ENABLE.RCLK{i}")),
                         true,
@@ -454,11 +450,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_enum_bool(tile, bel, "INIT_OUT", "0", "1");
 
             // sigh. fucking. ise.
-            let mut item = xlat_bit(ctx.state.peek_diff(tile, bel, "MUX.I0", "CASCI").clone());
+            let mut item = xlat_bit(ctx.peek_diff(tile, bel, "MUX.I0", "CASCI").clone());
             assert_eq!(item.bits.len(), 1);
             item.bits[0].bit += 1;
             ctx.insert(tile, bel, "TEST_I1", item);
-            let mut item = xlat_bit(ctx.state.peek_diff(tile, bel, "MUX.I1", "CASCI").clone());
+            let mut item = xlat_bit(ctx.peek_diff(tile, bel, "MUX.I1", "CASCI").clone());
             assert_eq!(item.bits.len(), 1);
             item.bits[0].bit += 1;
             ctx.insert(tile, bel, "TEST_I0", item);
@@ -477,15 +473,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 );
             }
             ctx.collect_bit(tile, bel, "ENABLE.FB", "1");
-            ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
-            ctx.state.get_diff(tile, bel, "TEST_I0", "1").assert_empty();
-            ctx.state.get_diff(tile, bel, "TEST_I1", "1").assert_empty();
+            ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+            ctx.get_diff(tile, bel, "TEST_I0", "1").assert_empty();
+            ctx.get_diff(tile, bel, "TEST_I1", "1").assert_empty();
         }
     }
     {
         let tile = "PMVIOB";
         let bel = "PMVIOB_CLK";
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_enum_bool(tile, bel, "HYS_IN", "FALSE", "TRUE");
         ctx.collect_enum_bool(tile, bel, "HSLEW4_IN", "FALSE", "TRUE");
         ctx.collect_enum_bool(tile, bel, "PSLEW4_IN", "FALSE", "TRUE");
@@ -493,7 +489,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..4 {
         let tile = "HCLK_IO";
         let bel = &format!("BUFIO[{i}]");
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_enum_bool(tile, bel, "DQSMASK_ENABLE", "FALSE", "TRUE");
         ctx.collect_enum(
             tile,
@@ -527,7 +523,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     for i in 0..2 {
         let tile = "HCLK_IO";
         let bel = &format!("BUFO[{i}]");
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_enum(
             tile,
             bel,
@@ -544,7 +540,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = "IDELAYCTRL";
         let vals: [_; 12] = core::array::from_fn(|i| format!("HCLK{i}"));
         ctx.collect_enum(tile, bel, "MUX.REFCLK", &vals);
-        ctx.state.get_diff(tile, bel, "PRESENT", "1").assert_empty();
+        ctx.get_diff(tile, bel, "PRESENT", "1").assert_empty();
         ctx.collect_enum_bool(tile, bel, "HIGH_PERFORMANCE_MODE", "FALSE", "TRUE");
         ctx.collect_enum_default(tile, bel, "MODE", &["DEFAULT", "FULL_0", "FULL_1"], "NONE");
         ctx.collect_enum(tile, bel, "RESET_STYLE", &["V4", "V5"]);
@@ -578,11 +574,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_enum_bool(tile, bel, &format!("DELAY.IOCLK{i}"), "0", "1");
         }
         for i in 4..8 {
-            let diff_buf = ctx
-                .state
-                .get_diff(tile, bel, format!("DELAY.IOCLK{i}"), "0");
+            let diff_buf = ctx.get_diff(tile, bel, format!("DELAY.IOCLK{i}"), "0");
             let diff_delay = ctx
-                .state
                 .get_diff(tile, bel, format!("DELAY.IOCLK{i}"), "1")
                 .combine(&!&diff_buf);
             ctx.insert(tile, bel, format!("BUF.IOCLK{i}"), xlat_bit(diff_buf));

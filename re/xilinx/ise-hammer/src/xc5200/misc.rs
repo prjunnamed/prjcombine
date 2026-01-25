@@ -3,7 +3,7 @@ use prjcombine_interconnect::{
     db::{BelAttribute, BelAttributeEnum},
     grid::{CellCoord, DieId},
 };
-use prjcombine_re_fpga_hammer::{OcdMode, xlat_enum_raw};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_enum_raw};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;
@@ -343,15 +343,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ),
             ));
         }
-        let (bits, mut values) = xlat_enum_raw(diffs, OcdMode::ValueOrder);
+        let mut item = xlat_enum_raw(diffs, OcdMode::ValueOrder);
         // sigh. DI has identical value to DI_PLUS_2, which is obviously bogus.
         // not *completely* sure this is the right fixup, but it seems to be the most
         // likely option.
-        assert_eq!(bits.len(), 2);
-        values.insert(enums::GTS_GSR_TIMING::DONE_IN, bits![0; 2]);
+        assert_eq!(item.bits.len(), 2);
+        item.values
+            .insert(enums::GTS_GSR_TIMING::DONE_IN, bits![0; 2]);
         let attr = BelAttribute::Enum(BelAttributeEnum {
-            bits,
-            values: values.into_iter().collect(),
+            bits: item.bits,
+            values: item.values.into_iter().collect(),
         });
         ctx.insert_bel_attr_raw(
             tcls::CNR_SE,

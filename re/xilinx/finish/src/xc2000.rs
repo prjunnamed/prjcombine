@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_interconnect::db::{BelInfo, SwitchBoxItem, TileWireCoord};
-use prjcombine_re_fpga_hammer::CollectorData;
+use prjcombine_re_fpga_hammer::bitdata::CollectorData;
 use prjcombine_types::db::DeviceCombo;
 use prjcombine_xc2000::{
     bond::Bond,

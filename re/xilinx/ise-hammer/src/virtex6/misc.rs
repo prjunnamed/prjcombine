@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum_ocd};
+use prjcombine_re_fpga_hammer::diff::{OcdMode, xlat_bit, xlat_bitvec, xlat_enum_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{
     bits,
@@ -527,7 +527,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.insert(tile, "BSCAN_COMMON", "DISABLE_JTAG", item);
     }
     let bel = "BSCAN_COMMON";
-    let item = xlat_bitvec(ctx.state.get_diffs(tile, bel, "USERID", ""));
+    let item = xlat_bitvec(ctx.get_diffs(tile, bel, "USERID", ""));
     ctx.insert(tile, bel, "USERID", item);
 
     for bel in [
@@ -541,11 +541,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for bel in ["ICAP[0]", "ICAP[1]"] {
         // ???
-        ctx.state
-            .get_diff(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
+        ctx.get_diff(tile, bel, "ICAP_AUTO_SWITCH", "DISABLE")
             .assert_empty();
-        ctx.state
-            .get_diff(tile, bel, "ICAP_AUTO_SWITCH", "ENABLE")
+        ctx.get_diff(tile, bel, "ICAP_AUTO_SWITCH", "ENABLE")
             .assert_empty();
     }
 
@@ -580,7 +578,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.collect_bitvec(tile, bel, "SYSMON_TEST_D", "");
         ctx.collect_bitvec(tile, bel, "SYSMON_TEST_E", "");
 
-        let mut diff = ctx.state.get_diff(tile, bel, "JTAG_SYSMON", "DISABLE");
+        let mut diff = ctx.get_diff(tile, bel, "JTAG_SYSMON", "DISABLE");
         diff.apply_bitvec_diff_int(ctx.item(tile, bel, "SYSMON_TEST_E"), 7, 0);
         diff.assert_empty();
     }
@@ -646,7 +644,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum(tile, bel, "POST_CRC_CLK", &["CFG_CLK", "INTERNAL"]);
     let mut diffs = vec![];
     for val in ["1", "2", "3", "6", "13", "25", "50"] {
-        let mut diff = ctx.state.get_diff(tile, bel, "POST_CRC_FREQ", val);
+        let mut diff = ctx.get_diff(tile, bel, "POST_CRC_FREQ", val);
         diff.apply_enum_diff(ctx.item(tile, bel, "POST_CRC_CLK"), "INTERNAL", "CFG_CLK");
         diffs.push((val, diff));
     }
@@ -726,13 +724,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.collect_enum_bool(tile, bel, "ENABLE_VGG_CLAMP", "NO", "YES");
     ctx.collect_enum_bool(tile, bel, "VGG_OPT_DRV", "0", "1");
     ctx.collect_enum_bool(tile, bel, "VGG_V4_OPT", "0", "1");
-    ctx.state
-        .get_diff(tile, bel, "MODE_PIN_TEST", "DISABLE")
+    ctx.get_diff(tile, bel, "MODE_PIN_TEST", "DISABLE")
         .assert_empty();
-    let mut diff = ctx.state.get_diff(tile, bel, "MODE_PIN_TEST", "TEST0");
+    let mut diff = ctx.get_diff(tile, bel, "MODE_PIN_TEST", "TEST0");
     diff.apply_bit_diff(ctx.item(tile, bel, "VGG_TEST"), true, false);
     diff.assert_empty();
-    let mut diff = ctx.state.get_diff(tile, bel, "MODE_PIN_TEST", "TEST1");
+    let mut diff = ctx.get_diff(tile, bel, "MODE_PIN_TEST", "TEST1");
     diff.apply_bit_diff(ctx.item(tile, bel, "EN_VTEST"), true, false);
     diff.assert_empty();
     ctx.collect_bitvec(tile, bel, "VGG_SEL", "");
@@ -746,7 +743,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     let tile = "REG.TESTMODE";
     let bel = "MISC";
-    let mut diff = ctx.state.get_diff(tile, bel, "FUSE_SHADOW", "");
+    let mut diff = ctx.get_diff(tile, bel, "FUSE_SHADOW", "");
     diff.bits.remove(&TileBit::new(1, 0, 0));
     ctx.insert(tile, bel, "FUSE_SHADOW", xlat_bit(diff));
 
@@ -762,10 +759,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     let tile = "FAKE.IGNORE_CRC";
     let bel = "MISC";
-    ctx.state
-        .get_diff(tile, bel, "CRC", "ENABLE")
-        .assert_empty();
-    let diff = ctx.state.get_diff(tile, bel, "CRC", "DISABLE");
+    ctx.get_diff(tile, bel, "CRC", "ENABLE").assert_empty();
+    let diff = ctx.get_diff(tile, bel, "CRC", "DISABLE");
     assert_eq!(diff.bits.len(), 2);
     assert!(diff.bits[&TileBit::new(0, 0, 0)]);
     assert!(diff.bits[&TileBit::new(1, 0, 0)]);

@@ -2,7 +2,10 @@ use prjcombine_interconnect::{
     db::{BelBidirId, BelInputId, BelSlotId},
     grid::TileCoord,
 };
-use prjcombine_re_fpga_hammer::{DiffKey, FuzzerFeature, FuzzerProp};
+use prjcombine_re_fpga_hammer::{
+    backend::{FuzzerFeature, FuzzerProp},
+    diff::DiffKey,
+};
 use prjcombine_re_hammer::Fuzzer;
 use prjcombine_types::bitvec::BitVec;
 

@@ -23,7 +23,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirPartMap, DirV},
     grid::{BelCoord, CellCoord, ColId, DieId, RowId, WireCoord},
 };
-use prjcombine_re_fpga_hammer::DiffKey;
+use prjcombine_re_fpga_hammer::diff::DiffKey;
 use prjcombine_re_harvester::Harvester;
 use prjcombine_re_toolchain::Toolchain;
 use prjcombine_siliconblue::{

@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{xlat_bitvec, xlat_bool};
+use prjcombine_re_fpga_hammer::diff::{xlat_bitvec, xlat_bool};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex::defs;
 
@@ -69,10 +69,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ("RSTA", "RSTAMUX", "RSTA", "RSTA_B"),
             ("RSTB", "RSTBMUX", "RSTB", "RSTB_B"),
         ] {
-            let d0 = ctx.state.get_diff(tile, bel, pinmux, pin);
-            assert_eq!(d0, ctx.state.get_diff(tile, bel, pinmux, "1"));
-            let d1 = ctx.state.get_diff(tile, bel, pinmux, pin_b);
-            assert_eq!(d1, ctx.state.get_diff(tile, bel, pinmux, "0"));
+            let d0 = ctx.get_diff(tile, bel, pinmux, pin);
+            assert_eq!(d0, ctx.get_diff(tile, bel, pinmux, "1"));
+            let d1 = ctx.get_diff(tile, bel, pinmux, pin_b);
+            assert_eq!(d1, ctx.get_diff(tile, bel, pinmux, "0"));
             ctx.insert(
                 tile,
                 "INT",
@@ -82,7 +82,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         }
         let mut diffs_data = vec![];
         for i in 0..0x10 {
-            diffs_data.extend(ctx.state.get_diffs(tile, bel, format!("INIT_{i:02x}"), ""));
+            diffs_data.extend(ctx.get_diffs(tile, bel, format!("INIT_{i:02x}"), ""));
         }
         for attr in ["PORTA_ATTR", "PORTB_ATTR"] {
             ctx.collect_enum(
@@ -93,7 +93,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             );
         }
         ctx.insert(tile, bel, "DATA", xlat_bitvec(diffs_data));
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
         present.discard_bits(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELA"));
         present.discard_bits(ctx.item(tile, "INT", "INV.0.IMUX.BRAM.SELB"));
         present.assert_empty();

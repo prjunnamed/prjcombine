@@ -9,7 +9,7 @@ use prjcombine_interconnect::{
     dir::{Dir, DirH, DirV},
     grid::{CellCoord, ColId, DieId, RowId, WireCoord},
 };
-use prjcombine_re_fpga_hammer::DiffKey;
+use prjcombine_re_fpga_hammer::diff::DiffKey;
 use prjcombine_re_harvester::Sample;
 use prjcombine_siliconblue::{
     bitstream::Bitstream,

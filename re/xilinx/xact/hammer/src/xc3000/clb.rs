@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{Diff, xlat_bitvec_raw, xlat_enum_attr};
+use prjcombine_re_fpga_hammer::diff::{Diff, xlat_bitvec_raw, xlat_enum_attr};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{
     bits,

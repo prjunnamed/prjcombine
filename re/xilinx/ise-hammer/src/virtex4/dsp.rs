@@ -1,4 +1,4 @@
-use prjcombine_re_fpga_hammer::{Diff, xlat_enum};
+use prjcombine_re_fpga_hammer::diff::{Diff, xlat_enum};
 use prjcombine_re_hammer::Session;
 use prjcombine_virtex4::defs;
 
@@ -79,10 +79,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         assert_eq!(ti0, ti1);
         ctx.insert_int_inv(&["INT"; 4], tile, "DSP[0]", pin, ti0);
     }
-    let d0_0 = ctx.state.get_diff(tile, "DSP[0]", "CREG", "0");
-    let d0_1 = ctx.state.get_diff(tile, "DSP[0]", "CREG", "1");
-    let d1_0 = ctx.state.get_diff(tile, "DSP[1]", "CREG", "0");
-    let d1_1 = ctx.state.get_diff(tile, "DSP[1]", "CREG", "1");
+    let d0_0 = ctx.get_diff(tile, "DSP[0]", "CREG", "0");
+    let d0_1 = ctx.get_diff(tile, "DSP[0]", "CREG", "1");
+    let d1_0 = ctx.get_diff(tile, "DSP[1]", "CREG", "0");
+    let d1_1 = ctx.get_diff(tile, "DSP[1]", "CREG", "1");
     let (d0_0, d1_0, dc_0) = Diff::split(d0_0, d1_0);
     let (d0_1, d1_1, dc_1) = Diff::split(d0_1, d1_1);
     ctx.insert(
@@ -107,7 +107,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.collect_inv(tile, bel, pin);
             }
         }
-        let mut present = ctx.state.get_diff(tile, bel, "PRESENT", "1");
+        let mut present = ctx.get_diff(tile, bel, "PRESENT", "1");
         for attr in ["AREG", "BREG"] {
             ctx.collect_enum(tile, bel, attr, &["0", "1", "2"]);
             present.discard_bits(ctx.item(tile, bel, attr));

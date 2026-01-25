@@ -3,7 +3,10 @@ use prjcombine_interconnect::{
     dir::Dir,
     grid::{BelCoord, TileCoord, WireCoord},
 };
-use prjcombine_re_fpga_hammer::{Diff, DiffKey, FuzzerProp, OcdMode, xlat_bit_raw, xlat_enum_raw};
+use prjcombine_re_fpga_hammer::{
+    backend::FuzzerProp,
+    diff::{Diff, DiffKey, OcdMode, xlat_bit_raw, xlat_enum_raw},
+};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_xc2000::xc3000::{bcls, bslots, tslots, wires};
 
@@ -735,9 +738,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                 got_empty = true;
                                 continue;
                             }
-                            let diff = ctx
-                                .state
-                                .get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
+                            let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
                             if diff.bits.is_empty() {
                                 got_empty = true;
                             }
@@ -750,11 +751,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             assert_eq!(pin, "O");
                             inps.push((None, Diff::default()));
                         }
-                        let (bits, vals) = xlat_enum_raw(inps, OcdMode::Mux);
-                        if bits.is_empty() && !wires::IMUX_TBUF_I.contains(mux.dst.wire) {
+                        let item = xlat_enum_raw(inps, OcdMode::Mux);
+                        if item.bits.is_empty() && !wires::IMUX_TBUF_I.contains(mux.dst.wire) {
                             println!("UMMM MUX {tcname} {mux_name} is empty");
                         }
-                        ctx.insert_mux(tcid, mux.dst, (bits, vals));
+                        ctx.insert_mux(tcid, mux.dst, item);
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
                         ctx.collect_progbuf(tcid, buf.dst, buf.src);
