@@ -309,6 +309,7 @@ pub struct Verifier<'a> {
     pub tile_lut: HashMap<String, Coord>,
     wire_slot_aliases: HashMap<WireSlotId, WireSlotId>,
     intf_int_aliases: HashMap<WireCoord, WireCoord>,
+    force_bel_pin: HashMap<(TileClassId, BelSlotId, &'static str), TileWireCoord>,
     skip_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
     inject_tcls_pips: EntityPartVec<TileClassId, HashSet<(TileWireCoord, TileWireCoord)>>,
     dummy_in_nodes: HashSet<NodeOrWire>,
@@ -319,7 +320,7 @@ pub struct Verifier<'a> {
     claimed_sites: HashMap<Coord, EntityBitVec<rawdump::TkSiteId>>,
     vcc_nodes: HashSet<NodeOrWire>,
     int_wire_data: HashMap<WireCoord, IntWireData>,
-    node_used: EntityVec<TileClassId, TileClassUsedInfo>,
+    tcls_used: EntityVec<TileClassId, TileClassUsedInfo>,
     skip_residual_sites: bool,
     skip_residual_pips: bool,
     skip_residual_nodes: bool,
@@ -346,119 +347,7 @@ struct IntWireData {
 struct TileClassUsedInfo {
     used_o: HashSet<TileWireCoord>,
     used_i: HashSet<TileWireCoord>,
-}
-
-fn prep_tile_class_used_info(db: &IntDb, tcid: TileClassId) -> TileClassUsedInfo {
-    let tcls = &db[tcid];
-    let mut used_o = HashSet::new();
-    let mut used_i = HashSet::new();
-    for bel in tcls.bels.values() {
-        match bel {
-            BelInfo::SwitchBox(sb) => {
-                for item in &sb.items {
-                    match item {
-                        SwitchBoxItem::Mux(mux) => {
-                            used_o.insert(mux.dst);
-                            for &w in mux.src.keys() {
-                                if !db[w.wire].is_tie() {
-                                    used_i.insert(w.tw);
-                                }
-                            }
-                        }
-                        SwitchBoxItem::ProgBuf(buf) => {
-                            used_o.insert(buf.dst);
-                            if !db[buf.src.wire].is_tie() {
-                                used_i.insert(buf.src.tw);
-                            }
-                        }
-                        SwitchBoxItem::PermaBuf(buf) => {
-                            used_o.insert(buf.dst);
-                            used_i.insert(buf.src.tw);
-                        }
-                        SwitchBoxItem::Pass(pass) => {
-                            used_o.insert(pass.dst);
-                            used_i.insert(pass.src);
-                        }
-                        SwitchBoxItem::BiPass(pass) => {
-                            used_o.insert(pass.a);
-                            used_o.insert(pass.b);
-                            used_i.insert(pass.a);
-                            used_i.insert(pass.b);
-                        }
-                        SwitchBoxItem::ProgInv(inv) => {
-                            used_o.insert(inv.dst);
-                            used_i.insert(inv.src);
-                        }
-                        SwitchBoxItem::ProgDelay(delay) => {
-                            used_o.insert(delay.dst);
-                            used_i.insert(delay.src.tw);
-                        }
-                        SwitchBoxItem::Bidi(_) => unreachable!(),
-                    }
-                }
-            }
-            BelInfo::Bel(bel) => {
-                for &inp in bel.inputs.values() {
-                    match inp {
-                        BelInput::Fixed(wire) => {
-                            used_i.insert(wire.tw);
-                        }
-                        BelInput::Invertible(wire, _) => {
-                            used_i.insert(wire);
-                        }
-                    }
-                }
-                for wires in bel.outputs.values() {
-                    for &wire in wires {
-                        used_o.insert(wire);
-                    }
-                }
-                for &wire in bel.bidirs.values() {
-                    used_i.insert(wire);
-                    used_o.insert(wire);
-                }
-            }
-            BelInfo::Legacy(bel) => {
-                for pin in bel.pins.values() {
-                    for &w in &pin.wires {
-                        match pin.dir {
-                            PinDir::Input => {
-                                used_i.insert(w);
-                            }
-                            PinDir::Output => {
-                                used_o.insert(w);
-                            }
-                            PinDir::Inout => {
-                                used_i.insert(w);
-                                used_o.insert(w);
-                            }
-                        }
-                    }
-                }
-            }
-            BelInfo::TestMux(tm) => {
-                for (&dst, tmux) in &tm.wires {
-                    used_o.insert(dst);
-                    used_i.insert(tmux.primary_src.tw);
-                    for &src in tmux.test_src.keys() {
-                        used_i.insert(src.tw);
-                    }
-                }
-            }
-            BelInfo::GroupTestMux(tm) => {
-                for (&dst, tmux) in &tm.wires {
-                    used_o.insert(dst);
-                    used_i.insert(tmux.primary_src.tw);
-                    for &src in &tmux.test_src {
-                        if let Some(src) = src {
-                            used_i.insert(src.tw);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    TileClassUsedInfo { used_o, used_i }
+    used_i_chain: HashMap<TileWireCoord, TileWireCoord>,
 }
 
 fn name_pip<'a>(
@@ -478,10 +367,6 @@ fn name_pip<'a>(
 
 impl<'a> Verifier<'a> {
     pub fn new(rd: &'a Part, ngrid: &'a ExpandedGridNaming) -> Self {
-        let mut node_used = EntityVec::new();
-        for nid in ngrid.egrid.db.tile_classes.ids() {
-            node_used.push(prep_tile_class_used_info(ngrid.egrid.db, nid));
-        }
         Self {
             rd,
             db: ngrid.egrid.db,
@@ -491,6 +376,7 @@ impl<'a> Verifier<'a> {
             tile_lut: rd.tiles.iter().map(|(&c, t)| (t.name.clone(), c)).collect(),
             wire_slot_aliases: HashMap::new(),
             intf_int_aliases: HashMap::new(),
+            force_bel_pin: Default::default(),
             skip_tcls_pips: EntityPartVec::new(),
             inject_tcls_pips: EntityPartVec::new(),
             dummy_in_nodes: HashSet::new(),
@@ -527,7 +413,7 @@ impl<'a> Verifier<'a> {
                 })
                 .collect(),
             vcc_nodes: HashSet::new(),
-            node_used,
+            tcls_used: EntityVec::new(),
             int_wire_data: HashMap::new(),
             skip_residual_sites: false,
             skip_residual_pips: false,
@@ -564,9 +450,144 @@ impl<'a> Verifier<'a> {
         self.inject_tcls_pips[tcid].insert((dst, src));
     }
 
+    pub fn force_bel_pin(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        pin: &'static str,
+        wire: TileWireCoord,
+    ) {
+        self.force_bel_pin.insert((tcid, bslot, pin), wire);
+    }
+
+    fn prep_tile_class_used_info(&self, tcid: TileClassId) -> TileClassUsedInfo {
+        let tcls = &self.db[tcid];
+        let mut used_o = HashSet::new();
+        let mut used_i = HashSet::new();
+        let mut used_i_chain = HashMap::new();
+        for (bslot, bel) in &tcls.bels {
+            match bel {
+                BelInfo::SwitchBox(sb) => {
+                    for item in &sb.items {
+                        match item {
+                            SwitchBoxItem::Mux(mux) => {
+                                used_o.insert(mux.dst);
+                                for &w in mux.src.keys() {
+                                    if !self.db[w.wire].is_tie() {
+                                        used_i.insert(w.tw);
+                                    }
+                                }
+                            }
+                            SwitchBoxItem::ProgBuf(buf) => {
+                                used_o.insert(buf.dst);
+                                if !self.db[buf.src.wire].is_tie() {
+                                    used_i.insert(buf.src.tw);
+                                }
+                            }
+                            SwitchBoxItem::PermaBuf(buf) => {
+                                used_o.insert(buf.dst);
+                                used_i.insert(buf.src.tw);
+                            }
+                            SwitchBoxItem::Pass(pass) => {
+                                used_o.insert(pass.dst);
+                                used_i.insert(pass.src);
+                            }
+                            SwitchBoxItem::BiPass(pass) => {
+                                used_o.insert(pass.a);
+                                used_o.insert(pass.b);
+                                used_i.insert(pass.a);
+                                used_i.insert(pass.b);
+                            }
+                            SwitchBoxItem::ProgInv(inv) => {
+                                used_o.insert(inv.dst);
+                                used_i_chain.insert(inv.dst, inv.src);
+                            }
+                            SwitchBoxItem::ProgDelay(delay) => {
+                                used_o.insert(delay.dst);
+                                used_i.insert(delay.src.tw);
+                            }
+                            SwitchBoxItem::Bidi(_) => unreachable!(),
+                        }
+                    }
+                }
+                BelInfo::Bel(bel) => {
+                    for &inp in bel.inputs.values() {
+                        match inp {
+                            BelInput::Fixed(wire) => {
+                                used_i.insert(wire.tw);
+                            }
+                            BelInput::Invertible(wire, _) => {
+                                used_i.insert(wire);
+                            }
+                        }
+                    }
+                    for wires in bel.outputs.values() {
+                        for &wire in wires {
+                            used_o.insert(wire);
+                        }
+                    }
+                    for &wire in bel.bidirs.values() {
+                        used_i.insert(wire);
+                        used_o.insert(wire);
+                    }
+                }
+                BelInfo::Legacy(bel) => {
+                    for (pname, pin) in &bel.pins {
+                        for &(mut w) in &pin.wires {
+                            if let Some(&rw) = self.force_bel_pin.get(&(tcid, bslot, pname)) {
+                                w = rw;
+                            }
+                            match pin.dir {
+                                PinDir::Input => {
+                                    used_i.insert(w);
+                                }
+                                PinDir::Output => {
+                                    used_o.insert(w);
+                                }
+                                PinDir::Inout => {
+                                    used_i.insert(w);
+                                    used_o.insert(w);
+                                }
+                            }
+                        }
+                    }
+                }
+                BelInfo::TestMux(tm) => {
+                    for (&dst, tmux) in &tm.wires {
+                        used_o.insert(dst);
+                        used_i.insert(tmux.primary_src.tw);
+                        for &src in tmux.test_src.keys() {
+                            used_i.insert(src.tw);
+                        }
+                    }
+                }
+                BelInfo::GroupTestMux(tm) => {
+                    for (&dst, tmux) in &tm.wires {
+                        used_o.insert(dst);
+                        used_i.insert(tmux.primary_src.tw);
+                        for &src in &tmux.test_src {
+                            if let Some(src) = src {
+                                used_i.insert(src.tw);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        TileClassUsedInfo {
+            used_o,
+            used_i,
+            used_i_chain,
+        }
+    }
+
     pub fn prep_int_wires(&mut self) {
+        assert!(self.tcls_used.is_empty());
+        for tcid in self.db.tile_classes.ids() {
+            self.tcls_used.push(self.prep_tile_class_used_info(tcid));
+        }
         for (tcrd, tile) in self.grid.tiles() {
-            let nui = &self.node_used[tile.class];
+            let nui = &self.tcls_used[tile.class];
             let Some(ntile) = self.ngrid.tiles.get(&tcrd) else {
                 continue;
             };
@@ -608,6 +629,20 @@ impl<'a> Verifier<'a> {
                         ConnectorWire::Pass(wf) => conn.target.unwrap().wire(wf),
                         _ => unreachable!(),
                     };
+                    if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
+                        self.int_wire_data.entry(wf).or_default().used_i = true;
+                    }
+                }
+            }
+        }
+        for (tcrd, tile) in self.grid.tiles() {
+            let nui = &self.tcls_used[tile.class];
+            for (&wt, &wf) in &nui.used_i_chain {
+                let wt = self.grid.tile_wire(tcrd, wt);
+                if let Some(wt) = self.ngrid.resolve_wire_raw(wt)
+                    && self.int_wire_data.entry(wt).or_default().used_i
+                {
+                    let wf = self.grid.tile_wire(tcrd, wf);
                     if let Some(wf) = self.ngrid.resolve_wire_raw(wf) {
                         self.int_wire_data.entry(wf).or_default().used_i = true;
                     }
@@ -979,7 +1014,7 @@ impl<'a> Verifier<'a> {
         let def_rt = RawTileId::from_idx(0);
         let tcls = &self.db[tile.class];
         let naming = &self.ndb.tile_class_namings[ntile.naming];
-        let nui = &self.node_used[tile.class];
+        let nui = &self.tcls_used[tile.class];
         let mut wire_lut = HashMap::new();
         for &w in nui.used_i.iter().chain(nui.used_o.iter()) {
             let ww = self.grid.tile_wire(tcrd, w);
@@ -1072,7 +1107,7 @@ impl<'a> Verifier<'a> {
         let def_rt = RawTileId::from_idx(0);
         let tcls = &self.db[tile.class];
         let naming = &self.ndb.tile_class_namings[ntile.naming];
-        let nui = &self.node_used[tile.class];
+        let nui = &self.tcls_used[tile.class];
         let mut wire_lut = HashMap::new();
         for &w in nui.used_i.iter().chain(nui.used_o.iter()) {
             let ww = self.grid.tile_wire(tcrd, w);
@@ -1405,13 +1440,13 @@ impl<'a> Verifier<'a> {
             );
         }
 
-        for (slot, bel) in &tcls.bels {
-            let bcrd = tcrd.bel(slot);
+        for (bslot, bel) in &tcls.bels {
+            let bcrd = tcrd.bel(bslot);
             match bel {
                 BelInfo::SwitchBox(_) => (),
                 BelInfo::Bel(bel) => {
                     let bn = self.ngrid.get_bel_naming(bcrd);
-                    let BelKind::Class(bcid) = self.db.bel_slots[slot].kind else {
+                    let BelKind::Class(bcid) = self.db.bel_slots[bslot].kind else {
                         unreachable!()
                     };
                     let bcls = &self.db[bcid];
@@ -1551,18 +1586,18 @@ impl<'a> Verifier<'a> {
                 }
                 BelInfo::Legacy(bel) => {
                     let bn = self.ngrid.get_bel_naming(bcrd);
-                    for (k, v) in &bel.pins {
-                        if self.skip_bel_pins.contains(&(tcrd.bel(slot), k)) {
+                    for (pname, pin) in &bel.pins {
+                        if self.skip_bel_pins.contains(&(tcrd.bel(bslot), pname)) {
                             continue;
                         }
-                        let n = &bn.pins[k];
+                        let n = &bn.pins[pname];
                         let mut wc = RawWireCoord {
                             crd: crds[n.tile],
                             wire: &n.name,
                         };
                         for pip in &n.pips {
                             let (wtn, wfn) = name_pip(&crds, pip);
-                            wc = match v.dir {
+                            wc = match pin.dir {
                                 PinDir::Input => {
                                     self.claim_net(&[wc, wtn]);
                                     self.claim_pip(wtn, wfn);
@@ -1580,7 +1615,10 @@ impl<'a> Verifier<'a> {
                             wc.wire = &n.name_far;
                         }
                         let mut claim = true;
-                        for &w in &v.wires {
+                        for &(mut w) in &pin.wires {
+                            if let Some(&rw) = self.force_bel_pin.get(&(tile.class, bslot, pname)) {
+                                w = rw;
+                            }
                             let wire = self
                                 .ngrid
                                 .resolve_wire_raw(self.grid.tile_wire(tcrd, w))
@@ -1589,7 +1627,7 @@ impl<'a> Verifier<'a> {
                             if let Some(pip) = n.int_pips.get(&w) {
                                 let (wtn, wfn) = name_pip(&crds, pip);
                                 self.claim_pip(wtn, wfn);
-                                if v.dir == PinDir::Input {
+                                if pin.dir == PinDir::Input {
                                     self.verify_net(&[wc, wtn]);
                                     wwc = wfn;
                                 } else {
@@ -1603,7 +1641,7 @@ impl<'a> Verifier<'a> {
                             if n.is_intf {
                                 if !self.pin_int_intf_wire(wwc, wire) {
                                     println!(
-                                        "MISSING BEL PIN INTF WIRE {part} {tile} {k} {wire}",
+                                        "MISSING BEL PIN INTF WIRE {part} {tile} {pname} {wire}",
                                         part = self.rd.part,
                                         tile = ntile.names[def_rt],
                                         wire = n.name_far
@@ -1612,11 +1650,11 @@ impl<'a> Verifier<'a> {
                             } else {
                                 if !self.pin_int_wire(wwc, wire) {
                                     let iwd = &self.int_wire_data[&wire];
-                                    if (v.dir == PinDir::Input && iwd.used_o)
-                                        || (v.dir == PinDir::Output && iwd.used_i)
+                                    if (pin.dir == PinDir::Input && iwd.used_o)
+                                        || (pin.dir == PinDir::Output && iwd.used_i)
                                     {
                                         println!(
-                                            "MISSING BEL PIN INT WIRE {part} {tile} {k} {wire}",
+                                            "MISSING BEL PIN INT WIRE {part} {tile} {pname} {wire}",
                                             part = self.rd.part,
                                             tile = ntile.names[def_rt],
                                             wire = n.name_far

@@ -3,7 +3,7 @@ use prjcombine_re_collector::{
     legacy::{xlat_bitvec_legacy, xlat_enum_legacy},
 };
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{bslots, virtex4::tcls};
 
 use crate::{
     backend::{IseBackend, MultiValue},
@@ -12,13 +12,13 @@ use crate::{
 };
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
-    let mut ctx = FuzzCtx::new(session, backend, "BRAM");
+    let mut ctx = FuzzCtx::new_id(session, backend, tcls::BRAM);
     {
-        let mut bctx = ctx.bel(defs::bslots::BRAM);
+        let mut bctx = ctx.bel(bslots::BRAM);
         let mode = "RAMB16";
         bctx.build()
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(defs::bslots::FIFO)
+            .bel_unused(bslots::FIFO)
             .test_manual("PRESENT", "1")
             .mode(mode)
             .commit();
@@ -28,7 +28,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::FIFO)
+                .bel_unused(bslots::FIFO)
                 .test_inv(pin);
         }
         for attr in [
@@ -40,13 +40,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::FIFO)
+                .bel_unused(bslots::FIFO)
                 .test_enum(attr, &["FALSE", "TRUE"]);
         }
         for attr in ["DOA_REG", "DOB_REG"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::FIFO)
+                .bel_unused(bslots::FIFO)
                 .test_enum(attr, &["0", "1"]);
         }
         for attr in [
@@ -57,7 +57,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         ] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::FIFO)
+                .bel_unused(bslots::FIFO)
                 .attr("INIT_A", "0")
                 .attr("INIT_B", "0")
                 .attr("SRVAL_A", "0")
@@ -67,13 +67,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         for attr in ["RAM_EXTENSION_A", "RAM_EXTENSION_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::FIFO)
+                .bel_unused(bslots::FIFO)
                 .test_enum(attr, &["NONE", "LOWER", "UPPER"]);
         }
         for attr in ["WRITE_MODE_A", "WRITE_MODE_B"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::FIFO)
+                .bel_unused(bslots::FIFO)
                 .test_enum(attr, &["READ_FIRST", "WRITE_FIRST", "NO_CHANGE"]);
         }
         for attr in ["INIT_A", "INIT_B", "SRVAL_A", "SRVAL_B"] {
@@ -104,54 +104,54 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         }
     }
     {
-        let mut bctx = ctx.bel(defs::bslots::FIFO);
+        let mut bctx = ctx.bel(bslots::FIFO);
         let mode = "FIFO16";
         bctx.build()
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(defs::bslots::BRAM)
+            .bel_unused(bslots::BRAM)
             .test_manual("PRESENT", "1")
             .mode(mode)
             .commit();
         for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::BRAM)
+                .bel_unused(bslots::BRAM)
                 .attr("DATA_WIDTH", "36")
                 .test_inv(pin);
         }
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(defs::bslots::BRAM)
+            .bel_unused(bslots::BRAM)
             .test_enum("DATA_WIDTH", &["4", "9", "18", "36"]);
         for attr in ["FIRST_WORD_FALL_THROUGH", "EN_ECC_READ", "EN_ECC_WRITE"] {
             bctx.mode(mode)
                 .global_mutex("BRAM", "NOPE")
-                .bel_unused(defs::bslots::BRAM)
+                .bel_unused(bslots::BRAM)
                 .attr("DATA_WIDTH", "36")
                 .test_enum(attr, &["FALSE", "TRUE"]);
         }
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(defs::bslots::BRAM)
+            .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "FALSE")
             .test_manual("ALMOST_FULL_OFFSET:NFWFT", "")
             .multi_attr("ALMOST_FULL_OFFSET", MultiValue::Hex(0), 12);
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(defs::bslots::BRAM)
+            .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "FALSE")
             .test_manual("ALMOST_EMPTY_OFFSET:NFWFT", "")
             .multi_attr("ALMOST_EMPTY_OFFSET", MultiValue::Hex(1), 12);
 
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(defs::bslots::BRAM)
+            .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "TRUE")
             .test_manual("ALMOST_FULL_OFFSET:FWFT", "")
             .multi_attr("ALMOST_FULL_OFFSET", MultiValue::Hex(0), 12);
         bctx.mode(mode)
             .global_mutex("BRAM", "NOPE")
-            .bel_unused(defs::bslots::BRAM)
+            .bel_unused(bslots::BRAM)
             .attr("FIRST_WORD_FALL_THROUGH", "TRUE")
             .test_manual("ALMOST_EMPTY_OFFSET:FWFT", "")
             .multi_attr("ALMOST_EMPTY_OFFSET", MultiValue::Hex(2), 12);
@@ -160,13 +160,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "BRAM";
+    let tcid = tcls::BRAM;
     for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
-        ctx.collect_int_inv(&["INT"; 4], tile, "FIFO", pin, false);
+        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslots::FIFO, pin, false);
     }
     for pin in [
         "CLKA", "CLKB", "ENA", "ENB", "SSRA", "SSRB", "REGCEA", "REGCEB",
     ] {
-        ctx.collect_int_inv(&["INT"; 4], tile, "BRAM", pin, false);
+        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslots::BRAM, pin, false);
     }
     for pin in [
         "WEA0", "WEA1", "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",

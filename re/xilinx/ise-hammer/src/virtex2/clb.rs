@@ -1,4 +1,7 @@
-use prjcombine_interconnect::grid::TileCoord;
+use prjcombine_interconnect::{
+    db::{BelInfo, SwitchBoxItem},
+    grid::TileCoord,
+};
 use prjcombine_re_collector::{
     diff::{Diff, DiffKey, FeatureId},
     legacy::{xlat_bit_legacy, xlat_enum_legacy},
@@ -6,7 +9,9 @@ use prjcombine_re_collector::{
 use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex2::defs;
+use prjcombine_virtex2::defs::{
+    bslots as bslots_v2, spartan3::tcls as tcls_s3, tslots as tslots_v2, virtex2::tcls as tcls_v2,
+};
 
 use crate::{
     backend::IseBackend,
@@ -45,7 +50,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for RandorInit {
             return None;
         }
         if tcrd.col == edev.chip.col_w() + 1 {
-            let tcrd = tcrd.delta(-1, 0).tile(defs::tslots::RANDOR);
+            let tcrd = tcrd.delta(-1, 0).tile(tslots_v2::RANDOR);
             let tile = &backend.edev[tcrd];
             let tcls = backend.edev.db.tile_classes.key(tile.class);
             let DiffKey::Legacy(first_feature_id) =
@@ -88,7 +93,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     };
     let mut ctx = FuzzCtx::new(session, backend, "CLB");
     let slots = match mode {
-        Mode::Virtex2 | Mode::Spartan3 => Vec::from_iter(prjcombine_virtex2::defs::bslots::SLICE),
+        Mode::Virtex2 | Mode::Spartan3 => Vec::from_iter(bslots_v2::SLICE),
         Mode::Virtex4 => Vec::from_iter(prjcombine_virtex4::defs::bslots::SLICE),
     };
     for i in 0..4 {
@@ -601,7 +606,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 "RANDOR"
             },
         );
-        let mut bctx = ctx.bel(prjcombine_virtex2::defs::bslots::RANDOR);
+        let mut bctx = ctx.bel(bslots_v2::RANDOR);
         bctx.mode("RESERVED_ANDOR")
             .pin("O")
             .prop(RandorInit)
@@ -622,10 +627,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         _ => unreachable!(),
     };
 
+    let tcid = ctx.edev.db.get_tile_class("CLB");
     for (idx, bel) in ["SLICE[0]", "SLICE[1]", "SLICE[2]", "SLICE[3]"]
         .into_iter()
         .enumerate()
     {
+        let bslot = ctx.edev.db.bel_slots.get(bel).unwrap().0;
         ctx.collect_bitvec_legacy("CLB", bel, "F", "#LUT");
         ctx.collect_bitvec_legacy("CLB", bel, "G", "#LUT");
 
@@ -903,24 +910,23 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
         // inverts
         let int = if mode == Mode::Virtex4 {
-            "INT"
-        } else if let ExpandedDevice::Virtex2(edev) = ctx.edev
-            && edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore
-        {
-            "INT_CLB_FC"
+            prjcombine_virtex4::defs::virtex4::tcls::INT
+        } else if let ExpandedDevice::Virtex2(edev) = ctx.edev {
+            if edev.chip.kind.is_virtex2() {
+                tcls_v2::INT_CLB
+            } else if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+                tcls_s3::INT_CLB_FC
+            } else {
+                tcls_s3::INT_CLB
+            }
         } else {
-            "INT_CLB"
+            unreachable!()
         };
-        ctx.collect_int_inv(&[int], "CLB", bel, "CLK", false);
-        ctx.collect_int_inv(&[int], "CLB", bel, "SR", false);
-        ctx.collect_int_inv(&[int], "CLB", bel, "CE", false);
-        if mode == Mode::Virtex2 {
-            ctx.collect_int_inv(&[int], "CLB", bel, "BX", false);
-            ctx.collect_int_inv(&[int], "CLB", bel, "BY", false);
-        } else {
-            ctx.collect_inv("CLB", bel, "BX");
-            ctx.collect_inv("CLB", bel, "BY");
-        }
+        ctx.collect_int_inv(&[int], tcid, bslot, "CLK", false);
+        ctx.collect_int_inv(&[int], tcid, bslot, "SR", false);
+        ctx.collect_int_inv(&[int], tcid, bslot, "CE", false);
+        ctx.collect_inv("CLB", bel, "BX");
+        ctx.collect_inv("CLB", bel, "BY");
     }
     if mode == Mode::Spartan3 {
         let ExpandedDevice::Virtex2(edev) = ctx.edev else {
@@ -959,50 +965,34 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         ctx.insert(tile, bel, "MODE", item);
     }
     if let ExpandedDevice::Virtex2(edev) = ctx.edev {
-        let int_clb = if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
-            "INT_CLB_FC"
+        let int_clb = if edev.chip.kind.is_virtex2() {
+            tcls_v2::INT_CLB
+        } else if edev.chip.kind == prjcombine_virtex2::chip::ChipKind::FpgaCore {
+            tcls_s3::INT_CLB_FC
         } else {
-            "INT_CLB"
+            tcls_s3::INT_CLB
         };
-        for (tcid, name, _) in &ctx.edev.db.tile_classes {
-            if !name.starts_with("INT_") {
+        for (tcid, _, tcls) in &ctx.edev.db.tile_classes {
+            if tcid == int_clb {
                 continue;
             }
-            if name == int_clb {
+            if !ctx.has_tile_id(tcid) {
                 continue;
             }
-            if ctx.edev.tile_index[tcid].is_empty() {
+            if !tcls.bels.contains_id(bslots_v2::INT) {
                 continue;
             }
-            for &wire in ctx.edev.db_index[tcid].pips_bwd.keys() {
-                let wire_name = ctx.edev.db.wires.key(wire.wire);
-                if name == "INT_GT_CLKPAD"
-                    && matches!(
-                        &wire_name[..],
-                        "IMUX_CE[0]" | "IMUX_CE[1]" | "IMUX_TS[0]" | "IMUX_TS[1]"
-                    )
-                {
-                    continue;
-                }
-                if name == "INT_BRAM_S3A_03"
-                    && (wire_name.starts_with("IMUX_CLK") || wire_name.starts_with("IMUX_CE"))
-                {
-                    continue;
-                }
-                let inv_name = format!("INT:INV.{wire_name}");
-                let mux_name = format!("INT:MUX.{wire_name}");
-                if !ctx.data.bsdata.tiles.contains_key(name) {
-                    continue;
-                }
-                if !ctx.data.bsdata.tiles[name].items.contains_key(&mux_name) {
-                    continue;
-                }
-                let int_clb = &ctx.data.bsdata.tiles[int_clb];
-                let Some(item) = int_clb.items.get(&inv_name) else {
+            let BelInfo::SwitchBox(ref sb) = tcls.bels[bslots_v2::INT] else {
+                continue;
+            };
+            for item in &sb.items {
+                let SwitchBoxItem::ProgInv(inv) = item else {
                     continue;
                 };
-                let item = item.clone();
-                ctx.insert(name, "INT", format!("INV.{wire_name}"), item);
+                let Some(&bit) = ctx.data.sb_inv.get(&(int_clb, inv.dst)) else {
+                    continue;
+                };
+                ctx.insert_inv(tcid, inv.dst, bit);
             }
         }
     }

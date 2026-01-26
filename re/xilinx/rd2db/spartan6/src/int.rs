@@ -2173,7 +2173,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 }
                 bels.push(bel);
             }
-            let mut xn = builder.xtile_id(tcid, naming, xy);
+            let mut xn = builder.xtile_id(tcid, naming, xy).force_test_mux_in();
             match tkn {
                 "REG_L" => {
                     xn = xn

@@ -618,7 +618,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 let diff1 = ctx.get_diff_legacy(tile, bel, pinmux, "0");
                 assert_eq!(diff1, ctx.get_diff_legacy(tile, bel, pinmux, pin_b));
                 let item = xlat_bit_bi_legacy(diff0, diff1);
-                ctx.insert_int_inv(&[tile], tile, bel, pin, item);
+                ctx.insert(tile, bel, format!("INV.{pin}"), item);
             }
             for iot in ['I', 'O', 'T'] {
                 let item = ctx.extract_bit_bi_legacy(tile, bel, &format!("{iot}CKINV"), "1", "0");

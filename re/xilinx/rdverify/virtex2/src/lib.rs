@@ -1,7 +1,10 @@
-use prjcombine_interconnect::grid::EdgeIoCoord;
+use prjcombine_interconnect::{
+    db::{BelInfo, TileWireCoord},
+    grid::EdgeIoCoord,
+};
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier, verify};
+use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier};
 use prjcombine_virtex2::{chip::ChipKind, defs};
 
 mod clb;
@@ -333,12 +336,93 @@ fn verify_extra(endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
 }
 
 pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
-    verify(
-        rd,
-        &endev.ngrid,
-        |_| (),
-        |_, _| (),
-        |vrf, bel| verify_bel(endev, vrf, bel),
-        |vrf| verify_extra(endev, vrf),
-    );
+    {
+        let mut vrf = Verifier::new(rd, &endev.ngrid);
+        if endev.chip.kind.is_virtex2() {
+            for (wt, wf) in [
+                (
+                    defs::virtex2::wires::IMUX_CLK_OPTINV.as_slice(),
+                    defs::virtex2::wires::IMUX_CLK.as_slice(),
+                ),
+                (
+                    defs::virtex2::wires::IMUX_DCM_CLK_OPTINV.as_slice(),
+                    defs::virtex2::wires::IMUX_DCM_CLK.as_slice(),
+                ),
+                (
+                    defs::virtex2::wires::IMUX_SR_OPTINV.as_slice(),
+                    defs::virtex2::wires::IMUX_SR.as_slice(),
+                ),
+                (
+                    defs::virtex2::wires::IMUX_CE_OPTINV.as_slice(),
+                    defs::virtex2::wires::IMUX_CE.as_slice(),
+                ),
+                (
+                    defs::virtex2::wires::IMUX_TS_OPTINV.as_slice(),
+                    defs::virtex2::wires::IMUX_TS.as_slice(),
+                ),
+                (
+                    defs::virtex2::wires::IMUX_TI_OPTINV.as_slice(),
+                    defs::virtex2::wires::IMUX_TI.as_slice(),
+                ),
+            ] {
+                for (&wt, &wf) in wt.iter().zip(wf) {
+                    vrf.alias_wire_slot(wt, wf);
+                }
+            }
+            for wt in [
+                defs::virtex2::wires::IMUX_CE[0],
+                defs::virtex2::wires::IMUX_CE[1],
+                defs::virtex2::wires::IMUX_TS[0],
+                defs::virtex2::wires::IMUX_TS[1],
+            ] {
+                vrf.inject_tcls_pip(
+                    defs::virtex2::tcls::INT_GT_CLKPAD,
+                    TileWireCoord::new_idx(0, wt),
+                    TileWireCoord::new_idx(0, defs::virtex2::wires::PULLUP),
+                );
+            }
+        } else {
+            for (wt, wf) in [
+                (
+                    defs::spartan3::wires::IMUX_CLK_OPTINV.as_slice(),
+                    defs::spartan3::wires::IMUX_CLK.as_slice(),
+                ),
+                (
+                    defs::spartan3::wires::IMUX_SR_OPTINV.as_slice(),
+                    defs::spartan3::wires::IMUX_SR.as_slice(),
+                ),
+                (
+                    defs::spartan3::wires::IMUX_CE_OPTINV.as_slice(),
+                    defs::spartan3::wires::IMUX_CE.as_slice(),
+                ),
+            ] {
+                for (&wt, &wf) in wt.iter().zip(wf) {
+                    vrf.alias_wire_slot(wt, wf);
+                }
+            }
+            if endev.chip.kind == ChipKind::Spartan3A {
+                vrf.kill_stub_out_cond("BRAM_CE_B0");
+                vrf.kill_stub_out_cond("BRAM_CE_B1");
+                vrf.kill_stub_out_cond("BRAM_CE_B2");
+                vrf.kill_stub_out_cond("BRAM_CE_B3");
+                vrf.kill_stub_out_cond("BRAM_CLK0");
+                vrf.kill_stub_out_cond("BRAM_CLK1");
+                vrf.kill_stub_out_cond("BRAM_CLK2");
+                vrf.kill_stub_out_cond("BRAM_CLK3");
+            }
+        }
+        vrf.prep_int_wires();
+        vrf.handle_int();
+        for (tcrd, tile) in endev.ngrid.egrid.tiles() {
+            let tcls = &endev.ngrid.egrid.db[tile.class];
+            for (slot, bel) in &tcls.bels {
+                if let BelInfo::Legacy(_) = bel {
+                    let ctx = vrf.get_legacy_bel(tcrd.bel(slot));
+                    verify_bel(endev, &mut vrf, &ctx);
+                }
+            }
+        }
+        verify_extra(endev, &mut vrf);
+        vrf.finish();
+    };
 }

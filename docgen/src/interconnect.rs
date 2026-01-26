@@ -347,8 +347,10 @@ enum BitInfo {
     Pass(BelSlotId, TileWireCoord, TileWireCoord, bool),
     BiPass(BelSlotId, TileWireCoord, TileWireCoord, bool),
     ProgInv(BelSlotId, TileWireCoord, TileWireCoord, bool),
+    ProgDelay(BelSlotId, TileWireCoord, PolTileWireCoord, usize),
     Mux(BelSlotId, TileWireCoord, usize),
     Bidi(BelSlotId, ConnectorSlotId, TileWireCoord, bool),
+    TestMux(BelSlotId, usize),
     BelInputInv(BelSlotId, BelInputId, bool),
     BelAttrBool(BelSlotId, BelAttributeId, bool),
     BelAttrBitVec(BelSlotId, BelAttributeId, usize, bool),
@@ -403,6 +405,14 @@ impl<'a, 'b, 'c> TileClassGen<'a, 'b, 'c> {
                 dst = dst.to_string(self.intdb, self.tcls),
                 src = src.to_string(self.intdb, self.tcls),
             ),
+            BitInfo::ProgDelay(bslot, dst, src, idx) => format!(
+                "{dbname}-{tname}-{bname}-progdelay-{dst}-{src}-{idx}",
+                dbname = self.dbname,
+                tname = self.tname,
+                bname = self.intdb.bel_slots.key(bslot),
+                dst = dst.to_string(self.intdb, self.tcls),
+                src = src.to_string(self.intdb, self.tcls),
+            ),
             BitInfo::Mux(bslot, dst, idx) => format!(
                 "{dbname}-{tname}-{bname}-mux-{dst}-{idx}",
                 dbname = self.dbname,
@@ -417,6 +427,12 @@ impl<'a, 'b, 'c> TileClassGen<'a, 'b, 'c> {
                 bname = self.intdb.bel_slots.key(bslot),
                 conn = self.intdb.conn_slots.key(conn),
                 wire = wire.to_string(self.intdb, self.tcls),
+            ),
+            BitInfo::TestMux(bslot, idx) => format!(
+                "{dbname}-{tname}-{bname}-testmux-{idx}",
+                dbname = self.dbname,
+                tname = self.tname,
+                bname = self.intdb.bel_slots.key(bslot),
             ),
             BitInfo::BelInputInv(bslot, pid, _) => {
                 let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
@@ -724,6 +740,70 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
         writeln!(buf).unwrap();
     }
 
+    let mut delays: IndexMap<_, Vec<_>> = IndexMap::new();
+    for item in &sb.items {
+        let SwitchBoxItem::ProgDelay(delay) = item else {
+            continue;
+        };
+        delays
+            .entry((delay.bits.len(), &delay.steps))
+            .or_default()
+            .push(delay);
+    }
+
+    for ((nbits, steps), delays) in delays {
+        writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+        writeln!(
+            buf,
+            r#"<caption>{dbname} {tname} switchbox {bname} delays</caption>"#
+        )
+        .unwrap();
+        writeln!(buf, r#"<thead>"#).unwrap();
+        writeln!(
+            buf,
+            r#"<tr><th>Destination</th><th>Source</th><th colspan="{nbits}">Bits</th></tr>"#
+        )
+        .unwrap();
+        writeln!(buf, r#"</thead>"#).unwrap();
+        writeln!(buf, r#"<tbody>"#).unwrap();
+        for delay in delays {
+            write!(
+                buf,
+                r#"<tr><td>{dst}</td><td>{src}</td>"#,
+                dst = delay.dst.to_string(intdb, tcls),
+                src = delay.src.to_string(intdb, tcls),
+            )
+            .unwrap();
+            for (bidx, &bit) in delay.bits.iter().enumerate().rev() {
+                let bi = BitInfo::ProgDelay(bslot, delay.dst, delay.src, bidx);
+                tcgen.add_bit(bit, bi);
+                write!(
+                    buf,
+                    r#"<td id="{anchor}">{bit}</td>"#,
+                    anchor = tcgen.anchor(bi),
+                    bit = tcgen.link_bit(bit),
+                )
+                .unwrap();
+            }
+            writeln!(buf, r#"</tr>"#).unwrap();
+        }
+        writeln!(
+            buf,
+            r#"<tr><th colspan="2"">Delay step</th><th colspan="{nbits}"></th></tr>"#
+        )
+        .unwrap();
+        for (idx, value) in steps.iter().enumerate() {
+            write!(buf, r#"<tr><td colspan="2">{idx}</td>"#).unwrap();
+            for bit in value.iter().rev() {
+                write!(buf, r#"<td>{b}</td>"#, b = u8::from(bit)).unwrap();
+            }
+            writeln!(buf, r#"</tr>"#).unwrap();
+        }
+        writeln!(buf, r#"</tbody>"#).unwrap();
+        writeln!(buf, r#"</table></div>"#).unwrap();
+        writeln!(buf).unwrap();
+    }
+
     if sb.items.iter().any(|x| matches!(x, SwitchBoxItem::Bidi(_))) {
         writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
         writeln!(
@@ -855,8 +935,6 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
         writeln!(buf, r#"</table></div>"#).unwrap();
         writeln!(buf).unwrap();
     }
-
-    // TODO: prog delay
 }
 
 fn gen_bels(tcgen: &mut TileClassGen, buf: &mut String, bcid: BelClassId, bslots: &[BelSlotId]) {
@@ -1256,6 +1334,14 @@ fn gen_bits(tcgen: &mut TileClassGen, buf: &mut String) {
                                 src = src.to_string(intdb, tcls),
                             )
                         }
+                        BitInfo::ProgDelay(bslot, dst, src, idx) => {
+                            format!(
+                                "{bname}: delay {dst} ← {src} bit {idx}",
+                                bname = intdb.bel_slots.key(bslot),
+                                dst = dst.to_string(intdb, tcls),
+                                src = src.to_string(intdb, tcls),
+                            )
+                        }
                         BitInfo::Mux(bslot, dst, idx) => {
                             format!(
                                 "{bname}: mux {dst} bit {idx}",
@@ -1270,6 +1356,12 @@ fn gen_bits(tcgen: &mut TileClassGen, buf: &mut String) {
                                 inv = if inv { "!" } else { "" },
                                 conn = intdb.conn_slots.key(conn),
                                 wire = wire.to_string(intdb, tcls),
+                            )
+                        }
+                        BitInfo::TestMux(bslot, idx) => {
+                            format!(
+                                "{bname}: test mux bit {idx}",
+                                bname = intdb.bel_slots.key(bslot),
                             )
                         }
                         BitInfo::BelInputInv(bslot, inp, inv) => {
@@ -1519,6 +1611,44 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                     }
                     writeln!(buf, r#"</tr>"#).unwrap();
                 }
+                writeln!(buf, r#"</tbody>"#).unwrap();
+                writeln!(buf, r#"</table></div>"#).unwrap();
+                writeln!(buf).unwrap();
+
+                writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
+                writeln!(buf, r#"<caption>{dbname} {tname} {bname} bits</caption>"#).unwrap();
+                writeln!(buf, r#"<thead>"#).unwrap();
+
+                write!(buf, r#"<tr><th>Group</th>"#).unwrap();
+                for (bidx, &bit) in bel.bits.iter().enumerate().rev() {
+                    let bi = BitInfo::TestMux(slot, bidx);
+                    tcgen.add_bit(bit, bi);
+                    write!(
+                        buf,
+                        r#"<th id="{anchor}">{bit}</th>"#,
+                        anchor = tcgen.anchor(bi),
+                        bit = tcgen.link_bit(bit),
+                    )
+                    .unwrap();
+                }
+                writeln!(buf, r#"</tr>"#).unwrap();
+
+                writeln!(buf, r#"</thead>"#).unwrap();
+                writeln!(buf, r#"<tbody>"#).unwrap();
+
+                write!(buf, r#"<tr><td>Primary</td>"#).unwrap();
+                for bit in bel.bits_primary.iter().rev() {
+                    write!(buf, r#"<td>{b}</td>"#, b = u8::from(bit)).unwrap();
+                }
+                writeln!(buf, r#"</tr>"#).unwrap();
+                for (idx, value) in bel.groups.iter().enumerate() {
+                    write!(buf, r#"<tr><td>Test {idx}</td>"#).unwrap();
+                    for bit in value.iter().rev() {
+                        write!(buf, r#"<td>{b}</td>"#, b = u8::from(bit)).unwrap();
+                    }
+                    writeln!(buf, r#"</tr>"#).unwrap();
+                }
+
                 writeln!(buf, r#"</tbody>"#).unwrap();
                 writeln!(buf, r#"</table></div>"#).unwrap();
                 writeln!(buf).unwrap();

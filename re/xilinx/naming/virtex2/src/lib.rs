@@ -1687,10 +1687,6 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                 let y = namer.bram_grid.ylut[row];
                 ntile.add_bel(defs::bslots::DSP, format!("DSP48A_X{x}Y{y}"));
             }
-            (false, tcls_s3::INTF_DSP) => {
-                let (_, name) = namer.get_dsp_name(tcrd.cell);
-                namer.ngrid.name_tile(tcrd, "INTF_DSP", [name]);
-            }
             (true, tcls_v2::GIGABIT_S) => {
                 let c = namer.bramclut[col];
                 let r = namer.rlut[row + 1];

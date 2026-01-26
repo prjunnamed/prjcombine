@@ -79,12 +79,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ["PPC_W", "PPC_E"] {
-        let tcid = ctx.edev.db.get_tile_class(tile);
-        if ctx.edev.tile_index[tcid].is_empty() {
+    for tcid in [tcls::PPC_W, tcls::PPC_E] {
+        if !ctx.has_tile_id(tcid) {
             continue;
         }
-        let bel = "PPC405";
         let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::PPC405];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
@@ -98,9 +96,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
-            let int_tiles = &["INT_PPC"; 48];
-            let flip = wires::IMUX_CE.contains(wire.wire) || wires::IMUX_TI.contains(wire.wire);
-            ctx.collect_int_inv(int_tiles, tile, bel, pin, flip);
+            let int_tiles = &[tcls::INT_PPC; 48];
+            let flip = wires::IMUX_CE_OPTINV.contains(wire.wire)
+                || wires::IMUX_TI_OPTINV.contains(wire.wire);
+            ctx.collect_int_inv(int_tiles, tcid, defs::bslots::PPC405, pin, flip);
         }
     }
 }

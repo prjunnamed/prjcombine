@@ -1,9 +1,9 @@
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::grid::RowId;
+use prjcombine_interconnect::{db::BelInfo, grid::RowId};
 use prjcombine_re_xilinx_naming_virtex4::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier, verify};
-use prjcombine_virtex4::defs;
+use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier};
+use prjcombine_virtex4::{defs, defs::virtex4::wires};
 
 fn verify_slice(vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
     let idx = defs::bslots::SLICE.index_of(bel.slot).unwrap();
@@ -1849,12 +1849,32 @@ fn verify_extra(_endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
 }
 
 pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
-    verify(
-        rd,
-        &endev.ngrid,
-        |_| (),
-        |_, _| (),
-        |vrf, bel| verify_bel(endev, vrf, bel),
-        |vrf| verify_extra(endev, vrf),
-    );
+    {
+        let mut vrf = Verifier::new(rd, &endev.ngrid);
+        for (wt, wf) in [
+            (
+                wires::IMUX_CLK_OPTINV.as_slice(),
+                wires::IMUX_CLK.as_slice(),
+            ),
+            (wires::IMUX_SR_OPTINV.as_slice(), wires::IMUX_SR.as_slice()),
+            (wires::IMUX_CE_OPTINV.as_slice(), wires::IMUX_CE.as_slice()),
+        ] {
+            for (&wt, &wf) in wt.iter().zip(wf) {
+                vrf.alias_wire_slot(wt, wf);
+            }
+        }
+        vrf.prep_int_wires();
+        vrf.handle_int();
+        for (tcrd, tile) in endev.ngrid.egrid.tiles() {
+            let tcls = &endev.ngrid.egrid.db[tile.class];
+            for (slot, bel) in &tcls.bels {
+                if let BelInfo::Legacy(_) = bel {
+                    let ctx = vrf.get_legacy_bel(tcrd.bel(slot));
+                    verify_bel(endev, &mut vrf, &ctx);
+                }
+            }
+        }
+        verify_extra(endev, &mut vrf);
+        vrf.finish();
+    };
 }

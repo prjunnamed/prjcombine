@@ -455,8 +455,6 @@ impl Expander<'_, '_> {
                     if self.chip.kind == ChipKind::Spartan3ADsp {
                         let cell = cell.delta(3, 0);
                         self.egrid.add_tile_n_id(cell, defs::spartan3::tcls::DSP, 4);
-                        self.egrid
-                            .add_tile_n_id(cell, defs::spartan3::tcls::INTF_DSP, 4);
                     }
                 }
             }

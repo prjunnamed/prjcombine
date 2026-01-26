@@ -1,10 +1,10 @@
 use std::ops::{Deref, DerefMut};
 
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::db::{BelInfo, TileClassId};
+use prjcombine_interconnect::db::{BelInfo, BelSlotId, TileClassId, TileWireCoord};
 use prjcombine_re_collector::collect::Collector;
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
-use prjcombine_types::bsdata::{BitRectId, DbValue, TileItem};
+use prjcombine_types::bsdata::{BitRectId, DbValue, PolTileBit, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;
 
 pub struct CollectorCtx<'a, 'b>
@@ -78,86 +78,69 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         !self.edev.tile_index[tcid].is_empty()
     }
 
-    fn int_sb(&self, tcname: &str) -> &'a str {
-        let intdb = self.edev.db;
-        let int_tcls = intdb.tile_classes.get(tcname).unwrap().1;
-        let int_sb = int_tcls
-            .bels
-            .iter()
-            .find(|(_, bel)| matches!(bel, BelInfo::SwitchBox(_)))
-            .unwrap()
-            .0;
-        intdb.bel_slots.key(int_sb)
-    }
-
     pub fn insert_int_inv(
         &mut self,
-        int_tiles: &[&str],
-        tile: &str,
-        bel: &str,
+        int_tiles: &[TileClassId],
+        tcid: TileClassId,
+        bslot: BelSlotId,
         pin: &str,
-        mut item: TileItem,
+        mut bit: PolTileBit,
     ) {
         let intdb = self.edev.db;
-        let slot = intdb.bel_slots.get(bel).unwrap().0;
-        let tcls = intdb.tile_classes.get(tile).unwrap().1;
-        let bel = &tcls.bels[slot];
+        let tcls = &intdb[tcid];
+        let bel = &tcls.bels[bslot];
         let BelInfo::Legacy(bel) = bel else {
             unreachable!()
         };
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
         let wire = *pin.wires.first().unwrap();
-        assert_eq!(item.bits.len(), 1);
-        let bit = &mut item.bits[0];
-        assert_eq!(wire.cell.to_idx(), bit.rect.to_idx());
-        bit.rect = BitRectId::from_idx(0);
-        let wire_name = intdb.wires.key(wire.wire);
-        let int_tcname = int_tiles[wire.cell.to_idx()];
-        let int_sb = self.int_sb(int_tcname);
-        self.insert(int_tcname, int_sb, format!("INV.{wire_name}"), item);
+        assert_eq!(wire.cell.to_idx(), bit.bit.rect.to_idx());
+        bit.bit.rect = BitRectId::from_idx(0);
+        let int_tcid = int_tiles[wire.cell.to_idx()];
+        self.insert_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire), bit);
     }
 
-    pub fn item_int_inv(&self, int_tiles: &[&str], tile: &str, bel: &str, pin: &str) -> TileItem {
+    pub fn item_int_inv(
+        &self,
+        int_tiles: &[TileClassId],
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        pin: &str,
+    ) -> PolTileBit {
         let intdb = self.edev.db;
-        let slot = intdb.bel_slots.get(bel).unwrap().0;
-        let tcls = intdb.tile_classes.get(tile).unwrap().1;
-        let bel = &tcls.bels[slot];
+        let tcls = &intdb[tcid];
+        let bel = &tcls.bels[bslot];
         let BelInfo::Legacy(bel) = bel else {
             unreachable!()
         };
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
         let wire = *pin.wires.first().unwrap();
-        let wire_name = intdb.wires.key(wire.wire);
-        let int_tcname = int_tiles[wire.cell.to_idx()];
-        let int_sb = self.int_sb(int_tcname);
-        let mut item = self
-            .item(int_tcname, int_sb, &format!("INV.{wire_name}"))
-            .clone();
-        assert_eq!(item.bits.len(), 1);
-        let bit = &mut item.bits[0];
-        bit.rect = BitRectId::from_idx(wire.cell.to_idx());
-        item
+        let int_tcid = int_tiles[wire.cell.to_idx()];
+        let mut bit = self.sb_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire));
+        bit.bit.rect = BitRectId::from_idx(wire.cell.to_idx());
+        bit
     }
 
     pub fn collect_int_inv(
         &mut self,
-        int_tiles: &[&str],
-        tile: &str,
-        bel: &str,
+        int_tiles: &[TileClassId],
+        tcid: TileClassId,
+        bslot: BelSlotId,
         pin: &str,
         flip: bool,
     ) {
+        let intdb = self.edev.db;
         let pininv = format!("{pin}INV");
         let pin_b = format!("{pin}_B");
         let item = self.extract_bit_bi_legacy(
-            tile,
-            bel,
+            intdb.tile_classes.key(tcid),
+            intdb.bel_slots.key(bslot),
             &pininv,
             if flip { &pin_b } else { pin },
             if flip { pin } else { &pin_b },
         );
-        self.insert_int_inv(int_tiles, tile, bel, pin, item);
+        self.insert_int_inv(int_tiles, tcid, bslot, pin, item.as_bit());
     }
 }

@@ -86,8 +86,6 @@ target_defs! {
 
         wire IMUX_CLK[4]: mux;
         wire IMUX_CLK_OPTINV[4]: mux;
-        wire IMUX_IOI_ICLK[4]: mux;
-        wire IMUX_IOI_ICLK_OPTINV[4]: mux;
         wire IMUX_DCM_CLK[4]: mux;
         wire IMUX_DCM_CLK_OPTINV[4]: mux;
         wire IMUX_SR[4]: mux;
@@ -112,6 +110,7 @@ target_defs! {
             wire "IMUX_G{i}_FAN"[2]: mux;
             wire "IMUX_G{i}_DATA"[8]: mux;
         }
+        wire IMUX_IOI_ICLK[4]: mux;
         wire IMUX_IOI_TS1[4]: mux;
         wire IMUX_IOI_TS2[4]: mux;
         wire IMUX_IOI_ICE[4]: mux;
@@ -225,7 +224,6 @@ target_defs! {
         wire IMUX_CE[4]: mux;
         wire IMUX_CE_OPTINV[4]: mux;
         wire IMUX_IOCLK[8]: mux;
-        wire IMUX_IOCLK_OPTINV[8]: mux;
 
         wire IMUX_FAN_BX[4]: mux;
         wire IMUX_FAN_BY[4]: mux;
@@ -280,11 +278,11 @@ target_defs! {
             tile_class
                 INT_CLB,
                 INT_IOI,
-                INT_IOI_CLK_S,
-                INT_IOI_CLK_N,
+                INT_IOI_CLK_S, // TODO: merge
+                INT_IOI_CLK_N, // TODO: merge
                 INT_BRAM,
                 INT_DCM_V2,
-                INT_DCM_V2P,
+                INT_DCM_V2P, // TODO: merge (if possible)
                 INT_CNR,
                 INT_PPC,
                 INT_GT_CLKPAD
@@ -298,17 +296,17 @@ target_defs! {
                 INT_CLB_FC,
                 INT_IOI_S3,
                 INT_IOI_FC,
-                INT_IOI_S3E,
-                INT_IOI_S3A_WE,
-                INT_IOI_S3A_SN,
+                INT_IOI_S3E, // TODO: merge
+                INT_IOI_S3A_WE, // TODO: merge
+                INT_IOI_S3A_SN, // TODO: merge
                 INT_BRAM_S3,
-                INT_BRAM_S3E,
-                INT_BRAM_S3A_03,
-                INT_BRAM_S3A_12,
-                INT_BRAM_S3ADSP,
+                INT_BRAM_S3E, // TODO: merge
+                INT_BRAM_S3A_03, // do *NOT* merge; evil one without CLK/CE
+                INT_BRAM_S3A_12, // TODO: merge
+                INT_BRAM_S3ADSP, // TODO: merge
                 INT_DCM,
-                INT_DCM_S3_DUMMY,
-                INT_DCM_S3E_DUMMY
+                INT_DCM_S3_DUMMY, // TODO: merge if possible
+                INT_DCM_S3E_DUMMY // TODO: merge if possible
             {
                 cell CELL;
                 bitrect MAIN: MAIN;
@@ -332,11 +330,6 @@ target_defs! {
                 cell CELL;
                 bitrect MAIN: MAIN;
             }
-        } else {
-            tile_class INTF_DSP {
-                cell CELL[4];
-                bitrect MAIN[4]: MAIN;
-            }
         }
     }
 
@@ -353,7 +346,7 @@ target_defs! {
         bel_slot IBUF[4]: legacy;
         bel_slot OBUF[4]: legacy;
         if variant virtex2 {
-            tile_class IOI, IOI_CLK_S, IOI_CLK_N {
+            tile_class IOI, IOI_CLK_S, IOI_CLK_N { // TODO: possible to merge?
                 cell CELL;
                 bitrect MAIN: MAIN;
             }
@@ -381,6 +374,7 @@ target_defs! {
         }
 
         bel_slot DSP: legacy;
+        bel_slot DSP_TESTMUX: routing;
         if variant spartan3 {
             tile_class DSP {
                 cell CELL[4];

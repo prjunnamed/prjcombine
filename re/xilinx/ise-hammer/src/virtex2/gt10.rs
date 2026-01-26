@@ -2,7 +2,7 @@ use prjcombine_interconnect::db::{BelInfo, PinDir};
 use prjcombine_re_collector::{diff::OcdMode, legacy::extract_bitvec_val_legacy};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::bitvec::BitVec;
-use prjcombine_virtex2::{defs, defs::virtex2::tcls};
+use prjcombine_virtex2::{defs::bslots, defs::virtex2::tcls};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -10,11 +10,11 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
     let intdb = backend.edev.db;
     for tcid in [tcls::GIGABIT10_S, tcls::GIGABIT10_N] {
         let mut ctx = FuzzCtx::new_id(session, backend, tcid);
-        let bel_data = &intdb[ctx.tile_class.unwrap()].bels[defs::bslots::GT10];
+        let bel_data = &intdb[ctx.tile_class.unwrap()].bels[bslots::GT10];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
-        let mut bctx = ctx.bel(defs::bslots::GT10);
+        let mut bctx = ctx.bel(bslots::GT10);
         let mode = "GT10";
         bctx.test_manual("ENABLE", "1").mode(mode).commit();
         for (pin, pin_data) in &bel_data.pins {
@@ -166,11 +166,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ["GIGABIT10_S", "GIGABIT10_N"] {
-        let tcid = ctx.edev.db.get_tile_class(tile);
+    for tcid in [tcls::GIGABIT10_S, tcls::GIGABIT10_N] {
+        let tile = ctx.edev.db.tile_classes.key(tcid);
         let bel = "GT10";
+        let bslot = bslots::GT10;
         ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-        let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::GT10];
+        let bel_data = &ctx.edev.db[tcid].bels[bslot];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
@@ -184,17 +185,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             let int_tiles = &[
-                "INT_GT_CLKPAD",
-                "INT_PPC",
-                "INT_PPC",
-                "INT_PPC",
-                "INT_PPC",
-                "INT_PPC",
-                "INT_PPC",
-                "INT_PPC",
-                "INT_PPC",
+                tcls::INT_GT_CLKPAD,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
             ];
-            ctx.collect_int_inv(int_tiles, tile, bel, pin, false);
+            ctx.collect_int_inv(int_tiles, tcid, bslot, pin, false);
         }
         for attr in [
             "PCOMMA_DETECT",

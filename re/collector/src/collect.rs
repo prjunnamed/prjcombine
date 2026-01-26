@@ -12,7 +12,10 @@ use prjcombine_types::{
 
 use crate::{
     bitdata::CollectorData,
-    diff::{Diff, DiffKey, SpecialId, xlat_bit, xlat_bit_bi, xlat_bitvec, xlat_enum_attr},
+    diff::{
+        Diff, DiffKey, OcdMode, SpecialId, xlat_bit, xlat_bit_bi, xlat_bitvec, xlat_enum_attr,
+        xlat_enum_raw,
+    },
 };
 
 #[derive(Debug)]
@@ -191,6 +194,17 @@ impl Collector<'_, '_> {
         }
     }
 
+    pub fn insert_delay(&mut self, tcid: TileClassId, dst: TileWireCoord, items: EnumData<usize>) {
+        match self.data.sb_delay.entry((tcid, dst)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), items);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(items);
+            }
+        }
+    }
+
     pub fn insert_progbuf(
         &mut self,
         tcid: TileClassId,
@@ -270,6 +284,22 @@ impl Collector<'_, '_> {
         }
     }
 
+    pub fn insert_tmux_group(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        data: EnumData<Option<usize>>,
+    ) {
+        match self.data.tmux_group.entry((tcid, bslot)) {
+            hash_map::Entry::Occupied(e) => {
+                assert_eq!(*e.get(), data);
+            }
+            hash_map::Entry::Vacant(e) => {
+                e.insert(data);
+            }
+        }
+    }
+
     pub fn insert_table_bitvec(
         &mut self,
         tid: TableId,
@@ -342,6 +372,18 @@ impl Collector<'_, '_> {
         pin: BelInputId,
     ) -> PolTileBit {
         self.data.bel_input_inv[&(tcid, bslot, pin)]
+    }
+
+    pub fn sb_mux(
+        &self,
+        tcid: TileClassId,
+        dst: TileWireCoord,
+    ) -> &EnumData<Option<PolTileWireCoord>> {
+        &self.data.sb_mux[&(tcid, dst)]
+    }
+
+    pub fn sb_inv(&self, tcid: TileClassId, dst: TileWireCoord) -> PolTileBit {
+        self.data.sb_inv[&(tcid, dst)]
     }
 }
 
@@ -509,5 +551,14 @@ impl Collector<'_, '_> {
         let diff1 = self.get_diff_raw(&DiffKey::RoutingBidi(tcid, conn, wire, true));
         let bit = xlat_bit_bi(diff0, diff1);
         self.insert_bidi(tcid, conn, wire, bit);
+    }
+
+    pub fn collect_delay(&mut self, tcid: TileClassId, wire: TileWireCoord, num: usize) {
+        let mut diffs = vec![];
+        for i in 0..num {
+            let diff = self.get_diff_raw(&DiffKey::ProgDelay(tcid, wire, i));
+            diffs.push((i, diff));
+        }
+        self.insert_delay(tcid, wire, xlat_enum_raw(diffs, OcdMode::ValueOrder));
     }
 }

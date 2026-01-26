@@ -131,7 +131,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         Mode::Virtex2 => &["CLB"],
     };
     for &tile in tiles {
+        let tcid = ctx.edev.db.get_tile_class(tile);
         for bel in ["TBUF[0]", "TBUF[1]"] {
+            let bslot = ctx.edev.db.bel_slots.get(bel).unwrap().0;
             if mode == Mode::Virtex {
                 for (pinmux, pin, pin_b) in [("TMUX", "T", "T_B"), ("IMUX", "I", "I_B")] {
                     let d0 = ctx.get_diff_legacy(tile, bel, pinmux, pin);
@@ -139,11 +141,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
                     assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
                     let item = xlat_bit_bi_legacy(d0, d1);
-                    ctx.insert_int_inv(&[tile], tile, bel, pin, item);
+                    ctx.insert(tile, bel, format!("INV.{pin}"), item);
                 }
             } else {
-                ctx.collect_int_inv(&["INT_CLB"], tile, bel, "T", false);
-                ctx.collect_int_inv(&["INT_CLB"], tile, bel, "I", false);
+                let int_tcid = &[prjcombine_virtex2::defs::virtex2::tcls::INT_CLB];
+                ctx.collect_int_inv(int_tcid, tcid, bslot, "T", false);
+                ctx.collect_int_inv(int_tcid, tcid, bslot, "I", false);
             }
             for attr in ["OUT_A", "OUT_B"] {
                 ctx.collect_bit_legacy(tile, bel, attr, "1");

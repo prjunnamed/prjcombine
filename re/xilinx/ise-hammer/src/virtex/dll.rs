@@ -289,7 +289,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let d1 = ctx.get_diff_legacy(tile, bel, "RSTMUX", "RST_B");
         assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "RSTMUX", "0"));
         let item = xlat_bit_bi_legacy(d0, d1);
-        ctx.insert_int_inv(&[tile], tile, bel, "RST", item);
+        ctx.insert(tile, bel, "INV.RST", item);
 
         let item_jf2 =
             TileItem::from_bitvec_inv((0..8).map(|bit| TileBit::new(0, 17, bit)).collect(), false);

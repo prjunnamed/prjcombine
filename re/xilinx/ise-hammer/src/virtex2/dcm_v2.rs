@@ -22,6 +22,7 @@ use prjcombine_types::{
 use prjcombine_virtex2::{
     chip::{ChipKind, ColumnKind},
     defs,
+    defs::bslots,
     defs::spartan3::tcls as tcls_s3,
     defs::virtex2::tcls as tcls_v2,
 };
@@ -566,13 +567,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     let ExpandedDevice::Virtex2(edev) = ctx.edev else {
         unreachable!()
     };
-    let tile = match edev.chip.kind {
-        ChipKind::Virtex2 => "DCM_V2",
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => "DCM_V2P",
-        ChipKind::Spartan3 => "DCM_S3",
+    let tcid = match edev.chip.kind {
+        ChipKind::Virtex2 => tcls_v2::DCM_V2,
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => tcls_v2::DCM_V2P,
+        ChipKind::Spartan3 => tcls_s3::DCM_S3,
         _ => unreachable!(),
     };
     let bel = "DCM";
+    let bslot = bslots::DCM;
+    let tile = edev.db.tile_classes.key(tcid);
 
     if devdata_only {
         let mut present = ctx.get_diff_legacy(tile, bel, "ENABLE", "1");
@@ -719,12 +722,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     }
 
     let int_tiles = &[match edev.chip.kind {
-        ChipKind::Virtex2 => "INT_DCM_V2",
-        ChipKind::Virtex2P | ChipKind::Virtex2PX => "INT_DCM_V2P",
-        ChipKind::Spartan3 => "INT_DCM",
+        ChipKind::Virtex2 => tcls_v2::INT_DCM_V2,
+        ChipKind::Virtex2P | ChipKind::Virtex2PX => tcls_v2::INT_DCM_V2P,
+        ChipKind::Spartan3 => tcls_s3::INT_DCM,
         _ => unreachable!(),
     }];
-    ctx.collect_int_inv(int_tiles, tile, bel, "PSCLK", false);
+    ctx.collect_int_inv(int_tiles, tcid, bslot, "PSCLK", false);
     for pin in ["RST", "PSEN", "PSINCDEC"] {
         ctx.collect_inv(tile, bel, pin);
     }

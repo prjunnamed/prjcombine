@@ -9,7 +9,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, bslots, virtex4::tcls};
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
@@ -368,9 +368,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    let ExpandedDevice::Virtex4(edev) = ctx.edev else {
-        unreachable!()
-    };
+    let tcid = tcls::CFG;
     let tile = "CFG";
     let bel = "MISC";
     ctx.collect_enum_default_legacy(tile, bel, "PROBESEL", &["0", "1", "2", "3"], "NONE");
@@ -406,6 +404,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.insert(tile, bel, "USERID", item);
 
     let bel = "STARTUP";
+    let bslot = bslots::STARTUP;
     ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
         .assert_empty();
     ctx.collect_bit_bi_legacy(tile, bel, "GSR_SYNC", "NO", "YES");
@@ -419,9 +418,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "USRCCLKTS",
         "USRCCLKO",
     ] {
-        ctx.collect_int_inv(&["INT"; 16], tile, bel, pin, false);
+        ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, pin, false);
     }
-    ctx.collect_int_inv(&["INT"; 16], tile, bel, "GTS", true);
+    ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, "GTS", true);
     let item0 = ctx.extract_bit_legacy(tile, bel, "PIN.GSR", "1");
     let item1 = ctx.extract_bit_legacy(tile, bel, "PIN.GTS", "1");
     assert_eq!(item0, item1);
@@ -433,17 +432,18 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let item1 = ctx.extract_enum_legacy(tile, "ICAP[1]", "ICAP_WIDTH", &["X8", "X32"]);
     assert_eq!(item0, item1);
     ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
-    for bel in ["ICAP[0]", "ICAP[1]"] {
+    for bslot in bslots::ICAP {
         for pin in ["CLK", "CE", "WRITE"] {
-            ctx.collect_int_inv(&["INT"; 16], tile, bel, pin, false);
+            ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, pin, false);
         }
     }
 
     let bel = "CAPTURE";
+    let bslot = bslots::CAPTURE;
     ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
         .assert_empty();
-    ctx.collect_int_inv(&["INT"; 16], tile, bel, "CLK", false);
-    ctx.collect_int_inv(&["INT"; 16], tile, bel, "CAP", true);
+    ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, "CLK", false);
+    ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, "CAP", true);
 
     // config regs
 
@@ -541,9 +541,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         },
     );
 
-    let sysmon = edev.db.get_tile_class("SYSMON");
-    if !edev.tile_index[sysmon].is_empty() {
+    if ctx.has_tile_id(tcls::SYSMON) {
+        let tcid = tcls::SYSMON;
         let tile = "SYSMON";
+        let bslot = bslots::SYSMON;
         let bel = "SYSMON";
         ctx.collect_enum_legacy(tile, bel, "MONITOR_MODE", &["TEST", "MONITOR", "ADC"]);
         for i in 0x40..0x70 {
@@ -560,7 +561,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "SEA",
             "SEB",
         ] {
-            ctx.collect_int_inv(&["INT"; 8], tile, bel, pin, false);
+            ctx.collect_int_inv(&[tcls::INT; 8], tcid, bslot, pin, false);
         }
         ctx.collect_inv(tile, bel, "CONVST");
         let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
@@ -593,8 +594,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff,
             ctx.get_diff_legacy(tile, bel, "CONVST_TEST", "INT_CLK")
         );
-        let item = ctx.item_int_inv(&["INT"; 8], tile, bel, "CONVST_INT_CLK");
-        diff.apply_bit_diff_legacy(&item, false, true);
+        let item = ctx.item_int_inv(&[tcls::INT; 8], tcid, bslot, "CONVST_INT_CLK");
+        diff.apply_bit_diff(item, false, true);
         diffs.push(("INT_CLK".to_string(), diff));
         for i in 0..16 {
             let diff = ctx.get_diff_legacy(tile, bel, "CONVST", format!("GIOB{i}"));

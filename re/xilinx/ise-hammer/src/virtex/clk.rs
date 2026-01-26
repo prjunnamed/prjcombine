@@ -223,7 +223,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let d1 = ctx.get_diff_legacy(tile, bel, "CEMUX", "CE_B");
             assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "CEMUX", "0"));
             let item = xlat_bit_bi_legacy(d0, d1);
-            ctx.insert_int_inv(&[tile], tile, bel, "CE", item);
+            ctx.insert(tile, bel, "INV.CE", item);
             ctx.collect_bit_bi_legacy(tile, bel, "DISABLE_ATTR", "LOW", "HIGH");
         }
     }

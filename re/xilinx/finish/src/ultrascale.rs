@@ -6,8 +6,9 @@ use std::{
 use itertools::Itertools;
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
 use prjcombine_interconnect::grid::DieId;
+use prjcombine_re_collector::bitdata::CollectorData;
 use prjcombine_re_xilinx_geom::GeomDb;
-use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
+use prjcombine_types::db::DeviceCombo;
 use prjcombine_ultrascale::{
     bond::Bond,
     chip::{Chip, CleMKind, ColumnKind, DisabledPart, HardRowKind, Interposer, IoRowKind},
@@ -184,7 +185,7 @@ fn sort_key<'a>(name: &'a str, part: &TmpPart) -> SortKey<'a> {
     }
 }
 
-pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
+pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
         let chips = dev.chips.map_values(|&chip| {
@@ -285,9 +286,10 @@ pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
     let bonds = bonds.into_vec();
 
     assert_eq!(geom.ints.len(), 1);
-    let int = geom.ints.into_values().next().unwrap();
+    let mut int = geom.ints.into_values().next().unwrap();
 
-    // TODO: resort int
+    let bsdata = std::mem::take(&mut bitdb.bsdata);
+    bitdb.insert_into(&mut int, false);
 
     Database {
         chips,
@@ -295,6 +297,6 @@ pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
         bonds,
         devices: parts,
         int,
-        bsdata: tiledb,
+        bsdata,
     }
 }

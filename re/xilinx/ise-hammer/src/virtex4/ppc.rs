@@ -6,7 +6,10 @@ use prjcombine_interconnect::{
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{
+    bslots,
+    virtex4::{tcls, wires},
+};
 
 use crate::{
     backend::IseBackend,
@@ -75,7 +78,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             unreachable!()
         };
         let mut bctx = ctx.bel(slot);
-        let mode = if slot == defs::bslots::PPC {
+        let mode = if slot == bslots::PPC {
             "PPC405_ADV"
         } else {
             "EMAC"
@@ -88,7 +91,7 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             if pin_data.dir != PinDir::Input {
                 continue;
             }
-            if slot == defs::bslots::EMAC
+            if slot == bslots::EMAC
                 && !EMAC_INVPINS.contains(&&pin[..])
                 && !pin.starts_with("TIEEMAC1UNICASTADDR")
             {
@@ -96,12 +99,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if defs::virtex4::wires::IMUX_IMUX.contains(wire.wire) {
+            if wires::IMUX_IMUX.contains(wire.wire) {
                 continue;
             }
             bctx.mode(mode).prop(ForceBitRects).test_inv(pin);
         }
-        if slot == defs::bslots::PPC {
+        if slot == bslots::PPC {
             bctx.mode(mode)
                 .null_bits()
                 .test_enum("PLB_SYNC_MODE", &["SYNCBYPASS", "SYNCACTIVE"]);
@@ -111,22 +114,22 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "PPC";
-    let tcid = ctx.edev.db.get_tile_class(tile);
-    if !ctx.has_tile(tile) {
+    let tcid = tcls::PPC;
+    if !ctx.has_tile_id(tcid) {
         return;
     }
     let tcls = &ctx.edev.db[tcid];
-    for (slot, bel_data) in &tcls.bels {
+    for (bslot, bel_data) in &tcls.bels {
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
-        let bel = ctx.edev.db.bel_slots.key(slot);
-        if slot == defs::bslots::PPC {
+        let bel = ctx.edev.db.bel_slots.key(bslot);
+        if bslot == bslots::PPC {
             let mut diff = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
             for pin in bel_data.pins.keys() {
                 if pin.starts_with("LSSDSCANIN") {
-                    let item = ctx.item_int_inv(&["INT"; 62], tile, bel, pin);
-                    diff.discard_bits_legacy(&item);
+                    let item = ctx.item_int_inv(&[tcls::INT; 62], tcid, bslot, pin);
+                    diff.discard_bits(&[item.bit]);
                 }
             }
             diff.assert_empty();
@@ -138,7 +141,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if pin_data.dir != PinDir::Input {
                 continue;
             }
-            if slot == defs::bslots::EMAC
+            if bslot == bslots::EMAC
                 && !EMAC_INVPINS.contains(&&pin[..])
                 && !pin.starts_with("TIEEMAC1UNICASTADDR")
             {
@@ -146,11 +149,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             }
             assert_eq!(pin_data.wires.len(), 1);
             let wire = *pin_data.wires.first().unwrap();
-            if defs::virtex4::wires::IMUX_IMUX.contains(wire.wire) {
+            if wires::IMUX_IMUX.contains(wire.wire) {
                 continue;
             }
-            let int_tiles = &["INT"; 62];
-            ctx.collect_int_inv(int_tiles, tile, bel, pin, true);
+            let int_tiles = &[tcls::INT; 62];
+            ctx.collect_int_inv(int_tiles, tcid, bslot, pin, true);
         }
     }
 }

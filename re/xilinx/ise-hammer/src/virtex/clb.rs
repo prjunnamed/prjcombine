@@ -220,7 +220,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "CLB";
     for bel in ["SLICE[0]", "SLICE[1]"] {
         let item = ctx.extract_bit_bi_legacy(tile, bel, "CKINV", "1", "0");
-        ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
+        ctx.insert(tile, bel, "INV.CLK", item);
         for (pinmux, pin, pin_b) in [
             ("BXMUX", "BX", "BX_B"),
             ("BYMUX", "BY", "BY_B"),
@@ -231,7 +231,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(d0, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
             let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
-            ctx.insert_int_inv(&[tile], tile, bel, pin, xlat_bit_bi_legacy(d0, d1));
+            ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
         }
 
         ctx.collect_bitvec_legacy(tile, bel, "F", "#LUT");

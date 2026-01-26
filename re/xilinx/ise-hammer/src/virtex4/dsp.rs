@@ -1,6 +1,6 @@
 use prjcombine_re_collector::{diff::Diff, legacy::xlat_enum_legacy};
 use prjcombine_re_hammer::Session;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, bslots, virtex4::tcls};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -72,12 +72,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let tcid = tcls::DSP;
     let tile = "DSP";
     for (pininv, pin, pin_b) in [("CECINV", "CEC", "CEC_B"), ("RSTCINV", "RSTC", "RSTC_B")] {
         let ti0 = ctx.extract_bit_bi_legacy(tile, "DSP[0]", pininv, pin, pin_b);
         let ti1 = ctx.extract_bit_bi_legacy(tile, "DSP[1]", pininv, pin, pin_b);
         assert_eq!(ti0, ti1);
-        ctx.insert_int_inv(&["INT"; 4], tile, "DSP[0]", pin, ti0);
+        ctx.insert_int_inv(&[tcls::INT; 4], tcid, bslots::DSP[0], pin, ti0.as_bit());
     }
     let d0_0 = ctx.get_diff_legacy(tile, "DSP[0]", "CREG", "0");
     let d0_1 = ctx.get_diff_legacy(tile, "DSP[0]", "CREG", "1");
@@ -99,10 +100,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "CLKC_MUX",
         xlat_enum_legacy(vec![("DSP0", d0_1), ("DSP1", d1_1)]),
     );
-    for bel in ["DSP[0]", "DSP[1]"] {
+    for bslot in bslots::DSP {
+        let bel = ctx.edev.db.bel_slots.key(bslot);
         for &pin in DSP48_INVPINS {
             if pin.starts_with("CLK") || pin.starts_with("RST") || pin.starts_with("CE") {
-                ctx.collect_int_inv(&["INT"; 4], tile, bel, pin, false);
+                ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, pin, false);
             } else {
                 ctx.collect_inv(tile, bel, pin);
             }

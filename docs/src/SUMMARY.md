@@ -154,7 +154,6 @@
     - [Interconnect tiles](spartan3/interconnect/tiles-int.md)
     - [Horizontal long line splitter tiles](spartan3/interconnect/tiles-llh.md)
     - [Vertical long line splitter tiles](spartan3/interconnect/tiles-llv.md)
-    - [Interface tiles](spartan3/interconnect/tiles-intf.md)
   - [Logic block](spartan3/clb.md)
   - [Block RAM](spartan3/bram.md)
   - [DSP](spartan3/dsp.md)

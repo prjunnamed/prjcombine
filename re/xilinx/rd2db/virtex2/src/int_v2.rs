@@ -1,13 +1,15 @@
 use prjcombine_interconnect::{
-    db::IntDb,
+    db::{IntDb, TileWireCoord},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
 
-use defs::virtex2::wires;
 use prjcombine_re_xilinx_naming::db::NamingDb;
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
-use prjcombine_virtex2::{defs, defs::virtex2::ccls, defs::virtex2::tcls};
+use prjcombine_virtex2::{
+    defs,
+    defs::virtex2::{ccls, tcls, wires},
+};
 
 pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     let mut builder = IntBuilder::new(
@@ -189,6 +191,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for i in 0..4 {
         let wire = wires::IMUX_CLK[i];
+        builder.mark_optinv(wire, wires::IMUX_CLK_OPTINV[i]);
         builder.wire_names(
             wire,
             &[
@@ -233,7 +236,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
     for i in 0..4 {
         builder.wire_names(
-            defs::virtex2::wires::IMUX_IOI_ICLK[i],
+            wires::IMUX_IOI_ICLK[i],
             &[format!(
                 "IOIS_CK{j}_B{k}",
                 j = [2, 1, 2, 1][i],
@@ -242,7 +245,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..4 {
-        let wire = defs::virtex2::wires::IMUX_DCM_CLK[i];
+        let wire = wires::IMUX_DCM_CLK[i];
+        builder.mark_optinv(wire, wires::IMUX_DCM_CLK_OPTINV[i]);
         builder.wire_names(
             wire,
             &[["BRAM_IOIS_CLKFB", "BRAM_IOIS_CLKIN", "BRAM_IOIS_PSCLK", ""][i].to_string()],
@@ -258,8 +262,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
     }
     for i in 0..4 {
+        builder.mark_optinv(wires::IMUX_SR[i], wires::IMUX_SR_OPTINV[i]);
         builder.wire_names(
-            defs::virtex2::wires::IMUX_SR[i],
+            wires::IMUX_SR[i],
             &[
                 format!("SR{i}"),
                 format!("IOIS_SR_B{j}", j = [1, 2, 0, 3][i]),
@@ -274,8 +279,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..4 {
+        builder.mark_optinv(wires::IMUX_CE[i], wires::IMUX_CE_OPTINV[i]);
         builder.wire_names(
-            defs::virtex2::wires::IMUX_CE[i],
+            wires::IMUX_CE[i],
             &[
                 format!("CE_B{i}"),
                 format!("OCE_B{j}", j = [1, 0, 3, 2][i]),
@@ -291,8 +297,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..2 {
+        builder.mark_optinv(wires::IMUX_TI[i], wires::IMUX_TI_OPTINV[i]);
         builder.wire_names(
-            defs::virtex2::wires::IMUX_TI[i],
+            wires::IMUX_TI[i],
             &[
                 format!("TI{i}"),
                 format!("BRAM_TI{i}"),
@@ -306,8 +313,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
     for i in 0..2 {
+        builder.mark_optinv(wires::IMUX_TS[i], wires::IMUX_TS_OPTINV[i]);
         builder.wire_names(
-            defs::virtex2::wires::IMUX_TS[i],
+            wires::IMUX_TS[i],
             &[
                 format!("TS{i}"),
                 format!("BRAM_TS{i}"),
@@ -322,16 +330,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // CLB inputs
     for i in 0..4 {
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_F1[i], &[format!("F1_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_F2[i], &[format!("F2_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_F3[i], &[format!("F3_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_F4[i], &[format!("F4_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_G1[i], &[format!("G1_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_G2[i], &[format!("G2_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_G3[i], &[format!("G3_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_G4[i], &[format!("G4_B{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_BX[i], &[format!("BX{i}")]);
-        builder.wire_names(defs::virtex2::wires::IMUX_CLB_BY[i], &[format!("BY{i}")]);
+        builder.wire_names(wires::IMUX_CLB_F1[i], &[format!("F1_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_F2[i], &[format!("F2_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_F3[i], &[format!("F3_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_F4[i], &[format!("F4_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_G1[i], &[format!("G1_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_G2[i], &[format!("G2_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_G3[i], &[format!("G3_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_G4[i], &[format!("G4_B{i}")]);
+        builder.wire_names(wires::IMUX_CLB_BX[i], &[format!("BX{i}")]);
+        builder.wire_names(wires::IMUX_CLB_BY[i], &[format!("BY{i}")]);
     }
     // non-CLB inputs
     for i in 0..4 {
@@ -416,28 +424,16 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
     // IOI special inputs
     for i in 0..4 {
-        builder.wire_names(
-            defs::virtex2::wires::IMUX_IOI_TS1[i],
-            &[format!("TS1_B{i}")],
-        );
+        builder.wire_names(wires::IMUX_IOI_TS1[i], &[format!("TS1_B{i}")]);
     }
     for i in 0..4 {
-        builder.wire_names(
-            defs::virtex2::wires::IMUX_IOI_TS2[i],
-            &[format!("TS2_B{i}")],
-        );
+        builder.wire_names(wires::IMUX_IOI_TS2[i], &[format!("TS2_B{i}")]);
     }
     for i in 0..4 {
-        builder.wire_names(
-            defs::virtex2::wires::IMUX_IOI_ICE[i],
-            &[format!("ICE_B{i}")],
-        );
+        builder.wire_names(wires::IMUX_IOI_ICE[i], &[format!("ICE_B{i}")]);
     }
     for i in 0..4 {
-        builder.wire_names(
-            defs::virtex2::wires::IMUX_IOI_TCE[i],
-            &[format!("TCE_B{i}")],
-        );
+        builder.wire_names(wires::IMUX_IOI_TCE[i], &[format!("TCE_B{i}")]);
     }
     // BRAM special inputs
     let bram_s = builder.make_term_naming("BRAM_S");
@@ -509,7 +505,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // logic out stuff
     for i in 0..8 {
-        let w = defs::virtex2::wires::OUT_FAN[i];
+        let w = wires::OUT_FAN[i];
         builder.wire_names(
             w,
             &[
@@ -535,7 +531,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &format!("GIGABIT_INT_PPC1{i}"),
             ],
         );
-        builder.mark_test_mux_in(defs::virtex2::wires::OUT_FAN_TMIN[i], w);
+        builder.mark_test_mux_in(wires::OUT_FAN_TMIN[i], w);
         if i == 0 {
             builder.extra_name_tile("MK_T_IOIS", "IOIS_BREFCLK_SE", w);
         }
@@ -546,7 +542,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // We call secondary outputs by their OMUX index.
     for i in 2..24 {
-        let w = defs::virtex2::wires::OUT_SEC[i];
+        let w = wires::OUT_SEC[i];
         builder.wire_names(
             w,
             &[
@@ -633,17 +629,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 },
             ],
         );
-        builder.mark_test_mux_in(defs::virtex2::wires::OUT_SEC_TMIN[i], w);
+        builder.mark_test_mux_in(wires::OUT_SEC_TMIN[i], w);
     }
 
     // Same for tertiary.
     for i in 8..18 {
         for j in 0..2 {
             builder.wire_names(
-                [
-                    defs::virtex2::wires::OUT_HALF0,
-                    defs::virtex2::wires::OUT_HALF1,
-                ][j][i],
+                [wires::OUT_HALF0, wires::OUT_HALF1][j][i],
                 &[
                     format!("DOUT{k}", k = (17 - i) * 2 + j),
                     match (i, j) {
@@ -673,7 +666,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for i in 0..16 {
         builder.wire_names(
-            defs::virtex2::wires::OUT_TEST[i],
+            wires::OUT_TEST[i],
             &[
                 format!("LRPPC_INT_TEST{i}"),
                 format!("BPPC_INT_TEST{i}"),
@@ -683,8 +676,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         );
     }
 
-    builder.wire_names(defs::virtex2::wires::OUT_TBUS, &["TBUS"]);
-    let w = defs::virtex2::wires::OUT_PCI[0];
+    builder.wire_names(wires::OUT_TBUS, &["TBUS"]);
+    let w = wires::OUT_PCI[0];
     builder.wire_names(
         w,
         &[
@@ -698,7 +691,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.extra_name_sub("REG_R_PCI_OUT_D0", 1, w);
     builder.extra_name_sub("REG_R_PCI_OUT_U0", 2, w);
     builder.extra_name_sub("REG_R_PCI_OUT_U2", 3, w);
-    let w = defs::virtex2::wires::OUT_PCI[1];
+    let w = wires::OUT_PCI[1];
     builder.wire_names(
         w,
         &[
@@ -713,7 +706,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for i in 0..8 {
         builder.wire_names(
-            defs::virtex2::wires::IMUX_BUFG_SEL[i],
+            wires::IMUX_BUFG_SEL[i],
             &[format!("CLKB_SELDUB{i}"), format!("CLKT_SELDUB{i}")],
         );
     }
@@ -721,7 +714,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         let ii = i % 4;
         let lr = if i < 4 { 'R' } else { 'L' };
         builder.wire_names(
-            defs::virtex2::wires::IMUX_BUFG_CLK[i],
+            wires::IMUX_BUFG_CLK[i],
             &[
                 format!("CLKB_CLKDUB{lr}{ii}"),
                 format!("CLKT_CLKDUB{lr}{ii}"),
@@ -730,7 +723,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     }
     for i in 0..8 {
         builder.wire_names(
-            defs::virtex2::wires::OUT_BUFG[i],
+            wires::OUT_BUFG[i],
             &[format!("CLKB_GCLK_ROOT{i}"), format!("CLKT_GCLK_ROOT{i}")],
         );
     }
@@ -1128,6 +1121,23 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT_PPC_N",
         &bels_int,
     );
+
+    if let Some(pips) = builder
+        .pips
+        .get_mut(&(tcls::INT_GT_CLKPAD, defs::bslots::INT))
+    {
+        for w in [
+            wires::IMUX_CE[0],
+            wires::IMUX_CE[1],
+            wires::IMUX_TS[0],
+            wires::IMUX_TS[1],
+        ] {
+            pips.pips.remove(&(
+                TileWireCoord::new_idx(0, w),
+                TileWireCoord::new_idx(0, wires::PULLUP),
+            ));
+        }
+    }
 
     let slice_name_only = [
         "DX", "DY", "FXINA", "FXINB", "F5", "FX", "CIN", "COUT", "SHIFTIN", "SHIFTOUT", "ALTDIG",

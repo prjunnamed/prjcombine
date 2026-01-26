@@ -7,8 +7,8 @@ use prjcombine_interconnect::{
     db::{
         Bel, BelInfo, BelInput, BelKind, BelPin, BelSlotId, BiPass, CellSlotId, ConnectorClass,
         ConnectorClassId, ConnectorSlotId, ConnectorWire, IntDb, LegacyBel, Mux, Pass, PermaBuf,
-        PinDir, ProgBuf, ProgDelay, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire, TileClass,
-        TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
+        PinDir, ProgBuf, ProgDelay, ProgInv, SwitchBox, SwitchBoxItem, TestMux, TestMuxWire,
+        TileClass, TileClassId, TileSlotId, TileWireCoord, WireKind, WireSlotId,
     },
     dir::{Dir, DirMap},
 };
@@ -1460,7 +1460,10 @@ impl XTileExtractor<'_, '_, '_> {
                     );
                 }
                 let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
-                if let Some(&(_, wf)) = self.names.get(&nwf) {
+                if let Some(&(_, mut wf)) = self.names.get(&nwf) {
+                    if let Some(&w) = self.xtile.builder.optinvs.get(&wf.wire) {
+                        wf.wire = w;
+                    }
                     self.tcls_naming.intf_wires_in.insert(
                         wf,
                         IntfWireInNaming::Simple {
@@ -1474,7 +1477,10 @@ impl XTileExtractor<'_, '_, '_> {
                     } else {
                         out_muxes.entry(wt).or_default().0.push(wf);
                     }
-                } else if let Some(&(_, wf, rt, bwti, bwfi)) = self.int_in.get(&nwf) {
+                } else if let Some(&(_, mut wf, rt, bwti, bwfi)) = self.int_in.get(&nwf) {
+                    if let Some(&w) = self.xtile.builder.optinvs.get(&wf.wire) {
+                        wf.wire = w;
+                    }
                     if !self.buf_in.contains_key(&nwf) {
                         assert!(!self.xtile.has_intf_out_bufs);
                         continue;
@@ -1558,6 +1564,7 @@ pub struct IntBuilder<'a> {
     pub pips: BTreeMap<(TileClassId, BelSlotId), Pips>,
     permabuf_wires: BTreeSet<WireSlotId>,
     delay_wires: BTreeMap<WireSlotId, WireSlotId>,
+    optinvs: BTreeMap<WireSlotId, WireSlotId>,
     is_mirror_square: bool,
     allow_mux_to_branch: bool,
     main_passes: DirMap<EntityPartVec<WireSlotId, WireSlotId>>,
@@ -1589,6 +1596,7 @@ impl<'a> IntBuilder<'a> {
             term_slots,
             permabuf_wires: Default::default(),
             delay_wires: Default::default(),
+            optinvs: Default::default(),
             pips: Default::default(),
             is_mirror_square: false,
             allow_mux_to_branch: false,
@@ -1827,6 +1835,10 @@ impl<'a> IntBuilder<'a> {
 
     pub fn mark_test_mux_in(&mut self, tmin: WireSlotId, wire: WireSlotId) {
         self.test_mux_ins.insert(wire, tmin);
+    }
+
+    pub fn mark_optinv(&mut self, wire: WireSlotId, optinv: WireSlotId) {
+        self.optinvs.insert(wire, optinv);
     }
 
     pub fn conn_branch(&mut self, src: WireSlotId, dir: Dir, dst: WireSlotId) {
@@ -2697,7 +2709,21 @@ impl<'a> IntBuilder<'a> {
         }
     }
 
-    fn insert_tcls_bel(&mut self, tcid: TileClassId, slot: BelSlotId, bel: BelInfo) {
+    fn insert_tcls_bel(&mut self, tcid: TileClassId, slot: BelSlotId, mut bel: BelInfo) {
+        if let BelInfo::Legacy(ref mut info) = bel {
+            for pin in info.pins.values_mut() {
+                let wires = std::mem::take(&mut pin.wires);
+                pin.wires = wires
+                    .into_iter()
+                    .map(|mut wire| {
+                        if let Some(&w) = self.optinvs.get(&wire.wire) {
+                            wire.wire = w;
+                        }
+                        wire
+                    })
+                    .collect();
+            }
+        }
         let bel = self.convert_bel(slot, bel);
         let tcls = &mut self.db.tile_classes[tcid];
         if !tcls.bels.contains_id(slot) {
@@ -3814,7 +3840,11 @@ impl<'a> IntBuilder<'a> {
             let mut muxes: BTreeMap<_, BTreeSet<_>> = BTreeMap::new();
             let mut items = vec![];
             let mut passes = BTreeSet::new();
+            let mut invs = BTreeSet::new();
             for ((wt, wf), mode) in pips.pips {
+                if self.optinvs.contains_key(&wt.wire) {
+                    invs.insert(wt);
+                }
                 match mode {
                     PipMode::Mux => {
                         muxes.entry(wt).or_default().insert(wf.pos());
@@ -3860,6 +3890,17 @@ impl<'a> IntBuilder<'a> {
                     bits: vec![],
                     src: wf.into_iter().map(|k| (k, Default::default())).collect(),
                     bits_off: None,
+                }));
+            }
+            for src in invs {
+                let dst = TileWireCoord {
+                    cell: src.cell,
+                    wire: self.optinvs[&src.wire],
+                };
+                items.push(SwitchBoxItem::ProgInv(ProgInv {
+                    dst,
+                    src,
+                    bit: PolTileBit::DUMMY,
                 }));
             }
             items.sort();

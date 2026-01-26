@@ -120,6 +120,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     // The control inputs.
     for i in 0..4 {
         builder.wire_names(wires::IMUX_SR[i], &[format!("SR_B{i}")]);
+        builder.mark_optinv(wires::IMUX_SR[i], wires::IMUX_SR_OPTINV[i]);
     }
     for i in 0..4 {
         builder.wire_names(wires::IMUX_BOUNCE[i], &[format!("BOUNCE{i}")]);
@@ -129,9 +130,11 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             wires::IMUX_CLK[i],
             &[format!("CLK_B{i}"), format!("CLK_B{i}_DCM0")],
         );
+        builder.mark_optinv(wires::IMUX_CLK[i], wires::IMUX_CLK_OPTINV[i]);
     }
     for i in 0..4 {
         builder.wire_names(wires::IMUX_CE[i], &[format!("CE_B{i}")]);
+        builder.mark_optinv(wires::IMUX_CE[i], wires::IMUX_CE_OPTINV[i]);
     }
 
     // The data inputs.

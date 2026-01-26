@@ -94,9 +94,12 @@ target_defs! {
         }
 
         wire IMUX_SR[4]: mux;
+        wire IMUX_SR_OPTINV[4]: mux;
         wire IMUX_BOUNCE[4]: mux;
         wire IMUX_CLK[4]: mux;
+        wire IMUX_CLK_OPTINV[4]: mux;
         wire IMUX_CE[4]: mux;
+        wire IMUX_CE_OPTINV[4]: mux;
         wire IMUX_BYP[8]: mux;
         wire IMUX_BYP_BOUNCE[8]: mux;
         wire IMUX_IMUX[32]: mux;

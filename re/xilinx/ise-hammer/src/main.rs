@@ -1,12 +1,14 @@
 use clap::Parser;
+use prjcombine_interconnect::db::TileWireCoord;
 use prjcombine_interconnect::dir::DirV;
 use prjcombine_re_collector::{bitdata::CollectorData, collect::Collector};
 use prjcombine_re_hammer::{Backend, Session};
 use prjcombine_re_toolchain::Toolchain;
-use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
+use prjcombine_re_xilinx_geom::{Chip, Device, ExpandedDevice, GeomDb};
 use prjcombine_types::bitvec::BitVec;
+use prjcombine_virtex2::defs::virtex2::{tcls as tcls_v2, wires as wires_v2};
 use prjcombine_xilinx_bitstream::Reg;
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map};
 use std::error::Error;
 use std::path::PathBuf;
 
@@ -953,18 +955,22 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
     }
-    if let Some(tile) = data.bsdata.tiles.get("INT_GT_CLKPAD") {
-        let dcmclk0 = tile.items["INT:INV.IMUX_DCM_CLK[0]"].clone();
-        let dcmclk1 = tile.items["INT:INV.IMUX_DCM_CLK[1]"].clone();
-        let dcmclk2 = tile.items["INT:INV.IMUX_DCM_CLK[2]"].clone();
-        for tile in ["INT_DCM_V2", "INT_DCM_V2P"] {
-            if data.bsdata.tiles.contains_key(tile) {
-                data.bsdata
-                    .insert(tile, "INT", "INV.IMUX_DCM_CLK[0]", dcmclk0.clone());
-                data.bsdata
-                    .insert(tile, "INT", "INV.IMUX_DCM_CLK[1]", dcmclk1.clone());
-                data.bsdata
-                    .insert(tile, "INT", "INV.IMUX_DCM_CLK[2]", dcmclk2.clone());
+    if let Chip::Virtex2(chip) = db.chips.first().unwrap()
+        && chip.kind.is_virtex2()
+    {
+        for &wire in &wires_v2::IMUX_DCM_CLK_OPTINV[..3] {
+            let wire = TileWireCoord::new_idx(0, wire);
+            if let Some(&bit) = data.sb_inv.get(&(tcls_v2::INT_GT_CLKPAD, wire)) {
+                for tcid in [tcls_v2::INT_DCM_V2, tcls_v2::INT_DCM_V2P] {
+                    match data.sb_inv.entry((tcid, wire)) {
+                        hash_map::Entry::Occupied(e) => {
+                            assert_eq!(*e.get(), bit);
+                        }
+                        hash_map::Entry::Vacant(e) => {
+                            e.insert(bit);
+                        }
+                    };
+                }
             }
         }
     }

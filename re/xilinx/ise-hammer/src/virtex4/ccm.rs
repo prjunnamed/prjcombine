@@ -1,7 +1,7 @@
 use prjcombine_re_collector::{diff::OcdMode, legacy::xlat_enum_legacy_ocd};
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, bslots, virtex4::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -271,15 +271,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
-    let ccm = edev.db.get_tile_class("CCM");
-    if edev.tile_index[ccm].is_empty() {
+    let tile = "CCM";
+    let tcid = tcls::CCM;
+    if !ctx.has_tile_id(tcid) {
         return;
     }
-    let tile = "CCM";
-    for bel in ["PMCD[0]", "PMCD[1]"] {
+    for bslot in [bslots::PMCD[0], bslots::PMCD[1]] {
+        let bel = edev.db.bel_slots.key(bslot);
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
-        ctx.collect_int_inv(&["INT"; 4], tile, bel, "RST", false);
+        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, "RST", false);
         ctx.collect_inv(tile, bel, "REL");
         ctx.collect_bit_wide_legacy(tile, bel, "CLKA_ENABLE", "1");
         ctx.collect_bit_legacy(tile, bel, "CLKB_ENABLE", "1");
@@ -340,8 +341,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
                 );
                 if i < 2 {
-                    let item = ctx.item_int_inv(&["INT"; 4], tile, bel, &format!("CKINT{abc}{i}"));
-                    diff.apply_bit_diff_legacy(&item, false, true);
+                    let item =
+                        ctx.item_int_inv(&[tcls::INT; 4], tcid, bslot, &format!("CKINT{abc}{i}"));
+                    diff.apply_bit_diff(item, false, true);
                 }
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }
@@ -366,9 +368,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     {
         let bel = "DPM";
+        let bslot = bslots::DPM;
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
-        ctx.collect_int_inv(&["INT"; 4], tile, bel, "RST", false);
+        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, "RST", false);
         for pin in [
             "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
             "HFSEL2", "SELSKEW", "FREEZE",
@@ -416,8 +419,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("CKINT{abc}{i}"))
                 );
                 if i < 2 {
-                    let item = ctx.item_int_inv(&["INT"; 4], tile, bel, &format!("CKINT{abc}{i}"));
-                    diff.apply_bit_diff_legacy(&item, false, true);
+                    let item =
+                        ctx.item_int_inv(&[tcls::INT; 4], tcid, bslot, &format!("CKINT{abc}{i}"));
+                    diff.apply_bit_diff(item, false, true);
                 }
                 diffs.push((format!("CKINT{abc}{i}"), diff));
             }

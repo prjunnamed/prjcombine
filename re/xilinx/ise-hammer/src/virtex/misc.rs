@@ -279,7 +279,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "1"));
             let item = xlat_bit_bi_legacy(d0, d1);
             present.discard_bits_legacy(&item);
-            ctx.insert_int_inv(&[tile], tile, bel, pin, item);
+            ctx.insert(tile, bel, format!("INV.{pin}"), item);
         }
         present.assert_empty();
         if edev.chip.kind == ChipKind::Virtex {
@@ -337,9 +337,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let d1 = ctx.get_diff_legacy(tile, bel, "CAPMUX", "CAP_B");
         assert_eq!(d1, ctx.get_diff_legacy(tile, bel, "CAPMUX", "0"));
         let item = xlat_bit_bi_legacy(d0, d1);
-        ctx.insert_int_inv(&[tile], tile, bel, "CAP", item);
+        ctx.insert(tile, bel, "INV.CAP", item);
         let item = ctx.extract_bit_bi_legacy(tile, bel, "CLKINV", "1", "0");
-        ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
+        ctx.insert(tile, bel, "INV.CLK", item);
         ctx.get_diff_legacy(tile, bel, "ONESHOT", "1")
             .assert_empty();
     }
@@ -387,10 +387,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
             let item = xlat_bit_bi_legacy(d0, d1);
-            ctx.insert_int_inv(&[tile], tile, bel, pin, item);
+            ctx.insert(tile, bel, format!("INV.{pin}"), item);
         }
         let item = ctx.extract_bit_bi_legacy(tile, bel, "CLKINV", "1", "0");
-        ctx.insert_int_inv(&[tile], tile, bel, "CLK", item);
+        ctx.insert(tile, bel, "INV.CLK", item);
         let item = ctx.extract_bit_legacy(tile, bel, "GSR", "1");
         ctx.insert(tile, bel, "GSR_GTS_GWE_ENABLE", item);
         let item = ctx.extract_bit_legacy(tile, bel, "GWE", "1");
@@ -411,7 +411,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let d1 = ctx.get_diff_legacy(tile, bel, pinmux, pin_b);
             assert_eq!(d1, ctx.get_diff_legacy(tile, bel, pinmux, "0"));
             let item = xlat_bit_bi_legacy(d0, d1);
-            ctx.insert_int_inv(&[tile], tile, bel, pin, item);
+            ctx.insert(tile, bel, format!("INV.{pin}"), item);
         }
         ctx.collect_bitvec_legacy(tile, bel, "USERID", "");
     }

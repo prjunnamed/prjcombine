@@ -160,11 +160,12 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
-    for tile in ["GIGABIT_S", "GIGABIT_N"] {
-        let tcid = ctx.edev.db.get_tile_class(tile);
+    for tcid in [tcls::GIGABIT_S, tcls::GIGABIT_N] {
+        let tile = ctx.edev.db.tile_classes.key(tcid);
         let bel = "GT";
+        let bslot = defs::bslots::GT;
         ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
-        let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::GT];
+        let bel_data = &ctx.edev.db[tcid].bels[bslot];
         let BelInfo::Legacy(bel_data) = bel_data else {
             unreachable!()
         };
@@ -177,8 +178,14 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
-            let int_tiles = &["INT_GT_CLKPAD", "INT_PPC", "INT_PPC", "INT_PPC", "INT_PPC"];
-            ctx.collect_int_inv(int_tiles, tile, bel, pin, false);
+            let int_tiles = &[
+                tcls::INT_GT_CLKPAD,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+                tcls::INT_PPC,
+            ];
+            ctx.collect_int_inv(int_tiles, tcid, bslot, pin, false);
         }
         for attr in [
             "ALIGN_COMMA_MSB",

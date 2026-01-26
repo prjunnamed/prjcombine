@@ -1,10 +1,11 @@
 use prjcombine_entity::EntityId;
+use prjcombine_interconnect::db::{BelInfo, TileWireCoord};
 use prjcombine_re_xilinx_naming_spartan6::ExpandedNamedDevice;
 use prjcombine_re_xilinx_rawdump::Part;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier, verify};
+use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier};
 use prjcombine_spartan6::{
     chip::{ColumnKind, DisabledPart, Gts},
-    defs,
+    defs::{self, bslots, tcls, wires},
 };
 use std::collections::HashSet;
 
@@ -3106,12 +3107,46 @@ fn verify_extra(_endev: &ExpandedNamedDevice, vrf: &mut Verifier) {
 }
 
 pub fn verify_device(endev: &ExpandedNamedDevice, rd: &Part) {
-    verify(
-        rd,
-        &endev.ngrid,
-        |_| (),
-        |_, _| (),
-        |vrf, bel| verify_bel(endev, vrf, bel),
-        |vrf| verify_extra(endev, vrf),
-    );
+    let mut vrf = Verifier::new(rd, &endev.ngrid);
+    for tcid in [tcls::CLK_W, tcls::CLK_E] {
+        vrf.force_bel_pin(
+            tcid,
+            bslots::BUFPLL_OUT,
+            "LOCK0",
+            TileWireCoord::new_idx(0, wires::OUT[0]),
+        );
+        vrf.force_bel_pin(
+            tcid,
+            bslots::BUFPLL_OUT,
+            "LOCK1",
+            TileWireCoord::new_idx(0, wires::OUT[1]),
+        );
+    }
+    for tcid in [tcls::CLK_S, tcls::CLK_N] {
+        vrf.force_bel_pin(
+            tcid,
+            bslots::BUFPLL_OUT,
+            "LOCK0",
+            TileWireCoord::new_idx(0, wires::OUT[18]),
+        );
+        vrf.force_bel_pin(
+            tcid,
+            bslots::BUFPLL_OUT,
+            "LOCK1",
+            TileWireCoord::new_idx(0, wires::OUT[19]),
+        );
+    }
+    vrf.prep_int_wires();
+    vrf.handle_int();
+    for (tcrd, tile) in endev.ngrid.egrid.tiles() {
+        let tcls = &endev.ngrid.egrid.db[tile.class];
+        for (slot, bel) in &tcls.bels {
+            if let BelInfo::Legacy(_) = bel {
+                let ctx = vrf.get_legacy_bel(tcrd.bel(slot));
+                verify_bel(endev, &mut vrf, &ctx);
+            }
+        }
+    }
+    verify_extra(endev, &mut vrf);
+    vrf.finish();
 }

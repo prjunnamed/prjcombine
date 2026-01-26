@@ -6,7 +6,7 @@ use prjcombine_interconnect::{
     grid::TileCoord,
 };
 use prjcombine_re_collector::{
-    diff::Diff,
+    diff::{Diff, DiffKey, OcdMode, xlat_enum_raw},
     legacy::{xlat_bit_legacy, xlat_enum_default_legacy, xlat_enum_legacy},
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
@@ -14,6 +14,8 @@ use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, RawTileId};
 use prjcombine_types::bsdata::BitRectId;
+use prjcombine_virtex2::defs::spartan3::{tcls as tcls_s3, wires as wires_s3};
+use prjcombine_virtex4::defs::virtex4::tcls as tcls_v4;
 
 use crate::{
     backend::{IseBackend, Key},
@@ -106,7 +108,7 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
-    for (_tcid, tcname, tcls) in &intdb.tile_classes {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
         let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
             continue;
         };
@@ -115,20 +117,10 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 BelInfo::TestMux(bel) => {
                     let mut bctx = ctx.bel(slot);
                     for (&dst, tmux) in &bel.wires {
-                        let mux_name = if tcls.cells.len() == 1 {
-                            format!("MUX.{}", intdb.wires.key(dst.wire))
-                        } else {
-                            format!("MUX.{:#}.{}", dst.cell, intdb.wires.key(dst.wire))
-                        };
                         for &src in tmux.test_src.keys() {
-                            let in_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(src.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
-                            };
                             bctx.build()
                                 .prop(IntMutex::new("INTF".into()))
-                                .test_manual(&mux_name, in_name)
+                                .test_raw(DiffKey::Routing(tcid, dst, src))
                                 .prop(TileMutexExclusive::new("INTF".into()))
                                 .prop(WireMutexExclusive::new(dst))
                                 .prop(WireMutexExclusive::new(src.tw))
@@ -140,23 +132,13 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                 BelInfo::GroupTestMux(bel) => {
                     let mut bctx = ctx.bel(slot);
                     for (&dst, tmux) in &bel.wires {
-                        let mux_name = if tcls.cells.len() == 1 {
-                            format!("MUX.{}", intdb.wires.key(dst.wire))
-                        } else {
-                            format!("MUX.{:#}.{}", dst.cell, intdb.wires.key(dst.wire))
-                        };
                         for &src in &tmux.test_src {
                             let Some(src) = src else {
                                 continue;
                             };
-                            let in_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(src.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
-                            };
                             bctx.build()
                                 .prop(IntMutex::new("INTF".into()))
-                                .test_manual(&mux_name, in_name)
+                                .test_raw(DiffKey::Routing(tcid, dst, src))
                                 .prop(TileMutexExclusive::new("INTF".into()))
                                 .prop(WireMutexExclusive::new(dst))
                                 .prop(WireMutexExclusive::new(src.tw))
@@ -173,14 +155,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.db;
-    for (_tcid, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile(tcname) {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
+        if !ctx.has_tile_id(tcid) {
             continue;
         }
-        for (slot, bel) in &tcls.bels {
+        for (bslot, bel) in &tcls.bels {
             match bel {
                 BelInfo::TestMux(bel) => {
-                    let bname = ctx.edev.db.bel_slots.key(slot);
+                    let bname = ctx.edev.db.bel_slots.key(bslot);
                     let mut test_muxes = vec![];
                     let mut test_bits: Option<HashMap<_, _>> = None;
                     for (&dst, tmux) in &bel.wires {
@@ -196,7 +178,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                             } else {
                                 format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
                             };
-                            let diff = ctx.get_diff_legacy(tcname, bname, &mux_name, &in_name);
+                            let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
 
                             match test_bits {
                                 Some(ref mut bits) => {
@@ -230,11 +212,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                                             || in_name.starts_with("IMUX_SR")
                                             || in_name.starts_with("IMUX_CE")
                                         {
-                                            diff.discard_bits_legacy(ctx.item(
-                                                "INT",
-                                                "INT",
-                                                &format!("INV.{in_name}"),
-                                            ));
+                                            diff.discard_bits(&[ctx
+                                                .sb_inv(
+                                                    tcls_v4::INT,
+                                                    TileWireCoord::new_idx(
+                                                        0,
+                                                        ctx.edev.db.get_wire(in_name),
+                                                    ),
+                                                )
+                                                .bit]);
                                         }
                                     }
                                 }
@@ -290,49 +276,28 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                     }
                 }
                 BelInfo::GroupTestMux(bel) => {
-                    let bname = ctx.edev.db.bel_slots.key(slot);
-                    let mut diffs = vec![];
+                    let mut diffs = vec![(None, Diff::default())];
                     for (&dst, tmux) in &bel.wires {
-                        let mux_name = if tcls.cells.len() == 1 {
-                            format!("MUX.{}", intdb.wires.key(dst.wire))
-                        } else {
-                            format!("MUX.{:#}.{}", dst.cell, intdb.wires.key(dst.wire))
-                        };
                         for (group, &src) in tmux.test_src.iter().enumerate() {
                             let Some(src) = src else { continue };
-                            let in_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(src.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
-                            };
-                            let mut diff = ctx.get_diff_legacy(tcname, bname, &mux_name, &in_name);
-
-                            if in_name.contains("IMUX_SR") || in_name.contains("IMUX_CE") {
-                                let mut item = ctx
-                                    .item(
-                                        "INT_BRAM_S3ADSP",
-                                        "INT",
-                                        &format!(
-                                            "INV.{in_name}",
-                                            in_name = intdb.wires.key(src.wire)
-                                        ),
-                                    )
-                                    .clone();
-                                for bit in &mut item.bits {
-                                    bit.rect = BitRectId::from_idx(src.cell.to_idx());
-                                }
-                                diff.discard_bits_legacy(&item);
+                            let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
+                            if let ExpandedDevice::Virtex2(edev) = ctx.edev
+                                && !edev.chip.kind.is_virtex2()
+                                && (wires_s3::IMUX_SR_OPTINV.contains(src.wire)
+                                    || wires_s3::IMUX_CE_OPTINV.contains(src.wire))
+                            {
+                                let mut bit = ctx.sb_inv(
+                                    tcls_s3::INT_BRAM_S3ADSP,
+                                    TileWireCoord::new_idx(0, src.wire),
+                                );
+                                bit.bit.rect = BitRectId::from_idx(src.cell.to_idx());
+                                diff.discard_bits(&[bit.bit]);
                             }
 
-                            diffs.push((group.to_string(), diff));
+                            diffs.push((Some(group), diff));
                         }
                     }
-                    ctx.insert(
-                        tcname,
-                        bname,
-                        "TEST_GROUP",
-                        xlat_enum_default_legacy(diffs, "NONE"),
-                    );
+                    ctx.insert_tmux_group(tcid, bslot, xlat_enum_raw(diffs, OcdMode::ValueOrder));
                 }
                 _ => (),
             }

@@ -11,7 +11,7 @@ use prjcombine_re_fpga_hammer::{FuzzerFeature, FuzzerProp};
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bsdata::{TileBit, TileItem};
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, bslots, virtex4::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -642,7 +642,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let ExpandedDevice::Virtex4(edev) = ctx.edev else {
         unreachable!()
     };
-    if !ctx.has_tile("MGT") {
+    let tcid = tcls::MGT;
+    if !ctx.has_tile_id(tcid) {
         return;
     }
     let tile = "MGT";
@@ -658,6 +659,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             .clone(),
     );
     for idx in 0..2 {
+        let bslot = bslots::GT11[idx];
         let bel = &format!("GT11[{idx}]");
         let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
         for i in 0x40..0x80 {
@@ -672,7 +674,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, format!("DRP{i:02X}_MASK"), item);
         }
         for &pin in GT11_INVPINS {
-            ctx.collect_int_inv(&["INT"; 32], tile, bel, pin, false);
+            ctx.collect_int_inv(&[tcls::INT; 32], tcid, bslot, pin, false);
         }
         for pin in [
             "RXRESET",
@@ -691,8 +693,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "DEN",
             "DWE",
         ] {
-            present.apply_bit_diff_legacy(
-                &ctx.item_int_inv(&["INT"; 32], tile, bel, pin),
+            present.apply_bit_diff(
+                ctx.item_int_inv(&[tcls::INT; 32], tcid, bslot, pin),
                 false,
                 true,
             );

@@ -611,25 +611,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
     for tile in [clkb, clkt] {
         for i in 0..bufg_num {
             if edev.chip.kind != ChipKind::FpgaCore {
-                let tcid = intdb.get_tile_class(tile);
-                let bel = &intdb[tcid].bels[defs::bslots::BUFGMUX[i]];
-                let BelInfo::Legacy(bel) = bel else {
-                    unreachable!()
-                };
-                let pin = &bel.pins["S"];
                 let bel = format!("BUFGMUX[{i}]");
                 let bel = &bel;
                 ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
                     .assert_empty();
-                assert_eq!(pin.wires.len(), 1);
-                let wire = pin.wires.first().unwrap();
                 let sinv = ctx.extract_bit_bi_legacy(tile, bel, "SINV", "S", "S_B");
-                ctx.insert(
-                    tile,
-                    "CLK_INT",
-                    format!("INV.{:#}.{}", wire.cell, intdb.wires.key(wire.wire)),
-                    sinv,
-                );
+                ctx.insert(tile, bel, "INV.S", sinv);
                 ctx.collect_enum_legacy(tile, bel, "DISABLE_ATTR", &["HIGH", "LOW"]);
                 let inps = if grid_kind.is_spartan3ea() {
                     &["INT", "CKIL", "CKIR", "DCM_OUT_L", "DCM_OUT_R"][..]
@@ -829,12 +816,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                         pin_name,
                     );
                     if matches!(&pin_name[..], "CLKFB" | "CLKIN" | "PSCLK") {
-                        diff.discard_bits_legacy(&ctx.item_int_inv(
-                            &[tile],
-                            tile,
-                            mux_name,
-                            pin_name,
-                        ));
+                        diff.discard_bits(&[ctx.item_int_inv(&[tcid], tcid, bel_id, pin_name).bit]);
                     }
                     diffs.push((pin_name.to_string(), diff));
                 }

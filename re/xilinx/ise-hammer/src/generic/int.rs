@@ -1,14 +1,9 @@
-use std::collections::BTreeSet;
-
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
     db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord},
     grid::TileCoord,
 };
-use prjcombine_re_collector::{
-    diff::{Diff, OcdMode},
-    legacy::{xlat_bit_legacy, xlat_enum_legacy_ocd},
-};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
@@ -121,16 +116,20 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for WireIntDstFilter {
                             || wire_name.starts_with("IMUX_CE")
                             || wire_name.starts_with("IMUX_TS"))
                     {
+                        let wire_oi = backend.edev.db_index.tile_classes[tile.class].pips_fwd
+                            [&self.wire]
+                            .iter()
+                            .next()
+                            .unwrap()
+                            .wire;
+                        assert!(intdb.wires.key(wire_oi).contains("OPTINV"));
                         let mut found = false;
                         for bel in bram_tcls.bels.values() {
                             let BelInfo::Legacy(bel) = bel else {
                                 unreachable!()
                             };
                             for pin in bel.pins.values() {
-                                if pin
-                                    .wires
-                                    .contains(&TileWireCoord::new_idx(idx, self.wire.wire))
-                                {
+                                if pin.wires.contains(&TileWireCoord::new_idx(idx, wire_oi)) {
                                     found = true;
                                     break;
                                 }
@@ -682,101 +681,102 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfDelay {
     }
 }
 
+fn build_pip_fuzzer(
+    backend: &IseBackend,
+    ctx: &mut FuzzCtx,
+    wire_to: TileWireCoord,
+    wire_from: TileWireCoord,
+) {
+    let intdb = backend.edev.db;
+    let tcid = ctx.tile_class.unwrap();
+    let tcname = intdb.tile_classes.key(tcid);
+    let tcls_index = &backend.edev.db_index[tcid];
+    let mut builder = ctx
+        .build()
+        .test_raw(DiffKey::Routing(tcid, wire_to, wire_from.pos()))
+        .prop(WireIntDistinct::new(wire_to, wire_from))
+        .prop(WireIntDstFilter::new(wire_to))
+        .prop(WireIntSrcFilter::new(wire_from))
+        .prop(WireMutexShared::new(wire_from))
+        .prop(IntMutex::new("MAIN".to_string()))
+        .prop(BaseRaw::new(
+            Key::GlobalMutex("MISR_CLOCK".to_string()),
+            Value::None,
+        ))
+        .prop(WireMutexExclusive::new(wire_to))
+        .prop(FuzzIntPip::new(wire_to, wire_from));
+    if let Some(inmux) = tcls_index.pips_bwd.get(&wire_from)
+        && inmux.contains(&wire_to.pos())
+    {
+        if tcname.starts_with("LLH") {
+            builder = builder.prop(DriveLLH::new(wire_from));
+        } else if tcname.starts_with("LLV") {
+            builder = builder.prop(DriveLLV::new(wire_from));
+        } else {
+            let mut wire_help = None;
+            for &help in inmux {
+                if let Some(helpmux) = tcls_index.pips_bwd.get(&help.tw)
+                    && helpmux.contains(&wire_from.pos())
+                {
+                    continue;
+                }
+                wire_help = Some(help.tw);
+                break;
+            }
+            let wire_help = wire_help.unwrap();
+            builder = builder.prop(BaseIntPip::new(wire_from, wire_help));
+        }
+    }
+    if matches!(backend.edev, ExpandedDevice::Virtex2(_)) {
+        builder = builder.prop(BaseRaw::new(
+            Key::GlobalOpt("TESTLL".to_string()),
+            Value::None,
+        ));
+    }
+    if intdb.wires.key(wire_from.wire) == "OUT_TBUS" {
+        builder = builder.prop(RowMutex::new("TBUF".to_string(), "INT".to_string()));
+    }
+    builder.commit();
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
-    for (tcid, tcname, tcls) in &intdb.tile_classes {
-        let Some(mut ctx) = FuzzCtx::try_new(session, backend, tcname) else {
+    for (tcid, _, tcls) in &intdb.tile_classes {
+        let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
             continue;
         };
-        let mut skip_pips = BTreeSet::new();
-        for (bslot, bel) in &tcls.bels {
+        for (_bslot, bel) in &tcls.bels {
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
-            let mut bctx = ctx.bel(bslot);
             for item in &sb.items {
-                let SwitchBoxItem::ProgDelay(delay) = item else {
-                    continue;
-                };
-                skip_pips.insert((delay.dst, delay.src.tw));
-                assert_eq!(tcls.cells.len(), 1);
-                let del_name = format!("DELAY.{}", intdb.wires.key(delay.dst.wire));
-                for val in ["0", "1"] {
-                    bctx.build()
-                        .prop(IntMutex::new("INTF".into()))
-                        .test_manual(&del_name, val)
-                        .prop(TileMutexExclusive::new("INTF".into()))
-                        .prop(WireMutexExclusive::new(delay.dst))
-                        .prop(WireMutexExclusive::new(delay.src.tw))
-                        .prop(FuzzIntfDelay::new(delay.clone(), val == "1"))
-                        .commit();
-                }
-            }
-        }
-        let tcls_index = &backend.edev.db_index[tcid];
-        for (&wire_to, ins) in &tcls_index.pips_bwd {
-            let mux_name = if tcls.cells.len() == 1 {
-                format!("MUX.{}", intdb.wires.key(wire_to.wire))
-            } else {
-                format!("MUX.{:#}.{}", wire_to.cell, intdb.wires.key(wire_to.wire))
-            };
-            for &wire_from in ins {
-                let wire_from = wire_from.tw;
-                if skip_pips.contains(&(wire_to, wire_from)) {
-                    continue;
-                }
-                let in_name = if tcls.cells.len() == 1 {
-                    intdb.wires.key(wire_from.wire).to_string()
-                } else {
-                    format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
-                };
-                let mut builder = ctx
-                    .build()
-                    .test_manual("INT", &mux_name, in_name)
-                    .prop(WireIntDistinct::new(wire_to, wire_from))
-                    .prop(WireIntDstFilter::new(wire_to))
-                    .prop(WireIntSrcFilter::new(wire_from))
-                    .prop(WireMutexShared::new(wire_from))
-                    .prop(IntMutex::new("MAIN".to_string()))
-                    .prop(BaseRaw::new(
-                        Key::GlobalMutex("MISR_CLOCK".to_string()),
-                        Value::None,
-                    ))
-                    .prop(WireMutexExclusive::new(wire_to))
-                    .prop(FuzzIntPip::new(wire_to, wire_from));
-                if let Some(inmux) = tcls_index.pips_bwd.get(&wire_from)
-                    && inmux.contains(&wire_to.pos())
-                {
-                    if tcname.starts_with("LLH") {
-                        builder = builder.prop(DriveLLH::new(wire_from));
-                    } else if tcname.starts_with("LLV") {
-                        builder = builder.prop(DriveLLV::new(wire_from));
-                    } else {
-                        let mut wire_help = None;
-                        for &help in inmux {
-                            if let Some(helpmux) = tcls_index.pips_bwd.get(&help.tw)
-                                && helpmux.contains(&wire_from.pos())
-                            {
-                                continue;
-                            }
-                            // println!("HELP {} <- {} <- {}", intdb.wires.key(wire_to.1), intdb.wires.key(wire_from.1), intdb.wires.key(help.1));
-                            wire_help = Some(help.tw);
-                            break;
+                match item {
+                    SwitchBoxItem::Mux(mux) => {
+                        for &src in mux.src.keys() {
+                            build_pip_fuzzer(backend, &mut ctx, mux.dst, src.tw);
                         }
-                        let wire_help = wire_help.unwrap();
-                        builder = builder.prop(BaseIntPip::new(wire_from, wire_help));
                     }
+                    SwitchBoxItem::ProgBuf(buf) => {
+                        build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw);
+                    }
+                    SwitchBoxItem::PermaBuf(buf) => {
+                        build_pip_fuzzer(backend, &mut ctx, buf.dst, buf.src.tw);
+                    }
+                    SwitchBoxItem::ProgInv(_) => (),
+                    SwitchBoxItem::ProgDelay(delay) => {
+                        for val in 0..2 {
+                            ctx.build()
+                                .prop(IntMutex::new("INTF".into()))
+                                .test_raw(DiffKey::ProgDelay(tcid, delay.dst, val))
+                                .prop(TileMutexExclusive::new("INTF".into()))
+                                .prop(WireMutexExclusive::new(delay.dst))
+                                .prop(WireMutexExclusive::new(delay.src.tw))
+                                .prop(FuzzIntfDelay::new(delay.clone(), val != 0))
+                                .commit();
+                        }
+                    }
+                    _ => unreachable!(),
                 }
-                if matches!(backend.edev, ExpandedDevice::Virtex2(_)) {
-                    builder = builder.prop(BaseRaw::new(
-                        Key::GlobalOpt("TESTLL".to_string()),
-                        Value::None,
-                    ));
-                }
-                if intdb.wires.key(wire_from.wire) == "OUT_TBUS" {
-                    builder = builder.prop(RowMutex::new("TBUF".to_string(), "INT".to_string()));
-                }
-                builder.commit();
             }
         }
     }
@@ -784,139 +784,97 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.db;
-    for (_, tcname, tcls) in &intdb.tile_classes {
-        if !ctx.has_tile(tcname) {
+    for (tcid, tcname, tcls) in &intdb.tile_classes {
+        if !ctx.has_tile_id(tcid) {
             continue;
         }
-        for (bslot, bel) in &tcls.bels {
+        for (_bslot, bel) in &tcls.bels {
             let BelInfo::SwitchBox(sb) = bel else {
                 continue;
             };
-            let bel = intdb.bel_slots.key(bslot);
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
-                        let mux_name = if tcls.cells.len() == 1 {
-                            format!("MUX.{}", intdb.wires.key(mux.dst.wire))
-                        } else {
-                            format!("MUX.{:#}.{}", mux.dst.cell, intdb.wires.key(mux.dst.wire))
-                        };
+                        let out_name = intdb.wires.key(mux.dst.wire);
                         let mut inps = vec![];
                         let mut got_empty = false;
-                        for &wire_from in mux.src.keys() {
-                            let wire_from = wire_from.tw;
-                            let in_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(wire_from.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", wire_from.cell, intdb.wires.key(wire_from.wire))
-                            };
-                            let diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
+                        for &src in mux.src.keys() {
+                            let in_name = intdb.wires.key(src.wire);
+                            let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, mux.dst, src));
+                            let mut diff_fucked = false;
                             if let ExpandedDevice::Virtex2(edev) = ctx.edev
                                 && edev.chip.kind
                                     == prjcombine_virtex2::chip::ChipKind::Spartan3ADsp
-                                && tcname == "INT_IOI_S3A_WE"
-                                && mux_name == "MUX.IMUX_DATA[3]"
-                                && in_name == "OMUX_N10"
+                                && tcid == prjcombine_virtex2::defs::spartan3::tcls::INT_IOI_S3A_WE
+                                && mux.dst.wire
+                                    == prjcombine_virtex2::defs::spartan3::wires::IMUX_DATA[3]
+                                && src.wire == prjcombine_virtex2::defs::spartan3::wires::OMUX_N10
                             {
                                 // ISE is bad and should feel bad.
-                                continue;
+                                diff_fucked = true;
                             }
                             if diff.bits.is_empty() {
                                 if intdb.wires.key(mux.dst.wire).starts_with("IMUX")
-                                    && !intdb[wire_from.wire].is_tie()
+                                    && !intdb[src.wire].is_tie()
                                 {
-                                    // suppress message on known offenders.
-                                    if tcname == "INT_BRAM_S3A_03"
-                                        && (mux_name.starts_with("MUX.IMUX_CLK")
-                                            || mux_name.starts_with("MUX.IMUX_CE"))
-                                    {
-                                        // these muxes don't actually exist.
-                                        continue;
-                                    }
                                     if tcname.starts_with("INT_IOI_S3")
-                                        && mux_name.starts_with("MUX.IMUX_DATA")
+                                        && out_name.starts_with("IMUX_DATA")
                                         && (in_name.starts_with("OUT_FAN")
                                             || in_name.starts_with("IMUX_FAN")
                                             || in_name.starts_with("OMUX"))
                                     {
-                                        // ISE is kind of bad. fill these from INT_CLB and verify later?
-                                        continue;
+                                        // ISE is kind of bad.
+                                        diff_fucked = true;
+                                    } else {
+                                        println!(
+                                            "UMMMMM PIP {tcname} {mux_name} {in_name} is empty",
+                                            mux_name = mux.dst.to_string(intdb, &intdb[tcid]),
+                                            in_name = src.to_string(intdb, &intdb[tcid])
+                                        );
                                     }
-                                    println!("UMMMMM PIP {tcname} {mux_name} {in_name} is empty");
-                                    continue;
                                 }
                                 got_empty = true;
                             }
-                            inps.push((in_name.to_string(), diff));
+                            if diff_fucked {
+                                let ExpandedDevice::Virtex2(edev) = ctx.edev else {
+                                    unreachable!()
+                                };
+                                assert!(!edev.chip.kind.is_virtex2());
+                                let mux = ctx.sb_mux(
+                                    prjcombine_virtex2::defs::spartan3::tcls::INT_CLB,
+                                    mux.dst,
+                                );
+                                diff.bits.clear();
+                                for (idx, val) in mux.values[&Some(src)].iter().enumerate() {
+                                    if val {
+                                        diff.bits.insert(mux.bits[idx], true);
+                                    }
+                                }
+                            }
+                            inps.push((Some(src), diff));
                         }
                         if !got_empty {
-                            inps.push(("NONE".to_string(), Diff::default()));
+                            inps.push((None, Diff::default()));
                         }
-                        let ti = xlat_enum_legacy_ocd(inps, OcdMode::Mux);
-                        if ti.bits.is_empty()
-                            && !(tcname == "INT_GT_CLKPAD"
-                                && matches!(
-                                    &mux_name[..],
-                                    "MUX.IMUX_CE[0]"
-                                        | "MUX.IMUX_CE[1]"
-                                        | "MUX.IMUX_TS[0]"
-                                        | "MUX.IMUX_TS[1]"
-                                ))
-                            && !(tcname == "INT_BRAM_S3A_03"
-                                && (mux_name.starts_with("MUX.IMUX_CLK")
-                                    || mux_name.starts_with("MUX.IMUX_CE")))
-                        {
-                            println!("UMMM MUX {tcname} {mux_name} is empty");
+                        let ti = xlat_enum_raw(inps, OcdMode::Mux);
+                        if ti.bits.is_empty() {
+                            println!(
+                                "UMMM MUX {tcname} {mux_name} is empty",
+                                mux_name = mux.dst.to_string(intdb, &intdb[tcid])
+                            );
                         }
-                        ctx.insert(tcname, bel, mux_name, ti);
+                        ctx.insert_mux(tcid, mux.dst, ti);
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
-                        let mux_name = if tcls.cells.len() == 1 {
-                            format!("MUX.{}", intdb.wires.key(buf.dst.wire))
-                        } else {
-                            format!("MUX.{:#}.{}", buf.dst.cell, intdb.wires.key(buf.dst.wire))
-                        };
-                        let in_name = if tcls.cells.len() == 1 {
-                            intdb.wires.key(buf.src.wire).to_string()
-                        } else {
-                            format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
-                        };
-                        let diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
-                        let buf_name = if tcls.cells.len() == 1 {
-                            format!(
-                                "BUF.{dst}.{src}",
-                                dst = intdb.wires.key(buf.dst.wire),
-                                src = intdb.wires.key(buf.src.wire)
-                            )
-                        } else {
-                            format!(
-                                "BUF.{dst_cell:#}.{dst}.{src_cell:#}.{src}",
-                                dst_cell = buf.dst.cell,
-                                src_cell = buf.src.cell,
-                                dst = intdb.wires.key(buf.dst.wire),
-                                src = intdb.wires.key(buf.src.wire)
-                            )
-                        };
-                        ctx.insert(tcname, bel, buf_name, xlat_bit_legacy(diff));
+                        ctx.collect_progbuf(tcid, buf.dst, buf.src);
                     }
                     SwitchBoxItem::PermaBuf(buf) => {
-                        let mux_name = if tcls.cells.len() == 1 {
-                            format!("MUX.{}", intdb.wires.key(buf.dst.wire))
-                        } else {
-                            format!("MUX.{:#}.{}", buf.dst.cell, intdb.wires.key(buf.dst.wire))
-                        };
-                        let in_name = if tcls.cells.len() == 1 {
-                            intdb.wires.key(buf.src.wire).to_string()
-                        } else {
-                            format!("{:#}.{}", buf.src.cell, intdb.wires.key(buf.src.wire))
-                        };
-                        let diff = ctx.get_diff_legacy(tcname, "INT", &mux_name, &in_name);
+                        let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, buf.dst, buf.src));
                         diff.assert_empty();
                     }
                     SwitchBoxItem::ProgInv(_) => (),
                     SwitchBoxItem::ProgDelay(delay) => {
-                        let del_name = format!("DELAY.{}", intdb.wires.key(delay.dst.wire));
-                        ctx.collect_bit_bi_legacy(tcname, bel, &del_name, "0", "1");
+                        ctx.collect_delay(tcid, delay.dst, delay.steps.len());
                     }
                     _ => unreachable!(),
                 }

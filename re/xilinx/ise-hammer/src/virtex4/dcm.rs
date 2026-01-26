@@ -9,7 +9,7 @@ use prjcombine_types::{
     bits,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::defs;
+use prjcombine_virtex4::defs::{self, bslots, virtex4::tcls};
 
 use crate::{
     backend::{IseBackend, PinFromKind},
@@ -467,6 +467,8 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let tcid = tcls::DCM;
+    let bslot = bslots::DCM[0];
     let tile = "DCM";
     let bel = "DCM[0]";
 
@@ -498,7 +500,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     for pin in ["RST", "CTLMODE", "FREEZE_DLL", "FREEZE_DFS", "DEN", "DWE"] {
-        ctx.collect_int_inv(&["INT"; 4], tile, bel, pin, false);
+        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, pin, false);
     }
 
     for pin in [
@@ -927,8 +929,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             let diff = ctx.get_diff_legacy(tile, bel, pin, format!("CKINT{i}"));
             let mut diff_test =
                 ctx.get_diff_legacy(tile, bel, format!("{pin}_TEST"), format!("CKINT{i}"));
-            let item = ctx.item_int_inv(&["INT"; 4], tile, bel, &format!("CKINT{i}"));
-            diff_test.apply_bit_diff_legacy(&item, false, true);
+            let item = ctx.item_int_inv(&[tcls::INT; 4], tcid, bslot, &format!("CKINT{i}"));
+            diff_test.apply_bit_diff(item, false, true);
             assert_eq!(diff, diff_test);
             diffs.push((format!("CKINT{i}"), diff));
         }

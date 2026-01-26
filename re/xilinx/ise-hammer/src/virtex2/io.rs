@@ -2451,29 +2451,29 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if !tile.starts_with("IOI") {
             continue;
         }
-        if ctx.edev.tile_index[tcid].is_empty() {
+        if !ctx.has_tile_id(tcid) {
             continue;
         }
         let int_tiles = &[match edev.chip.kind {
-            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => match &tile[..] {
-                "IOI_CLK_S" => "INT_IOI_CLK_S",
-                "IOI_CLK_N" => "INT_IOI_CLK_N",
-                _ => "INT_IOI",
+            ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => match tcid {
+                tcls_v2::IOI_CLK_S => tcls_v2::INT_IOI_CLK_S,
+                tcls_v2::IOI_CLK_N => tcls_v2::INT_IOI_CLK_N,
+                _ => tcls_v2::INT_IOI,
             },
-            ChipKind::Spartan3 => "INT_IOI_S3",
+            ChipKind::Spartan3 => tcls_s3::INT_IOI_S3,
             ChipKind::FpgaCore => unreachable!(),
-            ChipKind::Spartan3E => "INT_IOI_S3E",
+            ChipKind::Spartan3E => tcls_s3::INT_IOI_S3E,
             ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
-                if tile == "IOI_S3A_WE" {
-                    "INT_IOI_S3A_WE"
+                if tcid == tcls_s3::IOI_S3A_WE {
+                    tcls_s3::INT_IOI_S3A_WE
                 } else {
-                    "INT_IOI_S3A_SN"
+                    tcls_s3::INT_IOI_S3A_SN
                 }
             }
         }];
 
-        for (slot, _) in &tcls.bels {
-            let Some(idx) = defs::bslots::IOI.index_of(slot) else {
+        for (bslot, _) in &tcls.bels {
+            let Some(idx) = defs::bslots::IOI.index_of(bslot) else {
                 continue;
             };
             if tile == "IOI_CLK_N" && matches!(idx, 0 | 1) {
@@ -2482,13 +2482,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if tile == "IOI_CLK_S" && matches!(idx, 2 | 3) {
                 continue;
             }
-            let bel = intdb.bel_slots.key(slot);
+            let bel = intdb.bel_slots.key(bslot);
             ctx.collect_inv(tile, bel, "OTCLK1");
             ctx.collect_inv(tile, bel, "OTCLK2");
             ctx.collect_inv(tile, bel, "ICLK1");
             ctx.collect_inv(tile, bel, "ICLK2");
-            ctx.collect_int_inv(int_tiles, tile, bel, "SR", false);
-            ctx.collect_int_inv(int_tiles, tile, bel, "OCE", false);
+            ctx.collect_int_inv(int_tiles, tcid, bslot, "SR", false);
+            ctx.collect_int_inv(int_tiles, tcid, bslot, "OCE", false);
             ctx.collect_inv(tile, bel, "REV");
             ctx.collect_inv(tile, bel, "ICE");
             ctx.collect_inv(tile, bel, "TCE");
@@ -2758,7 +2758,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, "READBACK_I", TileItem::from_bit_inv(bit, false));
 
             // discard detritus from IOB testing
-            if !edev.chip.kind.is_spartan3a() || slot != defs::bslots::IOI[2] {
+            if !edev.chip.kind.is_spartan3a() || bslot != defs::bslots::IOI[2] {
                 let mut diff = ctx.get_diff_legacy(tile, bel, "OUTPUT_ENABLE", "1");
                 diff.apply_bit_diff_legacy(ctx.item(tile, bel, "INV.T1"), true, false);
                 diff.apply_enum_diff_legacy(ctx.item(tile, bel, "OMUX"), "O1", "NONE");
@@ -2766,11 +2766,11 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 diff.assert_empty();
             }
             if edev.chip.kind.is_spartan3a() {
-                if slot != defs::bslots::IOI[2] {
+                if bslot != defs::bslots::IOI[2] {
                     ctx.get_diff_legacy(tile, bel, "SEL_MUX", "OMUX")
                         .assert_empty();
                 }
-                if slot == defs::bslots::IOI[2] || tile == "IOI_S3A_WE" {
+                if bslot == defs::bslots::IOI[2] || tile == "IOI_S3A_WE" {
                     let mut diff = ctx.get_diff_legacy(tile, bel, "SEL_MUX", "OMUX_IBUF");
                     diff.apply_enum_diff_legacy(ctx.item(tile, bel, "OMUX"), "O1", "NONE");
                     diff.assert_empty();

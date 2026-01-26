@@ -5,13 +5,14 @@ use std::{
 
 use itertools::Itertools;
 use prjcombine_entity::{EntityMap, EntitySet, EntityVec};
+use prjcombine_re_collector::bitdata::CollectorData;
 use prjcombine_re_xilinx_geom::GeomDb;
 use prjcombine_spartan6::{
     bond::Bond,
     chip::{Chip, DisabledPart},
     db::{Database, Device},
 };
-use prjcombine_types::{bsdata::BsData, db::DeviceCombo};
+use prjcombine_types::db::DeviceCombo;
 use regex::Regex;
 
 struct TmpPart<'a> {
@@ -84,7 +85,7 @@ fn sort_key<'a>(name: &'a str, tpart: &TmpPart, chip: &Chip) -> SortKey<'a> {
     }
 }
 
-pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
+pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
     let mut tmp_parts: BTreeMap<&str, _> = BTreeMap::new();
     for dev in &geom.devices {
         let prjcombine_re_xilinx_geom::Chip::Spartan6(ref chip) =
@@ -174,15 +175,16 @@ pub fn finish(geom: GeomDb, tiledb: BsData) -> Database {
     let bonds = bonds.into_vec();
 
     assert_eq!(geom.ints.len(), 1);
-    let int = geom.ints.into_values().next().unwrap();
+    let mut int = geom.ints.into_values().next().unwrap();
 
-    // TODO: resort int
+    let bsdata = std::mem::take(&mut bitdb.bsdata);
+    bitdb.insert_into(&mut int, false);
 
     Database {
         chips,
         bonds,
         devices: parts,
         int,
-        bsdata: tiledb,
+        bsdata,
     }
 }

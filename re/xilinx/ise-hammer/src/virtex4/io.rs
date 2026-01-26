@@ -4,7 +4,7 @@ use prjcombine_interconnect::{
     grid::{CellCoord, DieId, RowId, TileCoord, TileIobId},
 };
 use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, FeatureId, OcdMode},
+    diff::{Diff, DiffKey, FeatureId, OcdMode, xlat_bit_bi},
     legacy::{
         extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_bi_legacy,
         xlat_bit_legacy, xlat_bit_wide_legacy, xlat_bitvec_legacy, xlat_enum_legacy,
@@ -19,7 +19,10 @@ use prjcombine_types::{
     bitvec::BitVec,
     bsdata::{TileBit, TileItem, TileItemKind},
 };
-use prjcombine_virtex4::{defs, expanded::IoCoord};
+use prjcombine_virtex4::{
+    defs::{self, bslots, virtex4::tcls},
+    expanded::IoCoord,
+};
 
 use crate::{
     backend::{IseBackend, Key, Value},
@@ -1301,13 +1304,15 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "IO";
+    let tcid = tcls::IO;
     for i in 0..2 {
         let bel = &format!("ILOGIC[{i}]");
+        let bslot = bslots::ILOGIC[i];
 
         let mut present_ilogic = ctx.get_diff_legacy(tile, bel, "PRESENT", "ILOGIC");
         let mut present_iserdes = ctx.get_diff_legacy(tile, bel, "PRESENT", "ISERDES");
 
-        ctx.collect_int_inv(&["INT"], tile, bel, "CLKDIV", false);
+        ctx.collect_int_inv(&[tcls::INT], tcid, bslot, "CLKDIV", false);
         ctx.collect_inv(tile, bel, "CE1");
         ctx.collect_inv(tile, bel, "CE2");
         for pin in ["SR", "REV"] {
@@ -1622,6 +1627,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
     for i in 0..2 {
         let bel = &format!("OLOGIC[{i}]");
+        let bslot = bslots::OLOGIC[i];
         ctx.collect_enum_default_legacy_ocd(
             tile,
             bel,
@@ -1666,7 +1672,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 pin,
                 &format!("{pin}_B"),
             );
-            ctx.insert_int_inv(&["INT"], tile, bel, pin, item);
+            ctx.insert_int_inv(&[tcls::INT], tcid, bslot, pin, item.as_bit());
         }
         for pin in ["OCE", "TCE"] {
             let item = ctx.extract_bit_bi_legacy(
@@ -1676,7 +1682,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 pin,
                 &format!("{pin}_B"),
             );
-            ctx.insert_int_inv(&["INT"], tile, bel, pin, item);
+            ctx.insert_int_inv(&[tcls::INT], tcid, bslot, pin, item.as_bit());
         }
         for (pin, oused, tused) in [("SR", &osrused, &tsrused), ("REV", &orevused, &trevused)] {
             let mut diff0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV.OLOGIC"), pin);
@@ -1684,7 +1690,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 ctx.get_diff_legacy(tile, bel, format!("{pin}INV.OLOGIC"), format!("{pin}_B"));
             diff0.apply_bit_diff_legacy(oused, true, false);
             diff1.apply_bit_diff_legacy(oused, true, false);
-            ctx.insert_int_inv(&["INT"], tile, bel, pin, xlat_bit_bi_legacy(diff0, diff1));
+            ctx.insert_int_inv(&[tcls::INT], tcid, bslot, pin, xlat_bit_bi(diff0, diff1));
             let mut diff0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV.OSERDES"), pin);
             let mut diff1 =
                 ctx.get_diff_legacy(tile, bel, format!("{pin}INV.OSERDES"), format!("{pin}_B"));
@@ -1692,7 +1698,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             diff1.apply_bit_diff_legacy(oused, true, false);
             diff0.apply_bit_diff_legacy(tused, true, false);
             diff1.apply_bit_diff_legacy(tused, true, false);
-            ctx.insert_int_inv(&["INT"], tile, bel, pin, xlat_bit_bi_legacy(diff0, diff1));
+            ctx.insert_int_inv(&[tcls::INT], tcid, bslot, pin, xlat_bit_bi(diff0, diff1));
         }
         let clk1inv = ctx.extract_bit_bi_legacy(tile, bel, "CLK1INV.OLOGIC", "C", "C_B");
         let clk2inv = ctx.extract_bit_bi_legacy(tile, bel, "CLK2INV.OLOGIC", "CLK", "CLK_B");

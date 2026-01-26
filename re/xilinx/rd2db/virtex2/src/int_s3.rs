@@ -161,6 +161,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // The set/reset inputs.
     for i in 0..4 {
+        builder.mark_optinv(wires::IMUX_SR[i], wires::IMUX_SR_OPTINV[i]);
         builder.wire_names(
             wires::IMUX_SR[i],
             &[
@@ -176,6 +177,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // The clock inputs.
     for i in 0..4 {
+        builder.mark_optinv(wires::IMUX_CLK[i], wires::IMUX_CLK_OPTINV[i]);
         builder.wire_names(
             wires::IMUX_CLK[i],
             &[
@@ -207,6 +209,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     // The clock enables.
     for i in 0..4 {
+        builder.mark_optinv(wires::IMUX_CE[i], wires::IMUX_CE_OPTINV[i]);
         builder.wire_names(
             wires::IMUX_CE[i],
             &[
@@ -1299,6 +1302,15 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             "INT_BRAM_BRK",
             &bels_int,
         );
+
+        if let Some(pips) = builder
+            .pips
+            .get_mut(&(tcls::INT_BRAM_S3A_03, defs::bslots::INT))
+        {
+            pips.pips.retain(|&(wt, _), _| {
+                !wires::IMUX_CE.contains(wt.wire) && !wires::IMUX_CLK.contains(wt.wire)
+            });
+        }
     } else if rd.family == "spartan3e" {
         builder.extract_int_id(
             tcls::INT_BRAM_S3E,
@@ -3081,26 +3093,25 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 bel_dsp = bel_dsp.pin_name_only(&format!("PCIN{i}"), 0);
                 bel_dsp = bel_dsp.pin_name_only(&format!("PCOUT{i}"), buf_cnt);
             }
-            let bels_dsp = [bel_dsp];
             for &xy in rd.tiles_by_kind_name(tkn) {
                 let mut int_xy = Vec::new();
                 for dy in 0..4 {
                     int_xy.push(xy.delta(-1, dy));
                 }
-                builder.extract_xtile_bels_id(tcls::DSP, xy, &[], &int_xy, naming, &bels_dsp, true);
-                builder.extract_intf_tile_multi_id(
-                    tcls::INTF_DSP,
-                    xy,
-                    &int_xy,
-                    "INTF_DSP",
-                    defs::bslots::INTF_TESTMUX,
-                    false,
-                    None,
-                );
+                let mut x = builder
+                    .xtile_id(tcls::DSP, naming, xy)
+                    .num_cells(int_xy.len())
+                    .extract_intfs(defs::bslots::DSP_TESTMUX, false)
+                    .bel(bel_dsp.clone())
+                    .force_test_mux_in();
+                for (i, &xy) in int_xy.iter().enumerate() {
+                    x = x.ref_int(xy, i);
+                }
+                x.extract();
             }
         }
         let mut wires_c = BTreeSet::new();
-        let tcls = builder.db.tile_classes.get("DSP").unwrap().1;
+        let tcls = &builder.db.tile_classes[tcls::DSP];
         let BelInfo::Legacy(ref bel) = tcls.bels[defs::bslots::DSP] else {
             unreachable!()
         };
@@ -3110,8 +3121,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             }
         }
 
-        let tcls = &mut builder.db.tile_classes[tcls::INTF_DSP];
-        let BelInfo::TestMux(tm) = tcls.bels.remove(defs::bslots::INTF_TESTMUX).unwrap() else {
+        let tcls = &mut builder.db.tile_classes[tcls::DSP];
+        let BelInfo::TestMux(tm) = tcls.bels.remove(defs::bslots::DSP_TESTMUX).unwrap() else {
             unreachable!()
         };
         let mut gtm = GroupTestMux {
@@ -3138,7 +3149,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             gtm.wires.insert(dst, gtmux);
         }
         tcls.bels
-            .insert(defs::bslots::INTF_TESTMUX, BelInfo::GroupTestMux(gtm));
+            .insert(defs::bslots::DSP_TESTMUX, BelInfo::GroupTestMux(gtm));
     } else if rd.family != "fpgacore" {
         let (tcid, kind) = match &*rd.family {
             "spartan3" => (tcls::BRAM_S3, "BRAM_S3"),

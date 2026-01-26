@@ -23,7 +23,10 @@ pub struct CollectorData {
     pub sb_pass: HashMap<(TileClassId, TileWireCoord, TileWireCoord), PolTileBit>,
     pub sb_bipass: HashMap<(TileClassId, TileWireCoord, TileWireCoord), PolTileBit>,
     pub sb_mux: HashMap<(TileClassId, TileWireCoord), EnumData<Option<PolTileWireCoord>>>,
+    pub sb_delay: HashMap<(TileClassId, TileWireCoord), EnumData<usize>>,
     pub sb_bidi: HashMap<(TileClassId, ConnectorSlotId, TileWireCoord), PolTileBit>,
+    pub sb_enable: HashMap<(TileClassId, TileWireCoord), Vec<PolTileBit>>,
+    pub tmux_group: HashMap<(TileClassId, BelSlotId), EnumData<Option<usize>>>,
     pub table_data: HashMap<(TableId, TableRowId, TableFieldId), TableValue>,
     pub bsdata: BsData,
 }
@@ -56,131 +59,174 @@ impl CollectorData {
         }
 
         for (tcid, _, tcls) in &mut intdb.tile_classes {
-            for bel in tcls.bels.values_mut() {
-                let BelInfo::SwitchBox(sbox) = bel else {
-                    continue;
-                };
-                for item in &mut sbox.items {
-                    match item {
-                        SwitchBoxItem::Mux(mux) => {
-                            let Some(edata) = self.sb_mux.remove(&(tcid, mux.dst)) else {
-                                if missing_ok {
-                                    continue;
+            for (bslot, bel) in &mut tcls.bels {
+                match bel {
+                    BelInfo::SwitchBox(sbox) => {
+                        for item in &mut sbox.items {
+                            match item {
+                                SwitchBoxItem::Mux(mux) => {
+                                    let Some(edata) = self.sb_mux.remove(&(tcid, mux.dst)) else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let dst = mux.dst;
+                                        panic!(
+                                            "can't find collect enum mux {tcname} {dst}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                        )
+                                    };
+                                    mux.bits = edata.bits;
+                                    let mut handled = BTreeSet::new();
+                                    for (src, val) in edata.values {
+                                        if let Some(src) = src {
+                                            *mux.src.get_mut(&src).unwrap() = val;
+                                            handled.insert(src);
+                                        } else {
+                                            mux.bits_off = Some(val);
+                                        }
+                                    }
+                                    for src in mux.src.keys() {
+                                        let src = *src;
+                                        if !handled.contains(&src) {
+                                            let dst = mux.dst;
+                                            panic!(
+                                                "can't find mux input {tcname} {dst} {src}",
+                                                tcname = intdb.tile_classes.key(tcid),
+                                                dst =
+                                                    dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                                src =
+                                                    src.to_string(intdb, &intdb.tile_classes[tcid]),
+                                            );
+                                        }
+                                    }
                                 }
-                                let dst = mux.dst;
-                                panic!(
-                                    "can't find collect enum mux {tcname} {dst}",
-                                    tcname = intdb.tile_classes.key(tcid),
-                                    dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                )
-                            };
-                            mux.bits = edata.bits;
-                            let mut handled = BTreeSet::new();
-                            for (src, val) in edata.values {
-                                if let Some(src) = src {
-                                    *mux.src.get_mut(&src).unwrap() = val;
-                                    handled.insert(src);
-                                } else {
-                                    mux.bits_off = Some(val);
+                                SwitchBoxItem::ProgBuf(buf) => {
+                                    let Some(bit) = self.sb_buf.remove(&(tcid, buf.dst, buf.src))
+                                    else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let dst = buf.dst;
+                                        let src = buf.src;
+                                        panic!(
+                                            "can't find collect bit progbuf {tcname} {dst} {src}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                            src = src.to_string(intdb, &intdb.tile_classes[tcid])
+                                        )
+                                    };
+                                    buf.bit = bit;
+                                }
+                                SwitchBoxItem::PermaBuf(_) => (),
+                                SwitchBoxItem::Pass(pass) => {
+                                    let Some(bit) =
+                                        self.sb_pass.remove(&(tcid, pass.dst, pass.src))
+                                    else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let dst = pass.dst;
+                                        let src = pass.src;
+                                        panic!(
+                                            "can't find collect bit pass {tcname} {dst} {src}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                            src = src.to_string(intdb, &intdb.tile_classes[tcid])
+                                        )
+                                    };
+                                    pass.bit = bit;
+                                }
+                                SwitchBoxItem::BiPass(pass) => {
+                                    let Some(bit) = self.sb_bipass.remove(&(tcid, pass.a, pass.b))
+                                    else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let dst = pass.a;
+                                        let src = pass.b;
+                                        panic!(
+                                            "can't find collect bit bipass {tcname} {dst} {src}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
+                                            src = src.to_string(intdb, &intdb.tile_classes[tcid])
+                                        )
+                                    };
+                                    pass.bit = bit;
+                                }
+                                SwitchBoxItem::ProgInv(inv) => {
+                                    let Some(bit) = self.sb_inv.remove(&(tcid, inv.dst)) else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let twc = inv.dst;
+                                        panic!(
+                                            "can't find collect bit proginv {tcname} {wire}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
+                                        )
+                                    };
+                                    inv.bit = bit;
+                                }
+                                SwitchBoxItem::ProgDelay(delay) => {
+                                    let Some(mut data) = self.sb_delay.remove(&(tcid, delay.dst))
+                                    else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let twc = delay.dst;
+                                        panic!(
+                                            "can't find collect progdelay {tcname} {wire}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
+                                        )
+                                    };
+                                    delay.bits = data.bits;
+                                    for (i, val) in delay.steps.iter_mut().enumerate() {
+                                        *val = data.values.remove(&i).unwrap();
+                                    }
+                                    assert!(data.values.is_empty());
+                                }
+                                SwitchBoxItem::Bidi(bidi) => {
+                                    let Some(bit) =
+                                        self.sb_bidi.remove(&(tcid, bidi.conn, bidi.wire))
+                                    else {
+                                        if missing_ok {
+                                            continue;
+                                        }
+                                        let conn = bidi.conn;
+                                        let twc = bidi.wire;
+                                        panic!(
+                                            "can't find collect bit bidi {tcname} {conn} {wire}",
+                                            tcname = intdb.tile_classes.key(tcid),
+                                            conn = intdb.conn_slots.key(conn),
+                                            wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
+                                        )
+                                    };
+                                    bidi.bit_upstream = bit;
                                 }
                             }
-                            for src in mux.src.keys() {
-                                let src = *src;
-                                if !handled.contains(&src) {
-                                    let dst = mux.dst;
-                                    panic!(
-                                        "can't find mux input {tcname} {dst} {src}",
-                                        tcname = intdb.tile_classes.key(tcid),
-                                        dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                        src = src.to_string(intdb, &intdb.tile_classes[tcid]),
-                                    );
-                                }
-                            }
-                        }
-                        SwitchBoxItem::ProgBuf(buf) => {
-                            let Some(bit) = self.sb_buf.remove(&(tcid, buf.dst, buf.src)) else {
-                                if missing_ok {
-                                    continue;
-                                }
-                                let dst = buf.dst;
-                                let src = buf.src;
-                                panic!(
-                                    "can't find collect bit progbuf {tcname} {dst} {src}",
-                                    tcname = intdb.tile_classes.key(tcid),
-                                    dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                    src = src.to_string(intdb, &intdb.tile_classes[tcid])
-                                )
-                            };
-                            buf.bit = bit;
-                        }
-                        SwitchBoxItem::PermaBuf(_) => (),
-                        SwitchBoxItem::Pass(pass) => {
-                            let Some(bit) = self.sb_pass.remove(&(tcid, pass.dst, pass.src)) else {
-                                if missing_ok {
-                                    continue;
-                                }
-                                let dst = pass.dst;
-                                let src = pass.src;
-                                panic!(
-                                    "can't find collect bit pass {tcname} {dst} {src}",
-                                    tcname = intdb.tile_classes.key(tcid),
-                                    dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                    src = src.to_string(intdb, &intdb.tile_classes[tcid])
-                                )
-                            };
-                            pass.bit = bit;
-                        }
-                        SwitchBoxItem::BiPass(pass) => {
-                            let Some(bit) = self.sb_bipass.remove(&(tcid, pass.a, pass.b)) else {
-                                if missing_ok {
-                                    continue;
-                                }
-                                let dst = pass.a;
-                                let src = pass.b;
-                                panic!(
-                                    "can't find collect bit bipass {tcname} {dst} {src}",
-                                    tcname = intdb.tile_classes.key(tcid),
-                                    dst = dst.to_string(intdb, &intdb.tile_classes[tcid]),
-                                    src = src.to_string(intdb, &intdb.tile_classes[tcid])
-                                )
-                            };
-                            pass.bit = bit;
-                        }
-                        SwitchBoxItem::ProgInv(inv) => {
-                            let Some(bit) = self.sb_inv.remove(&(tcid, inv.dst)) else {
-                                if missing_ok {
-                                    continue;
-                                }
-                                let twc = inv.dst;
-                                panic!(
-                                    "can't find collect bit proginv {tcname} {wire}",
-                                    tcname = intdb.tile_classes.key(tcid),
-                                    wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
-                                )
-                            };
-                            inv.bit = bit;
-                        }
-                        SwitchBoxItem::ProgDelay(_delay) => {
-                            // TODO
-                        }
-                        SwitchBoxItem::Bidi(bidi) => {
-                            let Some(bit) = self.sb_bidi.remove(&(tcid, bidi.conn, bidi.wire))
-                            else {
-                                if missing_ok {
-                                    continue;
-                                }
-                                let conn = bidi.conn;
-                                let twc = bidi.wire;
-                                panic!(
-                                    "can't find collect bit bidi {tcname} {conn} {wire}",
-                                    tcname = intdb.tile_classes.key(tcid),
-                                    conn = intdb.conn_slots.key(conn),
-                                    wire = twc.to_string(intdb, &intdb.tile_classes[tcid])
-                                )
-                            };
-                            bidi.bit_upstream = bit;
                         }
                     }
+                    BelInfo::GroupTestMux(tmux) => {
+                        let Some(mut data) = self.tmux_group.remove(&(tcid, bslot)) else {
+                            if missing_ok {
+                                continue;
+                            }
+                            panic!(
+                                "can't find collect group testmux {tcname} {bel}",
+                                tcname = intdb.tile_classes.key(tcid),
+                                bel = intdb.bel_slots.key(bslot),
+                            )
+                        };
+                        tmux.bits = data.bits;
+                        for (i, val) in tmux.groups.iter_mut().enumerate() {
+                            *val = data.values.remove(&Some(i)).unwrap();
+                        }
+                        tmux.bits_primary = data.values.remove(&None).unwrap();
+                        assert!(data.values.is_empty());
+                    }
+                    _ => (),
                 }
             }
         }
@@ -229,6 +275,22 @@ impl CollectorData {
                 tcls = intdb.tile_classes.key(tcid),
                 wire = twc.to_string(intdb, &intdb.tile_classes[tcid]),
                 bit = intdb.tile_classes[tcid].dump_polbit(bit),
+            );
+        }
+
+        for ((tcid, twc), data) in self.sb_delay {
+            println!(
+                "uncollected enum: delay {tcls} {wire}: {data:?}",
+                tcls = intdb.tile_classes.key(tcid),
+                wire = twc.to_string(intdb, &intdb.tile_classes[tcid]),
+            );
+        }
+
+        for ((tcid, bslot), data) in self.tmux_group {
+            println!(
+                "uncollected enum: delay {tcls} {bel}: {data:?}",
+                tcls = intdb.tile_classes.key(tcid),
+                bel = intdb.bel_slots.key(bslot),
             );
         }
 
@@ -288,7 +350,10 @@ impl CollectorData {
         merge_hashmap(&mut self.sb_pass, other.sb_pass);
         merge_hashmap(&mut self.sb_bipass, other.sb_bipass);
         merge_hashmap(&mut self.sb_mux, other.sb_mux);
+        merge_hashmap(&mut self.sb_delay, other.sb_delay);
         merge_hashmap(&mut self.sb_bidi, other.sb_bidi);
+        merge_hashmap(&mut self.sb_enable, other.sb_enable);
+        merge_hashmap(&mut self.tmux_group, other.tmux_group);
         merge_hashmap(&mut self.table_data, other.table_data);
         for (tile, tile_data) in other.bsdata.tiles {
             let tile_dst = self.bsdata.tiles.entry(tile).or_default();

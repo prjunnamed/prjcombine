@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_re_collector::{
-    diff::Diff,
+    diff::{Diff, xlat_bit},
     legacy::{
         extract_bitvec_val_legacy, extract_bitvec_val_part_legacy, xlat_bit_legacy,
         xlat_bitvec_legacy, xlat_enum_legacy,
@@ -10,7 +10,8 @@ use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_types::bits;
 use prjcombine_virtex2::{
-    chip::ChipKind, defs, defs::spartan3::tcls as tcls_s3, defs::virtex2::tcls as tcls_v2,
+    chip::ChipKind, defs, defs::bslots, defs::spartan3::tcls as tcls_s3,
+    defs::virtex2::tcls as tcls_v2,
 };
 
 use crate::{
@@ -303,26 +304,27 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         _ => unreachable!(),
     };
     let int_tiles = match chip_kind {
-        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &["INT_BRAM"; 4],
-        ChipKind::Spartan3 => &["INT_BRAM_S3"; 4],
+        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => &[tcls_v2::INT_BRAM; 4],
+        ChipKind::Spartan3 => &[tcls_s3::INT_BRAM_S3; 4],
         ChipKind::FpgaCore => unreachable!(),
-        ChipKind::Spartan3E => &["INT_BRAM_S3E"; 4],
+        ChipKind::Spartan3E => &[tcls_s3::INT_BRAM_S3E; 4],
         ChipKind::Spartan3A => &[
-            "INT_BRAM_S3A_03",
-            "INT_BRAM_S3A_12",
-            "INT_BRAM_S3A_12",
-            "INT_BRAM_S3A_03",
+            tcls_s3::INT_BRAM_S3A_03,
+            tcls_s3::INT_BRAM_S3A_12,
+            tcls_s3::INT_BRAM_S3A_12,
+            tcls_s3::INT_BRAM_S3A_03,
         ],
-        ChipKind::Spartan3ADsp => &["INT_BRAM_S3ADSP"; 4],
+        ChipKind::Spartan3ADsp => &[tcls_s3::INT_BRAM_S3ADSP; 4],
     };
-    let tile = match chip_kind {
-        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => "BRAM",
-        ChipKind::Spartan3 => "BRAM_S3",
+    let tcid = match chip_kind {
+        ChipKind::Virtex2 | ChipKind::Virtex2P | ChipKind::Virtex2PX => tcls_v2::BRAM,
+        ChipKind::Spartan3 => tcls_s3::BRAM_S3,
         ChipKind::FpgaCore => unreachable!(),
-        ChipKind::Spartan3E => "BRAM_S3E",
-        ChipKind::Spartan3A => "BRAM_S3A",
-        ChipKind::Spartan3ADsp => "BRAM_S3ADSP",
+        ChipKind::Spartan3E => tcls_s3::BRAM_S3E,
+        ChipKind::Spartan3A => tcls_s3::BRAM_S3A,
+        ChipKind::Spartan3ADsp => tcls_s3::BRAM_S3ADSP,
     };
+    let tile = ctx.edev.db.tile_classes.key(tcid);
     fn filter_ab(diff: Diff) -> (Diff, Diff) {
         (
             Diff {
@@ -469,19 +471,19 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
-    ctx.collect_int_inv(int_tiles, tile, "BRAM", "CLKA", false);
-    ctx.collect_int_inv(int_tiles, tile, "BRAM", "CLKB", false);
-    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENA", false);
-    ctx.collect_int_inv(int_tiles, tile, "BRAM", "ENB", false);
-    present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENA"));
-    present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", "ENB"));
+    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "CLKA", false);
+    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "CLKB", false);
+    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "ENA", false);
+    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "ENB", false);
+    present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, "ENA").bit]);
+    present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, "ENB").bit]);
     match chip_kind {
         ChipKind::Spartan3A | ChipKind::Spartan3ADsp => {
             for pin in [
                 "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
             ] {
-                ctx.collect_int_inv(int_tiles, tile, "BRAM", pin, false);
-                present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
+                ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, pin, false);
+                present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
             }
             for i in 0..0x40 {
                 diffs_data.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INIT_{i:02X}"), ""));
@@ -508,8 +510,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             }
             if chip_kind == ChipKind::Spartan3ADsp {
                 for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
-                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin, false);
-                    present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
+                    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, pin, false);
+                    present
+                        .discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
                 }
 
                 ctx.collect_enum_legacy(tile, "BRAM", "DOA_REG", &["0", "1"]);
@@ -517,17 +520,17 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.collect_enum_legacy(tile, "BRAM", "RSTTYPE", &["ASYNC", "SYNC"]);
             } else {
                 for pin in ["SSRA", "SSRB"] {
-                    ctx.collect_int_inv(int_tiles, tile, "BRAM", pin, false);
+                    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, pin, false);
                 }
             }
         }
         _ => {
-            ctx.collect_int_inv(int_tiles, tile, "BRAM", "WEA", false);
-            ctx.collect_int_inv(int_tiles, tile, "BRAM", "WEB", false);
-            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRA", false);
-            ctx.collect_int_inv(int_tiles, tile, "BRAM", "SSRB", false);
+            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "WEA", false);
+            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "WEB", false);
+            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "SSRA", false);
+            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "SSRB", false);
             for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
-                present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "BRAM", pin));
+                present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
             }
             for i in 0..0x40 {
                 diffs_data.extend(ctx.get_diffs_legacy(tile, "BRAM", format!("INIT_{i:02x}"), ""));
@@ -615,13 +618,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let (f_clk, f_clk_b, f_reg) = Diff::split(f_clk, f_clk_b);
             f_clk.assert_empty();
             ctx.insert(tile, "MULT", "REG", xlat_bit_legacy(f_reg));
-            ctx.insert_int_inv(int_tiles, tile, "MULT", "CLK", xlat_bit_legacy(f_clk_b));
-            ctx.collect_int_inv(int_tiles, tile, "MULT", "CE", false);
-            ctx.collect_int_inv(int_tiles, tile, "MULT", "RST", false);
-            present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CE"));
+            ctx.insert_int_inv(int_tiles, tcid, bslots::MULT, "CLK", xlat_bit(f_clk_b));
+            ctx.collect_int_inv(int_tiles, tcid, bslots::MULT, "CE", false);
+            ctx.collect_int_inv(int_tiles, tcid, bslots::MULT, "RST", false);
+            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CE").bit]);
         } else {
             for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
-                ctx.collect_int_inv(int_tiles, tile, "MULT", pin, false);
+                ctx.collect_int_inv(int_tiles, tcid, bslots::MULT, pin, false);
             }
             ctx.collect_enum_legacy(tile, "MULT", "AREG", &["0", "1"]);
             ctx.collect_enum_legacy(tile, "MULT", "BREG", &["0", "1"]);
@@ -637,9 +640,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             )]);
             ctx.insert(tile, "MULT", "PREG_CLKINVERSION", item);
             present.discard_bits_legacy(ctx.item(tile, "MULT", "PREG_CLKINVERSION"));
-            present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEA"));
-            present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEB"));
-            present.discard_bits_legacy(&ctx.item_int_inv(int_tiles, tile, "MULT", "CEP"));
+            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CEA").bit]);
+            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CEB").bit]);
+            present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CEP").bit]);
             if chip_kind == ChipKind::Spartan3A {
                 for ab in ['A', 'B'] {
                     for i in 0..18 {

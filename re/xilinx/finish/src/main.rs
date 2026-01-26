@@ -52,7 +52,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Virtex(_) => {
-                let db = virtex::finish(geom, bitdb.bsdata);
+                let db = virtex::finish(geom, bitdb);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -61,7 +61,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Virtex2(_) => {
-                let db = virtex2::finish(geom, bitdb.bsdata);
+                let db = virtex2::finish(geom, bitdb);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -70,7 +70,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Spartan6(_) => {
-                let db = spartan6::finish(geom, bitdb.bsdata);
+                let db = spartan6::finish(geom, bitdb);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -79,7 +79,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Virtex4(_) => {
-                let db = virtex4::finish(geom, bitdb.bsdata);
+                let db = virtex4::finish(geom, bitdb);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),
@@ -88,7 +88,7 @@ fn main() {
                 .unwrap();
             }
             Chip::Ultrascale(_) => {
-                let db = ultrascale::finish(geom, bitdb.bsdata);
+                let db = ultrascale::finish(geom, bitdb);
                 db.to_file(&args.db).unwrap();
                 db.dump(
                     &mut std::fs::File::create(&args.txt).unwrap(),

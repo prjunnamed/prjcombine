@@ -86,6 +86,7 @@ pub enum DiffKey {
     RoutingInv(TileClassId, TileWireCoord, bool),
     RoutingSpecial(TileClassId, TileWireCoord, SpecialId),
     RoutingPairSpecial(TileClassId, TileWireCoord, PolTileWireCoord, SpecialId),
+    ProgDelay(TileClassId, TileWireCoord, usize),
 }
 
 #[derive(Clone, Eq, PartialEq, Default)]

@@ -1,5 +1,6 @@
 use prjcombine_re_hammer::Session;
 use prjcombine_re_xilinx_geom::ExpandedDevice;
+use prjcombine_virtex2::defs::{bslots as bslots_s3, spartan3::tcls as tcls_s3};
 
 use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
 
@@ -78,9 +79,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     for &pin in DSP48A_INVPINS {
         match mode {
-            Mode::Spartan3ADsp => {
-                ctx.collect_int_inv(&["INT_BRAM_S3ADSP"; 4], "DSP", "DSP", pin, false)
-            }
+            Mode::Spartan3ADsp => ctx.collect_int_inv(
+                &[tcls_s3::INT_BRAM_S3ADSP; 4],
+                tcls_s3::DSP,
+                bslots_s3::DSP,
+                pin,
+                false,
+            ),
             Mode::Spartan6 => ctx.collect_inv("DSP", "DSP", pin),
         }
     }
