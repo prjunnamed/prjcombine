@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -465,9 +465,9 @@
 
 <tr><td>ADDRB9</td><td>input</td><td>CELL[2].IMUX_IMUX[25]</td></tr>
 
-<tr><td>CLKA</td><td>input</td><td>CELL[1].IMUX_CLK[2]</td></tr>
+<tr><td>CLKA</td><td>input</td><td>CELL[1].IMUX_CLK_OPTINV[2]</td></tr>
 
-<tr><td>CLKB</td><td>input</td><td>CELL[1].IMUX_CLK[3]</td></tr>
+<tr><td>CLKB</td><td>input</td><td>CELL[1].IMUX_CLK_OPTINV[3]</td></tr>
 
 <tr><td>DIA0</td><td>input</td><td>CELL[0].IMUX_IMUX[16]</td></tr>
 
@@ -757,17 +757,17 @@
 
 <tr><td>DOPB3</td><td>output</td><td>CELL[3].OUT_HALF_S_TMIN[6], CELL[3].OUT_HALF_N_TMIN[6]</td></tr>
 
-<tr><td>ENA</td><td>input</td><td>CELL[1].IMUX_CE[2]</td></tr>
+<tr><td>ENA</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>ENB</td><td>input</td><td>CELL[1].IMUX_CE[3]</td></tr>
+<tr><td>ENB</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>REGCEA</td><td>input</td><td>CELL[1].IMUX_CE[0]</td></tr>
+<tr><td>REGCEA</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>REGCEB</td><td>input</td><td>CELL[1].IMUX_CE[1]</td></tr>
+<tr><td>REGCEB</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>SSRA</td><td>input</td><td>CELL[2].IMUX_SR[0]</td></tr>
+<tr><td>SSRA</td><td>input</td><td>CELL[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>SSRB</td><td>input</td><td>CELL[2].IMUX_SR[1]</td></tr>
+<tr><td>SSRB</td><td>input</td><td>CELL[2].IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>WEA0</td><td>input</td><td>CELL[2].IMUX_IMUX[0]</td></tr>
 
@@ -952,7 +952,7 @@
 
 <tr><td>FULL</td><td>output</td><td>CELL[2].OUT_BEST_TMIN[4]</td></tr>
 
-<tr><td>RDCLK</td><td>input</td><td>CELL[1].IMUX_CLK[2]</td></tr>
+<tr><td>RDCLK</td><td>input</td><td>CELL[1].IMUX_CLK_OPTINV[2]</td></tr>
 
 <tr><td>RDCOUNT0</td><td>output</td><td>CELL[0].OUT_BEST_TMIN[4]</td></tr>
 
@@ -978,13 +978,13 @@
 
 <tr><td>RDCOUNT9</td><td>output</td><td>CELL[3].OUT_BEST_TMIN[5]</td></tr>
 
-<tr><td>RDEN</td><td>input</td><td>CELL[1].IMUX_CE[2]</td></tr>
+<tr><td>RDEN</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>RDERR</td><td>output</td><td>CELL[1].OUT_BEST_TMIN[5]</td></tr>
 
-<tr><td>RST</td><td>input</td><td>CELL[2].IMUX_SR[0]</td></tr>
+<tr><td>RST</td><td>input</td><td>CELL[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>WRCLK</td><td>input</td><td>CELL[1].IMUX_CLK[3]</td></tr>
+<tr><td>WRCLK</td><td>input</td><td>CELL[1].IMUX_CLK_OPTINV[3]</td></tr>
 
 <tr><td>WRCOUNT0</td><td>output</td><td>CELL[0].OUT_SEC_TMIN[0]</td></tr>
 
@@ -1010,7 +1010,7 @@
 
 <tr><td>WRCOUNT9</td><td>output</td><td>CELL[3].OUT_SEC_TMIN[4]</td></tr>
 
-<tr><td>WREN</td><td>input</td><td>CELL[1].IMUX_CE[3]</td></tr>
+<tr><td>WREN</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[3]</td></tr>
 
 <tr><td>WRERR</td><td>output</td><td>CELL[2].OUT_BEST_TMIN[6]</td></tr>
 
@@ -1121,17 +1121,17 @@
 
 <tr><td>CELL[0].OUT_HALF_N_TMIN[7]</td><td>BRAM.DOPA0, FIFO.DOP0</td></tr>
 
-<tr><td>CELL[1].IMUX_CLK[2]</td><td>BRAM.CLKA, FIFO.RDCLK</td></tr>
+<tr><td>CELL[1].IMUX_CLK_OPTINV[2]</td><td>BRAM.CLKA, FIFO.RDCLK</td></tr>
 
-<tr><td>CELL[1].IMUX_CLK[3]</td><td>BRAM.CLKB, FIFO.WRCLK</td></tr>
+<tr><td>CELL[1].IMUX_CLK_OPTINV[3]</td><td>BRAM.CLKB, FIFO.WRCLK</td></tr>
 
-<tr><td>CELL[1].IMUX_CE[0]</td><td>BRAM.REGCEA</td></tr>
+<tr><td>CELL[1].IMUX_CE_OPTINV[0]</td><td>BRAM.REGCEA</td></tr>
 
-<tr><td>CELL[1].IMUX_CE[1]</td><td>BRAM.REGCEB</td></tr>
+<tr><td>CELL[1].IMUX_CE_OPTINV[1]</td><td>BRAM.REGCEB</td></tr>
 
-<tr><td>CELL[1].IMUX_CE[2]</td><td>BRAM.ENA, FIFO.RDEN</td></tr>
+<tr><td>CELL[1].IMUX_CE_OPTINV[2]</td><td>BRAM.ENA, FIFO.RDEN</td></tr>
 
-<tr><td>CELL[1].IMUX_CE[3]</td><td>BRAM.ENB, FIFO.WREN</td></tr>
+<tr><td>CELL[1].IMUX_CE_OPTINV[3]</td><td>BRAM.ENB, FIFO.WREN</td></tr>
 
 <tr><td>CELL[1].IMUX_IMUX[0]</td><td>BRAM.WEB0</td></tr>
 
@@ -1233,9 +1233,9 @@
 
 <tr><td>CELL[1].OUT_HALF_N_TMIN[7]</td><td>BRAM.DOPA2, FIFO.DOP2</td></tr>
 
-<tr><td>CELL[2].IMUX_SR[0]</td><td>BRAM.SSRA, FIFO.RST</td></tr>
+<tr><td>CELL[2].IMUX_SR_OPTINV[0]</td><td>BRAM.SSRA, FIFO.RST</td></tr>
 
-<tr><td>CELL[2].IMUX_SR[1]</td><td>BRAM.SSRB</td></tr>
+<tr><td>CELL[2].IMUX_SR_OPTINV[1]</td><td>BRAM.SSRB</td></tr>
 
 <tr><td>CELL[2].IMUX_IMUX[0]</td><td>BRAM.WEA0</td></tr>
 

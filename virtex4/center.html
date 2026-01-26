@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -291,9 +291,9 @@
 <tbody>
 <tr><td>BUSY</td><td>output</td><td>CELL[7].OUT_BEST[0]</td></tr>
 
-<tr><td>CE</td><td>input</td><td>CELL[5].IMUX_CE[1]</td></tr>
+<tr><td>CE</td><td>input</td><td>CELL[5].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>CELL[5].IMUX_CLK[0]</td></tr>
+<tr><td>CLK</td><td>input</td><td>CELL[5].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>I0</td><td>input</td><td>CELL[6].IMUX_IMUX[0]</td></tr>
 
@@ -423,7 +423,7 @@
 
 <tr><td>O9</td><td>output</td><td>CELL[2].OUT_BEST[1]</td></tr>
 
-<tr><td>WRITE</td><td>input</td><td>CELL[5].IMUX_CE[0]</td></tr>
+<tr><td>WRITE</td><td>input</td><td>CELL[5].IMUX_CE_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -442,9 +442,9 @@
 <tbody>
 <tr><td>BUSY</td><td>output</td><td>CELL[8].OUT_BEST[0]</td></tr>
 
-<tr><td>CE</td><td>input</td><td>CELL[10].IMUX_CE[1]</td></tr>
+<tr><td>CE</td><td>input</td><td>CELL[10].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>CELL[10].IMUX_CLK[0]</td></tr>
+<tr><td>CLK</td><td>input</td><td>CELL[10].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>I0</td><td>input</td><td>CELL[9].IMUX_IMUX[0]</td></tr>
 
@@ -574,7 +574,7 @@
 
 <tr><td>O9</td><td>output</td><td>CELL[13].OUT_BEST[1]</td></tr>
 
-<tr><td>WRITE</td><td>input</td><td>CELL[10].IMUX_CE[0]</td></tr>
+<tr><td>WRITE</td><td>input</td><td>CELL[10].IMUX_CE_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -591,21 +591,21 @@
 </thead>
 
 <tbody>
-<tr><td>CLK</td><td>input</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+<tr><td>CLK</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>EOS</td><td>output</td><td>CELL[0].OUT_BEST[7]</td></tr>
 
-<tr><td>GSR</td><td>input</td><td>CELL[0].IMUX_SR[0]</td></tr>
+<tr><td>GSR</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>GTS</td><td>input</td><td>CELL[0].IMUX_CE[0]</td></tr>
+<tr><td>GTS</td><td>input</td><td>CELL[0].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>USRCCLKO</td><td>input</td><td>CELL[5].IMUX_CLK[1]</td></tr>
+<tr><td>USRCCLKO</td><td>input</td><td>CELL[5].IMUX_CLK_OPTINV[1]</td></tr>
 
-<tr><td>USRCCLKTS</td><td>input</td><td>CELL[5].IMUX_SR[2]</td></tr>
+<tr><td>USRCCLKTS</td><td>input</td><td>CELL[5].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>USRDONEO</td><td>input</td><td>CELL[5].IMUX_SR[1]</td></tr>
+<tr><td>USRDONEO</td><td>input</td><td>CELL[5].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>USRDONETS</td><td>input</td><td>CELL[5].IMUX_SR[0]</td></tr>
+<tr><td>USRDONETS</td><td>input</td><td>CELL[5].IMUX_SR_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -622,9 +622,9 @@
 </thead>
 
 <tbody>
-<tr><td>CAP</td><td>input</td><td>CELL[5].IMUX_CE[2]</td></tr>
+<tr><td>CAP</td><td>input</td><td>CELL[5].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>CELL[10].IMUX_CE[2]</td></tr>
+<tr><td>CLK</td><td>input</td><td>CELL[10].IMUX_CE_OPTINV[2]</td></tr>
 
 </tbody>
 
@@ -842,11 +842,11 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].IMUX_SR[0]</td><td>STARTUP.GSR</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[0]</td><td>STARTUP.GSR</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[0]</td><td>STARTUP.CLK</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[0]</td><td>STARTUP.CLK</td></tr>
 
-<tr><td>CELL[0].IMUX_CE[0]</td><td>STARTUP.GTS</td></tr>
+<tr><td>CELL[0].IMUX_CE_OPTINV[0]</td><td>STARTUP.GTS</td></tr>
 
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>BSCAN[0].TDO</td></tr>
 
@@ -952,21 +952,21 @@
 
 <tr><td>CELL[4].OUT_BEST[7]</td><td>ICAP[0].O31</td></tr>
 
-<tr><td>CELL[5].IMUX_SR[0]</td><td>STARTUP.USRDONETS</td></tr>
+<tr><td>CELL[5].IMUX_SR_OPTINV[0]</td><td>STARTUP.USRDONETS</td></tr>
 
-<tr><td>CELL[5].IMUX_SR[1]</td><td>STARTUP.USRDONEO</td></tr>
+<tr><td>CELL[5].IMUX_SR_OPTINV[1]</td><td>STARTUP.USRDONEO</td></tr>
 
-<tr><td>CELL[5].IMUX_SR[2]</td><td>STARTUP.USRCCLKTS</td></tr>
+<tr><td>CELL[5].IMUX_SR_OPTINV[2]</td><td>STARTUP.USRCCLKTS</td></tr>
 
-<tr><td>CELL[5].IMUX_CLK[0]</td><td>ICAP[0].CLK</td></tr>
+<tr><td>CELL[5].IMUX_CLK_OPTINV[0]</td><td>ICAP[0].CLK</td></tr>
 
-<tr><td>CELL[5].IMUX_CLK[1]</td><td>STARTUP.USRCCLKO</td></tr>
+<tr><td>CELL[5].IMUX_CLK_OPTINV[1]</td><td>STARTUP.USRCCLKO</td></tr>
 
-<tr><td>CELL[5].IMUX_CE[0]</td><td>ICAP[0].WRITE</td></tr>
+<tr><td>CELL[5].IMUX_CE_OPTINV[0]</td><td>ICAP[0].WRITE</td></tr>
 
-<tr><td>CELL[5].IMUX_CE[1]</td><td>ICAP[0].CE</td></tr>
+<tr><td>CELL[5].IMUX_CE_OPTINV[1]</td><td>ICAP[0].CE</td></tr>
 
-<tr><td>CELL[5].IMUX_CE[2]</td><td>CAPTURE.CAP</td></tr>
+<tr><td>CELL[5].IMUX_CE_OPTINV[2]</td><td>CAPTURE.CAP</td></tr>
 
 <tr><td>CELL[5].IMUX_IMUX[0]</td><td>BSCAN[1].TDO</td></tr>
 
@@ -1150,13 +1150,13 @@
 
 <tr><td>CELL[9].IMUX_IMUX[15]</td><td>ICAP[1].I15</td></tr>
 
-<tr><td>CELL[10].IMUX_CLK[0]</td><td>ICAP[1].CLK</td></tr>
+<tr><td>CELL[10].IMUX_CLK_OPTINV[0]</td><td>ICAP[1].CLK</td></tr>
 
-<tr><td>CELL[10].IMUX_CE[0]</td><td>ICAP[1].WRITE</td></tr>
+<tr><td>CELL[10].IMUX_CE_OPTINV[0]</td><td>ICAP[1].WRITE</td></tr>
 
-<tr><td>CELL[10].IMUX_CE[1]</td><td>ICAP[1].CE</td></tr>
+<tr><td>CELL[10].IMUX_CE_OPTINV[1]</td><td>ICAP[1].CE</td></tr>
 
-<tr><td>CELL[10].IMUX_CE[2]</td><td>CAPTURE.CLK</td></tr>
+<tr><td>CELL[10].IMUX_CE_OPTINV[2]</td><td>CAPTURE.CLK</td></tr>
 
 <tr><td>CELL[10].IMUX_IMUX[0]</td><td>BSCAN[2].TDO</td></tr>
 

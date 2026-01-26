@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d27c1e18.js"></script>
+        <script src="../../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -2872,7 +2872,7 @@
 <a href="#tile-virtex-CNR_SW-INT:MUX.IMUX_CAP_CLK">INT:MUX.IMUX_CAP_CLK[9]</a>
 </td>
 <td title="R0.F18.B13">
-<a href="#tile-virtex-CNR_SW-INT:INV.IMUX_CAP_CLK">~INT:INV.IMUX_CAP_CLK</a>
+<a href="#tile-virtex-CNR_SW-CAPTURE:INV.CLK">~CAPTURE:INV.CLK</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -2910,7 +2910,7 @@
 <a href="#tile-virtex-CNR_SW-INT:MUX.IMUX_CAP_CAP">INT:MUX.IMUX_CAP_CAP[7]</a>
 </td>
 <td title="R0.F38.B13">
-<a href="#tile-virtex-CNR_SW-INT:INV.IMUX_CAP_CAP">~INT:INV.IMUX_CAP_CAP</a>
+<a href="#tile-virtex-CNR_SW-CAPTURE:INV.CAP">~CAPTURE:INV.CAP</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -3978,6 +3978,35 @@
 <div class="table-wrapper">
 <table>
 <thead>
+<tr><th id="tile-virtex-CNR_SW-CAPTURE:INV.CAP">CAPTURE:INV.CAP</th>
+<th>0.F38.B13</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_SW-CAPTURE:INV.CLK">CAPTURE:INV.CLK</th>
+<th>0.F18.B13</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_SW-MISC:DRIVE_PD_STATUS">MISC:DRIVE_PD_STATUS</th>
+<th>0.F7.B8</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<thead>
 <tr><th id="tile-virtex-CNR_SW-INT:BUF.HEX_H0[3].PCI_CE">INT:BUF.HEX_H0[3].PCI_CE</th>
 <th>0.F7.B0</th>
 </tr>
@@ -4277,35 +4306,6 @@
 non-inverted
 </td>
 <td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex-CNR_SW-INT:INV.IMUX_CAP_CAP">INT:INV.IMUX_CAP_CAP</th>
-<th>0.F38.B13</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_SW-INT:INV.IMUX_CAP_CLK">INT:INV.IMUX_CAP_CLK</th>
-<th>0.F18.B13</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_SW-MISC:DRIVE_PD_STATUS">MISC:DRIVE_PD_STATUS</th>
-<th>0.F7.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
 </tr>
 
 </tbody>

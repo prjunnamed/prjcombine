@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1577,10 +1577,10 @@
 <a href="#tile-virtex-PCI_W-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[6]</a>
 </td>
 <td title="R0.F52.B3">
-<a href="#tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I1">~PCI_INT:INV.IMUX_PCI_I1</a>
+<a href="#tile-virtex-PCI_W-PCILOGIC:INV.I1">~PCILOGIC:INV.I1</a>
 </td>
 <td title="R0.F53.B3">
-<a href="#tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I2">~PCI_INT:INV.IMUX_PCI_I2</a>
+<a href="#tile-virtex-PCI_W-PCILOGIC:INV.I2">~PCILOGIC:INV.I2</a>
 </td>
 </tr>
 
@@ -1763,6 +1763,31 @@
 <div class="table-wrapper">
 <table>
 <thead>
+<tr><th id="tile-virtex-PCI_W-PCILOGIC:INV.I1">PCILOGIC:INV.I1</th>
+<th>0.F52.B3</th>
+</tr>
+
+<tr><th id="tile-virtex-PCI_W-PCILOGIC:INV.I2">PCILOGIC:INV.I2</th>
+<th>0.F53.B3</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<thead>
 <tr><th id="tile-virtex-PCI_W-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
 <th>0.F11.B3</th>
 <th>0.F10.B3</th>
@@ -1776,31 +1801,6 @@ non-inverted
 </td>
 <td>[1]</td>
 <td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I1">PCI_INT:INV.IMUX_PCI_I1</th>
-<th>0.F52.B3</th>
-</tr>
-
-<tr><th id="tile-virtex-PCI_W-PCI_INT:INV.IMUX_PCI_I2">PCI_INT:INV.IMUX_PCI_I2</th>
-<th>0.F53.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
 </tr>
 
 </tbody>
@@ -3437,10 +3437,10 @@ inverted
 <a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I2">PCI_INT:MUX.IMUX_PCI_I2[6]</a>
 </td>
 <td title="R0.F44.B3">
-<a href="#tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I1">~PCI_INT:INV.IMUX_PCI_I1</a>
+<a href="#tile-virtex-PCI_E-PCILOGIC:INV.I1">~PCILOGIC:INV.I1</a>
 </td>
 <td title="R0.F45.B3">
-<a href="#tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I2">~PCI_INT:INV.IMUX_PCI_I2</a>
+<a href="#tile-virtex-PCI_E-PCILOGIC:INV.I2">~PCILOGIC:INV.I2</a>
 </td>
 <td title="R0.F46.B3">
 <a href="#tile-virtex-PCI_E-PCI_INT:MUX.IMUX_PCI_I1">PCI_INT:MUX.IMUX_PCI_I1[4]</a>
@@ -3647,6 +3647,31 @@ inverted
 <div class="table-wrapper">
 <table>
 <thead>
+<tr><th id="tile-virtex-PCI_E-PCILOGIC:INV.I1">PCILOGIC:INV.I1</th>
+<th>0.F44.B3</th>
+</tr>
+
+<tr><th id="tile-virtex-PCI_E-PCILOGIC:INV.I2">PCILOGIC:INV.I2</th>
+<th>0.F45.B3</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<thead>
 <tr><th id="tile-virtex-PCI_E-PCILOGIC:PCI_DELAY">PCILOGIC:PCI_DELAY</th>
 <th>0.F11.B3</th>
 <th>0.F10.B3</th>
@@ -3660,31 +3685,6 @@ non-inverted
 </td>
 <td>[1]</td>
 <td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I1">PCI_INT:INV.IMUX_PCI_I1</th>
-<th>0.F44.B3</th>
-</tr>
-
-<tr><th id="tile-virtex-PCI_E-PCI_INT:INV.IMUX_PCI_I2">PCI_INT:INV.IMUX_PCI_I2</th>
-<th>0.F45.B3</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
 </tr>
 
 </tbody>

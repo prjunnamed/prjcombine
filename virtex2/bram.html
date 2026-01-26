@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -442,9 +442,9 @@ It corresponds to the <code>MULT18X18SIO</code> library primitive (and can also 
 
 <tr><td>ADDRB9</td><td>input</td><td>CELL[2].IMUX_BRAM_ADDRB[1]</td></tr>
 
-<tr><td>CLKA</td><td>input</td><td>CELL[1].IMUX_CLK[2]</td></tr>
+<tr><td>CLKA</td><td>input</td><td>CELL[1].IMUX_CLK_OPTINV[2]</td></tr>
 
-<tr><td>CLKB</td><td>input</td><td>CELL[1].IMUX_CLK[3]</td></tr>
+<tr><td>CLKB</td><td>input</td><td>CELL[1].IMUX_CLK_OPTINV[3]</td></tr>
 
 <tr><td>DIA0</td><td>input</td><td>CELL[0].IMUX_G0_DATA[6]</td></tr>
 
@@ -734,17 +734,17 @@ It corresponds to the <code>MULT18X18SIO</code> library primitive (and can also 
 
 <tr><td>DOPB3</td><td>output</td><td>CELL[3].OUT_SEC[13]</td></tr>
 
-<tr><td>ENA</td><td>input</td><td>CELL[1].IMUX_CE[2]</td></tr>
+<tr><td>ENA</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>ENB</td><td>input</td><td>CELL[1].IMUX_CE[3]</td></tr>
+<tr><td>ENB</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>SSRA</td><td>input</td><td>CELL[2].IMUX_SR[0]</td></tr>
+<tr><td>SSRA</td><td>input</td><td>CELL[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>SSRB</td><td>input</td><td>CELL[2].IMUX_SR[1]</td></tr>
+<tr><td>SSRB</td><td>input</td><td>CELL[2].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>WEA</td><td>input</td><td>CELL[2].IMUX_TS[0]</td></tr>
+<tr><td>WEA</td><td>input</td><td>CELL[2].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>WEB</td><td>input</td><td>CELL[2].IMUX_TS[1]</td></tr>
+<tr><td>WEB</td><td>input</td><td>CELL[2].IMUX_TS_OPTINV[1]</td></tr>
 
 </tbody>
 
@@ -833,9 +833,9 @@ It corresponds to the <code>MULT18X18SIO</code> library primitive (and can also 
 
 <tr><td>B9</td><td>input</td><td>CELL[2].IMUX_G1_DATA[5]</td></tr>
 
-<tr><td>CE</td><td>input</td><td>CELL[1].IMUX_CE[1]</td></tr>
+<tr><td>CE</td><td>input</td><td>CELL[1].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>CELL[1].IMUX_CLK[1]</td></tr>
+<tr><td>CLK</td><td>input</td><td>CELL[1].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>P0</td><td>output</td><td>CELL[0].OUT_SEC[23]</td></tr>
 
@@ -909,7 +909,7 @@ It corresponds to the <code>MULT18X18SIO</code> library primitive (and can also 
 
 <tr><td>P9</td><td>output</td><td>CELL[1].OUT_SEC[22]</td></tr>
 
-<tr><td>RST</td><td>input</td><td>CELL[2].IMUX_SR[2]</td></tr>
+<tr><td>RST</td><td>input</td><td>CELL[2].IMUX_SR_OPTINV[2]</td></tr>
 
 </tbody>
 
@@ -1032,17 +1032,17 @@ It corresponds to the <code>MULT18X18SIO</code> library primitive (and can also 
 
 <tr><td>CELL[0].OUT_HALF1[11]</td><td>BRAM.DOB18</td></tr>
 
-<tr><td>CELL[1].IMUX_CLK[1]</td><td>MULT.CLK</td></tr>
+<tr><td>CELL[1].IMUX_CLK_OPTINV[1]</td><td>MULT.CLK</td></tr>
 
-<tr><td>CELL[1].IMUX_CLK[2]</td><td>BRAM.CLKA</td></tr>
+<tr><td>CELL[1].IMUX_CLK_OPTINV[2]</td><td>BRAM.CLKA</td></tr>
 
-<tr><td>CELL[1].IMUX_CLK[3]</td><td>BRAM.CLKB</td></tr>
+<tr><td>CELL[1].IMUX_CLK_OPTINV[3]</td><td>BRAM.CLKB</td></tr>
 
-<tr><td>CELL[1].IMUX_CE[1]</td><td>MULT.CE</td></tr>
+<tr><td>CELL[1].IMUX_CE_OPTINV[1]</td><td>MULT.CE</td></tr>
 
-<tr><td>CELL[1].IMUX_CE[2]</td><td>BRAM.ENA</td></tr>
+<tr><td>CELL[1].IMUX_CE_OPTINV[2]</td><td>BRAM.ENA</td></tr>
 
-<tr><td>CELL[1].IMUX_CE[3]</td><td>BRAM.ENB</td></tr>
+<tr><td>CELL[1].IMUX_CE_OPTINV[3]</td><td>BRAM.ENB</td></tr>
 
 <tr><td>CELL[1].IMUX_G0_DATA[2]</td><td>BRAM.DIPB2</td></tr>
 
@@ -1150,15 +1150,15 @@ It corresponds to the <code>MULT18X18SIO</code> library primitive (and can also 
 
 <tr><td>CELL[1].OUT_HALF1[11]</td><td>BRAM.DOB22</td></tr>
 
-<tr><td>CELL[2].IMUX_SR[0]</td><td>BRAM.SSRA</td></tr>
+<tr><td>CELL[2].IMUX_SR_OPTINV[0]</td><td>BRAM.SSRA</td></tr>
 
-<tr><td>CELL[2].IMUX_SR[1]</td><td>BRAM.SSRB</td></tr>
+<tr><td>CELL[2].IMUX_SR_OPTINV[1]</td><td>BRAM.SSRB</td></tr>
 
-<tr><td>CELL[2].IMUX_SR[2]</td><td>MULT.RST</td></tr>
+<tr><td>CELL[2].IMUX_SR_OPTINV[2]</td><td>MULT.RST</td></tr>
 
-<tr><td>CELL[2].IMUX_TS[0]</td><td>BRAM.WEA</td></tr>
+<tr><td>CELL[2].IMUX_TS_OPTINV[0]</td><td>BRAM.WEA</td></tr>
 
-<tr><td>CELL[2].IMUX_TS[1]</td><td>BRAM.WEB</td></tr>
+<tr><td>CELL[2].IMUX_TS_OPTINV[1]</td><td>BRAM.WEB</td></tr>
 
 <tr><td>CELL[2].IMUX_G0_DATA[2]</td><td>BRAM.DIPB1</td></tr>
 

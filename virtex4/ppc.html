@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -452,17 +452,17 @@
 
 <tr><td>APUFCMXERCA</td><td>output</td><td>CELL_E[14].OUT_BEST_TMIN[7]</td></tr>
 
-<tr><td>BISTCE0CONTINUE</td><td>input</td><td>CELL_W[14].IMUX_CE[0]</td></tr>
+<tr><td>BISTCE0CONTINUE</td><td>input</td><td>CELL_W[14].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>BISTCE0DIAGSHIFTSEL</td><td>input</td><td>CELL_W[15].IMUX_CE[2]</td></tr>
+<tr><td>BISTCE0DIAGSHIFTSEL</td><td>input</td><td>CELL_W[15].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>BISTCE0LOADIN</td><td>input</td><td>CELL_W[11].IMUX_SR[0]</td></tr>
+<tr><td>BISTCE0LOADIN</td><td>input</td><td>CELL_W[11].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>BISTCE0LOADOPCODE</td><td>input</td><td>CELL_W[15].IMUX_CE[3]</td></tr>
+<tr><td>BISTCE0LOADOPCODE</td><td>input</td><td>CELL_W[15].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>BISTCE0TESTM1</td><td>input</td><td>CELL_W[15].IMUX_CE[1]</td></tr>
+<tr><td>BISTCE0TESTM1</td><td>input</td><td>CELL_W[15].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>BRAMDSOCMCLK</td><td>input</td><td>CELL_N[0].IMUX_CLK[0]</td></tr>
+<tr><td>BRAMDSOCMCLK</td><td>input</td><td>CELL_N[0].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>BRAMDSOCMRDDBUS0</td><td>input</td><td>CELL_N[0].IMUX_IMUX[0]</td></tr>
 
@@ -528,7 +528,7 @@
 
 <tr><td>BRAMDSOCMRDDBUS9</td><td>input</td><td>CELL_N[2].IMUX_IMUX[1]</td></tr>
 
-<tr><td>BRAMISOCMCLK</td><td>input</td><td>CELL_S[6].IMUX_CLK[0]</td></tr>
+<tr><td>BRAMISOCMCLK</td><td>input</td><td>CELL_S[6].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>BRAMISOCMDCRRDDBUS0</td><td>input</td><td>CELL_S[6].IMUX_IMUX[12]</td></tr>
 
@@ -1142,9 +1142,9 @@
 
 <tr><td>C405RSTSYSRESETREQ</td><td>output</td><td>CELL_W[9].OUT_SEC_TMIN[3]</td></tr>
 
-<tr><td>C405TESTRESERVE1</td><td>input</td><td>CELL_W[11].IMUX_SR[1]</td></tr>
+<tr><td>C405TESTRESERVE1</td><td>input</td><td>CELL_W[11].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>C405TESTRESERVE2</td><td>input</td><td>CELL_W[11].IMUX_SR[2]</td></tr>
+<tr><td>C405TESTRESERVE2</td><td>input</td><td>CELL_W[11].IMUX_SR_OPTINV[2]</td></tr>
 
 <tr><td>C405TRCCYCLE</td><td>output</td><td>CELL_E[2].OUT_SEC_TMIN[3]</td></tr>
 
@@ -1190,9 +1190,9 @@
 
 <tr><td>C405XXXMACHINECHECK</td><td>output</td><td>CELL_W[9].OUT_SEC_TMIN[0]</td></tr>
 
-<tr><td>CPMC405CLOCK</td><td>input</td><td>CELL_S[5].IMUX_CLK[0]</td></tr>
+<tr><td>CPMC405CLOCK</td><td>input</td><td>CELL_S[5].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>CPMC405CLOCKFBENABLE</td><td>input</td><td>CELL_S[6].IMUX_SR[2]</td></tr>
+<tr><td>CPMC405CLOCKFBENABLE</td><td>input</td><td>CELL_S[6].IMUX_SR_OPTINV[2]</td></tr>
 
 <tr><td>CPMC405CORECLKINACTIVE</td><td>input</td><td>CELL_W[15].IMUX_IMUX[5]</td></tr>
 
@@ -1212,9 +1212,9 @@
 
 <tr><td>CPMC405TIMERTICK</td><td>input</td><td>CELL_W[14].IMUX_IMUX[8]</td></tr>
 
-<tr><td>CPMDCRCLK</td><td>input</td><td>CELL_W[7].IMUX_CLK[0]</td></tr>
+<tr><td>CPMDCRCLK</td><td>input</td><td>CELL_W[7].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>CPMFCMCLK</td><td>input</td><td>CELL_N[5].IMUX_CLK[0]</td></tr>
+<tr><td>CPMFCMCLK</td><td>input</td><td>CELL_N[5].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>DBGC405DEBUGHALT</td><td>input</td><td>CELL_W[14].IMUX_IMUX[4]</td></tr>
 
@@ -1226,37 +1226,37 @@
 
 <tr><td>DIAGOUT</td><td>output</td><td>CELL_W[5].OUT_HALF_S_TMIN[0], CELL_W[5].OUT_HALF_N_TMIN[0]</td></tr>
 
-<tr><td>DSARCVALUE0</td><td>input</td><td>CELL_N[0].IMUX_CE[0]</td></tr>
+<tr><td>DSARCVALUE0</td><td>input</td><td>CELL_N[0].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE1</td><td>input</td><td>CELL_N[0].IMUX_CE[1]</td></tr>
+<tr><td>DSARCVALUE1</td><td>input</td><td>CELL_N[0].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE2</td><td>input</td><td>CELL_N[0].IMUX_CE[2]</td></tr>
+<tr><td>DSARCVALUE2</td><td>input</td><td>CELL_N[0].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>DSARCVALUE3</td><td>input</td><td>CELL_N[0].IMUX_CE[3]</td></tr>
+<tr><td>DSARCVALUE3</td><td>input</td><td>CELL_N[0].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>DSARCVALUE4</td><td>input</td><td>CELL_N[0].IMUX_SR[0]</td></tr>
+<tr><td>DSARCVALUE4</td><td>input</td><td>CELL_N[0].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE5</td><td>input</td><td>CELL_N[0].IMUX_SR[1]</td></tr>
+<tr><td>DSARCVALUE5</td><td>input</td><td>CELL_N[0].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE6</td><td>input</td><td>CELL_N[0].IMUX_SR[2]</td></tr>
+<tr><td>DSARCVALUE6</td><td>input</td><td>CELL_N[0].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>DSARCVALUE7</td><td>input</td><td>CELL_N[0].IMUX_SR[3]</td></tr>
+<tr><td>DSARCVALUE7</td><td>input</td><td>CELL_N[0].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>DSCNTLVALUE0</td><td>input</td><td>CELL_N[1].IMUX_CE[0]</td></tr>
+<tr><td>DSCNTLVALUE0</td><td>input</td><td>CELL_N[1].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE1</td><td>input</td><td>CELL_N[1].IMUX_CE[1]</td></tr>
+<tr><td>DSCNTLVALUE1</td><td>input</td><td>CELL_N[1].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE2</td><td>input</td><td>CELL_N[1].IMUX_CE[2]</td></tr>
+<tr><td>DSCNTLVALUE2</td><td>input</td><td>CELL_N[1].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>DSCNTLVALUE3</td><td>input</td><td>CELL_N[1].IMUX_CE[3]</td></tr>
+<tr><td>DSCNTLVALUE3</td><td>input</td><td>CELL_N[1].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>DSCNTLVALUE4</td><td>input</td><td>CELL_N[1].IMUX_SR[0]</td></tr>
+<tr><td>DSCNTLVALUE4</td><td>input</td><td>CELL_N[1].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE5</td><td>input</td><td>CELL_N[1].IMUX_SR[1]</td></tr>
+<tr><td>DSCNTLVALUE5</td><td>input</td><td>CELL_N[1].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE6</td><td>input</td><td>CELL_N[1].IMUX_SR[2]</td></tr>
+<tr><td>DSCNTLVALUE6</td><td>input</td><td>CELL_N[1].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>DSCNTLVALUE7</td><td>input</td><td>CELL_N[1].IMUX_SR[3]</td></tr>
+<tr><td>DSCNTLVALUE7</td><td>input</td><td>CELL_N[1].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>DSOCMBRAMABUS10</td><td>output</td><td>CELL_W[21].OUT_SEC_TMIN[2]</td></tr>
 
@@ -1682,37 +1682,37 @@
 
 <tr><td>FCMAPUXEROV</td><td>input</td><td>CELL_E[15].IMUX_IMUX[6]</td></tr>
 
-<tr><td>ISARCVALUE0</td><td>input</td><td>CELL_S[5].IMUX_CE[0]</td></tr>
+<tr><td>ISARCVALUE0</td><td>input</td><td>CELL_S[5].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE1</td><td>input</td><td>CELL_S[5].IMUX_CE[1]</td></tr>
+<tr><td>ISARCVALUE1</td><td>input</td><td>CELL_S[5].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE2</td><td>input</td><td>CELL_S[5].IMUX_CE[2]</td></tr>
+<tr><td>ISARCVALUE2</td><td>input</td><td>CELL_S[5].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>ISARCVALUE3</td><td>input</td><td>CELL_S[5].IMUX_CE[3]</td></tr>
+<tr><td>ISARCVALUE3</td><td>input</td><td>CELL_S[5].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>ISARCVALUE4</td><td>input</td><td>CELL_S[5].IMUX_SR[0]</td></tr>
+<tr><td>ISARCVALUE4</td><td>input</td><td>CELL_S[5].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE5</td><td>input</td><td>CELL_S[5].IMUX_SR[1]</td></tr>
+<tr><td>ISARCVALUE5</td><td>input</td><td>CELL_S[5].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE6</td><td>input</td><td>CELL_S[5].IMUX_SR[2]</td></tr>
+<tr><td>ISARCVALUE6</td><td>input</td><td>CELL_S[5].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>ISARCVALUE7</td><td>input</td><td>CELL_S[5].IMUX_SR[3]</td></tr>
+<tr><td>ISARCVALUE7</td><td>input</td><td>CELL_S[5].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>ISCNTLVALUE0</td><td>input</td><td>CELL_S[4].IMUX_CE[0]</td></tr>
+<tr><td>ISCNTLVALUE0</td><td>input</td><td>CELL_S[4].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>ISCNTLVALUE1</td><td>input</td><td>CELL_S[4].IMUX_CE[1]</td></tr>
+<tr><td>ISCNTLVALUE1</td><td>input</td><td>CELL_S[4].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>ISCNTLVALUE2</td><td>input</td><td>CELL_S[4].IMUX_CE[2]</td></tr>
+<tr><td>ISCNTLVALUE2</td><td>input</td><td>CELL_S[4].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>ISCNTLVALUE3</td><td>input</td><td>CELL_S[4].IMUX_CE[3]</td></tr>
+<tr><td>ISCNTLVALUE3</td><td>input</td><td>CELL_S[4].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>ISCNTLVALUE4</td><td>input</td><td>CELL_S[4].IMUX_SR[0]</td></tr>
+<tr><td>ISCNTLVALUE4</td><td>input</td><td>CELL_S[4].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>ISCNTLVALUE5</td><td>input</td><td>CELL_S[4].IMUX_SR[1]</td></tr>
+<tr><td>ISCNTLVALUE5</td><td>input</td><td>CELL_S[4].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>ISCNTLVALUE6</td><td>input</td><td>CELL_S[4].IMUX_SR[2]</td></tr>
+<tr><td>ISCNTLVALUE6</td><td>input</td><td>CELL_S[4].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>ISCNTLVALUE7</td><td>input</td><td>CELL_S[4].IMUX_SR[3]</td></tr>
+<tr><td>ISCNTLVALUE7</td><td>input</td><td>CELL_S[4].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>ISOCMBRAMEN</td><td>output</td><td>CELL_S[5].OUT_BEST_TMIN[2]</td></tr>
 
@@ -1876,7 +1876,7 @@
 
 <tr><td>JTGC405BNDSCANTDO</td><td>input</td><td>CELL_S[6].IMUX_IMUX[8]</td></tr>
 
-<tr><td>JTGC405TCK</td><td>input</td><td>CELL_S[4].IMUX_CLK[0]</td></tr>
+<tr><td>JTGC405TCK</td><td>input</td><td>CELL_S[4].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>JTGC405TDI</td><td>input</td><td>CELL_S[6].IMUX_IMUX[9]</td></tr>
 
@@ -1884,13 +1884,13 @@
 
 <tr><td>JTGC405TRSTNEG</td><td>input</td><td>CELL_S[6].IMUX_IMUX[11]</td></tr>
 
-<tr><td>LSSDCE0A</td><td>input</td><td>CELL_W[15].IMUX_CE[0]</td></tr>
+<tr><td>LSSDCE0A</td><td>input</td><td>CELL_W[15].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>LSSDCE0CNTLPOINT</td><td>input</td><td>CELL_W[14].IMUX_CE[3]</td></tr>
+<tr><td>LSSDCE0CNTLPOINT</td><td>input</td><td>CELL_W[14].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>LSSDCE0SCAN</td><td>input</td><td>CELL_W[14].IMUX_CE[2]</td></tr>
+<tr><td>LSSDCE0SCAN</td><td>input</td><td>CELL_W[14].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>LSSDCE0TESTM3</td><td>input</td><td>CELL_W[14].IMUX_CE[1]</td></tr>
+<tr><td>LSSDCE0TESTM3</td><td>input</td><td>CELL_W[14].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>LSSDCE1B</td><td>input</td><td>CELL_W[15].IMUX_IMUX[16]</td></tr>
 
@@ -1902,37 +1902,37 @@
 
 <tr><td>LSSDCE1CRAM</td><td>input</td><td>CELL_W[12].IMUX_IMUX[5]</td></tr>
 
-<tr><td>LSSDSCANIN0</td><td>input</td><td>CELL_W[9].IMUX_CE[0]</td></tr>
+<tr><td>LSSDSCANIN0</td><td>input</td><td>CELL_W[9].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>LSSDSCANIN1</td><td>input</td><td>CELL_W[9].IMUX_CE[1]</td></tr>
+<tr><td>LSSDSCANIN1</td><td>input</td><td>CELL_W[9].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>LSSDSCANIN10</td><td>input</td><td>CELL_W[11].IMUX_CE[2]</td></tr>
+<tr><td>LSSDSCANIN10</td><td>input</td><td>CELL_W[11].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>LSSDSCANIN11</td><td>input</td><td>CELL_W[11].IMUX_CE[3]</td></tr>
+<tr><td>LSSDSCANIN11</td><td>input</td><td>CELL_W[11].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>LSSDSCANIN12</td><td>input</td><td>CELL_W[12].IMUX_CE[0]</td></tr>
+<tr><td>LSSDSCANIN12</td><td>input</td><td>CELL_W[12].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>LSSDSCANIN13</td><td>input</td><td>CELL_W[12].IMUX_CE[1]</td></tr>
+<tr><td>LSSDSCANIN13</td><td>input</td><td>CELL_W[12].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>LSSDSCANIN14</td><td>input</td><td>CELL_W[12].IMUX_CE[2]</td></tr>
+<tr><td>LSSDSCANIN14</td><td>input</td><td>CELL_W[12].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>LSSDSCANIN15</td><td>input</td><td>CELL_W[12].IMUX_CE[3]</td></tr>
+<tr><td>LSSDSCANIN15</td><td>input</td><td>CELL_W[12].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>LSSDSCANIN2</td><td>input</td><td>CELL_W[9].IMUX_CE[2]</td></tr>
+<tr><td>LSSDSCANIN2</td><td>input</td><td>CELL_W[9].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>LSSDSCANIN3</td><td>input</td><td>CELL_W[9].IMUX_CE[3]</td></tr>
+<tr><td>LSSDSCANIN3</td><td>input</td><td>CELL_W[9].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>LSSDSCANIN4</td><td>input</td><td>CELL_W[10].IMUX_CE[0]</td></tr>
+<tr><td>LSSDSCANIN4</td><td>input</td><td>CELL_W[10].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>LSSDSCANIN5</td><td>input</td><td>CELL_W[10].IMUX_CE[1]</td></tr>
+<tr><td>LSSDSCANIN5</td><td>input</td><td>CELL_W[10].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>LSSDSCANIN6</td><td>input</td><td>CELL_W[10].IMUX_CE[2]</td></tr>
+<tr><td>LSSDSCANIN6</td><td>input</td><td>CELL_W[10].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>LSSDSCANIN7</td><td>input</td><td>CELL_W[10].IMUX_CE[3]</td></tr>
+<tr><td>LSSDSCANIN7</td><td>input</td><td>CELL_W[10].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>LSSDSCANIN8</td><td>input</td><td>CELL_W[11].IMUX_CE[0]</td></tr>
+<tr><td>LSSDSCANIN8</td><td>input</td><td>CELL_W[11].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>LSSDSCANIN9</td><td>input</td><td>CELL_W[11].IMUX_CE[1]</td></tr>
+<tr><td>LSSDSCANIN9</td><td>input</td><td>CELL_W[11].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>LSSDSCANOUT0</td><td>output</td><td>CELL_W[0].OUT_HALF_S_TMIN[0], CELL_W[0].OUT_HALF_N_TMIN[0]</td></tr>
 
@@ -1966,13 +1966,13 @@
 
 <tr><td>LSSDSCANOUT9</td><td>output</td><td>CELL_W[1].OUT_HALF_S_TMIN[3], CELL_W[1].OUT_HALF_N_TMIN[3]</td></tr>
 
-<tr><td>MCBCPUCLKEN</td><td>input</td><td>CELL_W[14].IMUX_SR[1]</td></tr>
+<tr><td>MCBCPUCLKEN</td><td>input</td><td>CELL_W[14].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>MCBJTAGEN</td><td>input</td><td>CELL_W[14].IMUX_SR[0]</td></tr>
+<tr><td>MCBJTAGEN</td><td>input</td><td>CELL_W[14].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>MCBTIMEREN</td><td>input</td><td>CELL_W[14].IMUX_SR[2]</td></tr>
+<tr><td>MCBTIMEREN</td><td>input</td><td>CELL_W[14].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>MCPPCRST</td><td>input</td><td>CELL_W[14].IMUX_SR[3]</td></tr>
+<tr><td>MCPPCRST</td><td>input</td><td>CELL_W[14].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>PLBC405DCUADDRACK</td><td>input</td><td>CELL_E[8].IMUX_IMUX[8]</td></tr>
 
@@ -2264,7 +2264,7 @@
 
 <tr><td>PLBC405ICUSSIZE1</td><td>input</td><td>CELL_E[7].IMUX_IMUX[9]</td></tr>
 
-<tr><td>PLBCLK</td><td>input</td><td>CELL_S[3].IMUX_CLK[0]</td></tr>
+<tr><td>PLBCLK</td><td>input</td><td>CELL_S[3].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>RSTC405RESETCHIP</td><td>input</td><td>CELL_W[9].IMUX_IMUX[5]</td></tr>
 
@@ -2272,465 +2272,465 @@
 
 <tr><td>RSTC405RESETSYS</td><td>input</td><td>CELL_W[9].IMUX_IMUX[6]</td></tr>
 
-<tr><td>TESTSELI</td><td>input</td><td>CELL_W[7].IMUX_CE[1]</td></tr>
+<tr><td>TESTSELI</td><td>input</td><td>CELL_W[7].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUCONTROL0</td><td>input</td><td>CELL_N[3].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUCONTROL0</td><td>input</td><td>CELL_N[3].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUCONTROL1</td><td>input</td><td>CELL_N[3].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUCONTROL1</td><td>input</td><td>CELL_N[3].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUCONTROL10</td><td>input</td><td>CELL_N[2].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUCONTROL10</td><td>input</td><td>CELL_N[2].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUCONTROL11</td><td>input</td><td>CELL_N[2].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUCONTROL11</td><td>input</td><td>CELL_N[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUCONTROL12</td><td>input</td><td>CELL_N[2].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUCONTROL12</td><td>input</td><td>CELL_N[2].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUCONTROL13</td><td>input</td><td>CELL_N[2].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUCONTROL13</td><td>input</td><td>CELL_N[2].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUCONTROL14</td><td>input</td><td>CELL_N[2].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUCONTROL14</td><td>input</td><td>CELL_N[2].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUCONTROL15</td><td>input</td><td>CELL_N[2].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUCONTROL15</td><td>input</td><td>CELL_N[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUCONTROL2</td><td>input</td><td>CELL_N[3].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUCONTROL2</td><td>input</td><td>CELL_N[3].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUCONTROL3</td><td>input</td><td>CELL_N[3].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUCONTROL3</td><td>input</td><td>CELL_N[3].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUCONTROL4</td><td>input</td><td>CELL_N[3].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUCONTROL4</td><td>input</td><td>CELL_N[3].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUCONTROL5</td><td>input</td><td>CELL_N[3].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUCONTROL5</td><td>input</td><td>CELL_N[3].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUCONTROL6</td><td>input</td><td>CELL_N[3].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUCONTROL6</td><td>input</td><td>CELL_N[3].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUCONTROL7</td><td>input</td><td>CELL_N[3].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUCONTROL7</td><td>input</td><td>CELL_N[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUCONTROL8</td><td>input</td><td>CELL_N[2].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUCONTROL8</td><td>input</td><td>CELL_N[2].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUCONTROL9</td><td>input</td><td>CELL_N[2].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUCONTROL9</td><td>input</td><td>CELL_N[2].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI10</td><td>input</td><td>CELL_E[23].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI10</td><td>input</td><td>CELL_E[23].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI11</td><td>input</td><td>CELL_E[23].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI11</td><td>input</td><td>CELL_E[23].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI110</td><td>input</td><td>CELL_E[22].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI110</td><td>input</td><td>CELL_E[22].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI111</td><td>input</td><td>CELL_E[22].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI111</td><td>input</td><td>CELL_E[22].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI112</td><td>input</td><td>CELL_E[22].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI112</td><td>input</td><td>CELL_E[22].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI113</td><td>input</td><td>CELL_E[22].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI113</td><td>input</td><td>CELL_E[22].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI114</td><td>input</td><td>CELL_E[22].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI114</td><td>input</td><td>CELL_E[22].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI115</td><td>input</td><td>CELL_E[22].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI115</td><td>input</td><td>CELL_E[22].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI116</td><td>input</td><td>CELL_E[21].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI116</td><td>input</td><td>CELL_E[21].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI117</td><td>input</td><td>CELL_E[21].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI117</td><td>input</td><td>CELL_E[21].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI118</td><td>input</td><td>CELL_E[21].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI118</td><td>input</td><td>CELL_E[21].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI119</td><td>input</td><td>CELL_E[21].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI119</td><td>input</td><td>CELL_E[21].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI12</td><td>input</td><td>CELL_E[23].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI12</td><td>input</td><td>CELL_E[23].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI120</td><td>input</td><td>CELL_E[21].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI120</td><td>input</td><td>CELL_E[21].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI121</td><td>input</td><td>CELL_E[21].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI121</td><td>input</td><td>CELL_E[21].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI122</td><td>input</td><td>CELL_E[21].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI122</td><td>input</td><td>CELL_E[21].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI123</td><td>input</td><td>CELL_E[21].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI123</td><td>input</td><td>CELL_E[21].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI13</td><td>input</td><td>CELL_E[23].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI13</td><td>input</td><td>CELL_E[23].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI14</td><td>input</td><td>CELL_E[23].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI14</td><td>input</td><td>CELL_E[23].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI15</td><td>input</td><td>CELL_E[23].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI15</td><td>input</td><td>CELL_E[23].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI16</td><td>input</td><td>CELL_E[23].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI16</td><td>input</td><td>CELL_E[23].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI17</td><td>input</td><td>CELL_E[23].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI17</td><td>input</td><td>CELL_E[23].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI18</td><td>input</td><td>CELL_E[22].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI18</td><td>input</td><td>CELL_E[22].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI19</td><td>input</td><td>CELL_E[22].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI19</td><td>input</td><td>CELL_E[22].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI20</td><td>input</td><td>CELL_E[20].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI20</td><td>input</td><td>CELL_E[20].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI21</td><td>input</td><td>CELL_E[20].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI21</td><td>input</td><td>CELL_E[20].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI210</td><td>input</td><td>CELL_E[19].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI210</td><td>input</td><td>CELL_E[19].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI211</td><td>input</td><td>CELL_E[19].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI211</td><td>input</td><td>CELL_E[19].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI212</td><td>input</td><td>CELL_E[19].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI212</td><td>input</td><td>CELL_E[19].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI213</td><td>input</td><td>CELL_E[19].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI213</td><td>input</td><td>CELL_E[19].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI214</td><td>input</td><td>CELL_E[19].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI214</td><td>input</td><td>CELL_E[19].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI215</td><td>input</td><td>CELL_E[19].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI215</td><td>input</td><td>CELL_E[19].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI216</td><td>input</td><td>CELL_E[18].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI216</td><td>input</td><td>CELL_E[18].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI217</td><td>input</td><td>CELL_E[18].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI217</td><td>input</td><td>CELL_E[18].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI218</td><td>input</td><td>CELL_E[18].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI218</td><td>input</td><td>CELL_E[18].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI219</td><td>input</td><td>CELL_E[18].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI219</td><td>input</td><td>CELL_E[18].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI22</td><td>input</td><td>CELL_E[20].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI22</td><td>input</td><td>CELL_E[20].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI220</td><td>input</td><td>CELL_E[18].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI220</td><td>input</td><td>CELL_E[18].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI221</td><td>input</td><td>CELL_E[18].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI221</td><td>input</td><td>CELL_E[18].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI222</td><td>input</td><td>CELL_E[18].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI222</td><td>input</td><td>CELL_E[18].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI223</td><td>input</td><td>CELL_E[18].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI223</td><td>input</td><td>CELL_E[18].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI23</td><td>input</td><td>CELL_E[20].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI23</td><td>input</td><td>CELL_E[20].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI24</td><td>input</td><td>CELL_E[20].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI24</td><td>input</td><td>CELL_E[20].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI25</td><td>input</td><td>CELL_E[20].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI25</td><td>input</td><td>CELL_E[20].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI26</td><td>input</td><td>CELL_E[20].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI26</td><td>input</td><td>CELL_E[20].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI27</td><td>input</td><td>CELL_E[20].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI27</td><td>input</td><td>CELL_E[20].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI28</td><td>input</td><td>CELL_E[19].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI28</td><td>input</td><td>CELL_E[19].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI29</td><td>input</td><td>CELL_E[19].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI29</td><td>input</td><td>CELL_E[19].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI30</td><td>input</td><td>CELL_E[17].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI30</td><td>input</td><td>CELL_E[17].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI31</td><td>input</td><td>CELL_E[17].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI31</td><td>input</td><td>CELL_E[17].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI310</td><td>input</td><td>CELL_E[16].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI310</td><td>input</td><td>CELL_E[16].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI311</td><td>input</td><td>CELL_E[16].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI311</td><td>input</td><td>CELL_E[16].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI312</td><td>input</td><td>CELL_E[16].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI312</td><td>input</td><td>CELL_E[16].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI313</td><td>input</td><td>CELL_E[16].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI313</td><td>input</td><td>CELL_E[16].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI314</td><td>input</td><td>CELL_E[16].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI314</td><td>input</td><td>CELL_E[16].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI315</td><td>input</td><td>CELL_E[16].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI315</td><td>input</td><td>CELL_E[16].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI316</td><td>input</td><td>CELL_E[15].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI316</td><td>input</td><td>CELL_E[15].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI317</td><td>input</td><td>CELL_E[15].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI317</td><td>input</td><td>CELL_E[15].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI318</td><td>input</td><td>CELL_E[15].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI318</td><td>input</td><td>CELL_E[15].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI319</td><td>input</td><td>CELL_E[15].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI319</td><td>input</td><td>CELL_E[15].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI32</td><td>input</td><td>CELL_E[17].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI32</td><td>input</td><td>CELL_E[17].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI320</td><td>input</td><td>CELL_E[15].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI320</td><td>input</td><td>CELL_E[15].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI321</td><td>input</td><td>CELL_E[15].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI321</td><td>input</td><td>CELL_E[15].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI322</td><td>input</td><td>CELL_E[15].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI322</td><td>input</td><td>CELL_E[15].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI323</td><td>input</td><td>CELL_E[15].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI323</td><td>input</td><td>CELL_E[15].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI33</td><td>input</td><td>CELL_E[17].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI33</td><td>input</td><td>CELL_E[17].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI34</td><td>input</td><td>CELL_E[17].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI34</td><td>input</td><td>CELL_E[17].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI35</td><td>input</td><td>CELL_E[17].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI35</td><td>input</td><td>CELL_E[17].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI36</td><td>input</td><td>CELL_E[17].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI36</td><td>input</td><td>CELL_E[17].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI37</td><td>input</td><td>CELL_E[17].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI37</td><td>input</td><td>CELL_E[17].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI38</td><td>input</td><td>CELL_E[16].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI38</td><td>input</td><td>CELL_E[16].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI39</td><td>input</td><td>CELL_E[16].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI39</td><td>input</td><td>CELL_E[16].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI40</td><td>input</td><td>CELL_E[14].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI40</td><td>input</td><td>CELL_E[14].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI41</td><td>input</td><td>CELL_E[14].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI41</td><td>input</td><td>CELL_E[14].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI410</td><td>input</td><td>CELL_E[13].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI410</td><td>input</td><td>CELL_E[13].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI411</td><td>input</td><td>CELL_E[13].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI411</td><td>input</td><td>CELL_E[13].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI412</td><td>input</td><td>CELL_E[13].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI412</td><td>input</td><td>CELL_E[13].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI413</td><td>input</td><td>CELL_E[13].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI413</td><td>input</td><td>CELL_E[13].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI414</td><td>input</td><td>CELL_E[13].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI414</td><td>input</td><td>CELL_E[13].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI415</td><td>input</td><td>CELL_E[13].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI415</td><td>input</td><td>CELL_E[13].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI416</td><td>input</td><td>CELL_E[12].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI416</td><td>input</td><td>CELL_E[12].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI417</td><td>input</td><td>CELL_E[12].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI417</td><td>input</td><td>CELL_E[12].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI418</td><td>input</td><td>CELL_E[12].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI418</td><td>input</td><td>CELL_E[12].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI419</td><td>input</td><td>CELL_E[12].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI419</td><td>input</td><td>CELL_E[12].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI42</td><td>input</td><td>CELL_E[14].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI42</td><td>input</td><td>CELL_E[14].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI420</td><td>input</td><td>CELL_E[12].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI420</td><td>input</td><td>CELL_E[12].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI421</td><td>input</td><td>CELL_E[12].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI421</td><td>input</td><td>CELL_E[12].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI422</td><td>input</td><td>CELL_E[12].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI422</td><td>input</td><td>CELL_E[12].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI423</td><td>input</td><td>CELL_E[12].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI423</td><td>input</td><td>CELL_E[12].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI43</td><td>input</td><td>CELL_E[14].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI43</td><td>input</td><td>CELL_E[14].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI44</td><td>input</td><td>CELL_E[14].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI44</td><td>input</td><td>CELL_E[14].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI45</td><td>input</td><td>CELL_E[14].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI45</td><td>input</td><td>CELL_E[14].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI46</td><td>input</td><td>CELL_E[14].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI46</td><td>input</td><td>CELL_E[14].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI47</td><td>input</td><td>CELL_E[14].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI47</td><td>input</td><td>CELL_E[14].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI48</td><td>input</td><td>CELL_E[13].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI48</td><td>input</td><td>CELL_E[13].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI49</td><td>input</td><td>CELL_E[13].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI49</td><td>input</td><td>CELL_E[13].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI50</td><td>input</td><td>CELL_E[11].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI50</td><td>input</td><td>CELL_E[11].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI51</td><td>input</td><td>CELL_E[11].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI51</td><td>input</td><td>CELL_E[11].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI510</td><td>input</td><td>CELL_E[10].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI510</td><td>input</td><td>CELL_E[10].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI511</td><td>input</td><td>CELL_E[10].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI511</td><td>input</td><td>CELL_E[10].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI512</td><td>input</td><td>CELL_E[10].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI512</td><td>input</td><td>CELL_E[10].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI513</td><td>input</td><td>CELL_E[10].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI513</td><td>input</td><td>CELL_E[10].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI514</td><td>input</td><td>CELL_E[10].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI514</td><td>input</td><td>CELL_E[10].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI515</td><td>input</td><td>CELL_E[10].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI515</td><td>input</td><td>CELL_E[10].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI516</td><td>input</td><td>CELL_E[9].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI516</td><td>input</td><td>CELL_E[9].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI517</td><td>input</td><td>CELL_E[9].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI517</td><td>input</td><td>CELL_E[9].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI518</td><td>input</td><td>CELL_E[9].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI518</td><td>input</td><td>CELL_E[9].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI519</td><td>input</td><td>CELL_E[9].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI519</td><td>input</td><td>CELL_E[9].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI52</td><td>input</td><td>CELL_E[11].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI52</td><td>input</td><td>CELL_E[11].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI520</td><td>input</td><td>CELL_E[9].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI520</td><td>input</td><td>CELL_E[9].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI521</td><td>input</td><td>CELL_E[9].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI521</td><td>input</td><td>CELL_E[9].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI522</td><td>input</td><td>CELL_E[9].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI522</td><td>input</td><td>CELL_E[9].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI523</td><td>input</td><td>CELL_E[9].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI523</td><td>input</td><td>CELL_E[9].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI53</td><td>input</td><td>CELL_E[11].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI53</td><td>input</td><td>CELL_E[11].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI54</td><td>input</td><td>CELL_E[11].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI54</td><td>input</td><td>CELL_E[11].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI55</td><td>input</td><td>CELL_E[11].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI55</td><td>input</td><td>CELL_E[11].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI56</td><td>input</td><td>CELL_E[11].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI56</td><td>input</td><td>CELL_E[11].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI57</td><td>input</td><td>CELL_E[11].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI57</td><td>input</td><td>CELL_E[11].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI58</td><td>input</td><td>CELL_E[10].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI58</td><td>input</td><td>CELL_E[10].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI59</td><td>input</td><td>CELL_E[10].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI59</td><td>input</td><td>CELL_E[10].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI60</td><td>input</td><td>CELL_E[8].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI60</td><td>input</td><td>CELL_E[8].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI61</td><td>input</td><td>CELL_E[8].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI61</td><td>input</td><td>CELL_E[8].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI610</td><td>input</td><td>CELL_E[7].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI610</td><td>input</td><td>CELL_E[7].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI611</td><td>input</td><td>CELL_E[7].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI611</td><td>input</td><td>CELL_E[7].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI612</td><td>input</td><td>CELL_E[7].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI612</td><td>input</td><td>CELL_E[7].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI613</td><td>input</td><td>CELL_E[7].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI613</td><td>input</td><td>CELL_E[7].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI614</td><td>input</td><td>CELL_E[7].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI614</td><td>input</td><td>CELL_E[7].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI615</td><td>input</td><td>CELL_E[7].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI615</td><td>input</td><td>CELL_E[7].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI616</td><td>input</td><td>CELL_E[6].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI616</td><td>input</td><td>CELL_E[6].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI617</td><td>input</td><td>CELL_E[6].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI617</td><td>input</td><td>CELL_E[6].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI618</td><td>input</td><td>CELL_E[6].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI618</td><td>input</td><td>CELL_E[6].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI619</td><td>input</td><td>CELL_E[6].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI619</td><td>input</td><td>CELL_E[6].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI62</td><td>input</td><td>CELL_E[8].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI62</td><td>input</td><td>CELL_E[8].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI620</td><td>input</td><td>CELL_E[6].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI620</td><td>input</td><td>CELL_E[6].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI621</td><td>input</td><td>CELL_E[6].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI621</td><td>input</td><td>CELL_E[6].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI622</td><td>input</td><td>CELL_E[6].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI622</td><td>input</td><td>CELL_E[6].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI623</td><td>input</td><td>CELL_E[6].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI623</td><td>input</td><td>CELL_E[6].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI63</td><td>input</td><td>CELL_E[8].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI63</td><td>input</td><td>CELL_E[8].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI64</td><td>input</td><td>CELL_E[8].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI64</td><td>input</td><td>CELL_E[8].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI65</td><td>input</td><td>CELL_E[8].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI65</td><td>input</td><td>CELL_E[8].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI66</td><td>input</td><td>CELL_E[8].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI66</td><td>input</td><td>CELL_E[8].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI67</td><td>input</td><td>CELL_E[8].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI67</td><td>input</td><td>CELL_E[8].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI68</td><td>input</td><td>CELL_E[7].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI68</td><td>input</td><td>CELL_E[7].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI69</td><td>input</td><td>CELL_E[7].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI69</td><td>input</td><td>CELL_E[7].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI70</td><td>input</td><td>CELL_E[5].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI70</td><td>input</td><td>CELL_E[5].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI71</td><td>input</td><td>CELL_E[5].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI71</td><td>input</td><td>CELL_E[5].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI710</td><td>input</td><td>CELL_E[4].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI710</td><td>input</td><td>CELL_E[4].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI711</td><td>input</td><td>CELL_E[4].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI711</td><td>input</td><td>CELL_E[4].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI712</td><td>input</td><td>CELL_E[4].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI712</td><td>input</td><td>CELL_E[4].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI713</td><td>input</td><td>CELL_E[4].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI713</td><td>input</td><td>CELL_E[4].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI714</td><td>input</td><td>CELL_E[4].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI714</td><td>input</td><td>CELL_E[4].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI715</td><td>input</td><td>CELL_E[4].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI715</td><td>input</td><td>CELL_E[4].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI716</td><td>input</td><td>CELL_E[3].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI716</td><td>input</td><td>CELL_E[3].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI717</td><td>input</td><td>CELL_E[3].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI717</td><td>input</td><td>CELL_E[3].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI718</td><td>input</td><td>CELL_E[3].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI718</td><td>input</td><td>CELL_E[3].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI719</td><td>input</td><td>CELL_E[3].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI719</td><td>input</td><td>CELL_E[3].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI72</td><td>input</td><td>CELL_E[5].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI72</td><td>input</td><td>CELL_E[5].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI720</td><td>input</td><td>CELL_E[3].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI720</td><td>input</td><td>CELL_E[3].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI721</td><td>input</td><td>CELL_E[3].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI721</td><td>input</td><td>CELL_E[3].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI722</td><td>input</td><td>CELL_E[3].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI722</td><td>input</td><td>CELL_E[3].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI723</td><td>input</td><td>CELL_E[3].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI723</td><td>input</td><td>CELL_E[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI73</td><td>input</td><td>CELL_E[5].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI73</td><td>input</td><td>CELL_E[5].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI74</td><td>input</td><td>CELL_E[5].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI74</td><td>input</td><td>CELL_E[5].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI75</td><td>input</td><td>CELL_E[5].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI75</td><td>input</td><td>CELL_E[5].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI76</td><td>input</td><td>CELL_E[5].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI76</td><td>input</td><td>CELL_E[5].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI77</td><td>input</td><td>CELL_E[5].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI77</td><td>input</td><td>CELL_E[5].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI78</td><td>input</td><td>CELL_E[4].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI78</td><td>input</td><td>CELL_E[4].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI79</td><td>input</td><td>CELL_E[4].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI79</td><td>input</td><td>CELL_E[4].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI80</td><td>input</td><td>CELL_E[2].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI80</td><td>input</td><td>CELL_E[2].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI81</td><td>input</td><td>CELL_E[2].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI81</td><td>input</td><td>CELL_E[2].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI810</td><td>input</td><td>CELL_E[1].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI810</td><td>input</td><td>CELL_E[1].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI811</td><td>input</td><td>CELL_E[1].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI811</td><td>input</td><td>CELL_E[1].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI812</td><td>input</td><td>CELL_E[1].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI812</td><td>input</td><td>CELL_E[1].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI813</td><td>input</td><td>CELL_E[1].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI813</td><td>input</td><td>CELL_E[1].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI814</td><td>input</td><td>CELL_E[1].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI814</td><td>input</td><td>CELL_E[1].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI815</td><td>input</td><td>CELL_E[1].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI815</td><td>input</td><td>CELL_E[1].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI816</td><td>input</td><td>CELL_E[0].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI816</td><td>input</td><td>CELL_E[0].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI817</td><td>input</td><td>CELL_E[0].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI817</td><td>input</td><td>CELL_E[0].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI818</td><td>input</td><td>CELL_E[0].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI818</td><td>input</td><td>CELL_E[0].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI819</td><td>input</td><td>CELL_E[0].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI819</td><td>input</td><td>CELL_E[0].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI82</td><td>input</td><td>CELL_E[2].IMUX_SR[1]</td></tr>
+<tr><td>TIEAPUUDI82</td><td>input</td><td>CELL_E[2].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI820</td><td>input</td><td>CELL_E[0].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI820</td><td>input</td><td>CELL_E[0].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI821</td><td>input</td><td>CELL_E[0].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI821</td><td>input</td><td>CELL_E[0].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI822</td><td>input</td><td>CELL_E[0].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI822</td><td>input</td><td>CELL_E[0].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI823</td><td>input</td><td>CELL_E[0].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI823</td><td>input</td><td>CELL_E[0].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI83</td><td>input</td><td>CELL_E[2].IMUX_SR[0]</td></tr>
+<tr><td>TIEAPUUDI83</td><td>input</td><td>CELL_E[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI84</td><td>input</td><td>CELL_E[2].IMUX_CE[3]</td></tr>
+<tr><td>TIEAPUUDI84</td><td>input</td><td>CELL_E[2].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI85</td><td>input</td><td>CELL_E[2].IMUX_CE[2]</td></tr>
+<tr><td>TIEAPUUDI85</td><td>input</td><td>CELL_E[2].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEAPUUDI86</td><td>input</td><td>CELL_E[2].IMUX_CE[1]</td></tr>
+<tr><td>TIEAPUUDI86</td><td>input</td><td>CELL_E[2].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEAPUUDI87</td><td>input</td><td>CELL_E[2].IMUX_CE[0]</td></tr>
+<tr><td>TIEAPUUDI87</td><td>input</td><td>CELL_E[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEAPUUDI88</td><td>input</td><td>CELL_E[1].IMUX_SR[3]</td></tr>
+<tr><td>TIEAPUUDI88</td><td>input</td><td>CELL_E[1].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEAPUUDI89</td><td>input</td><td>CELL_E[1].IMUX_SR[2]</td></tr>
+<tr><td>TIEAPUUDI89</td><td>input</td><td>CELL_E[1].IMUX_SR_OPTINV[2]</td></tr>
 
 <tr><td>TIEC405CLOCKENABLE</td><td>input</td><td>CELL_W[9].IMUX_IMUX[7]</td></tr>
 
-<tr><td>TIEC405CLOCKSELECTS0</td><td>input</td><td>CELL_S[6].IMUX_SR[0]</td></tr>
+<tr><td>TIEC405CLOCKSELECTS0</td><td>input</td><td>CELL_S[6].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405CLOCKSELECTS1</td><td>input</td><td>CELL_S[6].IMUX_SR[1]</td></tr>
+<tr><td>TIEC405CLOCKSELECTS1</td><td>input</td><td>CELL_S[6].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405DCUMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE[1]</td></tr>
+<tr><td>TIEC405DCUMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405DETERMINISTICMULT</td><td>input</td><td>CELL_S[2].IMUX_CE[0]</td></tr>
+<tr><td>TIEC405DETERMINISTICMULT</td><td>input</td><td>CELL_S[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405DISOPERANDFWD</td><td>input</td><td>CELL_S[2].IMUX_CE[1]</td></tr>
+<tr><td>TIEC405DISOPERANDFWD</td><td>input</td><td>CELL_S[2].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>TIEC405DUTYENABLE</td><td>input</td><td>CELL_W[9].IMUX_IMUX[8]</td></tr>
 
-<tr><td>TIEC405ICUMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE[0]</td></tr>
+<tr><td>TIEC405ICUMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405MMUEN</td><td>input</td><td>CELL_S[2].IMUX_CE[2]</td></tr>
+<tr><td>TIEC405MMUEN</td><td>input</td><td>CELL_S[2].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEC405TAGMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE[2]</td></tr>
+<tr><td>TIEC405TAGMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEC405TLBMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE[3]</td></tr>
+<tr><td>TIEC405TLBMARGIN</td><td>input</td><td>CELL_S[6].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEDCRADDR0</td><td>input</td><td>CELL_W[6].IMUX_CE[0]</td></tr>
+<tr><td>TIEDCRADDR0</td><td>input</td><td>CELL_W[6].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEDCRADDR1</td><td>input</td><td>CELL_W[6].IMUX_CE[1]</td></tr>
+<tr><td>TIEDCRADDR1</td><td>input</td><td>CELL_W[6].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEDCRADDR2</td><td>input</td><td>CELL_W[6].IMUX_CE[2]</td></tr>
+<tr><td>TIEDCRADDR2</td><td>input</td><td>CELL_W[6].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEDCRADDR3</td><td>input</td><td>CELL_W[6].IMUX_CE[3]</td></tr>
+<tr><td>TIEDCRADDR3</td><td>input</td><td>CELL_W[6].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEDCRADDR4</td><td>input</td><td>CELL_W[6].IMUX_SR[0]</td></tr>
+<tr><td>TIEDCRADDR4</td><td>input</td><td>CELL_W[6].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEDCRADDR5</td><td>input</td><td>CELL_W[7].IMUX_CE[0]</td></tr>
+<tr><td>TIEDCRADDR5</td><td>input</td><td>CELL_W[7].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>TIEPVRBIT0</td><td>input</td><td>CELL_W[20].IMUX_IMUX[15]</td></tr>
 
 <tr><td>TIEPVRBIT1</td><td>input</td><td>CELL_W[20].IMUX_IMUX[16]</td></tr>
 
-<tr><td>TIEPVRBIT10</td><td>input</td><td>CELL_W[13].IMUX_CE[2]</td></tr>
+<tr><td>TIEPVRBIT10</td><td>input</td><td>CELL_W[13].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEPVRBIT11</td><td>input</td><td>CELL_W[13].IMUX_CE[3]</td></tr>
+<tr><td>TIEPVRBIT11</td><td>input</td><td>CELL_W[13].IMUX_CE_OPTINV[3]</td></tr>
 
 <tr><td>TIEPVRBIT12</td><td>input</td><td>CELL_W[16].IMUX_IMUX[16]</td></tr>
 
@@ -2766,15 +2766,15 @@
 
 <tr><td>TIEPVRBIT27</td><td>input</td><td>CELL_W[19].IMUX_IMUX[18]</td></tr>
 
-<tr><td>TIEPVRBIT28</td><td>input</td><td>CELL_W[8].IMUX_CE[0]</td></tr>
+<tr><td>TIEPVRBIT28</td><td>input</td><td>CELL_W[8].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEPVRBIT29</td><td>input</td><td>CELL_W[8].IMUX_CE[1]</td></tr>
+<tr><td>TIEPVRBIT29</td><td>input</td><td>CELL_W[8].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>TIEPVRBIT3</td><td>input</td><td>CELL_W[20].IMUX_IMUX[18]</td></tr>
 
-<tr><td>TIEPVRBIT30</td><td>input</td><td>CELL_W[8].IMUX_CE[2]</td></tr>
+<tr><td>TIEPVRBIT30</td><td>input</td><td>CELL_W[8].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEPVRBIT31</td><td>input</td><td>CELL_W[8].IMUX_CE[3]</td></tr>
+<tr><td>TIEPVRBIT31</td><td>input</td><td>CELL_W[8].IMUX_CE_OPTINV[3]</td></tr>
 
 <tr><td>TIEPVRBIT4</td><td>input</td><td>CELL_W[21].IMUX_IMUX[15]</td></tr>
 
@@ -2784,9 +2784,9 @@
 
 <tr><td>TIEPVRBIT7</td><td>input</td><td>CELL_W[21].IMUX_IMUX[18]</td></tr>
 
-<tr><td>TIEPVRBIT8</td><td>input</td><td>CELL_W[13].IMUX_CE[0]</td></tr>
+<tr><td>TIEPVRBIT8</td><td>input</td><td>CELL_W[13].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEPVRBIT9</td><td>input</td><td>CELL_W[13].IMUX_CE[1]</td></tr>
+<tr><td>TIEPVRBIT9</td><td>input</td><td>CELL_W[13].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>TRCC405TRACEDISABLE</td><td>input</td><td>CELL_E[0].IMUX_IMUX[8]</td></tr>
 
@@ -4680,7 +4680,7 @@
 
 <tr><td>TSTRESETSYSO</td><td>output</td><td>CELL_E[15].OUT_HALF_S_TMIN[6], CELL_E[15].OUT_HALF_N_TMIN[6]</td></tr>
 
-<tr><td>TSTSEPPCEMACI</td><td>input</td><td>CELL_S[6].IMUX_SR[3]</td></tr>
+<tr><td>TSTSEPPCEMACI</td><td>input</td><td>CELL_S[6].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>TSTSIGASKETI0</td><td>input</td><td>CELL_W[20].IMUX_IMUX[13]</td></tr>
 
@@ -4698,7 +4698,7 @@
 
 <tr><td>TSTTRSTNEGO</td><td>output</td><td>CELL_E[15].OUT_HALF_S_TMIN[7], CELL_E[15].OUT_HALF_N_TMIN[7]</td></tr>
 
-<tr><td>TSTUSECPMCLKSELI</td><td>input</td><td>CELL_W[7].IMUX_CE[3]</td></tr>
+<tr><td>TSTUSECPMCLKSELI</td><td>input</td><td>CELL_W[7].IMUX_CE_OPTINV[3]</td></tr>
 
 </tbody>
 
@@ -4751,9 +4751,9 @@
 
 <tr><td>CLIENTEMAC0PAUSEVAL9</td><td>input</td><td>CELL_W[8].IMUX_IMUX[5]</td></tr>
 
-<tr><td>CLIENTEMAC0RXCLIENTCLKIN</td><td>input</td><td>CELL_W[10].IMUX_CLK[0]</td></tr>
+<tr><td>CLIENTEMAC0RXCLIENTCLKIN</td><td>input</td><td>CELL_W[10].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>CLIENTEMAC0TXCLIENTCLKIN</td><td>input</td><td>CELL_W[12].IMUX_CLK[0]</td></tr>
+<tr><td>CLIENTEMAC0TXCLIENTCLKIN</td><td>input</td><td>CELL_W[12].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>CLIENTEMAC0TXD0</td><td>input</td><td>CELL_W[2].IMUX_IMUX[8]</td></tr>
 
@@ -4793,7 +4793,7 @@
 
 <tr><td>CLIENTEMAC0TXFIRSTBYTE</td><td>input</td><td>CELL_W[3].IMUX_IMUX[0]</td></tr>
 
-<tr><td>CLIENTEMAC0TXGMIIMIICLKIN</td><td>input</td><td>CELL_W[11].IMUX_CLK[0]</td></tr>
+<tr><td>CLIENTEMAC0TXGMIIMIICLKIN</td><td>input</td><td>CELL_W[11].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>CLIENTEMAC0TXIFGDELAY0</td><td>input</td><td>CELL_W[4].IMUX_IMUX[4]</td></tr>
 
@@ -4849,9 +4849,9 @@
 
 <tr><td>CLIENTEMAC1PAUSEVAL9</td><td>input</td><td>CELL_W[17].IMUX_IMUX[12]</td></tr>
 
-<tr><td>CLIENTEMAC1RXCLIENTCLKIN</td><td>input</td><td>CELL_W[20].IMUX_CLK[0]</td></tr>
+<tr><td>CLIENTEMAC1RXCLIENTCLKIN</td><td>input</td><td>CELL_W[20].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>CLIENTEMAC1TXCLIENTCLKIN</td><td>input</td><td>CELL_W[22].IMUX_CLK[0]</td></tr>
+<tr><td>CLIENTEMAC1TXCLIENTCLKIN</td><td>input</td><td>CELL_W[22].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>CLIENTEMAC1TXD0</td><td>input</td><td>CELL_W[21].IMUX_IMUX[8]</td></tr>
 
@@ -4891,7 +4891,7 @@
 
 <tr><td>CLIENTEMAC1TXFIRSTBYTE</td><td>input</td><td>CELL_W[20].IMUX_IMUX[0]</td></tr>
 
-<tr><td>CLIENTEMAC1TXGMIIMIICLKIN</td><td>input</td><td>CELL_W[21].IMUX_CLK[0]</td></tr>
+<tr><td>CLIENTEMAC1TXGMIIMIICLKIN</td><td>input</td><td>CELL_W[21].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>CLIENTEMAC1TXIFGDELAY0</td><td>input</td><td>CELL_W[19].IMUX_IMUX[4]</td></tr>
 
@@ -5043,9 +5043,9 @@
 
 <tr><td>EMAC0PHYTXER</td><td>output</td><td>CELL_W[0].OUT_BEST_TMIN[6]</td></tr>
 
-<tr><td>EMAC0TIBUS0</td><td>input</td><td>CELL_W[6].IMUX_CLK[0]</td></tr>
+<tr><td>EMAC0TIBUS0</td><td>input</td><td>CELL_W[6].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>EMAC0TIBUS1</td><td>input</td><td>CELL_W[8].IMUX_CLK[0]</td></tr>
+<tr><td>EMAC0TIBUS1</td><td>input</td><td>CELL_W[8].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>EMAC0TIBUS2</td><td>input</td><td>CELL_W[1].IMUX_IMUX[9]</td></tr>
 
@@ -5181,9 +5181,9 @@
 
 <tr><td>EMAC1PHYTXER</td><td>output</td><td>CELL_W[23].OUT_BEST_TMIN[6]</td></tr>
 
-<tr><td>EMAC1TIBUS0</td><td>input</td><td>CELL_W[17].IMUX_CLK[0]</td></tr>
+<tr><td>EMAC1TIBUS0</td><td>input</td><td>CELL_W[17].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>EMAC1TIBUS1</td><td>input</td><td>CELL_W[18].IMUX_CLK[0]</td></tr>
+<tr><td>EMAC1TIBUS1</td><td>input</td><td>CELL_W[18].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>EMAC1TIBUS2</td><td>input</td><td>CELL_W[22].IMUX_IMUX[9]</td></tr>
 
@@ -5211,7 +5211,7 @@
 
 <tr><td>HOSTADDR9</td><td>input</td><td>CELL_W[6].IMUX_IMUX[9]</td></tr>
 
-<tr><td>HOSTCLK</td><td>input</td><td>CELL_W[16].IMUX_CLK[0]</td></tr>
+<tr><td>HOSTCLK</td><td>input</td><td>CELL_W[16].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>HOSTEMAC1SEL</td><td>input</td><td>CELL_W[17].IMUX_IMUX[10]</td></tr>
 
@@ -5357,13 +5357,13 @@
 
 <tr><td>PHYEMAC0CRS</td><td>input</td><td>CELL_W[0].IMUX_IMUX[4]</td></tr>
 
-<tr><td>PHYEMAC0GTXCLK</td><td>input</td><td>CELL_W[15].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC0GTXCLK</td><td>input</td><td>CELL_W[15].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>PHYEMAC0MCLKIN</td><td>input</td><td>CELL_W[9].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC0MCLKIN</td><td>input</td><td>CELL_W[9].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>PHYEMAC0MDIN</td><td>input</td><td>CELL_W[3].IMUX_IMUX[4]</td></tr>
 
-<tr><td>PHYEMAC0MIITXCLK</td><td>input</td><td>CELL_W[13].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC0MIITXCLK</td><td>input</td><td>CELL_W[13].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>PHYEMAC0PHYAD0</td><td>input</td><td>CELL_W[1].IMUX_IMUX[14]</td></tr>
 
@@ -5387,7 +5387,7 @@
 
 <tr><td>PHYEMAC0RXCHECKINGCRC</td><td>input</td><td>CELL_W[1].IMUX_IMUX[7]</td></tr>
 
-<tr><td>PHYEMAC0RXCLK</td><td>input</td><td>CELL_W[14].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC0RXCLK</td><td>input</td><td>CELL_W[14].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>PHYEMAC0RXCLKCORCNT0</td><td>input</td><td>CELL_W[3].IMUX_IMUX[1]</td></tr>
 
@@ -5435,13 +5435,13 @@
 
 <tr><td>PHYEMAC1CRS</td><td>input</td><td>CELL_W[23].IMUX_IMUX[4]</td></tr>
 
-<tr><td>PHYEMAC1GTXCLK</td><td>input</td><td>CELL_N[2].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC1GTXCLK</td><td>input</td><td>CELL_N[2].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>PHYEMAC1MCLKIN</td><td>input</td><td>CELL_W[19].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC1MCLKIN</td><td>input</td><td>CELL_W[19].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>PHYEMAC1MDIN</td><td>input</td><td>CELL_W[20].IMUX_IMUX[4]</td></tr>
 
-<tr><td>PHYEMAC1MIITXCLK</td><td>input</td><td>CELL_N[4].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC1MIITXCLK</td><td>input</td><td>CELL_N[4].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>PHYEMAC1PHYAD0</td><td>input</td><td>CELL_W[22].IMUX_IMUX[15]</td></tr>
 
@@ -5465,7 +5465,7 @@
 
 <tr><td>PHYEMAC1RXCHECKINGCRC</td><td>input</td><td>CELL_W[22].IMUX_IMUX[7]</td></tr>
 
-<tr><td>PHYEMAC1RXCLK</td><td>input</td><td>CELL_N[3].IMUX_CLK[0]</td></tr>
+<tr><td>PHYEMAC1RXCLK</td><td>input</td><td>CELL_N[3].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>PHYEMAC1RXCLKCORCNT0</td><td>input</td><td>CELL_W[20].IMUX_IMUX[1]</td></tr>
 
@@ -5515,9 +5515,9 @@
 
 <tr><td>TIEEMAC0CONFIGVEC1</td><td>input</td><td>CELL_W[0].IMUX_IMUX[13]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC10</td><td>input</td><td>CELL_W[0].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC10</td><td>input</td><td>CELL_W[0].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC11</td><td>input</td><td>CELL_W[0].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC11</td><td>input</td><td>CELL_W[0].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>TIEEMAC0CONFIGVEC12</td><td>input</td><td>CELL_W[5].IMUX_IMUX[12]</td></tr>
 
@@ -5537,101 +5537,101 @@
 
 <tr><td>TIEEMAC0CONFIGVEC2</td><td>input</td><td>CELL_W[0].IMUX_IMUX[14]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC20</td><td>input</td><td>CELL_S[0].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC20</td><td>input</td><td>CELL_S[0].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC21</td><td>input</td><td>CELL_S[0].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC21</td><td>input</td><td>CELL_S[0].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC22</td><td>input</td><td>CELL_S[0].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC22</td><td>input</td><td>CELL_S[0].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC23</td><td>input</td><td>CELL_S[0].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC23</td><td>input</td><td>CELL_S[0].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC24</td><td>input</td><td>CELL_S[0].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC24</td><td>input</td><td>CELL_S[0].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC25</td><td>input</td><td>CELL_S[0].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC25</td><td>input</td><td>CELL_S[0].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC26</td><td>input</td><td>CELL_S[0].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC26</td><td>input</td><td>CELL_S[0].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC27</td><td>input</td><td>CELL_S[0].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC27</td><td>input</td><td>CELL_S[0].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC28</td><td>input</td><td>CELL_S[1].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC28</td><td>input</td><td>CELL_S[1].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC29</td><td>input</td><td>CELL_S[1].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC29</td><td>input</td><td>CELL_S[1].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>TIEEMAC0CONFIGVEC3</td><td>input</td><td>CELL_W[0].IMUX_IMUX[15]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC30</td><td>input</td><td>CELL_S[1].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC30</td><td>input</td><td>CELL_S[1].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC31</td><td>input</td><td>CELL_S[1].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC31</td><td>input</td><td>CELL_S[1].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC32</td><td>input</td><td>CELL_S[1].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC32</td><td>input</td><td>CELL_S[1].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC33</td><td>input</td><td>CELL_S[1].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC33</td><td>input</td><td>CELL_S[1].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC34</td><td>input</td><td>CELL_S[1].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC34</td><td>input</td><td>CELL_S[1].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC35</td><td>input</td><td>CELL_S[1].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC35</td><td>input</td><td>CELL_S[1].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC36</td><td>input</td><td>CELL_S[2].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC36</td><td>input</td><td>CELL_S[2].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC37</td><td>input</td><td>CELL_S[2].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC37</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC38</td><td>input</td><td>CELL_S[2].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC38</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC39</td><td>input</td><td>CELL_S[2].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC39</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC4</td><td>input</td><td>CELL_W[0].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC4</td><td>input</td><td>CELL_W[0].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC40</td><td>input</td><td>CELL_S[2].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC40</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC41</td><td>input</td><td>CELL_S[3].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC41</td><td>input</td><td>CELL_S[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC42</td><td>input</td><td>CELL_S[3].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC42</td><td>input</td><td>CELL_S[3].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC43</td><td>input</td><td>CELL_S[3].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC43</td><td>input</td><td>CELL_S[3].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC44</td><td>input</td><td>CELL_S[3].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC44</td><td>input</td><td>CELL_S[3].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC45</td><td>input</td><td>CELL_S[3].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC45</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC46</td><td>input</td><td>CELL_S[3].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC46</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC47</td><td>input</td><td>CELL_S[3].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC47</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC48</td><td>input</td><td>CELL_S[3].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC48</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC49</td><td>input</td><td>CELL_W[8].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC49</td><td>input</td><td>CELL_W[8].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC5</td><td>input</td><td>CELL_W[0].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC5</td><td>input</td><td>CELL_W[0].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC50</td><td>input</td><td>CELL_W[8].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC50</td><td>input</td><td>CELL_W[8].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC51</td><td>input</td><td>CELL_W[8].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC51</td><td>input</td><td>CELL_W[8].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC52</td><td>input</td><td>CELL_W[8].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC52</td><td>input</td><td>CELL_W[8].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC53</td><td>input</td><td>CELL_W[9].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC53</td><td>input</td><td>CELL_W[9].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC54</td><td>input</td><td>CELL_W[9].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC54</td><td>input</td><td>CELL_W[9].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC55</td><td>input</td><td>CELL_W[9].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC55</td><td>input</td><td>CELL_W[9].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC56</td><td>input</td><td>CELL_W[9].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC56</td><td>input</td><td>CELL_W[9].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC57</td><td>input</td><td>CELL_W[10].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC57</td><td>input</td><td>CELL_W[10].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC58</td><td>input</td><td>CELL_W[10].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC58</td><td>input</td><td>CELL_W[10].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC59</td><td>input</td><td>CELL_W[10].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC59</td><td>input</td><td>CELL_W[10].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC6</td><td>input</td><td>CELL_W[0].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC6</td><td>input</td><td>CELL_W[0].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC60</td><td>input</td><td>CELL_W[10].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC60</td><td>input</td><td>CELL_W[10].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>TIEEMAC0CONFIGVEC61</td><td>input</td><td>CELL_W[10].IMUX_IMUX[8]</td></tr>
 
 <tr><td>TIEEMAC0CONFIGVEC62</td><td>input</td><td>CELL_W[10].IMUX_IMUX[9]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC63</td><td>input</td><td>CELL_W[7].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC63</td><td>input</td><td>CELL_W[7].IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>TIEEMAC0CONFIGVEC64</td><td>input</td><td>CELL_W[3].IMUX_IMUX[9]</td></tr>
 
@@ -5645,7 +5645,7 @@
 
 <tr><td>TIEEMAC0CONFIGVEC69</td><td>input</td><td>CELL_W[3].IMUX_IMUX[14]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC7</td><td>input</td><td>CELL_W[0].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC7</td><td>input</td><td>CELL_W[0].IMUX_CE_OPTINV[3]</td></tr>
 
 <tr><td>TIEEMAC0CONFIGVEC70</td><td>input</td><td>CELL_W[4].IMUX_IMUX[12]</td></tr>
 
@@ -5667,89 +5667,89 @@
 
 <tr><td>TIEEMAC0CONFIGVEC79</td><td>input</td><td>CELL_W[10].IMUX_IMUX[7]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC8</td><td>input</td><td>CELL_W[0].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC8</td><td>input</td><td>CELL_W[0].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0CONFIGVEC9</td><td>input</td><td>CELL_W[0].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0CONFIGVEC9</td><td>input</td><td>CELL_W[0].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR0</td><td>input</td><td>CELL_W[6].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR0</td><td>input</td><td>CELL_W[6].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR1</td><td>input</td><td>CELL_W[6].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR1</td><td>input</td><td>CELL_W[6].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR10</td><td>input</td><td>CELL_W[5].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR10</td><td>input</td><td>CELL_W[5].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR11</td><td>input</td><td>CELL_W[4].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR11</td><td>input</td><td>CELL_W[4].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR12</td><td>input</td><td>CELL_W[4].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR12</td><td>input</td><td>CELL_W[4].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR13</td><td>input</td><td>CELL_W[4].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR13</td><td>input</td><td>CELL_W[4].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR14</td><td>input</td><td>CELL_W[4].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR14</td><td>input</td><td>CELL_W[4].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR15</td><td>input</td><td>CELL_W[4].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR15</td><td>input</td><td>CELL_W[4].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR16</td><td>input</td><td>CELL_W[4].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR16</td><td>input</td><td>CELL_W[4].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR17</td><td>input</td><td>CELL_W[4].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR17</td><td>input</td><td>CELL_W[4].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR18</td><td>input</td><td>CELL_W[4].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR18</td><td>input</td><td>CELL_W[4].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>TIEEMAC0UNICASTADDR19</td><td>input</td><td>CELL_W[2].IMUX_IMUX[13]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR2</td><td>input</td><td>CELL_W[6].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR2</td><td>input</td><td>CELL_W[6].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR20</td><td>input</td><td>CELL_W[3].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR20</td><td>input</td><td>CELL_W[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR21</td><td>input</td><td>CELL_W[3].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR21</td><td>input</td><td>CELL_W[3].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR22</td><td>input</td><td>CELL_W[3].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR22</td><td>input</td><td>CELL_W[3].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR23</td><td>input</td><td>CELL_W[3].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR23</td><td>input</td><td>CELL_W[3].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR24</td><td>input</td><td>CELL_W[3].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR24</td><td>input</td><td>CELL_W[3].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR25</td><td>input</td><td>CELL_W[3].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR25</td><td>input</td><td>CELL_W[3].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR26</td><td>input</td><td>CELL_W[3].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR26</td><td>input</td><td>CELL_W[3].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR27</td><td>input</td><td>CELL_W[3].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR27</td><td>input</td><td>CELL_W[3].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>TIEEMAC0UNICASTADDR28</td><td>input</td><td>CELL_W[2].IMUX_IMUX[12]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR29</td><td>input</td><td>CELL_W[2].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR29</td><td>input</td><td>CELL_W[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR3</td><td>input</td><td>CELL_W[5].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR3</td><td>input</td><td>CELL_W[5].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR30</td><td>input</td><td>CELL_W[2].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR30</td><td>input</td><td>CELL_W[2].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR31</td><td>input</td><td>CELL_W[2].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR31</td><td>input</td><td>CELL_W[2].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR32</td><td>input</td><td>CELL_W[2].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR32</td><td>input</td><td>CELL_W[2].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR33</td><td>input</td><td>CELL_W[2].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR33</td><td>input</td><td>CELL_W[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR34</td><td>input</td><td>CELL_W[2].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR34</td><td>input</td><td>CELL_W[2].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR35</td><td>input</td><td>CELL_W[2].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR35</td><td>input</td><td>CELL_W[2].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR36</td><td>input</td><td>CELL_W[2].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR36</td><td>input</td><td>CELL_W[2].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR37</td><td>input</td><td>CELL_W[1].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR37</td><td>input</td><td>CELL_W[1].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR38</td><td>input</td><td>CELL_W[1].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR38</td><td>input</td><td>CELL_W[1].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR39</td><td>input</td><td>CELL_W[1].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR39</td><td>input</td><td>CELL_W[1].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR4</td><td>input</td><td>CELL_W[5].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR4</td><td>input</td><td>CELL_W[5].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR40</td><td>input</td><td>CELL_W[1].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR40</td><td>input</td><td>CELL_W[1].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR41</td><td>input</td><td>CELL_W[1].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR41</td><td>input</td><td>CELL_W[1].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR42</td><td>input</td><td>CELL_W[1].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR42</td><td>input</td><td>CELL_W[1].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR43</td><td>input</td><td>CELL_W[1].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR43</td><td>input</td><td>CELL_W[1].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR44</td><td>input</td><td>CELL_W[1].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR44</td><td>input</td><td>CELL_W[1].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>TIEEMAC0UNICASTADDR45</td><td>input</td><td>CELL_W[0].IMUX_IMUX[9]</td></tr>
 
@@ -5757,41 +5757,41 @@
 
 <tr><td>TIEEMAC0UNICASTADDR47</td><td>input</td><td>CELL_W[0].IMUX_IMUX[11]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR5</td><td>input</td><td>CELL_W[5].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR5</td><td>input</td><td>CELL_W[5].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR6</td><td>input</td><td>CELL_W[5].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR6</td><td>input</td><td>CELL_W[5].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR7</td><td>input</td><td>CELL_W[5].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR7</td><td>input</td><td>CELL_W[5].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR8</td><td>input</td><td>CELL_W[5].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR8</td><td>input</td><td>CELL_W[5].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC0UNICASTADDR9</td><td>input</td><td>CELL_W[5].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC0UNICASTADDR9</td><td>input</td><td>CELL_W[5].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC0</td><td>input</td><td>CELL_W[21].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC0</td><td>input</td><td>CELL_W[21].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC1</td><td>input</td><td>CELL_W[21].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC1</td><td>input</td><td>CELL_W[21].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC10</td><td>input</td><td>CELL_W[22].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC10</td><td>input</td><td>CELL_W[22].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC11</td><td>input</td><td>CELL_W[22].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC11</td><td>input</td><td>CELL_W[22].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC12</td><td>input</td><td>CELL_W[23].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC12</td><td>input</td><td>CELL_W[23].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC13</td><td>input</td><td>CELL_W[23].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC13</td><td>input</td><td>CELL_W[23].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC14</td><td>input</td><td>CELL_W[23].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC14</td><td>input</td><td>CELL_W[23].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC15</td><td>input</td><td>CELL_W[23].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC15</td><td>input</td><td>CELL_W[23].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC16</td><td>input</td><td>CELL_W[23].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC16</td><td>input</td><td>CELL_W[23].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC17</td><td>input</td><td>CELL_W[23].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC17</td><td>input</td><td>CELL_W[23].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC18</td><td>input</td><td>CELL_W[23].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC18</td><td>input</td><td>CELL_W[23].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC19</td><td>input</td><td>CELL_W[23].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC19</td><td>input</td><td>CELL_W[23].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC2</td><td>input</td><td>CELL_W[21].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC2</td><td>input</td><td>CELL_W[21].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>TIEEMAC1CONFIGVEC20</td><td>input</td><td>CELL_W[23].IMUX_IMUX[11]</td></tr>
 
@@ -5805,89 +5805,89 @@
 
 <tr><td>TIEEMAC1CONFIGVEC25</td><td>input</td><td>CELL_W[23].IMUX_IMUX[6]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC26</td><td>input</td><td>CELL_N[4].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC26</td><td>input</td><td>CELL_N[4].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC27</td><td>input</td><td>CELL_N[4].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC27</td><td>input</td><td>CELL_N[4].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC28</td><td>input</td><td>CELL_N[4].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC28</td><td>input</td><td>CELL_N[4].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC29</td><td>input</td><td>CELL_N[4].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC29</td><td>input</td><td>CELL_N[4].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC3</td><td>input</td><td>CELL_W[21].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC3</td><td>input</td><td>CELL_W[21].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC30</td><td>input</td><td>CELL_N[4].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC30</td><td>input</td><td>CELL_N[4].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC31</td><td>input</td><td>CELL_N[4].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC31</td><td>input</td><td>CELL_N[4].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC32</td><td>input</td><td>CELL_N[4].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC32</td><td>input</td><td>CELL_N[4].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC33</td><td>input</td><td>CELL_N[4].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC33</td><td>input</td><td>CELL_N[4].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC34</td><td>input</td><td>CELL_N[5].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC34</td><td>input</td><td>CELL_N[5].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC35</td><td>input</td><td>CELL_N[5].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC35</td><td>input</td><td>CELL_N[5].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC36</td><td>input</td><td>CELL_N[5].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC36</td><td>input</td><td>CELL_N[5].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC37</td><td>input</td><td>CELL_N[5].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC37</td><td>input</td><td>CELL_N[5].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC38</td><td>input</td><td>CELL_N[5].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC38</td><td>input</td><td>CELL_N[5].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC39</td><td>input</td><td>CELL_N[5].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC39</td><td>input</td><td>CELL_N[5].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC4</td><td>input</td><td>CELL_W[22].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC4</td><td>input</td><td>CELL_W[22].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC40</td><td>input</td><td>CELL_N[5].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC40</td><td>input</td><td>CELL_N[5].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC41</td><td>input</td><td>CELL_N[5].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC41</td><td>input</td><td>CELL_N[5].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC42</td><td>input</td><td>CELL_N[6].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC42</td><td>input</td><td>CELL_N[6].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC43</td><td>input</td><td>CELL_N[6].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC43</td><td>input</td><td>CELL_N[6].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC44</td><td>input</td><td>CELL_N[6].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC44</td><td>input</td><td>CELL_N[6].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC45</td><td>input</td><td>CELL_N[6].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC45</td><td>input</td><td>CELL_N[6].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC46</td><td>input</td><td>CELL_N[6].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC46</td><td>input</td><td>CELL_N[6].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC47</td><td>input</td><td>CELL_N[6].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC47</td><td>input</td><td>CELL_N[6].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC48</td><td>input</td><td>CELL_N[6].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC48</td><td>input</td><td>CELL_N[6].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC49</td><td>input</td><td>CELL_N[6].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC49</td><td>input</td><td>CELL_N[6].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC5</td><td>input</td><td>CELL_W[22].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC5</td><td>input</td><td>CELL_W[22].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC50</td><td>input</td><td>CELL_W[15].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC50</td><td>input</td><td>CELL_W[15].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC51</td><td>input</td><td>CELL_W[15].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC51</td><td>input</td><td>CELL_W[15].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC52</td><td>input</td><td>CELL_W[15].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC52</td><td>input</td><td>CELL_W[15].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC53</td><td>input</td><td>CELL_W[13].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC53</td><td>input</td><td>CELL_W[13].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC54</td><td>input</td><td>CELL_W[13].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC54</td><td>input</td><td>CELL_W[13].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC55</td><td>input</td><td>CELL_W[13].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC55</td><td>input</td><td>CELL_W[13].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC56</td><td>input</td><td>CELL_W[13].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC56</td><td>input</td><td>CELL_W[13].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC57</td><td>input</td><td>CELL_W[12].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC57</td><td>input</td><td>CELL_W[12].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC58</td><td>input</td><td>CELL_W[12].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC58</td><td>input</td><td>CELL_W[12].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC59</td><td>input</td><td>CELL_W[12].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC59</td><td>input</td><td>CELL_W[12].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC6</td><td>input</td><td>CELL_W[22].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC6</td><td>input</td><td>CELL_W[22].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC60</td><td>input</td><td>CELL_W[12].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC60</td><td>input</td><td>CELL_W[12].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC61</td><td>input</td><td>CELL_W[11].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC61</td><td>input</td><td>CELL_W[11].IMUX_SR_OPTINV[3]</td></tr>
 
 <tr><td>TIEEMAC1CONFIGVEC62</td><td>input</td><td>CELL_W[12].IMUX_IMUX[4]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC63</td><td>input</td><td>CELL_W[15].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC63</td><td>input</td><td>CELL_W[15].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TIEEMAC1CONFIGVEC64</td><td>input</td><td>CELL_W[15].IMUX_IMUX[6]</td></tr>
 
@@ -5901,7 +5901,7 @@
 
 <tr><td>TIEEMAC1CONFIGVEC69</td><td>input</td><td>CELL_W[15].IMUX_IMUX[11]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC7</td><td>input</td><td>CELL_W[22].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC7</td><td>input</td><td>CELL_W[22].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TIEEMAC1CONFIGVEC70</td><td>input</td><td>CELL_W[15].IMUX_IMUX[12]</td></tr>
 
@@ -5923,105 +5923,105 @@
 
 <tr><td>TIEEMAC1CONFIGVEC79</td><td>input</td><td>CELL_W[20].IMUX_IMUX[11]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC8</td><td>input</td><td>CELL_W[22].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC8</td><td>input</td><td>CELL_W[22].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1CONFIGVEC9</td><td>input</td><td>CELL_W[22].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1CONFIGVEC9</td><td>input</td><td>CELL_W[22].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR0</td><td>input</td><td>CELL_W[7].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR0</td><td>input</td><td>CELL_W[7].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR1</td><td>input</td><td>CELL_W[7].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR1</td><td>input</td><td>CELL_W[7].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR10</td><td>input</td><td>CELL_W[16].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR10</td><td>input</td><td>CELL_W[16].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR11</td><td>input</td><td>CELL_W[16].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR11</td><td>input</td><td>CELL_W[16].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR12</td><td>input</td><td>CELL_W[17].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR12</td><td>input</td><td>CELL_W[17].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR13</td><td>input</td><td>CELL_W[17].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR13</td><td>input</td><td>CELL_W[17].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR14</td><td>input</td><td>CELL_W[17].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR14</td><td>input</td><td>CELL_W[17].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR15</td><td>input</td><td>CELL_W[17].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR15</td><td>input</td><td>CELL_W[17].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR16</td><td>input</td><td>CELL_W[17].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR16</td><td>input</td><td>CELL_W[17].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR17</td><td>input</td><td>CELL_W[17].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR17</td><td>input</td><td>CELL_W[17].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR18</td><td>input</td><td>CELL_W[17].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR18</td><td>input</td><td>CELL_W[17].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR19</td><td>input</td><td>CELL_W[17].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR19</td><td>input</td><td>CELL_W[17].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR2</td><td>input</td><td>CELL_W[7].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR2</td><td>input</td><td>CELL_W[7].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR20</td><td>input</td><td>CELL_W[18].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR20</td><td>input</td><td>CELL_W[18].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR21</td><td>input</td><td>CELL_W[18].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR21</td><td>input</td><td>CELL_W[18].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR22</td><td>input</td><td>CELL_W[18].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR22</td><td>input</td><td>CELL_W[18].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR23</td><td>input</td><td>CELL_W[18].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR23</td><td>input</td><td>CELL_W[18].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR24</td><td>input</td><td>CELL_W[18].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR24</td><td>input</td><td>CELL_W[18].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR25</td><td>input</td><td>CELL_W[18].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR25</td><td>input</td><td>CELL_W[18].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR26</td><td>input</td><td>CELL_W[18].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR26</td><td>input</td><td>CELL_W[18].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR27</td><td>input</td><td>CELL_W[18].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR27</td><td>input</td><td>CELL_W[18].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR28</td><td>input</td><td>CELL_W[19].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR28</td><td>input</td><td>CELL_W[19].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR29</td><td>input</td><td>CELL_W[19].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR29</td><td>input</td><td>CELL_W[19].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR3</td><td>input</td><td>CELL_W[7].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR3</td><td>input</td><td>CELL_W[7].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR30</td><td>input</td><td>CELL_W[19].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR30</td><td>input</td><td>CELL_W[19].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR31</td><td>input</td><td>CELL_W[19].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR31</td><td>input</td><td>CELL_W[19].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR32</td><td>input</td><td>CELL_W[19].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR32</td><td>input</td><td>CELL_W[19].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR33</td><td>input</td><td>CELL_W[19].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR33</td><td>input</td><td>CELL_W[19].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR34</td><td>input</td><td>CELL_W[19].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR34</td><td>input</td><td>CELL_W[19].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR35</td><td>input</td><td>CELL_W[19].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR35</td><td>input</td><td>CELL_W[19].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR36</td><td>input</td><td>CELL_W[20].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR36</td><td>input</td><td>CELL_W[20].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR37</td><td>input</td><td>CELL_W[20].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR37</td><td>input</td><td>CELL_W[20].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR38</td><td>input</td><td>CELL_W[20].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR38</td><td>input</td><td>CELL_W[20].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR39</td><td>input</td><td>CELL_W[20].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR39</td><td>input</td><td>CELL_W[20].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR4</td><td>input</td><td>CELL_W[16].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR4</td><td>input</td><td>CELL_W[16].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR40</td><td>input</td><td>CELL_W[20].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR40</td><td>input</td><td>CELL_W[20].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR41</td><td>input</td><td>CELL_W[20].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR41</td><td>input</td><td>CELL_W[20].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR42</td><td>input</td><td>CELL_W[20].IMUX_CE[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR42</td><td>input</td><td>CELL_W[20].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR43</td><td>input</td><td>CELL_W[20].IMUX_CE[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR43</td><td>input</td><td>CELL_W[20].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR44</td><td>input</td><td>CELL_W[21].IMUX_SR[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR44</td><td>input</td><td>CELL_W[21].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR45</td><td>input</td><td>CELL_W[21].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR45</td><td>input</td><td>CELL_W[21].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR46</td><td>input</td><td>CELL_W[21].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR46</td><td>input</td><td>CELL_W[21].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR47</td><td>input</td><td>CELL_W[21].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR47</td><td>input</td><td>CELL_W[21].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR5</td><td>input</td><td>CELL_W[16].IMUX_SR[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR5</td><td>input</td><td>CELL_W[16].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR6</td><td>input</td><td>CELL_W[16].IMUX_SR[1]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR6</td><td>input</td><td>CELL_W[16].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR7</td><td>input</td><td>CELL_W[16].IMUX_SR[0]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR7</td><td>input</td><td>CELL_W[16].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR8</td><td>input</td><td>CELL_W[16].IMUX_CE[3]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR8</td><td>input</td><td>CELL_W[16].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>TIEEMAC1UNICASTADDR9</td><td>input</td><td>CELL_W[16].IMUX_CE[2]</td></tr>
+<tr><td>TIEEMAC1UNICASTADDR9</td><td>input</td><td>CELL_W[16].IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>TSTSIEMACI0</td><td>input</td><td>CELL_W[18].IMUX_IMUX[13]</td></tr>
 
@@ -6066,21 +6066,21 @@
 </thead>
 
 <tbody>
-<tr><td>CELL_W[0].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC8</td></tr>
+<tr><td>CELL_W[0].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC8</td></tr>
 
-<tr><td>CELL_W[0].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC9</td></tr>
+<tr><td>CELL_W[0].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC9</td></tr>
 
-<tr><td>CELL_W[0].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC10</td></tr>
+<tr><td>CELL_W[0].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC10</td></tr>
 
-<tr><td>CELL_W[0].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC11</td></tr>
+<tr><td>CELL_W[0].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC11</td></tr>
 
-<tr><td>CELL_W[0].IMUX_CE[0]</td><td>EMAC.TIEEMAC0CONFIGVEC4</td></tr>
+<tr><td>CELL_W[0].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC4</td></tr>
 
-<tr><td>CELL_W[0].IMUX_CE[1]</td><td>EMAC.TIEEMAC0CONFIGVEC5</td></tr>
+<tr><td>CELL_W[0].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC5</td></tr>
 
-<tr><td>CELL_W[0].IMUX_CE[2]</td><td>EMAC.TIEEMAC0CONFIGVEC6</td></tr>
+<tr><td>CELL_W[0].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC6</td></tr>
 
-<tr><td>CELL_W[0].IMUX_CE[3]</td><td>EMAC.TIEEMAC0CONFIGVEC7</td></tr>
+<tr><td>CELL_W[0].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC7</td></tr>
 
 <tr><td>CELL_W[0].IMUX_IMUX[0]</td><td>EMAC.PHYEMAC0RXD0</td></tr>
 
@@ -6172,21 +6172,21 @@
 
 <tr><td>CELL_W[0].OUT_HALF_N_TMIN[5]</td><td>PPC.LSSDSCANOUT5</td></tr>
 
-<tr><td>CELL_W[1].IMUX_SR[0]</td><td>EMAC.TIEEMAC0UNICASTADDR41</td></tr>
+<tr><td>CELL_W[1].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR41</td></tr>
 
-<tr><td>CELL_W[1].IMUX_SR[1]</td><td>EMAC.TIEEMAC0UNICASTADDR42</td></tr>
+<tr><td>CELL_W[1].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR42</td></tr>
 
-<tr><td>CELL_W[1].IMUX_SR[2]</td><td>EMAC.TIEEMAC0UNICASTADDR43</td></tr>
+<tr><td>CELL_W[1].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR43</td></tr>
 
-<tr><td>CELL_W[1].IMUX_SR[3]</td><td>EMAC.TIEEMAC0UNICASTADDR44</td></tr>
+<tr><td>CELL_W[1].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR44</td></tr>
 
-<tr><td>CELL_W[1].IMUX_CE[0]</td><td>EMAC.TIEEMAC0UNICASTADDR37</td></tr>
+<tr><td>CELL_W[1].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR37</td></tr>
 
-<tr><td>CELL_W[1].IMUX_CE[1]</td><td>EMAC.TIEEMAC0UNICASTADDR38</td></tr>
+<tr><td>CELL_W[1].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR38</td></tr>
 
-<tr><td>CELL_W[1].IMUX_CE[2]</td><td>EMAC.TIEEMAC0UNICASTADDR39</td></tr>
+<tr><td>CELL_W[1].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR39</td></tr>
 
-<tr><td>CELL_W[1].IMUX_CE[3]</td><td>EMAC.TIEEMAC0UNICASTADDR40</td></tr>
+<tr><td>CELL_W[1].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR40</td></tr>
 
 <tr><td>CELL_W[1].IMUX_IMUX[0]</td><td>EMAC.PHYEMAC0RXD4</td></tr>
 
@@ -6276,21 +6276,21 @@
 
 <tr><td>CELL_W[1].OUT_HALF_N_TMIN[5]</td><td>PPC.LSSDSCANOUT11</td></tr>
 
-<tr><td>CELL_W[2].IMUX_SR[0]</td><td>EMAC.TIEEMAC0UNICASTADDR33</td></tr>
+<tr><td>CELL_W[2].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR33</td></tr>
 
-<tr><td>CELL_W[2].IMUX_SR[1]</td><td>EMAC.TIEEMAC0UNICASTADDR34</td></tr>
+<tr><td>CELL_W[2].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR34</td></tr>
 
-<tr><td>CELL_W[2].IMUX_SR[2]</td><td>EMAC.TIEEMAC0UNICASTADDR35</td></tr>
+<tr><td>CELL_W[2].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR35</td></tr>
 
-<tr><td>CELL_W[2].IMUX_SR[3]</td><td>EMAC.TIEEMAC0UNICASTADDR36</td></tr>
+<tr><td>CELL_W[2].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR36</td></tr>
 
-<tr><td>CELL_W[2].IMUX_CE[0]</td><td>EMAC.TIEEMAC0UNICASTADDR29</td></tr>
+<tr><td>CELL_W[2].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR29</td></tr>
 
-<tr><td>CELL_W[2].IMUX_CE[1]</td><td>EMAC.TIEEMAC0UNICASTADDR30</td></tr>
+<tr><td>CELL_W[2].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR30</td></tr>
 
-<tr><td>CELL_W[2].IMUX_CE[2]</td><td>EMAC.TIEEMAC0UNICASTADDR31</td></tr>
+<tr><td>CELL_W[2].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR31</td></tr>
 
-<tr><td>CELL_W[2].IMUX_CE[3]</td><td>EMAC.TIEEMAC0UNICASTADDR32</td></tr>
+<tr><td>CELL_W[2].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR32</td></tr>
 
 <tr><td>CELL_W[2].IMUX_IMUX[0]</td><td>EMAC.PHYEMAC0RXNOTINTABLE</td></tr>
 
@@ -6372,21 +6372,21 @@
 
 <tr><td>CELL_W[2].OUT_HALF_N_TMIN[3]</td><td>PPC.LSSDSCANOUT15</td></tr>
 
-<tr><td>CELL_W[3].IMUX_SR[0]</td><td>EMAC.TIEEMAC0UNICASTADDR24</td></tr>
+<tr><td>CELL_W[3].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR24</td></tr>
 
-<tr><td>CELL_W[3].IMUX_SR[1]</td><td>EMAC.TIEEMAC0UNICASTADDR25</td></tr>
+<tr><td>CELL_W[3].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR25</td></tr>
 
-<tr><td>CELL_W[3].IMUX_SR[2]</td><td>EMAC.TIEEMAC0UNICASTADDR26</td></tr>
+<tr><td>CELL_W[3].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR26</td></tr>
 
-<tr><td>CELL_W[3].IMUX_SR[3]</td><td>EMAC.TIEEMAC0UNICASTADDR27</td></tr>
+<tr><td>CELL_W[3].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR27</td></tr>
 
-<tr><td>CELL_W[3].IMUX_CE[0]</td><td>EMAC.TIEEMAC0UNICASTADDR20</td></tr>
+<tr><td>CELL_W[3].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR20</td></tr>
 
-<tr><td>CELL_W[3].IMUX_CE[1]</td><td>EMAC.TIEEMAC0UNICASTADDR21</td></tr>
+<tr><td>CELL_W[3].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR21</td></tr>
 
-<tr><td>CELL_W[3].IMUX_CE[2]</td><td>EMAC.TIEEMAC0UNICASTADDR22</td></tr>
+<tr><td>CELL_W[3].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR22</td></tr>
 
-<tr><td>CELL_W[3].IMUX_CE[3]</td><td>EMAC.TIEEMAC0UNICASTADDR23</td></tr>
+<tr><td>CELL_W[3].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR23</td></tr>
 
 <tr><td>CELL_W[3].IMUX_IMUX[0]</td><td>EMAC.CLIENTEMAC0TXFIRSTBYTE</td></tr>
 
@@ -6466,21 +6466,21 @@
 
 <tr><td>CELL_W[3].OUT_HALF_N_TMIN[3]</td><td>PPC.TSTC405APUWBBYTEENO3</td></tr>
 
-<tr><td>CELL_W[4].IMUX_SR[0]</td><td>EMAC.TIEEMAC0UNICASTADDR15</td></tr>
+<tr><td>CELL_W[4].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR15</td></tr>
 
-<tr><td>CELL_W[4].IMUX_SR[1]</td><td>EMAC.TIEEMAC0UNICASTADDR16</td></tr>
+<tr><td>CELL_W[4].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR16</td></tr>
 
-<tr><td>CELL_W[4].IMUX_SR[2]</td><td>EMAC.TIEEMAC0UNICASTADDR17</td></tr>
+<tr><td>CELL_W[4].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR17</td></tr>
 
-<tr><td>CELL_W[4].IMUX_SR[3]</td><td>EMAC.TIEEMAC0UNICASTADDR18</td></tr>
+<tr><td>CELL_W[4].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR18</td></tr>
 
-<tr><td>CELL_W[4].IMUX_CE[0]</td><td>EMAC.TIEEMAC0UNICASTADDR11</td></tr>
+<tr><td>CELL_W[4].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR11</td></tr>
 
-<tr><td>CELL_W[4].IMUX_CE[1]</td><td>EMAC.TIEEMAC0UNICASTADDR12</td></tr>
+<tr><td>CELL_W[4].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR12</td></tr>
 
-<tr><td>CELL_W[4].IMUX_CE[2]</td><td>EMAC.TIEEMAC0UNICASTADDR13</td></tr>
+<tr><td>CELL_W[4].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR13</td></tr>
 
-<tr><td>CELL_W[4].IMUX_CE[3]</td><td>EMAC.TIEEMAC0UNICASTADDR14</td></tr>
+<tr><td>CELL_W[4].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR14</td></tr>
 
 <tr><td>CELL_W[4].IMUX_IMUX[0]</td><td>EMAC.CLIENTEMAC0TXD8</td></tr>
 
@@ -6562,21 +6562,21 @@
 
 <tr><td>CELL_W[4].OUT_HALF_N_TMIN[3]</td><td>EMAC.TSTSOEMACO3</td></tr>
 
-<tr><td>CELL_W[5].IMUX_SR[0]</td><td>EMAC.TIEEMAC0UNICASTADDR7</td></tr>
+<tr><td>CELL_W[5].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR7</td></tr>
 
-<tr><td>CELL_W[5].IMUX_SR[1]</td><td>EMAC.TIEEMAC0UNICASTADDR8</td></tr>
+<tr><td>CELL_W[5].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR8</td></tr>
 
-<tr><td>CELL_W[5].IMUX_SR[2]</td><td>EMAC.TIEEMAC0UNICASTADDR9</td></tr>
+<tr><td>CELL_W[5].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR9</td></tr>
 
-<tr><td>CELL_W[5].IMUX_SR[3]</td><td>EMAC.TIEEMAC0UNICASTADDR10</td></tr>
+<tr><td>CELL_W[5].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR10</td></tr>
 
-<tr><td>CELL_W[5].IMUX_CE[0]</td><td>EMAC.TIEEMAC0UNICASTADDR3</td></tr>
+<tr><td>CELL_W[5].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0UNICASTADDR3</td></tr>
 
-<tr><td>CELL_W[5].IMUX_CE[1]</td><td>EMAC.TIEEMAC0UNICASTADDR4</td></tr>
+<tr><td>CELL_W[5].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR4</td></tr>
 
-<tr><td>CELL_W[5].IMUX_CE[2]</td><td>EMAC.TIEEMAC0UNICASTADDR5</td></tr>
+<tr><td>CELL_W[5].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR5</td></tr>
 
-<tr><td>CELL_W[5].IMUX_CE[3]</td><td>EMAC.TIEEMAC0UNICASTADDR6</td></tr>
+<tr><td>CELL_W[5].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR6</td></tr>
 
 <tr><td>CELL_W[5].IMUX_IMUX[0]</td><td>EMAC.CLIENTEMAC0TXD12</td></tr>
 
@@ -6660,23 +6660,23 @@
 
 <tr><td>CELL_W[5].OUT_HALF_N_TMIN[3]</td><td>PPC.TSTC405APUDCDFULLO</td></tr>
 
-<tr><td>CELL_W[6].IMUX_SR[0]</td><td>PPC.TIEDCRADDR4</td></tr>
+<tr><td>CELL_W[6].IMUX_SR_OPTINV[0]</td><td>PPC.TIEDCRADDR4</td></tr>
 
-<tr><td>CELL_W[6].IMUX_SR[1]</td><td>EMAC.TIEEMAC0UNICASTADDR0</td></tr>
+<tr><td>CELL_W[6].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0UNICASTADDR0</td></tr>
 
-<tr><td>CELL_W[6].IMUX_SR[2]</td><td>EMAC.TIEEMAC0UNICASTADDR1</td></tr>
+<tr><td>CELL_W[6].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0UNICASTADDR1</td></tr>
 
-<tr><td>CELL_W[6].IMUX_SR[3]</td><td>EMAC.TIEEMAC0UNICASTADDR2</td></tr>
+<tr><td>CELL_W[6].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0UNICASTADDR2</td></tr>
 
-<tr><td>CELL_W[6].IMUX_CLK[0]</td><td>EMAC.EMAC0TIBUS0</td></tr>
+<tr><td>CELL_W[6].IMUX_CLK_OPTINV[0]</td><td>EMAC.EMAC0TIBUS0</td></tr>
 
-<tr><td>CELL_W[6].IMUX_CE[0]</td><td>PPC.TIEDCRADDR0</td></tr>
+<tr><td>CELL_W[6].IMUX_CE_OPTINV[0]</td><td>PPC.TIEDCRADDR0</td></tr>
 
-<tr><td>CELL_W[6].IMUX_CE[1]</td><td>PPC.TIEDCRADDR1</td></tr>
+<tr><td>CELL_W[6].IMUX_CE_OPTINV[1]</td><td>PPC.TIEDCRADDR1</td></tr>
 
-<tr><td>CELL_W[6].IMUX_CE[2]</td><td>PPC.TIEDCRADDR2</td></tr>
+<tr><td>CELL_W[6].IMUX_CE_OPTINV[2]</td><td>PPC.TIEDCRADDR2</td></tr>
 
-<tr><td>CELL_W[6].IMUX_CE[3]</td><td>PPC.TIEDCRADDR3</td></tr>
+<tr><td>CELL_W[6].IMUX_CE_OPTINV[3]</td><td>PPC.TIEDCRADDR3</td></tr>
 
 <tr><td>CELL_W[6].IMUX_IMUX[0]</td><td>EMAC.HOSTADDR0</td></tr>
 
@@ -6774,23 +6774,23 @@
 
 <tr><td>CELL_W[6].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMLOADREQO</td></tr>
 
-<tr><td>CELL_W[7].IMUX_SR[0]</td><td>EMAC.TIEEMAC1UNICASTADDR3</td></tr>
+<tr><td>CELL_W[7].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR3</td></tr>
 
-<tr><td>CELL_W[7].IMUX_SR[1]</td><td>EMAC.TIEEMAC1UNICASTADDR2</td></tr>
+<tr><td>CELL_W[7].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR2</td></tr>
 
-<tr><td>CELL_W[7].IMUX_SR[2]</td><td>EMAC.TIEEMAC1UNICASTADDR1</td></tr>
+<tr><td>CELL_W[7].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR1</td></tr>
 
-<tr><td>CELL_W[7].IMUX_SR[3]</td><td>EMAC.TIEEMAC1UNICASTADDR0</td></tr>
+<tr><td>CELL_W[7].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR0</td></tr>
 
-<tr><td>CELL_W[7].IMUX_CLK[0]</td><td>PPC.CPMDCRCLK</td></tr>
+<tr><td>CELL_W[7].IMUX_CLK_OPTINV[0]</td><td>PPC.CPMDCRCLK</td></tr>
 
-<tr><td>CELL_W[7].IMUX_CE[0]</td><td>PPC.TIEDCRADDR5</td></tr>
+<tr><td>CELL_W[7].IMUX_CE_OPTINV[0]</td><td>PPC.TIEDCRADDR5</td></tr>
 
-<tr><td>CELL_W[7].IMUX_CE[1]</td><td>PPC.TESTSELI</td></tr>
+<tr><td>CELL_W[7].IMUX_CE_OPTINV[1]</td><td>PPC.TESTSELI</td></tr>
 
-<tr><td>CELL_W[7].IMUX_CE[2]</td><td>EMAC.TIEEMAC0CONFIGVEC63</td></tr>
+<tr><td>CELL_W[7].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC63</td></tr>
 
-<tr><td>CELL_W[7].IMUX_CE[3]</td><td>PPC.TSTUSECPMCLKSELI</td></tr>
+<tr><td>CELL_W[7].IMUX_CE_OPTINV[3]</td><td>PPC.TSTUSECPMCLKSELI</td></tr>
 
 <tr><td>CELL_W[7].IMUX_IMUX[0]</td><td>EMAC.HOSTWRDATA2</td></tr>
 
@@ -6888,23 +6888,23 @@
 
 <tr><td>CELL_W[7].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUMSRFE1O</td></tr>
 
-<tr><td>CELL_W[8].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC49</td></tr>
+<tr><td>CELL_W[8].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC49</td></tr>
 
-<tr><td>CELL_W[8].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC50</td></tr>
+<tr><td>CELL_W[8].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC50</td></tr>
 
-<tr><td>CELL_W[8].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC51</td></tr>
+<tr><td>CELL_W[8].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC51</td></tr>
 
-<tr><td>CELL_W[8].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC52</td></tr>
+<tr><td>CELL_W[8].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC52</td></tr>
 
-<tr><td>CELL_W[8].IMUX_CLK[0]</td><td>EMAC.EMAC0TIBUS1</td></tr>
+<tr><td>CELL_W[8].IMUX_CLK_OPTINV[0]</td><td>EMAC.EMAC0TIBUS1</td></tr>
 
-<tr><td>CELL_W[8].IMUX_CE[0]</td><td>PPC.TIEPVRBIT28</td></tr>
+<tr><td>CELL_W[8].IMUX_CE_OPTINV[0]</td><td>PPC.TIEPVRBIT28</td></tr>
 
-<tr><td>CELL_W[8].IMUX_CE[1]</td><td>PPC.TIEPVRBIT29</td></tr>
+<tr><td>CELL_W[8].IMUX_CE_OPTINV[1]</td><td>PPC.TIEPVRBIT29</td></tr>
 
-<tr><td>CELL_W[8].IMUX_CE[2]</td><td>PPC.TIEPVRBIT30</td></tr>
+<tr><td>CELL_W[8].IMUX_CE_OPTINV[2]</td><td>PPC.TIEPVRBIT30</td></tr>
 
-<tr><td>CELL_W[8].IMUX_CE[3]</td><td>PPC.TIEPVRBIT31</td></tr>
+<tr><td>CELL_W[8].IMUX_CE_OPTINV[3]</td><td>PPC.TIEPVRBIT31</td></tr>
 
 <tr><td>CELL_W[8].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN28</td></tr>
 
@@ -7000,23 +7000,23 @@
 
 <tr><td>CELL_W[8].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO31</td></tr>
 
-<tr><td>CELL_W[9].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC53</td></tr>
+<tr><td>CELL_W[9].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC53</td></tr>
 
-<tr><td>CELL_W[9].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC54</td></tr>
+<tr><td>CELL_W[9].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC54</td></tr>
 
-<tr><td>CELL_W[9].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC55</td></tr>
+<tr><td>CELL_W[9].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC55</td></tr>
 
-<tr><td>CELL_W[9].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC56</td></tr>
+<tr><td>CELL_W[9].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC56</td></tr>
 
-<tr><td>CELL_W[9].IMUX_CLK[0]</td><td>EMAC.PHYEMAC0MCLKIN</td></tr>
+<tr><td>CELL_W[9].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC0MCLKIN</td></tr>
 
-<tr><td>CELL_W[9].IMUX_CE[0]</td><td>PPC.LSSDSCANIN0</td></tr>
+<tr><td>CELL_W[9].IMUX_CE_OPTINV[0]</td><td>PPC.LSSDSCANIN0</td></tr>
 
-<tr><td>CELL_W[9].IMUX_CE[1]</td><td>PPC.LSSDSCANIN1</td></tr>
+<tr><td>CELL_W[9].IMUX_CE_OPTINV[1]</td><td>PPC.LSSDSCANIN1</td></tr>
 
-<tr><td>CELL_W[9].IMUX_CE[2]</td><td>PPC.LSSDSCANIN2</td></tr>
+<tr><td>CELL_W[9].IMUX_CE_OPTINV[2]</td><td>PPC.LSSDSCANIN2</td></tr>
 
-<tr><td>CELL_W[9].IMUX_CE[3]</td><td>PPC.LSSDSCANIN3</td></tr>
+<tr><td>CELL_W[9].IMUX_CE_OPTINV[3]</td><td>PPC.LSSDSCANIN3</td></tr>
 
 <tr><td>CELL_W[9].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN24</td></tr>
 
@@ -7116,23 +7116,23 @@
 
 <tr><td>CELL_W[9].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO27</td></tr>
 
-<tr><td>CELL_W[10].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC57</td></tr>
+<tr><td>CELL_W[10].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC57</td></tr>
 
-<tr><td>CELL_W[10].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC58</td></tr>
+<tr><td>CELL_W[10].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC58</td></tr>
 
-<tr><td>CELL_W[10].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC59</td></tr>
+<tr><td>CELL_W[10].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC59</td></tr>
 
-<tr><td>CELL_W[10].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC60</td></tr>
+<tr><td>CELL_W[10].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC60</td></tr>
 
-<tr><td>CELL_W[10].IMUX_CLK[0]</td><td>EMAC.CLIENTEMAC0RXCLIENTCLKIN</td></tr>
+<tr><td>CELL_W[10].IMUX_CLK_OPTINV[0]</td><td>EMAC.CLIENTEMAC0RXCLIENTCLKIN</td></tr>
 
-<tr><td>CELL_W[10].IMUX_CE[0]</td><td>PPC.LSSDSCANIN4</td></tr>
+<tr><td>CELL_W[10].IMUX_CE_OPTINV[0]</td><td>PPC.LSSDSCANIN4</td></tr>
 
-<tr><td>CELL_W[10].IMUX_CE[1]</td><td>PPC.LSSDSCANIN5</td></tr>
+<tr><td>CELL_W[10].IMUX_CE_OPTINV[1]</td><td>PPC.LSSDSCANIN5</td></tr>
 
-<tr><td>CELL_W[10].IMUX_CE[2]</td><td>PPC.LSSDSCANIN6</td></tr>
+<tr><td>CELL_W[10].IMUX_CE_OPTINV[2]</td><td>PPC.LSSDSCANIN6</td></tr>
 
-<tr><td>CELL_W[10].IMUX_CE[3]</td><td>PPC.LSSDSCANIN7</td></tr>
+<tr><td>CELL_W[10].IMUX_CE_OPTINV[3]</td><td>PPC.LSSDSCANIN7</td></tr>
 
 <tr><td>CELL_W[10].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN20</td></tr>
 
@@ -7232,23 +7232,23 @@
 
 <tr><td>CELL_W[10].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO23</td></tr>
 
-<tr><td>CELL_W[11].IMUX_SR[0]</td><td>PPC.BISTCE0LOADIN</td></tr>
+<tr><td>CELL_W[11].IMUX_SR_OPTINV[0]</td><td>PPC.BISTCE0LOADIN</td></tr>
 
-<tr><td>CELL_W[11].IMUX_SR[1]</td><td>PPC.C405TESTRESERVE1</td></tr>
+<tr><td>CELL_W[11].IMUX_SR_OPTINV[1]</td><td>PPC.C405TESTRESERVE1</td></tr>
 
-<tr><td>CELL_W[11].IMUX_SR[2]</td><td>PPC.C405TESTRESERVE2</td></tr>
+<tr><td>CELL_W[11].IMUX_SR_OPTINV[2]</td><td>PPC.C405TESTRESERVE2</td></tr>
 
-<tr><td>CELL_W[11].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC61</td></tr>
+<tr><td>CELL_W[11].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC61</td></tr>
 
-<tr><td>CELL_W[11].IMUX_CLK[0]</td><td>EMAC.CLIENTEMAC0TXGMIIMIICLKIN</td></tr>
+<tr><td>CELL_W[11].IMUX_CLK_OPTINV[0]</td><td>EMAC.CLIENTEMAC0TXGMIIMIICLKIN</td></tr>
 
-<tr><td>CELL_W[11].IMUX_CE[0]</td><td>PPC.LSSDSCANIN8</td></tr>
+<tr><td>CELL_W[11].IMUX_CE_OPTINV[0]</td><td>PPC.LSSDSCANIN8</td></tr>
 
-<tr><td>CELL_W[11].IMUX_CE[1]</td><td>PPC.LSSDSCANIN9</td></tr>
+<tr><td>CELL_W[11].IMUX_CE_OPTINV[1]</td><td>PPC.LSSDSCANIN9</td></tr>
 
-<tr><td>CELL_W[11].IMUX_CE[2]</td><td>PPC.LSSDSCANIN10</td></tr>
+<tr><td>CELL_W[11].IMUX_CE_OPTINV[2]</td><td>PPC.LSSDSCANIN10</td></tr>
 
-<tr><td>CELL_W[11].IMUX_CE[3]</td><td>PPC.LSSDSCANIN11</td></tr>
+<tr><td>CELL_W[11].IMUX_CE_OPTINV[3]</td><td>PPC.LSSDSCANIN11</td></tr>
 
 <tr><td>CELL_W[11].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN16</td></tr>
 
@@ -7336,23 +7336,23 @@
 
 <tr><td>CELL_W[11].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO19</td></tr>
 
-<tr><td>CELL_W[12].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC60</td></tr>
+<tr><td>CELL_W[12].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC60</td></tr>
 
-<tr><td>CELL_W[12].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC59</td></tr>
+<tr><td>CELL_W[12].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC59</td></tr>
 
-<tr><td>CELL_W[12].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC58</td></tr>
+<tr><td>CELL_W[12].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC58</td></tr>
 
-<tr><td>CELL_W[12].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC57</td></tr>
+<tr><td>CELL_W[12].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC57</td></tr>
 
-<tr><td>CELL_W[12].IMUX_CLK[0]</td><td>EMAC.CLIENTEMAC0TXCLIENTCLKIN</td></tr>
+<tr><td>CELL_W[12].IMUX_CLK_OPTINV[0]</td><td>EMAC.CLIENTEMAC0TXCLIENTCLKIN</td></tr>
 
-<tr><td>CELL_W[12].IMUX_CE[0]</td><td>PPC.LSSDSCANIN12</td></tr>
+<tr><td>CELL_W[12].IMUX_CE_OPTINV[0]</td><td>PPC.LSSDSCANIN12</td></tr>
 
-<tr><td>CELL_W[12].IMUX_CE[1]</td><td>PPC.LSSDSCANIN13</td></tr>
+<tr><td>CELL_W[12].IMUX_CE_OPTINV[1]</td><td>PPC.LSSDSCANIN13</td></tr>
 
-<tr><td>CELL_W[12].IMUX_CE[2]</td><td>PPC.LSSDSCANIN14</td></tr>
+<tr><td>CELL_W[12].IMUX_CE_OPTINV[2]</td><td>PPC.LSSDSCANIN14</td></tr>
 
-<tr><td>CELL_W[12].IMUX_CE[3]</td><td>PPC.LSSDSCANIN15</td></tr>
+<tr><td>CELL_W[12].IMUX_CE_OPTINV[3]</td><td>PPC.LSSDSCANIN15</td></tr>
 
 <tr><td>CELL_W[12].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN12</td></tr>
 
@@ -7442,23 +7442,23 @@
 
 <tr><td>CELL_W[12].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO15</td></tr>
 
-<tr><td>CELL_W[13].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC56</td></tr>
+<tr><td>CELL_W[13].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC56</td></tr>
 
-<tr><td>CELL_W[13].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC55</td></tr>
+<tr><td>CELL_W[13].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC55</td></tr>
 
-<tr><td>CELL_W[13].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC54</td></tr>
+<tr><td>CELL_W[13].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC54</td></tr>
 
-<tr><td>CELL_W[13].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC53</td></tr>
+<tr><td>CELL_W[13].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC53</td></tr>
 
-<tr><td>CELL_W[13].IMUX_CLK[0]</td><td>EMAC.PHYEMAC0MIITXCLK</td></tr>
+<tr><td>CELL_W[13].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC0MIITXCLK</td></tr>
 
-<tr><td>CELL_W[13].IMUX_CE[0]</td><td>PPC.TIEPVRBIT8</td></tr>
+<tr><td>CELL_W[13].IMUX_CE_OPTINV[0]</td><td>PPC.TIEPVRBIT8</td></tr>
 
-<tr><td>CELL_W[13].IMUX_CE[1]</td><td>PPC.TIEPVRBIT9</td></tr>
+<tr><td>CELL_W[13].IMUX_CE_OPTINV[1]</td><td>PPC.TIEPVRBIT9</td></tr>
 
-<tr><td>CELL_W[13].IMUX_CE[2]</td><td>PPC.TIEPVRBIT10</td></tr>
+<tr><td>CELL_W[13].IMUX_CE_OPTINV[2]</td><td>PPC.TIEPVRBIT10</td></tr>
 
-<tr><td>CELL_W[13].IMUX_CE[3]</td><td>PPC.TIEPVRBIT11</td></tr>
+<tr><td>CELL_W[13].IMUX_CE_OPTINV[3]</td><td>PPC.TIEPVRBIT11</td></tr>
 
 <tr><td>CELL_W[13].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN8</td></tr>
 
@@ -7548,23 +7548,23 @@
 
 <tr><td>CELL_W[13].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO11</td></tr>
 
-<tr><td>CELL_W[14].IMUX_SR[0]</td><td>PPC.MCBJTAGEN</td></tr>
+<tr><td>CELL_W[14].IMUX_SR_OPTINV[0]</td><td>PPC.MCBJTAGEN</td></tr>
 
-<tr><td>CELL_W[14].IMUX_SR[1]</td><td>PPC.MCBCPUCLKEN</td></tr>
+<tr><td>CELL_W[14].IMUX_SR_OPTINV[1]</td><td>PPC.MCBCPUCLKEN</td></tr>
 
-<tr><td>CELL_W[14].IMUX_SR[2]</td><td>PPC.MCBTIMEREN</td></tr>
+<tr><td>CELL_W[14].IMUX_SR_OPTINV[2]</td><td>PPC.MCBTIMEREN</td></tr>
 
-<tr><td>CELL_W[14].IMUX_SR[3]</td><td>PPC.MCPPCRST</td></tr>
+<tr><td>CELL_W[14].IMUX_SR_OPTINV[3]</td><td>PPC.MCPPCRST</td></tr>
 
-<tr><td>CELL_W[14].IMUX_CLK[0]</td><td>EMAC.PHYEMAC0RXCLK</td></tr>
+<tr><td>CELL_W[14].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC0RXCLK</td></tr>
 
-<tr><td>CELL_W[14].IMUX_CE[0]</td><td>PPC.BISTCE0CONTINUE</td></tr>
+<tr><td>CELL_W[14].IMUX_CE_OPTINV[0]</td><td>PPC.BISTCE0CONTINUE</td></tr>
 
-<tr><td>CELL_W[14].IMUX_CE[1]</td><td>PPC.LSSDCE0TESTM3</td></tr>
+<tr><td>CELL_W[14].IMUX_CE_OPTINV[1]</td><td>PPC.LSSDCE0TESTM3</td></tr>
 
-<tr><td>CELL_W[14].IMUX_CE[2]</td><td>PPC.LSSDCE0SCAN</td></tr>
+<tr><td>CELL_W[14].IMUX_CE_OPTINV[2]</td><td>PPC.LSSDCE0SCAN</td></tr>
 
-<tr><td>CELL_W[14].IMUX_CE[3]</td><td>PPC.LSSDCE0CNTLPOINT</td></tr>
+<tr><td>CELL_W[14].IMUX_CE_OPTINV[3]</td><td>PPC.LSSDCE0CNTLPOINT</td></tr>
 
 <tr><td>CELL_W[14].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN4</td></tr>
 
@@ -7662,23 +7662,23 @@
 
 <tr><td>CELL_W[14].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO7</td></tr>
 
-<tr><td>CELL_W[15].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC63</td></tr>
+<tr><td>CELL_W[15].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC63</td></tr>
 
-<tr><td>CELL_W[15].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC52</td></tr>
+<tr><td>CELL_W[15].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC52</td></tr>
 
-<tr><td>CELL_W[15].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC51</td></tr>
+<tr><td>CELL_W[15].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC51</td></tr>
 
-<tr><td>CELL_W[15].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC50</td></tr>
+<tr><td>CELL_W[15].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC50</td></tr>
 
-<tr><td>CELL_W[15].IMUX_CLK[0]</td><td>EMAC.PHYEMAC0GTXCLK</td></tr>
+<tr><td>CELL_W[15].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC0GTXCLK</td></tr>
 
-<tr><td>CELL_W[15].IMUX_CE[0]</td><td>PPC.LSSDCE0A</td></tr>
+<tr><td>CELL_W[15].IMUX_CE_OPTINV[0]</td><td>PPC.LSSDCE0A</td></tr>
 
-<tr><td>CELL_W[15].IMUX_CE[1]</td><td>PPC.BISTCE0TESTM1</td></tr>
+<tr><td>CELL_W[15].IMUX_CE_OPTINV[1]</td><td>PPC.BISTCE0TESTM1</td></tr>
 
-<tr><td>CELL_W[15].IMUX_CE[2]</td><td>PPC.BISTCE0DIAGSHIFTSEL</td></tr>
+<tr><td>CELL_W[15].IMUX_CE_OPTINV[2]</td><td>PPC.BISTCE0DIAGSHIFTSEL</td></tr>
 
-<tr><td>CELL_W[15].IMUX_CE[3]</td><td>PPC.BISTCE0LOADOPCODE</td></tr>
+<tr><td>CELL_W[15].IMUX_CE_OPTINV[3]</td><td>PPC.BISTCE0LOADOPCODE</td></tr>
 
 <tr><td>CELL_W[15].IMUX_IMUX[0]</td><td>PPC.EXTDCRDBUSIN0</td></tr>
 
@@ -7772,23 +7772,23 @@
 
 <tr><td>CELL_W[15].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTDSOCMC405RDDBUSO3</td></tr>
 
-<tr><td>CELL_W[16].IMUX_SR[0]</td><td>EMAC.TIEEMAC1UNICASTADDR7</td></tr>
+<tr><td>CELL_W[16].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR7</td></tr>
 
-<tr><td>CELL_W[16].IMUX_SR[1]</td><td>EMAC.TIEEMAC1UNICASTADDR6</td></tr>
+<tr><td>CELL_W[16].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR6</td></tr>
 
-<tr><td>CELL_W[16].IMUX_SR[2]</td><td>EMAC.TIEEMAC1UNICASTADDR5</td></tr>
+<tr><td>CELL_W[16].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR5</td></tr>
 
-<tr><td>CELL_W[16].IMUX_SR[3]</td><td>EMAC.TIEEMAC1UNICASTADDR4</td></tr>
+<tr><td>CELL_W[16].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR4</td></tr>
 
-<tr><td>CELL_W[16].IMUX_CLK[0]</td><td>EMAC.HOSTCLK</td></tr>
+<tr><td>CELL_W[16].IMUX_CLK_OPTINV[0]</td><td>EMAC.HOSTCLK</td></tr>
 
-<tr><td>CELL_W[16].IMUX_CE[0]</td><td>EMAC.TIEEMAC1UNICASTADDR11</td></tr>
+<tr><td>CELL_W[16].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR11</td></tr>
 
-<tr><td>CELL_W[16].IMUX_CE[1]</td><td>EMAC.TIEEMAC1UNICASTADDR10</td></tr>
+<tr><td>CELL_W[16].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR10</td></tr>
 
-<tr><td>CELL_W[16].IMUX_CE[2]</td><td>EMAC.TIEEMAC1UNICASTADDR9</td></tr>
+<tr><td>CELL_W[16].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR9</td></tr>
 
-<tr><td>CELL_W[16].IMUX_CE[3]</td><td>EMAC.TIEEMAC1UNICASTADDR8</td></tr>
+<tr><td>CELL_W[16].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR8</td></tr>
 
 <tr><td>CELL_W[16].IMUX_IMUX[0]</td><td>EMAC.HOSTWRDATA14</td></tr>
 
@@ -7886,23 +7886,23 @@
 
 <tr><td>CELL_W[16].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWAITO</td></tr>
 
-<tr><td>CELL_W[17].IMUX_SR[0]</td><td>EMAC.TIEEMAC1UNICASTADDR15</td></tr>
+<tr><td>CELL_W[17].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR15</td></tr>
 
-<tr><td>CELL_W[17].IMUX_SR[1]</td><td>EMAC.TIEEMAC1UNICASTADDR14</td></tr>
+<tr><td>CELL_W[17].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR14</td></tr>
 
-<tr><td>CELL_W[17].IMUX_SR[2]</td><td>EMAC.TIEEMAC1UNICASTADDR13</td></tr>
+<tr><td>CELL_W[17].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR13</td></tr>
 
-<tr><td>CELL_W[17].IMUX_SR[3]</td><td>EMAC.TIEEMAC1UNICASTADDR12</td></tr>
+<tr><td>CELL_W[17].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR12</td></tr>
 
-<tr><td>CELL_W[17].IMUX_CLK[0]</td><td>EMAC.EMAC1TIBUS0</td></tr>
+<tr><td>CELL_W[17].IMUX_CLK_OPTINV[0]</td><td>EMAC.EMAC1TIBUS0</td></tr>
 
-<tr><td>CELL_W[17].IMUX_CE[0]</td><td>EMAC.TIEEMAC1UNICASTADDR19</td></tr>
+<tr><td>CELL_W[17].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR19</td></tr>
 
-<tr><td>CELL_W[17].IMUX_CE[1]</td><td>EMAC.TIEEMAC1UNICASTADDR18</td></tr>
+<tr><td>CELL_W[17].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR18</td></tr>
 
-<tr><td>CELL_W[17].IMUX_CE[2]</td><td>EMAC.TIEEMAC1UNICASTADDR17</td></tr>
+<tr><td>CELL_W[17].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR17</td></tr>
 
-<tr><td>CELL_W[17].IMUX_CE[3]</td><td>EMAC.TIEEMAC1UNICASTADDR16</td></tr>
+<tr><td>CELL_W[17].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR16</td></tr>
 
 <tr><td>CELL_W[17].IMUX_IMUX[0]</td><td>EMAC.HOSTWRDATA26</td></tr>
 
@@ -8000,23 +8000,23 @@
 
 <tr><td>CELL_W[17].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWRDBUSO27</td></tr>
 
-<tr><td>CELL_W[18].IMUX_SR[0]</td><td>EMAC.TIEEMAC1UNICASTADDR23</td></tr>
+<tr><td>CELL_W[18].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR23</td></tr>
 
-<tr><td>CELL_W[18].IMUX_SR[1]</td><td>EMAC.TIEEMAC1UNICASTADDR22</td></tr>
+<tr><td>CELL_W[18].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR22</td></tr>
 
-<tr><td>CELL_W[18].IMUX_SR[2]</td><td>EMAC.TIEEMAC1UNICASTADDR21</td></tr>
+<tr><td>CELL_W[18].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR21</td></tr>
 
-<tr><td>CELL_W[18].IMUX_SR[3]</td><td>EMAC.TIEEMAC1UNICASTADDR20</td></tr>
+<tr><td>CELL_W[18].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR20</td></tr>
 
-<tr><td>CELL_W[18].IMUX_CLK[0]</td><td>EMAC.EMAC1TIBUS1</td></tr>
+<tr><td>CELL_W[18].IMUX_CLK_OPTINV[0]</td><td>EMAC.EMAC1TIBUS1</td></tr>
 
-<tr><td>CELL_W[18].IMUX_CE[0]</td><td>EMAC.TIEEMAC1UNICASTADDR27</td></tr>
+<tr><td>CELL_W[18].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR27</td></tr>
 
-<tr><td>CELL_W[18].IMUX_CE[1]</td><td>EMAC.TIEEMAC1UNICASTADDR26</td></tr>
+<tr><td>CELL_W[18].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR26</td></tr>
 
-<tr><td>CELL_W[18].IMUX_CE[2]</td><td>EMAC.TIEEMAC1UNICASTADDR25</td></tr>
+<tr><td>CELL_W[18].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR25</td></tr>
 
-<tr><td>CELL_W[18].IMUX_CE[3]</td><td>EMAC.TIEEMAC1UNICASTADDR24</td></tr>
+<tr><td>CELL_W[18].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR24</td></tr>
 
 <tr><td>CELL_W[18].IMUX_IMUX[0]</td><td>EMAC.CLIENTEMAC1TXD12</td></tr>
 
@@ -8114,23 +8114,23 @@
 
 <tr><td>CELL_W[18].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWRDBUSO23</td></tr>
 
-<tr><td>CELL_W[19].IMUX_SR[0]</td><td>EMAC.TIEEMAC1UNICASTADDR31</td></tr>
+<tr><td>CELL_W[19].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR31</td></tr>
 
-<tr><td>CELL_W[19].IMUX_SR[1]</td><td>EMAC.TIEEMAC1UNICASTADDR30</td></tr>
+<tr><td>CELL_W[19].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR30</td></tr>
 
-<tr><td>CELL_W[19].IMUX_SR[2]</td><td>EMAC.TIEEMAC1UNICASTADDR29</td></tr>
+<tr><td>CELL_W[19].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR29</td></tr>
 
-<tr><td>CELL_W[19].IMUX_SR[3]</td><td>EMAC.TIEEMAC1UNICASTADDR28</td></tr>
+<tr><td>CELL_W[19].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR28</td></tr>
 
-<tr><td>CELL_W[19].IMUX_CLK[0]</td><td>EMAC.PHYEMAC1MCLKIN</td></tr>
+<tr><td>CELL_W[19].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC1MCLKIN</td></tr>
 
-<tr><td>CELL_W[19].IMUX_CE[0]</td><td>EMAC.TIEEMAC1UNICASTADDR35</td></tr>
+<tr><td>CELL_W[19].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR35</td></tr>
 
-<tr><td>CELL_W[19].IMUX_CE[1]</td><td>EMAC.TIEEMAC1UNICASTADDR34</td></tr>
+<tr><td>CELL_W[19].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR34</td></tr>
 
-<tr><td>CELL_W[19].IMUX_CE[2]</td><td>EMAC.TIEEMAC1UNICASTADDR33</td></tr>
+<tr><td>CELL_W[19].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR33</td></tr>
 
-<tr><td>CELL_W[19].IMUX_CE[3]</td><td>EMAC.TIEEMAC1UNICASTADDR32</td></tr>
+<tr><td>CELL_W[19].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR32</td></tr>
 
 <tr><td>CELL_W[19].IMUX_IMUX[0]</td><td>EMAC.CLIENTEMAC1TXD8</td></tr>
 
@@ -8228,23 +8228,23 @@
 
 <tr><td>CELL_W[19].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWRDBUSO19</td></tr>
 
-<tr><td>CELL_W[20].IMUX_SR[0]</td><td>EMAC.TIEEMAC1UNICASTADDR39</td></tr>
+<tr><td>CELL_W[20].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR39</td></tr>
 
-<tr><td>CELL_W[20].IMUX_SR[1]</td><td>EMAC.TIEEMAC1UNICASTADDR38</td></tr>
+<tr><td>CELL_W[20].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR38</td></tr>
 
-<tr><td>CELL_W[20].IMUX_SR[2]</td><td>EMAC.TIEEMAC1UNICASTADDR37</td></tr>
+<tr><td>CELL_W[20].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR37</td></tr>
 
-<tr><td>CELL_W[20].IMUX_SR[3]</td><td>EMAC.TIEEMAC1UNICASTADDR36</td></tr>
+<tr><td>CELL_W[20].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR36</td></tr>
 
-<tr><td>CELL_W[20].IMUX_CLK[0]</td><td>EMAC.CLIENTEMAC1RXCLIENTCLKIN</td></tr>
+<tr><td>CELL_W[20].IMUX_CLK_OPTINV[0]</td><td>EMAC.CLIENTEMAC1RXCLIENTCLKIN</td></tr>
 
-<tr><td>CELL_W[20].IMUX_CE[0]</td><td>EMAC.TIEEMAC1UNICASTADDR43</td></tr>
+<tr><td>CELL_W[20].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR43</td></tr>
 
-<tr><td>CELL_W[20].IMUX_CE[1]</td><td>EMAC.TIEEMAC1UNICASTADDR42</td></tr>
+<tr><td>CELL_W[20].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR42</td></tr>
 
-<tr><td>CELL_W[20].IMUX_CE[2]</td><td>EMAC.TIEEMAC1UNICASTADDR41</td></tr>
+<tr><td>CELL_W[20].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR41</td></tr>
 
-<tr><td>CELL_W[20].IMUX_CE[3]</td><td>EMAC.TIEEMAC1UNICASTADDR40</td></tr>
+<tr><td>CELL_W[20].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR40</td></tr>
 
 <tr><td>CELL_W[20].IMUX_IMUX[0]</td><td>EMAC.CLIENTEMAC1TXFIRSTBYTE</td></tr>
 
@@ -8340,23 +8340,23 @@
 
 <tr><td>CELL_W[20].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWRDBUSO15</td></tr>
 
-<tr><td>CELL_W[21].IMUX_SR[0]</td><td>EMAC.TIEEMAC1UNICASTADDR47</td></tr>
+<tr><td>CELL_W[21].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1UNICASTADDR47</td></tr>
 
-<tr><td>CELL_W[21].IMUX_SR[1]</td><td>EMAC.TIEEMAC1UNICASTADDR46</td></tr>
+<tr><td>CELL_W[21].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1UNICASTADDR46</td></tr>
 
-<tr><td>CELL_W[21].IMUX_SR[2]</td><td>EMAC.TIEEMAC1UNICASTADDR45</td></tr>
+<tr><td>CELL_W[21].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1UNICASTADDR45</td></tr>
 
-<tr><td>CELL_W[21].IMUX_SR[3]</td><td>EMAC.TIEEMAC1UNICASTADDR44</td></tr>
+<tr><td>CELL_W[21].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1UNICASTADDR44</td></tr>
 
-<tr><td>CELL_W[21].IMUX_CLK[0]</td><td>EMAC.CLIENTEMAC1TXGMIIMIICLKIN</td></tr>
+<tr><td>CELL_W[21].IMUX_CLK_OPTINV[0]</td><td>EMAC.CLIENTEMAC1TXGMIIMIICLKIN</td></tr>
 
-<tr><td>CELL_W[21].IMUX_CE[0]</td><td>EMAC.TIEEMAC1CONFIGVEC3</td></tr>
+<tr><td>CELL_W[21].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC3</td></tr>
 
-<tr><td>CELL_W[21].IMUX_CE[1]</td><td>EMAC.TIEEMAC1CONFIGVEC2</td></tr>
+<tr><td>CELL_W[21].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC2</td></tr>
 
-<tr><td>CELL_W[21].IMUX_CE[2]</td><td>EMAC.TIEEMAC1CONFIGVEC1</td></tr>
+<tr><td>CELL_W[21].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC1</td></tr>
 
-<tr><td>CELL_W[21].IMUX_CE[3]</td><td>EMAC.TIEEMAC1CONFIGVEC0</td></tr>
+<tr><td>CELL_W[21].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC0</td></tr>
 
 <tr><td>CELL_W[21].IMUX_IMUX[0]</td><td>EMAC.PHYEMAC1RXNOTINTABLE</td></tr>
 
@@ -8454,23 +8454,23 @@
 
 <tr><td>CELL_W[21].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWRDBUSO11</td></tr>
 
-<tr><td>CELL_W[22].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC7</td></tr>
+<tr><td>CELL_W[22].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC7</td></tr>
 
-<tr><td>CELL_W[22].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC6</td></tr>
+<tr><td>CELL_W[22].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC6</td></tr>
 
-<tr><td>CELL_W[22].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC5</td></tr>
+<tr><td>CELL_W[22].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC5</td></tr>
 
-<tr><td>CELL_W[22].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC4</td></tr>
+<tr><td>CELL_W[22].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC4</td></tr>
 
-<tr><td>CELL_W[22].IMUX_CLK[0]</td><td>EMAC.CLIENTEMAC1TXCLIENTCLKIN</td></tr>
+<tr><td>CELL_W[22].IMUX_CLK_OPTINV[0]</td><td>EMAC.CLIENTEMAC1TXCLIENTCLKIN</td></tr>
 
-<tr><td>CELL_W[22].IMUX_CE[0]</td><td>EMAC.TIEEMAC1CONFIGVEC11</td></tr>
+<tr><td>CELL_W[22].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC11</td></tr>
 
-<tr><td>CELL_W[22].IMUX_CE[1]</td><td>EMAC.TIEEMAC1CONFIGVEC10</td></tr>
+<tr><td>CELL_W[22].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC10</td></tr>
 
-<tr><td>CELL_W[22].IMUX_CE[2]</td><td>EMAC.TIEEMAC1CONFIGVEC9</td></tr>
+<tr><td>CELL_W[22].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC9</td></tr>
 
-<tr><td>CELL_W[22].IMUX_CE[3]</td><td>EMAC.TIEEMAC1CONFIGVEC8</td></tr>
+<tr><td>CELL_W[22].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC8</td></tr>
 
 <tr><td>CELL_W[22].IMUX_IMUX[0]</td><td>EMAC.PHYEMAC1RXD4</td></tr>
 
@@ -8564,21 +8564,21 @@
 
 <tr><td>CELL_W[22].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWRDBUSO7</td></tr>
 
-<tr><td>CELL_W[23].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC15</td></tr>
+<tr><td>CELL_W[23].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC15</td></tr>
 
-<tr><td>CELL_W[23].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC14</td></tr>
+<tr><td>CELL_W[23].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC14</td></tr>
 
-<tr><td>CELL_W[23].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC13</td></tr>
+<tr><td>CELL_W[23].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC13</td></tr>
 
-<tr><td>CELL_W[23].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC12</td></tr>
+<tr><td>CELL_W[23].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC12</td></tr>
 
-<tr><td>CELL_W[23].IMUX_CE[0]</td><td>EMAC.TIEEMAC1CONFIGVEC19</td></tr>
+<tr><td>CELL_W[23].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC19</td></tr>
 
-<tr><td>CELL_W[23].IMUX_CE[1]</td><td>EMAC.TIEEMAC1CONFIGVEC18</td></tr>
+<tr><td>CELL_W[23].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC18</td></tr>
 
-<tr><td>CELL_W[23].IMUX_CE[2]</td><td>EMAC.TIEEMAC1CONFIGVEC17</td></tr>
+<tr><td>CELL_W[23].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC17</td></tr>
 
-<tr><td>CELL_W[23].IMUX_CE[3]</td><td>EMAC.TIEEMAC1CONFIGVEC16</td></tr>
+<tr><td>CELL_W[23].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC16</td></tr>
 
 <tr><td>CELL_W[23].IMUX_IMUX[0]</td><td>EMAC.PHYEMAC1RXD0</td></tr>
 
@@ -8670,21 +8670,21 @@
 
 <tr><td>CELL_W[23].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405DSOCMWRDBUSO3</td></tr>
 
-<tr><td>CELL_E[0].IMUX_SR[0]</td><td>PPC.TIEAPUUDI819</td></tr>
+<tr><td>CELL_E[0].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI819</td></tr>
 
-<tr><td>CELL_E[0].IMUX_SR[1]</td><td>PPC.TIEAPUUDI818</td></tr>
+<tr><td>CELL_E[0].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI818</td></tr>
 
-<tr><td>CELL_E[0].IMUX_SR[2]</td><td>PPC.TIEAPUUDI817</td></tr>
+<tr><td>CELL_E[0].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI817</td></tr>
 
-<tr><td>CELL_E[0].IMUX_SR[3]</td><td>PPC.TIEAPUUDI816</td></tr>
+<tr><td>CELL_E[0].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI816</td></tr>
 
-<tr><td>CELL_E[0].IMUX_CE[0]</td><td>PPC.TIEAPUUDI823</td></tr>
+<tr><td>CELL_E[0].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI823</td></tr>
 
-<tr><td>CELL_E[0].IMUX_CE[1]</td><td>PPC.TIEAPUUDI822</td></tr>
+<tr><td>CELL_E[0].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI822</td></tr>
 
-<tr><td>CELL_E[0].IMUX_CE[2]</td><td>PPC.TIEAPUUDI821</td></tr>
+<tr><td>CELL_E[0].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI821</td></tr>
 
-<tr><td>CELL_E[0].IMUX_CE[3]</td><td>PPC.TIEAPUUDI820</td></tr>
+<tr><td>CELL_E[0].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI820</td></tr>
 
 <tr><td>CELL_E[0].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS60</td></tr>
 
@@ -8778,21 +8778,21 @@
 
 <tr><td>CELL_E[0].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTISOCMC405READDATAOUTO31</td></tr>
 
-<tr><td>CELL_E[1].IMUX_SR[0]</td><td>PPC.TIEAPUUDI811</td></tr>
+<tr><td>CELL_E[1].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI811</td></tr>
 
-<tr><td>CELL_E[1].IMUX_SR[1]</td><td>PPC.TIEAPUUDI810</td></tr>
+<tr><td>CELL_E[1].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI810</td></tr>
 
-<tr><td>CELL_E[1].IMUX_SR[2]</td><td>PPC.TIEAPUUDI89</td></tr>
+<tr><td>CELL_E[1].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI89</td></tr>
 
-<tr><td>CELL_E[1].IMUX_SR[3]</td><td>PPC.TIEAPUUDI88</td></tr>
+<tr><td>CELL_E[1].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI88</td></tr>
 
-<tr><td>CELL_E[1].IMUX_CE[0]</td><td>PPC.TIEAPUUDI815</td></tr>
+<tr><td>CELL_E[1].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI815</td></tr>
 
-<tr><td>CELL_E[1].IMUX_CE[1]</td><td>PPC.TIEAPUUDI814</td></tr>
+<tr><td>CELL_E[1].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI814</td></tr>
 
-<tr><td>CELL_E[1].IMUX_CE[2]</td><td>PPC.TIEAPUUDI813</td></tr>
+<tr><td>CELL_E[1].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI813</td></tr>
 
-<tr><td>CELL_E[1].IMUX_CE[3]</td><td>PPC.TIEAPUUDI812</td></tr>
+<tr><td>CELL_E[1].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI812</td></tr>
 
 <tr><td>CELL_E[1].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS56</td></tr>
 
@@ -8890,21 +8890,21 @@
 
 <tr><td>CELL_E[1].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTISOCMC405READDATAOUTO23</td></tr>
 
-<tr><td>CELL_E[2].IMUX_SR[0]</td><td>PPC.TIEAPUUDI83</td></tr>
+<tr><td>CELL_E[2].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI83</td></tr>
 
-<tr><td>CELL_E[2].IMUX_SR[1]</td><td>PPC.TIEAPUUDI82</td></tr>
+<tr><td>CELL_E[2].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI82</td></tr>
 
-<tr><td>CELL_E[2].IMUX_SR[2]</td><td>PPC.TIEAPUUDI81</td></tr>
+<tr><td>CELL_E[2].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI81</td></tr>
 
-<tr><td>CELL_E[2].IMUX_SR[3]</td><td>PPC.TIEAPUUDI80</td></tr>
+<tr><td>CELL_E[2].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI80</td></tr>
 
-<tr><td>CELL_E[2].IMUX_CE[0]</td><td>PPC.TIEAPUUDI87</td></tr>
+<tr><td>CELL_E[2].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI87</td></tr>
 
-<tr><td>CELL_E[2].IMUX_CE[1]</td><td>PPC.TIEAPUUDI86</td></tr>
+<tr><td>CELL_E[2].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI86</td></tr>
 
-<tr><td>CELL_E[2].IMUX_CE[2]</td><td>PPC.TIEAPUUDI85</td></tr>
+<tr><td>CELL_E[2].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI85</td></tr>
 
-<tr><td>CELL_E[2].IMUX_CE[3]</td><td>PPC.TIEAPUUDI84</td></tr>
+<tr><td>CELL_E[2].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI84</td></tr>
 
 <tr><td>CELL_E[2].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS52</td></tr>
 
@@ -9002,21 +9002,21 @@
 
 <tr><td>CELL_E[2].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTISOCMC405READDATAOUTO15</td></tr>
 
-<tr><td>CELL_E[3].IMUX_SR[0]</td><td>PPC.TIEAPUUDI719</td></tr>
+<tr><td>CELL_E[3].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI719</td></tr>
 
-<tr><td>CELL_E[3].IMUX_SR[1]</td><td>PPC.TIEAPUUDI718</td></tr>
+<tr><td>CELL_E[3].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI718</td></tr>
 
-<tr><td>CELL_E[3].IMUX_SR[2]</td><td>PPC.TIEAPUUDI717</td></tr>
+<tr><td>CELL_E[3].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI717</td></tr>
 
-<tr><td>CELL_E[3].IMUX_SR[3]</td><td>PPC.TIEAPUUDI716</td></tr>
+<tr><td>CELL_E[3].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI716</td></tr>
 
-<tr><td>CELL_E[3].IMUX_CE[0]</td><td>PPC.TIEAPUUDI723</td></tr>
+<tr><td>CELL_E[3].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI723</td></tr>
 
-<tr><td>CELL_E[3].IMUX_CE[1]</td><td>PPC.TIEAPUUDI722</td></tr>
+<tr><td>CELL_E[3].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI722</td></tr>
 
-<tr><td>CELL_E[3].IMUX_CE[2]</td><td>PPC.TIEAPUUDI721</td></tr>
+<tr><td>CELL_E[3].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI721</td></tr>
 
-<tr><td>CELL_E[3].IMUX_CE[3]</td><td>PPC.TIEAPUUDI720</td></tr>
+<tr><td>CELL_E[3].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI720</td></tr>
 
 <tr><td>CELL_E[3].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS48</td></tr>
 
@@ -9114,21 +9114,21 @@
 
 <tr><td>CELL_E[3].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTISOCMC405READDATAOUTO7</td></tr>
 
-<tr><td>CELL_E[4].IMUX_SR[0]</td><td>PPC.TIEAPUUDI711</td></tr>
+<tr><td>CELL_E[4].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI711</td></tr>
 
-<tr><td>CELL_E[4].IMUX_SR[1]</td><td>PPC.TIEAPUUDI710</td></tr>
+<tr><td>CELL_E[4].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI710</td></tr>
 
-<tr><td>CELL_E[4].IMUX_SR[2]</td><td>PPC.TIEAPUUDI79</td></tr>
+<tr><td>CELL_E[4].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI79</td></tr>
 
-<tr><td>CELL_E[4].IMUX_SR[3]</td><td>PPC.TIEAPUUDI78</td></tr>
+<tr><td>CELL_E[4].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI78</td></tr>
 
-<tr><td>CELL_E[4].IMUX_CE[0]</td><td>PPC.TIEAPUUDI715</td></tr>
+<tr><td>CELL_E[4].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI715</td></tr>
 
-<tr><td>CELL_E[4].IMUX_CE[1]</td><td>PPC.TIEAPUUDI714</td></tr>
+<tr><td>CELL_E[4].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI714</td></tr>
 
-<tr><td>CELL_E[4].IMUX_CE[2]</td><td>PPC.TIEAPUUDI713</td></tr>
+<tr><td>CELL_E[4].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI713</td></tr>
 
-<tr><td>CELL_E[4].IMUX_CE[3]</td><td>PPC.TIEAPUUDI712</td></tr>
+<tr><td>CELL_E[4].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI712</td></tr>
 
 <tr><td>CELL_E[4].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS44</td></tr>
 
@@ -9226,21 +9226,21 @@
 
 <tr><td>CELL_E[4].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405LWBLDDEPENDO</td></tr>
 
-<tr><td>CELL_E[5].IMUX_SR[0]</td><td>PPC.TIEAPUUDI73</td></tr>
+<tr><td>CELL_E[5].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI73</td></tr>
 
-<tr><td>CELL_E[5].IMUX_SR[1]</td><td>PPC.TIEAPUUDI72</td></tr>
+<tr><td>CELL_E[5].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI72</td></tr>
 
-<tr><td>CELL_E[5].IMUX_SR[2]</td><td>PPC.TIEAPUUDI71</td></tr>
+<tr><td>CELL_E[5].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI71</td></tr>
 
-<tr><td>CELL_E[5].IMUX_SR[3]</td><td>PPC.TIEAPUUDI70</td></tr>
+<tr><td>CELL_E[5].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI70</td></tr>
 
-<tr><td>CELL_E[5].IMUX_CE[0]</td><td>PPC.TIEAPUUDI77</td></tr>
+<tr><td>CELL_E[5].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI77</td></tr>
 
-<tr><td>CELL_E[5].IMUX_CE[1]</td><td>PPC.TIEAPUUDI76</td></tr>
+<tr><td>CELL_E[5].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI76</td></tr>
 
-<tr><td>CELL_E[5].IMUX_CE[2]</td><td>PPC.TIEAPUUDI75</td></tr>
+<tr><td>CELL_E[5].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI75</td></tr>
 
-<tr><td>CELL_E[5].IMUX_CE[3]</td><td>PPC.TIEAPUUDI74</td></tr>
+<tr><td>CELL_E[5].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI74</td></tr>
 
 <tr><td>CELL_E[5].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS40</td></tr>
 
@@ -9338,21 +9338,21 @@
 
 <tr><td>CELL_E[5].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405DCDLDSTHWO</td></tr>
 
-<tr><td>CELL_E[6].IMUX_SR[0]</td><td>PPC.TIEAPUUDI619</td></tr>
+<tr><td>CELL_E[6].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI619</td></tr>
 
-<tr><td>CELL_E[6].IMUX_SR[1]</td><td>PPC.TIEAPUUDI618</td></tr>
+<tr><td>CELL_E[6].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI618</td></tr>
 
-<tr><td>CELL_E[6].IMUX_SR[2]</td><td>PPC.TIEAPUUDI617</td></tr>
+<tr><td>CELL_E[6].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI617</td></tr>
 
-<tr><td>CELL_E[6].IMUX_SR[3]</td><td>PPC.TIEAPUUDI616</td></tr>
+<tr><td>CELL_E[6].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI616</td></tr>
 
-<tr><td>CELL_E[6].IMUX_CE[0]</td><td>PPC.TIEAPUUDI623</td></tr>
+<tr><td>CELL_E[6].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI623</td></tr>
 
-<tr><td>CELL_E[6].IMUX_CE[1]</td><td>PPC.TIEAPUUDI622</td></tr>
+<tr><td>CELL_E[6].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI622</td></tr>
 
-<tr><td>CELL_E[6].IMUX_CE[2]</td><td>PPC.TIEAPUUDI621</td></tr>
+<tr><td>CELL_E[6].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI621</td></tr>
 
-<tr><td>CELL_E[6].IMUX_CE[3]</td><td>PPC.TIEAPUUDI620</td></tr>
+<tr><td>CELL_E[6].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI620</td></tr>
 
 <tr><td>CELL_E[6].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS36</td></tr>
 
@@ -9450,21 +9450,21 @@
 
 <tr><td>CELL_E[6].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405EXECRO3</td></tr>
 
-<tr><td>CELL_E[7].IMUX_SR[0]</td><td>PPC.TIEAPUUDI611</td></tr>
+<tr><td>CELL_E[7].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI611</td></tr>
 
-<tr><td>CELL_E[7].IMUX_SR[1]</td><td>PPC.TIEAPUUDI610</td></tr>
+<tr><td>CELL_E[7].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI610</td></tr>
 
-<tr><td>CELL_E[7].IMUX_SR[2]</td><td>PPC.TIEAPUUDI69</td></tr>
+<tr><td>CELL_E[7].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI69</td></tr>
 
-<tr><td>CELL_E[7].IMUX_SR[3]</td><td>PPC.TIEAPUUDI68</td></tr>
+<tr><td>CELL_E[7].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI68</td></tr>
 
-<tr><td>CELL_E[7].IMUX_CE[0]</td><td>PPC.TIEAPUUDI615</td></tr>
+<tr><td>CELL_E[7].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI615</td></tr>
 
-<tr><td>CELL_E[7].IMUX_CE[1]</td><td>PPC.TIEAPUUDI614</td></tr>
+<tr><td>CELL_E[7].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI614</td></tr>
 
-<tr><td>CELL_E[7].IMUX_CE[2]</td><td>PPC.TIEAPUUDI613</td></tr>
+<tr><td>CELL_E[7].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI613</td></tr>
 
-<tr><td>CELL_E[7].IMUX_CE[3]</td><td>PPC.TIEAPUUDI612</td></tr>
+<tr><td>CELL_E[7].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI612</td></tr>
 
 <tr><td>CELL_E[7].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS32</td></tr>
 
@@ -9562,21 +9562,21 @@
 
 <tr><td>CELL_E[7].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405DCDFPUOPO</td></tr>
 
-<tr><td>CELL_E[8].IMUX_SR[0]</td><td>PPC.TIEAPUUDI63</td></tr>
+<tr><td>CELL_E[8].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI63</td></tr>
 
-<tr><td>CELL_E[8].IMUX_SR[1]</td><td>PPC.TIEAPUUDI62</td></tr>
+<tr><td>CELL_E[8].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI62</td></tr>
 
-<tr><td>CELL_E[8].IMUX_SR[2]</td><td>PPC.TIEAPUUDI61</td></tr>
+<tr><td>CELL_E[8].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI61</td></tr>
 
-<tr><td>CELL_E[8].IMUX_SR[3]</td><td>PPC.TIEAPUUDI60</td></tr>
+<tr><td>CELL_E[8].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI60</td></tr>
 
-<tr><td>CELL_E[8].IMUX_CE[0]</td><td>PPC.TIEAPUUDI67</td></tr>
+<tr><td>CELL_E[8].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI67</td></tr>
 
-<tr><td>CELL_E[8].IMUX_CE[1]</td><td>PPC.TIEAPUUDI66</td></tr>
+<tr><td>CELL_E[8].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI66</td></tr>
 
-<tr><td>CELL_E[8].IMUX_CE[2]</td><td>PPC.TIEAPUUDI65</td></tr>
+<tr><td>CELL_E[8].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI65</td></tr>
 
-<tr><td>CELL_E[8].IMUX_CE[3]</td><td>PPC.TIEAPUUDI64</td></tr>
+<tr><td>CELL_E[8].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI64</td></tr>
 
 <tr><td>CELL_E[8].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS28</td></tr>
 
@@ -9674,21 +9674,21 @@
 
 <tr><td>CELL_E[8].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405EXERESULTO31</td></tr>
 
-<tr><td>CELL_E[9].IMUX_SR[0]</td><td>PPC.TIEAPUUDI519</td></tr>
+<tr><td>CELL_E[9].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI519</td></tr>
 
-<tr><td>CELL_E[9].IMUX_SR[1]</td><td>PPC.TIEAPUUDI518</td></tr>
+<tr><td>CELL_E[9].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI518</td></tr>
 
-<tr><td>CELL_E[9].IMUX_SR[2]</td><td>PPC.TIEAPUUDI517</td></tr>
+<tr><td>CELL_E[9].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI517</td></tr>
 
-<tr><td>CELL_E[9].IMUX_SR[3]</td><td>PPC.TIEAPUUDI516</td></tr>
+<tr><td>CELL_E[9].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI516</td></tr>
 
-<tr><td>CELL_E[9].IMUX_CE[0]</td><td>PPC.TIEAPUUDI523</td></tr>
+<tr><td>CELL_E[9].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI523</td></tr>
 
-<tr><td>CELL_E[9].IMUX_CE[1]</td><td>PPC.TIEAPUUDI522</td></tr>
+<tr><td>CELL_E[9].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI522</td></tr>
 
-<tr><td>CELL_E[9].IMUX_CE[2]</td><td>PPC.TIEAPUUDI521</td></tr>
+<tr><td>CELL_E[9].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI521</td></tr>
 
-<tr><td>CELL_E[9].IMUX_CE[3]</td><td>PPC.TIEAPUUDI520</td></tr>
+<tr><td>CELL_E[9].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI520</td></tr>
 
 <tr><td>CELL_E[9].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS24</td></tr>
 
@@ -9786,21 +9786,21 @@
 
 <tr><td>CELL_E[9].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405EXERESULTO23</td></tr>
 
-<tr><td>CELL_E[10].IMUX_SR[0]</td><td>PPC.TIEAPUUDI511</td></tr>
+<tr><td>CELL_E[10].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI511</td></tr>
 
-<tr><td>CELL_E[10].IMUX_SR[1]</td><td>PPC.TIEAPUUDI510</td></tr>
+<tr><td>CELL_E[10].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI510</td></tr>
 
-<tr><td>CELL_E[10].IMUX_SR[2]</td><td>PPC.TIEAPUUDI59</td></tr>
+<tr><td>CELL_E[10].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI59</td></tr>
 
-<tr><td>CELL_E[10].IMUX_SR[3]</td><td>PPC.TIEAPUUDI58</td></tr>
+<tr><td>CELL_E[10].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI58</td></tr>
 
-<tr><td>CELL_E[10].IMUX_CE[0]</td><td>PPC.TIEAPUUDI515</td></tr>
+<tr><td>CELL_E[10].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI515</td></tr>
 
-<tr><td>CELL_E[10].IMUX_CE[1]</td><td>PPC.TIEAPUUDI514</td></tr>
+<tr><td>CELL_E[10].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI514</td></tr>
 
-<tr><td>CELL_E[10].IMUX_CE[2]</td><td>PPC.TIEAPUUDI513</td></tr>
+<tr><td>CELL_E[10].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI513</td></tr>
 
-<tr><td>CELL_E[10].IMUX_CE[3]</td><td>PPC.TIEAPUUDI512</td></tr>
+<tr><td>CELL_E[10].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI512</td></tr>
 
 <tr><td>CELL_E[10].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS20</td></tr>
 
@@ -9892,21 +9892,21 @@
 
 <tr><td>CELL_E[10].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405EXERESULTO15</td></tr>
 
-<tr><td>CELL_E[11].IMUX_SR[0]</td><td>PPC.TIEAPUUDI53</td></tr>
+<tr><td>CELL_E[11].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI53</td></tr>
 
-<tr><td>CELL_E[11].IMUX_SR[1]</td><td>PPC.TIEAPUUDI52</td></tr>
+<tr><td>CELL_E[11].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI52</td></tr>
 
-<tr><td>CELL_E[11].IMUX_SR[2]</td><td>PPC.TIEAPUUDI51</td></tr>
+<tr><td>CELL_E[11].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI51</td></tr>
 
-<tr><td>CELL_E[11].IMUX_SR[3]</td><td>PPC.TIEAPUUDI50</td></tr>
+<tr><td>CELL_E[11].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI50</td></tr>
 
-<tr><td>CELL_E[11].IMUX_CE[0]</td><td>PPC.TIEAPUUDI57</td></tr>
+<tr><td>CELL_E[11].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI57</td></tr>
 
-<tr><td>CELL_E[11].IMUX_CE[1]</td><td>PPC.TIEAPUUDI56</td></tr>
+<tr><td>CELL_E[11].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI56</td></tr>
 
-<tr><td>CELL_E[11].IMUX_CE[2]</td><td>PPC.TIEAPUUDI55</td></tr>
+<tr><td>CELL_E[11].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI55</td></tr>
 
-<tr><td>CELL_E[11].IMUX_CE[3]</td><td>PPC.TIEAPUUDI54</td></tr>
+<tr><td>CELL_E[11].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI54</td></tr>
 
 <tr><td>CELL_E[11].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS16</td></tr>
 
@@ -10004,21 +10004,21 @@
 
 <tr><td>CELL_E[11].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405EXERESULTO7</td></tr>
 
-<tr><td>CELL_E[12].IMUX_SR[0]</td><td>PPC.TIEAPUUDI419</td></tr>
+<tr><td>CELL_E[12].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI419</td></tr>
 
-<tr><td>CELL_E[12].IMUX_SR[1]</td><td>PPC.TIEAPUUDI418</td></tr>
+<tr><td>CELL_E[12].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI418</td></tr>
 
-<tr><td>CELL_E[12].IMUX_SR[2]</td><td>PPC.TIEAPUUDI417</td></tr>
+<tr><td>CELL_E[12].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI417</td></tr>
 
-<tr><td>CELL_E[12].IMUX_SR[3]</td><td>PPC.TIEAPUUDI416</td></tr>
+<tr><td>CELL_E[12].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI416</td></tr>
 
-<tr><td>CELL_E[12].IMUX_CE[0]</td><td>PPC.TIEAPUUDI423</td></tr>
+<tr><td>CELL_E[12].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI423</td></tr>
 
-<tr><td>CELL_E[12].IMUX_CE[1]</td><td>PPC.TIEAPUUDI422</td></tr>
+<tr><td>CELL_E[12].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI422</td></tr>
 
-<tr><td>CELL_E[12].IMUX_CE[2]</td><td>PPC.TIEAPUUDI421</td></tr>
+<tr><td>CELL_E[12].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI421</td></tr>
 
-<tr><td>CELL_E[12].IMUX_CE[3]</td><td>PPC.TIEAPUUDI420</td></tr>
+<tr><td>CELL_E[12].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI420</td></tr>
 
 <tr><td>CELL_E[12].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS12</td></tr>
 
@@ -10116,21 +10116,21 @@
 
 <tr><td>CELL_E[12].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTAPUC405DCDLDSTBYTEO</td></tr>
 
-<tr><td>CELL_E[13].IMUX_SR[0]</td><td>PPC.TIEAPUUDI411</td></tr>
+<tr><td>CELL_E[13].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI411</td></tr>
 
-<tr><td>CELL_E[13].IMUX_SR[1]</td><td>PPC.TIEAPUUDI410</td></tr>
+<tr><td>CELL_E[13].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI410</td></tr>
 
-<tr><td>CELL_E[13].IMUX_SR[2]</td><td>PPC.TIEAPUUDI49</td></tr>
+<tr><td>CELL_E[13].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI49</td></tr>
 
-<tr><td>CELL_E[13].IMUX_SR[3]</td><td>PPC.TIEAPUUDI48</td></tr>
+<tr><td>CELL_E[13].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI48</td></tr>
 
-<tr><td>CELL_E[13].IMUX_CE[0]</td><td>PPC.TIEAPUUDI415</td></tr>
+<tr><td>CELL_E[13].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI415</td></tr>
 
-<tr><td>CELL_E[13].IMUX_CE[1]</td><td>PPC.TIEAPUUDI414</td></tr>
+<tr><td>CELL_E[13].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI414</td></tr>
 
-<tr><td>CELL_E[13].IMUX_CE[2]</td><td>PPC.TIEAPUUDI413</td></tr>
+<tr><td>CELL_E[13].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI413</td></tr>
 
-<tr><td>CELL_E[13].IMUX_CE[3]</td><td>PPC.TIEAPUUDI412</td></tr>
+<tr><td>CELL_E[13].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI412</td></tr>
 
 <tr><td>CELL_E[13].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS8</td></tr>
 
@@ -10228,21 +10228,21 @@
 
 <tr><td>CELL_E[13].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUXERCAO</td></tr>
 
-<tr><td>CELL_E[14].IMUX_SR[0]</td><td>PPC.TIEAPUUDI43</td></tr>
+<tr><td>CELL_E[14].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI43</td></tr>
 
-<tr><td>CELL_E[14].IMUX_SR[1]</td><td>PPC.TIEAPUUDI42</td></tr>
+<tr><td>CELL_E[14].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI42</td></tr>
 
-<tr><td>CELL_E[14].IMUX_SR[2]</td><td>PPC.TIEAPUUDI41</td></tr>
+<tr><td>CELL_E[14].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI41</td></tr>
 
-<tr><td>CELL_E[14].IMUX_SR[3]</td><td>PPC.TIEAPUUDI40</td></tr>
+<tr><td>CELL_E[14].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI40</td></tr>
 
-<tr><td>CELL_E[14].IMUX_CE[0]</td><td>PPC.TIEAPUUDI47</td></tr>
+<tr><td>CELL_E[14].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI47</td></tr>
 
-<tr><td>CELL_E[14].IMUX_CE[1]</td><td>PPC.TIEAPUUDI46</td></tr>
+<tr><td>CELL_E[14].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI46</td></tr>
 
-<tr><td>CELL_E[14].IMUX_CE[2]</td><td>PPC.TIEAPUUDI45</td></tr>
+<tr><td>CELL_E[14].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI45</td></tr>
 
-<tr><td>CELL_E[14].IMUX_CE[3]</td><td>PPC.TIEAPUUDI44</td></tr>
+<tr><td>CELL_E[14].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI44</td></tr>
 
 <tr><td>CELL_E[14].IMUX_IMUX[0]</td><td>PPC.PLBC405ICURDDBUS4</td></tr>
 
@@ -10334,21 +10334,21 @@
 
 <tr><td>CELL_E[14].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUDCDINSTRUCTIONO31</td></tr>
 
-<tr><td>CELL_E[15].IMUX_SR[0]</td><td>PPC.TIEAPUUDI319</td></tr>
+<tr><td>CELL_E[15].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI319</td></tr>
 
-<tr><td>CELL_E[15].IMUX_SR[1]</td><td>PPC.TIEAPUUDI318</td></tr>
+<tr><td>CELL_E[15].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI318</td></tr>
 
-<tr><td>CELL_E[15].IMUX_SR[2]</td><td>PPC.TIEAPUUDI317</td></tr>
+<tr><td>CELL_E[15].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI317</td></tr>
 
-<tr><td>CELL_E[15].IMUX_SR[3]</td><td>PPC.TIEAPUUDI316</td></tr>
+<tr><td>CELL_E[15].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI316</td></tr>
 
-<tr><td>CELL_E[15].IMUX_CE[0]</td><td>PPC.TIEAPUUDI323</td></tr>
+<tr><td>CELL_E[15].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI323</td></tr>
 
-<tr><td>CELL_E[15].IMUX_CE[1]</td><td>PPC.TIEAPUUDI322</td></tr>
+<tr><td>CELL_E[15].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI322</td></tr>
 
-<tr><td>CELL_E[15].IMUX_CE[2]</td><td>PPC.TIEAPUUDI321</td></tr>
+<tr><td>CELL_E[15].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI321</td></tr>
 
-<tr><td>CELL_E[15].IMUX_CE[3]</td><td>PPC.TIEAPUUDI320</td></tr>
+<tr><td>CELL_E[15].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI320</td></tr>
 
 <tr><td>CELL_E[15].IMUX_IMUX[0]</td><td>PPC.PLBC405DCURDDBUS4</td></tr>
 
@@ -10446,21 +10446,21 @@
 
 <tr><td>CELL_E[15].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTTRSTNEGO</td></tr>
 
-<tr><td>CELL_E[16].IMUX_SR[0]</td><td>PPC.TIEAPUUDI311</td></tr>
+<tr><td>CELL_E[16].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI311</td></tr>
 
-<tr><td>CELL_E[16].IMUX_SR[1]</td><td>PPC.TIEAPUUDI310</td></tr>
+<tr><td>CELL_E[16].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI310</td></tr>
 
-<tr><td>CELL_E[16].IMUX_SR[2]</td><td>PPC.TIEAPUUDI39</td></tr>
+<tr><td>CELL_E[16].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI39</td></tr>
 
-<tr><td>CELL_E[16].IMUX_SR[3]</td><td>PPC.TIEAPUUDI38</td></tr>
+<tr><td>CELL_E[16].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI38</td></tr>
 
-<tr><td>CELL_E[16].IMUX_CE[0]</td><td>PPC.TIEAPUUDI315</td></tr>
+<tr><td>CELL_E[16].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI315</td></tr>
 
-<tr><td>CELL_E[16].IMUX_CE[1]</td><td>PPC.TIEAPUUDI314</td></tr>
+<tr><td>CELL_E[16].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI314</td></tr>
 
-<tr><td>CELL_E[16].IMUX_CE[2]</td><td>PPC.TIEAPUUDI313</td></tr>
+<tr><td>CELL_E[16].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI313</td></tr>
 
-<tr><td>CELL_E[16].IMUX_CE[3]</td><td>PPC.TIEAPUUDI312</td></tr>
+<tr><td>CELL_E[16].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI312</td></tr>
 
 <tr><td>CELL_E[16].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT28</td></tr>
 
@@ -10558,21 +10558,21 @@
 
 <tr><td>CELL_E[16].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXELOADDBUSO31</td></tr>
 
-<tr><td>CELL_E[17].IMUX_SR[0]</td><td>PPC.TIEAPUUDI33</td></tr>
+<tr><td>CELL_E[17].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI33</td></tr>
 
-<tr><td>CELL_E[17].IMUX_SR[1]</td><td>PPC.TIEAPUUDI32</td></tr>
+<tr><td>CELL_E[17].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI32</td></tr>
 
-<tr><td>CELL_E[17].IMUX_SR[2]</td><td>PPC.TIEAPUUDI31</td></tr>
+<tr><td>CELL_E[17].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI31</td></tr>
 
-<tr><td>CELL_E[17].IMUX_SR[3]</td><td>PPC.TIEAPUUDI30</td></tr>
+<tr><td>CELL_E[17].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI30</td></tr>
 
-<tr><td>CELL_E[17].IMUX_CE[0]</td><td>PPC.TIEAPUUDI37</td></tr>
+<tr><td>CELL_E[17].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI37</td></tr>
 
-<tr><td>CELL_E[17].IMUX_CE[1]</td><td>PPC.TIEAPUUDI36</td></tr>
+<tr><td>CELL_E[17].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI36</td></tr>
 
-<tr><td>CELL_E[17].IMUX_CE[2]</td><td>PPC.TIEAPUUDI35</td></tr>
+<tr><td>CELL_E[17].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI35</td></tr>
 
-<tr><td>CELL_E[17].IMUX_CE[3]</td><td>PPC.TIEAPUUDI34</td></tr>
+<tr><td>CELL_E[17].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI34</td></tr>
 
 <tr><td>CELL_E[17].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT24</td></tr>
 
@@ -10670,21 +10670,21 @@
 
 <tr><td>CELL_E[17].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXELOADDBUSO23</td></tr>
 
-<tr><td>CELL_E[18].IMUX_SR[0]</td><td>PPC.TIEAPUUDI219</td></tr>
+<tr><td>CELL_E[18].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI219</td></tr>
 
-<tr><td>CELL_E[18].IMUX_SR[1]</td><td>PPC.TIEAPUUDI218</td></tr>
+<tr><td>CELL_E[18].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI218</td></tr>
 
-<tr><td>CELL_E[18].IMUX_SR[2]</td><td>PPC.TIEAPUUDI217</td></tr>
+<tr><td>CELL_E[18].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI217</td></tr>
 
-<tr><td>CELL_E[18].IMUX_SR[3]</td><td>PPC.TIEAPUUDI216</td></tr>
+<tr><td>CELL_E[18].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI216</td></tr>
 
-<tr><td>CELL_E[18].IMUX_CE[0]</td><td>PPC.TIEAPUUDI223</td></tr>
+<tr><td>CELL_E[18].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI223</td></tr>
 
-<tr><td>CELL_E[18].IMUX_CE[1]</td><td>PPC.TIEAPUUDI222</td></tr>
+<tr><td>CELL_E[18].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI222</td></tr>
 
-<tr><td>CELL_E[18].IMUX_CE[2]</td><td>PPC.TIEAPUUDI221</td></tr>
+<tr><td>CELL_E[18].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI221</td></tr>
 
-<tr><td>CELL_E[18].IMUX_CE[3]</td><td>PPC.TIEAPUUDI220</td></tr>
+<tr><td>CELL_E[18].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI220</td></tr>
 
 <tr><td>CELL_E[18].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT20</td></tr>
 
@@ -10782,21 +10782,21 @@
 
 <tr><td>CELL_E[18].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXELOADDBUSO15</td></tr>
 
-<tr><td>CELL_E[19].IMUX_SR[0]</td><td>PPC.TIEAPUUDI211</td></tr>
+<tr><td>CELL_E[19].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI211</td></tr>
 
-<tr><td>CELL_E[19].IMUX_SR[1]</td><td>PPC.TIEAPUUDI210</td></tr>
+<tr><td>CELL_E[19].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI210</td></tr>
 
-<tr><td>CELL_E[19].IMUX_SR[2]</td><td>PPC.TIEAPUUDI29</td></tr>
+<tr><td>CELL_E[19].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI29</td></tr>
 
-<tr><td>CELL_E[19].IMUX_SR[3]</td><td>PPC.TIEAPUUDI28</td></tr>
+<tr><td>CELL_E[19].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI28</td></tr>
 
-<tr><td>CELL_E[19].IMUX_CE[0]</td><td>PPC.TIEAPUUDI215</td></tr>
+<tr><td>CELL_E[19].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI215</td></tr>
 
-<tr><td>CELL_E[19].IMUX_CE[1]</td><td>PPC.TIEAPUUDI214</td></tr>
+<tr><td>CELL_E[19].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI214</td></tr>
 
-<tr><td>CELL_E[19].IMUX_CE[2]</td><td>PPC.TIEAPUUDI213</td></tr>
+<tr><td>CELL_E[19].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI213</td></tr>
 
-<tr><td>CELL_E[19].IMUX_CE[3]</td><td>PPC.TIEAPUUDI212</td></tr>
+<tr><td>CELL_E[19].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI212</td></tr>
 
 <tr><td>CELL_E[19].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT16</td></tr>
 
@@ -10894,21 +10894,21 @@
 
 <tr><td>CELL_E[19].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXELOADDBUSO7</td></tr>
 
-<tr><td>CELL_E[20].IMUX_SR[0]</td><td>PPC.TIEAPUUDI23</td></tr>
+<tr><td>CELL_E[20].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI23</td></tr>
 
-<tr><td>CELL_E[20].IMUX_SR[1]</td><td>PPC.TIEAPUUDI22</td></tr>
+<tr><td>CELL_E[20].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI22</td></tr>
 
-<tr><td>CELL_E[20].IMUX_SR[2]</td><td>PPC.TIEAPUUDI21</td></tr>
+<tr><td>CELL_E[20].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI21</td></tr>
 
-<tr><td>CELL_E[20].IMUX_SR[3]</td><td>PPC.TIEAPUUDI20</td></tr>
+<tr><td>CELL_E[20].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI20</td></tr>
 
-<tr><td>CELL_E[20].IMUX_CE[0]</td><td>PPC.TIEAPUUDI27</td></tr>
+<tr><td>CELL_E[20].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI27</td></tr>
 
-<tr><td>CELL_E[20].IMUX_CE[1]</td><td>PPC.TIEAPUUDI26</td></tr>
+<tr><td>CELL_E[20].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI26</td></tr>
 
-<tr><td>CELL_E[20].IMUX_CE[2]</td><td>PPC.TIEAPUUDI25</td></tr>
+<tr><td>CELL_E[20].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI25</td></tr>
 
-<tr><td>CELL_E[20].IMUX_CE[3]</td><td>PPC.TIEAPUUDI24</td></tr>
+<tr><td>CELL_E[20].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI24</td></tr>
 
 <tr><td>CELL_E[20].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT12</td></tr>
 
@@ -11006,21 +11006,21 @@
 
 <tr><td>CELL_E[20].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXERBDATAO31</td></tr>
 
-<tr><td>CELL_E[21].IMUX_SR[0]</td><td>PPC.TIEAPUUDI119</td></tr>
+<tr><td>CELL_E[21].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI119</td></tr>
 
-<tr><td>CELL_E[21].IMUX_SR[1]</td><td>PPC.TIEAPUUDI118</td></tr>
+<tr><td>CELL_E[21].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI118</td></tr>
 
-<tr><td>CELL_E[21].IMUX_SR[2]</td><td>PPC.TIEAPUUDI117</td></tr>
+<tr><td>CELL_E[21].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI117</td></tr>
 
-<tr><td>CELL_E[21].IMUX_SR[3]</td><td>PPC.TIEAPUUDI116</td></tr>
+<tr><td>CELL_E[21].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI116</td></tr>
 
-<tr><td>CELL_E[21].IMUX_CE[0]</td><td>PPC.TIEAPUUDI123</td></tr>
+<tr><td>CELL_E[21].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI123</td></tr>
 
-<tr><td>CELL_E[21].IMUX_CE[1]</td><td>PPC.TIEAPUUDI122</td></tr>
+<tr><td>CELL_E[21].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI122</td></tr>
 
-<tr><td>CELL_E[21].IMUX_CE[2]</td><td>PPC.TIEAPUUDI121</td></tr>
+<tr><td>CELL_E[21].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI121</td></tr>
 
-<tr><td>CELL_E[21].IMUX_CE[3]</td><td>PPC.TIEAPUUDI120</td></tr>
+<tr><td>CELL_E[21].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI120</td></tr>
 
 <tr><td>CELL_E[21].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT8</td></tr>
 
@@ -11118,21 +11118,21 @@
 
 <tr><td>CELL_E[21].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXERBDATAO23</td></tr>
 
-<tr><td>CELL_E[22].IMUX_SR[0]</td><td>PPC.TIEAPUUDI111</td></tr>
+<tr><td>CELL_E[22].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI111</td></tr>
 
-<tr><td>CELL_E[22].IMUX_SR[1]</td><td>PPC.TIEAPUUDI110</td></tr>
+<tr><td>CELL_E[22].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI110</td></tr>
 
-<tr><td>CELL_E[22].IMUX_SR[2]</td><td>PPC.TIEAPUUDI19</td></tr>
+<tr><td>CELL_E[22].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI19</td></tr>
 
-<tr><td>CELL_E[22].IMUX_SR[3]</td><td>PPC.TIEAPUUDI18</td></tr>
+<tr><td>CELL_E[22].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI18</td></tr>
 
-<tr><td>CELL_E[22].IMUX_CE[0]</td><td>PPC.TIEAPUUDI115</td></tr>
+<tr><td>CELL_E[22].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI115</td></tr>
 
-<tr><td>CELL_E[22].IMUX_CE[1]</td><td>PPC.TIEAPUUDI114</td></tr>
+<tr><td>CELL_E[22].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI114</td></tr>
 
-<tr><td>CELL_E[22].IMUX_CE[2]</td><td>PPC.TIEAPUUDI113</td></tr>
+<tr><td>CELL_E[22].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI113</td></tr>
 
-<tr><td>CELL_E[22].IMUX_CE[3]</td><td>PPC.TIEAPUUDI112</td></tr>
+<tr><td>CELL_E[22].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI112</td></tr>
 
 <tr><td>CELL_E[22].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT4</td></tr>
 
@@ -11230,21 +11230,21 @@
 
 <tr><td>CELL_E[22].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXERBDATAO15</td></tr>
 
-<tr><td>CELL_E[23].IMUX_SR[0]</td><td>PPC.TIEAPUUDI13</td></tr>
+<tr><td>CELL_E[23].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUUDI13</td></tr>
 
-<tr><td>CELL_E[23].IMUX_SR[1]</td><td>PPC.TIEAPUUDI12</td></tr>
+<tr><td>CELL_E[23].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUUDI12</td></tr>
 
-<tr><td>CELL_E[23].IMUX_SR[2]</td><td>PPC.TIEAPUUDI11</td></tr>
+<tr><td>CELL_E[23].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUUDI11</td></tr>
 
-<tr><td>CELL_E[23].IMUX_SR[3]</td><td>PPC.TIEAPUUDI10</td></tr>
+<tr><td>CELL_E[23].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUUDI10</td></tr>
 
-<tr><td>CELL_E[23].IMUX_CE[0]</td><td>PPC.TIEAPUUDI17</td></tr>
+<tr><td>CELL_E[23].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUUDI17</td></tr>
 
-<tr><td>CELL_E[23].IMUX_CE[1]</td><td>PPC.TIEAPUUDI16</td></tr>
+<tr><td>CELL_E[23].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUUDI16</td></tr>
 
-<tr><td>CELL_E[23].IMUX_CE[2]</td><td>PPC.TIEAPUUDI15</td></tr>
+<tr><td>CELL_E[23].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUUDI15</td></tr>
 
-<tr><td>CELL_E[23].IMUX_CE[3]</td><td>PPC.TIEAPUUDI14</td></tr>
+<tr><td>CELL_E[23].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUUDI14</td></tr>
 
 <tr><td>CELL_E[23].IMUX_IMUX[0]</td><td>PPC.FCMAPURESULT0</td></tr>
 
@@ -11334,21 +11334,21 @@
 
 <tr><td>CELL_E[23].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUEXERBDATAO7</td></tr>
 
-<tr><td>CELL_S[0].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC24</td></tr>
+<tr><td>CELL_S[0].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC24</td></tr>
 
-<tr><td>CELL_S[0].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC25</td></tr>
+<tr><td>CELL_S[0].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC25</td></tr>
 
-<tr><td>CELL_S[0].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC26</td></tr>
+<tr><td>CELL_S[0].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC26</td></tr>
 
-<tr><td>CELL_S[0].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC27</td></tr>
+<tr><td>CELL_S[0].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC27</td></tr>
 
-<tr><td>CELL_S[0].IMUX_CE[0]</td><td>EMAC.TIEEMAC0CONFIGVEC20</td></tr>
+<tr><td>CELL_S[0].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC20</td></tr>
 
-<tr><td>CELL_S[0].IMUX_CE[1]</td><td>EMAC.TIEEMAC0CONFIGVEC21</td></tr>
+<tr><td>CELL_S[0].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC21</td></tr>
 
-<tr><td>CELL_S[0].IMUX_CE[2]</td><td>EMAC.TIEEMAC0CONFIGVEC22</td></tr>
+<tr><td>CELL_S[0].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC22</td></tr>
 
-<tr><td>CELL_S[0].IMUX_CE[3]</td><td>EMAC.TIEEMAC0CONFIGVEC23</td></tr>
+<tr><td>CELL_S[0].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC23</td></tr>
 
 <tr><td>CELL_S[0].IMUX_IMUX[0]</td><td>PPC.BRAMISOCMRDDBUS40</td></tr>
 
@@ -11442,21 +11442,21 @@
 
 <tr><td>CELL_S[0].OUT_HALF_N_TMIN[6]</td><td>PPC.TSTISOCMC405HOLDO</td></tr>
 
-<tr><td>CELL_S[1].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC32</td></tr>
+<tr><td>CELL_S[1].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC32</td></tr>
 
-<tr><td>CELL_S[1].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC33</td></tr>
+<tr><td>CELL_S[1].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC33</td></tr>
 
-<tr><td>CELL_S[1].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC34</td></tr>
+<tr><td>CELL_S[1].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC34</td></tr>
 
-<tr><td>CELL_S[1].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC35</td></tr>
+<tr><td>CELL_S[1].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC35</td></tr>
 
-<tr><td>CELL_S[1].IMUX_CE[0]</td><td>EMAC.TIEEMAC0CONFIGVEC28</td></tr>
+<tr><td>CELL_S[1].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC28</td></tr>
 
-<tr><td>CELL_S[1].IMUX_CE[1]</td><td>EMAC.TIEEMAC0CONFIGVEC29</td></tr>
+<tr><td>CELL_S[1].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC29</td></tr>
 
-<tr><td>CELL_S[1].IMUX_CE[2]</td><td>EMAC.TIEEMAC0CONFIGVEC30</td></tr>
+<tr><td>CELL_S[1].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC30</td></tr>
 
-<tr><td>CELL_S[1].IMUX_CE[3]</td><td>EMAC.TIEEMAC0CONFIGVEC31</td></tr>
+<tr><td>CELL_S[1].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC31</td></tr>
 
 <tr><td>CELL_S[1].IMUX_IMUX[0]</td><td>PPC.BRAMISOCMRDDBUS36</td></tr>
 
@@ -11550,21 +11550,21 @@
 
 <tr><td>CELL_S[1].OUT_HALF_N_TMIN[6]</td><td>PPC.C405ISOCMU0ATTR</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC37</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC37</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC38</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC38</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC39</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC39</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC40</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC40</td></tr>
 
-<tr><td>CELL_S[2].IMUX_CE[0]</td><td>PPC.TIEC405DETERMINISTICMULT</td></tr>
+<tr><td>CELL_S[2].IMUX_CE_OPTINV[0]</td><td>PPC.TIEC405DETERMINISTICMULT</td></tr>
 
-<tr><td>CELL_S[2].IMUX_CE[1]</td><td>PPC.TIEC405DISOPERANDFWD</td></tr>
+<tr><td>CELL_S[2].IMUX_CE_OPTINV[1]</td><td>PPC.TIEC405DISOPERANDFWD</td></tr>
 
-<tr><td>CELL_S[2].IMUX_CE[2]</td><td>PPC.TIEC405MMUEN</td></tr>
+<tr><td>CELL_S[2].IMUX_CE_OPTINV[2]</td><td>PPC.TIEC405MMUEN</td></tr>
 
-<tr><td>CELL_S[2].IMUX_CE[3]</td><td>EMAC.TIEEMAC0CONFIGVEC36</td></tr>
+<tr><td>CELL_S[2].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC36</td></tr>
 
 <tr><td>CELL_S[2].IMUX_IMUX[0]</td><td>PPC.BRAMISOCMRDDBUS32</td></tr>
 
@@ -11654,23 +11654,23 @@
 
 <tr><td>CELL_S[2].OUT_HALF_N_TMIN[5]</td><td>PPC.TSTC405ISOCMABUSO29</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[0]</td><td>EMAC.TIEEMAC0CONFIGVEC45</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC45</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[1]</td><td>EMAC.TIEEMAC0CONFIGVEC46</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC46</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[2]</td><td>EMAC.TIEEMAC0CONFIGVEC47</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC47</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[3]</td><td>EMAC.TIEEMAC0CONFIGVEC48</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC48</td></tr>
 
-<tr><td>CELL_S[3].IMUX_CLK[0]</td><td>PPC.PLBCLK</td></tr>
+<tr><td>CELL_S[3].IMUX_CLK_OPTINV[0]</td><td>PPC.PLBCLK</td></tr>
 
-<tr><td>CELL_S[3].IMUX_CE[0]</td><td>EMAC.TIEEMAC0CONFIGVEC41</td></tr>
+<tr><td>CELL_S[3].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC0CONFIGVEC41</td></tr>
 
-<tr><td>CELL_S[3].IMUX_CE[1]</td><td>EMAC.TIEEMAC0CONFIGVEC42</td></tr>
+<tr><td>CELL_S[3].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC0CONFIGVEC42</td></tr>
 
-<tr><td>CELL_S[3].IMUX_CE[2]</td><td>EMAC.TIEEMAC0CONFIGVEC43</td></tr>
+<tr><td>CELL_S[3].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC0CONFIGVEC43</td></tr>
 
-<tr><td>CELL_S[3].IMUX_CE[3]</td><td>EMAC.TIEEMAC0CONFIGVEC44</td></tr>
+<tr><td>CELL_S[3].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC0CONFIGVEC44</td></tr>
 
 <tr><td>CELL_S[3].IMUX_IMUX[0]</td><td>PPC.BRAMISOCMRDDBUS12</td></tr>
 
@@ -11768,23 +11768,23 @@
 
 <tr><td>CELL_S[3].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405ISOCMABUSO23</td></tr>
 
-<tr><td>CELL_S[4].IMUX_SR[0]</td><td>PPC.ISCNTLVALUE4</td></tr>
+<tr><td>CELL_S[4].IMUX_SR_OPTINV[0]</td><td>PPC.ISCNTLVALUE4</td></tr>
 
-<tr><td>CELL_S[4].IMUX_SR[1]</td><td>PPC.ISCNTLVALUE5</td></tr>
+<tr><td>CELL_S[4].IMUX_SR_OPTINV[1]</td><td>PPC.ISCNTLVALUE5</td></tr>
 
-<tr><td>CELL_S[4].IMUX_SR[2]</td><td>PPC.ISCNTLVALUE6</td></tr>
+<tr><td>CELL_S[4].IMUX_SR_OPTINV[2]</td><td>PPC.ISCNTLVALUE6</td></tr>
 
-<tr><td>CELL_S[4].IMUX_SR[3]</td><td>PPC.ISCNTLVALUE7</td></tr>
+<tr><td>CELL_S[4].IMUX_SR_OPTINV[3]</td><td>PPC.ISCNTLVALUE7</td></tr>
 
-<tr><td>CELL_S[4].IMUX_CLK[0]</td><td>PPC.JTGC405TCK</td></tr>
+<tr><td>CELL_S[4].IMUX_CLK_OPTINV[0]</td><td>PPC.JTGC405TCK</td></tr>
 
-<tr><td>CELL_S[4].IMUX_CE[0]</td><td>PPC.ISCNTLVALUE0</td></tr>
+<tr><td>CELL_S[4].IMUX_CE_OPTINV[0]</td><td>PPC.ISCNTLVALUE0</td></tr>
 
-<tr><td>CELL_S[4].IMUX_CE[1]</td><td>PPC.ISCNTLVALUE1</td></tr>
+<tr><td>CELL_S[4].IMUX_CE_OPTINV[1]</td><td>PPC.ISCNTLVALUE1</td></tr>
 
-<tr><td>CELL_S[4].IMUX_CE[2]</td><td>PPC.ISCNTLVALUE2</td></tr>
+<tr><td>CELL_S[4].IMUX_CE_OPTINV[2]</td><td>PPC.ISCNTLVALUE2</td></tr>
 
-<tr><td>CELL_S[4].IMUX_CE[3]</td><td>PPC.ISCNTLVALUE3</td></tr>
+<tr><td>CELL_S[4].IMUX_CE_OPTINV[3]</td><td>PPC.ISCNTLVALUE3</td></tr>
 
 <tr><td>CELL_S[4].IMUX_IMUX[0]</td><td>PPC.BRAMISOCMRDDBUS8</td></tr>
 
@@ -11878,23 +11878,23 @@
 
 <tr><td>CELL_S[4].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405ISOCMABUSO15</td></tr>
 
-<tr><td>CELL_S[5].IMUX_SR[0]</td><td>PPC.ISARCVALUE4</td></tr>
+<tr><td>CELL_S[5].IMUX_SR_OPTINV[0]</td><td>PPC.ISARCVALUE4</td></tr>
 
-<tr><td>CELL_S[5].IMUX_SR[1]</td><td>PPC.ISARCVALUE5</td></tr>
+<tr><td>CELL_S[5].IMUX_SR_OPTINV[1]</td><td>PPC.ISARCVALUE5</td></tr>
 
-<tr><td>CELL_S[5].IMUX_SR[2]</td><td>PPC.ISARCVALUE6</td></tr>
+<tr><td>CELL_S[5].IMUX_SR_OPTINV[2]</td><td>PPC.ISARCVALUE6</td></tr>
 
-<tr><td>CELL_S[5].IMUX_SR[3]</td><td>PPC.ISARCVALUE7</td></tr>
+<tr><td>CELL_S[5].IMUX_SR_OPTINV[3]</td><td>PPC.ISARCVALUE7</td></tr>
 
-<tr><td>CELL_S[5].IMUX_CLK[0]</td><td>PPC.CPMC405CLOCK</td></tr>
+<tr><td>CELL_S[5].IMUX_CLK_OPTINV[0]</td><td>PPC.CPMC405CLOCK</td></tr>
 
-<tr><td>CELL_S[5].IMUX_CE[0]</td><td>PPC.ISARCVALUE0</td></tr>
+<tr><td>CELL_S[5].IMUX_CE_OPTINV[0]</td><td>PPC.ISARCVALUE0</td></tr>
 
-<tr><td>CELL_S[5].IMUX_CE[1]</td><td>PPC.ISARCVALUE1</td></tr>
+<tr><td>CELL_S[5].IMUX_CE_OPTINV[1]</td><td>PPC.ISARCVALUE1</td></tr>
 
-<tr><td>CELL_S[5].IMUX_CE[2]</td><td>PPC.ISARCVALUE2</td></tr>
+<tr><td>CELL_S[5].IMUX_CE_OPTINV[2]</td><td>PPC.ISARCVALUE2</td></tr>
 
-<tr><td>CELL_S[5].IMUX_CE[3]</td><td>PPC.ISARCVALUE3</td></tr>
+<tr><td>CELL_S[5].IMUX_CE_OPTINV[3]</td><td>PPC.ISARCVALUE3</td></tr>
 
 <tr><td>CELL_S[5].IMUX_IMUX[0]</td><td>PPC.BRAMISOCMRDDBUS4</td></tr>
 
@@ -11990,23 +11990,23 @@
 
 <tr><td>CELL_S[5].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405ISOCMABUSO7</td></tr>
 
-<tr><td>CELL_S[6].IMUX_SR[0]</td><td>PPC.TIEC405CLOCKSELECTS0</td></tr>
+<tr><td>CELL_S[6].IMUX_SR_OPTINV[0]</td><td>PPC.TIEC405CLOCKSELECTS0</td></tr>
 
-<tr><td>CELL_S[6].IMUX_SR[1]</td><td>PPC.TIEC405CLOCKSELECTS1</td></tr>
+<tr><td>CELL_S[6].IMUX_SR_OPTINV[1]</td><td>PPC.TIEC405CLOCKSELECTS1</td></tr>
 
-<tr><td>CELL_S[6].IMUX_SR[2]</td><td>PPC.CPMC405CLOCKFBENABLE</td></tr>
+<tr><td>CELL_S[6].IMUX_SR_OPTINV[2]</td><td>PPC.CPMC405CLOCKFBENABLE</td></tr>
 
-<tr><td>CELL_S[6].IMUX_SR[3]</td><td>PPC.TSTSEPPCEMACI</td></tr>
+<tr><td>CELL_S[6].IMUX_SR_OPTINV[3]</td><td>PPC.TSTSEPPCEMACI</td></tr>
 
-<tr><td>CELL_S[6].IMUX_CLK[0]</td><td>PPC.BRAMISOCMCLK</td></tr>
+<tr><td>CELL_S[6].IMUX_CLK_OPTINV[0]</td><td>PPC.BRAMISOCMCLK</td></tr>
 
-<tr><td>CELL_S[6].IMUX_CE[0]</td><td>PPC.TIEC405ICUMARGIN</td></tr>
+<tr><td>CELL_S[6].IMUX_CE_OPTINV[0]</td><td>PPC.TIEC405ICUMARGIN</td></tr>
 
-<tr><td>CELL_S[6].IMUX_CE[1]</td><td>PPC.TIEC405DCUMARGIN</td></tr>
+<tr><td>CELL_S[6].IMUX_CE_OPTINV[1]</td><td>PPC.TIEC405DCUMARGIN</td></tr>
 
-<tr><td>CELL_S[6].IMUX_CE[2]</td><td>PPC.TIEC405TAGMARGIN</td></tr>
+<tr><td>CELL_S[6].IMUX_CE_OPTINV[2]</td><td>PPC.TIEC405TAGMARGIN</td></tr>
 
-<tr><td>CELL_S[6].IMUX_CE[3]</td><td>PPC.TIEC405TLBMARGIN</td></tr>
+<tr><td>CELL_S[6].IMUX_CE_OPTINV[3]</td><td>PPC.TIEC405TLBMARGIN</td></tr>
 
 <tr><td>CELL_S[6].IMUX_IMUX[0]</td><td>PPC.BRAMISOCMRDDBUS0</td></tr>
 
@@ -12072,23 +12072,23 @@
 
 <tr><td>CELL_S[6].OUT_SEC_TMIN[3]</td><td>PPC.ISOCMBRAMRDABUS28</td></tr>
 
-<tr><td>CELL_N[0].IMUX_SR[0]</td><td>PPC.DSARCVALUE4</td></tr>
+<tr><td>CELL_N[0].IMUX_SR_OPTINV[0]</td><td>PPC.DSARCVALUE4</td></tr>
 
-<tr><td>CELL_N[0].IMUX_SR[1]</td><td>PPC.DSARCVALUE5</td></tr>
+<tr><td>CELL_N[0].IMUX_SR_OPTINV[1]</td><td>PPC.DSARCVALUE5</td></tr>
 
-<tr><td>CELL_N[0].IMUX_SR[2]</td><td>PPC.DSARCVALUE6</td></tr>
+<tr><td>CELL_N[0].IMUX_SR_OPTINV[2]</td><td>PPC.DSARCVALUE6</td></tr>
 
-<tr><td>CELL_N[0].IMUX_SR[3]</td><td>PPC.DSARCVALUE7</td></tr>
+<tr><td>CELL_N[0].IMUX_SR_OPTINV[3]</td><td>PPC.DSARCVALUE7</td></tr>
 
-<tr><td>CELL_N[0].IMUX_CLK[0]</td><td>PPC.BRAMDSOCMCLK</td></tr>
+<tr><td>CELL_N[0].IMUX_CLK_OPTINV[0]</td><td>PPC.BRAMDSOCMCLK</td></tr>
 
-<tr><td>CELL_N[0].IMUX_CE[0]</td><td>PPC.DSARCVALUE0</td></tr>
+<tr><td>CELL_N[0].IMUX_CE_OPTINV[0]</td><td>PPC.DSARCVALUE0</td></tr>
 
-<tr><td>CELL_N[0].IMUX_CE[1]</td><td>PPC.DSARCVALUE1</td></tr>
+<tr><td>CELL_N[0].IMUX_CE_OPTINV[1]</td><td>PPC.DSARCVALUE1</td></tr>
 
-<tr><td>CELL_N[0].IMUX_CE[2]</td><td>PPC.DSARCVALUE2</td></tr>
+<tr><td>CELL_N[0].IMUX_CE_OPTINV[2]</td><td>PPC.DSARCVALUE2</td></tr>
 
-<tr><td>CELL_N[0].IMUX_CE[3]</td><td>PPC.DSARCVALUE3</td></tr>
+<tr><td>CELL_N[0].IMUX_CE_OPTINV[3]</td><td>PPC.DSARCVALUE3</td></tr>
 
 <tr><td>CELL_N[0].IMUX_IMUX[0]</td><td>PPC.BRAMDSOCMRDDBUS0</td></tr>
 
@@ -12186,21 +12186,21 @@
 
 <tr><td>CELL_N[0].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUDCDINSTRUCTIONO27</td></tr>
 
-<tr><td>CELL_N[1].IMUX_SR[0]</td><td>PPC.DSCNTLVALUE4</td></tr>
+<tr><td>CELL_N[1].IMUX_SR_OPTINV[0]</td><td>PPC.DSCNTLVALUE4</td></tr>
 
-<tr><td>CELL_N[1].IMUX_SR[1]</td><td>PPC.DSCNTLVALUE5</td></tr>
+<tr><td>CELL_N[1].IMUX_SR_OPTINV[1]</td><td>PPC.DSCNTLVALUE5</td></tr>
 
-<tr><td>CELL_N[1].IMUX_SR[2]</td><td>PPC.DSCNTLVALUE6</td></tr>
+<tr><td>CELL_N[1].IMUX_SR_OPTINV[2]</td><td>PPC.DSCNTLVALUE6</td></tr>
 
-<tr><td>CELL_N[1].IMUX_SR[3]</td><td>PPC.DSCNTLVALUE7</td></tr>
+<tr><td>CELL_N[1].IMUX_SR_OPTINV[3]</td><td>PPC.DSCNTLVALUE7</td></tr>
 
-<tr><td>CELL_N[1].IMUX_CE[0]</td><td>PPC.DSCNTLVALUE0</td></tr>
+<tr><td>CELL_N[1].IMUX_CE_OPTINV[0]</td><td>PPC.DSCNTLVALUE0</td></tr>
 
-<tr><td>CELL_N[1].IMUX_CE[1]</td><td>PPC.DSCNTLVALUE1</td></tr>
+<tr><td>CELL_N[1].IMUX_CE_OPTINV[1]</td><td>PPC.DSCNTLVALUE1</td></tr>
 
-<tr><td>CELL_N[1].IMUX_CE[2]</td><td>PPC.DSCNTLVALUE2</td></tr>
+<tr><td>CELL_N[1].IMUX_CE_OPTINV[2]</td><td>PPC.DSCNTLVALUE2</td></tr>
 
-<tr><td>CELL_N[1].IMUX_CE[3]</td><td>PPC.DSCNTLVALUE3</td></tr>
+<tr><td>CELL_N[1].IMUX_CE_OPTINV[3]</td><td>PPC.DSCNTLVALUE3</td></tr>
 
 <tr><td>CELL_N[1].IMUX_IMUX[0]</td><td>PPC.FCMAPUDCDLDSTBYTE</td></tr>
 
@@ -12298,23 +12298,23 @@
 
 <tr><td>CELL_N[1].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUDCDINSTRUCTIONO23</td></tr>
 
-<tr><td>CELL_N[2].IMUX_SR[0]</td><td>PPC.TIEAPUCONTROL11</td></tr>
+<tr><td>CELL_N[2].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUCONTROL11</td></tr>
 
-<tr><td>CELL_N[2].IMUX_SR[1]</td><td>PPC.TIEAPUCONTROL10</td></tr>
+<tr><td>CELL_N[2].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUCONTROL10</td></tr>
 
-<tr><td>CELL_N[2].IMUX_SR[2]</td><td>PPC.TIEAPUCONTROL9</td></tr>
+<tr><td>CELL_N[2].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUCONTROL9</td></tr>
 
-<tr><td>CELL_N[2].IMUX_SR[3]</td><td>PPC.TIEAPUCONTROL8</td></tr>
+<tr><td>CELL_N[2].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUCONTROL8</td></tr>
 
-<tr><td>CELL_N[2].IMUX_CLK[0]</td><td>EMAC.PHYEMAC1GTXCLK</td></tr>
+<tr><td>CELL_N[2].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC1GTXCLK</td></tr>
 
-<tr><td>CELL_N[2].IMUX_CE[0]</td><td>PPC.TIEAPUCONTROL15</td></tr>
+<tr><td>CELL_N[2].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUCONTROL15</td></tr>
 
-<tr><td>CELL_N[2].IMUX_CE[1]</td><td>PPC.TIEAPUCONTROL14</td></tr>
+<tr><td>CELL_N[2].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUCONTROL14</td></tr>
 
-<tr><td>CELL_N[2].IMUX_CE[2]</td><td>PPC.TIEAPUCONTROL13</td></tr>
+<tr><td>CELL_N[2].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUCONTROL13</td></tr>
 
-<tr><td>CELL_N[2].IMUX_CE[3]</td><td>PPC.TIEAPUCONTROL12</td></tr>
+<tr><td>CELL_N[2].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUCONTROL12</td></tr>
 
 <tr><td>CELL_N[2].IMUX_IMUX[0]</td><td>PPC.BRAMDSOCMRDDBUS8</td></tr>
 
@@ -12412,23 +12412,23 @@
 
 <tr><td>CELL_N[2].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUDCDINSTRUCTIONO19</td></tr>
 
-<tr><td>CELL_N[3].IMUX_SR[0]</td><td>PPC.TIEAPUCONTROL3</td></tr>
+<tr><td>CELL_N[3].IMUX_SR_OPTINV[0]</td><td>PPC.TIEAPUCONTROL3</td></tr>
 
-<tr><td>CELL_N[3].IMUX_SR[1]</td><td>PPC.TIEAPUCONTROL2</td></tr>
+<tr><td>CELL_N[3].IMUX_SR_OPTINV[1]</td><td>PPC.TIEAPUCONTROL2</td></tr>
 
-<tr><td>CELL_N[3].IMUX_SR[2]</td><td>PPC.TIEAPUCONTROL1</td></tr>
+<tr><td>CELL_N[3].IMUX_SR_OPTINV[2]</td><td>PPC.TIEAPUCONTROL1</td></tr>
 
-<tr><td>CELL_N[3].IMUX_SR[3]</td><td>PPC.TIEAPUCONTROL0</td></tr>
+<tr><td>CELL_N[3].IMUX_SR_OPTINV[3]</td><td>PPC.TIEAPUCONTROL0</td></tr>
 
-<tr><td>CELL_N[3].IMUX_CLK[0]</td><td>EMAC.PHYEMAC1RXCLK</td></tr>
+<tr><td>CELL_N[3].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC1RXCLK</td></tr>
 
-<tr><td>CELL_N[3].IMUX_CE[0]</td><td>PPC.TIEAPUCONTROL7</td></tr>
+<tr><td>CELL_N[3].IMUX_CE_OPTINV[0]</td><td>PPC.TIEAPUCONTROL7</td></tr>
 
-<tr><td>CELL_N[3].IMUX_CE[1]</td><td>PPC.TIEAPUCONTROL6</td></tr>
+<tr><td>CELL_N[3].IMUX_CE_OPTINV[1]</td><td>PPC.TIEAPUCONTROL6</td></tr>
 
-<tr><td>CELL_N[3].IMUX_CE[2]</td><td>PPC.TIEAPUCONTROL5</td></tr>
+<tr><td>CELL_N[3].IMUX_CE_OPTINV[2]</td><td>PPC.TIEAPUCONTROL5</td></tr>
 
-<tr><td>CELL_N[3].IMUX_CE[3]</td><td>PPC.TIEAPUCONTROL4</td></tr>
+<tr><td>CELL_N[3].IMUX_CE_OPTINV[3]</td><td>PPC.TIEAPUCONTROL4</td></tr>
 
 <tr><td>CELL_N[3].IMUX_IMUX[0]</td><td>PPC.BRAMDSOCMRDDBUS12</td></tr>
 
@@ -12526,23 +12526,23 @@
 
 <tr><td>CELL_N[3].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUDCDINSTRUCTIONO15</td></tr>
 
-<tr><td>CELL_N[4].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC29</td></tr>
+<tr><td>CELL_N[4].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC29</td></tr>
 
-<tr><td>CELL_N[4].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC28</td></tr>
+<tr><td>CELL_N[4].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC28</td></tr>
 
-<tr><td>CELL_N[4].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC27</td></tr>
+<tr><td>CELL_N[4].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC27</td></tr>
 
-<tr><td>CELL_N[4].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC26</td></tr>
+<tr><td>CELL_N[4].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC26</td></tr>
 
-<tr><td>CELL_N[4].IMUX_CLK[0]</td><td>EMAC.PHYEMAC1MIITXCLK</td></tr>
+<tr><td>CELL_N[4].IMUX_CLK_OPTINV[0]</td><td>EMAC.PHYEMAC1MIITXCLK</td></tr>
 
-<tr><td>CELL_N[4].IMUX_CE[0]</td><td>EMAC.TIEEMAC1CONFIGVEC33</td></tr>
+<tr><td>CELL_N[4].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC33</td></tr>
 
-<tr><td>CELL_N[4].IMUX_CE[1]</td><td>EMAC.TIEEMAC1CONFIGVEC32</td></tr>
+<tr><td>CELL_N[4].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC32</td></tr>
 
-<tr><td>CELL_N[4].IMUX_CE[2]</td><td>EMAC.TIEEMAC1CONFIGVEC31</td></tr>
+<tr><td>CELL_N[4].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC31</td></tr>
 
-<tr><td>CELL_N[4].IMUX_CE[3]</td><td>EMAC.TIEEMAC1CONFIGVEC30</td></tr>
+<tr><td>CELL_N[4].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC30</td></tr>
 
 <tr><td>CELL_N[4].IMUX_IMUX[0]</td><td>PPC.BRAMDSOCMRDDBUS20</td></tr>
 
@@ -12640,23 +12640,23 @@
 
 <tr><td>CELL_N[4].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUDCDINSTRUCTIONO11</td></tr>
 
-<tr><td>CELL_N[5].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC37</td></tr>
+<tr><td>CELL_N[5].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC37</td></tr>
 
-<tr><td>CELL_N[5].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC36</td></tr>
+<tr><td>CELL_N[5].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC36</td></tr>
 
-<tr><td>CELL_N[5].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC35</td></tr>
+<tr><td>CELL_N[5].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC35</td></tr>
 
-<tr><td>CELL_N[5].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC34</td></tr>
+<tr><td>CELL_N[5].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC34</td></tr>
 
-<tr><td>CELL_N[5].IMUX_CLK[0]</td><td>PPC.CPMFCMCLK</td></tr>
+<tr><td>CELL_N[5].IMUX_CLK_OPTINV[0]</td><td>PPC.CPMFCMCLK</td></tr>
 
-<tr><td>CELL_N[5].IMUX_CE[0]</td><td>EMAC.TIEEMAC1CONFIGVEC41</td></tr>
+<tr><td>CELL_N[5].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC41</td></tr>
 
-<tr><td>CELL_N[5].IMUX_CE[1]</td><td>EMAC.TIEEMAC1CONFIGVEC40</td></tr>
+<tr><td>CELL_N[5].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC40</td></tr>
 
-<tr><td>CELL_N[5].IMUX_CE[2]</td><td>EMAC.TIEEMAC1CONFIGVEC39</td></tr>
+<tr><td>CELL_N[5].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC39</td></tr>
 
-<tr><td>CELL_N[5].IMUX_CE[3]</td><td>EMAC.TIEEMAC1CONFIGVEC38</td></tr>
+<tr><td>CELL_N[5].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC38</td></tr>
 
 <tr><td>CELL_N[5].IMUX_IMUX[0]</td><td>PPC.BRAMDSOCMRDDBUS24</td></tr>
 
@@ -12754,21 +12754,21 @@
 
 <tr><td>CELL_N[5].OUT_HALF_N_TMIN[7]</td><td>PPC.TSTC405APUDCDINSTRUCTIONO7</td></tr>
 
-<tr><td>CELL_N[6].IMUX_SR[0]</td><td>EMAC.TIEEMAC1CONFIGVEC45</td></tr>
+<tr><td>CELL_N[6].IMUX_SR_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC45</td></tr>
 
-<tr><td>CELL_N[6].IMUX_SR[1]</td><td>EMAC.TIEEMAC1CONFIGVEC44</td></tr>
+<tr><td>CELL_N[6].IMUX_SR_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC44</td></tr>
 
-<tr><td>CELL_N[6].IMUX_SR[2]</td><td>EMAC.TIEEMAC1CONFIGVEC43</td></tr>
+<tr><td>CELL_N[6].IMUX_SR_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC43</td></tr>
 
-<tr><td>CELL_N[6].IMUX_SR[3]</td><td>EMAC.TIEEMAC1CONFIGVEC42</td></tr>
+<tr><td>CELL_N[6].IMUX_SR_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC42</td></tr>
 
-<tr><td>CELL_N[6].IMUX_CE[0]</td><td>EMAC.TIEEMAC1CONFIGVEC49</td></tr>
+<tr><td>CELL_N[6].IMUX_CE_OPTINV[0]</td><td>EMAC.TIEEMAC1CONFIGVEC49</td></tr>
 
-<tr><td>CELL_N[6].IMUX_CE[1]</td><td>EMAC.TIEEMAC1CONFIGVEC48</td></tr>
+<tr><td>CELL_N[6].IMUX_CE_OPTINV[1]</td><td>EMAC.TIEEMAC1CONFIGVEC48</td></tr>
 
-<tr><td>CELL_N[6].IMUX_CE[2]</td><td>EMAC.TIEEMAC1CONFIGVEC47</td></tr>
+<tr><td>CELL_N[6].IMUX_CE_OPTINV[2]</td><td>EMAC.TIEEMAC1CONFIGVEC47</td></tr>
 
-<tr><td>CELL_N[6].IMUX_CE[3]</td><td>EMAC.TIEEMAC1CONFIGVEC46</td></tr>
+<tr><td>CELL_N[6].IMUX_CE_OPTINV[3]</td><td>EMAC.TIEEMAC1CONFIGVEC46</td></tr>
 
 <tr><td>CELL_N[6].IMUX_IMUX[0]</td><td>PPC.BRAMDSOCMRDDBUS28</td></tr>
 

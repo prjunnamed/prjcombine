@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -309,7 +309,7 @@
 
 <tr><td>APUC405WBLDDEPEND</td><td>input</td><td>CELL_W[8].IMUX_G3_DATA[0]</td></tr>
 
-<tr><td>BRAMDSOCMCLK</td><td>input</td><td>CELL_N[3].IMUX_CLK[0]</td></tr>
+<tr><td>BRAMDSOCMCLK</td><td>input</td><td>CELL_N[3].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>BRAMDSOCMRDDACK</td><td>input</td><td>CELL_N[2].IMUX_G3_DATA[0]</td></tr>
 
@@ -377,7 +377,7 @@
 
 <tr><td>BRAMDSOCMRDDBUS9</td><td>input</td><td>CELL_N[0].IMUX_G1_DATA[2]</td></tr>
 
-<tr><td>BRAMISOCMCLK</td><td>input</td><td>CELL_S[4].IMUX_CLK[0]</td></tr>
+<tr><td>BRAMISOCMCLK</td><td>input</td><td>CELL_S[4].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>BRAMISOCMRDDACK</td><td>input</td><td>CELL_S[4].IMUX_G0_DATA[0]</td></tr>
 
@@ -1373,17 +1373,17 @@
 
 <tr><td>C405XXXMACHINECHECK</td><td>output</td><td>CELL_E[14].OUT_FAN_TMIN[6]</td></tr>
 
-<tr><td>CPMC405CLOCK</td><td>input</td><td>CELL_E[9].IMUX_CLK[0]</td></tr>
+<tr><td>CPMC405CLOCK</td><td>input</td><td>CELL_E[9].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>CPMC405CORECLKINACTIVE</td><td>input</td><td>CELL_E[5].IMUX_G1_DATA[2]</td></tr>
 
-<tr><td>CPMC405CPUCLKEN</td><td>input</td><td>CELL_E[1].IMUX_CE[0]</td></tr>
+<tr><td>CPMC405CPUCLKEN</td><td>input</td><td>CELL_E[1].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CPMC405JTAGCLKEN</td><td>input</td><td>CELL_E[3].IMUX_CE[0]</td></tr>
+<tr><td>CPMC405JTAGCLKEN</td><td>input</td><td>CELL_E[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CPMC405TIMERCLKEN</td><td>input</td><td>CELL_E[2].IMUX_CE[0]</td></tr>
+<tr><td>CPMC405TIMERCLKEN</td><td>input</td><td>CELL_E[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CPMC405TIMERTICK</td><td>input</td><td>CELL_E[3].IMUX_CLK[0]</td></tr>
+<tr><td>CPMC405TIMERTICK</td><td>input</td><td>CELL_E[3].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>DBGC405DEBUGHALT</td><td>input</td><td>CELL_E[1].IMUX_G0_DATA[2]</td></tr>
 
@@ -1457,37 +1457,37 @@
 
 <tr><td>DCRC405DBUSIN9</td><td>input</td><td>CELL_W[13].IMUX_G1_DATA[1]</td></tr>
 
-<tr><td>DSARCVALUE0</td><td>input</td><td>CELL_N[5].IMUX_TI[0]</td></tr>
+<tr><td>DSARCVALUE0</td><td>input</td><td>CELL_N[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE1</td><td>input</td><td>CELL_N[5].IMUX_TI[1]</td></tr>
+<tr><td>DSARCVALUE1</td><td>input</td><td>CELL_N[5].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE2</td><td>input</td><td>CELL_N[5].IMUX_TS[0]</td></tr>
+<tr><td>DSARCVALUE2</td><td>input</td><td>CELL_N[5].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE3</td><td>input</td><td>CELL_N[5].IMUX_TS[1]</td></tr>
+<tr><td>DSARCVALUE3</td><td>input</td><td>CELL_N[5].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE4</td><td>input</td><td>CELL_N[6].IMUX_TI[0]</td></tr>
+<tr><td>DSARCVALUE4</td><td>input</td><td>CELL_N[6].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE5</td><td>input</td><td>CELL_N[6].IMUX_TI[1]</td></tr>
+<tr><td>DSARCVALUE5</td><td>input</td><td>CELL_N[6].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE6</td><td>input</td><td>CELL_N[6].IMUX_TS[0]</td></tr>
+<tr><td>DSARCVALUE6</td><td>input</td><td>CELL_N[6].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE7</td><td>input</td><td>CELL_N[6].IMUX_TS[1]</td></tr>
+<tr><td>DSARCVALUE7</td><td>input</td><td>CELL_N[6].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE0</td><td>input</td><td>CELL_N[1].IMUX_TI[0]</td></tr>
+<tr><td>DSCNTLVALUE0</td><td>input</td><td>CELL_N[1].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE1</td><td>input</td><td>CELL_N[1].IMUX_TI[1]</td></tr>
+<tr><td>DSCNTLVALUE1</td><td>input</td><td>CELL_N[1].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE2</td><td>input</td><td>CELL_N[1].IMUX_TS[0]</td></tr>
+<tr><td>DSCNTLVALUE2</td><td>input</td><td>CELL_N[1].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE3</td><td>input</td><td>CELL_N[1].IMUX_TS[1]</td></tr>
+<tr><td>DSCNTLVALUE3</td><td>input</td><td>CELL_N[1].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE4</td><td>input</td><td>CELL_N[2].IMUX_TI[1]</td></tr>
+<tr><td>DSCNTLVALUE4</td><td>input</td><td>CELL_N[2].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE5</td><td>input</td><td>CELL_N[2].IMUX_TS[0]</td></tr>
+<tr><td>DSCNTLVALUE5</td><td>input</td><td>CELL_N[2].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE6</td><td>input</td><td>CELL_N[2].IMUX_TS[1]</td></tr>
+<tr><td>DSCNTLVALUE6</td><td>input</td><td>CELL_N[2].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE7</td><td>input</td><td>CELL_N[4].IMUX_TS[1]</td></tr>
+<tr><td>DSCNTLVALUE7</td><td>input</td><td>CELL_N[4].IMUX_TS_OPTINV[1]</td></tr>
 
 <tr><td>DSOCMBRAMABUS10</td><td>output</td><td>CELL_N[5].OUT_FAN_TMIN[2]</td></tr>
 
@@ -1615,29 +1615,29 @@
 
 <tr><td>EICC405EXTINPUTIRQ</td><td>input</td><td>CELL_E[15].IMUX_G0_DATA[2]</td></tr>
 
-<tr><td>ISARCVALUE0</td><td>input</td><td>CELL_S[4].IMUX_TI[0]</td></tr>
+<tr><td>ISARCVALUE0</td><td>input</td><td>CELL_S[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE1</td><td>input</td><td>CELL_S[4].IMUX_TI[1]</td></tr>
+<tr><td>ISARCVALUE1</td><td>input</td><td>CELL_S[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE2</td><td>input</td><td>CELL_S[4].IMUX_TS[0]</td></tr>
+<tr><td>ISARCVALUE2</td><td>input</td><td>CELL_S[4].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE3</td><td>input</td><td>CELL_S[4].IMUX_TS[1]</td></tr>
+<tr><td>ISARCVALUE3</td><td>input</td><td>CELL_S[4].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE4</td><td>input</td><td>CELL_S[5].IMUX_TI[0]</td></tr>
+<tr><td>ISARCVALUE4</td><td>input</td><td>CELL_S[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE5</td><td>input</td><td>CELL_S[5].IMUX_TI[1]</td></tr>
+<tr><td>ISARCVALUE5</td><td>input</td><td>CELL_S[5].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE6</td><td>input</td><td>CELL_S[5].IMUX_TS[0]</td></tr>
+<tr><td>ISARCVALUE6</td><td>input</td><td>CELL_S[5].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE7</td><td>input</td><td>CELL_S[5].IMUX_TS[1]</td></tr>
+<tr><td>ISARCVALUE7</td><td>input</td><td>CELL_S[5].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>ISCNTLVALUE0</td><td>input</td><td>CELL_S[2].IMUX_SR[0]</td></tr>
+<tr><td>ISCNTLVALUE0</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>ISCNTLVALUE1</td><td>input</td><td>CELL_S[2].IMUX_SR[1]</td></tr>
+<tr><td>ISCNTLVALUE1</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>ISCNTLVALUE2</td><td>input</td><td>CELL_S[3].IMUX_SR[0]</td></tr>
+<tr><td>ISCNTLVALUE2</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>ISCNTLVALUE3</td><td>input</td><td>CELL_S[3].IMUX_SR[1]</td></tr>
+<tr><td>ISCNTLVALUE3</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>ISCNTLVALUE4</td><td>input</td><td>CELL_S[5].IMUX_G0_DATA[0]</td></tr>
 
@@ -1805,7 +1805,7 @@
 
 <tr><td>JTGC405BNDSCANTDO</td><td>input</td><td>CELL_N[2].IMUX_G1_DATA[0]</td></tr>
 
-<tr><td>JTGC405TCK</td><td>input</td><td>CELL_N[1].IMUX_CLK[0]</td></tr>
+<tr><td>JTGC405TCK</td><td>input</td><td>CELL_N[1].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>JTGC405TDI</td><td>input</td><td>CELL_N[1].IMUX_G1_DATA[0]</td></tr>
 
@@ -1851,13 +1851,13 @@
 
 <tr><td>LSSDC405TESTM3</td><td>input</td><td>CELL_S[3].IMUX_G3_DATA[1]</td></tr>
 
-<tr><td>MCBCPUCLKEN</td><td>input</td><td>CELL_E[4].IMUX_TI[0]</td></tr>
+<tr><td>MCBCPUCLKEN</td><td>input</td><td>CELL_E[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>MCBJTAGEN</td><td>input</td><td>CELL_E[5].IMUX_TI[0]</td></tr>
+<tr><td>MCBJTAGEN</td><td>input</td><td>CELL_E[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>MCBTIMEREN</td><td>input</td><td>CELL_E[6].IMUX_TI[0]</td></tr>
+<tr><td>MCBTIMEREN</td><td>input</td><td>CELL_E[6].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>MCPPCRST</td><td>input</td><td>CELL_E[14].IMUX_TI[0]</td></tr>
+<tr><td>MCPPCRST</td><td>input</td><td>CELL_E[14].IMUX_TI_OPTINV[0]</td></tr>
 
 <tr><td>PLBC405DCUADDRACK</td><td>input</td><td>CELL_E[7].IMUX_G0_DATA[2]</td></tr>
 
@@ -2149,133 +2149,133 @@
 
 <tr><td>PLBC405ICUSSIZE1</td><td>input</td><td>CELL_E[8].IMUX_G1_DATA[2]</td></tr>
 
-<tr><td>PLBCLK</td><td>input</td><td>CELL_E[0].IMUX_CLK[1]</td></tr>
+<tr><td>PLBCLK</td><td>input</td><td>CELL_E[0].IMUX_CLK_OPTINV[1]</td></tr>
 
-<tr><td>RSTC405RESETCHIP</td><td>input</td><td>CELL_E[11].IMUX_SR[0]</td></tr>
+<tr><td>RSTC405RESETCHIP</td><td>input</td><td>CELL_E[11].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>RSTC405RESETCORE</td><td>input</td><td>CELL_E[12].IMUX_SR[0]</td></tr>
+<tr><td>RSTC405RESETCORE</td><td>input</td><td>CELL_E[12].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>RSTC405RESETSYS</td><td>input</td><td>CELL_E[13].IMUX_SR[0]</td></tr>
+<tr><td>RSTC405RESETSYS</td><td>input</td><td>CELL_E[13].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TESTSELI</td><td>input</td><td>CELL_W[8].IMUX_TI[0]</td></tr>
+<tr><td>TESTSELI</td><td>input</td><td>CELL_W[8].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405APUDIVEN</td><td>input</td><td>CELL_W[4].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405APUDIVEN</td><td>input</td><td>CELL_W[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405APUPRESENT</td><td>input</td><td>CELL_W[4].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405APUPRESENT</td><td>input</td><td>CELL_W[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405DETERMINISTICMULT</td><td>input</td><td>CELL_E[0].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405DETERMINISTICMULT</td><td>input</td><td>CELL_E[0].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405DISOPERANDFWD</td><td>input</td><td>CELL_E[1].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405DISOPERANDFWD</td><td>input</td><td>CELL_E[1].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405MMUEN</td><td>input</td><td>CELL_E[1].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405MMUEN</td><td>input</td><td>CELL_E[1].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR0</td><td>input</td><td>CELL_E[15].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR0</td><td>input</td><td>CELL_E[15].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR1</td><td>input</td><td>CELL_E[15].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR1</td><td>input</td><td>CELL_E[15].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR10</td><td>input</td><td>CELL_E[12].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR10</td><td>input</td><td>CELL_E[12].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR11</td><td>input</td><td>CELL_E[12].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR11</td><td>input</td><td>CELL_E[12].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR12</td><td>input</td><td>CELL_E[11].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR12</td><td>input</td><td>CELL_E[11].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR13</td><td>input</td><td>CELL_E[11].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR13</td><td>input</td><td>CELL_E[11].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR14</td><td>input</td><td>CELL_E[11].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR14</td><td>input</td><td>CELL_E[11].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR15</td><td>input</td><td>CELL_E[10].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR15</td><td>input</td><td>CELL_E[10].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR16</td><td>input</td><td>CELL_E[10].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR16</td><td>input</td><td>CELL_E[10].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR17</td><td>input</td><td>CELL_E[10].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR17</td><td>input</td><td>CELL_E[10].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR18</td><td>input</td><td>CELL_E[5].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR18</td><td>input</td><td>CELL_E[5].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR19</td><td>input</td><td>CELL_E[5].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR19</td><td>input</td><td>CELL_E[5].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR2</td><td>input</td><td>CELL_E[15].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR2</td><td>input</td><td>CELL_E[15].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR20</td><td>input</td><td>CELL_E[4].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR20</td><td>input</td><td>CELL_E[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR21</td><td>input</td><td>CELL_E[4].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR21</td><td>input</td><td>CELL_E[4].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR22</td><td>input</td><td>CELL_E[4].IMUX_TS[1]</td></tr>
+<tr><td>TIEC405PVR22</td><td>input</td><td>CELL_E[4].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR23</td><td>input</td><td>CELL_E[3].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR23</td><td>input</td><td>CELL_E[3].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR24</td><td>input</td><td>CELL_E[3].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR24</td><td>input</td><td>CELL_E[3].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR25</td><td>input</td><td>CELL_E[3].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR25</td><td>input</td><td>CELL_E[3].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR26</td><td>input</td><td>CELL_E[2].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR26</td><td>input</td><td>CELL_E[2].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR27</td><td>input</td><td>CELL_E[2].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR27</td><td>input</td><td>CELL_E[2].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR28</td><td>input</td><td>CELL_E[2].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR28</td><td>input</td><td>CELL_E[2].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR29</td><td>input</td><td>CELL_E[1].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR29</td><td>input</td><td>CELL_E[1].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR3</td><td>input</td><td>CELL_E[14].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR3</td><td>input</td><td>CELL_E[14].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR30</td><td>input</td><td>CELL_E[0].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR30</td><td>input</td><td>CELL_E[0].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR31</td><td>input</td><td>CELL_E[0].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR31</td><td>input</td><td>CELL_E[0].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR4</td><td>input</td><td>CELL_E[14].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR4</td><td>input</td><td>CELL_E[14].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR5</td><td>input</td><td>CELL_E[14].IMUX_TS[1]</td></tr>
+<tr><td>TIEC405PVR5</td><td>input</td><td>CELL_E[14].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR6</td><td>input</td><td>CELL_E[13].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR6</td><td>input</td><td>CELL_E[13].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR7</td><td>input</td><td>CELL_E[13].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR7</td><td>input</td><td>CELL_E[13].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR8</td><td>input</td><td>CELL_E[13].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR8</td><td>input</td><td>CELL_E[13].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR9</td><td>input</td><td>CELL_E[12].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR9</td><td>input</td><td>CELL_E[12].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR0</td><td>input</td><td>CELL_N[2].IMUX_TI[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR0</td><td>input</td><td>CELL_N[2].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR1</td><td>input</td><td>CELL_N[3].IMUX_TI[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR1</td><td>input</td><td>CELL_N[3].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR2</td><td>input</td><td>CELL_N[3].IMUX_TI[1]</td></tr>
+<tr><td>TIEDSOCMDCRADDR2</td><td>input</td><td>CELL_N[3].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR3</td><td>input</td><td>CELL_N[3].IMUX_TS[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR3</td><td>input</td><td>CELL_N[3].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR4</td><td>input</td><td>CELL_N[3].IMUX_TS[1]</td></tr>
+<tr><td>TIEDSOCMDCRADDR4</td><td>input</td><td>CELL_N[3].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR5</td><td>input</td><td>CELL_N[4].IMUX_TI[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR5</td><td>input</td><td>CELL_N[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR6</td><td>input</td><td>CELL_N[4].IMUX_TI[1]</td></tr>
+<tr><td>TIEDSOCMDCRADDR6</td><td>input</td><td>CELL_N[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR7</td><td>input</td><td>CELL_N[4].IMUX_TS[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR7</td><td>input</td><td>CELL_N[4].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR0</td><td>input</td><td>CELL_S[2].IMUX_TI[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR0</td><td>input</td><td>CELL_S[2].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR1</td><td>input</td><td>CELL_S[2].IMUX_TI[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR1</td><td>input</td><td>CELL_S[2].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR2</td><td>input</td><td>CELL_S[2].IMUX_TS[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR2</td><td>input</td><td>CELL_S[2].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR3</td><td>input</td><td>CELL_S[2].IMUX_TS[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR3</td><td>input</td><td>CELL_S[2].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR4</td><td>input</td><td>CELL_S[3].IMUX_TI[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR4</td><td>input</td><td>CELL_S[3].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR5</td><td>input</td><td>CELL_S[3].IMUX_TI[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR5</td><td>input</td><td>CELL_S[3].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR6</td><td>input</td><td>CELL_S[3].IMUX_TS[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR6</td><td>input</td><td>CELL_S[3].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR7</td><td>input</td><td>CELL_S[3].IMUX_TS[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR7</td><td>input</td><td>CELL_S[3].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIERAMTAP1</td><td>input</td><td>CELL_W[6].IMUX_TI[0]</td></tr>
+<tr><td>TIERAMTAP1</td><td>input</td><td>CELL_W[6].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIERAMTAP2</td><td>input</td><td>CELL_W[6].IMUX_TI[1]</td></tr>
+<tr><td>TIERAMTAP2</td><td>input</td><td>CELL_W[6].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIETAGTAP1</td><td>input</td><td>CELL_W[7].IMUX_TI[0]</td></tr>
+<tr><td>TIETAGTAP1</td><td>input</td><td>CELL_W[7].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIETAGTAP2</td><td>input</td><td>CELL_W[7].IMUX_TI[1]</td></tr>
+<tr><td>TIETAGTAP2</td><td>input</td><td>CELL_W[7].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEUTLBTAP1</td><td>input</td><td>CELL_W[5].IMUX_TI[0]</td></tr>
+<tr><td>TIEUTLBTAP1</td><td>input</td><td>CELL_W[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEUTLBTAP2</td><td>input</td><td>CELL_W[5].IMUX_TI[1]</td></tr>
+<tr><td>TIEUTLBTAP2</td><td>input</td><td>CELL_W[5].IMUX_TI_OPTINV[1]</td></tr>
 
 <tr><td>TRCC405TRACEDISABLE</td><td>input</td><td>CELL_N[1].IMUX_G0_DATA[0]</td></tr>
 
@@ -3736,9 +3736,9 @@
 
 <tr><td>CELL_W[3].OUT_TEST[4]</td><td>PPC405.TSTRDDBUSO29</td></tr>
 
-<tr><td>CELL_W[4].IMUX_TI[0]</td><td>PPC405.TIEC405APUDIVEN</td></tr>
+<tr><td>CELL_W[4].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405APUDIVEN</td></tr>
 
-<tr><td>CELL_W[4].IMUX_TI[1]</td><td>PPC405.TIEC405APUPRESENT</td></tr>
+<tr><td>CELL_W[4].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405APUPRESENT</td></tr>
 
 <tr><td>CELL_W[4].IMUX_G0_DATA[0]</td><td>PPC405.APUC405DCDTRAPBE</td></tr>
 
@@ -3814,9 +3814,9 @@
 
 <tr><td>CELL_W[4].OUT_TEST[4]</td><td>PPC405.TSTRDDBUSO31</td></tr>
 
-<tr><td>CELL_W[5].IMUX_TI[0]</td><td>PPC405.TIEUTLBTAP1</td></tr>
+<tr><td>CELL_W[5].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEUTLBTAP1</td></tr>
 
-<tr><td>CELL_W[5].IMUX_TI[1]</td><td>PPC405.TIEUTLBTAP2</td></tr>
+<tr><td>CELL_W[5].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEUTLBTAP2</td></tr>
 
 <tr><td>CELL_W[5].IMUX_G0_DATA[0]</td><td>PPC405.APUC405DCDUPDATE</td></tr>
 
@@ -3892,9 +3892,9 @@
 
 <tr><td>CELL_W[5].OUT_TEST[4]</td><td>PPC405.TSTISOPFWDO</td></tr>
 
-<tr><td>CELL_W[6].IMUX_TI[0]</td><td>PPC405.TIERAMTAP1</td></tr>
+<tr><td>CELL_W[6].IMUX_TI_OPTINV[0]</td><td>PPC405.TIERAMTAP1</td></tr>
 
-<tr><td>CELL_W[6].IMUX_TI[1]</td><td>PPC405.TIERAMTAP2</td></tr>
+<tr><td>CELL_W[6].IMUX_TI_OPTINV[1]</td><td>PPC405.TIERAMTAP2</td></tr>
 
 <tr><td>CELL_W[6].IMUX_G0_DATA[0]</td><td>PPC405.APUC405DCDXERCAEN</td></tr>
 
@@ -3968,9 +3968,9 @@
 
 <tr><td>CELL_W[6].OUT_TEST[2]</td><td>PPC405.TSTOCMCOMPLETEO</td></tr>
 
-<tr><td>CELL_W[7].IMUX_TI[0]</td><td>PPC405.TIETAGTAP1</td></tr>
+<tr><td>CELL_W[7].IMUX_TI_OPTINV[0]</td><td>PPC405.TIETAGTAP1</td></tr>
 
-<tr><td>CELL_W[7].IMUX_TI[1]</td><td>PPC405.TIETAGTAP2</td></tr>
+<tr><td>CELL_W[7].IMUX_TI_OPTINV[1]</td><td>PPC405.TIETAGTAP2</td></tr>
 
 <tr><td>CELL_W[7].IMUX_G0_DATA[0]</td><td>PPC405.APUC405EXCEPTION</td></tr>
 
@@ -4042,7 +4042,7 @@
 
 <tr><td>CELL_W[7].OUT_TEST[0]</td><td>PPC405.TSTDCRBUSO30</td></tr>
 
-<tr><td>CELL_W[8].IMUX_TI[0]</td><td>PPC405.TESTSELI</td></tr>
+<tr><td>CELL_W[8].IMUX_TI_OPTINV[0]</td><td>PPC405.TESTSELI</td></tr>
 
 <tr><td>CELL_W[8].IMUX_G0_DATA[0]</td><td>PPC405.APUC405EXEBUSY</td></tr>
 
@@ -4602,13 +4602,13 @@
 
 <tr><td>CELL_W[15].OUT_SEC_TMIN[15]</td><td>PPC405.C405DCRDBUSOUT3</td></tr>
 
-<tr><td>CELL_E[0].IMUX_CLK[1]</td><td>PPC405.PLBCLK</td></tr>
+<tr><td>CELL_E[0].IMUX_CLK_OPTINV[1]</td><td>PPC405.PLBCLK</td></tr>
 
-<tr><td>CELL_E[0].IMUX_TI[0]</td><td>PPC405.TIEC405DETERMINISTICMULT</td></tr>
+<tr><td>CELL_E[0].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405DETERMINISTICMULT</td></tr>
 
-<tr><td>CELL_E[0].IMUX_TI[1]</td><td>PPC405.TIEC405PVR30</td></tr>
+<tr><td>CELL_E[0].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR30</td></tr>
 
-<tr><td>CELL_E[0].IMUX_TS[0]</td><td>PPC405.TIEC405PVR31</td></tr>
+<tr><td>CELL_E[0].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR31</td></tr>
 
 <tr><td>CELL_E[0].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS60</td></tr>
 
@@ -4674,13 +4674,13 @@
 
 <tr><td>CELL_E[0].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO54</td></tr>
 
-<tr><td>CELL_E[1].IMUX_CE[0]</td><td>PPC405.CPMC405CPUCLKEN</td></tr>
+<tr><td>CELL_E[1].IMUX_CE_OPTINV[0]</td><td>PPC405.CPMC405CPUCLKEN</td></tr>
 
-<tr><td>CELL_E[1].IMUX_TI[0]</td><td>PPC405.TIEC405DISOPERANDFWD</td></tr>
+<tr><td>CELL_E[1].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405DISOPERANDFWD</td></tr>
 
-<tr><td>CELL_E[1].IMUX_TI[1]</td><td>PPC405.TIEC405MMUEN</td></tr>
+<tr><td>CELL_E[1].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405MMUEN</td></tr>
 
-<tr><td>CELL_E[1].IMUX_TS[0]</td><td>PPC405.TIEC405PVR29</td></tr>
+<tr><td>CELL_E[1].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR29</td></tr>
 
 <tr><td>CELL_E[1].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS56</td></tr>
 
@@ -4748,13 +4748,13 @@
 
 <tr><td>CELL_E[1].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO56</td></tr>
 
-<tr><td>CELL_E[2].IMUX_CE[0]</td><td>PPC405.CPMC405TIMERCLKEN</td></tr>
+<tr><td>CELL_E[2].IMUX_CE_OPTINV[0]</td><td>PPC405.CPMC405TIMERCLKEN</td></tr>
 
-<tr><td>CELL_E[2].IMUX_TI[0]</td><td>PPC405.TIEC405PVR26</td></tr>
+<tr><td>CELL_E[2].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR26</td></tr>
 
-<tr><td>CELL_E[2].IMUX_TI[1]</td><td>PPC405.TIEC405PVR27</td></tr>
+<tr><td>CELL_E[2].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR27</td></tr>
 
-<tr><td>CELL_E[2].IMUX_TS[0]</td><td>PPC405.TIEC405PVR28</td></tr>
+<tr><td>CELL_E[2].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR28</td></tr>
 
 <tr><td>CELL_E[2].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS52</td></tr>
 
@@ -4822,15 +4822,15 @@
 
 <tr><td>CELL_E[2].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO58</td></tr>
 
-<tr><td>CELL_E[3].IMUX_CLK[0]</td><td>PPC405.CPMC405TIMERTICK</td></tr>
+<tr><td>CELL_E[3].IMUX_CLK_OPTINV[0]</td><td>PPC405.CPMC405TIMERTICK</td></tr>
 
-<tr><td>CELL_E[3].IMUX_CE[0]</td><td>PPC405.CPMC405JTAGCLKEN</td></tr>
+<tr><td>CELL_E[3].IMUX_CE_OPTINV[0]</td><td>PPC405.CPMC405JTAGCLKEN</td></tr>
 
-<tr><td>CELL_E[3].IMUX_TI[0]</td><td>PPC405.TIEC405PVR23</td></tr>
+<tr><td>CELL_E[3].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR23</td></tr>
 
-<tr><td>CELL_E[3].IMUX_TI[1]</td><td>PPC405.TIEC405PVR24</td></tr>
+<tr><td>CELL_E[3].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR24</td></tr>
 
-<tr><td>CELL_E[3].IMUX_TS[0]</td><td>PPC405.TIEC405PVR25</td></tr>
+<tr><td>CELL_E[3].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR25</td></tr>
 
 <tr><td>CELL_E[3].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS48</td></tr>
 
@@ -4896,13 +4896,13 @@
 
 <tr><td>CELL_E[3].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO60</td></tr>
 
-<tr><td>CELL_E[4].IMUX_TI[0]</td><td>PPC405.MCBCPUCLKEN</td></tr>
+<tr><td>CELL_E[4].IMUX_TI_OPTINV[0]</td><td>PPC405.MCBCPUCLKEN</td></tr>
 
-<tr><td>CELL_E[4].IMUX_TI[1]</td><td>PPC405.TIEC405PVR20</td></tr>
+<tr><td>CELL_E[4].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR20</td></tr>
 
-<tr><td>CELL_E[4].IMUX_TS[0]</td><td>PPC405.TIEC405PVR21</td></tr>
+<tr><td>CELL_E[4].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR21</td></tr>
 
-<tr><td>CELL_E[4].IMUX_TS[1]</td><td>PPC405.TIEC405PVR22</td></tr>
+<tr><td>CELL_E[4].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEC405PVR22</td></tr>
 
 <tr><td>CELL_E[4].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS44</td></tr>
 
@@ -4968,11 +4968,11 @@
 
 <tr><td>CELL_E[4].OUT_TEST[2]</td><td>PPC405.TSTISOCMRDATAO62</td></tr>
 
-<tr><td>CELL_E[5].IMUX_TI[0]</td><td>PPC405.MCBJTAGEN</td></tr>
+<tr><td>CELL_E[5].IMUX_TI_OPTINV[0]</td><td>PPC405.MCBJTAGEN</td></tr>
 
-<tr><td>CELL_E[5].IMUX_TI[1]</td><td>PPC405.TIEC405PVR18</td></tr>
+<tr><td>CELL_E[5].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR18</td></tr>
 
-<tr><td>CELL_E[5].IMUX_TS[0]</td><td>PPC405.TIEC405PVR19</td></tr>
+<tr><td>CELL_E[5].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR19</td></tr>
 
 <tr><td>CELL_E[5].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS40</td></tr>
 
@@ -5040,7 +5040,7 @@
 
 <tr><td>CELL_E[5].OUT_TEST[2]</td><td>PPC405.TSTPLBSAMPLECYCLEO</td></tr>
 
-<tr><td>CELL_E[6].IMUX_TI[0]</td><td>PPC405.MCBTIMEREN</td></tr>
+<tr><td>CELL_E[6].IMUX_TI_OPTINV[0]</td><td>PPC405.MCBTIMEREN</td></tr>
 
 <tr><td>CELL_E[6].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS36</td></tr>
 
@@ -5236,7 +5236,7 @@
 
 <tr><td>CELL_E[8].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS12</td></tr>
 
-<tr><td>CELL_E[9].IMUX_CLK[0]</td><td>PPC405.CPMC405CLOCK</td></tr>
+<tr><td>CELL_E[9].IMUX_CLK_OPTINV[0]</td><td>PPC405.CPMC405CLOCK</td></tr>
 
 <tr><td>CELL_E[9].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS24</td></tr>
 
@@ -5302,11 +5302,11 @@
 
 <tr><td>CELL_E[9].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS8</td></tr>
 
-<tr><td>CELL_E[10].IMUX_TI[0]</td><td>PPC405.TIEC405PVR15</td></tr>
+<tr><td>CELL_E[10].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR15</td></tr>
 
-<tr><td>CELL_E[10].IMUX_TI[1]</td><td>PPC405.TIEC405PVR16</td></tr>
+<tr><td>CELL_E[10].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR16</td></tr>
 
-<tr><td>CELL_E[10].IMUX_TS[0]</td><td>PPC405.TIEC405PVR17</td></tr>
+<tr><td>CELL_E[10].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR17</td></tr>
 
 <tr><td>CELL_E[10].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS20</td></tr>
 
@@ -5368,13 +5368,13 @@
 
 <tr><td>CELL_E[10].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS4</td></tr>
 
-<tr><td>CELL_E[11].IMUX_SR[0]</td><td>PPC405.RSTC405RESETCHIP</td></tr>
+<tr><td>CELL_E[11].IMUX_SR_OPTINV[0]</td><td>PPC405.RSTC405RESETCHIP</td></tr>
 
-<tr><td>CELL_E[11].IMUX_TI[0]</td><td>PPC405.TIEC405PVR12</td></tr>
+<tr><td>CELL_E[11].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR12</td></tr>
 
-<tr><td>CELL_E[11].IMUX_TI[1]</td><td>PPC405.TIEC405PVR13</td></tr>
+<tr><td>CELL_E[11].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR13</td></tr>
 
-<tr><td>CELL_E[11].IMUX_TS[0]</td><td>PPC405.TIEC405PVR14</td></tr>
+<tr><td>CELL_E[11].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR14</td></tr>
 
 <tr><td>CELL_E[11].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS16</td></tr>
 
@@ -5432,13 +5432,13 @@
 
 <tr><td>CELL_E[11].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS0</td></tr>
 
-<tr><td>CELL_E[12].IMUX_SR[0]</td><td>PPC405.RSTC405RESETCORE</td></tr>
+<tr><td>CELL_E[12].IMUX_SR_OPTINV[0]</td><td>PPC405.RSTC405RESETCORE</td></tr>
 
-<tr><td>CELL_E[12].IMUX_TI[0]</td><td>PPC405.TIEC405PVR9</td></tr>
+<tr><td>CELL_E[12].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR9</td></tr>
 
-<tr><td>CELL_E[12].IMUX_TI[1]</td><td>PPC405.TIEC405PVR10</td></tr>
+<tr><td>CELL_E[12].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR10</td></tr>
 
-<tr><td>CELL_E[12].IMUX_TS[0]</td><td>PPC405.TIEC405PVR11</td></tr>
+<tr><td>CELL_E[12].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR11</td></tr>
 
 <tr><td>CELL_E[12].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS12</td></tr>
 
@@ -5496,13 +5496,13 @@
 
 <tr><td>CELL_E[12].OUT_TEST[0]</td><td>PPC405.TSTTRSTNEGO</td></tr>
 
-<tr><td>CELL_E[13].IMUX_SR[0]</td><td>PPC405.RSTC405RESETSYS</td></tr>
+<tr><td>CELL_E[13].IMUX_SR_OPTINV[0]</td><td>PPC405.RSTC405RESETSYS</td></tr>
 
-<tr><td>CELL_E[13].IMUX_TI[0]</td><td>PPC405.TIEC405PVR6</td></tr>
+<tr><td>CELL_E[13].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR6</td></tr>
 
-<tr><td>CELL_E[13].IMUX_TI[1]</td><td>PPC405.TIEC405PVR7</td></tr>
+<tr><td>CELL_E[13].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR7</td></tr>
 
-<tr><td>CELL_E[13].IMUX_TS[0]</td><td>PPC405.TIEC405PVR8</td></tr>
+<tr><td>CELL_E[13].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR8</td></tr>
 
 <tr><td>CELL_E[13].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS8</td></tr>
 
@@ -5556,13 +5556,13 @@
 
 <tr><td>CELL_E[13].OUT_SEC_TMIN[15]</td><td>PPC405.C405DBGWBIAR1</td></tr>
 
-<tr><td>CELL_E[14].IMUX_TI[0]</td><td>PPC405.MCPPCRST</td></tr>
+<tr><td>CELL_E[14].IMUX_TI_OPTINV[0]</td><td>PPC405.MCPPCRST</td></tr>
 
-<tr><td>CELL_E[14].IMUX_TI[1]</td><td>PPC405.TIEC405PVR3</td></tr>
+<tr><td>CELL_E[14].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR3</td></tr>
 
-<tr><td>CELL_E[14].IMUX_TS[0]</td><td>PPC405.TIEC405PVR4</td></tr>
+<tr><td>CELL_E[14].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR4</td></tr>
 
-<tr><td>CELL_E[14].IMUX_TS[1]</td><td>PPC405.TIEC405PVR5</td></tr>
+<tr><td>CELL_E[14].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEC405PVR5</td></tr>
 
 <tr><td>CELL_E[14].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS4</td></tr>
 
@@ -5616,11 +5616,11 @@
 
 <tr><td>CELL_E[14].OUT_SEC_TMIN[15]</td><td>PPC405.C405DBGWBIAR3</td></tr>
 
-<tr><td>CELL_E[15].IMUX_TI[0]</td><td>PPC405.TIEC405PVR0</td></tr>
+<tr><td>CELL_E[15].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR0</td></tr>
 
-<tr><td>CELL_E[15].IMUX_TI[1]</td><td>PPC405.TIEC405PVR1</td></tr>
+<tr><td>CELL_E[15].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR1</td></tr>
 
-<tr><td>CELL_E[15].IMUX_TS[0]</td><td>PPC405.TIEC405PVR2</td></tr>
+<tr><td>CELL_E[15].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR2</td></tr>
 
 <tr><td>CELL_E[15].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS0</td></tr>
 
@@ -5906,17 +5906,17 @@
 
 <tr><td>CELL_S[1].OUT_TEST[2]</td><td>PPC405.C405DSOCMSTRINGMULTIPLE</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[0]</td><td>PPC405.ISCNTLVALUE0</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[0]</td><td>PPC405.ISCNTLVALUE0</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[1]</td><td>PPC405.ISCNTLVALUE1</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[1]</td><td>PPC405.ISCNTLVALUE1</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TI[0]</td><td>PPC405.TIEISOCMDCRADDR0</td></tr>
+<tr><td>CELL_S[2].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR0</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TI[1]</td><td>PPC405.TIEISOCMDCRADDR1</td></tr>
+<tr><td>CELL_S[2].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR1</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TS[0]</td><td>PPC405.TIEISOCMDCRADDR2</td></tr>
+<tr><td>CELL_S[2].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR2</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TS[1]</td><td>PPC405.TIEISOCMDCRADDR3</td></tr>
+<tr><td>CELL_S[2].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR3</td></tr>
 
 <tr><td>CELL_S[2].IMUX_G0_DATA[0]</td><td>PPC405.ISCNTLVALUE6</td></tr>
 
@@ -5974,17 +5974,17 @@
 
 <tr><td>CELL_S[2].OUT_TEST[2]</td><td>PPC405.C405DSOCMU0ATTR</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[0]</td><td>PPC405.ISCNTLVALUE2</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[0]</td><td>PPC405.ISCNTLVALUE2</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[1]</td><td>PPC405.ISCNTLVALUE3</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[1]</td><td>PPC405.ISCNTLVALUE3</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TI[0]</td><td>PPC405.TIEISOCMDCRADDR4</td></tr>
+<tr><td>CELL_S[3].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR4</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TI[1]</td><td>PPC405.TIEISOCMDCRADDR5</td></tr>
+<tr><td>CELL_S[3].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR5</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TS[0]</td><td>PPC405.TIEISOCMDCRADDR6</td></tr>
+<tr><td>CELL_S[3].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR6</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TS[1]</td><td>PPC405.TIEISOCMDCRADDR7</td></tr>
+<tr><td>CELL_S[3].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR7</td></tr>
 
 <tr><td>CELL_S[3].IMUX_G0_DATA[0]</td><td>PPC405.TSTISOCMRDATAI29</td></tr>
 
@@ -6030,15 +6030,15 @@
 
 <tr><td>CELL_S[3].OUT_SEC_TMIN[15]</td><td>PPC405.TSTISOCMABUSO9</td></tr>
 
-<tr><td>CELL_S[4].IMUX_CLK[0]</td><td>PPC405.BRAMISOCMCLK</td></tr>
+<tr><td>CELL_S[4].IMUX_CLK_OPTINV[0]</td><td>PPC405.BRAMISOCMCLK</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TI[0]</td><td>PPC405.ISARCVALUE0</td></tr>
+<tr><td>CELL_S[4].IMUX_TI_OPTINV[0]</td><td>PPC405.ISARCVALUE0</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TI[1]</td><td>PPC405.ISARCVALUE1</td></tr>
+<tr><td>CELL_S[4].IMUX_TI_OPTINV[1]</td><td>PPC405.ISARCVALUE1</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TS[0]</td><td>PPC405.ISARCVALUE2</td></tr>
+<tr><td>CELL_S[4].IMUX_TS_OPTINV[0]</td><td>PPC405.ISARCVALUE2</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TS[1]</td><td>PPC405.ISARCVALUE3</td></tr>
+<tr><td>CELL_S[4].IMUX_TS_OPTINV[1]</td><td>PPC405.ISARCVALUE3</td></tr>
 
 <tr><td>CELL_S[4].IMUX_G0_DATA[0]</td><td>PPC405.BRAMISOCMRDDACK</td></tr>
 
@@ -6086,13 +6086,13 @@
 
 <tr><td>CELL_S[4].OUT_SEC_TMIN[15]</td><td>PPC405.TSTISOCMABUSO13</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TI[0]</td><td>PPC405.ISARCVALUE4</td></tr>
+<tr><td>CELL_S[5].IMUX_TI_OPTINV[0]</td><td>PPC405.ISARCVALUE4</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TI[1]</td><td>PPC405.ISARCVALUE5</td></tr>
+<tr><td>CELL_S[5].IMUX_TI_OPTINV[1]</td><td>PPC405.ISARCVALUE5</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TS[0]</td><td>PPC405.ISARCVALUE6</td></tr>
+<tr><td>CELL_S[5].IMUX_TS_OPTINV[0]</td><td>PPC405.ISARCVALUE6</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TS[1]</td><td>PPC405.ISARCVALUE7</td></tr>
+<tr><td>CELL_S[5].IMUX_TS_OPTINV[1]</td><td>PPC405.ISARCVALUE7</td></tr>
 
 <tr><td>CELL_S[5].IMUX_G0_DATA[0]</td><td>PPC405.ISCNTLVALUE4</td></tr>
 
@@ -6450,15 +6450,15 @@
 
 <tr><td>CELL_N[0].OUT_SEC_TMIN[15]</td><td>PPC405.C405TRCTRIGGEREVENTTYPE2</td></tr>
 
-<tr><td>CELL_N[1].IMUX_CLK[0]</td><td>PPC405.JTGC405TCK</td></tr>
+<tr><td>CELL_N[1].IMUX_CLK_OPTINV[0]</td><td>PPC405.JTGC405TCK</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TI[0]</td><td>PPC405.DSCNTLVALUE0</td></tr>
+<tr><td>CELL_N[1].IMUX_TI_OPTINV[0]</td><td>PPC405.DSCNTLVALUE0</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TI[1]</td><td>PPC405.DSCNTLVALUE1</td></tr>
+<tr><td>CELL_N[1].IMUX_TI_OPTINV[1]</td><td>PPC405.DSCNTLVALUE1</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TS[0]</td><td>PPC405.DSCNTLVALUE2</td></tr>
+<tr><td>CELL_N[1].IMUX_TS_OPTINV[0]</td><td>PPC405.DSCNTLVALUE2</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TS[1]</td><td>PPC405.DSCNTLVALUE3</td></tr>
+<tr><td>CELL_N[1].IMUX_TS_OPTINV[1]</td><td>PPC405.DSCNTLVALUE3</td></tr>
 
 <tr><td>CELL_N[1].IMUX_G0_DATA[0]</td><td>PPC405.TRCC405TRACEDISABLE</td></tr>
 
@@ -6504,13 +6504,13 @@
 
 <tr><td>CELL_N[1].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO29</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TI[0]</td><td>PPC405.TIEDSOCMDCRADDR0</td></tr>
+<tr><td>CELL_N[2].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR0</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TI[1]</td><td>PPC405.DSCNTLVALUE4</td></tr>
+<tr><td>CELL_N[2].IMUX_TI_OPTINV[1]</td><td>PPC405.DSCNTLVALUE4</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TS[0]</td><td>PPC405.DSCNTLVALUE5</td></tr>
+<tr><td>CELL_N[2].IMUX_TS_OPTINV[0]</td><td>PPC405.DSCNTLVALUE5</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TS[1]</td><td>PPC405.DSCNTLVALUE6</td></tr>
+<tr><td>CELL_N[2].IMUX_TS_OPTINV[1]</td><td>PPC405.DSCNTLVALUE6</td></tr>
 
 <tr><td>CELL_N[2].IMUX_G0_DATA[0]</td><td>PPC405.TRCC405TRIGGEREVENTIN</td></tr>
 
@@ -6558,15 +6558,15 @@
 
 <tr><td>CELL_N[2].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO30</td></tr>
 
-<tr><td>CELL_N[3].IMUX_CLK[0]</td><td>PPC405.BRAMDSOCMCLK</td></tr>
+<tr><td>CELL_N[3].IMUX_CLK_OPTINV[0]</td><td>PPC405.BRAMDSOCMCLK</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TI[0]</td><td>PPC405.TIEDSOCMDCRADDR1</td></tr>
+<tr><td>CELL_N[3].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR1</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TI[1]</td><td>PPC405.TIEDSOCMDCRADDR2</td></tr>
+<tr><td>CELL_N[3].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEDSOCMDCRADDR2</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TS[0]</td><td>PPC405.TIEDSOCMDCRADDR3</td></tr>
+<tr><td>CELL_N[3].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR3</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TS[1]</td><td>PPC405.TIEDSOCMDCRADDR4</td></tr>
+<tr><td>CELL_N[3].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEDSOCMDCRADDR4</td></tr>
 
 <tr><td>CELL_N[3].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMWRDBUS16</td></tr>
 
@@ -6606,13 +6606,13 @@
 
 <tr><td>CELL_N[3].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO31</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TI[0]</td><td>PPC405.TIEDSOCMDCRADDR5</td></tr>
+<tr><td>CELL_N[4].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR5</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TI[1]</td><td>PPC405.TIEDSOCMDCRADDR6</td></tr>
+<tr><td>CELL_N[4].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEDSOCMDCRADDR6</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TS[0]</td><td>PPC405.TIEDSOCMDCRADDR7</td></tr>
+<tr><td>CELL_N[4].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR7</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TS[1]</td><td>PPC405.DSCNTLVALUE7</td></tr>
+<tr><td>CELL_N[4].IMUX_TS_OPTINV[1]</td><td>PPC405.DSCNTLVALUE7</td></tr>
 
 <tr><td>CELL_N[4].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMWRDBUS24</td></tr>
 
@@ -6652,13 +6652,13 @@
 
 <tr><td>CELL_N[4].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO23</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TI[0]</td><td>PPC405.DSARCVALUE0</td></tr>
+<tr><td>CELL_N[5].IMUX_TI_OPTINV[0]</td><td>PPC405.DSARCVALUE0</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TI[1]</td><td>PPC405.DSARCVALUE1</td></tr>
+<tr><td>CELL_N[5].IMUX_TI_OPTINV[1]</td><td>PPC405.DSARCVALUE1</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TS[0]</td><td>PPC405.DSARCVALUE2</td></tr>
+<tr><td>CELL_N[5].IMUX_TS_OPTINV[0]</td><td>PPC405.DSARCVALUE2</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TS[1]</td><td>PPC405.DSARCVALUE3</td></tr>
+<tr><td>CELL_N[5].IMUX_TS_OPTINV[1]</td><td>PPC405.DSARCVALUE3</td></tr>
 
 <tr><td>CELL_N[5].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMABUS8</td></tr>
 
@@ -6704,13 +6704,13 @@
 
 <tr><td>CELL_N[5].OUT_TEST[10]</td><td>PPC405.TSTDSOCMWRDBUSO25</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TI[0]</td><td>PPC405.DSARCVALUE4</td></tr>
+<tr><td>CELL_N[6].IMUX_TI_OPTINV[0]</td><td>PPC405.DSARCVALUE4</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TI[1]</td><td>PPC405.DSARCVALUE5</td></tr>
+<tr><td>CELL_N[6].IMUX_TI_OPTINV[1]</td><td>PPC405.DSARCVALUE5</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TS[0]</td><td>PPC405.DSARCVALUE6</td></tr>
+<tr><td>CELL_N[6].IMUX_TS_OPTINV[0]</td><td>PPC405.DSARCVALUE6</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TS[1]</td><td>PPC405.DSARCVALUE7</td></tr>
+<tr><td>CELL_N[6].IMUX_TS_OPTINV[1]</td><td>PPC405.DSARCVALUE7</td></tr>
 
 <tr><td>CELL_N[6].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMABUS20</td></tr>
 
@@ -6997,7 +6997,7 @@
 
 <tr><td>APUC405WBLDDEPEND</td><td>input</td><td>CELL_E[8].IMUX_G3_DATA[0]</td></tr>
 
-<tr><td>BRAMDSOCMCLK</td><td>input</td><td>CELL_N[3].IMUX_CLK[0]</td></tr>
+<tr><td>BRAMDSOCMCLK</td><td>input</td><td>CELL_N[3].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>BRAMDSOCMRDDACK</td><td>input</td><td>CELL_N[2].IMUX_G3_DATA[0]</td></tr>
 
@@ -7065,7 +7065,7 @@
 
 <tr><td>BRAMDSOCMRDDBUS9</td><td>input</td><td>CELL_N[0].IMUX_G1_DATA[2]</td></tr>
 
-<tr><td>BRAMISOCMCLK</td><td>input</td><td>CELL_S[4].IMUX_CLK[0]</td></tr>
+<tr><td>BRAMISOCMCLK</td><td>input</td><td>CELL_S[4].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>BRAMISOCMRDDACK</td><td>input</td><td>CELL_S[4].IMUX_G0_DATA[0]</td></tr>
 
@@ -8061,17 +8061,17 @@
 
 <tr><td>C405XXXMACHINECHECK</td><td>output</td><td>CELL_W[14].OUT_FAN_TMIN[6]</td></tr>
 
-<tr><td>CPMC405CLOCK</td><td>input</td><td>CELL_W[9].IMUX_CLK[0]</td></tr>
+<tr><td>CPMC405CLOCK</td><td>input</td><td>CELL_W[9].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>CPMC405CORECLKINACTIVE</td><td>input</td><td>CELL_W[5].IMUX_G1_DATA[2]</td></tr>
 
-<tr><td>CPMC405CPUCLKEN</td><td>input</td><td>CELL_W[1].IMUX_CE[0]</td></tr>
+<tr><td>CPMC405CPUCLKEN</td><td>input</td><td>CELL_W[1].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CPMC405JTAGCLKEN</td><td>input</td><td>CELL_W[3].IMUX_CE[0]</td></tr>
+<tr><td>CPMC405JTAGCLKEN</td><td>input</td><td>CELL_W[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CPMC405TIMERCLKEN</td><td>input</td><td>CELL_W[2].IMUX_CE[0]</td></tr>
+<tr><td>CPMC405TIMERCLKEN</td><td>input</td><td>CELL_W[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CPMC405TIMERTICK</td><td>input</td><td>CELL_W[3].IMUX_CLK[0]</td></tr>
+<tr><td>CPMC405TIMERTICK</td><td>input</td><td>CELL_W[3].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>DBGC405DEBUGHALT</td><td>input</td><td>CELL_W[1].IMUX_G0_DATA[2]</td></tr>
 
@@ -8145,37 +8145,37 @@
 
 <tr><td>DCRC405DBUSIN9</td><td>input</td><td>CELL_E[13].IMUX_G1_DATA[1]</td></tr>
 
-<tr><td>DSARCVALUE0</td><td>input</td><td>CELL_N[5].IMUX_TI[0]</td></tr>
+<tr><td>DSARCVALUE0</td><td>input</td><td>CELL_N[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE1</td><td>input</td><td>CELL_N[5].IMUX_TI[1]</td></tr>
+<tr><td>DSARCVALUE1</td><td>input</td><td>CELL_N[5].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE2</td><td>input</td><td>CELL_N[5].IMUX_TS[0]</td></tr>
+<tr><td>DSARCVALUE2</td><td>input</td><td>CELL_N[5].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE3</td><td>input</td><td>CELL_N[5].IMUX_TS[1]</td></tr>
+<tr><td>DSARCVALUE3</td><td>input</td><td>CELL_N[5].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE4</td><td>input</td><td>CELL_N[6].IMUX_TI[0]</td></tr>
+<tr><td>DSARCVALUE4</td><td>input</td><td>CELL_N[6].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE5</td><td>input</td><td>CELL_N[6].IMUX_TI[1]</td></tr>
+<tr><td>DSARCVALUE5</td><td>input</td><td>CELL_N[6].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSARCVALUE6</td><td>input</td><td>CELL_N[6].IMUX_TS[0]</td></tr>
+<tr><td>DSARCVALUE6</td><td>input</td><td>CELL_N[6].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSARCVALUE7</td><td>input</td><td>CELL_N[6].IMUX_TS[1]</td></tr>
+<tr><td>DSARCVALUE7</td><td>input</td><td>CELL_N[6].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE0</td><td>input</td><td>CELL_N[1].IMUX_TI[0]</td></tr>
+<tr><td>DSCNTLVALUE0</td><td>input</td><td>CELL_N[1].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE1</td><td>input</td><td>CELL_N[1].IMUX_TI[1]</td></tr>
+<tr><td>DSCNTLVALUE1</td><td>input</td><td>CELL_N[1].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE2</td><td>input</td><td>CELL_N[1].IMUX_TS[0]</td></tr>
+<tr><td>DSCNTLVALUE2</td><td>input</td><td>CELL_N[1].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE3</td><td>input</td><td>CELL_N[1].IMUX_TS[1]</td></tr>
+<tr><td>DSCNTLVALUE3</td><td>input</td><td>CELL_N[1].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE4</td><td>input</td><td>CELL_N[2].IMUX_TI[1]</td></tr>
+<tr><td>DSCNTLVALUE4</td><td>input</td><td>CELL_N[2].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE5</td><td>input</td><td>CELL_N[2].IMUX_TS[0]</td></tr>
+<tr><td>DSCNTLVALUE5</td><td>input</td><td>CELL_N[2].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>DSCNTLVALUE6</td><td>input</td><td>CELL_N[2].IMUX_TS[1]</td></tr>
+<tr><td>DSCNTLVALUE6</td><td>input</td><td>CELL_N[2].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>DSCNTLVALUE7</td><td>input</td><td>CELL_N[4].IMUX_TS[1]</td></tr>
+<tr><td>DSCNTLVALUE7</td><td>input</td><td>CELL_N[4].IMUX_TS_OPTINV[1]</td></tr>
 
 <tr><td>DSOCMBRAMABUS10</td><td>output</td><td>CELL_N[5].OUT_FAN_TMIN[2]</td></tr>
 
@@ -8303,29 +8303,29 @@
 
 <tr><td>EICC405EXTINPUTIRQ</td><td>input</td><td>CELL_W[15].IMUX_G0_DATA[2]</td></tr>
 
-<tr><td>ISARCVALUE0</td><td>input</td><td>CELL_S[4].IMUX_TI[0]</td></tr>
+<tr><td>ISARCVALUE0</td><td>input</td><td>CELL_S[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE1</td><td>input</td><td>CELL_S[4].IMUX_TI[1]</td></tr>
+<tr><td>ISARCVALUE1</td><td>input</td><td>CELL_S[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE2</td><td>input</td><td>CELL_S[4].IMUX_TS[0]</td></tr>
+<tr><td>ISARCVALUE2</td><td>input</td><td>CELL_S[4].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE3</td><td>input</td><td>CELL_S[4].IMUX_TS[1]</td></tr>
+<tr><td>ISARCVALUE3</td><td>input</td><td>CELL_S[4].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE4</td><td>input</td><td>CELL_S[5].IMUX_TI[0]</td></tr>
+<tr><td>ISARCVALUE4</td><td>input</td><td>CELL_S[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE5</td><td>input</td><td>CELL_S[5].IMUX_TI[1]</td></tr>
+<tr><td>ISARCVALUE5</td><td>input</td><td>CELL_S[5].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>ISARCVALUE6</td><td>input</td><td>CELL_S[5].IMUX_TS[0]</td></tr>
+<tr><td>ISARCVALUE6</td><td>input</td><td>CELL_S[5].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>ISARCVALUE7</td><td>input</td><td>CELL_S[5].IMUX_TS[1]</td></tr>
+<tr><td>ISARCVALUE7</td><td>input</td><td>CELL_S[5].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>ISCNTLVALUE0</td><td>input</td><td>CELL_S[2].IMUX_SR[0]</td></tr>
+<tr><td>ISCNTLVALUE0</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>ISCNTLVALUE1</td><td>input</td><td>CELL_S[2].IMUX_SR[1]</td></tr>
+<tr><td>ISCNTLVALUE1</td><td>input</td><td>CELL_S[2].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>ISCNTLVALUE2</td><td>input</td><td>CELL_S[3].IMUX_SR[0]</td></tr>
+<tr><td>ISCNTLVALUE2</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>ISCNTLVALUE3</td><td>input</td><td>CELL_S[3].IMUX_SR[1]</td></tr>
+<tr><td>ISCNTLVALUE3</td><td>input</td><td>CELL_S[3].IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>ISCNTLVALUE4</td><td>input</td><td>CELL_S[5].IMUX_G0_DATA[0]</td></tr>
 
@@ -8493,7 +8493,7 @@
 
 <tr><td>JTGC405BNDSCANTDO</td><td>input</td><td>CELL_N[2].IMUX_G1_DATA[0]</td></tr>
 
-<tr><td>JTGC405TCK</td><td>input</td><td>CELL_N[1].IMUX_CLK[0]</td></tr>
+<tr><td>JTGC405TCK</td><td>input</td><td>CELL_N[1].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>JTGC405TDI</td><td>input</td><td>CELL_N[1].IMUX_G1_DATA[0]</td></tr>
 
@@ -8539,13 +8539,13 @@
 
 <tr><td>LSSDC405TESTM3</td><td>input</td><td>CELL_S[3].IMUX_G3_DATA[1]</td></tr>
 
-<tr><td>MCBCPUCLKEN</td><td>input</td><td>CELL_W[4].IMUX_TI[0]</td></tr>
+<tr><td>MCBCPUCLKEN</td><td>input</td><td>CELL_W[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>MCBJTAGEN</td><td>input</td><td>CELL_W[5].IMUX_TI[0]</td></tr>
+<tr><td>MCBJTAGEN</td><td>input</td><td>CELL_W[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>MCBTIMEREN</td><td>input</td><td>CELL_W[6].IMUX_TI[0]</td></tr>
+<tr><td>MCBTIMEREN</td><td>input</td><td>CELL_W[6].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>MCPPCRST</td><td>input</td><td>CELL_W[14].IMUX_TI[0]</td></tr>
+<tr><td>MCPPCRST</td><td>input</td><td>CELL_W[14].IMUX_TI_OPTINV[0]</td></tr>
 
 <tr><td>PLBC405DCUADDRACK</td><td>input</td><td>CELL_W[7].IMUX_G0_DATA[2]</td></tr>
 
@@ -8837,133 +8837,133 @@
 
 <tr><td>PLBC405ICUSSIZE1</td><td>input</td><td>CELL_W[8].IMUX_G1_DATA[2]</td></tr>
 
-<tr><td>PLBCLK</td><td>input</td><td>CELL_W[0].IMUX_CLK[1]</td></tr>
+<tr><td>PLBCLK</td><td>input</td><td>CELL_W[0].IMUX_CLK_OPTINV[1]</td></tr>
 
-<tr><td>RSTC405RESETCHIP</td><td>input</td><td>CELL_W[11].IMUX_SR[0]</td></tr>
+<tr><td>RSTC405RESETCHIP</td><td>input</td><td>CELL_W[11].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>RSTC405RESETCORE</td><td>input</td><td>CELL_W[12].IMUX_SR[0]</td></tr>
+<tr><td>RSTC405RESETCORE</td><td>input</td><td>CELL_W[12].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>RSTC405RESETSYS</td><td>input</td><td>CELL_W[13].IMUX_SR[0]</td></tr>
+<tr><td>RSTC405RESETSYS</td><td>input</td><td>CELL_W[13].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>TESTSELI</td><td>input</td><td>CELL_E[8].IMUX_TI[0]</td></tr>
+<tr><td>TESTSELI</td><td>input</td><td>CELL_E[8].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405APUDIVEN</td><td>input</td><td>CELL_E[4].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405APUDIVEN</td><td>input</td><td>CELL_E[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405APUPRESENT</td><td>input</td><td>CELL_E[4].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405APUPRESENT</td><td>input</td><td>CELL_E[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405DETERMINISTICMULT</td><td>input</td><td>CELL_W[0].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405DETERMINISTICMULT</td><td>input</td><td>CELL_W[0].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405DISOPERANDFWD</td><td>input</td><td>CELL_W[1].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405DISOPERANDFWD</td><td>input</td><td>CELL_W[1].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405MMUEN</td><td>input</td><td>CELL_W[1].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405MMUEN</td><td>input</td><td>CELL_W[1].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR0</td><td>input</td><td>CELL_W[15].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR0</td><td>input</td><td>CELL_W[15].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR1</td><td>input</td><td>CELL_W[15].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR1</td><td>input</td><td>CELL_W[15].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR10</td><td>input</td><td>CELL_W[12].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR10</td><td>input</td><td>CELL_W[12].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR11</td><td>input</td><td>CELL_W[12].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR11</td><td>input</td><td>CELL_W[12].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR12</td><td>input</td><td>CELL_W[11].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR12</td><td>input</td><td>CELL_W[11].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR13</td><td>input</td><td>CELL_W[11].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR13</td><td>input</td><td>CELL_W[11].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR14</td><td>input</td><td>CELL_W[11].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR14</td><td>input</td><td>CELL_W[11].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR15</td><td>input</td><td>CELL_W[10].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR15</td><td>input</td><td>CELL_W[10].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR16</td><td>input</td><td>CELL_W[10].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR16</td><td>input</td><td>CELL_W[10].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR17</td><td>input</td><td>CELL_W[10].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR17</td><td>input</td><td>CELL_W[10].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR18</td><td>input</td><td>CELL_W[5].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR18</td><td>input</td><td>CELL_W[5].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR19</td><td>input</td><td>CELL_W[5].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR19</td><td>input</td><td>CELL_W[5].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR2</td><td>input</td><td>CELL_W[15].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR2</td><td>input</td><td>CELL_W[15].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR20</td><td>input</td><td>CELL_W[4].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR20</td><td>input</td><td>CELL_W[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR21</td><td>input</td><td>CELL_W[4].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR21</td><td>input</td><td>CELL_W[4].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR22</td><td>input</td><td>CELL_W[4].IMUX_TS[1]</td></tr>
+<tr><td>TIEC405PVR22</td><td>input</td><td>CELL_W[4].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR23</td><td>input</td><td>CELL_W[3].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR23</td><td>input</td><td>CELL_W[3].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR24</td><td>input</td><td>CELL_W[3].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR24</td><td>input</td><td>CELL_W[3].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR25</td><td>input</td><td>CELL_W[3].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR25</td><td>input</td><td>CELL_W[3].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR26</td><td>input</td><td>CELL_W[2].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR26</td><td>input</td><td>CELL_W[2].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR27</td><td>input</td><td>CELL_W[2].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR27</td><td>input</td><td>CELL_W[2].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR28</td><td>input</td><td>CELL_W[2].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR28</td><td>input</td><td>CELL_W[2].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR29</td><td>input</td><td>CELL_W[1].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR29</td><td>input</td><td>CELL_W[1].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR3</td><td>input</td><td>CELL_W[14].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR3</td><td>input</td><td>CELL_W[14].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR30</td><td>input</td><td>CELL_W[0].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR30</td><td>input</td><td>CELL_W[0].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR31</td><td>input</td><td>CELL_W[0].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR31</td><td>input</td><td>CELL_W[0].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR4</td><td>input</td><td>CELL_W[14].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR4</td><td>input</td><td>CELL_W[14].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR5</td><td>input</td><td>CELL_W[14].IMUX_TS[1]</td></tr>
+<tr><td>TIEC405PVR5</td><td>input</td><td>CELL_W[14].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR6</td><td>input</td><td>CELL_W[13].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR6</td><td>input</td><td>CELL_W[13].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR7</td><td>input</td><td>CELL_W[13].IMUX_TI[1]</td></tr>
+<tr><td>TIEC405PVR7</td><td>input</td><td>CELL_W[13].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEC405PVR8</td><td>input</td><td>CELL_W[13].IMUX_TS[0]</td></tr>
+<tr><td>TIEC405PVR8</td><td>input</td><td>CELL_W[13].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEC405PVR9</td><td>input</td><td>CELL_W[12].IMUX_TI[0]</td></tr>
+<tr><td>TIEC405PVR9</td><td>input</td><td>CELL_W[12].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR0</td><td>input</td><td>CELL_N[2].IMUX_TI[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR0</td><td>input</td><td>CELL_N[2].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR1</td><td>input</td><td>CELL_N[3].IMUX_TI[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR1</td><td>input</td><td>CELL_N[3].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR2</td><td>input</td><td>CELL_N[3].IMUX_TI[1]</td></tr>
+<tr><td>TIEDSOCMDCRADDR2</td><td>input</td><td>CELL_N[3].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR3</td><td>input</td><td>CELL_N[3].IMUX_TS[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR3</td><td>input</td><td>CELL_N[3].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR4</td><td>input</td><td>CELL_N[3].IMUX_TS[1]</td></tr>
+<tr><td>TIEDSOCMDCRADDR4</td><td>input</td><td>CELL_N[3].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR5</td><td>input</td><td>CELL_N[4].IMUX_TI[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR5</td><td>input</td><td>CELL_N[4].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR6</td><td>input</td><td>CELL_N[4].IMUX_TI[1]</td></tr>
+<tr><td>TIEDSOCMDCRADDR6</td><td>input</td><td>CELL_N[4].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEDSOCMDCRADDR7</td><td>input</td><td>CELL_N[4].IMUX_TS[0]</td></tr>
+<tr><td>TIEDSOCMDCRADDR7</td><td>input</td><td>CELL_N[4].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR0</td><td>input</td><td>CELL_S[2].IMUX_TI[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR0</td><td>input</td><td>CELL_S[2].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR1</td><td>input</td><td>CELL_S[2].IMUX_TI[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR1</td><td>input</td><td>CELL_S[2].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR2</td><td>input</td><td>CELL_S[2].IMUX_TS[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR2</td><td>input</td><td>CELL_S[2].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR3</td><td>input</td><td>CELL_S[2].IMUX_TS[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR3</td><td>input</td><td>CELL_S[2].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR4</td><td>input</td><td>CELL_S[3].IMUX_TI[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR4</td><td>input</td><td>CELL_S[3].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR5</td><td>input</td><td>CELL_S[3].IMUX_TI[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR5</td><td>input</td><td>CELL_S[3].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR6</td><td>input</td><td>CELL_S[3].IMUX_TS[0]</td></tr>
+<tr><td>TIEISOCMDCRADDR6</td><td>input</td><td>CELL_S[3].IMUX_TS_OPTINV[0]</td></tr>
 
-<tr><td>TIEISOCMDCRADDR7</td><td>input</td><td>CELL_S[3].IMUX_TS[1]</td></tr>
+<tr><td>TIEISOCMDCRADDR7</td><td>input</td><td>CELL_S[3].IMUX_TS_OPTINV[1]</td></tr>
 
-<tr><td>TIERAMTAP1</td><td>input</td><td>CELL_E[6].IMUX_TI[0]</td></tr>
+<tr><td>TIERAMTAP1</td><td>input</td><td>CELL_E[6].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIERAMTAP2</td><td>input</td><td>CELL_E[6].IMUX_TI[1]</td></tr>
+<tr><td>TIERAMTAP2</td><td>input</td><td>CELL_E[6].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIETAGTAP1</td><td>input</td><td>CELL_E[7].IMUX_TI[0]</td></tr>
+<tr><td>TIETAGTAP1</td><td>input</td><td>CELL_E[7].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIETAGTAP2</td><td>input</td><td>CELL_E[7].IMUX_TI[1]</td></tr>
+<tr><td>TIETAGTAP2</td><td>input</td><td>CELL_E[7].IMUX_TI_OPTINV[1]</td></tr>
 
-<tr><td>TIEUTLBTAP1</td><td>input</td><td>CELL_E[5].IMUX_TI[0]</td></tr>
+<tr><td>TIEUTLBTAP1</td><td>input</td><td>CELL_E[5].IMUX_TI_OPTINV[0]</td></tr>
 
-<tr><td>TIEUTLBTAP2</td><td>input</td><td>CELL_E[5].IMUX_TI[1]</td></tr>
+<tr><td>TIEUTLBTAP2</td><td>input</td><td>CELL_E[5].IMUX_TI_OPTINV[1]</td></tr>
 
 <tr><td>TRCC405TRACEDISABLE</td><td>input</td><td>CELL_N[1].IMUX_G0_DATA[0]</td></tr>
 
@@ -10112,13 +10112,13 @@
 </thead>
 
 <tbody>
-<tr><td>CELL_W[0].IMUX_CLK[1]</td><td>PPC405.PLBCLK</td></tr>
+<tr><td>CELL_W[0].IMUX_CLK_OPTINV[1]</td><td>PPC405.PLBCLK</td></tr>
 
-<tr><td>CELL_W[0].IMUX_TI[0]</td><td>PPC405.TIEC405DETERMINISTICMULT</td></tr>
+<tr><td>CELL_W[0].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405DETERMINISTICMULT</td></tr>
 
-<tr><td>CELL_W[0].IMUX_TI[1]</td><td>PPC405.TIEC405PVR30</td></tr>
+<tr><td>CELL_W[0].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR30</td></tr>
 
-<tr><td>CELL_W[0].IMUX_TS[0]</td><td>PPC405.TIEC405PVR31</td></tr>
+<tr><td>CELL_W[0].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR31</td></tr>
 
 <tr><td>CELL_W[0].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS60</td></tr>
 
@@ -10184,13 +10184,13 @@
 
 <tr><td>CELL_W[0].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO54</td></tr>
 
-<tr><td>CELL_W[1].IMUX_CE[0]</td><td>PPC405.CPMC405CPUCLKEN</td></tr>
+<tr><td>CELL_W[1].IMUX_CE_OPTINV[0]</td><td>PPC405.CPMC405CPUCLKEN</td></tr>
 
-<tr><td>CELL_W[1].IMUX_TI[0]</td><td>PPC405.TIEC405DISOPERANDFWD</td></tr>
+<tr><td>CELL_W[1].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405DISOPERANDFWD</td></tr>
 
-<tr><td>CELL_W[1].IMUX_TI[1]</td><td>PPC405.TIEC405MMUEN</td></tr>
+<tr><td>CELL_W[1].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405MMUEN</td></tr>
 
-<tr><td>CELL_W[1].IMUX_TS[0]</td><td>PPC405.TIEC405PVR29</td></tr>
+<tr><td>CELL_W[1].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR29</td></tr>
 
 <tr><td>CELL_W[1].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS56</td></tr>
 
@@ -10258,13 +10258,13 @@
 
 <tr><td>CELL_W[1].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO56</td></tr>
 
-<tr><td>CELL_W[2].IMUX_CE[0]</td><td>PPC405.CPMC405TIMERCLKEN</td></tr>
+<tr><td>CELL_W[2].IMUX_CE_OPTINV[0]</td><td>PPC405.CPMC405TIMERCLKEN</td></tr>
 
-<tr><td>CELL_W[2].IMUX_TI[0]</td><td>PPC405.TIEC405PVR26</td></tr>
+<tr><td>CELL_W[2].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR26</td></tr>
 
-<tr><td>CELL_W[2].IMUX_TI[1]</td><td>PPC405.TIEC405PVR27</td></tr>
+<tr><td>CELL_W[2].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR27</td></tr>
 
-<tr><td>CELL_W[2].IMUX_TS[0]</td><td>PPC405.TIEC405PVR28</td></tr>
+<tr><td>CELL_W[2].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR28</td></tr>
 
 <tr><td>CELL_W[2].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS52</td></tr>
 
@@ -10332,15 +10332,15 @@
 
 <tr><td>CELL_W[2].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO58</td></tr>
 
-<tr><td>CELL_W[3].IMUX_CLK[0]</td><td>PPC405.CPMC405TIMERTICK</td></tr>
+<tr><td>CELL_W[3].IMUX_CLK_OPTINV[0]</td><td>PPC405.CPMC405TIMERTICK</td></tr>
 
-<tr><td>CELL_W[3].IMUX_CE[0]</td><td>PPC405.CPMC405JTAGCLKEN</td></tr>
+<tr><td>CELL_W[3].IMUX_CE_OPTINV[0]</td><td>PPC405.CPMC405JTAGCLKEN</td></tr>
 
-<tr><td>CELL_W[3].IMUX_TI[0]</td><td>PPC405.TIEC405PVR23</td></tr>
+<tr><td>CELL_W[3].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR23</td></tr>
 
-<tr><td>CELL_W[3].IMUX_TI[1]</td><td>PPC405.TIEC405PVR24</td></tr>
+<tr><td>CELL_W[3].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR24</td></tr>
 
-<tr><td>CELL_W[3].IMUX_TS[0]</td><td>PPC405.TIEC405PVR25</td></tr>
+<tr><td>CELL_W[3].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR25</td></tr>
 
 <tr><td>CELL_W[3].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS48</td></tr>
 
@@ -10406,13 +10406,13 @@
 
 <tr><td>CELL_W[3].OUT_TEST[4]</td><td>PPC405.TSTISOCMRDATAO60</td></tr>
 
-<tr><td>CELL_W[4].IMUX_TI[0]</td><td>PPC405.MCBCPUCLKEN</td></tr>
+<tr><td>CELL_W[4].IMUX_TI_OPTINV[0]</td><td>PPC405.MCBCPUCLKEN</td></tr>
 
-<tr><td>CELL_W[4].IMUX_TI[1]</td><td>PPC405.TIEC405PVR20</td></tr>
+<tr><td>CELL_W[4].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR20</td></tr>
 
-<tr><td>CELL_W[4].IMUX_TS[0]</td><td>PPC405.TIEC405PVR21</td></tr>
+<tr><td>CELL_W[4].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR21</td></tr>
 
-<tr><td>CELL_W[4].IMUX_TS[1]</td><td>PPC405.TIEC405PVR22</td></tr>
+<tr><td>CELL_W[4].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEC405PVR22</td></tr>
 
 <tr><td>CELL_W[4].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS44</td></tr>
 
@@ -10478,11 +10478,11 @@
 
 <tr><td>CELL_W[4].OUT_TEST[2]</td><td>PPC405.TSTISOCMRDATAO62</td></tr>
 
-<tr><td>CELL_W[5].IMUX_TI[0]</td><td>PPC405.MCBJTAGEN</td></tr>
+<tr><td>CELL_W[5].IMUX_TI_OPTINV[0]</td><td>PPC405.MCBJTAGEN</td></tr>
 
-<tr><td>CELL_W[5].IMUX_TI[1]</td><td>PPC405.TIEC405PVR18</td></tr>
+<tr><td>CELL_W[5].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR18</td></tr>
 
-<tr><td>CELL_W[5].IMUX_TS[0]</td><td>PPC405.TIEC405PVR19</td></tr>
+<tr><td>CELL_W[5].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR19</td></tr>
 
 <tr><td>CELL_W[5].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS40</td></tr>
 
@@ -10550,7 +10550,7 @@
 
 <tr><td>CELL_W[5].OUT_TEST[2]</td><td>PPC405.TSTPLBSAMPLECYCLEO</td></tr>
 
-<tr><td>CELL_W[6].IMUX_TI[0]</td><td>PPC405.MCBTIMEREN</td></tr>
+<tr><td>CELL_W[6].IMUX_TI_OPTINV[0]</td><td>PPC405.MCBTIMEREN</td></tr>
 
 <tr><td>CELL_W[6].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS36</td></tr>
 
@@ -10746,7 +10746,7 @@
 
 <tr><td>CELL_W[8].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS12</td></tr>
 
-<tr><td>CELL_W[9].IMUX_CLK[0]</td><td>PPC405.CPMC405CLOCK</td></tr>
+<tr><td>CELL_W[9].IMUX_CLK_OPTINV[0]</td><td>PPC405.CPMC405CLOCK</td></tr>
 
 <tr><td>CELL_W[9].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS24</td></tr>
 
@@ -10812,11 +10812,11 @@
 
 <tr><td>CELL_W[9].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS8</td></tr>
 
-<tr><td>CELL_W[10].IMUX_TI[0]</td><td>PPC405.TIEC405PVR15</td></tr>
+<tr><td>CELL_W[10].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR15</td></tr>
 
-<tr><td>CELL_W[10].IMUX_TI[1]</td><td>PPC405.TIEC405PVR16</td></tr>
+<tr><td>CELL_W[10].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR16</td></tr>
 
-<tr><td>CELL_W[10].IMUX_TS[0]</td><td>PPC405.TIEC405PVR17</td></tr>
+<tr><td>CELL_W[10].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR17</td></tr>
 
 <tr><td>CELL_W[10].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS20</td></tr>
 
@@ -10878,13 +10878,13 @@
 
 <tr><td>CELL_W[10].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS4</td></tr>
 
-<tr><td>CELL_W[11].IMUX_SR[0]</td><td>PPC405.RSTC405RESETCHIP</td></tr>
+<tr><td>CELL_W[11].IMUX_SR_OPTINV[0]</td><td>PPC405.RSTC405RESETCHIP</td></tr>
 
-<tr><td>CELL_W[11].IMUX_TI[0]</td><td>PPC405.TIEC405PVR12</td></tr>
+<tr><td>CELL_W[11].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR12</td></tr>
 
-<tr><td>CELL_W[11].IMUX_TI[1]</td><td>PPC405.TIEC405PVR13</td></tr>
+<tr><td>CELL_W[11].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR13</td></tr>
 
-<tr><td>CELL_W[11].IMUX_TS[0]</td><td>PPC405.TIEC405PVR14</td></tr>
+<tr><td>CELL_W[11].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR14</td></tr>
 
 <tr><td>CELL_W[11].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS16</td></tr>
 
@@ -10942,13 +10942,13 @@
 
 <tr><td>CELL_W[11].OUT_SEC_TMIN[15]</td><td>PPC405.C405PLBICUABUS0</td></tr>
 
-<tr><td>CELL_W[12].IMUX_SR[0]</td><td>PPC405.RSTC405RESETCORE</td></tr>
+<tr><td>CELL_W[12].IMUX_SR_OPTINV[0]</td><td>PPC405.RSTC405RESETCORE</td></tr>
 
-<tr><td>CELL_W[12].IMUX_TI[0]</td><td>PPC405.TIEC405PVR9</td></tr>
+<tr><td>CELL_W[12].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR9</td></tr>
 
-<tr><td>CELL_W[12].IMUX_TI[1]</td><td>PPC405.TIEC405PVR10</td></tr>
+<tr><td>CELL_W[12].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR10</td></tr>
 
-<tr><td>CELL_W[12].IMUX_TS[0]</td><td>PPC405.TIEC405PVR11</td></tr>
+<tr><td>CELL_W[12].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR11</td></tr>
 
 <tr><td>CELL_W[12].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS12</td></tr>
 
@@ -11006,13 +11006,13 @@
 
 <tr><td>CELL_W[12].OUT_TEST[0]</td><td>PPC405.TSTTRSTNEGO</td></tr>
 
-<tr><td>CELL_W[13].IMUX_SR[0]</td><td>PPC405.RSTC405RESETSYS</td></tr>
+<tr><td>CELL_W[13].IMUX_SR_OPTINV[0]</td><td>PPC405.RSTC405RESETSYS</td></tr>
 
-<tr><td>CELL_W[13].IMUX_TI[0]</td><td>PPC405.TIEC405PVR6</td></tr>
+<tr><td>CELL_W[13].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR6</td></tr>
 
-<tr><td>CELL_W[13].IMUX_TI[1]</td><td>PPC405.TIEC405PVR7</td></tr>
+<tr><td>CELL_W[13].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR7</td></tr>
 
-<tr><td>CELL_W[13].IMUX_TS[0]</td><td>PPC405.TIEC405PVR8</td></tr>
+<tr><td>CELL_W[13].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR8</td></tr>
 
 <tr><td>CELL_W[13].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS8</td></tr>
 
@@ -11066,13 +11066,13 @@
 
 <tr><td>CELL_W[13].OUT_SEC_TMIN[15]</td><td>PPC405.C405DBGWBIAR1</td></tr>
 
-<tr><td>CELL_W[14].IMUX_TI[0]</td><td>PPC405.MCPPCRST</td></tr>
+<tr><td>CELL_W[14].IMUX_TI_OPTINV[0]</td><td>PPC405.MCPPCRST</td></tr>
 
-<tr><td>CELL_W[14].IMUX_TI[1]</td><td>PPC405.TIEC405PVR3</td></tr>
+<tr><td>CELL_W[14].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR3</td></tr>
 
-<tr><td>CELL_W[14].IMUX_TS[0]</td><td>PPC405.TIEC405PVR4</td></tr>
+<tr><td>CELL_W[14].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR4</td></tr>
 
-<tr><td>CELL_W[14].IMUX_TS[1]</td><td>PPC405.TIEC405PVR5</td></tr>
+<tr><td>CELL_W[14].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEC405PVR5</td></tr>
 
 <tr><td>CELL_W[14].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS4</td></tr>
 
@@ -11126,11 +11126,11 @@
 
 <tr><td>CELL_W[14].OUT_SEC_TMIN[15]</td><td>PPC405.C405DBGWBIAR3</td></tr>
 
-<tr><td>CELL_W[15].IMUX_TI[0]</td><td>PPC405.TIEC405PVR0</td></tr>
+<tr><td>CELL_W[15].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405PVR0</td></tr>
 
-<tr><td>CELL_W[15].IMUX_TI[1]</td><td>PPC405.TIEC405PVR1</td></tr>
+<tr><td>CELL_W[15].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405PVR1</td></tr>
 
-<tr><td>CELL_W[15].IMUX_TS[0]</td><td>PPC405.TIEC405PVR2</td></tr>
+<tr><td>CELL_W[15].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEC405PVR2</td></tr>
 
 <tr><td>CELL_W[15].IMUX_G0_DATA[0]</td><td>PPC405.PLBC405DCURDDBUS0</td></tr>
 
@@ -11496,9 +11496,9 @@
 
 <tr><td>CELL_E[3].OUT_TEST[4]</td><td>PPC405.TSTRDDBUSO29</td></tr>
 
-<tr><td>CELL_E[4].IMUX_TI[0]</td><td>PPC405.TIEC405APUDIVEN</td></tr>
+<tr><td>CELL_E[4].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEC405APUDIVEN</td></tr>
 
-<tr><td>CELL_E[4].IMUX_TI[1]</td><td>PPC405.TIEC405APUPRESENT</td></tr>
+<tr><td>CELL_E[4].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEC405APUPRESENT</td></tr>
 
 <tr><td>CELL_E[4].IMUX_G0_DATA[0]</td><td>PPC405.APUC405DCDTRAPBE</td></tr>
 
@@ -11574,9 +11574,9 @@
 
 <tr><td>CELL_E[4].OUT_TEST[4]</td><td>PPC405.TSTRDDBUSO31</td></tr>
 
-<tr><td>CELL_E[5].IMUX_TI[0]</td><td>PPC405.TIEUTLBTAP1</td></tr>
+<tr><td>CELL_E[5].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEUTLBTAP1</td></tr>
 
-<tr><td>CELL_E[5].IMUX_TI[1]</td><td>PPC405.TIEUTLBTAP2</td></tr>
+<tr><td>CELL_E[5].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEUTLBTAP2</td></tr>
 
 <tr><td>CELL_E[5].IMUX_G0_DATA[0]</td><td>PPC405.APUC405DCDUPDATE</td></tr>
 
@@ -11652,9 +11652,9 @@
 
 <tr><td>CELL_E[5].OUT_TEST[4]</td><td>PPC405.TSTISOPFWDO</td></tr>
 
-<tr><td>CELL_E[6].IMUX_TI[0]</td><td>PPC405.TIERAMTAP1</td></tr>
+<tr><td>CELL_E[6].IMUX_TI_OPTINV[0]</td><td>PPC405.TIERAMTAP1</td></tr>
 
-<tr><td>CELL_E[6].IMUX_TI[1]</td><td>PPC405.TIERAMTAP2</td></tr>
+<tr><td>CELL_E[6].IMUX_TI_OPTINV[1]</td><td>PPC405.TIERAMTAP2</td></tr>
 
 <tr><td>CELL_E[6].IMUX_G0_DATA[0]</td><td>PPC405.APUC405DCDXERCAEN</td></tr>
 
@@ -11728,9 +11728,9 @@
 
 <tr><td>CELL_E[6].OUT_TEST[2]</td><td>PPC405.TSTOCMCOMPLETEO</td></tr>
 
-<tr><td>CELL_E[7].IMUX_TI[0]</td><td>PPC405.TIETAGTAP1</td></tr>
+<tr><td>CELL_E[7].IMUX_TI_OPTINV[0]</td><td>PPC405.TIETAGTAP1</td></tr>
 
-<tr><td>CELL_E[7].IMUX_TI[1]</td><td>PPC405.TIETAGTAP2</td></tr>
+<tr><td>CELL_E[7].IMUX_TI_OPTINV[1]</td><td>PPC405.TIETAGTAP2</td></tr>
 
 <tr><td>CELL_E[7].IMUX_G0_DATA[0]</td><td>PPC405.APUC405EXCEPTION</td></tr>
 
@@ -11802,7 +11802,7 @@
 
 <tr><td>CELL_E[7].OUT_TEST[0]</td><td>PPC405.TSTDCRBUSO30</td></tr>
 
-<tr><td>CELL_E[8].IMUX_TI[0]</td><td>PPC405.TESTSELI</td></tr>
+<tr><td>CELL_E[8].IMUX_TI_OPTINV[0]</td><td>PPC405.TESTSELI</td></tr>
 
 <tr><td>CELL_E[8].IMUX_G0_DATA[0]</td><td>PPC405.APUC405EXEBUSY</td></tr>
 
@@ -12594,17 +12594,17 @@
 
 <tr><td>CELL_S[1].OUT_TEST[2]</td><td>PPC405.C405DSOCMSTRINGMULTIPLE</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[0]</td><td>PPC405.ISCNTLVALUE0</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[0]</td><td>PPC405.ISCNTLVALUE0</td></tr>
 
-<tr><td>CELL_S[2].IMUX_SR[1]</td><td>PPC405.ISCNTLVALUE1</td></tr>
+<tr><td>CELL_S[2].IMUX_SR_OPTINV[1]</td><td>PPC405.ISCNTLVALUE1</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TI[0]</td><td>PPC405.TIEISOCMDCRADDR0</td></tr>
+<tr><td>CELL_S[2].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR0</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TI[1]</td><td>PPC405.TIEISOCMDCRADDR1</td></tr>
+<tr><td>CELL_S[2].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR1</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TS[0]</td><td>PPC405.TIEISOCMDCRADDR2</td></tr>
+<tr><td>CELL_S[2].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR2</td></tr>
 
-<tr><td>CELL_S[2].IMUX_TS[1]</td><td>PPC405.TIEISOCMDCRADDR3</td></tr>
+<tr><td>CELL_S[2].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR3</td></tr>
 
 <tr><td>CELL_S[2].IMUX_G0_DATA[0]</td><td>PPC405.ISCNTLVALUE6</td></tr>
 
@@ -12662,17 +12662,17 @@
 
 <tr><td>CELL_S[2].OUT_TEST[2]</td><td>PPC405.C405DSOCMU0ATTR</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[0]</td><td>PPC405.ISCNTLVALUE2</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[0]</td><td>PPC405.ISCNTLVALUE2</td></tr>
 
-<tr><td>CELL_S[3].IMUX_SR[1]</td><td>PPC405.ISCNTLVALUE3</td></tr>
+<tr><td>CELL_S[3].IMUX_SR_OPTINV[1]</td><td>PPC405.ISCNTLVALUE3</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TI[0]</td><td>PPC405.TIEISOCMDCRADDR4</td></tr>
+<tr><td>CELL_S[3].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR4</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TI[1]</td><td>PPC405.TIEISOCMDCRADDR5</td></tr>
+<tr><td>CELL_S[3].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR5</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TS[0]</td><td>PPC405.TIEISOCMDCRADDR6</td></tr>
+<tr><td>CELL_S[3].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEISOCMDCRADDR6</td></tr>
 
-<tr><td>CELL_S[3].IMUX_TS[1]</td><td>PPC405.TIEISOCMDCRADDR7</td></tr>
+<tr><td>CELL_S[3].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEISOCMDCRADDR7</td></tr>
 
 <tr><td>CELL_S[3].IMUX_G0_DATA[0]</td><td>PPC405.TSTISOCMRDATAI29</td></tr>
 
@@ -12718,15 +12718,15 @@
 
 <tr><td>CELL_S[3].OUT_SEC_TMIN[15]</td><td>PPC405.TSTISOCMABUSO9</td></tr>
 
-<tr><td>CELL_S[4].IMUX_CLK[0]</td><td>PPC405.BRAMISOCMCLK</td></tr>
+<tr><td>CELL_S[4].IMUX_CLK_OPTINV[0]</td><td>PPC405.BRAMISOCMCLK</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TI[0]</td><td>PPC405.ISARCVALUE0</td></tr>
+<tr><td>CELL_S[4].IMUX_TI_OPTINV[0]</td><td>PPC405.ISARCVALUE0</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TI[1]</td><td>PPC405.ISARCVALUE1</td></tr>
+<tr><td>CELL_S[4].IMUX_TI_OPTINV[1]</td><td>PPC405.ISARCVALUE1</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TS[0]</td><td>PPC405.ISARCVALUE2</td></tr>
+<tr><td>CELL_S[4].IMUX_TS_OPTINV[0]</td><td>PPC405.ISARCVALUE2</td></tr>
 
-<tr><td>CELL_S[4].IMUX_TS[1]</td><td>PPC405.ISARCVALUE3</td></tr>
+<tr><td>CELL_S[4].IMUX_TS_OPTINV[1]</td><td>PPC405.ISARCVALUE3</td></tr>
 
 <tr><td>CELL_S[4].IMUX_G0_DATA[0]</td><td>PPC405.BRAMISOCMRDDACK</td></tr>
 
@@ -12774,13 +12774,13 @@
 
 <tr><td>CELL_S[4].OUT_SEC_TMIN[15]</td><td>PPC405.TSTISOCMABUSO13</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TI[0]</td><td>PPC405.ISARCVALUE4</td></tr>
+<tr><td>CELL_S[5].IMUX_TI_OPTINV[0]</td><td>PPC405.ISARCVALUE4</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TI[1]</td><td>PPC405.ISARCVALUE5</td></tr>
+<tr><td>CELL_S[5].IMUX_TI_OPTINV[1]</td><td>PPC405.ISARCVALUE5</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TS[0]</td><td>PPC405.ISARCVALUE6</td></tr>
+<tr><td>CELL_S[5].IMUX_TS_OPTINV[0]</td><td>PPC405.ISARCVALUE6</td></tr>
 
-<tr><td>CELL_S[5].IMUX_TS[1]</td><td>PPC405.ISARCVALUE7</td></tr>
+<tr><td>CELL_S[5].IMUX_TS_OPTINV[1]</td><td>PPC405.ISARCVALUE7</td></tr>
 
 <tr><td>CELL_S[5].IMUX_G0_DATA[0]</td><td>PPC405.ISCNTLVALUE4</td></tr>
 
@@ -13138,15 +13138,15 @@
 
 <tr><td>CELL_N[0].OUT_SEC_TMIN[15]</td><td>PPC405.C405TRCTRIGGEREVENTTYPE2</td></tr>
 
-<tr><td>CELL_N[1].IMUX_CLK[0]</td><td>PPC405.JTGC405TCK</td></tr>
+<tr><td>CELL_N[1].IMUX_CLK_OPTINV[0]</td><td>PPC405.JTGC405TCK</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TI[0]</td><td>PPC405.DSCNTLVALUE0</td></tr>
+<tr><td>CELL_N[1].IMUX_TI_OPTINV[0]</td><td>PPC405.DSCNTLVALUE0</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TI[1]</td><td>PPC405.DSCNTLVALUE1</td></tr>
+<tr><td>CELL_N[1].IMUX_TI_OPTINV[1]</td><td>PPC405.DSCNTLVALUE1</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TS[0]</td><td>PPC405.DSCNTLVALUE2</td></tr>
+<tr><td>CELL_N[1].IMUX_TS_OPTINV[0]</td><td>PPC405.DSCNTLVALUE2</td></tr>
 
-<tr><td>CELL_N[1].IMUX_TS[1]</td><td>PPC405.DSCNTLVALUE3</td></tr>
+<tr><td>CELL_N[1].IMUX_TS_OPTINV[1]</td><td>PPC405.DSCNTLVALUE3</td></tr>
 
 <tr><td>CELL_N[1].IMUX_G0_DATA[0]</td><td>PPC405.TRCC405TRACEDISABLE</td></tr>
 
@@ -13192,13 +13192,13 @@
 
 <tr><td>CELL_N[1].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO29</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TI[0]</td><td>PPC405.TIEDSOCMDCRADDR0</td></tr>
+<tr><td>CELL_N[2].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR0</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TI[1]</td><td>PPC405.DSCNTLVALUE4</td></tr>
+<tr><td>CELL_N[2].IMUX_TI_OPTINV[1]</td><td>PPC405.DSCNTLVALUE4</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TS[0]</td><td>PPC405.DSCNTLVALUE5</td></tr>
+<tr><td>CELL_N[2].IMUX_TS_OPTINV[0]</td><td>PPC405.DSCNTLVALUE5</td></tr>
 
-<tr><td>CELL_N[2].IMUX_TS[1]</td><td>PPC405.DSCNTLVALUE6</td></tr>
+<tr><td>CELL_N[2].IMUX_TS_OPTINV[1]</td><td>PPC405.DSCNTLVALUE6</td></tr>
 
 <tr><td>CELL_N[2].IMUX_G0_DATA[0]</td><td>PPC405.TRCC405TRIGGEREVENTIN</td></tr>
 
@@ -13246,15 +13246,15 @@
 
 <tr><td>CELL_N[2].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO30</td></tr>
 
-<tr><td>CELL_N[3].IMUX_CLK[0]</td><td>PPC405.BRAMDSOCMCLK</td></tr>
+<tr><td>CELL_N[3].IMUX_CLK_OPTINV[0]</td><td>PPC405.BRAMDSOCMCLK</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TI[0]</td><td>PPC405.TIEDSOCMDCRADDR1</td></tr>
+<tr><td>CELL_N[3].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR1</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TI[1]</td><td>PPC405.TIEDSOCMDCRADDR2</td></tr>
+<tr><td>CELL_N[3].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEDSOCMDCRADDR2</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TS[0]</td><td>PPC405.TIEDSOCMDCRADDR3</td></tr>
+<tr><td>CELL_N[3].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR3</td></tr>
 
-<tr><td>CELL_N[3].IMUX_TS[1]</td><td>PPC405.TIEDSOCMDCRADDR4</td></tr>
+<tr><td>CELL_N[3].IMUX_TS_OPTINV[1]</td><td>PPC405.TIEDSOCMDCRADDR4</td></tr>
 
 <tr><td>CELL_N[3].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMWRDBUS16</td></tr>
 
@@ -13294,13 +13294,13 @@
 
 <tr><td>CELL_N[3].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO31</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TI[0]</td><td>PPC405.TIEDSOCMDCRADDR5</td></tr>
+<tr><td>CELL_N[4].IMUX_TI_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR5</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TI[1]</td><td>PPC405.TIEDSOCMDCRADDR6</td></tr>
+<tr><td>CELL_N[4].IMUX_TI_OPTINV[1]</td><td>PPC405.TIEDSOCMDCRADDR6</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TS[0]</td><td>PPC405.TIEDSOCMDCRADDR7</td></tr>
+<tr><td>CELL_N[4].IMUX_TS_OPTINV[0]</td><td>PPC405.TIEDSOCMDCRADDR7</td></tr>
 
-<tr><td>CELL_N[4].IMUX_TS[1]</td><td>PPC405.DSCNTLVALUE7</td></tr>
+<tr><td>CELL_N[4].IMUX_TS_OPTINV[1]</td><td>PPC405.DSCNTLVALUE7</td></tr>
 
 <tr><td>CELL_N[4].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMWRDBUS24</td></tr>
 
@@ -13340,13 +13340,13 @@
 
 <tr><td>CELL_N[4].OUT_TEST[4]</td><td>PPC405.TSTDSOCMWRDBUSO23</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TI[0]</td><td>PPC405.DSARCVALUE0</td></tr>
+<tr><td>CELL_N[5].IMUX_TI_OPTINV[0]</td><td>PPC405.DSARCVALUE0</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TI[1]</td><td>PPC405.DSARCVALUE1</td></tr>
+<tr><td>CELL_N[5].IMUX_TI_OPTINV[1]</td><td>PPC405.DSARCVALUE1</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TS[0]</td><td>PPC405.DSARCVALUE2</td></tr>
+<tr><td>CELL_N[5].IMUX_TS_OPTINV[0]</td><td>PPC405.DSARCVALUE2</td></tr>
 
-<tr><td>CELL_N[5].IMUX_TS[1]</td><td>PPC405.DSARCVALUE3</td></tr>
+<tr><td>CELL_N[5].IMUX_TS_OPTINV[1]</td><td>PPC405.DSARCVALUE3</td></tr>
 
 <tr><td>CELL_N[5].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMABUS8</td></tr>
 
@@ -13392,13 +13392,13 @@
 
 <tr><td>CELL_N[5].OUT_TEST[10]</td><td>PPC405.TSTDSOCMWRDBUSO25</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TI[0]</td><td>PPC405.DSARCVALUE4</td></tr>
+<tr><td>CELL_N[6].IMUX_TI_OPTINV[0]</td><td>PPC405.DSARCVALUE4</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TI[1]</td><td>PPC405.DSARCVALUE5</td></tr>
+<tr><td>CELL_N[6].IMUX_TI_OPTINV[1]</td><td>PPC405.DSARCVALUE5</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TS[0]</td><td>PPC405.DSARCVALUE6</td></tr>
+<tr><td>CELL_N[6].IMUX_TS_OPTINV[0]</td><td>PPC405.DSARCVALUE6</td></tr>
 
-<tr><td>CELL_N[6].IMUX_TS[1]</td><td>PPC405.DSARCVALUE7</td></tr>
+<tr><td>CELL_N[6].IMUX_TS_OPTINV[1]</td><td>PPC405.DSARCVALUE7</td></tr>
 
 <tr><td>CELL_N[6].OUT_FAN_TMIN[0]</td><td>PPC405.DSOCMBRAMABUS20</td></tr>
 

@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -239,9 +239,9 @@
 
 <tr><td>POWERDOWN</td><td>input</td><td>CELL_IO.IMUX_G0_DATA[2]</td></tr>
 
-<tr><td>REFCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[2]</td></tr>
+<tr><td>REFCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[2]</td></tr>
 
-<tr><td>REFCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[3]</td></tr>
+<tr><td>REFCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[3]</td></tr>
 
 <tr><td>REFCLKBSEL</td><td>input</td><td>CELL_IO.IMUX_G3_DATA[4]</td></tr>
 
@@ -485,7 +485,7 @@
 
 <tr><td>RXRECCLK</td><td>output</td><td>CELL_IO.OUT_FAN_TMIN[1]</td></tr>
 
-<tr><td>RXRESET</td><td>input</td><td>CELL_IO.IMUX_SR[0]</td></tr>
+<tr><td>RXRESET</td><td>input</td><td>CELL_IO.IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXRUNDISP0</td><td>output</td><td>CELL[0].OUT_SEC_TMIN[15]</td></tr>
 
@@ -505,9 +505,9 @@
 
 <tr><td>RXSLIDE</td><td>input</td><td>CELL[3].IMUX_G3_DATA[6]</td></tr>
 
-<tr><td>RXUSRCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[0]</td></tr>
+<tr><td>RXUSRCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[0]</td></tr>
 
-<tr><td>RXUSRCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[1]</td></tr>
+<tr><td>RXUSRCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[1]</td></tr>
 
 <tr><td>SCANEN</td><td>input</td><td>CELL[4].IMUX_G1_DATA[6]</td></tr>
 
@@ -751,7 +751,7 @@
 
 <tr><td>TXPOLARITY</td><td>input</td><td>CELL_IO.IMUX_G2_DATA[3]</td></tr>
 
-<tr><td>TXRESET</td><td>input</td><td>CELL[0].IMUX_SR[0]</td></tr>
+<tr><td>TXRESET</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXRUNDISP0</td><td>output</td><td>CELL[0].OUT_SEC_TMIN[10]</td></tr>
 
@@ -771,9 +771,9 @@
 
 <tr><td>TXSCRAM64B66BUSE</td><td>input</td><td>CELL[4].IMUX_G1_DATA[4]</td></tr>
 
-<tr><td>TXUSRCLK</td><td>input</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+<tr><td>TXUSRCLK</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[1]</td></tr>
 
 </tbody>
 
@@ -850,15 +850,15 @@
 </thead>
 
 <tbody>
-<tr><td>CELL_IO.IMUX_DCM_CLK[0]</td><td>GT10.RXUSRCLK</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[0]</td><td>GT10.RXUSRCLK</td></tr>
 
-<tr><td>CELL_IO.IMUX_DCM_CLK[1]</td><td>GT10.RXUSRCLK2</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[1]</td><td>GT10.RXUSRCLK2</td></tr>
 
-<tr><td>CELL_IO.IMUX_DCM_CLK[2]</td><td>GT10.REFCLK</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[2]</td><td>GT10.REFCLK</td></tr>
 
-<tr><td>CELL_IO.IMUX_DCM_CLK[3]</td><td>GT10.REFCLK2</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[3]</td><td>GT10.REFCLK2</td></tr>
 
-<tr><td>CELL_IO.IMUX_SR[0]</td><td>GT10.RXRESET</td></tr>
+<tr><td>CELL_IO.IMUX_SR_OPTINV[0]</td><td>GT10.RXRESET</td></tr>
 
 <tr><td>CELL_IO.IMUX_G0_DATA[0]</td><td>GT10.CHBONDI0</td></tr>
 
@@ -926,11 +926,11 @@
 
 <tr><td>CELL_IO.OUT_SEC_TMIN[15]</td><td>GT10.RXBUFSTATUS0</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[0]</td><td>GT10.TXUSRCLK</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[0]</td><td>GT10.TXUSRCLK</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[1]</td><td>GT10.TXUSRCLK2</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[1]</td><td>GT10.TXUSRCLK2</td></tr>
 
-<tr><td>CELL[0].IMUX_SR[0]</td><td>GT10.TXRESET</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[0]</td><td>GT10.TXRESET</td></tr>
 
 <tr><td>CELL[0].IMUX_G0_DATA[0]</td><td>GT10.TXDATA0</td></tr>
 
@@ -27130,9 +27130,9 @@ non-inverted
 
 <tr><td>POWERDOWN</td><td>input</td><td>CELL_IO.IMUX_G0_DATA[2]</td></tr>
 
-<tr><td>REFCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[2]</td></tr>
+<tr><td>REFCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[2]</td></tr>
 
-<tr><td>REFCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[3]</td></tr>
+<tr><td>REFCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[3]</td></tr>
 
 <tr><td>REFCLKBSEL</td><td>input</td><td>CELL_IO.IMUX_G3_DATA[4]</td></tr>
 
@@ -27376,7 +27376,7 @@ non-inverted
 
 <tr><td>RXRECCLK</td><td>output</td><td>CELL_IO.OUT_FAN_TMIN[1]</td></tr>
 
-<tr><td>RXRESET</td><td>input</td><td>CELL_IO.IMUX_SR[0]</td></tr>
+<tr><td>RXRESET</td><td>input</td><td>CELL_IO.IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXRUNDISP0</td><td>output</td><td>CELL[0].OUT_SEC_TMIN[15]</td></tr>
 
@@ -27396,9 +27396,9 @@ non-inverted
 
 <tr><td>RXSLIDE</td><td>input</td><td>CELL[3].IMUX_G3_DATA[6]</td></tr>
 
-<tr><td>RXUSRCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[0]</td></tr>
+<tr><td>RXUSRCLK</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[0]</td></tr>
 
-<tr><td>RXUSRCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK[1]</td></tr>
+<tr><td>RXUSRCLK2</td><td>input</td><td>CELL_IO.IMUX_DCM_CLK_OPTINV[1]</td></tr>
 
 <tr><td>SCANEN</td><td>input</td><td>CELL[4].IMUX_G1_DATA[6]</td></tr>
 
@@ -27642,7 +27642,7 @@ non-inverted
 
 <tr><td>TXPOLARITY</td><td>input</td><td>CELL_IO.IMUX_G2_DATA[3]</td></tr>
 
-<tr><td>TXRESET</td><td>input</td><td>CELL[0].IMUX_SR[0]</td></tr>
+<tr><td>TXRESET</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXRUNDISP0</td><td>output</td><td>CELL[0].OUT_SEC_TMIN[10]</td></tr>
 
@@ -27662,9 +27662,9 @@ non-inverted
 
 <tr><td>TXSCRAM64B66BUSE</td><td>input</td><td>CELL[4].IMUX_G1_DATA[4]</td></tr>
 
-<tr><td>TXUSRCLK</td><td>input</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+<tr><td>TXUSRCLK</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[1]</td></tr>
 
 </tbody>
 
@@ -27741,15 +27741,15 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>CELL_IO.IMUX_DCM_CLK[0]</td><td>GT10.RXUSRCLK</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[0]</td><td>GT10.RXUSRCLK</td></tr>
 
-<tr><td>CELL_IO.IMUX_DCM_CLK[1]</td><td>GT10.RXUSRCLK2</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[1]</td><td>GT10.RXUSRCLK2</td></tr>
 
-<tr><td>CELL_IO.IMUX_DCM_CLK[2]</td><td>GT10.REFCLK</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[2]</td><td>GT10.REFCLK</td></tr>
 
-<tr><td>CELL_IO.IMUX_DCM_CLK[3]</td><td>GT10.REFCLK2</td></tr>
+<tr><td>CELL_IO.IMUX_DCM_CLK_OPTINV[3]</td><td>GT10.REFCLK2</td></tr>
 
-<tr><td>CELL_IO.IMUX_SR[0]</td><td>GT10.RXRESET</td></tr>
+<tr><td>CELL_IO.IMUX_SR_OPTINV[0]</td><td>GT10.RXRESET</td></tr>
 
 <tr><td>CELL_IO.IMUX_G0_DATA[0]</td><td>GT10.CHBONDI0</td></tr>
 
@@ -27817,11 +27817,11 @@ non-inverted
 
 <tr><td>CELL_IO.OUT_SEC_TMIN[15]</td><td>GT10.RXBUFSTATUS0</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[0]</td><td>GT10.TXUSRCLK</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[0]</td><td>GT10.TXUSRCLK</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[1]</td><td>GT10.TXUSRCLK2</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[1]</td><td>GT10.TXUSRCLK2</td></tr>
 
-<tr><td>CELL[0].IMUX_SR[0]</td><td>GT10.TXRESET</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[0]</td><td>GT10.TXRESET</td></tr>
 
 <tr><td>CELL[0].IMUX_G0_DATA[0]</td><td>GT10.TXDATA0</td></tr>
 

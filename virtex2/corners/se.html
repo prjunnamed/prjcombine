@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d27c1e18.js"></script>
+        <script src="../../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -243,11 +243,11 @@
 </thead>
 
 <tbody>
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK[0]</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>GSR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>GSR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>GTS</td><td>input</td><td>IMUX_TS[0]</td></tr>
+<tr><td>GTS</td><td>input</td><td>IMUX_TS_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -264,9 +264,9 @@
 </thead>
 
 <tbody>
-<tr><td>CAP</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>CAP</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK[2]</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[2]</td></tr>
 
 </tbody>
 
@@ -285,9 +285,9 @@
 <tbody>
 <tr><td>BUSY</td><td>output</td><td>OUT_HALF0[17]</td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK[1]</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>I0</td><td>input</td><td>IMUX_G0_DATA[0]</td></tr>
 
@@ -321,7 +321,7 @@
 
 <tr><td>O7</td><td>output</td><td>OUT_FAN[7]</td></tr>
 
-<tr><td>WRITE</td><td>input</td><td>IMUX_TI[0]</td></tr>
+<tr><td>WRITE</td><td>input</td><td>IMUX_TI_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -338,21 +338,21 @@
 </thead>
 
 <tbody>
-<tr><td>IMUX_CLK[0]</td><td>STARTUP.CLK</td></tr>
+<tr><td>IMUX_CLK_OPTINV[0]</td><td>STARTUP.CLK</td></tr>
 
-<tr><td>IMUX_CLK[1]</td><td>ICAP.CLK</td></tr>
+<tr><td>IMUX_CLK_OPTINV[1]</td><td>ICAP.CLK</td></tr>
 
-<tr><td>IMUX_CLK[2]</td><td>CAPTURE.CLK</td></tr>
+<tr><td>IMUX_CLK_OPTINV[2]</td><td>CAPTURE.CLK</td></tr>
 
-<tr><td>IMUX_SR[0]</td><td>STARTUP.GSR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>STARTUP.GSR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>CAPTURE.CAP</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>CAPTURE.CAP</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>ICAP.CE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>ICAP.CE</td></tr>
 
-<tr><td>IMUX_TI[0]</td><td>ICAP.WRITE</td></tr>
+<tr><td>IMUX_TI_OPTINV[0]</td><td>ICAP.WRITE</td></tr>
 
-<tr><td>IMUX_TS[0]</td><td>STARTUP.GTS</td></tr>
+<tr><td>IMUX_TS_OPTINV[0]</td><td>STARTUP.GTS</td></tr>
 
 <tr><td>IMUX_G0_DATA[0]</td><td>ICAP.I0</td></tr>
 
@@ -2386,11 +2386,11 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK[0]</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>GSR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>GSR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>GTS</td><td>input</td><td>IMUX_TS[0]</td></tr>
+<tr><td>GTS</td><td>input</td><td>IMUX_TS_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -2407,9 +2407,9 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>CAP</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>CAP</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK[2]</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[2]</td></tr>
 
 </tbody>
 
@@ -2428,9 +2428,9 @@ non-inverted
 <tbody>
 <tr><td>BUSY</td><td>output</td><td>OUT_HALF0[17]</td></tr>
 
-<tr><td>CE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>IMUX_CLK[1]</td></tr>
+<tr><td>CLK</td><td>input</td><td>IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>I0</td><td>input</td><td>IMUX_G0_DATA[0]</td></tr>
 
@@ -2464,7 +2464,7 @@ non-inverted
 
 <tr><td>O7</td><td>output</td><td>OUT_FAN[7]</td></tr>
 
-<tr><td>WRITE</td><td>input</td><td>IMUX_TI[0]</td></tr>
+<tr><td>WRITE</td><td>input</td><td>IMUX_TI_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -2481,21 +2481,21 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_CLK[0]</td><td>STARTUP.CLK</td></tr>
+<tr><td>IMUX_CLK_OPTINV[0]</td><td>STARTUP.CLK</td></tr>
 
-<tr><td>IMUX_CLK[1]</td><td>ICAP.CLK</td></tr>
+<tr><td>IMUX_CLK_OPTINV[1]</td><td>ICAP.CLK</td></tr>
 
-<tr><td>IMUX_CLK[2]</td><td>CAPTURE.CLK</td></tr>
+<tr><td>IMUX_CLK_OPTINV[2]</td><td>CAPTURE.CLK</td></tr>
 
-<tr><td>IMUX_SR[0]</td><td>STARTUP.GSR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>STARTUP.GSR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>CAPTURE.CAP</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>CAPTURE.CAP</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>ICAP.CE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>ICAP.CE</td></tr>
 
-<tr><td>IMUX_TI[0]</td><td>ICAP.WRITE</td></tr>
+<tr><td>IMUX_TI_OPTINV[0]</td><td>ICAP.WRITE</td></tr>
 
-<tr><td>IMUX_TS[0]</td><td>STARTUP.GTS</td></tr>
+<tr><td>IMUX_TS_OPTINV[0]</td><td>STARTUP.GTS</td></tr>
 
 <tr><td>IMUX_G0_DATA[0]</td><td>ICAP.I0</td></tr>
 

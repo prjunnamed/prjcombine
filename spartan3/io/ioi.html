@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d27c1e18.js"></script>
+        <script src="../../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -181,7 +181,7 @@
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[28]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[0]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -189,7 +189,7 @@
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[0]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[0]</td></tr>
 
@@ -230,7 +230,7 @@
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[29]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -238,7 +238,7 @@
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[1]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[1]</td></tr>
 
@@ -279,7 +279,7 @@
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[30]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[2]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[3]</td></tr>
 
@@ -287,7 +287,7 @@
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[2]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[2]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[2]</td></tr>
 
@@ -312,17 +312,17 @@
 </thead>
 
 <tbody>
-<tr><td>IMUX_SR[0]</td><td>IOI[0].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>IOI[0].SR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>IOI[1].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>IOI[1].SR</td></tr>
 
-<tr><td>IMUX_SR[2]</td><td>IOI[2].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[2]</td><td>IOI[2].SR</td></tr>
 
-<tr><td>IMUX_CE[0]</td><td>IOI[0].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[0]</td><td>IOI[0].OCE</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>IOI[1].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>IOI[1].OCE</td></tr>
 
-<tr><td>IMUX_CE[2]</td><td>IOI[2].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[2]</td><td>IOI[2].OCE</td></tr>
 
 <tr><td>IMUX_IOCLK[0]</td><td>IOI[0].ICLK1, IOI[1].ICLK1</td></tr>
 
@@ -3405,7 +3405,7 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>CE</td><td>input</td><td>IMUX_CE[0]</td></tr>
+<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>CLK</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -3413,7 +3413,7 @@ non-inverted
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[4]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -3430,7 +3430,7 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>CE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>CLK</td><td>input</td><td>IMUX_IOCLK[3]</td></tr>
 
@@ -3438,7 +3438,7 @@ non-inverted
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[5]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
 </tbody>
 
@@ -3455,7 +3455,7 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>CE</td><td>input</td><td>IMUX_CE[2]</td></tr>
+<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>CLK</td><td>input</td><td>IMUX_IOCLK[5]</td></tr>
 
@@ -3463,7 +3463,7 @@ non-inverted
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[6]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[2]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
 
 </tbody>
 
@@ -3480,7 +3480,7 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>CE</td><td>input</td><td>IMUX_CE[3]</td></tr>
+<tr><td>CE</td><td>input</td><td>IMUX_CE_OPTINV[3]</td></tr>
 
 <tr><td>CLK</td><td>input</td><td>IMUX_IOCLK[7]</td></tr>
 
@@ -3488,7 +3488,7 @@ non-inverted
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[7]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[3]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[3]</td></tr>
 
 </tbody>
 
@@ -3505,21 +3505,21 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_SR[0]</td><td>OBUF[0].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>OBUF[0].SR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>OBUF[1].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>OBUF[1].SR</td></tr>
 
-<tr><td>IMUX_SR[2]</td><td>OBUF[2].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[2]</td><td>OBUF[2].SR</td></tr>
 
-<tr><td>IMUX_SR[3]</td><td>OBUF[3].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[3]</td><td>OBUF[3].SR</td></tr>
 
-<tr><td>IMUX_CE[0]</td><td>OBUF[0].CE</td></tr>
+<tr><td>IMUX_CE_OPTINV[0]</td><td>OBUF[0].CE</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>OBUF[1].CE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>OBUF[1].CE</td></tr>
 
-<tr><td>IMUX_CE[2]</td><td>OBUF[2].CE</td></tr>
+<tr><td>IMUX_CE_OPTINV[2]</td><td>OBUF[2].CE</td></tr>
 
-<tr><td>IMUX_CE[3]</td><td>OBUF[3].CE</td></tr>
+<tr><td>IMUX_CE_OPTINV[3]</td><td>OBUF[3].CE</td></tr>
 
 <tr><td>IMUX_IOCLK[0]</td><td>IBUF[0].CLK</td></tr>
 
@@ -6447,7 +6447,7 @@ inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[28]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[0]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -6455,7 +6455,7 @@ inverted
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[0]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[0]</td></tr>
 
@@ -6496,7 +6496,7 @@ inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[29]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -6504,7 +6504,7 @@ inverted
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[1]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[1]</td></tr>
 
@@ -6545,7 +6545,7 @@ inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[30]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[2]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[3]</td></tr>
 
@@ -6553,7 +6553,7 @@ inverted
 
 <tr><td>REV</td><td>input</td><td>IMUX_DATA[2]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[2]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[2]</td></tr>
 
@@ -6578,17 +6578,17 @@ inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_SR[0]</td><td>IOI[0].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>IOI[0].SR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>IOI[1].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>IOI[1].SR</td></tr>
 
-<tr><td>IMUX_SR[2]</td><td>IOI[2].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[2]</td><td>IOI[2].SR</td></tr>
 
-<tr><td>IMUX_CE[0]</td><td>IOI[0].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[0]</td><td>IOI[0].OCE</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>IOI[1].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>IOI[1].OCE</td></tr>
 
-<tr><td>IMUX_CE[2]</td><td>IOI[2].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[2]</td><td>IOI[2].OCE</td></tr>
 
 <tr><td>IMUX_IOCLK[0]</td><td>IOI[0].ICLK1, IOI[1].ICLK1</td></tr>
 
@@ -9854,7 +9854,7 @@ non-inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[28]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[0]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -9868,7 +9868,7 @@ non-inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[18]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[0]</td></tr>
 
@@ -9909,7 +9909,7 @@ non-inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[29]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -9923,7 +9923,7 @@ non-inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[2]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[1]</td></tr>
 
@@ -9948,13 +9948,13 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_SR[0]</td><td>IOI[0].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>IOI[0].SR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>IOI[1].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>IOI[1].SR</td></tr>
 
-<tr><td>IMUX_CE[0]</td><td>IOI[0].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[0]</td><td>IOI[0].OCE</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>IOI[1].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>IOI[1].OCE</td></tr>
 
 <tr><td>IMUX_IOCLK[0]</td><td>IOI[0].ICLK1, IOI[1].ICLK1</td></tr>
 
@@ -12980,7 +12980,7 @@ inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[28]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[0]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -12994,7 +12994,7 @@ inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[3]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[0]</td></tr>
 
@@ -13035,7 +13035,7 @@ inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[29]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -13049,7 +13049,7 @@ inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[11]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[1]</td></tr>
 
@@ -13090,7 +13090,7 @@ inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[30]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[2]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[3]</td></tr>
 
@@ -13104,7 +13104,7 @@ inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[23]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[2]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[2]</td></tr>
 
@@ -13129,17 +13129,17 @@ inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_SR[0]</td><td>IOI[0].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>IOI[0].SR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>IOI[1].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>IOI[1].SR</td></tr>
 
-<tr><td>IMUX_SR[2]</td><td>IOI[2].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[2]</td><td>IOI[2].SR</td></tr>
 
-<tr><td>IMUX_CE[0]</td><td>IOI[0].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[0]</td><td>IOI[0].OCE</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>IOI[1].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>IOI[1].OCE</td></tr>
 
-<tr><td>IMUX_CE[2]</td><td>IOI[2].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[2]</td><td>IOI[2].OCE</td></tr>
 
 <tr><td>IMUX_IOCLK[0]</td><td>IOI[0].ICLK1, IOI[1].ICLK1</td></tr>
 
@@ -16423,7 +16423,7 @@ non-inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[28]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[0]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -16437,7 +16437,7 @@ non-inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[23]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[0]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[0]</td></tr>
 
@@ -16478,7 +16478,7 @@ non-inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[29]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[1]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[1]</td></tr>
 
@@ -16492,7 +16492,7 @@ non-inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[11]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[1]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[1]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[1]</td></tr>
 
@@ -16533,7 +16533,7 @@ non-inverted
 
 <tr><td>O2</td><td>input</td><td>IMUX_DATA[30]</td></tr>
 
-<tr><td>OCE</td><td>input</td><td>IMUX_CE[2]</td></tr>
+<tr><td>OCE</td><td>input</td><td>IMUX_CE_OPTINV[2]</td></tr>
 
 <tr><td>OTCLK1</td><td>input</td><td>IMUX_IOCLK[3]</td></tr>
 
@@ -16547,7 +16547,7 @@ non-inverted
 
 <tr><td>S3</td><td>input</td><td>IMUX_DATA[3]</td></tr>
 
-<tr><td>SR</td><td>input</td><td>IMUX_SR[2]</td></tr>
+<tr><td>SR</td><td>input</td><td>IMUX_SR_OPTINV[2]</td></tr>
 
 <tr><td>T</td><td>output</td><td>OUT_FAN[2]</td></tr>
 
@@ -16572,17 +16572,17 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>IMUX_SR[0]</td><td>IOI[0].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[0]</td><td>IOI[0].SR</td></tr>
 
-<tr><td>IMUX_SR[1]</td><td>IOI[1].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[1]</td><td>IOI[1].SR</td></tr>
 
-<tr><td>IMUX_SR[2]</td><td>IOI[2].SR</td></tr>
+<tr><td>IMUX_SR_OPTINV[2]</td><td>IOI[2].SR</td></tr>
 
-<tr><td>IMUX_CE[0]</td><td>IOI[0].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[0]</td><td>IOI[0].OCE</td></tr>
 
-<tr><td>IMUX_CE[1]</td><td>IOI[1].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[1]</td><td>IOI[1].OCE</td></tr>
 
-<tr><td>IMUX_CE[2]</td><td>IOI[2].OCE</td></tr>
+<tr><td>IMUX_CE_OPTINV[2]</td><td>IOI[2].OCE</td></tr>
 
 <tr><td>IMUX_IOCLK[0]</td><td>IOI[0].ICLK1, IOI[1].ICLK1</td></tr>
 

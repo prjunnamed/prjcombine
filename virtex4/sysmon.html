@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -190,7 +190,7 @@
 
 <tr><td>CHANNEL4</td><td>output</td><td>CELL[3].OUT_BEST_TMIN[6]</td></tr>
 
-<tr><td>CONVST_INT_CLK</td><td>input</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+<tr><td>CONVST_INT_CLK</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>CONVST_INT_IMUX</td><td>input</td><td>CELL[0].IMUX_IMUX[0]</td></tr>
 
@@ -234,9 +234,9 @@
 
 <tr><td>DB9</td><td>output</td><td>CELL[0].OUT_BEST_TMIN[1]</td></tr>
 
-<tr><td>DCLK</td><td>input</td><td>CELL[3].IMUX_CLK[0]</td></tr>
+<tr><td>DCLK</td><td>input</td><td>CELL[3].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>DEN</td><td>input</td><td>CELL[5].IMUX_CE[1]</td></tr>
+<tr><td>DEN</td><td>input</td><td>CELL[5].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>DI0</td><td>input</td><td>CELL[7].IMUX_IMUX[0]</td></tr>
 
@@ -304,7 +304,7 @@
 
 <tr><td>DRDY</td><td>output</td><td>CELL[2].OUT_BEST_TMIN[5]</td></tr>
 
-<tr><td>DWE</td><td>input</td><td>CELL[5].IMUX_CE[0]</td></tr>
+<tr><td>DWE</td><td>input</td><td>CELL[5].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>EOC</td><td>output</td><td>CELL[3].OUT_BEST_TMIN[0]</td></tr>
 
@@ -376,21 +376,21 @@
 
 <tr><td>ROMTESTDATA9</td><td>output</td><td>CELL[4].OUT_BEST_TMIN[1]</td></tr>
 
-<tr><td>ROMTESTENABLE</td><td>input</td><td>CELL[2].IMUX_CE[0]</td></tr>
+<tr><td>ROMTESTENABLE</td><td>input</td><td>CELL[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>RST</td><td>input</td><td>CELL[3].IMUX_SR[0]</td></tr>
+<tr><td>RST</td><td>input</td><td>CELL[3].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>SCANMEMCLK</td><td>input</td><td>CELL[3].IMUX_CLK[1]</td></tr>
+<tr><td>SCANMEMCLK</td><td>input</td><td>CELL[3].IMUX_CLK_OPTINV[1]</td></tr>
 
-<tr><td>SCANMEMWE</td><td>input</td><td>CELL[3].IMUX_CE[2]</td></tr>
+<tr><td>SCANMEMWE</td><td>input</td><td>CELL[3].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>SCANTESTENA</td><td>input</td><td>CELL[3].IMUX_CE[0]</td></tr>
+<tr><td>SCANTESTENA</td><td>input</td><td>CELL[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>SCANTESTENB</td><td>input</td><td>CELL[4].IMUX_CE[0]</td></tr>
+<tr><td>SCANTESTENB</td><td>input</td><td>CELL[4].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>SCLKA</td><td>input</td><td>CELL[3].IMUX_CLK[2]</td></tr>
+<tr><td>SCLKA</td><td>input</td><td>CELL[3].IMUX_CLK_OPTINV[2]</td></tr>
 
-<tr><td>SCLKB</td><td>input</td><td>CELL[4].IMUX_CLK[1]</td></tr>
+<tr><td>SCLKB</td><td>input</td><td>CELL[4].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>SDIA</td><td>input</td><td>CELL[3].IMUX_IMUX[4]</td></tr>
 
@@ -400,9 +400,9 @@
 
 <tr><td>SDOB</td><td>output</td><td>CELL[2].OUT_BEST_TMIN[4]</td></tr>
 
-<tr><td>SEA</td><td>input</td><td>CELL[3].IMUX_CE[1]</td></tr>
+<tr><td>SEA</td><td>input</td><td>CELL[3].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>SEB</td><td>input</td><td>CELL[4].IMUX_CE[1]</td></tr>
+<tr><td>SEB</td><td>input</td><td>CELL[4].IMUX_CE_OPTINV[1]</td></tr>
 
 </tbody>
 
@@ -449,7 +449,7 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].IMUX_CLK[1]</td><td>SYSMON.CONVST_INT_CLK</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[1]</td><td>SYSMON.CONVST_INT_CLK</td></tr>
 
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>SYSMON.CONVST_INT_IMUX</td></tr>
 
@@ -501,7 +501,7 @@
 
 <tr><td>CELL[1].OUT_BEST_TMIN[7]</td><td>SYSMON.ALARM3</td></tr>
 
-<tr><td>CELL[2].IMUX_CE[0]</td><td>SYSMON.ROMTESTENABLE</td></tr>
+<tr><td>CELL[2].IMUX_CE_OPTINV[0]</td><td>SYSMON.ROMTESTENABLE</td></tr>
 
 <tr><td>CELL[2].IMUX_IMUX[0]</td><td>SYSMON.ROMTESTADDR10</td></tr>
 
@@ -533,19 +533,19 @@
 
 <tr><td>CELL[2].OUT_BEST_TMIN[7]</td><td>SYSMON.SDOA</td></tr>
 
-<tr><td>CELL[3].IMUX_SR[0]</td><td>SYSMON.RST</td></tr>
+<tr><td>CELL[3].IMUX_SR_OPTINV[0]</td><td>SYSMON.RST</td></tr>
 
-<tr><td>CELL[3].IMUX_CLK[0]</td><td>SYSMON.DCLK</td></tr>
+<tr><td>CELL[3].IMUX_CLK_OPTINV[0]</td><td>SYSMON.DCLK</td></tr>
 
-<tr><td>CELL[3].IMUX_CLK[1]</td><td>SYSMON.SCANMEMCLK</td></tr>
+<tr><td>CELL[3].IMUX_CLK_OPTINV[1]</td><td>SYSMON.SCANMEMCLK</td></tr>
 
-<tr><td>CELL[3].IMUX_CLK[2]</td><td>SYSMON.SCLKA</td></tr>
+<tr><td>CELL[3].IMUX_CLK_OPTINV[2]</td><td>SYSMON.SCLKA</td></tr>
 
-<tr><td>CELL[3].IMUX_CE[0]</td><td>SYSMON.SCANTESTENA</td></tr>
+<tr><td>CELL[3].IMUX_CE_OPTINV[0]</td><td>SYSMON.SCANTESTENA</td></tr>
 
-<tr><td>CELL[3].IMUX_CE[1]</td><td>SYSMON.SEA</td></tr>
+<tr><td>CELL[3].IMUX_CE_OPTINV[1]</td><td>SYSMON.SEA</td></tr>
 
-<tr><td>CELL[3].IMUX_CE[2]</td><td>SYSMON.SCANMEMWE</td></tr>
+<tr><td>CELL[3].IMUX_CE_OPTINV[2]</td><td>SYSMON.SCANMEMWE</td></tr>
 
 <tr><td>CELL[3].IMUX_IMUX[4]</td><td>SYSMON.SDIA</td></tr>
 
@@ -565,11 +565,11 @@
 
 <tr><td>CELL[3].OUT_BEST_TMIN[7]</td><td>SYSMON.EOS</td></tr>
 
-<tr><td>CELL[4].IMUX_CLK[1]</td><td>SYSMON.SCLKB</td></tr>
+<tr><td>CELL[4].IMUX_CLK_OPTINV[1]</td><td>SYSMON.SCLKB</td></tr>
 
-<tr><td>CELL[4].IMUX_CE[0]</td><td>SYSMON.SCANTESTENB</td></tr>
+<tr><td>CELL[4].IMUX_CE_OPTINV[0]</td><td>SYSMON.SCANTESTENB</td></tr>
 
-<tr><td>CELL[4].IMUX_CE[1]</td><td>SYSMON.SEB</td></tr>
+<tr><td>CELL[4].IMUX_CE_OPTINV[1]</td><td>SYSMON.SEB</td></tr>
 
 <tr><td>CELL[4].IMUX_IMUX[5]</td><td>SYSMON.SDIB</td></tr>
 
@@ -591,9 +591,9 @@
 
 <tr><td>CELL[4].TEST[0]</td><td>SYSMON.CONVST_TEST</td></tr>
 
-<tr><td>CELL[5].IMUX_CE[0]</td><td>SYSMON.DWE</td></tr>
+<tr><td>CELL[5].IMUX_CE_OPTINV[0]</td><td>SYSMON.DWE</td></tr>
 
-<tr><td>CELL[5].IMUX_CE[1]</td><td>SYSMON.DEN</td></tr>
+<tr><td>CELL[5].IMUX_CE_OPTINV[1]</td><td>SYSMON.DEN</td></tr>
 
 <tr><td>CELL[5].IMUX_IMUX[0]</td><td>SYSMON.DADDR0</td></tr>
 

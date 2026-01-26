@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d27c1e18.js"></script>
+        <script src="../../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -3181,7 +3181,7 @@
 <a href="#tile-virtex-CNR_NW-INT:MUX.IMUX_STARTUP_CLK">INT:MUX.IMUX_STARTUP_CLK[9]</a>
 </td>
 <td title="R0.F18.B14">
-<a href="#tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_CLK">~INT:INV.IMUX_STARTUP_CLK</a>
+<a href="#tile-virtex-CNR_NW-STARTUP:INV.CLK">~STARTUP:INV.CLK</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -3219,10 +3219,10 @@
 <a href="#tile-virtex-CNR_NW-INT:MUX.IMUX_STARTUP_GWE">INT:MUX.IMUX_STARTUP_GWE[7]</a>
 </td>
 <td title="R0.F38.B14">
-<a href="#tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_GWE">~INT:INV.IMUX_STARTUP_GWE</a>
+<a href="#tile-virtex-CNR_NW-STARTUP:INV.GWE">~STARTUP:INV.GWE</a>
 </td>
 <td title="R0.F39.B14">
-<a href="#tile-virtex-CNR_NW-INT:INV.IMUX_BSCAN_TDO1">~INT:INV.IMUX_BSCAN_TDO1</a>
+<a href="#tile-virtex-CNR_NW-BSCAN:INV.TDO1">~BSCAN:INV.TDO1</a>
 </td>
 <td title="R0.F40.B14">
 <a href="#tile-virtex-CNR_NW-INT:MUX.IMUX_BSCAN_TDO1">INT:MUX.IMUX_BSCAN_TDO1[7]</a>
@@ -3296,10 +3296,10 @@
 <a href="#tile-virtex-CNR_NW-INT:MUX.IMUX_STARTUP_GTS">INT:MUX.IMUX_STARTUP_GTS[7]</a>
 </td>
 <td title="R0.F20.B13">
-<a href="#tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_GTS">INT:INV.IMUX_STARTUP_GTS</a>
+<a href="#tile-virtex-CNR_NW-STARTUP:INV.GTS">STARTUP:INV.GTS</a>
 </td>
 <td title="R0.F21.B13">
-<a href="#tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_GSR">INT:INV.IMUX_STARTUP_GSR</a>
+<a href="#tile-virtex-CNR_NW-STARTUP:INV.GSR">STARTUP:INV.GSR</a>
 </td>
 <td title="R0.F22.B13">
 <a href="#tile-virtex-CNR_NW-INT:MUX.IMUX_STARTUP_GSR">INT:MUX.IMUX_STARTUP_GSR[7]</a>
@@ -3350,7 +3350,7 @@
 <a href="#tile-virtex-CNR_NW-INT:MUX.IMUX_BSCAN_TDO2">INT:MUX.IMUX_BSCAN_TDO2[7]</a>
 </td>
 <td title="R0.F38.B13">
-<a href="#tile-virtex-CNR_NW-INT:INV.IMUX_BSCAN_TDO2">~INT:INV.IMUX_BSCAN_TDO2</a>
+<a href="#tile-virtex-CNR_NW-BSCAN:INV.TDO2">~BSCAN:INV.TDO2</a>
 </td>
 <td>-</td>
 <td>-</td>
@@ -4420,6 +4420,55 @@
 <div class="table-wrapper">
 <table>
 <thead>
+<tr><th id="tile-virtex-CNR_NW-BSCAN:INV.TDO1">BSCAN:INV.TDO1</th>
+<th>0.F39.B14</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-BSCAN:INV.TDO2">BSCAN:INV.TDO2</th>
+<th>0.F38.B13</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-STARTUP:GSR_GTS_GWE_ENABLE">STARTUP:GSR_GTS_GWE_ENABLE</th>
+<th>0.F8.B8</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-STARTUP:GSR_SYNC">STARTUP:GSR_SYNC</th>
+<th>0.F11.B8</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-STARTUP:GTS_SYNC">STARTUP:GTS_SYNC</th>
+<th>0.F9.B8</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-STARTUP:GWE_SYNC">STARTUP:GWE_SYNC</th>
+<th>0.F10.B8</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-STARTUP:INV.CLK">STARTUP:INV.CLK</th>
+<th>0.F18.B14</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-STARTUP:INV.GWE">STARTUP:INV.GWE</th>
+<th>0.F38.B14</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>
+inverted
+</td>
+<td>~[0]</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<thead>
 <tr><th id="tile-virtex-CNR_NW-BSCAN:USERID">BSCAN:USERID</th>
 <th>0.F46.B16</th>
 <th>0.F43.B16</th>
@@ -4795,16 +4844,16 @@ non-inverted
 <th>0.F24.B0</th>
 </tr>
 
-<tr><th id="tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_GSR">INT:INV.IMUX_STARTUP_GSR</th>
+<tr><th id="tile-virtex-CNR_NW-MISC:DLL_ENABLE">MISC:DLL_ENABLE</th>
+<th>0.F9.B13</th>
+</tr>
+
+<tr><th id="tile-virtex-CNR_NW-STARTUP:INV.GSR">STARTUP:INV.GSR</th>
 <th>0.F21.B13</th>
 </tr>
 
-<tr><th id="tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_GTS">INT:INV.IMUX_STARTUP_GTS</th>
+<tr><th id="tile-virtex-CNR_NW-STARTUP:INV.GTS">STARTUP:INV.GTS</th>
 <th>0.F20.B13</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-MISC:DLL_ENABLE">MISC:DLL_ENABLE</th>
-<th>0.F9.B13</th>
 </tr>
 
 </thead>
@@ -4814,55 +4863,6 @@ non-inverted
 non-inverted
 </td>
 <td>[0]</td>
-</tr>
-
-</tbody>
-
-</table>
-</div>
-
-<div class="table-wrapper">
-<table>
-<thead>
-<tr><th id="tile-virtex-CNR_NW-INT:INV.IMUX_BSCAN_TDO1">INT:INV.IMUX_BSCAN_TDO1</th>
-<th>0.F39.B14</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-INT:INV.IMUX_BSCAN_TDO2">INT:INV.IMUX_BSCAN_TDO2</th>
-<th>0.F38.B13</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_CLK">INT:INV.IMUX_STARTUP_CLK</th>
-<th>0.F18.B14</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-INT:INV.IMUX_STARTUP_GWE">INT:INV.IMUX_STARTUP_GWE</th>
-<th>0.F38.B14</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-STARTUP:GSR_GTS_GWE_ENABLE">STARTUP:GSR_GTS_GWE_ENABLE</th>
-<th>0.F8.B8</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-STARTUP:GSR_SYNC">STARTUP:GSR_SYNC</th>
-<th>0.F11.B8</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-STARTUP:GTS_SYNC">STARTUP:GTS_SYNC</th>
-<th>0.F9.B8</th>
-</tr>
-
-<tr><th id="tile-virtex-CNR_NW-STARTUP:GWE_SYNC">STARTUP:GWE_SYNC</th>
-<th>0.F10.B8</th>
-</tr>
-
-</thead>
-
-<tbody>
-<tr><td>
-inverted
-</td>
-<td>~[0]</td>
 </tr>
 
 </tbody>

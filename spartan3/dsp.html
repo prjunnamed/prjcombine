@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -335,23 +335,23 @@
 
 <tr><td>C9</td><td>input</td><td>CELL[0].IMUX_DATA[24]</td></tr>
 
-<tr><td>CEA</td><td>input</td><td>CELL[3].IMUX_CE[0]</td></tr>
+<tr><td>CEA</td><td>input</td><td>CELL[3].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CEB</td><td>input</td><td>CELL[3].IMUX_CE[1]</td></tr>
+<tr><td>CEB</td><td>input</td><td>CELL[3].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>CEC</td><td>input</td><td>CELL[3].IMUX_CE[2]</td></tr>
+<tr><td>CEC</td><td>input</td><td>CELL[3].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>CECARRYIN</td><td>input</td><td>CELL[2].IMUX_CE[3]</td></tr>
+<tr><td>CECARRYIN</td><td>input</td><td>CELL[2].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>CED</td><td>input</td><td>CELL[3].IMUX_CE[3]</td></tr>
+<tr><td>CED</td><td>input</td><td>CELL[3].IMUX_CE_OPTINV[3]</td></tr>
 
-<tr><td>CEM</td><td>input</td><td>CELL[2].IMUX_CE[2]</td></tr>
+<tr><td>CEM</td><td>input</td><td>CELL[2].IMUX_CE_OPTINV[2]</td></tr>
 
-<tr><td>CEOPMODE</td><td>input</td><td>CELL[2].IMUX_CE[0]</td></tr>
+<tr><td>CEOPMODE</td><td>input</td><td>CELL[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>CEP</td><td>input</td><td>CELL[2].IMUX_CE[1]</td></tr>
+<tr><td>CEP</td><td>input</td><td>CELL[2].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>CLK</td><td>input</td><td>CELL[2].IMUX_CLK[3]</td></tr>
+<tr><td>CLK</td><td>input</td><td>CELL[2].IMUX_CLK_OPTINV[3]</td></tr>
 
 <tr><td>D0</td><td>input</td><td>CELL[0].IMUX_DATA[9]</td></tr>
 
@@ -501,21 +501,454 @@
 
 <tr><td>P9</td><td>output</td><td>CELL[0].OUT_FAN_TMIN[7]</td></tr>
 
-<tr><td>RSTA</td><td>input</td><td>CELL[0].IMUX_SR[0]</td></tr>
+<tr><td>RSTA</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>RSTB</td><td>input</td><td>CELL[0].IMUX_SR[1]</td></tr>
+<tr><td>RSTB</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>RSTC</td><td>input</td><td>CELL[0].IMUX_SR[2]</td></tr>
+<tr><td>RSTC</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>RSTCARRYIN</td><td>input</td><td>CELL[1].IMUX_SR[3]</td></tr>
+<tr><td>RSTCARRYIN</td><td>input</td><td>CELL[1].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>RSTD</td><td>input</td><td>CELL[0].IMUX_SR[3]</td></tr>
+<tr><td>RSTD</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[3]</td></tr>
 
-<tr><td>RSTM</td><td>input</td><td>CELL[1].IMUX_SR[2]</td></tr>
+<tr><td>RSTM</td><td>input</td><td>CELL[1].IMUX_SR_OPTINV[2]</td></tr>
 
-<tr><td>RSTOPMODE</td><td>input</td><td>CELL[1].IMUX_SR[0]</td></tr>
+<tr><td>RSTOPMODE</td><td>input</td><td>CELL[1].IMUX_SR_OPTINV[0]</td></tr>
 
-<tr><td>RSTP</td><td>input</td><td>CELL[1].IMUX_SR[1]</td></tr>
+<tr><td>RSTP</td><td>input</td><td>CELL[1].IMUX_SR_OPTINV[1]</td></tr>
+
+</tbody>
+
+</table>
+</div>
+
+<h3 id="test-mux-dsp_testmux"><a class="header" href="#test-mux-dsp_testmux">Test mux DSP_TESTMUX</a></h3>
+<div class="table-wrapper">
+<table>
+<caption>spartan3 DSP DSP_TESTMUX mux</caption>
+<thead>
+<tr><th>Destination</th><th>Primary source</th>
+<th>Test source 0</th>
+<th>Test source 1</th>
+</tr>
+
+</thead>
+
+<tbody>
+<tr><td>CELL[0].OUT_FAN[0]</td><td>CELL[0].OUT_FAN_TMIN[0]</td>
+<td>CELL[0].IMUX_DATA[11]</td>
+<td>CELL[0].IMUX_DATA[22]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_FAN[1]</td><td>CELL[0].OUT_FAN_TMIN[1]</td>
+<td>CELL[0].IMUX_DATA[14]</td>
+<td>CELL[0].IMUX_DATA[17]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_FAN[2]</td><td>CELL[0].OUT_FAN_TMIN[2]</td>
+<td>CELL[0].IMUX_DATA[16]</td>
+<td>CELL[0].IMUX_DATA[10]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_FAN[3]</td><td>CELL[0].OUT_FAN_TMIN[3]</td>
+<td>CELL[0].IMUX_DATA[8]</td>
+<td>CELL[0].IMUX_DATA[13]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_FAN[4]</td><td>CELL[0].OUT_FAN_TMIN[4]</td>
+<td>CELL[0].IMUX_DATA[27]</td>
+<td>CELL[0].IMUX_FAN_BY[2]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_FAN[5]</td><td>CELL[0].OUT_FAN_TMIN[5]</td>
+<td>CELL[0].IMUX_DATA[3]</td>
+<td>CELL[0].IMUX_FAN_BY[1]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_FAN[6]</td><td>CELL[0].OUT_FAN_TMIN[6]</td>
+<td>CELL[0].IMUX_DATA[6]</td>
+<td>CELL[0].IMUX_DATA[1]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_FAN[7]</td><td>CELL[0].OUT_FAN_TMIN[7]</td>
+<td>CELL[0].IMUX_DATA[24]</td>
+<td>CELL[0].IMUX_DATA[26]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[8]</td><td>CELL[0].OUT_SEC_TMIN[8]</td>
+<td>CELL[0].IMUX_SR_OPTINV[3]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[9]</td><td>CELL[0].OUT_SEC_TMIN[9]</td>
+<td>CELL[0].IMUX_SR_OPTINV[2]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[10]</td><td>CELL[0].OUT_SEC_TMIN[10]</td>
+<td>CELL[0].IMUX_SR_OPTINV[1]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[11]</td><td>CELL[0].OUT_SEC_TMIN[11]</td>
+<td>CELL[0].IMUX_SR_OPTINV[0]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[12]</td><td>CELL[0].OUT_SEC_TMIN[12]</td>
+<td>CELL[0].IMUX_DATA[0]</td>
+<td>CELL[0].IMUX_FAN_BY[3]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[13]</td><td>CELL[0].OUT_SEC_TMIN[13]</td>
+<td>CELL[0].IMUX_DATA[19]</td>
+<td>CELL[0].IMUX_FAN_BY[0]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[14]</td><td>CELL[0].OUT_SEC_TMIN[14]</td>
+<td>CELL[0].IMUX_DATA[21]</td>
+<td>CELL[3].IMUX_FAN_BY[0]</td>
+</tr>
+
+<tr><td>CELL[0].OUT_SEC[15]</td><td>CELL[0].OUT_SEC_TMIN[15]</td>
+<td>CELL[0].IMUX_DATA[29]</td>
+<td>CELL[3].IMUX_DATA[30]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[0]</td><td>CELL[1].OUT_FAN_TMIN[0]</td>
+<td>CELL[1].IMUX_DATA[11]</td>
+<td>CELL[3].IMUX_FAN_BY[3]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[1]</td><td>CELL[1].OUT_FAN_TMIN[1]</td>
+<td>CELL[1].IMUX_DATA[14]</td>
+<td>CELL[3].IMUX_FAN_BY[1]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[2]</td><td>CELL[1].OUT_FAN_TMIN[2]</td>
+<td>CELL[1].IMUX_DATA[16]</td>
+<td>CELL[1].IMUX_FAN_BX[2]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[3]</td><td>CELL[1].OUT_FAN_TMIN[3]</td>
+<td>CELL[1].IMUX_DATA[8]</td>
+<td>CELL[1].IMUX_FAN_BY[0]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[4]</td><td>CELL[1].OUT_FAN_TMIN[4]</td>
+<td>CELL[1].IMUX_DATA[27]</td>
+<td>CELL[3].IMUX_DATA[10]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[5]</td><td>CELL[1].OUT_FAN_TMIN[5]</td>
+<td>CELL[1].IMUX_DATA[3]</td>
+<td>CELL[3].IMUX_DATA[5]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[6]</td><td>CELL[1].OUT_FAN_TMIN[6]</td>
+<td>CELL[1].IMUX_DATA[6]</td>
+<td>CELL[3].IMUX_FAN_BY[2]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_FAN[7]</td><td>CELL[1].OUT_FAN_TMIN[7]</td>
+<td>CELL[1].IMUX_DATA[24]</td>
+<td>CELL[1].IMUX_FAN_BY[2]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[8]</td><td>CELL[1].OUT_SEC_TMIN[8]</td>
+<td>CELL[1].IMUX_SR_OPTINV[3]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[9]</td><td>CELL[1].OUT_SEC_TMIN[9]</td>
+<td>CELL[1].IMUX_SR_OPTINV[2]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[10]</td><td>CELL[1].OUT_SEC_TMIN[10]</td>
+<td>CELL[1].IMUX_SR_OPTINV[1]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[11]</td><td>CELL[1].OUT_SEC_TMIN[11]</td>
+<td>CELL[1].IMUX_SR_OPTINV[0]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[12]</td><td>CELL[1].OUT_SEC_TMIN[12]</td>
+<td>CELL[1].IMUX_DATA[0]</td>
+<td>CELL[1].IMUX_FAN_BX[0]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[13]</td><td>CELL[1].OUT_SEC_TMIN[13]</td>
+<td>CELL[1].IMUX_DATA[19]</td>
+<td>CELL[3].IMUX_DATA[26]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[14]</td><td>CELL[1].OUT_SEC_TMIN[14]</td>
+<td>CELL[1].IMUX_DATA[21]</td>
+<td>CELL[1].IMUX_FAN_BY[1]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_SEC[15]</td><td>CELL[1].OUT_SEC_TMIN[15]</td>
+<td>CELL[1].IMUX_DATA[29]</td>
+<td>CELL[1].IMUX_FAN_BX[1]</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF0[0]</td><td>CELL[1].OUT_HALF0_TMIN[0]</td>
+<td>CELL[1].IMUX_DATA[1]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF0[1]</td><td>CELL[1].OUT_HALF0_TMIN[1]</td>
+<td>CELL[1].IMUX_DATA[9]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF0[2]</td><td>CELL[1].OUT_HALF0_TMIN[2]</td>
+<td>CELL[1].IMUX_DATA[25]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF0[3]</td><td>CELL[1].OUT_HALF0_TMIN[3]</td>
+<td>CELL[1].IMUX_DATA[17]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF1[0]</td><td>CELL[1].OUT_HALF1_TMIN[0]</td>
+<td>CELL[1].IMUX_DATA[13]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF1[1]</td><td>CELL[1].OUT_HALF1_TMIN[1]</td>
+<td>CELL[1].IMUX_DATA[30]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF1[2]</td><td>CELL[1].OUT_HALF1_TMIN[2]</td>
+<td>CELL[1].IMUX_DATA[22]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[1].OUT_HALF1[3]</td><td>CELL[1].OUT_HALF1_TMIN[3]</td>
+<td>CELL[1].IMUX_DATA[5]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[0]</td><td>CELL[2].OUT_FAN_TMIN[0]</td>
+<td>CELL[2].IMUX_DATA[11]</td>
+<td>CELL[1].IMUX_DATA[2]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[1]</td><td>CELL[2].OUT_FAN_TMIN[1]</td>
+<td>CELL[2].IMUX_DATA[14]</td>
+<td>CELL[1].IMUX_FAN_BY[3]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[2]</td><td>CELL[2].OUT_FAN_TMIN[2]</td>
+<td>CELL[2].IMUX_DATA[16]</td>
+<td>CELL[2].IMUX_FAN_BY[1]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[3]</td><td>CELL[2].OUT_FAN_TMIN[3]</td>
+<td>CELL[2].IMUX_DATA[8]</td>
+<td>CELL[2].IMUX_FAN_BX[1]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[4]</td><td>CELL[2].OUT_FAN_TMIN[4]</td>
+<td>CELL[2].IMUX_DATA[27]</td>
+<td>CELL[2].IMUX_FAN_BY[0]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[5]</td><td>CELL[2].OUT_FAN_TMIN[5]</td>
+<td>CELL[2].IMUX_DATA[3]</td>
+<td>CELL[2].IMUX_FAN_BX[0]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[6]</td><td>CELL[2].OUT_FAN_TMIN[6]</td>
+<td>CELL[2].IMUX_DATA[6]</td>
+<td>CELL[1].IMUX_FAN_BX[3]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_FAN[7]</td><td>CELL[2].OUT_FAN_TMIN[7]</td>
+<td>CELL[2].IMUX_DATA[24]</td>
+<td>CELL[2].IMUX_FAN_BX[3]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[7]</td><td>CELL[2].OUT_SEC_TMIN[7]</td>
+<td>CELL[2].IMUX_CLK_OPTINV[3]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[8]</td><td>CELL[2].OUT_SEC_TMIN[8]</td>
+<td>CELL[2].IMUX_CE_OPTINV[3]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[9]</td><td>CELL[2].OUT_SEC_TMIN[9]</td>
+<td>CELL[2].IMUX_CE_OPTINV[2]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[10]</td><td>CELL[2].OUT_SEC_TMIN[10]</td>
+<td>CELL[2].IMUX_CE_OPTINV[1]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[11]</td><td>CELL[2].OUT_SEC_TMIN[11]</td>
+<td>CELL[2].IMUX_CE_OPTINV[0]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[12]</td><td>CELL[2].OUT_SEC_TMIN[12]</td>
+<td>CELL[2].IMUX_DATA[0]</td>
+<td>CELL[2].IMUX_FAN_BY[2]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[13]</td><td>CELL[2].OUT_SEC_TMIN[13]</td>
+<td>CELL[2].IMUX_DATA[19]</td>
+<td>CELL[2].IMUX_FAN_BX[2]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[14]</td><td>CELL[2].OUT_SEC_TMIN[14]</td>
+<td>CELL[2].IMUX_DATA[21]</td>
+<td>CELL[2].IMUX_DATA[2]</td>
+</tr>
+
+<tr><td>CELL[2].OUT_SEC[15]</td><td>CELL[2].OUT_SEC_TMIN[15]</td>
+<td>CELL[2].IMUX_DATA[29]</td>
+<td>CELL[2].IMUX_FAN_BY[3]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[0]</td><td>CELL[3].OUT_FAN_TMIN[0]</td>
+<td>CELL[3].IMUX_DATA[11]</td>
+<td>CELL[0].IMUX_DATA[30]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[1]</td><td>CELL[3].OUT_FAN_TMIN[1]</td>
+<td>CELL[3].IMUX_DATA[14]</td>
+<td>CELL[0].IMUX_DATA[25]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[2]</td><td>CELL[3].OUT_FAN_TMIN[2]</td>
+<td>CELL[3].IMUX_DATA[16]</td>
+<td>CELL[0].IMUX_DATA[2]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[3]</td><td>CELL[3].OUT_FAN_TMIN[3]</td>
+<td>CELL[3].IMUX_DATA[8]</td>
+<td>CELL[0].IMUX_DATA[5]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[4]</td><td>CELL[3].OUT_FAN_TMIN[4]</td>
+<td>CELL[3].IMUX_DATA[27]</td>
+<td>CELL[0].IMUX_FAN_BX[2]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[5]</td><td>CELL[3].OUT_FAN_TMIN[5]</td>
+<td>CELL[3].IMUX_DATA[3]</td>
+<td>CELL[0].IMUX_FAN_BX[0]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[6]</td><td>CELL[3].OUT_FAN_TMIN[6]</td>
+<td>CELL[3].IMUX_DATA[6]</td>
+<td>CELL[0].IMUX_DATA[9]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_FAN[7]</td><td>CELL[3].OUT_FAN_TMIN[7]</td>
+<td>CELL[3].IMUX_DATA[24]</td>
+<td>CELL[0].IMUX_DATA[18]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[8]</td><td>CELL[3].OUT_SEC_TMIN[8]</td>
+<td>CELL[3].IMUX_CE_OPTINV[3]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[9]</td><td>CELL[3].OUT_SEC_TMIN[9]</td>
+<td>CELL[3].IMUX_CE_OPTINV[2]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[10]</td><td>CELL[3].OUT_SEC_TMIN[10]</td>
+<td>CELL[3].IMUX_CE_OPTINV[1]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[11]</td><td>CELL[3].OUT_SEC_TMIN[11]</td>
+<td>CELL[3].IMUX_CE_OPTINV[0]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[12]</td><td>CELL[3].OUT_SEC_TMIN[12]</td>
+<td>CELL[3].IMUX_DATA[0]</td>
+<td>CELL[0].IMUX_FAN_BX[3]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[13]</td><td>CELL[3].OUT_SEC_TMIN[13]</td>
+<td>CELL[3].IMUX_DATA[19]</td>
+<td>CELL[0].IMUX_FAN_BX[1]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[14]</td><td>CELL[3].OUT_SEC_TMIN[14]</td>
+<td>CELL[3].IMUX_DATA[21]</td>
+<td>CELL[3].IMUX_FAN_BX[0]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_SEC[15]</td><td>CELL[3].OUT_SEC_TMIN[15]</td>
+<td>CELL[3].IMUX_DATA[29]</td>
+<td>CELL[3].IMUX_DATA[22]</td>
+</tr>
+
+<tr><td>CELL[3].OUT_HALF0[0]</td><td>CELL[3].OUT_HALF0_TMIN[0]</td>
+<td>CELL[3].IMUX_FAN_BX[2]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_HALF0[1]</td><td>CELL[3].OUT_HALF0_TMIN[1]</td>
+<td>CELL[3].IMUX_FAN_BX[1]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_HALF0[3]</td><td>CELL[3].OUT_HALF0_TMIN[3]</td>
+<td>CELL[3].IMUX_FAN_BX[3]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_HALF1[0]</td><td>CELL[3].OUT_HALF1_TMIN[0]</td>
+<td>CELL[3].IMUX_DATA[13]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_HALF1[1]</td><td>CELL[3].OUT_HALF1_TMIN[1]</td>
+<td>CELL[3].IMUX_DATA[2]</td>
+<td>-</td>
+</tr>
+
+<tr><td>CELL[3].OUT_HALF1[3]</td><td>CELL[3].OUT_HALF1_TMIN[3]</td>
+<td>CELL[3].IMUX_DATA[18]</td>
+<td>-</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+<div class="table-wrapper">
+<table>
+<caption>spartan3 DSP DSP_TESTMUX bits</caption>
+<thead>
+<tr><th>Group</th><th id="spartan3-DSP-DSP_TESTMUX-testmux-1"><a href="#spartan3-DSP-bit-MAIN[3][1][46]">MAIN[3][1][46]</a></th><th id="spartan3-DSP-DSP_TESTMUX-testmux-0"><a href="#spartan3-DSP-bit-MAIN[3][1][45]">MAIN[3][1][45]</a></th></tr>
+
+</thead>
+
+<tbody>
+<tr><td>Primary</td><td>0</td><td>0</td></tr>
+
+<tr><td>Test 0</td><td>0</td><td>1</td></tr>
+
+<tr><td>Test 1</td><td>1</td><td>0</td></tr>
 
 </tbody>
 
@@ -532,13 +965,13 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].IMUX_SR[0]</td><td>DSP.RSTA</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[0]</td><td>DSP.RSTA</td></tr>
 
-<tr><td>CELL[0].IMUX_SR[1]</td><td>DSP.RSTB</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[1]</td><td>DSP.RSTB</td></tr>
 
-<tr><td>CELL[0].IMUX_SR[2]</td><td>DSP.RSTC</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[2]</td><td>DSP.RSTC</td></tr>
 
-<tr><td>CELL[0].IMUX_SR[3]</td><td>DSP.RSTD</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[3]</td><td>DSP.RSTD</td></tr>
 
 <tr><td>CELL[0].IMUX_FAN_BX[0]</td><td>DSP.D3</td></tr>
 
@@ -628,13 +1061,13 @@
 
 <tr><td>CELL[0].OUT_SEC_TMIN[15]</td><td>DSP.P10</td></tr>
 
-<tr><td>CELL[1].IMUX_SR[0]</td><td>DSP.RSTOPMODE</td></tr>
+<tr><td>CELL[1].IMUX_SR_OPTINV[0]</td><td>DSP.RSTOPMODE</td></tr>
 
-<tr><td>CELL[1].IMUX_SR[1]</td><td>DSP.RSTP</td></tr>
+<tr><td>CELL[1].IMUX_SR_OPTINV[1]</td><td>DSP.RSTP</td></tr>
 
-<tr><td>CELL[1].IMUX_SR[2]</td><td>DSP.RSTM</td></tr>
+<tr><td>CELL[1].IMUX_SR_OPTINV[2]</td><td>DSP.RSTM</td></tr>
 
-<tr><td>CELL[1].IMUX_SR[3]</td><td>DSP.RSTCARRYIN</td></tr>
+<tr><td>CELL[1].IMUX_SR_OPTINV[3]</td><td>DSP.RSTCARRYIN</td></tr>
 
 <tr><td>CELL[1].IMUX_FAN_BX[0]</td><td>DSP.A0</td></tr>
 
@@ -718,15 +1151,15 @@
 
 <tr><td>CELL[1].OUT_SEC_TMIN[15]</td><td>DSP.P22</td></tr>
 
-<tr><td>CELL[2].IMUX_CLK[3]</td><td>DSP.CLK</td></tr>
+<tr><td>CELL[2].IMUX_CLK_OPTINV[3]</td><td>DSP.CLK</td></tr>
 
-<tr><td>CELL[2].IMUX_CE[0]</td><td>DSP.CEOPMODE</td></tr>
+<tr><td>CELL[2].IMUX_CE_OPTINV[0]</td><td>DSP.CEOPMODE</td></tr>
 
-<tr><td>CELL[2].IMUX_CE[1]</td><td>DSP.CEP</td></tr>
+<tr><td>CELL[2].IMUX_CE_OPTINV[1]</td><td>DSP.CEP</td></tr>
 
-<tr><td>CELL[2].IMUX_CE[2]</td><td>DSP.CEM</td></tr>
+<tr><td>CELL[2].IMUX_CE_OPTINV[2]</td><td>DSP.CEM</td></tr>
 
-<tr><td>CELL[2].IMUX_CE[3]</td><td>DSP.CECARRYIN</td></tr>
+<tr><td>CELL[2].IMUX_CE_OPTINV[3]</td><td>DSP.CECARRYIN</td></tr>
 
 <tr><td>CELL[2].IMUX_FAN_BX[0]</td><td>DSP.A9</td></tr>
 
@@ -794,13 +1227,13 @@
 
 <tr><td>CELL[2].OUT_SEC_TMIN[15]</td><td>DSP.P34</td></tr>
 
-<tr><td>CELL[3].IMUX_CE[0]</td><td>DSP.CEA</td></tr>
+<tr><td>CELL[3].IMUX_CE_OPTINV[0]</td><td>DSP.CEA</td></tr>
 
-<tr><td>CELL[3].IMUX_CE[1]</td><td>DSP.CEB</td></tr>
+<tr><td>CELL[3].IMUX_CE_OPTINV[1]</td><td>DSP.CEB</td></tr>
 
-<tr><td>CELL[3].IMUX_CE[2]</td><td>DSP.CEC</td></tr>
+<tr><td>CELL[3].IMUX_CE_OPTINV[2]</td><td>DSP.CEC</td></tr>
 
-<tr><td>CELL[3].IMUX_CE[3]</td><td>DSP.CED</td></tr>
+<tr><td>CELL[3].IMUX_CE_OPTINV[3]</td><td>DSP.CED</td></tr>
 
 <tr><td>CELL[3].IMUX_FAN_BX[0]</td><td>DSP.D11</td></tr>
 
@@ -5627,7 +6060,9 @@
 
 <tr><td>B46</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-DSP-bit-MAIN[3][1][46]" title="MAIN[3][1][46]">
+<a href="#spartan3-DSP-DSP_TESTMUX-testmux-1">DSP_TESTMUX: test mux bit 1</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>
@@ -5649,7 +6084,9 @@
 
 <tr><td>B45</td>
 <td>-</td>
-<td>-</td>
+<td id="spartan3-DSP-bit-MAIN[3][1][45]" title="MAIN[3][1][45]">
+<a href="#spartan3-DSP-DSP_TESTMUX-testmux-0">DSP_TESTMUX: test mux bit 0</a>
+</td>
 <td>-</td>
 <td>-</td>
 <td>-</td>

@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../../toc-d27c1e18.js"></script>
+        <script src="../../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -551,7 +551,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>INTF</td><td>INTF_GT_S0, INTF_GT_S123, INTF_GT_S_CLKPAD, INTF_GT_N0, INTF_GT_N123, INTF_GT_N_CLKPAD, INTF_PPC</td><td>INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, DSP, DCM, GT, GT10, IPAD_RXP, IPAD_RXN, OPAD_TXP, OPAD_TXN, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
+<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, DSP, DSP_TESTMUX, DCM, GT, GT10, IPAD_RXP, IPAD_RXN, OPAD_TXP, OPAD_TXN, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
 
 <tr><td>TERM_H</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E, LLH</td></tr>
 
@@ -641,6 +641,8 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tr><td>MULT</td><td>legacy</td><td>BEL</td><td>BRAM</td></tr>
 
 <tr><td>DSP</td><td>legacy</td><td>BEL</td><td></td></tr>
+
+<tr><td>DSP_TESTMUX</td><td>routing</td><td>BEL</td><td></td></tr>
 
 <tr><td>DCM</td><td>legacy</td><td>BEL</td><td>DCM_V2, DCM_V2P</td></tr>
 
@@ -2022,22 +2024,6 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>IMUX_CLK_OPTINV[3]</td><td>mux</td></tr>
 
-<tr><td>IMUX_IOI_ICLK[0]</td><td>mux</td></tr>
-
-<tr><td>IMUX_IOI_ICLK[1]</td><td>mux</td></tr>
-
-<tr><td>IMUX_IOI_ICLK[2]</td><td>mux</td></tr>
-
-<tr><td>IMUX_IOI_ICLK[3]</td><td>mux</td></tr>
-
-<tr><td>IMUX_IOI_ICLK_OPTINV[0]</td><td>mux</td></tr>
-
-<tr><td>IMUX_IOI_ICLK_OPTINV[1]</td><td>mux</td></tr>
-
-<tr><td>IMUX_IOI_ICLK_OPTINV[2]</td><td>mux</td></tr>
-
-<tr><td>IMUX_IOI_ICLK_OPTINV[3]</td><td>mux</td></tr>
-
 <tr><td>IMUX_DCM_CLK[0]</td><td>mux</td></tr>
 
 <tr><td>IMUX_DCM_CLK[1]</td><td>mux</td></tr>
@@ -2277,6 +2263,14 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 <tr><td>IMUX_G3_DATA[6]</td><td>mux</td></tr>
 
 <tr><td>IMUX_G3_DATA[7]</td><td>mux</td></tr>
+
+<tr><td>IMUX_IOI_ICLK[0]</td><td>mux</td></tr>
+
+<tr><td>IMUX_IOI_ICLK[1]</td><td>mux</td></tr>
+
+<tr><td>IMUX_IOI_ICLK[2]</td><td>mux</td></tr>
+
+<tr><td>IMUX_IOI_ICLK[3]</td><td>mux</td></tr>
 
 <tr><td>IMUX_IOI_TS1[0]</td><td>mux</td></tr>
 

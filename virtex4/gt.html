@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -237,9 +237,9 @@
 
 <tr><td>DADDR7</td><td>input</td><td>CELL[7].IMUX_IMUX[23]</td></tr>
 
-<tr><td>DCLK</td><td>input</td><td>CELL[8].IMUX_CLK[3]</td></tr>
+<tr><td>DCLK</td><td>input</td><td>CELL[8].IMUX_CLK_OPTINV[3]</td></tr>
 
-<tr><td>DEN</td><td>input</td><td>CELL[8].IMUX_CE[0]</td></tr>
+<tr><td>DEN</td><td>input</td><td>CELL[8].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>DI0</td><td>input</td><td>CELL[7].IMUX_IMUX[12]</td></tr>
 
@@ -307,7 +307,7 @@
 
 <tr><td>DRDY</td><td>output</td><td>CELL[7].OUT_SEC_TMIN[0]</td></tr>
 
-<tr><td>DWE</td><td>input</td><td>CELL[8].IMUX_CE[1]</td></tr>
+<tr><td>DWE</td><td>input</td><td>CELL[8].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>ENCHANSYNC</td><td>input</td><td>CELL[15].IMUX_IMUX[12]</td></tr>
 
@@ -381,9 +381,9 @@
 
 <tr><td>RXCOMMADETUSE</td><td>input</td><td>CELL[3].IMUX_IMUX[16]</td></tr>
 
-<tr><td>RXCRCCLK</td><td>input</td><td>CELL[8].IMUX_CLK[1]</td></tr>
+<tr><td>RXCRCCLK</td><td>input</td><td>CELL[8].IMUX_CLK_OPTINV[1]</td></tr>
 
-<tr><td>RXCRCDATAVALID</td><td>input</td><td>CELL[7].IMUX_CE[0]</td></tr>
+<tr><td>RXCRCDATAVALID</td><td>input</td><td>CELL[7].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>RXCRCDATAWIDTH0</td><td>input</td><td>CELL[11].IMUX_IMUX[17]</td></tr>
 
@@ -521,7 +521,7 @@
 
 <tr><td>RXCRCINIT</td><td>input</td><td>CELL[5].IMUX_IMUX[16]</td></tr>
 
-<tr><td>RXCRCINTCLK</td><td>input</td><td>CELL[7].IMUX_CLK[0]</td></tr>
+<tr><td>RXCRCINTCLK</td><td>input</td><td>CELL[7].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>RXCRCOUT0</td><td>output</td><td>CELL[9].OUT_HALF_S_TMIN[3], CELL[9].OUT_HALF_N_TMIN[3]</td></tr>
 
@@ -589,7 +589,7 @@
 
 <tr><td>RXCRCPD</td><td>input</td><td>CELL[9].IMUX_IMUX[12]</td></tr>
 
-<tr><td>RXCRCRESET</td><td>input</td><td>CELL[7].IMUX_SR[0]</td></tr>
+<tr><td>RXCRCRESET</td><td>input</td><td>CELL[7].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXCYCLELIMIT</td><td>output</td><td>CELL[11].OUT_HALF_S_TMIN[4], CELL[11].OUT_HALF_N_TMIN[4]</td></tr>
 
@@ -791,7 +791,7 @@
 
 <tr><td>RXNOTINTABLE7</td><td>output</td><td>CELL[14].OUT_BEST_TMIN[5]</td></tr>
 
-<tr><td>RXPMARESET</td><td>input</td><td>CELL[9].IMUX_SR[0]</td></tr>
+<tr><td>RXPMARESET</td><td>input</td><td>CELL[9].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXPOLARITY</td><td>input</td><td>CELL[15].IMUX_IMUX[14]</td></tr>
 
@@ -801,7 +801,7 @@
 
 <tr><td>RXRECCLK2</td><td>output</td><td>CELL[7].OUT_BEST_TMIN[5]</td></tr>
 
-<tr><td>RXRESET</td><td>input</td><td>CELL[0].IMUX_SR[0]</td></tr>
+<tr><td>RXRESET</td><td>input</td><td>CELL[0].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXRUNDISP0</td><td>output</td><td>CELL[0].OUT_SEC_TMIN[0]</td></tr>
 
@@ -837,9 +837,9 @@
 
 <tr><td>RXSYNC</td><td>input</td><td>CELL[2].IMUX_IMUX[14]</td></tr>
 
-<tr><td>RXUSRCLK</td><td>input</td><td>CELL[6].IMUX_CLK[0]</td></tr>
+<tr><td>RXUSRCLK</td><td>input</td><td>CELL[6].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>RXUSRCLK2</td><td>input</td><td>CELL[6].IMUX_CLK[1]</td></tr>
+<tr><td>RXUSRCLK2</td><td>input</td><td>CELL[6].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>RXUSRLOCK</td><td>input</td><td>CELL[10].IMUX_IMUX[12]</td></tr>
 
@@ -867,11 +867,11 @@
 
 <tr><td>RXVCOHIGH</td><td>output</td><td>CELL[3].OUT_BEST_TMIN[4]</td></tr>
 
-<tr><td>SCANEN0</td><td>input</td><td>CELL[14].IMUX_CE[0]</td></tr>
+<tr><td>SCANEN0</td><td>input</td><td>CELL[14].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>SCANEN1</td><td>input</td><td>CELL[14].IMUX_CE[1]</td></tr>
+<tr><td>SCANEN1</td><td>input</td><td>CELL[14].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>SCANEN2</td><td>input</td><td>CELL[12].IMUX_CE[0]</td></tr>
+<tr><td>SCANEN2</td><td>input</td><td>CELL[12].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>SCANIN0</td><td>input</td><td>CELL[15].IMUX_IMUX[19]</td></tr>
 
@@ -879,11 +879,11 @@
 
 <tr><td>SCANIN2</td><td>input</td><td>CELL[15].IMUX_IMUX[21]</td></tr>
 
-<tr><td>SCANMODE0</td><td>input</td><td>CELL[13].IMUX_CE[0]</td></tr>
+<tr><td>SCANMODE0</td><td>input</td><td>CELL[13].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>SCANMODE1</td><td>input</td><td>CELL[13].IMUX_CE[1]</td></tr>
+<tr><td>SCANMODE1</td><td>input</td><td>CELL[13].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>SCANMODE2</td><td>input</td><td>CELL[12].IMUX_CE[1]</td></tr>
+<tr><td>SCANMODE2</td><td>input</td><td>CELL[12].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>SCANOUT0</td><td>output</td><td>CELL[13].OUT_BEST_TMIN[6]</td></tr>
 
@@ -969,9 +969,9 @@
 
 <tr><td>TXCOARSEST</td><td>output</td><td>CELL[12].OUT_HALF_S_TMIN[4], CELL[12].OUT_HALF_N_TMIN[4]</td></tr>
 
-<tr><td>TXCRCCLK</td><td>input</td><td>CELL[8].IMUX_CLK[0]</td></tr>
+<tr><td>TXCRCCLK</td><td>input</td><td>CELL[8].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>TXCRCDATAVALID</td><td>input</td><td>CELL[7].IMUX_CE[1]</td></tr>
+<tr><td>TXCRCDATAVALID</td><td>input</td><td>CELL[7].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>TXCRCDATAWIDTH0</td><td>input</td><td>CELL[11].IMUX_IMUX[20]</td></tr>
 
@@ -1109,7 +1109,7 @@
 
 <tr><td>TXCRCINIT</td><td>input</td><td>CELL[5].IMUX_IMUX[17]</td></tr>
 
-<tr><td>TXCRCINTCLK</td><td>input</td><td>CELL[7].IMUX_CLK[1]</td></tr>
+<tr><td>TXCRCINTCLK</td><td>input</td><td>CELL[7].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>TXCRCOUT0</td><td>output</td><td>CELL[1].OUT_HALF_S_TMIN[3], CELL[1].OUT_HALF_N_TMIN[3]</td></tr>
 
@@ -1177,7 +1177,7 @@
 
 <tr><td>TXCRCPD</td><td>input</td><td>CELL[9].IMUX_IMUX[13]</td></tr>
 
-<tr><td>TXCRCRESET</td><td>input</td><td>CELL[8].IMUX_SR[0]</td></tr>
+<tr><td>TXCRCRESET</td><td>input</td><td>CELL[8].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXCYCLELIMIT</td><td>output</td><td>CELL[13].OUT_HALF_S_TMIN[4], CELL[13].OUT_HALF_N_TMIN[4]</td></tr>
 
@@ -1365,11 +1365,11 @@
 
 <tr><td>TXOUTCLK2</td><td>output</td><td>CELL[7].OUT_BEST_TMIN[7]</td></tr>
 
-<tr><td>TXPMARESET</td><td>input</td><td>CELL[10].IMUX_SR[0]</td></tr>
+<tr><td>TXPMARESET</td><td>input</td><td>CELL[10].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXPOLARITY</td><td>input</td><td>CELL[15].IMUX_IMUX[17]</td></tr>
 
-<tr><td>TXRESET</td><td>input</td><td>CELL[1].IMUX_SR[0]</td></tr>
+<tr><td>TXRESET</td><td>input</td><td>CELL[1].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXRUNDISP0</td><td>output</td><td>CELL[0].OUT_SEC_TMIN[1]</td></tr>
 
@@ -1391,9 +1391,9 @@
 
 <tr><td>TXSYNC</td><td>input</td><td>CELL[11].IMUX_IMUX[12]</td></tr>
 
-<tr><td>TXUSRCLK</td><td>input</td><td>CELL[6].IMUX_CLK[2]</td></tr>
+<tr><td>TXUSRCLK</td><td>input</td><td>CELL[6].IMUX_CLK_OPTINV[2]</td></tr>
 
-<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[6].IMUX_CLK[3]</td></tr>
+<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[6].IMUX_CLK_OPTINV[3]</td></tr>
 
 <tr><td>TXUSRLOCK</td><td>input</td><td>CELL[10].IMUX_IMUX[14]</td></tr>
 
@@ -1508,9 +1508,9 @@
 
 <tr><td>DADDR7</td><td>input</td><td>CELL[23].IMUX_IMUX[23]</td></tr>
 
-<tr><td>DCLK</td><td>input</td><td>CELL[24].IMUX_CLK[3]</td></tr>
+<tr><td>DCLK</td><td>input</td><td>CELL[24].IMUX_CLK_OPTINV[3]</td></tr>
 
-<tr><td>DEN</td><td>input</td><td>CELL[24].IMUX_CE[0]</td></tr>
+<tr><td>DEN</td><td>input</td><td>CELL[24].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>DI0</td><td>input</td><td>CELL[23].IMUX_IMUX[12]</td></tr>
 
@@ -1578,7 +1578,7 @@
 
 <tr><td>DRDY</td><td>output</td><td>CELL[23].OUT_SEC_TMIN[0]</td></tr>
 
-<tr><td>DWE</td><td>input</td><td>CELL[24].IMUX_CE[1]</td></tr>
+<tr><td>DWE</td><td>input</td><td>CELL[24].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>ENCHANSYNC</td><td>input</td><td>CELL[31].IMUX_IMUX[12]</td></tr>
 
@@ -1652,9 +1652,9 @@
 
 <tr><td>RXCOMMADETUSE</td><td>input</td><td>CELL[19].IMUX_IMUX[16]</td></tr>
 
-<tr><td>RXCRCCLK</td><td>input</td><td>CELL[24].IMUX_CLK[1]</td></tr>
+<tr><td>RXCRCCLK</td><td>input</td><td>CELL[24].IMUX_CLK_OPTINV[1]</td></tr>
 
-<tr><td>RXCRCDATAVALID</td><td>input</td><td>CELL[23].IMUX_CE[0]</td></tr>
+<tr><td>RXCRCDATAVALID</td><td>input</td><td>CELL[23].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>RXCRCDATAWIDTH0</td><td>input</td><td>CELL[27].IMUX_IMUX[17]</td></tr>
 
@@ -1792,7 +1792,7 @@
 
 <tr><td>RXCRCINIT</td><td>input</td><td>CELL[21].IMUX_IMUX[16]</td></tr>
 
-<tr><td>RXCRCINTCLK</td><td>input</td><td>CELL[23].IMUX_CLK[0]</td></tr>
+<tr><td>RXCRCINTCLK</td><td>input</td><td>CELL[23].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>RXCRCOUT0</td><td>output</td><td>CELL[25].OUT_HALF_S_TMIN[3], CELL[25].OUT_HALF_N_TMIN[3]</td></tr>
 
@@ -1860,7 +1860,7 @@
 
 <tr><td>RXCRCPD</td><td>input</td><td>CELL[25].IMUX_IMUX[12]</td></tr>
 
-<tr><td>RXCRCRESET</td><td>input</td><td>CELL[23].IMUX_SR[0]</td></tr>
+<tr><td>RXCRCRESET</td><td>input</td><td>CELL[23].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXCYCLELIMIT</td><td>output</td><td>CELL[27].OUT_HALF_S_TMIN[4], CELL[27].OUT_HALF_N_TMIN[4]</td></tr>
 
@@ -2062,7 +2062,7 @@
 
 <tr><td>RXNOTINTABLE7</td><td>output</td><td>CELL[30].OUT_BEST_TMIN[5]</td></tr>
 
-<tr><td>RXPMARESET</td><td>input</td><td>CELL[25].IMUX_SR[0]</td></tr>
+<tr><td>RXPMARESET</td><td>input</td><td>CELL[25].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXPOLARITY</td><td>input</td><td>CELL[31].IMUX_IMUX[14]</td></tr>
 
@@ -2072,7 +2072,7 @@
 
 <tr><td>RXRECCLK2</td><td>output</td><td>CELL[23].OUT_BEST_TMIN[5]</td></tr>
 
-<tr><td>RXRESET</td><td>input</td><td>CELL[16].IMUX_SR[0]</td></tr>
+<tr><td>RXRESET</td><td>input</td><td>CELL[16].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>RXRUNDISP0</td><td>output</td><td>CELL[16].OUT_SEC_TMIN[0]</td></tr>
 
@@ -2108,9 +2108,9 @@
 
 <tr><td>RXSYNC</td><td>input</td><td>CELL[18].IMUX_IMUX[14]</td></tr>
 
-<tr><td>RXUSRCLK</td><td>input</td><td>CELL[22].IMUX_CLK[0]</td></tr>
+<tr><td>RXUSRCLK</td><td>input</td><td>CELL[22].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>RXUSRCLK2</td><td>input</td><td>CELL[22].IMUX_CLK[1]</td></tr>
+<tr><td>RXUSRCLK2</td><td>input</td><td>CELL[22].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>RXUSRLOCK</td><td>input</td><td>CELL[26].IMUX_IMUX[12]</td></tr>
 
@@ -2138,11 +2138,11 @@
 
 <tr><td>RXVCOHIGH</td><td>output</td><td>CELL[19].OUT_BEST_TMIN[4]</td></tr>
 
-<tr><td>SCANEN0</td><td>input</td><td>CELL[30].IMUX_CE[0]</td></tr>
+<tr><td>SCANEN0</td><td>input</td><td>CELL[30].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>SCANEN1</td><td>input</td><td>CELL[30].IMUX_CE[1]</td></tr>
+<tr><td>SCANEN1</td><td>input</td><td>CELL[30].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>SCANEN2</td><td>input</td><td>CELL[28].IMUX_CE[0]</td></tr>
+<tr><td>SCANEN2</td><td>input</td><td>CELL[28].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>SCANIN0</td><td>input</td><td>CELL[31].IMUX_IMUX[19]</td></tr>
 
@@ -2150,11 +2150,11 @@
 
 <tr><td>SCANIN2</td><td>input</td><td>CELL[31].IMUX_IMUX[21]</td></tr>
 
-<tr><td>SCANMODE0</td><td>input</td><td>CELL[29].IMUX_CE[0]</td></tr>
+<tr><td>SCANMODE0</td><td>input</td><td>CELL[29].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>SCANMODE1</td><td>input</td><td>CELL[29].IMUX_CE[1]</td></tr>
+<tr><td>SCANMODE1</td><td>input</td><td>CELL[29].IMUX_CE_OPTINV[1]</td></tr>
 
-<tr><td>SCANMODE2</td><td>input</td><td>CELL[28].IMUX_CE[1]</td></tr>
+<tr><td>SCANMODE2</td><td>input</td><td>CELL[28].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>SCANOUT0</td><td>output</td><td>CELL[29].OUT_BEST_TMIN[6]</td></tr>
 
@@ -2240,9 +2240,9 @@
 
 <tr><td>TXCOARSEST</td><td>output</td><td>CELL[28].OUT_HALF_S_TMIN[4], CELL[28].OUT_HALF_N_TMIN[4]</td></tr>
 
-<tr><td>TXCRCCLK</td><td>input</td><td>CELL[24].IMUX_CLK[0]</td></tr>
+<tr><td>TXCRCCLK</td><td>input</td><td>CELL[24].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>TXCRCDATAVALID</td><td>input</td><td>CELL[23].IMUX_CE[1]</td></tr>
+<tr><td>TXCRCDATAVALID</td><td>input</td><td>CELL[23].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>TXCRCDATAWIDTH0</td><td>input</td><td>CELL[27].IMUX_IMUX[20]</td></tr>
 
@@ -2380,7 +2380,7 @@
 
 <tr><td>TXCRCINIT</td><td>input</td><td>CELL[21].IMUX_IMUX[17]</td></tr>
 
-<tr><td>TXCRCINTCLK</td><td>input</td><td>CELL[23].IMUX_CLK[1]</td></tr>
+<tr><td>TXCRCINTCLK</td><td>input</td><td>CELL[23].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>TXCRCOUT0</td><td>output</td><td>CELL[17].OUT_HALF_S_TMIN[3], CELL[17].OUT_HALF_N_TMIN[3]</td></tr>
 
@@ -2448,7 +2448,7 @@
 
 <tr><td>TXCRCPD</td><td>input</td><td>CELL[25].IMUX_IMUX[13]</td></tr>
 
-<tr><td>TXCRCRESET</td><td>input</td><td>CELL[24].IMUX_SR[0]</td></tr>
+<tr><td>TXCRCRESET</td><td>input</td><td>CELL[24].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXCYCLELIMIT</td><td>output</td><td>CELL[29].OUT_HALF_S_TMIN[4], CELL[29].OUT_HALF_N_TMIN[4]</td></tr>
 
@@ -2636,11 +2636,11 @@
 
 <tr><td>TXOUTCLK2</td><td>output</td><td>CELL[23].OUT_BEST_TMIN[7]</td></tr>
 
-<tr><td>TXPMARESET</td><td>input</td><td>CELL[26].IMUX_SR[0]</td></tr>
+<tr><td>TXPMARESET</td><td>input</td><td>CELL[26].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXPOLARITY</td><td>input</td><td>CELL[31].IMUX_IMUX[17]</td></tr>
 
-<tr><td>TXRESET</td><td>input</td><td>CELL[17].IMUX_SR[0]</td></tr>
+<tr><td>TXRESET</td><td>input</td><td>CELL[17].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>TXRUNDISP0</td><td>output</td><td>CELL[16].OUT_SEC_TMIN[1]</td></tr>
 
@@ -2662,9 +2662,9 @@
 
 <tr><td>TXSYNC</td><td>input</td><td>CELL[27].IMUX_IMUX[12]</td></tr>
 
-<tr><td>TXUSRCLK</td><td>input</td><td>CELL[22].IMUX_CLK[2]</td></tr>
+<tr><td>TXUSRCLK</td><td>input</td><td>CELL[22].IMUX_CLK_OPTINV[2]</td></tr>
 
-<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[22].IMUX_CLK[3]</td></tr>
+<tr><td>TXUSRCLK2</td><td>input</td><td>CELL[22].IMUX_CLK_OPTINV[3]</td></tr>
 
 <tr><td>TXUSRLOCK</td><td>input</td><td>CELL[26].IMUX_IMUX[14]</td></tr>
 
@@ -2872,7 +2872,7 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].IMUX_SR[0]</td><td>GT11[0].RXRESET</td></tr>
+<tr><td>CELL[0].IMUX_SR_OPTINV[0]</td><td>GT11[0].RXRESET</td></tr>
 
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>GT11[0].TXDATA0</td></tr>
 
@@ -2956,7 +2956,7 @@
 
 <tr><td>CELL[0].OUT_HALF_N_TMIN[4]</td><td>GT11[0].RXADCN</td></tr>
 
-<tr><td>CELL[1].IMUX_SR[0]</td><td>GT11[0].TXRESET</td></tr>
+<tr><td>CELL[1].IMUX_SR_OPTINV[0]</td><td>GT11[0].TXRESET</td></tr>
 
 <tr><td>CELL[1].IMUX_IMUX[0]</td><td>GT11[0].TXDATA4</td></tr>
 
@@ -3410,13 +3410,13 @@
 
 <tr><td>CELL[5].OUT_HALF_N_TMIN[7]</td><td>GT11[0].DO3</td></tr>
 
-<tr><td>CELL[6].IMUX_CLK[0]</td><td>GT11[0].RXUSRCLK</td></tr>
+<tr><td>CELL[6].IMUX_CLK_OPTINV[0]</td><td>GT11[0].RXUSRCLK</td></tr>
 
-<tr><td>CELL[6].IMUX_CLK[1]</td><td>GT11[0].RXUSRCLK2</td></tr>
+<tr><td>CELL[6].IMUX_CLK_OPTINV[1]</td><td>GT11[0].RXUSRCLK2</td></tr>
 
-<tr><td>CELL[6].IMUX_CLK[2]</td><td>GT11[0].TXUSRCLK</td></tr>
+<tr><td>CELL[6].IMUX_CLK_OPTINV[2]</td><td>GT11[0].TXUSRCLK</td></tr>
 
-<tr><td>CELL[6].IMUX_CLK[3]</td><td>GT11[0].TXUSRCLK2</td></tr>
+<tr><td>CELL[6].IMUX_CLK_OPTINV[3]</td><td>GT11[0].TXUSRCLK2</td></tr>
 
 <tr><td>CELL[6].IMUX_IMUX[0]</td><td>GT11[0].TXDATA24</td></tr>
 
@@ -3512,15 +3512,15 @@
 
 <tr><td>CELL[6].OUT_HALF_N_TMIN[6]</td><td>GT11[0].TXADCN</td></tr>
 
-<tr><td>CELL[7].IMUX_SR[0]</td><td>GT11[0].RXCRCRESET</td></tr>
+<tr><td>CELL[7].IMUX_SR_OPTINV[0]</td><td>GT11[0].RXCRCRESET</td></tr>
 
-<tr><td>CELL[7].IMUX_CLK[0]</td><td>GT11[0].RXCRCINTCLK</td></tr>
+<tr><td>CELL[7].IMUX_CLK_OPTINV[0]</td><td>GT11[0].RXCRCINTCLK</td></tr>
 
-<tr><td>CELL[7].IMUX_CLK[1]</td><td>GT11[0].TXCRCINTCLK</td></tr>
+<tr><td>CELL[7].IMUX_CLK_OPTINV[1]</td><td>GT11[0].TXCRCINTCLK</td></tr>
 
-<tr><td>CELL[7].IMUX_CE[0]</td><td>GT11[0].RXCRCDATAVALID</td></tr>
+<tr><td>CELL[7].IMUX_CE_OPTINV[0]</td><td>GT11[0].RXCRCDATAVALID</td></tr>
 
-<tr><td>CELL[7].IMUX_CE[1]</td><td>GT11[0].TXCRCDATAVALID</td></tr>
+<tr><td>CELL[7].IMUX_CE_OPTINV[1]</td><td>GT11[0].TXCRCDATAVALID</td></tr>
 
 <tr><td>CELL[7].IMUX_IMUX[0]</td><td>GT11[0].TXDATA28</td></tr>
 
@@ -3622,17 +3622,17 @@
 
 <tr><td>CELL[7].OUT_HALF_N_TMIN[7]</td><td>GT11[0].DO11</td></tr>
 
-<tr><td>CELL[8].IMUX_SR[0]</td><td>GT11[0].TXCRCRESET</td></tr>
+<tr><td>CELL[8].IMUX_SR_OPTINV[0]</td><td>GT11[0].TXCRCRESET</td></tr>
 
-<tr><td>CELL[8].IMUX_CLK[0]</td><td>GT11[0].TXCRCCLK</td></tr>
+<tr><td>CELL[8].IMUX_CLK_OPTINV[0]</td><td>GT11[0].TXCRCCLK</td></tr>
 
-<tr><td>CELL[8].IMUX_CLK[1]</td><td>GT11[0].RXCRCCLK</td></tr>
+<tr><td>CELL[8].IMUX_CLK_OPTINV[1]</td><td>GT11[0].RXCRCCLK</td></tr>
 
-<tr><td>CELL[8].IMUX_CLK[3]</td><td>GT11[0].DCLK</td></tr>
+<tr><td>CELL[8].IMUX_CLK_OPTINV[3]</td><td>GT11[0].DCLK</td></tr>
 
-<tr><td>CELL[8].IMUX_CE[0]</td><td>GT11[0].DEN</td></tr>
+<tr><td>CELL[8].IMUX_CE_OPTINV[0]</td><td>GT11[0].DEN</td></tr>
 
-<tr><td>CELL[8].IMUX_CE[1]</td><td>GT11[0].DWE</td></tr>
+<tr><td>CELL[8].IMUX_CE_OPTINV[1]</td><td>GT11[0].DWE</td></tr>
 
 <tr><td>CELL[8].IMUX_IMUX[0]</td><td>GT11[0].TXDATA32</td></tr>
 
@@ -3724,7 +3724,7 @@
 
 <tr><td>CELL[8].OUT_HALF_N_TMIN[4]</td><td>GT11[0].CDRSTATUS17</td></tr>
 
-<tr><td>CELL[9].IMUX_SR[0]</td><td>GT11[0].RXPMARESET</td></tr>
+<tr><td>CELL[9].IMUX_SR_OPTINV[0]</td><td>GT11[0].RXPMARESET</td></tr>
 
 <tr><td>CELL[9].IMUX_IMUX[0]</td><td>GT11[0].TXDATA36</td></tr>
 
@@ -3814,7 +3814,7 @@
 
 <tr><td>CELL[9].OUT_HALF_N_TMIN[7]</td><td>GT11[0].DO15</td></tr>
 
-<tr><td>CELL[10].IMUX_SR[0]</td><td>GT11[0].TXPMARESET</td></tr>
+<tr><td>CELL[10].IMUX_SR_OPTINV[0]</td><td>GT11[0].TXPMARESET</td></tr>
 
 <tr><td>CELL[10].IMUX_IMUX[0]</td><td>GT11[0].TXDATA40</td></tr>
 
@@ -3984,9 +3984,9 @@
 
 <tr><td>CELL[11].OUT_HALF_N_TMIN[4]</td><td>GT11[0].RXCYCLELIMIT</td></tr>
 
-<tr><td>CELL[12].IMUX_CE[0]</td><td>GT11[0].SCANEN2</td></tr>
+<tr><td>CELL[12].IMUX_CE_OPTINV[0]</td><td>GT11[0].SCANEN2</td></tr>
 
-<tr><td>CELL[12].IMUX_CE[1]</td><td>GT11[0].SCANMODE2</td></tr>
+<tr><td>CELL[12].IMUX_CE_OPTINV[1]</td><td>GT11[0].SCANMODE2</td></tr>
 
 <tr><td>CELL[12].IMUX_IMUX[0]</td><td>GT11[0].TXDATA48</td></tr>
 
@@ -4074,9 +4074,9 @@
 
 <tr><td>CELL[12].OUT_HALF_N_TMIN[5]</td><td>GT11[0].TXENABLECAL</td></tr>
 
-<tr><td>CELL[13].IMUX_CE[0]</td><td>GT11[0].SCANMODE0</td></tr>
+<tr><td>CELL[13].IMUX_CE_OPTINV[0]</td><td>GT11[0].SCANMODE0</td></tr>
 
-<tr><td>CELL[13].IMUX_CE[1]</td><td>GT11[0].SCANMODE1</td></tr>
+<tr><td>CELL[13].IMUX_CE_OPTINV[1]</td><td>GT11[0].SCANMODE1</td></tr>
 
 <tr><td>CELL[13].IMUX_IMUX[0]</td><td>GT11[0].TXDATA52</td></tr>
 
@@ -4162,9 +4162,9 @@
 
 <tr><td>CELL[13].OUT_HALF_N_TMIN[6]</td><td>GT11[0].RXSTATUS4</td></tr>
 
-<tr><td>CELL[14].IMUX_CE[0]</td><td>GT11[0].SCANEN0</td></tr>
+<tr><td>CELL[14].IMUX_CE_OPTINV[0]</td><td>GT11[0].SCANEN0</td></tr>
 
-<tr><td>CELL[14].IMUX_CE[1]</td><td>GT11[0].SCANEN1</td></tr>
+<tr><td>CELL[14].IMUX_CE_OPTINV[1]</td><td>GT11[0].SCANEN1</td></tr>
 
 <tr><td>CELL[14].IMUX_IMUX[0]</td><td>GT11[0].TXDATA56</td></tr>
 
@@ -4350,7 +4350,7 @@
 
 <tr><td>CELL[15].OUT_HALF_N_TMIN[7]</td><td>GT11[0].TXLOCKUPDATE</td></tr>
 
-<tr><td>CELL[16].IMUX_SR[0]</td><td>GT11[1].RXRESET</td></tr>
+<tr><td>CELL[16].IMUX_SR_OPTINV[0]</td><td>GT11[1].RXRESET</td></tr>
 
 <tr><td>CELL[16].IMUX_IMUX[0]</td><td>GT11[1].TXDATA0</td></tr>
 
@@ -4434,7 +4434,7 @@
 
 <tr><td>CELL[16].OUT_HALF_N_TMIN[4]</td><td>GT11[1].RXADCN</td></tr>
 
-<tr><td>CELL[17].IMUX_SR[0]</td><td>GT11[1].TXRESET</td></tr>
+<tr><td>CELL[17].IMUX_SR_OPTINV[0]</td><td>GT11[1].TXRESET</td></tr>
 
 <tr><td>CELL[17].IMUX_IMUX[0]</td><td>GT11[1].TXDATA4</td></tr>
 
@@ -4888,13 +4888,13 @@
 
 <tr><td>CELL[21].OUT_HALF_N_TMIN[7]</td><td>GT11[1].DO3</td></tr>
 
-<tr><td>CELL[22].IMUX_CLK[0]</td><td>GT11[1].RXUSRCLK</td></tr>
+<tr><td>CELL[22].IMUX_CLK_OPTINV[0]</td><td>GT11[1].RXUSRCLK</td></tr>
 
-<tr><td>CELL[22].IMUX_CLK[1]</td><td>GT11[1].RXUSRCLK2</td></tr>
+<tr><td>CELL[22].IMUX_CLK_OPTINV[1]</td><td>GT11[1].RXUSRCLK2</td></tr>
 
-<tr><td>CELL[22].IMUX_CLK[2]</td><td>GT11[1].TXUSRCLK</td></tr>
+<tr><td>CELL[22].IMUX_CLK_OPTINV[2]</td><td>GT11[1].TXUSRCLK</td></tr>
 
-<tr><td>CELL[22].IMUX_CLK[3]</td><td>GT11[1].TXUSRCLK2</td></tr>
+<tr><td>CELL[22].IMUX_CLK_OPTINV[3]</td><td>GT11[1].TXUSRCLK2</td></tr>
 
 <tr><td>CELL[22].IMUX_IMUX[0]</td><td>GT11[1].TXDATA24</td></tr>
 
@@ -4990,15 +4990,15 @@
 
 <tr><td>CELL[22].OUT_HALF_N_TMIN[6]</td><td>GT11[1].TXADCN</td></tr>
 
-<tr><td>CELL[23].IMUX_SR[0]</td><td>GT11[1].RXCRCRESET</td></tr>
+<tr><td>CELL[23].IMUX_SR_OPTINV[0]</td><td>GT11[1].RXCRCRESET</td></tr>
 
-<tr><td>CELL[23].IMUX_CLK[0]</td><td>GT11[1].RXCRCINTCLK</td></tr>
+<tr><td>CELL[23].IMUX_CLK_OPTINV[0]</td><td>GT11[1].RXCRCINTCLK</td></tr>
 
-<tr><td>CELL[23].IMUX_CLK[1]</td><td>GT11[1].TXCRCINTCLK</td></tr>
+<tr><td>CELL[23].IMUX_CLK_OPTINV[1]</td><td>GT11[1].TXCRCINTCLK</td></tr>
 
-<tr><td>CELL[23].IMUX_CE[0]</td><td>GT11[1].RXCRCDATAVALID</td></tr>
+<tr><td>CELL[23].IMUX_CE_OPTINV[0]</td><td>GT11[1].RXCRCDATAVALID</td></tr>
 
-<tr><td>CELL[23].IMUX_CE[1]</td><td>GT11[1].TXCRCDATAVALID</td></tr>
+<tr><td>CELL[23].IMUX_CE_OPTINV[1]</td><td>GT11[1].TXCRCDATAVALID</td></tr>
 
 <tr><td>CELL[23].IMUX_IMUX[0]</td><td>GT11[1].TXDATA28</td></tr>
 
@@ -5100,17 +5100,17 @@
 
 <tr><td>CELL[23].OUT_HALF_N_TMIN[7]</td><td>GT11[1].DO11</td></tr>
 
-<tr><td>CELL[24].IMUX_SR[0]</td><td>GT11[1].TXCRCRESET</td></tr>
+<tr><td>CELL[24].IMUX_SR_OPTINV[0]</td><td>GT11[1].TXCRCRESET</td></tr>
 
-<tr><td>CELL[24].IMUX_CLK[0]</td><td>GT11[1].TXCRCCLK</td></tr>
+<tr><td>CELL[24].IMUX_CLK_OPTINV[0]</td><td>GT11[1].TXCRCCLK</td></tr>
 
-<tr><td>CELL[24].IMUX_CLK[1]</td><td>GT11[1].RXCRCCLK</td></tr>
+<tr><td>CELL[24].IMUX_CLK_OPTINV[1]</td><td>GT11[1].RXCRCCLK</td></tr>
 
-<tr><td>CELL[24].IMUX_CLK[3]</td><td>GT11[1].DCLK</td></tr>
+<tr><td>CELL[24].IMUX_CLK_OPTINV[3]</td><td>GT11[1].DCLK</td></tr>
 
-<tr><td>CELL[24].IMUX_CE[0]</td><td>GT11[1].DEN</td></tr>
+<tr><td>CELL[24].IMUX_CE_OPTINV[0]</td><td>GT11[1].DEN</td></tr>
 
-<tr><td>CELL[24].IMUX_CE[1]</td><td>GT11[1].DWE</td></tr>
+<tr><td>CELL[24].IMUX_CE_OPTINV[1]</td><td>GT11[1].DWE</td></tr>
 
 <tr><td>CELL[24].IMUX_IMUX[0]</td><td>GT11[1].TXDATA32</td></tr>
 
@@ -5202,7 +5202,7 @@
 
 <tr><td>CELL[24].OUT_HALF_N_TMIN[4]</td><td>GT11[1].CDRSTATUS17</td></tr>
 
-<tr><td>CELL[25].IMUX_SR[0]</td><td>GT11[1].RXPMARESET</td></tr>
+<tr><td>CELL[25].IMUX_SR_OPTINV[0]</td><td>GT11[1].RXPMARESET</td></tr>
 
 <tr><td>CELL[25].IMUX_IMUX[0]</td><td>GT11[1].TXDATA36</td></tr>
 
@@ -5292,7 +5292,7 @@
 
 <tr><td>CELL[25].OUT_HALF_N_TMIN[7]</td><td>GT11[1].DO15</td></tr>
 
-<tr><td>CELL[26].IMUX_SR[0]</td><td>GT11[1].TXPMARESET</td></tr>
+<tr><td>CELL[26].IMUX_SR_OPTINV[0]</td><td>GT11[1].TXPMARESET</td></tr>
 
 <tr><td>CELL[26].IMUX_IMUX[0]</td><td>GT11[1].TXDATA40</td></tr>
 
@@ -5462,9 +5462,9 @@
 
 <tr><td>CELL[27].OUT_HALF_N_TMIN[4]</td><td>GT11[1].RXCYCLELIMIT</td></tr>
 
-<tr><td>CELL[28].IMUX_CE[0]</td><td>GT11[1].SCANEN2</td></tr>
+<tr><td>CELL[28].IMUX_CE_OPTINV[0]</td><td>GT11[1].SCANEN2</td></tr>
 
-<tr><td>CELL[28].IMUX_CE[1]</td><td>GT11[1].SCANMODE2</td></tr>
+<tr><td>CELL[28].IMUX_CE_OPTINV[1]</td><td>GT11[1].SCANMODE2</td></tr>
 
 <tr><td>CELL[28].IMUX_IMUX[0]</td><td>GT11[1].TXDATA48</td></tr>
 
@@ -5552,9 +5552,9 @@
 
 <tr><td>CELL[28].OUT_HALF_N_TMIN[5]</td><td>GT11[1].TXENABLECAL</td></tr>
 
-<tr><td>CELL[29].IMUX_CE[0]</td><td>GT11[1].SCANMODE0</td></tr>
+<tr><td>CELL[29].IMUX_CE_OPTINV[0]</td><td>GT11[1].SCANMODE0</td></tr>
 
-<tr><td>CELL[29].IMUX_CE[1]</td><td>GT11[1].SCANMODE1</td></tr>
+<tr><td>CELL[29].IMUX_CE_OPTINV[1]</td><td>GT11[1].SCANMODE1</td></tr>
 
 <tr><td>CELL[29].IMUX_IMUX[0]</td><td>GT11[1].TXDATA52</td></tr>
 
@@ -5640,9 +5640,9 @@
 
 <tr><td>CELL[29].OUT_HALF_N_TMIN[6]</td><td>GT11[1].RXSTATUS4</td></tr>
 
-<tr><td>CELL[30].IMUX_CE[0]</td><td>GT11[1].SCANEN0</td></tr>
+<tr><td>CELL[30].IMUX_CE_OPTINV[0]</td><td>GT11[1].SCANEN0</td></tr>
 
-<tr><td>CELL[30].IMUX_CE[1]</td><td>GT11[1].SCANEN1</td></tr>
+<tr><td>CELL[30].IMUX_CE_OPTINV[1]</td><td>GT11[1].SCANEN1</td></tr>
 
 <tr><td>CELL[30].IMUX_IMUX[0]</td><td>GT11[1].TXDATA56</td></tr>
 

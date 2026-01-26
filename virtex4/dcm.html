@@ -37,7 +37,7 @@
             const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="../toc-d27c1e18.js"></script>
+        <script src="../toc-7918e1c1.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -164,13 +164,13 @@
 </thead>
 
 <tbody>
-<tr><td>CKINT0</td><td>input</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+<tr><td>CKINT0</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>CKINT1</td><td>input</td><td>CELL[0].IMUX_CLK[1]</td></tr>
+<tr><td>CKINT1</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[1]</td></tr>
 
-<tr><td>CKINT2</td><td>input</td><td>CELL[0].IMUX_CLK[2]</td></tr>
+<tr><td>CKINT2</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[2]</td></tr>
 
-<tr><td>CKINT3</td><td>input</td><td>CELL[0].IMUX_CLK[3]</td></tr>
+<tr><td>CKINT3</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[3]</td></tr>
 
 <tr><td>CLK0</td><td>output</td><td>CELL[2].OUT_BEST_TMIN[0]</td></tr>
 
@@ -194,13 +194,13 @@
 
 <tr><td>CLKIN_TEST</td><td>output</td><td>CELL[3].TEST[0]</td></tr>
 
-<tr><td>CLK_IN0</td><td>input</td><td>CELL[0].IMUX_CLK[0]</td></tr>
+<tr><td>CLK_IN0</td><td>input</td><td>CELL[0].IMUX_CLK_OPTINV[0]</td></tr>
 
 <tr><td>CONCUR</td><td>output</td><td>CELL[3].OUT_BEST_TMIN[0]</td></tr>
 
 <tr><td>CTLGO</td><td>input</td><td>CELL[0].IMUX_IMUX[7]</td></tr>
 
-<tr><td>CTLMODE</td><td>input</td><td>CELL[0].IMUX_CE[0]</td></tr>
+<tr><td>CTLMODE</td><td>input</td><td>CELL[0].IMUX_CE_OPTINV[0]</td></tr>
 
 <tr><td>CTLOSC1</td><td>input</td><td>CELL[0].IMUX_IMUX[5]</td></tr>
 
@@ -226,9 +226,9 @@
 
 <tr><td>DADDR6</td><td>input</td><td>CELL[3].IMUX_IMUX[6]</td></tr>
 
-<tr><td>DCLK</td><td>input</td><td>CELL[2].IMUX_CLK[0]</td></tr>
+<tr><td>DCLK</td><td>input</td><td>CELL[2].IMUX_CLK_OPTINV[0]</td></tr>
 
-<tr><td>DEN</td><td>input</td><td>CELL[2].IMUX_CE[1]</td></tr>
+<tr><td>DEN</td><td>input</td><td>CELL[2].IMUX_CE_OPTINV[1]</td></tr>
 
 <tr><td>DI0</td><td>input</td><td>CELL[2].IMUX_IMUX[0]</td></tr>
 
@@ -296,15 +296,15 @@
 
 <tr><td>DRDY</td><td>output</td><td>CELL[3].OUT_SEC_TMIN[2]</td></tr>
 
-<tr><td>DWE</td><td>input</td><td>CELL[2].IMUX_CE[0]</td></tr>
+<tr><td>DWE</td><td>input</td><td>CELL[2].IMUX_CE_OPTINV[0]</td></tr>
 
-<tr><td>FREEZE_DFS</td><td>input</td><td>CELL[1].IMUX_SR[1]</td></tr>
+<tr><td>FREEZE_DFS</td><td>input</td><td>CELL[1].IMUX_SR_OPTINV[1]</td></tr>
 
-<tr><td>FREEZE_DLL</td><td>input</td><td>CELL[1].IMUX_SR[0]</td></tr>
+<tr><td>FREEZE_DLL</td><td>input</td><td>CELL[1].IMUX_SR_OPTINV[0]</td></tr>
 
 <tr><td>LOCKED</td><td>output</td><td>CELL[3].OUT_SEC_TMIN[0]</td></tr>
 
-<tr><td>PSCLK</td><td>input</td><td>CELL[2].IMUX_CLK[1]</td></tr>
+<tr><td>PSCLK</td><td>input</td><td>CELL[2].IMUX_CLK_OPTINV[1]</td></tr>
 
 <tr><td>PSDONE</td><td>output</td><td>CELL[3].OUT_SEC_TMIN[1]</td></tr>
 
@@ -312,7 +312,7 @@
 
 <tr><td>PSINCDEC</td><td>input</td><td>CELL[0].IMUX_IMUX[3]</td></tr>
 
-<tr><td>RST</td><td>input</td><td>CELL[3].IMUX_SR[0]</td></tr>
+<tr><td>RST</td><td>input</td><td>CELL[3].IMUX_SR_OPTINV[0]</td></tr>
 
 </tbody>
 
@@ -329,15 +329,15 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].IMUX_CLK[0]</td><td>DCM[0].CKINT0, DCM[0].CLK_IN0</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[0]</td><td>DCM[0].CKINT0, DCM[0].CLK_IN0</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[1]</td><td>DCM[0].CKINT1</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[1]</td><td>DCM[0].CKINT1</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[2]</td><td>DCM[0].CKINT2</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[2]</td><td>DCM[0].CKINT2</td></tr>
 
-<tr><td>CELL[0].IMUX_CLK[3]</td><td>DCM[0].CKINT3</td></tr>
+<tr><td>CELL[0].IMUX_CLK_OPTINV[3]</td><td>DCM[0].CKINT3</td></tr>
 
-<tr><td>CELL[0].IMUX_CE[0]</td><td>DCM[0].CTLMODE</td></tr>
+<tr><td>CELL[0].IMUX_CE_OPTINV[0]</td><td>DCM[0].CTLMODE</td></tr>
 
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>DCM[0].CTLSEL0</td></tr>
 
@@ -365,9 +365,9 @@
 
 <tr><td>CELL[0].OUT_BEST_TMIN[7]</td><td>DCM[0].DO15</td></tr>
 
-<tr><td>CELL[1].IMUX_SR[0]</td><td>DCM[0].FREEZE_DLL</td></tr>
+<tr><td>CELL[1].IMUX_SR_OPTINV[0]</td><td>DCM[0].FREEZE_DLL</td></tr>
 
-<tr><td>CELL[1].IMUX_SR[1]</td><td>DCM[0].FREEZE_DFS</td></tr>
+<tr><td>CELL[1].IMUX_SR_OPTINV[1]</td><td>DCM[0].FREEZE_DFS</td></tr>
 
 <tr><td>CELL[1].IMUX_IMUX[0]</td><td>DCM[0].DI8</td></tr>
 
@@ -399,13 +399,13 @@
 
 <tr><td>CELL[1].OUT_BEST_TMIN[7]</td><td>DCM[0].DO11</td></tr>
 
-<tr><td>CELL[2].IMUX_CLK[0]</td><td>DCM[0].DCLK</td></tr>
+<tr><td>CELL[2].IMUX_CLK_OPTINV[0]</td><td>DCM[0].DCLK</td></tr>
 
-<tr><td>CELL[2].IMUX_CLK[1]</td><td>DCM[0].PSCLK</td></tr>
+<tr><td>CELL[2].IMUX_CLK_OPTINV[1]</td><td>DCM[0].PSCLK</td></tr>
 
-<tr><td>CELL[2].IMUX_CE[0]</td><td>DCM[0].DWE</td></tr>
+<tr><td>CELL[2].IMUX_CE_OPTINV[0]</td><td>DCM[0].DWE</td></tr>
 
-<tr><td>CELL[2].IMUX_CE[1]</td><td>DCM[0].DEN</td></tr>
+<tr><td>CELL[2].IMUX_CE_OPTINV[1]</td><td>DCM[0].DEN</td></tr>
 
 <tr><td>CELL[2].IMUX_IMUX[0]</td><td>DCM[0].DI0</td></tr>
 
@@ -439,7 +439,7 @@
 
 <tr><td>CELL[2].TEST[0]</td><td>DCM[0].CLKFB_TEST</td></tr>
 
-<tr><td>CELL[3].IMUX_SR[0]</td><td>DCM[0].RST</td></tr>
+<tr><td>CELL[3].IMUX_SR_OPTINV[0]</td><td>DCM[0].RST</td></tr>
 
 <tr><td>CELL[3].IMUX_IMUX[0]</td><td>DCM[0].DADDR0</td></tr>
 
