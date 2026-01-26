@@ -14653,7 +14653,6 @@ intdb {
 		input CLK;
 		nonroutable output LTOUT;
 		nonroutable output CO;
-		output CI_OUT;
 		output O;
 		attribute CARRY_ENABLE: bool;
 		attribute LTIN_ENABLE: bool;
@@ -15103,6 +15102,7 @@ intdb {
 	region_slot EDGE;
 	wire TIE_0: tie 0;
 	wire TIE_1: tie 1;
+	wire SPECIAL_CI: special;
 	wire GLOBAL_ROOT[0]: regional GLOBAL;
 	wire GLOBAL_ROOT[1]: regional GLOBAL;
 	wire GLOBAL_ROOT[2]: regional GLOBAL;
@@ -15502,14 +15502,6 @@ intdb {
 	wire LC_LTIN[5]: bel;
 	wire LC_LTIN[6]: bel;
 	wire LC_LTIN[7]: bel;
-	wire LC_CI_OUT[0]: bel;
-	wire LC_CI_OUT[1]: bel;
-	wire LC_CI_OUT[2]: bel;
-	wire LC_CI_OUT[3]: bel;
-	wire LC_CI_OUT[4]: bel;
-	wire LC_CI_OUT[5]: bel;
-	wire LC_CI_OUT[6]: bel;
-	wire LC_CI_OUT[7]: bel;
 	wire IO_LATCH: regional EDGE;
 	wire IO_GLOBAL: bel;
 	wire HSOSC_GLOBAL: regional GLOBAL;
@@ -17175,6 +17167,7 @@ intdb {
 				}
 				mux IMUX_LC_I3[0] @[MAIN[0][33], MAIN[0][34], MAIN[0][31], MAIN[1][31], MAIN[0][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -17190,10 +17183,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[0] = 0b00001,
 				}
 				mux IMUX_LC_I3[1] @[MAIN[2][33], MAIN[2][34], MAIN[2][31], MAIN[3][31], MAIN[2][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -17209,10 +17202,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[1] = 0b00001,
 				}
 				mux IMUX_LC_I3[2] @[MAIN[4][33], MAIN[4][34], MAIN[4][31], MAIN[5][31], MAIN[4][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -17228,10 +17221,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[2] = 0b00001,
 				}
 				mux IMUX_LC_I3[3] @[MAIN[6][33], MAIN[6][34], MAIN[6][31], MAIN[7][31], MAIN[6][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -17247,10 +17240,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[3] = 0b00001,
 				}
 				mux IMUX_LC_I3[4] @[MAIN[8][33], MAIN[8][34], MAIN[8][31], MAIN[9][31], MAIN[8][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -17266,10 +17259,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[4] = 0b00001,
 				}
 				mux IMUX_LC_I3[5] @[MAIN[10][33], MAIN[10][34], MAIN[10][31], MAIN[11][31], MAIN[10][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -17285,10 +17278,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[5] = 0b00001,
 				}
 				mux IMUX_LC_I3[6] @[MAIN[12][33], MAIN[12][34], MAIN[12][31], MAIN[13][31], MAIN[12][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -17304,10 +17297,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[6] = 0b00001,
 				}
 				mux IMUX_LC_I3[7] @[MAIN[14][33], MAIN[14][34], MAIN[14][31], MAIN[15][31], MAIN[14][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -17323,7 +17316,6 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[7] = 0b00001,
 				}
 				mux IMUX_CLK @[MAIN[3][2], MAIN[2][1], MAIN[2][0], MAIN[3][0], MAIN[2][2]] {
 					TIE_0 = 0b00000,
@@ -17493,7 +17485,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[0];
 				output O = OUT_LC[0];
 				attribute CARRY_ENABLE @MAIN[0][44];
 				attribute FF_ENABLE @MAIN[0][45];
@@ -17515,7 +17506,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[1];
 				output O = OUT_LC[1];
 				attribute CARRY_ENABLE @MAIN[2][44];
 				attribute FF_ENABLE @MAIN[2][45];
@@ -17532,7 +17522,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[2];
 				output O = OUT_LC[2];
 				attribute CARRY_ENABLE @MAIN[4][44];
 				attribute FF_ENABLE @MAIN[4][45];
@@ -17549,7 +17538,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[3];
 				output O = OUT_LC[3];
 				attribute CARRY_ENABLE @MAIN[6][44];
 				attribute FF_ENABLE @MAIN[6][45];
@@ -17566,7 +17554,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[4];
 				output O = OUT_LC[4];
 				attribute CARRY_ENABLE @MAIN[8][44];
 				attribute FF_ENABLE @MAIN[8][45];
@@ -17583,7 +17570,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[5];
 				output O = OUT_LC[5];
 				attribute CARRY_ENABLE @MAIN[10][44];
 				attribute FF_ENABLE @MAIN[10][45];
@@ -17600,7 +17586,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[6];
 				output O = OUT_LC[6];
 				attribute CARRY_ENABLE @MAIN[12][44];
 				attribute FF_ENABLE @MAIN[12][45];
@@ -17617,7 +17602,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[7];
 				output O = OUT_LC[7];
 				attribute CARRY_ENABLE @MAIN[14][44];
 				attribute FF_ENABLE @MAIN[14][45];
@@ -17669,14 +17653,6 @@ intdb {
 			// wire OUT_LC[5]                      LC[5].O
 			// wire OUT_LC[6]                      LC[6].O
 			// wire OUT_LC[7]                      LC[7].O
-			// wire LC_CI_OUT[0]                   LC[0].CI_OUT
-			// wire LC_CI_OUT[1]                   LC[1].CI_OUT
-			// wire LC_CI_OUT[2]                   LC[2].CI_OUT
-			// wire LC_CI_OUT[3]                   LC[3].CI_OUT
-			// wire LC_CI_OUT[4]                   LC[4].CI_OUT
-			// wire LC_CI_OUT[5]                   LC[5].CI_OUT
-			// wire LC_CI_OUT[6]                   LC[6].CI_OUT
-			// wire LC_CI_OUT[7]                   LC[7].CI_OUT
 		}
 
 		tile_class PLB_L08 {
@@ -19322,6 +19298,7 @@ intdb {
 				}
 				mux IMUX_LC_I3[0] @[MAIN[0][33], MAIN[0][34], MAIN[0][31], MAIN[1][31], MAIN[0][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -19337,10 +19314,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[0] = 0b00001,
 				}
 				mux IMUX_LC_I3[1] @[MAIN[2][33], MAIN[2][34], MAIN[2][31], MAIN[3][31], MAIN[2][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -19356,10 +19333,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[1] = 0b00001,
 				}
 				mux IMUX_LC_I3[2] @[MAIN[4][33], MAIN[4][34], MAIN[4][31], MAIN[5][31], MAIN[4][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -19375,10 +19352,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[2] = 0b00001,
 				}
 				mux IMUX_LC_I3[3] @[MAIN[6][33], MAIN[6][34], MAIN[6][31], MAIN[7][31], MAIN[6][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -19394,10 +19371,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[3] = 0b00001,
 				}
 				mux IMUX_LC_I3[4] @[MAIN[8][33], MAIN[8][34], MAIN[8][31], MAIN[9][31], MAIN[8][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -19413,10 +19390,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[4] = 0b00001,
 				}
 				mux IMUX_LC_I3[5] @[MAIN[10][33], MAIN[10][34], MAIN[10][31], MAIN[11][31], MAIN[10][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -19432,10 +19409,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[5] = 0b00001,
 				}
 				mux IMUX_LC_I3[6] @[MAIN[12][33], MAIN[12][34], MAIN[12][31], MAIN[13][31], MAIN[12][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -19451,10 +19428,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[6] = 0b00001,
 				}
 				mux IMUX_LC_I3[7] @[MAIN[14][33], MAIN[14][34], MAIN[14][31], MAIN[15][31], MAIN[14][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -19470,7 +19447,6 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[7] = 0b00001,
 				}
 				mux IMUX_CLK @[MAIN[3][2], MAIN[2][1], MAIN[2][0], MAIN[3][0], MAIN[2][2]] {
 					TIE_0 = 0b00000,
@@ -19640,7 +19616,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[0];
 				output O = OUT_LC[0];
 				attribute CARRY_ENABLE @MAIN[0][44];
 				attribute FF_ENABLE @MAIN[0][45];
@@ -19662,7 +19637,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[1];
 				output O = OUT_LC[1];
 				attribute CARRY_ENABLE @MAIN[2][44];
 				attribute FF_ENABLE @MAIN[2][45];
@@ -19679,7 +19653,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[2];
 				output O = OUT_LC[2];
 				attribute CARRY_ENABLE @MAIN[4][44];
 				attribute FF_ENABLE @MAIN[4][45];
@@ -19696,7 +19669,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[3];
 				output O = OUT_LC[3];
 				attribute CARRY_ENABLE @MAIN[6][44];
 				attribute FF_ENABLE @MAIN[6][45];
@@ -19713,7 +19685,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[4];
 				output O = OUT_LC[4];
 				attribute CARRY_ENABLE @MAIN[8][44];
 				attribute FF_ENABLE @MAIN[8][45];
@@ -19730,7 +19701,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[5];
 				output O = OUT_LC[5];
 				attribute CARRY_ENABLE @MAIN[10][44];
 				attribute FF_ENABLE @MAIN[10][45];
@@ -19747,7 +19717,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[6];
 				output O = OUT_LC[6];
 				attribute CARRY_ENABLE @MAIN[12][44];
 				attribute FF_ENABLE @MAIN[12][45];
@@ -19764,7 +19733,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[7];
 				output O = OUT_LC[7];
 				attribute CARRY_ENABLE @MAIN[14][44];
 				attribute FF_ENABLE @MAIN[14][45];
@@ -19816,14 +19784,6 @@ intdb {
 			// wire OUT_LC[5]                      LC[5].O
 			// wire OUT_LC[6]                      LC[6].O
 			// wire OUT_LC[7]                      LC[7].O
-			// wire LC_CI_OUT[0]                   LC[0].CI_OUT
-			// wire LC_CI_OUT[1]                   LC[1].CI_OUT
-			// wire LC_CI_OUT[2]                   LC[2].CI_OUT
-			// wire LC_CI_OUT[3]                   LC[3].CI_OUT
-			// wire LC_CI_OUT[4]                   LC[4].CI_OUT
-			// wire LC_CI_OUT[5]                   LC[5].CI_OUT
-			// wire LC_CI_OUT[6]                   LC[6].CI_OUT
-			// wire LC_CI_OUT[7]                   LC[7].CI_OUT
 		}
 
 		tile_class PLB_P01 {
@@ -21469,6 +21429,7 @@ intdb {
 				}
 				mux IMUX_LC_I3[0] @[MAIN[0][33], MAIN[0][34], MAIN[0][31], MAIN[1][31], MAIN[0][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -21484,10 +21445,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[0] = 0b00001,
 				}
 				mux IMUX_LC_I3[1] @[MAIN[2][33], MAIN[2][34], MAIN[2][31], MAIN[3][31], MAIN[2][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -21503,10 +21464,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[1] = 0b00001,
 				}
 				mux IMUX_LC_I3[2] @[MAIN[4][33], MAIN[4][34], MAIN[4][31], MAIN[5][31], MAIN[4][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -21522,10 +21483,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[2] = 0b00001,
 				}
 				mux IMUX_LC_I3[3] @[MAIN[6][33], MAIN[6][34], MAIN[6][31], MAIN[7][31], MAIN[6][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -21541,10 +21502,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[3] = 0b00001,
 				}
 				mux IMUX_LC_I3[4] @[MAIN[8][33], MAIN[8][34], MAIN[8][31], MAIN[9][31], MAIN[8][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -21560,10 +21521,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[4] = 0b00001,
 				}
 				mux IMUX_LC_I3[5] @[MAIN[10][33], MAIN[10][34], MAIN[10][31], MAIN[11][31], MAIN[10][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -21579,10 +21540,10 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[5] = 0b00001,
 				}
 				mux IMUX_LC_I3[6] @[MAIN[12][33], MAIN[12][34], MAIN[12][31], MAIN[13][31], MAIN[12][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[3] = 0b00011,
 					LOCAL_0[5] = 0b00101,
 					LOCAL_0[7] = 0b00111,
@@ -21598,10 +21559,10 @@ intdb {
 					LOCAL_3[2] = 0b11011,
 					LOCAL_3[4] = 0b11101,
 					LOCAL_3[6] = 0b11111,
-					LC_CI_OUT[6] = 0b00001,
 				}
 				mux IMUX_LC_I3[7] @[MAIN[14][33], MAIN[14][34], MAIN[14][31], MAIN[15][31], MAIN[14][32]] {
 					TIE_0 = 0b00000,
+					SPECIAL_CI = 0b00001,
 					LOCAL_0[2] = 0b00011,
 					LOCAL_0[4] = 0b00101,
 					LOCAL_0[6] = 0b00111,
@@ -21617,7 +21578,6 @@ intdb {
 					LOCAL_3[3] = 0b11011,
 					LOCAL_3[5] = 0b11101,
 					LOCAL_3[7] = 0b11111,
-					LC_CI_OUT[7] = 0b00001,
 				}
 				mux IMUX_CLK @[MAIN[3][2], MAIN[2][1], MAIN[2][0], MAIN[3][0], MAIN[2][2]] {
 					TIE_0 = 0b00000,
@@ -21788,7 +21748,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[0];
 				output O = OUT_LC[0];
 				attribute CARRY_ENABLE @MAIN[0][44];
 				attribute LTIN_ENABLE @MAIN[0][50];
@@ -21812,7 +21771,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[1];
 				output O = OUT_LC[1];
 				attribute CARRY_ENABLE @MAIN[2][44];
 				attribute LTIN_ENABLE @MAIN[2][50];
@@ -21831,7 +21789,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[2];
 				output O = OUT_LC[2];
 				attribute CARRY_ENABLE @MAIN[4][44];
 				attribute LTIN_ENABLE @MAIN[4][50];
@@ -21850,7 +21807,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[3];
 				output O = OUT_LC[3];
 				attribute CARRY_ENABLE @MAIN[6][44];
 				attribute LTIN_ENABLE @MAIN[6][50];
@@ -21869,7 +21825,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[4];
 				output O = OUT_LC[4];
 				attribute CARRY_ENABLE @MAIN[8][44];
 				attribute LTIN_ENABLE @MAIN[8][50];
@@ -21888,7 +21843,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[5];
 				output O = OUT_LC[5];
 				attribute CARRY_ENABLE @MAIN[10][44];
 				attribute LTIN_ENABLE @MAIN[10][50];
@@ -21907,7 +21861,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[6];
 				output O = OUT_LC[6];
 				attribute CARRY_ENABLE @MAIN[12][44];
 				attribute LTIN_ENABLE @MAIN[12][50];
@@ -21926,7 +21879,6 @@ intdb {
 				input CE = IMUX_CE;
 				input RST = IMUX_RST;
 				input CLK = IMUX_CLK_OPTINV;
-				output CI_OUT = LC_CI_OUT[7];
 				output O = OUT_LC[7];
 				attribute CARRY_ENABLE @MAIN[14][44];
 				attribute LTIN_ENABLE @MAIN[14][50];
@@ -21987,14 +21939,6 @@ intdb {
 			// wire LC_LTIN[5]                     LC[5].LTIN
 			// wire LC_LTIN[6]                     LC[6].LTIN
 			// wire LC_LTIN[7]                     LC[7].LTIN
-			// wire LC_CI_OUT[0]                   LC[0].CI_OUT
-			// wire LC_CI_OUT[1]                   LC[1].CI_OUT
-			// wire LC_CI_OUT[2]                   LC[2].CI_OUT
-			// wire LC_CI_OUT[3]                   LC[3].CI_OUT
-			// wire LC_CI_OUT[4]                   LC[4].CI_OUT
-			// wire LC_CI_OUT[5]                   LC[5].CI_OUT
-			// wire LC_CI_OUT[6]                   LC[6].CI_OUT
-			// wire LC_CI_OUT[7]                   LC[7].CI_OUT
 		}
 
 		tile_class INT_BRAM {

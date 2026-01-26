@@ -310,13 +310,13 @@ pub fn make_sample(
                         let dst_lc = lc + 1;
                         assert_eq!(iwb.slot, defs::wires::IMUX_LC_I3[dst_lc]);
                         let tcid = edev.chip.kind.tile_class_plb();
-                        pips.insert((tcid, iwb.slot, defs::wires::LC_CI_OUT[dst_lc]));
+                        pips.insert((tcid, iwb.slot, defs::wires::SPECIAL_CI));
                         sample.add_tiled_pattern(
                             &[BitOwner::Main(iwb.cell.col, iwb.cell.row)],
                             DiffKey::Routing(
                                 tcid,
                                 TileWireCoord::new_idx(0, iwb.slot),
-                                TileWireCoord::new_idx(0, defs::wires::LC_CI_OUT[dst_lc]).pos(),
+                                TileWireCoord::new_idx(0, defs::wires::SPECIAL_CI).pos(),
                             ),
                         );
                         int_source.insert(iwb, (src_inst, src_pin.clone()));
@@ -516,14 +516,14 @@ pub fn make_sample(
                                 pips.insert((
                                     tcid,
                                     defs::wires::IMUX_LC_I3[lc],
-                                    defs::wires::LC_CI_OUT[lc],
+                                    defs::wires::SPECIAL_CI,
                                 ));
                                 sample.add_tiled_pattern(
                                     &[btile],
                                     DiffKey::Routing(
                                         tcid,
                                         TileWireCoord::new_idx(0, defs::wires::IMUX_LC_I3[lc]),
-                                        TileWireCoord::new_idx(0, defs::wires::LC_CI_OUT[lc]).pos(),
+                                        TileWireCoord::new_idx(0, defs::wires::SPECIAL_CI).pos(),
                                     ),
                                 );
                                 if lc == 0 {

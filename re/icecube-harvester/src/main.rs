@@ -2506,7 +2506,7 @@ impl PartContext<'_> {
                         );
                     }
                     pips_int_bram.insert((wt, wf));
-                } else if !defs::wires::LC_CI_OUT.contains(wf.wire) {
+                } else if wf.wire != defs::wires::SPECIAL_CI {
                     assert!(pips_int_bram.contains(&(wt, wf)));
                 }
             }

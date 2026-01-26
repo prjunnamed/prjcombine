@@ -33,9 +33,6 @@ target_defs! {
         nonroutable input CI;
         // Carry output.
         nonroutable output CO;
-        // Mirror of `CI`.  This is a hack: the hardware has a direct path from `CI` to `I3`,
-        // but it is implemented as part of the general interconnect mux for `MUX_LC_I3`.
-        output CI_OUT;
 
         // Control signals, shared with all other LCs in the tile.
         input CE, RST, CLK;
@@ -593,6 +590,9 @@ target_defs! {
     wire TIE_0: tie 0;
     wire TIE_1: tie 1;
 
+    // Used in the IMUX_I3 multiplexer for PLBs to select the carry input.
+    wire SPECIAL_CI: special;
+
     // The global wire roots, driven by `GB_ROOT`, and used by `COLBUF`.  Unused for devices without
     // column buffers (`GLOBAL` is used directly instead).
     wire GLOBAL_ROOT[8]: regional GLOBAL;
@@ -673,9 +673,6 @@ target_defs! {
     // Direct connection for iCE40T04/T01/T05 hard IP output through LC.
     wire LC_LTIN[8]: bel;
 
-    // Direct connection for LC `CI` → `I3` routing.
-    wire LC_CI_OUT[8]: bel;
-
     // Latch input to all IOIs and PLLs on an edge.
     wire IO_LATCH: regional EDGE;
 
@@ -721,7 +718,6 @@ target_defs! {
                     if tile_class PLB_P01 {
                         input LTIN = LC_LTIN[i];
                     }
-                    output CI_OUT = LC_CI_OUT[i];
                     output O = OUT_LC[i];
                 }
             }
