@@ -89,6 +89,10 @@ target_defs! {
         // The latch signal, shared with all other IOIs on the same edge.
         input LATCH;
 
+        // The associated pad.  This is a *lie* for convenience reasons, the pad (if present at all)
+        // is actually located in the associated IOB.
+        pad PAD: inout;
+
         // TODO: split into individual fields?
         attribute PIN_TYPE: bitvec[6];
 
@@ -103,8 +107,8 @@ target_defs! {
         nonroutable input DOUT, OE;
         nonroutable output DIN;
 
-        // The associated pad.
-        pad PAD: inout;
+        // Note: as a convenience lie, the IOB's pad is included in the IOI instead.
+        // pad PAD: inout;
 
         // Only on iCE65L04/L08/P04 west bank.  Determines the output drive strength for
         // the buffer.

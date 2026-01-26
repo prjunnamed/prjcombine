@@ -120,8 +120,7 @@ impl Generator<'_> {
 
     fn emit_io(&mut self) -> usize {
         let ioi = self.unused_ioi.pop().unwrap();
-        let iob = self.cfg.edev.chip.ioi_to_iob(ioi).unwrap();
-        let is_od = self.cfg.edev.chip.iob_od.contains(&iob);
+        let is_od = self.cfg.edev.chip.ioi_od.contains(&ioi);
         let mut global_idx = None;
         let mut pll = None;
         let gb_special = &self.cfg.edev.chip.special_tiles[&SpecialTileKey::GbRoot];
@@ -168,7 +167,7 @@ impl Generator<'_> {
             && self.rng.random()
             && !is_od
             && !is_i3c
-            && self.cfg.edev.chip.iob_has_lvds(ioi);
+            && self.cfg.edev.chip.ioi_has_lvds(ioi);
         if ioi.col == self.cfg.edev.chip.col_w()
             && self.cfg.edev.chip.kind.has_vref()
             && !matches!(self.left_vcc, LeftVcc::_1P8 | LeftVcc::_2P5)
@@ -1580,8 +1579,7 @@ impl Generator<'_> {
     fn final_output(&mut self) {
         while !self.unused_signals.is_empty() {
             let ioi = self.unused_ioi.pop().unwrap();
-            let iob = self.cfg.edev.chip.ioi_to_iob(ioi).unwrap();
-            let is_od = self.cfg.edev.chip.iob_od.contains(&iob);
+            let is_od = self.cfg.edev.chip.ioi_od.contains(&ioi);
             let pad = self.io_map[&ioi];
             let package_pin = if is_od { "PACKAGEPIN" } else { "PACKAGE_PIN" };
             let mut io = Instance::new(if is_od { "SB_IO_OD" } else { "SB_IO" });
@@ -1869,7 +1867,7 @@ pub fn generate(cfg: &GeneratorConfig) -> Design {
     let mut unused_io = vec![];
     let mut io_map = HashMap::new();
     for (pin, pads) in &pkg_info.bond.pins {
-        if !defs::bslots::IOB.contains(pads[0].slot) {
+        if !defs::bslots::IOI.contains(pads[0].slot) {
             continue;
         }
         let ioi = cfg.edev.chip.iob_to_ioi(pads[0].bel).unwrap();

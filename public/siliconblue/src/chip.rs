@@ -447,7 +447,7 @@ pub struct Chip {
     pub rows_colbuf: Vec<(RowId, RowId, RowId)>,
     pub rows_mac16: Vec<RowId>,
     pub ioi_iob: BiMap<BelCoord, BelCoord>,
-    pub iob_od: BTreeSet<BelCoord>,
+    pub ioi_od: BTreeSet<BelCoord>,
     pub special_tiles: BTreeMap<SpecialTileKey, SpecialTile>,
 }
 
@@ -525,19 +525,19 @@ impl Chip {
         self.ioi_iob.get_right(&iob).copied()
     }
 
-    pub fn iob_has_lvds(&self, iob: BelCoord) -> bool {
-        let idx = defs::bslots::IOB.index_of(iob.slot).unwrap();
+    pub fn ioi_has_lvds(&self, ioi: BelCoord) -> bool {
+        let idx = defs::bslots::IOI.index_of(ioi.slot).unwrap();
         if idx != 0 {
             return false;
         }
         if self.kind == ChipKind::Ice65L01 {
             false
         } else if self.kind.has_iob_we() {
-            iob.col == self.col_w()
+            ioi.col == self.col_w()
         } else if self.kind == ChipKind::Ice40R04 {
-            iob.row == self.row_n()
+            ioi.row == self.row_n()
         } else {
-            !self.iob_od.contains(&iob)
+            !self.ioi_od.contains(&ioi)
         }
     }
 
@@ -645,8 +645,8 @@ impl Chip {
                 iob = iob.to_string(db)
             )?;
         }
-        for iob in &self.iob_od {
-            writeln!(o, "\tiob_od {iob};", iob = iob.to_string(db))?;
+        for ioi in &self.ioi_od {
+            writeln!(o, "\tioi_od {ioi};", ioi = ioi.to_string(db))?;
         }
         for (key, spec) in &self.special_tiles {
             writeln!(o, "\tspecial {key} {{")?;

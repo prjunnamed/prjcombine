@@ -911,7 +911,7 @@ impl PartContext<'_> {
                     pkg_info
                         .bond
                         .pins
-                        .insert(pin.clone(), vec![iob.pad(defs::bcls::IOB::PAD)]),
+                        .insert(pin.clone(), vec![ioi.pad(defs::bcls::IOI::PAD)]),
                     None
                 );
                 match pkg_info.xlat_ioi.entry(xy) {
@@ -941,7 +941,7 @@ impl PartContext<'_> {
                             pkg_info
                                 .bond
                                 .pins
-                                .insert(pin.clone(), vec![iob.pad(defs::bcls::IOB::PAD)]),
+                                .insert(pin.clone(), vec![ioi.pad(defs::bcls::IOI::PAD)]),
                             None
                         );
                     }
@@ -966,7 +966,7 @@ impl PartContext<'_> {
                     // will be fixed up later.
                     let iob = cell.bel(defs::bslots::IOB[idx]);
                     self.chip.ioi_iob.insert(ioi, iob);
-                    self.chip.iob_od.insert(iob);
+                    self.chip.ioi_od.insert(ioi);
                     let (loc, ref pin) = info.pads["PACKAGEPIN"];
                     let xy = (loc.x, loc.y, loc.bel);
                     assert_eq!(loc, info.loc);
@@ -974,7 +974,7 @@ impl PartContext<'_> {
                         pkg_info
                             .bond
                             .pins
-                            .insert(pin.clone(), vec![iob.pad(defs::bcls::IOB::PAD)]),
+                            .insert(pin.clone(), vec![ioi.pad(defs::bcls::IOI::PAD)]),
                         None
                     );
                     match pkg_info.xlat_ioi.entry(xy) {
@@ -1001,7 +1001,7 @@ impl PartContext<'_> {
                     pkg_info
                         .bond
                         .pins
-                        .insert(pin.into(), vec![iob.pad(defs::bcls::IOB::PAD)]);
+                        .insert(pin.into(), vec![ioi.pad(defs::bcls::IOI::PAD)]);
                 }
             }
             if self.chip.kind.is_ice65() {
@@ -1295,7 +1295,8 @@ impl PartContext<'_> {
                     "SPI_SCK" | "SPI_SI" | "SPI_SO" | "SPI_SS_B" => {
                         let pads = &pkg_info.bond.pins[pin];
                         assert_eq!(pads.len(), 1);
-                        let ioi = self.chip.iob_to_ioi(pads[0].bel).unwrap();
+                        let ioi = pads[0].bel;
+                        assert!(defs::bslots::IOI.contains(ioi.slot));
                         let cpin = match typ {
                             "SPI_SCK" => SpecialIoKey::CfgSck,
                             "SPI_SI" => SpecialIoKey::CfgSdi(0),
@@ -1317,24 +1318,23 @@ impl PartContext<'_> {
             for info in &pkg_info.bel_info["IOx3"] {
                 let xy = (info.loc.x, info.loc.y, info.loc.bel);
                 let ioi = pkg_info.xlat_ioi[&xy];
-                let iob = self.chip.ioi_to_iob(ioi).unwrap();
                 let r0 = info.dedio["REP0"];
                 let ior0 = CellCoord::new(
                     DieId::from_idx(0),
                     ColId::from_idx(r0.x as usize),
                     RowId::from_idx(r0.y as usize),
                 )
-                .bel(bels::IOB[r0.bel as usize])
-                .pad(defs::bcls::IOB::PAD);
+                .bel(bels::IOI[r0.bel as usize])
+                .pad(defs::bcls::IOI::PAD);
                 let r1 = info.dedio["REP1"];
                 let ior1 = CellCoord::new(
                     DieId::from_idx(0),
                     ColId::from_idx(r1.x as usize),
                     RowId::from_idx(r1.y as usize),
                 )
-                .bel(bels::IOB[r1.bel as usize])
-                .pad(defs::bcls::IOB::PAD);
-                x3.insert(iob, (ior0, ior1));
+                .bel(bels::IOI[r1.bel as usize])
+                .pad(defs::bcls::IOI::PAD);
+                x3.insert(ioi, (ior0, ior1));
             }
             for pads in pkg_info.bond.pins.values_mut() {
                 if pads.len() != 1 {
@@ -1409,7 +1409,8 @@ impl PartContext<'_> {
             for (cpin, ball) in balls {
                 let pads = &pkg_info.bond.pins[ball];
                 assert_eq!(pads.len(), 1);
-                let ioi = self.chip.iob_to_ioi(pads[0].bel).unwrap();
+                let ioi = pads[0].bel;
+                assert!(defs::bslots::IOI.contains(ioi.slot));
                 assert_eq!(
                     self.chip.special_tiles[&SpecialTileKey::Globals].io[&cpin],
                     ioi,
@@ -1427,7 +1428,7 @@ impl PartContext<'_> {
                     .bond
                     .pins
                     .values()
-                    .filter(|pads| !pads.is_empty() && defs::bslots::IOB.contains(pads[0].slot))
+                    .filter(|pads| !pads.is_empty() && defs::bslots::IOI.contains(pads[0].slot))
                     .count()
             })
             .unwrap();
@@ -1436,10 +1437,10 @@ impl PartContext<'_> {
             if pads.is_empty() {
                 continue;
             }
-            if !defs::bslots::IOB.contains(pads[0].slot) {
+            if !defs::bslots::IOI.contains(pads[0].slot) {
                 continue;
             }
-            if self.chip.iob_od.contains(&pads[0].bel) {
+            if self.chip.ioi_od.contains(&pads[0].bel) {
                 continue;
             }
             let edge = self.chip.get_io_edge(pads[0].bel);
@@ -2513,16 +2514,6 @@ impl PartContext<'_> {
 
         let speed = hctx.speed;
         self.chip.rows_colbuf = hctx.gencfg.rows_colbuf;
-        for pkg in self.pkgs.values_mut() {
-            for pad in pkg.bond.pins.values_mut().flatten() {
-                if let Some(ioi) = self.chip.iob_to_ioi(pad.bel) {
-                    *pad = new_ioi_iob
-                        .get_left(&ioi)
-                        .unwrap()
-                        .pad(defs::bcls::IOB::PAD);
-                }
-            }
-        }
         self.chip.ioi_iob = new_ioi_iob;
 
         for (tcid, tcls_pips) in pips {
@@ -2645,7 +2636,7 @@ fn main() {
                 rows_colbuf: vec![],
                 rows_mac16: vec![],
                 ioi_iob: BiMap::new(),
-                iob_od: BTreeSet::new(),
+                ioi_od: BTreeSet::new(),
                 special_tiles: BTreeMap::new(),
             },
             intdb: bincode::decode_from_slice(
