@@ -164,7 +164,7 @@
 <tbody>
 <tr><td>INT</td><td>INT, INT_IOI</td><td>INT</td></tr>
 
-<tr><td>INTF</td><td>INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI</td><td>INTF_TESTMUX</td></tr>
+<tr><td>INTF</td><td>INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI</td><td>INTF_INT, INTF_TESTMUX</td></tr>
 
 <tr><td>BEL</td><td>CLEXL, CLEXM, BRAM, DSP, IOI_WE, IOI_SN, CMT_DCM, CMT_PLL, MCB, PCIE, GTP, PCILOGICSE, CNR_SW, CNR_NW, CNR_SE, CNR_NE, CLKC</td><td>SLICE[0], SLICE[1], BRAM_F, BRAM_H[0], BRAM_H[1], DSP, ILOGIC[0], ILOGIC[1], OLOGIC[0], OLOGIC[1], IODELAY[0], IODELAY[1], IOICLK[0], IOICLK[1], IOI, DCM[0], DCM[1], PLL, CMT, MCB, PCIE, GTP, BUFDS[0], BUFDS[1], PCILOGICSE, OCT_CAL[0], OCT_CAL[1], OCT_CAL[2], OCT_CAL[3], OCT_CAL[4], OCT_CAL[5], PMV, DNA_PORT, ICAP, SPI_ACCESS, SUSPEND_SYNC, POST_CRC_INTERNAL, STARTUP, SLAVE_SPI, BSCAN[0], BSCAN[1], BSCAN[2], BSCAN[3], BUFGMUX[0], BUFGMUX[1], BUFGMUX[2], BUFGMUX[3], BUFGMUX[4], BUFGMUX[5], BUFGMUX[6], BUFGMUX[7], BUFGMUX[8], BUFGMUX[9], BUFGMUX[10], BUFGMUX[11], BUFGMUX[12], BUFGMUX[13], BUFGMUX[14], BUFGMUX[15], CLKC, CLKC_BUFPLL, MCB_TIE_CLK, MCB_TIE_DQS0, MCB_TIE_DQS1, TIEOFF_IOI, TIEOFF_PLL, TIEOFF_CLK, TIEOFF_DQS0, TIEOFF_DQS1, IPAD_CLKP[0], IPAD_CLKP[1], IPAD_CLKN[0], IPAD_CLKN[1], IPAD_RXP[0], IPAD_RXP[1], IPAD_RXN[0], IPAD_RXN[1], OPAD_TXP[0], OPAD_TXP[1], OPAD_TXN[0], OPAD_TXN[1], GTP_BUF</td></tr>
 
@@ -204,6 +204,8 @@
 
 <tbody>
 <tr><td>INT</td><td>routing</td><td>INT</td><td>INT, INT_IOI</td></tr>
+
+<tr><td>INTF_INT</td><td>routing</td><td>INTF</td><td>INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI</td></tr>
 
 <tr><td>INTF_TESTMUX</td><td>routing</td><td>INTF</td><td>INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI</td></tr>
 
@@ -1521,53 +1523,101 @@
 
 <tr><td>OUT[23]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[0]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[0]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[1]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[1]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[2]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[2]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[3]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[3]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[4]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[4]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[5]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[5]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[6]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[6]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[7]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[7]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[8]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[8]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[9]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[9]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[10]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[10]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[11]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[11]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[12]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[12]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[13]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[13]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[14]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[14]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[15]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[15]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[16]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[16]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[17]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[17]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[18]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[18]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[19]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[19]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[20]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[20]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[21]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[21]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[22]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[22]</td><td>bel</td></tr>
 
-<tr><td>OUT_TMIN[23]</td><td>bel</td></tr>
+<tr><td>OUT_BEL[23]</td><td>bel</td></tr>
+
+<tr><td>OUT_TEST[0]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[1]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[2]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[3]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[4]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[5]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[6]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[7]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[8]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[9]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[10]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[11]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[12]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[13]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[14]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[15]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[16]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[17]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[18]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[19]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[20]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[21]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[22]</td><td>test</td></tr>
+
+<tr><td>OUT_TEST[23]</td><td>test</td></tr>
 
 <tr><td>IMUX_CLK_GCLK[0]</td><td>mux</td></tr>
 

@@ -296,17 +296,17 @@
 </thead>
 
 <tbody>
-<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[18]</td></tr>
+<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[18]</td></tr>
 
-<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_TMIN[23]</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_BEL[23]</td></tr>
 
-<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_TMIN[16]</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_BEL[16]</td></tr>
 
-<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
 <tr><td>RST</td><td>input</td><td>CELL[0].IMUX_IMUX[0]</td></tr>
 
-<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[17]</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[17]</td></tr>
 
 </tbody>
 
@@ -323,21 +323,21 @@
 </thead>
 
 <tbody>
-<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_TMIN[8]</td></tr>
+<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_TMIN[20]</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
-<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
 <tr><td>TSTCLK</td><td>input</td><td>CELL[1].IMUX_BYP_SITE[2]</td></tr>
 
@@ -366,13 +366,13 @@
 
 <tr><td>CELL[0].IMUX_IMUX[6]</td><td>RCLK.CKINT0</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[8]</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[8]</td><td>DCI.DCIIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
+<tr><td>CELL[0].OUT_BEL[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[22]</td><td>DCI.DCIDATA</td></tr>
+<tr><td>CELL[0].OUT_BEL[22]</td><td>DCI.DCIDATA</td></tr>
 
 <tr><td>CELL[1].IMUX_BYP_SITE[0]</td><td>DCI.TSTRST</td></tr>
 
@@ -386,19 +386,19 @@
 
 <tr><td>CELL[1].IMUX_IMUX[6]</td><td>BUFR[0].CE</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[8]</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>CELL[1].OUT_BEL[8]</td><td>DCI.DCIADDRESS0</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>CELL[1].OUT_BEL[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[20]</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>CELL[1].OUT_BEL[20]</td><td>DCI.DCIADDRESS1</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
+<tr><td>CELL[1].OUT_BEL[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>CELL[1].OUT_BEL[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
 
 <tr><td>CELL[2].IMUX_IMUX[0]</td><td>BUFR[1].CLR</td></tr>
 
@@ -4570,17 +4570,17 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[18]</td></tr>
+<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[18]</td></tr>
 
-<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_TMIN[23]</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_BEL[23]</td></tr>
 
-<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_TMIN[16]</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_BEL[16]</td></tr>
 
-<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
 <tr><td>RST</td><td>input</td><td>CELL[0].IMUX_IMUX[0]</td></tr>
 
-<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[17]</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[17]</td></tr>
 
 </tbody>
 
@@ -4597,21 +4597,21 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_TMIN[8]</td></tr>
+<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_TMIN[20]</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
-<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
 <tr><td>TSTCLK</td><td>input</td><td>CELL[1].IMUX_BYP_SITE[2]</td></tr>
 
@@ -4638,13 +4638,13 @@ non-inverted
 <tbody>
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>IDELAYCTRL.RST</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[8]</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[8]</td><td>DCI.DCIIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
+<tr><td>CELL[0].OUT_BEL[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[22]</td><td>DCI.DCIDATA</td></tr>
+<tr><td>CELL[0].OUT_BEL[22]</td><td>DCI.DCIDATA</td></tr>
 
 <tr><td>CELL[1].IMUX_BYP_SITE[0]</td><td>DCI.TSTRST</td></tr>
 
@@ -4654,19 +4654,19 @@ non-inverted
 
 <tr><td>CELL[1].IMUX_BYP_SITE[6]</td><td>DCI.TSTHLN</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[8]</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>CELL[1].OUT_BEL[8]</td><td>DCI.DCIADDRESS0</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>CELL[1].OUT_BEL[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[20]</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>CELL[1].OUT_BEL[20]</td><td>DCI.DCIADDRESS1</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
+<tr><td>CELL[1].OUT_BEL[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>CELL[1].OUT_BEL[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
 
 </tbody>
 
@@ -8339,17 +8339,17 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[18]</td></tr>
+<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[18]</td></tr>
 
-<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_TMIN[23]</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_BEL[23]</td></tr>
 
-<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_TMIN[16]</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_BEL[16]</td></tr>
 
-<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
 <tr><td>RST</td><td>input</td><td>CELL[0].IMUX_IMUX[0]</td></tr>
 
-<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[17]</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[17]</td></tr>
 
 </tbody>
 
@@ -8366,21 +8366,21 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_TMIN[8]</td></tr>
+<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_TMIN[20]</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
-<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
 <tr><td>TSTCLK</td><td>input</td><td>CELL[1].IMUX_BYP_SITE[2]</td></tr>
 
@@ -8407,13 +8407,13 @@ non-inverted
 <tbody>
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>IDELAYCTRL.RST</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[8]</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[8]</td><td>DCI.DCIIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
+<tr><td>CELL[0].OUT_BEL[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[22]</td><td>DCI.DCIDATA</td></tr>
+<tr><td>CELL[0].OUT_BEL[22]</td><td>DCI.DCIDATA</td></tr>
 
 <tr><td>CELL[1].IMUX_BYP_SITE[0]</td><td>DCI.TSTRST</td></tr>
 
@@ -8423,19 +8423,19 @@ non-inverted
 
 <tr><td>CELL[1].IMUX_BYP_SITE[6]</td><td>DCI.TSTHLN</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[8]</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>CELL[1].OUT_BEL[8]</td><td>DCI.DCIADDRESS0</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>CELL[1].OUT_BEL[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[20]</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>CELL[1].OUT_BEL[20]</td><td>DCI.DCIADDRESS1</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
+<tr><td>CELL[1].OUT_BEL[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>CELL[1].OUT_BEL[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
 
 </tbody>
 
@@ -12096,17 +12096,17 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[0].OUT_TMIN[23]</td></tr>
+<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[0].OUT_BEL[23]</td></tr>
 
-<tr><td>OUTN1</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>OUTN65</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>RDY</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>RDY</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
 <tr><td>RST</td><td>input</td><td>CELL[1].IMUX_IMUX[6]</td></tr>
 
-<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
 </tbody>
 
@@ -12123,21 +12123,21 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
-<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
 <tr><td>TSTCLK</td><td>input</td><td>CELL[0].IMUX_BYP_SITE[2]</td></tr>
 
@@ -12170,15 +12170,15 @@ non-inverted
 
 <tr><td>CELL[0].IMUX_BYP_SITE[6]</td><td>DCI.TSTHLN</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[8]</td><td>IDELAYCTRL.OUTN65, DCI.DCIADDRESS0, DCI.DCIIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[8]</td><td>IDELAYCTRL.OUTN65, DCI.DCIADDRESS0, DCI.DCIIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[15]</td><td>IDELAYCTRL.UPPULSEOUT, DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[15]</td><td>IDELAYCTRL.UPPULSEOUT, DCI.DCIREFIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[20]</td><td>IDELAYCTRL.OUTN1, DCI.DCIADDRESS1, DCI.DCIDONE, DCI.DCISCLK</td></tr>
+<tr><td>CELL[0].OUT_BEL[20]</td><td>IDELAYCTRL.OUTN1, DCI.DCIADDRESS1, DCI.DCIDONE, DCI.DCISCLK</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2, DCI.DCIDATA</td></tr>
+<tr><td>CELL[0].OUT_BEL[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2, DCI.DCIDATA</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[23]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>CELL[0].OUT_BEL[23]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
 
 <tr><td>CELL[1].IMUX_IMUX[6]</td><td>IDELAYCTRL.RST</td></tr>
 
@@ -15847,17 +15847,17 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[18]</td></tr>
+<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[18]</td></tr>
 
-<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_TMIN[23]</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>CELL[1].OUT_BEL[23]</td></tr>
 
-<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_TMIN[16]</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>CELL[1].OUT_BEL[16]</td></tr>
 
-<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>RDY</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
 <tr><td>RST</td><td>input</td><td>CELL[0].IMUX_IMUX[0]</td></tr>
 
-<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_TMIN[17]</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[1].OUT_BEL[17]</td></tr>
 
 </tbody>
 
@@ -15874,21 +15874,21 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_TMIN[8]</td></tr>
+<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[1].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_TMIN[20]</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[1].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_TMIN[22]</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[1].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
-<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
 <tr><td>TSTCLK</td><td>input</td><td>CELL[1].IMUX_BYP_SITE[2]</td></tr>
 
@@ -15915,13 +15915,13 @@ non-inverted
 <tbody>
 <tr><td>CELL[0].IMUX_IMUX[0]</td><td>IDELAYCTRL.RST</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[8]</td><td>DCI.DCIIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[8]</td><td>DCI.DCIIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[15]</td><td>DCI.DCIREFIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
+<tr><td>CELL[0].OUT_BEL[20]</td><td>DCI.DCIDONE, DCI.DCISCLK</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[22]</td><td>DCI.DCIDATA</td></tr>
+<tr><td>CELL[0].OUT_BEL[22]</td><td>DCI.DCIDATA</td></tr>
 
 <tr><td>CELL[1].IMUX_BYP_SITE[0]</td><td>DCI.TSTRST</td></tr>
 
@@ -15931,19 +15931,19 @@ non-inverted
 
 <tr><td>CELL[1].IMUX_BYP_SITE[6]</td><td>DCI.TSTHLN</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[8]</td><td>DCI.DCIADDRESS0</td></tr>
+<tr><td>CELL[1].OUT_BEL[8]</td><td>DCI.DCIADDRESS0</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
+<tr><td>CELL[1].OUT_BEL[16]</td><td>IDELAYCTRL.OUTN65</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[17]</td><td>IDELAYCTRL.UPPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>CELL[1].OUT_BEL[18]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[20]</td><td>DCI.DCIADDRESS1</td></tr>
+<tr><td>CELL[1].OUT_BEL[20]</td><td>DCI.DCIADDRESS1</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
+<tr><td>CELL[1].OUT_BEL[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2</td></tr>
 
-<tr><td>CELL[1].OUT_TMIN[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
+<tr><td>CELL[1].OUT_BEL[23]</td><td>IDELAYCTRL.OUTN1</td></tr>
 
 </tbody>
 
@@ -19604,17 +19604,17 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[0].OUT_TMIN[23]</td></tr>
+<tr><td>DNPULSEOUT</td><td>output</td><td>CELL[0].OUT_BEL[23]</td></tr>
 
-<tr><td>OUTN1</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>OUTN1</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>OUTN65</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>OUTN65</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>RDY</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>RDY</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
 <tr><td>RST</td><td>input</td><td>CELL[1].IMUX_IMUX[6]</td></tr>
 
-<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>UPPULSEOUT</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
 </tbody>
 
@@ -19631,21 +19631,21 @@ non-inverted
 </thead>
 
 <tbody>
-<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIADDRESS0</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIADDRESS1</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIADDRESS2</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_TMIN[22]</td></tr>
+<tr><td>DCIDATA</td><td>output</td><td>CELL[0].OUT_BEL[22]</td></tr>
 
-<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCIDONE</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
-<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[8]</td></tr>
+<tr><td>DCIIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[8]</td></tr>
 
-<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_TMIN[15]</td></tr>
+<tr><td>DCIREFIOUPDATE</td><td>output</td><td>CELL[0].OUT_BEL[15]</td></tr>
 
-<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_TMIN[20]</td></tr>
+<tr><td>DCISCLK</td><td>output</td><td>CELL[0].OUT_BEL[20]</td></tr>
 
 <tr><td>TSTCLK</td><td>input</td><td>CELL[0].IMUX_BYP_SITE[2]</td></tr>
 
@@ -19678,15 +19678,15 @@ non-inverted
 
 <tr><td>CELL[0].IMUX_BYP_SITE[6]</td><td>DCI.TSTHLN</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[8]</td><td>IDELAYCTRL.OUTN65, DCI.DCIADDRESS0, DCI.DCIIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[8]</td><td>IDELAYCTRL.OUTN65, DCI.DCIADDRESS0, DCI.DCIIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[15]</td><td>IDELAYCTRL.UPPULSEOUT, DCI.DCIREFIOUPDATE</td></tr>
+<tr><td>CELL[0].OUT_BEL[15]</td><td>IDELAYCTRL.UPPULSEOUT, DCI.DCIREFIOUPDATE</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[20]</td><td>IDELAYCTRL.OUTN1, DCI.DCIADDRESS1, DCI.DCIDONE, DCI.DCISCLK</td></tr>
+<tr><td>CELL[0].OUT_BEL[20]</td><td>IDELAYCTRL.OUTN1, DCI.DCIADDRESS1, DCI.DCIDONE, DCI.DCISCLK</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2, DCI.DCIDATA</td></tr>
+<tr><td>CELL[0].OUT_BEL[22]</td><td>IDELAYCTRL.RDY, DCI.DCIADDRESS2, DCI.DCIDATA</td></tr>
 
-<tr><td>CELL[0].OUT_TMIN[23]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
+<tr><td>CELL[0].OUT_BEL[23]</td><td>IDELAYCTRL.DNPULSEOUT</td></tr>
 
 <tr><td>CELL[1].IMUX_IMUX[6]</td><td>IDELAYCTRL.RST</td></tr>
 
