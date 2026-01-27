@@ -343,7 +343,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             defs::wires::OUT[i],
             &[format!("LOGICOUT{i}"), format!("INT_TERM_LOGICOUT{i}")],
         );
-        builder.mark_test_mux_in(defs::wires::OUT_TMIN[i], defs::wires::OUT[i]);
+        builder.mark_test_mux_in(defs::wires::OUT_BEL[i], defs::wires::OUT[i]);
+        builder.mark_test_mux_in_test(defs::wires::OUT_TEST[i], defs::wires::OUT[i]);
     }
 
     for i in 0..2 {
@@ -490,8 +491,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             naming,
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            None,
+            false,
         );
     }
     builder.extract_intf_id(
@@ -500,8 +502,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT_INTERFACE_CARRY",
         "INTF",
         defs::bslots::INTF_TESTMUX,
+        Some(defs::bslots::INTF_INT),
         true,
-        None,
+        false,
     );
     for tkn in ["INT_INTERFACE_IOI", "INT_INTERFACE_IOI_DCMBOT"] {
         builder.extract_intf_id(
@@ -510,8 +513,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             "INTF",
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            None,
+            false,
         );
     }
     for tkn in [
@@ -530,8 +534,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             "INTF_IOI",
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            None,
+            false,
         );
     }
 

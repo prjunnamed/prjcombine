@@ -157,12 +157,14 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         builder.mark_test_mux_in(wires::OUT_SEC_TMIN[i], wires::OUT_SEC[i]);
     }
     for i in 0..8 {
-        builder.wire_names(wires::OUT_HALF_S[i], &[format!("HALF_OMUX_BOT{i}")]);
-        builder.mark_test_mux_in(wires::OUT_HALF_S_TMIN[i], wires::OUT_HALF_S[i]);
+        builder.wire_names(wires::OUT_HALF0[i], &[format!("HALF_OMUX_BOT{i}")]);
+        builder.mark_test_mux_in(wires::OUT_HALF0_BEL[i], wires::OUT_HALF0[i]);
+        builder.mark_test_mux_in_test(wires::OUT_HALF0_TEST[i], wires::OUT_HALF0[i]);
     }
     for i in 0..8 {
-        builder.wire_names(wires::OUT_HALF_N[i], &[format!("HALF_OMUX_TOP{i}")]);
-        builder.mark_test_mux_in(wires::OUT_HALF_N_TMIN[i], wires::OUT_HALF_N[i]);
+        builder.wire_names(wires::OUT_HALF1[i], &[format!("HALF_OMUX_TOP{i}")]);
+        builder.mark_test_mux_in(wires::OUT_HALF1_BEL[i], wires::OUT_HALF1[i]);
+        builder.mark_test_mux_in_test(wires::OUT_HALF1_TEST[i], wires::OUT_HALF1[i]);
     }
 
     for i in 0..4 {
@@ -360,8 +362,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     int_xy,
                     format!("INTF_{n}_{i}"),
                     defs::bslots::INTF_TESTMUX,
+                    Some(defs::bslots::INTF_INT),
                     false,
-                    None,
+                    false,
                 );
             }
         }
@@ -373,8 +376,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             "INTF_IOIS",
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             false,
-            None,
+            false,
         );
     }
     for &xy in rd.tiles_by_kind_name("CFG_CENTER") {
@@ -386,8 +390,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_xy,
                 format!("INTF_CFG_{i}"),
                 defs::bslots::INTF_TESTMUX,
+                Some(defs::bslots::INTF_INT),
                 false,
-                None,
+                false,
             );
         }
     }
@@ -413,8 +418,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                     int_xy,
                     format!("INTF_MGT_{i}"),
                     defs::bslots::INTF_TESTMUX,
+                    Some(defs::bslots::INTF_INT),
                     false,
-                    None,
+                    false,
                 );
             }
         }
@@ -437,8 +443,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_w_xy,
                 format!("INTF_PPC_W{i}"),
                 defs::bslots::INTF_TESTMUX,
+                Some(defs::bslots::INTF_INT),
                 false,
-                None,
+                false,
             );
             builder.extract_intf_tile_id(
                 tcls::INTF,
@@ -446,8 +453,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_e_xy,
                 format!("INTF_PPC_E{i}"),
                 defs::bslots::INTF_TESTMUX,
+                Some(defs::bslots::INTF_INT),
                 false,
-                None,
+                false,
             );
         }
         for (i, delta) in [1, 3, 5, 7, 9, 11, 13].into_iter().enumerate() {
@@ -459,8 +467,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_s_xy,
                 format!("INTF_PPC_S{i}"),
                 defs::bslots::INTF_TESTMUX,
+                Some(defs::bslots::INTF_INT),
                 false,
-                None,
+                false,
             );
             builder.extract_intf_tile_id(
                 tcls::INTF,
@@ -468,8 +477,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 int_n_xy,
                 format!("INTF_PPC_N{i}"),
                 defs::bslots::INTF_TESTMUX,
+                Some(defs::bslots::INTF_INT),
                 false,
-                None,
+                false,
             );
         }
     }

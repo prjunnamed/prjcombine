@@ -1,6 +1,6 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord},
+    db::{BelInfo, ProgDelay, SwitchBoxItem, TileWireCoord, WireSlotId},
     grid::TileCoord,
 };
 use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_raw};
@@ -739,6 +739,29 @@ fn build_pip_fuzzer(
     builder.commit();
 }
 
+fn is_anon_wire(edev: &ExpandedDevice, wire: WireSlotId) -> bool {
+    match edev {
+        ExpandedDevice::Virtex2(_) => false,
+        ExpandedDevice::Spartan6(_) => prjcombine_spartan6::defs::wires::OUT_TEST.contains(wire),
+        ExpandedDevice::Virtex4(edev) => match edev.kind {
+            prjcombine_virtex4::chip::ChipKind::Virtex4 => {
+                prjcombine_virtex4::defs::virtex4::wires::OUT_HALF0_TEST.contains(wire)
+                    || prjcombine_virtex4::defs::virtex4::wires::OUT_HALF1_TEST.contains(wire)
+            }
+            prjcombine_virtex4::chip::ChipKind::Virtex5 => {
+                prjcombine_virtex4::defs::virtex5::wires::OUT_TEST.contains(wire)
+            }
+            prjcombine_virtex4::chip::ChipKind::Virtex6 => {
+                prjcombine_virtex4::defs::virtex6::wires::OUT_TEST.contains(wire)
+            }
+            prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+                prjcombine_virtex4::defs::virtex7::wires::OUT_TEST.contains(wire)
+            }
+        },
+        _ => unreachable!(),
+    }
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, _, tcls) in &intdb.tile_classes {
@@ -752,6 +775,9 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
+                        if is_anon_wire(backend.edev, mux.dst.wire) {
+                            continue;
+                        }
                         for &src in mux.src.keys() {
                             build_pip_fuzzer(backend, &mut ctx, mux.dst, src.tw);
                         }
@@ -795,6 +821,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
+                        if is_anon_wire(ctx.edev, mux.dst.wire) {
+                            continue;
+                        }
                         let out_name = intdb.wires.key(mux.dst.wire);
                         let mut inps = vec![];
                         let mut got_empty = false;

@@ -91,6 +91,7 @@ pub enum IntfWireInNaming {
     Simple { name: String },
     Buf { name_out: String, name_in: String },
     TestBuf { name_out: String, name_in: String },
+    Anonymous,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
@@ -221,6 +222,7 @@ impl NamingDb {
                     IntfWireInNaming::TestBuf { name_out, name_in } => {
                         writeln!(o, "TESTBUF {name_out} <- {name_in}")?
                     }
+                    IntfWireInNaming::Anonymous => writeln!(o, "ANONYMOUS")?,
                 }
             }
         }

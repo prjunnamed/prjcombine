@@ -562,7 +562,9 @@ impl IntMaker<'_> {
             self.builder
                 .wire_names(wires::OUT[i], &[format!("LOGIC_OUTS_W{i}")]);
             self.builder
-                .mark_test_mux_in(wires::OUT_TMIN[i], wires::OUT[i]);
+                .mark_test_mux_in(wires::OUT_BEL[i], wires::OUT[i]);
+            self.builder
+                .mark_test_mux_in_test(wires::OUT_TEST[i], wires::OUT[i]);
             self.builder
                 .extra_name_sub(format!("LOGIC_OUTS_E{i}"), 1, wires::OUT[i]);
         }
@@ -851,92 +853,80 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_intf(&mut self) {
-        for (tcid, naming, dir, tkn, sb_delay) in [
-            (tcls::INTF, "INTF_W", Dir::W, "INT_INTF_L", None),
-            (tcls::INTF, "INTF_E", Dir::E, "INT_INTF_R", None),
+        for (tcid, naming, dir, tkn, extract_delay) in [
+            (tcls::INTF, "INTF_W", Dir::W, "INT_INTF_L", false),
+            (tcls::INTF, "INTF_E", Dir::E, "INT_INTF_R", false),
             (
                 tcls::INTF_IO,
                 "INTF_PSS",
                 Dir::W,
                 "INT_INTF_LEFT_TERM_PSS",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_IO,
                 "INTF_W_IO",
                 Dir::W,
                 "INT_INTF_LEFT_TERM_IO_FT",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
-            (
-                tcls::INTF_IO,
-                "INTF_W_IO",
-                Dir::W,
-                "INT_INTF_L_CMT",
-                Some(bslots::INTF_DELAY),
-            ),
-            (
-                tcls::INTF_IO,
-                "INTF_W_IO",
-                Dir::W,
-                "INT_INTF_L_IO",
-                Some(bslots::INTF_DELAY),
-            ),
+            (tcls::INTF_IO, "INTF_W_IO", Dir::W, "INT_INTF_L_CMT", true),
+            (tcls::INTF_IO, "INTF_W_IO", Dir::W, "INT_INTF_L_IO", true),
             (
                 tcls::INTF_IO,
                 "INTF_E_IO",
                 Dir::E,
                 "INT_INTF_RIGHT_TERM_IO",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_IO,
                 "INTF_E_IO",
                 Dir::E,
                 "INT_INTF_RIGHT_TERM_XP5IO_FT",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_W_PCIE",
                 Dir::W,
                 "INT_INTF_L_PCIE4",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_E_PCIE",
                 Dir::E,
                 "INT_INTF_R_PCIE4",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_W_GT",
                 Dir::W,
                 "INT_INTF_L_TERM_GT",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_E_GT",
                 Dir::E,
                 "INT_INTF_R_TERM_GT",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_E_GT",
                 Dir::E,
                 "INT_INTF_20_2_RIGHT_TERM_GT_FT",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_E_GT",
                 Dir::E,
                 "INT_INTF_RIGHT_TERM_HDIO_FT",
-                Some(bslots::INTF_DELAY),
+                true,
             ),
         ] {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn.as_ref()) {
@@ -944,10 +934,10 @@ impl IntMaker<'_> {
                 let mut xn = self
                     .builder
                     .xtile_id(tcid, naming, xy)
-                    .extract_intfs(bslots::INTF_TESTMUX, true)
+                    .extract_intfs(bslots::INTF_TESTMUX, Some(bslots::INTF_INT), true)
                     .ref_int_side(int_xy, dir, 0);
-                if let Some(sb) = sb_delay {
-                    xn = xn.extract_delay(sb);
+                if extract_delay {
+                    xn = xn.extract_delay();
                 }
                 xn.extract();
             }

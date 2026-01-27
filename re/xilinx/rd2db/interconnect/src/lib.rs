@@ -21,7 +21,7 @@ use prjcombine_re_xilinx_rawdump::{self as rawdump, Coord, NodeOrWire, Part};
 
 use assert_matches::assert_matches;
 
-use prjcombine_types::{bitvec::BitVec, bsdata::PolTileBit};
+use prjcombine_types::bsdata::PolTileBit;
 use rawdump::TileKindId;
 
 #[derive(Clone, Debug)]
@@ -78,7 +78,8 @@ pub struct XTileInfo<'a, 'b> {
     pub num_tiles: usize,
     pub refs: Vec<XTileRef>,
     pub tmux_bel: Option<BelSlotId>,
-    pub delay_sb: Option<BelSlotId>,
+    pub intf_sb: Option<BelSlotId>,
+    pub extract_delay: bool,
     pub has_intf_out_bufs: bool,
     pub skip_muxes: BTreeSet<WireSlotId>,
     pub optin_muxes: BTreeSet<WireSlotId>,
@@ -367,13 +368,19 @@ impl XTileInfo<'_, '_> {
         self
     }
 
-    pub fn extract_delay(mut self, sb: BelSlotId) -> Self {
-        self.delay_sb = Some(sb);
+    pub fn extract_delay(mut self) -> Self {
+        self.extract_delay = true;
         self
     }
 
-    pub fn extract_intfs(mut self, bel: BelSlotId, has_out_bufs: bool) -> Self {
-        self.tmux_bel = Some(bel);
+    pub fn extract_intfs(
+        mut self,
+        tmux_bel: BelSlotId,
+        sb_bel: Option<BelSlotId>,
+        has_out_bufs: bool,
+    ) -> Self {
+        self.tmux_bel = Some(tmux_bel);
+        self.intf_sb = sb_bel;
         self.has_intf_out_bufs = has_out_bufs;
         self
     }
@@ -536,6 +543,7 @@ impl XTileInfo<'_, '_> {
                                 ));
                             }
                         }
+                        IntfWireInNaming::Anonymous => (),
                     }
                 }
 
@@ -651,16 +659,14 @@ impl XTileInfo<'_, '_> {
             alt_names: Default::default(),
             alt_pips_to: Default::default(),
             alt_pips_from: Default::default(),
+            pips: vec![],
         };
 
-        let mut pips = BTreeMap::new();
         if self.raw_tiles.iter().any(|x| x.extract_muxes)
             || !self.optin_muxes.is_empty()
             || !self.optin_muxes_tile.is_empty()
         {
-            let mut sb_pips = Pips::default();
-            extractor.extract_muxes(&mut sb_pips);
-            pips.insert(self.switchbox.unwrap(), sb_pips);
+            extractor.extract_muxes();
         }
 
         extractor.extract_delay();
@@ -680,6 +686,7 @@ impl XTileInfo<'_, '_> {
             wn.alt_pips_from = extractor.alt_pips_from.remove(wire).unwrap_or_default();
         }
 
+        let pips = extractor.pips;
         for (bslot, bel) in extractor.bels {
             self.builder.insert_tcls_bel(tcid, bslot, bel);
         }
@@ -730,6 +737,7 @@ struct XTileExtractor<'a, 'b, 'c> {
     alt_names: BTreeMap<TileWireCoord, String>,
     alt_pips_to: BTreeMap<TileWireCoord, BTreeSet<TileWireCoord>>,
     alt_pips_from: BTreeMap<TileWireCoord, BTreeSet<TileWireCoord>>,
+    pips: Vec<(BelSlotId, Pips)>,
 }
 
 impl XTileExtractor<'_, '_, '_> {
@@ -1221,7 +1229,8 @@ impl XTileExtractor<'_, '_, '_> {
         None
     }
 
-    fn extract_muxes(&mut self, pips: &mut Pips) {
+    fn extract_muxes(&mut self) {
+        let mut pips = Pips::default();
         for &(wt, wf) in &self.xtile.force_pips {
             let mode = self.xtile.builder.pip_mode(wt.wire);
             pips.pips.insert((wt, wf), mode);
@@ -1351,14 +1360,17 @@ impl XTileExtractor<'_, '_, '_> {
                 }
             }
         }
+        self.pips.push((self.xtile.switchbox.unwrap(), pips));
     }
 
     fn extract_delay(&mut self) {
         let crd = self.xtile.raw_tiles[0].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
-        if let Some(sb) = self.xtile.delay_sb {
-            let mut items = vec![];
+        if let Some(sb) = self.xtile.intf_sb
+            && self.xtile.extract_delay
+        {
+            let mut pips = Pips::default();
             for &(wfi, wdi) in tk.pips.keys() {
                 let nwf = self.rd.lookup_wire_raw_force(crd, wfi);
                 let nwd = self.rd.lookup_wire_raw_force(crd, wdi);
@@ -1409,17 +1421,10 @@ impl XTileExtractor<'_, '_, '_> {
                         .delay_wires
                         .insert(wt, self.rd.wires[wdi].clone());
                     self.names.insert(nwt, (IntConnKind::Raw, wt));
-                    items.push(SwitchBoxItem::ProgDelay(ProgDelay {
-                        dst: wt,
-                        src: wf.pos(),
-                        bits: vec![],
-                        steps: vec![Default::default(), Default::default()],
-                    }));
+                    pips.pips.insert((wt, wf), PipMode::Delay);
                 }
             }
-            items.sort();
-            self.bels
-                .insert(sb, BelInfo::SwitchBox(SwitchBox { items }));
+            self.pips.push((sb, pips));
         }
     }
 
@@ -1427,8 +1432,8 @@ impl XTileExtractor<'_, '_, '_> {
         let crd = self.xtile.raw_tiles[0].xy;
         let tile = &self.rd.tiles[&crd];
         let tk = &self.rd.tile_kinds[tile.kind];
-        let mut out_muxes: HashMap<TileWireCoord, (Vec<TileWireCoord>, Option<TileWireCoord>)> =
-            HashMap::new();
+        let mut out_muxes: BTreeMap<TileWireCoord, (Vec<TileWireCoord>, Option<TileWireCoord>)> =
+            BTreeMap::new();
         for &(wfi, wti) in tk.pips.keys() {
             let nwt = self.rd.lookup_wire_raw_force(crd, wti);
             if let Some(&(_, wt)) = self.names.get(&nwt) {
@@ -1513,12 +1518,38 @@ impl XTileExtractor<'_, '_, '_> {
                 }
             }
         }
+        let mut pips = Pips::default();
+        for (&wt, (wfs, _)) in out_muxes.iter_mut() {
+            if let Some(&nwf) = self.xtile.builder.test_mux_ins_test.get(&wt.wire) {
+                let nwf = TileWireCoord {
+                    cell: wt.cell,
+                    wire: nwf,
+                };
+                self.tcls_naming
+                    .intf_wires_in
+                    .insert(nwf, IntfWireInNaming::Anonymous);
+                for &wf in wfs.iter() {
+                    pips.pips.insert((nwf, wf), PipMode::Mux);
+                }
+                *wfs = vec![nwf];
+            }
+            wfs.sort();
+        }
+        if !pips.pips.is_empty() {
+            self.pips.push((self.xtile.intf_sb.unwrap(), pips));
+        }
+        let num_groups = out_muxes.values().map(|(wfs, _)| wfs.len()).max().unwrap();
         let mut tm = TestMux {
+            bits: vec![],
+            groups: vec![Default::default(); num_groups],
+            bits_primary: Default::default(),
             wires: Default::default(),
-            bit: PolTileBit::DUMMY,
         };
         for (wt, (wfs, pwf)) in out_muxes {
-            let wfs = wfs.into_iter().map(|x| (x.pos(), BitVec::new())).collect();
+            let mut wfs = Vec::from_iter(wfs.into_iter().map(|x| Some(x.pos())));
+            while wfs.len() < num_groups {
+                wfs.push(None);
+            }
             let pwf = pwf.unwrap_or_else(|| TileWireCoord {
                 cell: wt.cell,
                 wire: self.xtile.builder.test_mux_ins[&wt.wire],
@@ -1527,7 +1558,6 @@ impl XTileExtractor<'_, '_, '_> {
                 wt,
                 TestMuxWire {
                     primary_src: pwf.pos(),
-                    bits: vec![],
                     test_src: wfs,
                 },
             );
@@ -1549,6 +1579,7 @@ pub enum PipMode {
     Pass,
     Buf,
     PermaBuf,
+    Delay,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -1576,6 +1607,7 @@ pub struct IntBuilder<'a> {
     extra_names_tile: HashMap<rawdump::TileKindId, HashMap<String, TileWireCoord>>,
     test_mux_pass: HashSet<WireSlotId>,
     test_mux_ins: HashMap<WireSlotId, WireSlotId>,
+    test_mux_ins_test: HashMap<WireSlotId, WireSlotId>,
     mux_to_ok: HashSet<WireSlotId>,
 }
 
@@ -1609,6 +1641,7 @@ impl<'a> IntBuilder<'a> {
             extra_names_tile: Default::default(),
             test_mux_pass: Default::default(),
             test_mux_ins: Default::default(),
+            test_mux_ins_test: Default::default(),
             mux_to_ok: Default::default(),
         }
     }
@@ -1835,6 +1868,10 @@ impl<'a> IntBuilder<'a> {
 
     pub fn mark_test_mux_in(&mut self, tmin: WireSlotId, wire: WireSlotId) {
         self.test_mux_ins.insert(wire, tmin);
+    }
+
+    pub fn mark_test_mux_in_test(&mut self, tmin: WireSlotId, wire: WireSlotId) {
+        self.test_mux_ins_test.insert(wire, tmin);
     }
 
     pub fn mark_optinv(&mut self, wire: WireSlotId, optinv: WireSlotId) {
@@ -2730,22 +2767,7 @@ impl<'a> IntBuilder<'a> {
             tcls.bels.insert(slot, bel);
         } else {
             let cur_bel = &mut tcls.bels[slot];
-            if let BelInfo::TestMux(cur_tm) = cur_bel
-                && let BelInfo::TestMux(tm) = bel
-            {
-                for &dst in cur_tm.wires.keys() {
-                    assert!(tm.wires.contains_key(&dst));
-                }
-                for (dst, tmux) in tm.wires {
-                    let cur_tmux = cur_tm.wires.get_mut(&dst).unwrap();
-                    assert_eq!(cur_tmux.primary_src, tmux.primary_src);
-                    for (w, bits) in tmux.test_src {
-                        cur_tmux.test_src.insert(w, bits);
-                    }
-                }
-            } else {
-                assert_eq!(bel, *cur_bel);
-            }
+            assert_eq!(bel, *cur_bel);
         }
     }
 
@@ -3668,15 +3690,16 @@ impl<'a> IntBuilder<'a> {
         int_xy: &[Coord],
         naming: impl AsRef<str>,
         bel: BelSlotId,
+        sb: Option<BelSlotId>,
         has_out_bufs: bool,
-        sb_delay: Option<BelSlotId>,
+        extract_delay: bool,
     ) {
         let mut x = self
             .xtile_id(tcid, naming.as_ref(), xy)
             .num_cells(int_xy.len())
-            .extract_intfs(bel, has_out_bufs);
-        if let Some(sb) = sb_delay {
-            x = x.extract_delay(sb);
+            .extract_intfs(bel, sb, has_out_bufs);
+        if extract_delay {
+            x = x.extract_delay();
         }
         for (i, &xy) in int_xy.iter().enumerate() {
             x = x.ref_int(xy, i);
@@ -3691,10 +3714,20 @@ impl<'a> IntBuilder<'a> {
         int_xy: Coord,
         naming: impl AsRef<str>,
         bel: BelSlotId,
+        sb: Option<BelSlotId>,
         has_out_bufs: bool,
-        sb_delay: Option<BelSlotId>,
+        extract_delay: bool,
     ) {
-        self.extract_intf_tile_multi_id(tcid, xy, &[int_xy], naming, bel, has_out_bufs, sb_delay);
+        self.extract_intf_tile_multi_id(
+            tcid,
+            xy,
+            &[int_xy],
+            naming,
+            bel,
+            sb,
+            has_out_bufs,
+            extract_delay,
+        );
     }
 
     pub fn extract_intf_id(
@@ -3704,8 +3737,9 @@ impl<'a> IntBuilder<'a> {
         tkn: impl AsRef<str>,
         naming: impl AsRef<str>,
         bel: BelSlotId,
+        sb: Option<BelSlotId>,
         has_out_bufs: bool,
-        sb_delay: Option<BelSlotId>,
+        extract_delay: bool,
     ) {
         for &xy in self.rd.tiles_by_kind_name(tkn.as_ref()) {
             let int_xy = self.walk_to_int(xy, !dir, false).unwrap();
@@ -3715,8 +3749,9 @@ impl<'a> IntBuilder<'a> {
                 int_xy,
                 naming.as_ref(),
                 bel,
+                sb,
                 has_out_bufs,
-                sb_delay,
+                extract_delay,
             );
         }
     }
@@ -3821,7 +3856,8 @@ impl<'a> IntBuilder<'a> {
             num_tiles: 1,
             refs: vec![],
             tmux_bel: None,
-            delay_sb: None,
+            intf_sb: None,
+            extract_delay: false,
             has_intf_out_bufs: false,
             skip_muxes: BTreeSet::new(),
             optin_muxes: BTreeSet::new(),
@@ -3864,6 +3900,14 @@ impl<'a> IntBuilder<'a> {
                     }
                     PipMode::Pass => {
                         passes.insert((wt, wf));
+                    }
+                    PipMode::Delay => {
+                        items.push(SwitchBoxItem::ProgDelay(ProgDelay {
+                            dst: wt,
+                            src: wf.pos(),
+                            bits: Default::default(),
+                            steps: vec![Default::default(); 2],
+                        }));
                     }
                 }
             }

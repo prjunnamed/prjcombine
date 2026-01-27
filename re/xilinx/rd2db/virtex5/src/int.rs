@@ -415,7 +415,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for i in 0..24 {
         builder.wire_names(wires::OUT[i], &[format!("LOGIC_OUTS{i}")]);
-        builder.mark_test_mux_in(wires::OUT_TMIN[i], wires::OUT[i]);
+        builder.mark_test_mux_in(wires::OUT_BEL[i], wires::OUT[i]);
+        builder.mark_test_mux_in_test(wires::OUT_TEST[i], wires::OUT[i]);
         let (wire_dbl, wire_pent, dir) = match i {
             12 => (wires::OUT_S12_DBL, wires::OUT_S12_PENT, Dir::S),
             15 => (wires::OUT_N15_DBL, wires::OUT_N15_PENT, Dir::N),
@@ -545,8 +546,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT_INTERFACE",
         "INTF",
         defs::bslots::INTF_TESTMUX,
+        Some(defs::bslots::INTF_INT),
         true,
-        None,
+        false,
     );
     for (n, tkn) in [
         ("GTX_LEFT", "GTX_LEFT_INT_INTERFACE"),
@@ -562,8 +564,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF_{n}"),
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            Some(defs::bslots::INTF_DELAY),
+            true,
         );
     }
 

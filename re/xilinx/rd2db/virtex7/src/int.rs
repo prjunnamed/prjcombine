@@ -395,7 +395,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             wires::OUT[i],
             &[format!("LOGIC_OUTS{i}"), format!("LOGIC_OUTS_L{i}")],
         );
-        builder.mark_test_mux_in(wires::OUT_TMIN[i], wires::OUT[i]);
+        builder.mark_test_mux_in(wires::OUT_BEL[i], wires::OUT[i]);
+        builder.mark_test_mux_in_test(wires::OUT_TEST[i], wires::OUT[i]);
     }
 
     for i in 0..4 {
@@ -484,8 +485,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF_{n}"),
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            None,
+            false,
         );
     }
     for (dir, n, tkn) in [
@@ -498,8 +500,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF_{n}"),
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            None,
+            false,
         );
     }
     for (dir, n, tkn) in [
@@ -522,8 +525,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF_{n}"),
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            Some(defs::bslots::INTF_DELAY),
+            true,
         );
     }
 

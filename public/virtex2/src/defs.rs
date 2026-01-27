@@ -132,9 +132,9 @@ target_defs! {
         }
 
         wire OUT_FAN[8]: bel;
-        wire OUT_FAN_TMIN[8]: bel;
+        wire OUT_FAN_BEL[8]: bel;
         wire OUT_SEC[24]: bel;
-        wire OUT_SEC_TMIN[24]: bel;
+        wire OUT_SEC_BEL[24]: bel;
         wire OUT_HALF0[18]: bel;
         wire OUT_HALF1[18]: bel;
         wire OUT_TEST[16]: bel;
@@ -232,13 +232,13 @@ target_defs! {
         wire IMUX_DATA[32]: mux;
 
         wire OUT_FAN[8]: bel;
-        wire OUT_FAN_TMIN[8]: bel;
+        wire OUT_FAN_BEL[8]: bel;
         wire OUT_SEC[16]: bel;
-        wire OUT_SEC_TMIN[16]: bel;
+        wire OUT_SEC_BEL[16]: bel;
         wire OUT_HALF0[4]: bel;
         wire OUT_HALF1[4]: bel;
-        wire OUT_HALF0_TMIN[4]: bel;
-        wire OUT_HALF1_TMIN[4]: bel;
+        wire OUT_HALF0_BEL[4]: bel;
+        wire OUT_HALF1_BEL[4]: bel;
 
         wire IMUX_BUFG_CLK[4]: mux;
         wire IMUX_BUFG_SEL[4]: mux;

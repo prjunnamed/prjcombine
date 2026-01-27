@@ -94,7 +94,8 @@ target_defs! {
     // wires belonging to interconnect left/right half-tiles
 
     wire OUT[32]: bel;
-    wire OUT_TMIN[32]: bel;
+    wire OUT_BEL[32]: bel;
+    wire OUT_TEST[32]: test;
     wire TEST[4]: test;
 
     if variant ultrascale {
@@ -219,7 +220,7 @@ target_defs! {
     }
 
     tile_slot INTF {
-        bel_slot INTF_DELAY: routing;
+        bel_slot INTF_INT: routing;
         bel_slot INTF_TESTMUX: routing;
         tile_class INTF {
             cell CELL;

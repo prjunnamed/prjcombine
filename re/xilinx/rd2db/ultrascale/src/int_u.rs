@@ -570,7 +570,9 @@ impl IntMaker<'_> {
             self.builder
                 .wire_names(wires::OUT[i], &[format!("LOGIC_OUTS_W{i}")]);
             self.builder
-                .mark_test_mux_in(wires::OUT_TMIN[i], wires::OUT[i]);
+                .mark_test_mux_in(wires::OUT_BEL[i], wires::OUT[i]);
+            self.builder
+                .mark_test_mux_in_test(wires::OUT_TEST[i], wires::OUT[i]);
             self.builder
                 .extra_name_sub(format!("LOGIC_OUTS_E{i}"), 1, wires::OUT[i]);
         }
@@ -738,43 +740,43 @@ impl IntMaker<'_> {
     }
 
     fn fill_tiles_intf(&mut self) {
-        for (tcid, naming, dir, tkn, sb_delay) in [
-            (tcls::INTF, "INTF_W", Dir::W, "INT_INTERFACE_L", None),
-            (tcls::INTF, "INTF_E", Dir::E, "INT_INTERFACE_R", None),
+        for (tcid, naming, dir, tkn, extract_delay) in [
+            (tcls::INTF, "INTF_W", Dir::W, "INT_INTERFACE_L", false),
+            (tcls::INTF, "INTF_E", Dir::E, "INT_INTERFACE_R", false),
             (
                 tcls::INTF_DELAY,
                 "INTF_W_IO",
                 Dir::W,
                 "INT_INT_INTERFACE_XIPHY_FT",
-                Some(defs::bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_W_PCIE",
                 Dir::W,
                 "INT_INTERFACE_PCIE_L",
-                Some(defs::bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_E_PCIE",
                 Dir::E,
                 "INT_INTERFACE_PCIE_R",
-                Some(defs::bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_W_GT",
                 Dir::W,
                 "INT_INT_INTERFACE_GT_LEFT_FT",
-                Some(defs::bslots::INTF_DELAY),
+                true,
             ),
             (
                 tcls::INTF_DELAY,
                 "INTF_E_GT",
                 Dir::E,
                 "INT_INTERFACE_GT_R",
-                Some(defs::bslots::INTF_DELAY),
+                true,
             ),
         ] {
             for &xy in self.builder.rd.tiles_by_kind_name(tkn.as_ref()) {
@@ -782,10 +784,14 @@ impl IntMaker<'_> {
                 let mut xn = self
                     .builder
                     .xtile_id(tcid, naming, xy)
-                    .extract_intfs(defs::bslots::INTF_TESTMUX, true)
+                    .extract_intfs(
+                        defs::bslots::INTF_TESTMUX,
+                        Some(defs::bslots::INTF_INT),
+                        true,
+                    )
                     .ref_int_side(int_xy, dir, 0);
-                if let Some(sb) = sb_delay {
-                    xn = xn.extract_delay(sb);
+                if extract_delay {
+                    xn = xn.extract_delay();
                 }
                 xn.extract();
             }

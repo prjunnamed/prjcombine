@@ -208,7 +208,7 @@ impl CollectorData {
                             }
                         }
                     }
-                    BelInfo::GroupTestMux(tmux) => {
+                    BelInfo::TestMux(tmux) => {
                         let Some(mut data) = self.tmux_group.remove(&(tcid, bslot)) else {
                             if missing_ok {
                                 continue;

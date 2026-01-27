@@ -33474,14 +33474,14 @@ intdb {
 	wire OUT_FAN[5]: bel;
 	wire OUT_FAN[6]: bel;
 	wire OUT_FAN[7]: bel;
-	wire OUT_FAN_TMIN[0]: bel;
-	wire OUT_FAN_TMIN[1]: bel;
-	wire OUT_FAN_TMIN[2]: bel;
-	wire OUT_FAN_TMIN[3]: bel;
-	wire OUT_FAN_TMIN[4]: bel;
-	wire OUT_FAN_TMIN[5]: bel;
-	wire OUT_FAN_TMIN[6]: bel;
-	wire OUT_FAN_TMIN[7]: bel;
+	wire OUT_FAN_BEL[0]: bel;
+	wire OUT_FAN_BEL[1]: bel;
+	wire OUT_FAN_BEL[2]: bel;
+	wire OUT_FAN_BEL[3]: bel;
+	wire OUT_FAN_BEL[4]: bel;
+	wire OUT_FAN_BEL[5]: bel;
+	wire OUT_FAN_BEL[6]: bel;
+	wire OUT_FAN_BEL[7]: bel;
 	wire OUT_SEC[0]: bel;
 	wire OUT_SEC[1]: bel;
 	wire OUT_SEC[2]: bel;
@@ -33498,22 +33498,22 @@ intdb {
 	wire OUT_SEC[13]: bel;
 	wire OUT_SEC[14]: bel;
 	wire OUT_SEC[15]: bel;
-	wire OUT_SEC_TMIN[0]: bel;
-	wire OUT_SEC_TMIN[1]: bel;
-	wire OUT_SEC_TMIN[2]: bel;
-	wire OUT_SEC_TMIN[3]: bel;
-	wire OUT_SEC_TMIN[4]: bel;
-	wire OUT_SEC_TMIN[5]: bel;
-	wire OUT_SEC_TMIN[6]: bel;
-	wire OUT_SEC_TMIN[7]: bel;
-	wire OUT_SEC_TMIN[8]: bel;
-	wire OUT_SEC_TMIN[9]: bel;
-	wire OUT_SEC_TMIN[10]: bel;
-	wire OUT_SEC_TMIN[11]: bel;
-	wire OUT_SEC_TMIN[12]: bel;
-	wire OUT_SEC_TMIN[13]: bel;
-	wire OUT_SEC_TMIN[14]: bel;
-	wire OUT_SEC_TMIN[15]: bel;
+	wire OUT_SEC_BEL[0]: bel;
+	wire OUT_SEC_BEL[1]: bel;
+	wire OUT_SEC_BEL[2]: bel;
+	wire OUT_SEC_BEL[3]: bel;
+	wire OUT_SEC_BEL[4]: bel;
+	wire OUT_SEC_BEL[5]: bel;
+	wire OUT_SEC_BEL[6]: bel;
+	wire OUT_SEC_BEL[7]: bel;
+	wire OUT_SEC_BEL[8]: bel;
+	wire OUT_SEC_BEL[9]: bel;
+	wire OUT_SEC_BEL[10]: bel;
+	wire OUT_SEC_BEL[11]: bel;
+	wire OUT_SEC_BEL[12]: bel;
+	wire OUT_SEC_BEL[13]: bel;
+	wire OUT_SEC_BEL[14]: bel;
+	wire OUT_SEC_BEL[15]: bel;
 	wire OUT_HALF0[0]: bel;
 	wire OUT_HALF0[1]: bel;
 	wire OUT_HALF0[2]: bel;
@@ -33522,14 +33522,14 @@ intdb {
 	wire OUT_HALF1[1]: bel;
 	wire OUT_HALF1[2]: bel;
 	wire OUT_HALF1[3]: bel;
-	wire OUT_HALF0_TMIN[0]: bel;
-	wire OUT_HALF0_TMIN[1]: bel;
-	wire OUT_HALF0_TMIN[2]: bel;
-	wire OUT_HALF0_TMIN[3]: bel;
-	wire OUT_HALF1_TMIN[0]: bel;
-	wire OUT_HALF1_TMIN[1]: bel;
-	wire OUT_HALF1_TMIN[2]: bel;
-	wire OUT_HALF1_TMIN[3]: bel;
+	wire OUT_HALF0_BEL[0]: bel;
+	wire OUT_HALF0_BEL[1]: bel;
+	wire OUT_HALF0_BEL[2]: bel;
+	wire OUT_HALF0_BEL[3]: bel;
+	wire OUT_HALF1_BEL[0]: bel;
+	wire OUT_HALF1_BEL[1]: bel;
+	wire OUT_HALF1_BEL[2]: bel;
+	wire OUT_HALF1_BEL[3]: bel;
 	wire IMUX_BUFG_CLK[0]: mux;
 	wire IMUX_BUFG_CLK[1]: mux;
 	wire IMUX_BUFG_CLK[2]: mux;
@@ -78677,54 +78677,54 @@ intdb {
 				input OPMODE5 = CELL[1].IMUX_DATA[30];
 				input OPMODE6 = CELL[1].IMUX_DATA[5];
 				input OPMODE7 = CELL[1].IMUX_DATA[22];
-				output P0 = CELL[0].OUT_FAN_TMIN[6];
-				output P1 = CELL[0].OUT_FAN_TMIN[1];
-				output P10 = CELL[0].OUT_SEC_TMIN[15];
-				output P11 = CELL[0].OUT_SEC_TMIN[14];
-				output P12 = CELL[1].OUT_FAN_TMIN[6];
-				output P13 = CELL[1].OUT_FAN_TMIN[1];
-				output P14 = CELL[1].OUT_FAN_TMIN[0];
-				output P15 = CELL[1].OUT_FAN_TMIN[5];
-				output P16 = CELL[1].OUT_FAN_TMIN[4];
-				output P17 = CELL[1].OUT_SEC_TMIN[13];
-				output P18 = CELL[1].OUT_SEC_TMIN[12];
-				output P19 = CELL[1].OUT_FAN_TMIN[3];
-				output P2 = CELL[0].OUT_FAN_TMIN[0];
-				output P20 = CELL[1].OUT_FAN_TMIN[2];
-				output P21 = CELL[1].OUT_FAN_TMIN[7];
-				output P22 = CELL[1].OUT_SEC_TMIN[15];
-				output P23 = CELL[1].OUT_SEC_TMIN[14];
-				output P24 = CELL[2].OUT_FAN_TMIN[6];
-				output P25 = CELL[2].OUT_FAN_TMIN[1];
-				output P26 = CELL[2].OUT_FAN_TMIN[0];
-				output P27 = CELL[2].OUT_FAN_TMIN[5];
-				output P28 = CELL[2].OUT_FAN_TMIN[4];
-				output P29 = CELL[2].OUT_SEC_TMIN[13];
-				output P3 = CELL[0].OUT_FAN_TMIN[5];
-				output P30 = CELL[2].OUT_SEC_TMIN[12];
-				output P31 = CELL[2].OUT_FAN_TMIN[3];
-				output P32 = CELL[2].OUT_FAN_TMIN[2];
-				output P33 = CELL[2].OUT_FAN_TMIN[7];
-				output P34 = CELL[2].OUT_SEC_TMIN[15];
-				output P35 = CELL[2].OUT_SEC_TMIN[14];
-				output P36 = CELL[3].OUT_FAN_TMIN[6];
-				output P37 = CELL[3].OUT_FAN_TMIN[1];
-				output P38 = CELL[3].OUT_FAN_TMIN[0];
-				output P39 = CELL[3].OUT_FAN_TMIN[5];
-				output P4 = CELL[0].OUT_FAN_TMIN[4];
-				output P40 = CELL[3].OUT_FAN_TMIN[4];
-				output P41 = CELL[3].OUT_SEC_TMIN[13];
-				output P42 = CELL[3].OUT_SEC_TMIN[12];
-				output P43 = CELL[3].OUT_FAN_TMIN[3];
-				output P44 = CELL[3].OUT_FAN_TMIN[2];
-				output P45 = CELL[3].OUT_FAN_TMIN[7];
-				output P46 = CELL[3].OUT_SEC_TMIN[15];
-				output P47 = CELL[3].OUT_SEC_TMIN[14];
-				output P5 = CELL[0].OUT_SEC_TMIN[13];
-				output P6 = CELL[0].OUT_SEC_TMIN[12];
-				output P7 = CELL[0].OUT_FAN_TMIN[3];
-				output P8 = CELL[0].OUT_FAN_TMIN[2];
-				output P9 = CELL[0].OUT_FAN_TMIN[7];
+				output P0 = CELL[0].OUT_FAN_BEL[6];
+				output P1 = CELL[0].OUT_FAN_BEL[1];
+				output P10 = CELL[0].OUT_SEC_BEL[15];
+				output P11 = CELL[0].OUT_SEC_BEL[14];
+				output P12 = CELL[1].OUT_FAN_BEL[6];
+				output P13 = CELL[1].OUT_FAN_BEL[1];
+				output P14 = CELL[1].OUT_FAN_BEL[0];
+				output P15 = CELL[1].OUT_FAN_BEL[5];
+				output P16 = CELL[1].OUT_FAN_BEL[4];
+				output P17 = CELL[1].OUT_SEC_BEL[13];
+				output P18 = CELL[1].OUT_SEC_BEL[12];
+				output P19 = CELL[1].OUT_FAN_BEL[3];
+				output P2 = CELL[0].OUT_FAN_BEL[0];
+				output P20 = CELL[1].OUT_FAN_BEL[2];
+				output P21 = CELL[1].OUT_FAN_BEL[7];
+				output P22 = CELL[1].OUT_SEC_BEL[15];
+				output P23 = CELL[1].OUT_SEC_BEL[14];
+				output P24 = CELL[2].OUT_FAN_BEL[6];
+				output P25 = CELL[2].OUT_FAN_BEL[1];
+				output P26 = CELL[2].OUT_FAN_BEL[0];
+				output P27 = CELL[2].OUT_FAN_BEL[5];
+				output P28 = CELL[2].OUT_FAN_BEL[4];
+				output P29 = CELL[2].OUT_SEC_BEL[13];
+				output P3 = CELL[0].OUT_FAN_BEL[5];
+				output P30 = CELL[2].OUT_SEC_BEL[12];
+				output P31 = CELL[2].OUT_FAN_BEL[3];
+				output P32 = CELL[2].OUT_FAN_BEL[2];
+				output P33 = CELL[2].OUT_FAN_BEL[7];
+				output P34 = CELL[2].OUT_SEC_BEL[15];
+				output P35 = CELL[2].OUT_SEC_BEL[14];
+				output P36 = CELL[3].OUT_FAN_BEL[6];
+				output P37 = CELL[3].OUT_FAN_BEL[1];
+				output P38 = CELL[3].OUT_FAN_BEL[0];
+				output P39 = CELL[3].OUT_FAN_BEL[5];
+				output P4 = CELL[0].OUT_FAN_BEL[4];
+				output P40 = CELL[3].OUT_FAN_BEL[4];
+				output P41 = CELL[3].OUT_SEC_BEL[13];
+				output P42 = CELL[3].OUT_SEC_BEL[12];
+				output P43 = CELL[3].OUT_FAN_BEL[3];
+				output P44 = CELL[3].OUT_FAN_BEL[2];
+				output P45 = CELL[3].OUT_FAN_BEL[7];
+				output P46 = CELL[3].OUT_SEC_BEL[15];
+				output P47 = CELL[3].OUT_SEC_BEL[14];
+				output P5 = CELL[0].OUT_SEC_BEL[13];
+				output P6 = CELL[0].OUT_SEC_BEL[12];
+				output P7 = CELL[0].OUT_FAN_BEL[3];
+				output P8 = CELL[0].OUT_FAN_BEL[2];
+				output P9 = CELL[0].OUT_FAN_BEL[7];
 				input RSTA = CELL[0].IMUX_SR_OPTINV[0];
 				input RSTB = CELL[0].IMUX_SR_OPTINV[1];
 				input RSTC = CELL[0].IMUX_SR_OPTINV[2];
@@ -78735,90 +78735,90 @@ intdb {
 				input RSTP = CELL[1].IMUX_SR_OPTINV[1];
 			}
 
-			group_test_mux DSP_TESTMUX @[MAIN[3][1][46], MAIN[3][1][45]] {
+			test_mux DSP_TESTMUX @[MAIN[3][1][46], MAIN[3][1][45]] {
 				primary = 0b00,
 				test_group 0 = 0b01,
 				test_group 1 = 0b10,
-				} {
-				CELL[0].OUT_FAN[0] = CELL[0].OUT_FAN_TMIN[0] || [CELL[0].IMUX_DATA[11], CELL[0].IMUX_DATA[22]];
-				CELL[0].OUT_FAN[1] = CELL[0].OUT_FAN_TMIN[1] || [CELL[0].IMUX_DATA[14], CELL[0].IMUX_DATA[17]];
-				CELL[0].OUT_FAN[2] = CELL[0].OUT_FAN_TMIN[2] || [CELL[0].IMUX_DATA[16], CELL[0].IMUX_DATA[10]];
-				CELL[0].OUT_FAN[3] = CELL[0].OUT_FAN_TMIN[3] || [CELL[0].IMUX_DATA[8], CELL[0].IMUX_DATA[13]];
-				CELL[0].OUT_FAN[4] = CELL[0].OUT_FAN_TMIN[4] || [CELL[0].IMUX_DATA[27], CELL[0].IMUX_FAN_BY[2]];
-				CELL[0].OUT_FAN[5] = CELL[0].OUT_FAN_TMIN[5] || [CELL[0].IMUX_DATA[3], CELL[0].IMUX_FAN_BY[1]];
-				CELL[0].OUT_FAN[6] = CELL[0].OUT_FAN_TMIN[6] || [CELL[0].IMUX_DATA[6], CELL[0].IMUX_DATA[1]];
-				CELL[0].OUT_FAN[7] = CELL[0].OUT_FAN_TMIN[7] || [CELL[0].IMUX_DATA[24], CELL[0].IMUX_DATA[26]];
-				CELL[0].OUT_SEC[8] = CELL[0].OUT_SEC_TMIN[8] || [CELL[0].IMUX_SR_OPTINV[3], none];
-				CELL[0].OUT_SEC[9] = CELL[0].OUT_SEC_TMIN[9] || [CELL[0].IMUX_SR_OPTINV[2], none];
-				CELL[0].OUT_SEC[10] = CELL[0].OUT_SEC_TMIN[10] || [CELL[0].IMUX_SR_OPTINV[1], none];
-				CELL[0].OUT_SEC[11] = CELL[0].OUT_SEC_TMIN[11] || [CELL[0].IMUX_SR_OPTINV[0], none];
-				CELL[0].OUT_SEC[12] = CELL[0].OUT_SEC_TMIN[12] || [CELL[0].IMUX_DATA[0], CELL[0].IMUX_FAN_BY[3]];
-				CELL[0].OUT_SEC[13] = CELL[0].OUT_SEC_TMIN[13] || [CELL[0].IMUX_DATA[19], CELL[0].IMUX_FAN_BY[0]];
-				CELL[0].OUT_SEC[14] = CELL[0].OUT_SEC_TMIN[14] || [CELL[0].IMUX_DATA[21], CELL[3].IMUX_FAN_BY[0]];
-				CELL[0].OUT_SEC[15] = CELL[0].OUT_SEC_TMIN[15] || [CELL[0].IMUX_DATA[29], CELL[3].IMUX_DATA[30]];
-				CELL[1].OUT_FAN[0] = CELL[1].OUT_FAN_TMIN[0] || [CELL[1].IMUX_DATA[11], CELL[3].IMUX_FAN_BY[3]];
-				CELL[1].OUT_FAN[1] = CELL[1].OUT_FAN_TMIN[1] || [CELL[1].IMUX_DATA[14], CELL[3].IMUX_FAN_BY[1]];
-				CELL[1].OUT_FAN[2] = CELL[1].OUT_FAN_TMIN[2] || [CELL[1].IMUX_DATA[16], CELL[1].IMUX_FAN_BX[2]];
-				CELL[1].OUT_FAN[3] = CELL[1].OUT_FAN_TMIN[3] || [CELL[1].IMUX_DATA[8], CELL[1].IMUX_FAN_BY[0]];
-				CELL[1].OUT_FAN[4] = CELL[1].OUT_FAN_TMIN[4] || [CELL[1].IMUX_DATA[27], CELL[3].IMUX_DATA[10]];
-				CELL[1].OUT_FAN[5] = CELL[1].OUT_FAN_TMIN[5] || [CELL[1].IMUX_DATA[3], CELL[3].IMUX_DATA[5]];
-				CELL[1].OUT_FAN[6] = CELL[1].OUT_FAN_TMIN[6] || [CELL[1].IMUX_DATA[6], CELL[3].IMUX_FAN_BY[2]];
-				CELL[1].OUT_FAN[7] = CELL[1].OUT_FAN_TMIN[7] || [CELL[1].IMUX_DATA[24], CELL[1].IMUX_FAN_BY[2]];
-				CELL[1].OUT_SEC[8] = CELL[1].OUT_SEC_TMIN[8] || [CELL[1].IMUX_SR_OPTINV[3], none];
-				CELL[1].OUT_SEC[9] = CELL[1].OUT_SEC_TMIN[9] || [CELL[1].IMUX_SR_OPTINV[2], none];
-				CELL[1].OUT_SEC[10] = CELL[1].OUT_SEC_TMIN[10] || [CELL[1].IMUX_SR_OPTINV[1], none];
-				CELL[1].OUT_SEC[11] = CELL[1].OUT_SEC_TMIN[11] || [CELL[1].IMUX_SR_OPTINV[0], none];
-				CELL[1].OUT_SEC[12] = CELL[1].OUT_SEC_TMIN[12] || [CELL[1].IMUX_DATA[0], CELL[1].IMUX_FAN_BX[0]];
-				CELL[1].OUT_SEC[13] = CELL[1].OUT_SEC_TMIN[13] || [CELL[1].IMUX_DATA[19], CELL[3].IMUX_DATA[26]];
-				CELL[1].OUT_SEC[14] = CELL[1].OUT_SEC_TMIN[14] || [CELL[1].IMUX_DATA[21], CELL[1].IMUX_FAN_BY[1]];
-				CELL[1].OUT_SEC[15] = CELL[1].OUT_SEC_TMIN[15] || [CELL[1].IMUX_DATA[29], CELL[1].IMUX_FAN_BX[1]];
-				CELL[1].OUT_HALF0[0] = CELL[1].OUT_HALF0_TMIN[0] || [CELL[1].IMUX_DATA[1], none];
-				CELL[1].OUT_HALF0[1] = CELL[1].OUT_HALF0_TMIN[1] || [CELL[1].IMUX_DATA[9], none];
-				CELL[1].OUT_HALF0[2] = CELL[1].OUT_HALF0_TMIN[2] || [CELL[1].IMUX_DATA[25], none];
-				CELL[1].OUT_HALF0[3] = CELL[1].OUT_HALF0_TMIN[3] || [CELL[1].IMUX_DATA[17], none];
-				CELL[1].OUT_HALF1[0] = CELL[1].OUT_HALF1_TMIN[0] || [CELL[1].IMUX_DATA[13], none];
-				CELL[1].OUT_HALF1[1] = CELL[1].OUT_HALF1_TMIN[1] || [CELL[1].IMUX_DATA[30], none];
-				CELL[1].OUT_HALF1[2] = CELL[1].OUT_HALF1_TMIN[2] || [CELL[1].IMUX_DATA[22], none];
-				CELL[1].OUT_HALF1[3] = CELL[1].OUT_HALF1_TMIN[3] || [CELL[1].IMUX_DATA[5], none];
-				CELL[2].OUT_FAN[0] = CELL[2].OUT_FAN_TMIN[0] || [CELL[2].IMUX_DATA[11], CELL[1].IMUX_DATA[2]];
-				CELL[2].OUT_FAN[1] = CELL[2].OUT_FAN_TMIN[1] || [CELL[2].IMUX_DATA[14], CELL[1].IMUX_FAN_BY[3]];
-				CELL[2].OUT_FAN[2] = CELL[2].OUT_FAN_TMIN[2] || [CELL[2].IMUX_DATA[16], CELL[2].IMUX_FAN_BY[1]];
-				CELL[2].OUT_FAN[3] = CELL[2].OUT_FAN_TMIN[3] || [CELL[2].IMUX_DATA[8], CELL[2].IMUX_FAN_BX[1]];
-				CELL[2].OUT_FAN[4] = CELL[2].OUT_FAN_TMIN[4] || [CELL[2].IMUX_DATA[27], CELL[2].IMUX_FAN_BY[0]];
-				CELL[2].OUT_FAN[5] = CELL[2].OUT_FAN_TMIN[5] || [CELL[2].IMUX_DATA[3], CELL[2].IMUX_FAN_BX[0]];
-				CELL[2].OUT_FAN[6] = CELL[2].OUT_FAN_TMIN[6] || [CELL[2].IMUX_DATA[6], CELL[1].IMUX_FAN_BX[3]];
-				CELL[2].OUT_FAN[7] = CELL[2].OUT_FAN_TMIN[7] || [CELL[2].IMUX_DATA[24], CELL[2].IMUX_FAN_BX[3]];
-				CELL[2].OUT_SEC[7] = CELL[2].OUT_SEC_TMIN[7] || [CELL[2].IMUX_CLK_OPTINV[3], none];
-				CELL[2].OUT_SEC[8] = CELL[2].OUT_SEC_TMIN[8] || [CELL[2].IMUX_CE_OPTINV[3], none];
-				CELL[2].OUT_SEC[9] = CELL[2].OUT_SEC_TMIN[9] || [CELL[2].IMUX_CE_OPTINV[2], none];
-				CELL[2].OUT_SEC[10] = CELL[2].OUT_SEC_TMIN[10] || [CELL[2].IMUX_CE_OPTINV[1], none];
-				CELL[2].OUT_SEC[11] = CELL[2].OUT_SEC_TMIN[11] || [CELL[2].IMUX_CE_OPTINV[0], none];
-				CELL[2].OUT_SEC[12] = CELL[2].OUT_SEC_TMIN[12] || [CELL[2].IMUX_DATA[0], CELL[2].IMUX_FAN_BY[2]];
-				CELL[2].OUT_SEC[13] = CELL[2].OUT_SEC_TMIN[13] || [CELL[2].IMUX_DATA[19], CELL[2].IMUX_FAN_BX[2]];
-				CELL[2].OUT_SEC[14] = CELL[2].OUT_SEC_TMIN[14] || [CELL[2].IMUX_DATA[21], CELL[2].IMUX_DATA[2]];
-				CELL[2].OUT_SEC[15] = CELL[2].OUT_SEC_TMIN[15] || [CELL[2].IMUX_DATA[29], CELL[2].IMUX_FAN_BY[3]];
-				CELL[3].OUT_FAN[0] = CELL[3].OUT_FAN_TMIN[0] || [CELL[3].IMUX_DATA[11], CELL[0].IMUX_DATA[30]];
-				CELL[3].OUT_FAN[1] = CELL[3].OUT_FAN_TMIN[1] || [CELL[3].IMUX_DATA[14], CELL[0].IMUX_DATA[25]];
-				CELL[3].OUT_FAN[2] = CELL[3].OUT_FAN_TMIN[2] || [CELL[3].IMUX_DATA[16], CELL[0].IMUX_DATA[2]];
-				CELL[3].OUT_FAN[3] = CELL[3].OUT_FAN_TMIN[3] || [CELL[3].IMUX_DATA[8], CELL[0].IMUX_DATA[5]];
-				CELL[3].OUT_FAN[4] = CELL[3].OUT_FAN_TMIN[4] || [CELL[3].IMUX_DATA[27], CELL[0].IMUX_FAN_BX[2]];
-				CELL[3].OUT_FAN[5] = CELL[3].OUT_FAN_TMIN[5] || [CELL[3].IMUX_DATA[3], CELL[0].IMUX_FAN_BX[0]];
-				CELL[3].OUT_FAN[6] = CELL[3].OUT_FAN_TMIN[6] || [CELL[3].IMUX_DATA[6], CELL[0].IMUX_DATA[9]];
-				CELL[3].OUT_FAN[7] = CELL[3].OUT_FAN_TMIN[7] || [CELL[3].IMUX_DATA[24], CELL[0].IMUX_DATA[18]];
-				CELL[3].OUT_SEC[8] = CELL[3].OUT_SEC_TMIN[8] || [CELL[3].IMUX_CE_OPTINV[3], none];
-				CELL[3].OUT_SEC[9] = CELL[3].OUT_SEC_TMIN[9] || [CELL[3].IMUX_CE_OPTINV[2], none];
-				CELL[3].OUT_SEC[10] = CELL[3].OUT_SEC_TMIN[10] || [CELL[3].IMUX_CE_OPTINV[1], none];
-				CELL[3].OUT_SEC[11] = CELL[3].OUT_SEC_TMIN[11] || [CELL[3].IMUX_CE_OPTINV[0], none];
-				CELL[3].OUT_SEC[12] = CELL[3].OUT_SEC_TMIN[12] || [CELL[3].IMUX_DATA[0], CELL[0].IMUX_FAN_BX[3]];
-				CELL[3].OUT_SEC[13] = CELL[3].OUT_SEC_TMIN[13] || [CELL[3].IMUX_DATA[19], CELL[0].IMUX_FAN_BX[1]];
-				CELL[3].OUT_SEC[14] = CELL[3].OUT_SEC_TMIN[14] || [CELL[3].IMUX_DATA[21], CELL[3].IMUX_FAN_BX[0]];
-				CELL[3].OUT_SEC[15] = CELL[3].OUT_SEC_TMIN[15] || [CELL[3].IMUX_DATA[29], CELL[3].IMUX_DATA[22]];
-				CELL[3].OUT_HALF0[0] = CELL[3].OUT_HALF0_TMIN[0] || [CELL[3].IMUX_FAN_BX[2], none];
-				CELL[3].OUT_HALF0[1] = CELL[3].OUT_HALF0_TMIN[1] || [CELL[3].IMUX_FAN_BX[1], none];
-				CELL[3].OUT_HALF0[3] = CELL[3].OUT_HALF0_TMIN[3] || [CELL[3].IMUX_FAN_BX[3], none];
-				CELL[3].OUT_HALF1[0] = CELL[3].OUT_HALF1_TMIN[0] || [CELL[3].IMUX_DATA[13], none];
-				CELL[3].OUT_HALF1[1] = CELL[3].OUT_HALF1_TMIN[1] || [CELL[3].IMUX_DATA[2], none];
-				CELL[3].OUT_HALF1[3] = CELL[3].OUT_HALF1_TMIN[3] || [CELL[3].IMUX_DATA[18], none];
+			} {
+				CELL[0].OUT_FAN[0] = CELL[0].OUT_FAN_BEL[0] || [CELL[0].IMUX_DATA[11], CELL[0].IMUX_DATA[22]];
+				CELL[0].OUT_FAN[1] = CELL[0].OUT_FAN_BEL[1] || [CELL[0].IMUX_DATA[14], CELL[0].IMUX_DATA[17]];
+				CELL[0].OUT_FAN[2] = CELL[0].OUT_FAN_BEL[2] || [CELL[0].IMUX_DATA[16], CELL[0].IMUX_DATA[10]];
+				CELL[0].OUT_FAN[3] = CELL[0].OUT_FAN_BEL[3] || [CELL[0].IMUX_DATA[8], CELL[0].IMUX_DATA[13]];
+				CELL[0].OUT_FAN[4] = CELL[0].OUT_FAN_BEL[4] || [CELL[0].IMUX_DATA[27], CELL[0].IMUX_FAN_BY[2]];
+				CELL[0].OUT_FAN[5] = CELL[0].OUT_FAN_BEL[5] || [CELL[0].IMUX_DATA[3], CELL[0].IMUX_FAN_BY[1]];
+				CELL[0].OUT_FAN[6] = CELL[0].OUT_FAN_BEL[6] || [CELL[0].IMUX_DATA[6], CELL[0].IMUX_DATA[1]];
+				CELL[0].OUT_FAN[7] = CELL[0].OUT_FAN_BEL[7] || [CELL[0].IMUX_DATA[24], CELL[0].IMUX_DATA[26]];
+				CELL[0].OUT_SEC[8] = CELL[0].OUT_SEC_BEL[8] || [CELL[0].IMUX_SR_OPTINV[3], none];
+				CELL[0].OUT_SEC[9] = CELL[0].OUT_SEC_BEL[9] || [CELL[0].IMUX_SR_OPTINV[2], none];
+				CELL[0].OUT_SEC[10] = CELL[0].OUT_SEC_BEL[10] || [CELL[0].IMUX_SR_OPTINV[1], none];
+				CELL[0].OUT_SEC[11] = CELL[0].OUT_SEC_BEL[11] || [CELL[0].IMUX_SR_OPTINV[0], none];
+				CELL[0].OUT_SEC[12] = CELL[0].OUT_SEC_BEL[12] || [CELL[0].IMUX_DATA[0], CELL[0].IMUX_FAN_BY[3]];
+				CELL[0].OUT_SEC[13] = CELL[0].OUT_SEC_BEL[13] || [CELL[0].IMUX_DATA[19], CELL[0].IMUX_FAN_BY[0]];
+				CELL[0].OUT_SEC[14] = CELL[0].OUT_SEC_BEL[14] || [CELL[0].IMUX_DATA[21], CELL[3].IMUX_FAN_BY[0]];
+				CELL[0].OUT_SEC[15] = CELL[0].OUT_SEC_BEL[15] || [CELL[0].IMUX_DATA[29], CELL[3].IMUX_DATA[30]];
+				CELL[1].OUT_FAN[0] = CELL[1].OUT_FAN_BEL[0] || [CELL[1].IMUX_DATA[11], CELL[3].IMUX_FAN_BY[3]];
+				CELL[1].OUT_FAN[1] = CELL[1].OUT_FAN_BEL[1] || [CELL[1].IMUX_DATA[14], CELL[3].IMUX_FAN_BY[1]];
+				CELL[1].OUT_FAN[2] = CELL[1].OUT_FAN_BEL[2] || [CELL[1].IMUX_DATA[16], CELL[1].IMUX_FAN_BX[2]];
+				CELL[1].OUT_FAN[3] = CELL[1].OUT_FAN_BEL[3] || [CELL[1].IMUX_DATA[8], CELL[1].IMUX_FAN_BY[0]];
+				CELL[1].OUT_FAN[4] = CELL[1].OUT_FAN_BEL[4] || [CELL[1].IMUX_DATA[27], CELL[3].IMUX_DATA[10]];
+				CELL[1].OUT_FAN[5] = CELL[1].OUT_FAN_BEL[5] || [CELL[1].IMUX_DATA[3], CELL[3].IMUX_DATA[5]];
+				CELL[1].OUT_FAN[6] = CELL[1].OUT_FAN_BEL[6] || [CELL[1].IMUX_DATA[6], CELL[3].IMUX_FAN_BY[2]];
+				CELL[1].OUT_FAN[7] = CELL[1].OUT_FAN_BEL[7] || [CELL[1].IMUX_DATA[24], CELL[1].IMUX_FAN_BY[2]];
+				CELL[1].OUT_SEC[8] = CELL[1].OUT_SEC_BEL[8] || [CELL[1].IMUX_SR_OPTINV[3], none];
+				CELL[1].OUT_SEC[9] = CELL[1].OUT_SEC_BEL[9] || [CELL[1].IMUX_SR_OPTINV[2], none];
+				CELL[1].OUT_SEC[10] = CELL[1].OUT_SEC_BEL[10] || [CELL[1].IMUX_SR_OPTINV[1], none];
+				CELL[1].OUT_SEC[11] = CELL[1].OUT_SEC_BEL[11] || [CELL[1].IMUX_SR_OPTINV[0], none];
+				CELL[1].OUT_SEC[12] = CELL[1].OUT_SEC_BEL[12] || [CELL[1].IMUX_DATA[0], CELL[1].IMUX_FAN_BX[0]];
+				CELL[1].OUT_SEC[13] = CELL[1].OUT_SEC_BEL[13] || [CELL[1].IMUX_DATA[19], CELL[3].IMUX_DATA[26]];
+				CELL[1].OUT_SEC[14] = CELL[1].OUT_SEC_BEL[14] || [CELL[1].IMUX_DATA[21], CELL[1].IMUX_FAN_BY[1]];
+				CELL[1].OUT_SEC[15] = CELL[1].OUT_SEC_BEL[15] || [CELL[1].IMUX_DATA[29], CELL[1].IMUX_FAN_BX[1]];
+				CELL[1].OUT_HALF0[0] = CELL[1].OUT_HALF0_BEL[0] || [CELL[1].IMUX_DATA[1], none];
+				CELL[1].OUT_HALF0[1] = CELL[1].OUT_HALF0_BEL[1] || [CELL[1].IMUX_DATA[9], none];
+				CELL[1].OUT_HALF0[2] = CELL[1].OUT_HALF0_BEL[2] || [CELL[1].IMUX_DATA[25], none];
+				CELL[1].OUT_HALF0[3] = CELL[1].OUT_HALF0_BEL[3] || [CELL[1].IMUX_DATA[17], none];
+				CELL[1].OUT_HALF1[0] = CELL[1].OUT_HALF1_BEL[0] || [CELL[1].IMUX_DATA[13], none];
+				CELL[1].OUT_HALF1[1] = CELL[1].OUT_HALF1_BEL[1] || [CELL[1].IMUX_DATA[30], none];
+				CELL[1].OUT_HALF1[2] = CELL[1].OUT_HALF1_BEL[2] || [CELL[1].IMUX_DATA[22], none];
+				CELL[1].OUT_HALF1[3] = CELL[1].OUT_HALF1_BEL[3] || [CELL[1].IMUX_DATA[5], none];
+				CELL[2].OUT_FAN[0] = CELL[2].OUT_FAN_BEL[0] || [CELL[2].IMUX_DATA[11], CELL[1].IMUX_DATA[2]];
+				CELL[2].OUT_FAN[1] = CELL[2].OUT_FAN_BEL[1] || [CELL[2].IMUX_DATA[14], CELL[1].IMUX_FAN_BY[3]];
+				CELL[2].OUT_FAN[2] = CELL[2].OUT_FAN_BEL[2] || [CELL[2].IMUX_DATA[16], CELL[2].IMUX_FAN_BY[1]];
+				CELL[2].OUT_FAN[3] = CELL[2].OUT_FAN_BEL[3] || [CELL[2].IMUX_DATA[8], CELL[2].IMUX_FAN_BX[1]];
+				CELL[2].OUT_FAN[4] = CELL[2].OUT_FAN_BEL[4] || [CELL[2].IMUX_DATA[27], CELL[2].IMUX_FAN_BY[0]];
+				CELL[2].OUT_FAN[5] = CELL[2].OUT_FAN_BEL[5] || [CELL[2].IMUX_DATA[3], CELL[2].IMUX_FAN_BX[0]];
+				CELL[2].OUT_FAN[6] = CELL[2].OUT_FAN_BEL[6] || [CELL[2].IMUX_DATA[6], CELL[1].IMUX_FAN_BX[3]];
+				CELL[2].OUT_FAN[7] = CELL[2].OUT_FAN_BEL[7] || [CELL[2].IMUX_DATA[24], CELL[2].IMUX_FAN_BX[3]];
+				CELL[2].OUT_SEC[7] = CELL[2].OUT_SEC_BEL[7] || [CELL[2].IMUX_CLK_OPTINV[3], none];
+				CELL[2].OUT_SEC[8] = CELL[2].OUT_SEC_BEL[8] || [CELL[2].IMUX_CE_OPTINV[3], none];
+				CELL[2].OUT_SEC[9] = CELL[2].OUT_SEC_BEL[9] || [CELL[2].IMUX_CE_OPTINV[2], none];
+				CELL[2].OUT_SEC[10] = CELL[2].OUT_SEC_BEL[10] || [CELL[2].IMUX_CE_OPTINV[1], none];
+				CELL[2].OUT_SEC[11] = CELL[2].OUT_SEC_BEL[11] || [CELL[2].IMUX_CE_OPTINV[0], none];
+				CELL[2].OUT_SEC[12] = CELL[2].OUT_SEC_BEL[12] || [CELL[2].IMUX_DATA[0], CELL[2].IMUX_FAN_BY[2]];
+				CELL[2].OUT_SEC[13] = CELL[2].OUT_SEC_BEL[13] || [CELL[2].IMUX_DATA[19], CELL[2].IMUX_FAN_BX[2]];
+				CELL[2].OUT_SEC[14] = CELL[2].OUT_SEC_BEL[14] || [CELL[2].IMUX_DATA[21], CELL[2].IMUX_DATA[2]];
+				CELL[2].OUT_SEC[15] = CELL[2].OUT_SEC_BEL[15] || [CELL[2].IMUX_DATA[29], CELL[2].IMUX_FAN_BY[3]];
+				CELL[3].OUT_FAN[0] = CELL[3].OUT_FAN_BEL[0] || [CELL[3].IMUX_DATA[11], CELL[0].IMUX_DATA[30]];
+				CELL[3].OUT_FAN[1] = CELL[3].OUT_FAN_BEL[1] || [CELL[3].IMUX_DATA[14], CELL[0].IMUX_DATA[25]];
+				CELL[3].OUT_FAN[2] = CELL[3].OUT_FAN_BEL[2] || [CELL[3].IMUX_DATA[16], CELL[0].IMUX_DATA[2]];
+				CELL[3].OUT_FAN[3] = CELL[3].OUT_FAN_BEL[3] || [CELL[3].IMUX_DATA[8], CELL[0].IMUX_DATA[5]];
+				CELL[3].OUT_FAN[4] = CELL[3].OUT_FAN_BEL[4] || [CELL[3].IMUX_DATA[27], CELL[0].IMUX_FAN_BX[2]];
+				CELL[3].OUT_FAN[5] = CELL[3].OUT_FAN_BEL[5] || [CELL[3].IMUX_DATA[3], CELL[0].IMUX_FAN_BX[0]];
+				CELL[3].OUT_FAN[6] = CELL[3].OUT_FAN_BEL[6] || [CELL[3].IMUX_DATA[6], CELL[0].IMUX_DATA[9]];
+				CELL[3].OUT_FAN[7] = CELL[3].OUT_FAN_BEL[7] || [CELL[3].IMUX_DATA[24], CELL[0].IMUX_DATA[18]];
+				CELL[3].OUT_SEC[8] = CELL[3].OUT_SEC_BEL[8] || [CELL[3].IMUX_CE_OPTINV[3], none];
+				CELL[3].OUT_SEC[9] = CELL[3].OUT_SEC_BEL[9] || [CELL[3].IMUX_CE_OPTINV[2], none];
+				CELL[3].OUT_SEC[10] = CELL[3].OUT_SEC_BEL[10] || [CELL[3].IMUX_CE_OPTINV[1], none];
+				CELL[3].OUT_SEC[11] = CELL[3].OUT_SEC_BEL[11] || [CELL[3].IMUX_CE_OPTINV[0], none];
+				CELL[3].OUT_SEC[12] = CELL[3].OUT_SEC_BEL[12] || [CELL[3].IMUX_DATA[0], CELL[0].IMUX_FAN_BX[3]];
+				CELL[3].OUT_SEC[13] = CELL[3].OUT_SEC_BEL[13] || [CELL[3].IMUX_DATA[19], CELL[0].IMUX_FAN_BX[1]];
+				CELL[3].OUT_SEC[14] = CELL[3].OUT_SEC_BEL[14] || [CELL[3].IMUX_DATA[21], CELL[3].IMUX_FAN_BX[0]];
+				CELL[3].OUT_SEC[15] = CELL[3].OUT_SEC_BEL[15] || [CELL[3].IMUX_DATA[29], CELL[3].IMUX_DATA[22]];
+				CELL[3].OUT_HALF0[0] = CELL[3].OUT_HALF0_BEL[0] || [CELL[3].IMUX_FAN_BX[2], none];
+				CELL[3].OUT_HALF0[1] = CELL[3].OUT_HALF0_BEL[1] || [CELL[3].IMUX_FAN_BX[1], none];
+				CELL[3].OUT_HALF0[3] = CELL[3].OUT_HALF0_BEL[3] || [CELL[3].IMUX_FAN_BX[3], none];
+				CELL[3].OUT_HALF1[0] = CELL[3].OUT_HALF1_BEL[0] || [CELL[3].IMUX_DATA[13], none];
+				CELL[3].OUT_HALF1[1] = CELL[3].OUT_HALF1_BEL[1] || [CELL[3].IMUX_DATA[2], none];
+				CELL[3].OUT_HALF1[3] = CELL[3].OUT_HALF1_BEL[3] || [CELL[3].IMUX_DATA[18], none];
 			}
 
 			// wire CELL[0].IMUX_SR_OPTINV[0]      DSP.RSTA
@@ -78857,18 +78857,18 @@ intdb {
 			// wire CELL[0].IMUX_DATA[27]          DSP.C4
 			// wire CELL[0].IMUX_DATA[29]          DSP.C10
 			// wire CELL[0].IMUX_DATA[30]          DSP.D2
-			// wire CELL[0].OUT_FAN_TMIN[0]        DSP.P2
-			// wire CELL[0].OUT_FAN_TMIN[1]        DSP.P1
-			// wire CELL[0].OUT_FAN_TMIN[2]        DSP.P8
-			// wire CELL[0].OUT_FAN_TMIN[3]        DSP.P7
-			// wire CELL[0].OUT_FAN_TMIN[4]        DSP.P4
-			// wire CELL[0].OUT_FAN_TMIN[5]        DSP.P3
-			// wire CELL[0].OUT_FAN_TMIN[6]        DSP.P0
-			// wire CELL[0].OUT_FAN_TMIN[7]        DSP.P9
-			// wire CELL[0].OUT_SEC_TMIN[12]       DSP.P6
-			// wire CELL[0].OUT_SEC_TMIN[13]       DSP.P5
-			// wire CELL[0].OUT_SEC_TMIN[14]       DSP.P11
-			// wire CELL[0].OUT_SEC_TMIN[15]       DSP.P10
+			// wire CELL[0].OUT_FAN_BEL[0]         DSP.P2
+			// wire CELL[0].OUT_FAN_BEL[1]         DSP.P1
+			// wire CELL[0].OUT_FAN_BEL[2]         DSP.P8
+			// wire CELL[0].OUT_FAN_BEL[3]         DSP.P7
+			// wire CELL[0].OUT_FAN_BEL[4]         DSP.P4
+			// wire CELL[0].OUT_FAN_BEL[5]         DSP.P3
+			// wire CELL[0].OUT_FAN_BEL[6]         DSP.P0
+			// wire CELL[0].OUT_FAN_BEL[7]         DSP.P9
+			// wire CELL[0].OUT_SEC_BEL[12]        DSP.P6
+			// wire CELL[0].OUT_SEC_BEL[13]        DSP.P5
+			// wire CELL[0].OUT_SEC_BEL[14]        DSP.P11
+			// wire CELL[0].OUT_SEC_BEL[15]        DSP.P10
 			// wire CELL[1].IMUX_SR_OPTINV[0]      DSP.RSTOPMODE
 			// wire CELL[1].IMUX_SR_OPTINV[1]      DSP.RSTP
 			// wire CELL[1].IMUX_SR_OPTINV[2]      DSP.RSTM
@@ -78902,18 +78902,18 @@ intdb {
 			// wire CELL[1].IMUX_DATA[27]          DSP.C16
 			// wire CELL[1].IMUX_DATA[29]          DSP.C22
 			// wire CELL[1].IMUX_DATA[30]          DSP.OPMODE5
-			// wire CELL[1].OUT_FAN_TMIN[0]        DSP.P14
-			// wire CELL[1].OUT_FAN_TMIN[1]        DSP.P13
-			// wire CELL[1].OUT_FAN_TMIN[2]        DSP.P20
-			// wire CELL[1].OUT_FAN_TMIN[3]        DSP.P19
-			// wire CELL[1].OUT_FAN_TMIN[4]        DSP.P16
-			// wire CELL[1].OUT_FAN_TMIN[5]        DSP.P15
-			// wire CELL[1].OUT_FAN_TMIN[6]        DSP.P12
-			// wire CELL[1].OUT_FAN_TMIN[7]        DSP.P21
-			// wire CELL[1].OUT_SEC_TMIN[12]       DSP.P18
-			// wire CELL[1].OUT_SEC_TMIN[13]       DSP.P17
-			// wire CELL[1].OUT_SEC_TMIN[14]       DSP.P23
-			// wire CELL[1].OUT_SEC_TMIN[15]       DSP.P22
+			// wire CELL[1].OUT_FAN_BEL[0]         DSP.P14
+			// wire CELL[1].OUT_FAN_BEL[1]         DSP.P13
+			// wire CELL[1].OUT_FAN_BEL[2]         DSP.P20
+			// wire CELL[1].OUT_FAN_BEL[3]         DSP.P19
+			// wire CELL[1].OUT_FAN_BEL[4]         DSP.P16
+			// wire CELL[1].OUT_FAN_BEL[5]         DSP.P15
+			// wire CELL[1].OUT_FAN_BEL[6]         DSP.P12
+			// wire CELL[1].OUT_FAN_BEL[7]         DSP.P21
+			// wire CELL[1].OUT_SEC_BEL[12]        DSP.P18
+			// wire CELL[1].OUT_SEC_BEL[13]        DSP.P17
+			// wire CELL[1].OUT_SEC_BEL[14]        DSP.P23
+			// wire CELL[1].OUT_SEC_BEL[15]        DSP.P22
 			// wire CELL[2].IMUX_CLK_OPTINV[3]     DSP.CLK
 			// wire CELL[2].IMUX_CE_OPTINV[0]      DSP.CEOPMODE
 			// wire CELL[2].IMUX_CE_OPTINV[1]      DSP.CEP
@@ -78940,18 +78940,18 @@ intdb {
 			// wire CELL[2].IMUX_DATA[24]          DSP.C33
 			// wire CELL[2].IMUX_DATA[27]          DSP.C28
 			// wire CELL[2].IMUX_DATA[29]          DSP.C34
-			// wire CELL[2].OUT_FAN_TMIN[0]        DSP.P26
-			// wire CELL[2].OUT_FAN_TMIN[1]        DSP.P25
-			// wire CELL[2].OUT_FAN_TMIN[2]        DSP.P32
-			// wire CELL[2].OUT_FAN_TMIN[3]        DSP.P31
-			// wire CELL[2].OUT_FAN_TMIN[4]        DSP.P28
-			// wire CELL[2].OUT_FAN_TMIN[5]        DSP.P27
-			// wire CELL[2].OUT_FAN_TMIN[6]        DSP.P24
-			// wire CELL[2].OUT_FAN_TMIN[7]        DSP.P33
-			// wire CELL[2].OUT_SEC_TMIN[12]       DSP.P30
-			// wire CELL[2].OUT_SEC_TMIN[13]       DSP.P29
-			// wire CELL[2].OUT_SEC_TMIN[14]       DSP.P35
-			// wire CELL[2].OUT_SEC_TMIN[15]       DSP.P34
+			// wire CELL[2].OUT_FAN_BEL[0]         DSP.P26
+			// wire CELL[2].OUT_FAN_BEL[1]         DSP.P25
+			// wire CELL[2].OUT_FAN_BEL[2]         DSP.P32
+			// wire CELL[2].OUT_FAN_BEL[3]         DSP.P31
+			// wire CELL[2].OUT_FAN_BEL[4]         DSP.P28
+			// wire CELL[2].OUT_FAN_BEL[5]         DSP.P27
+			// wire CELL[2].OUT_FAN_BEL[6]         DSP.P24
+			// wire CELL[2].OUT_FAN_BEL[7]         DSP.P33
+			// wire CELL[2].OUT_SEC_BEL[12]        DSP.P30
+			// wire CELL[2].OUT_SEC_BEL[13]        DSP.P29
+			// wire CELL[2].OUT_SEC_BEL[14]        DSP.P35
+			// wire CELL[2].OUT_SEC_BEL[15]        DSP.P34
 			// wire CELL[3].IMUX_CE_OPTINV[0]      DSP.CEA
 			// wire CELL[3].IMUX_CE_OPTINV[1]      DSP.CEB
 			// wire CELL[3].IMUX_CE_OPTINV[2]      DSP.CEC
@@ -78984,18 +78984,18 @@ intdb {
 			// wire CELL[3].IMUX_DATA[27]          DSP.C40
 			// wire CELL[3].IMUX_DATA[29]          DSP.C46
 			// wire CELL[3].IMUX_DATA[30]          DSP.B10
-			// wire CELL[3].OUT_FAN_TMIN[0]        DSP.P38
-			// wire CELL[3].OUT_FAN_TMIN[1]        DSP.P37
-			// wire CELL[3].OUT_FAN_TMIN[2]        DSP.P44
-			// wire CELL[3].OUT_FAN_TMIN[3]        DSP.P43
-			// wire CELL[3].OUT_FAN_TMIN[4]        DSP.P40
-			// wire CELL[3].OUT_FAN_TMIN[5]        DSP.P39
-			// wire CELL[3].OUT_FAN_TMIN[6]        DSP.P36
-			// wire CELL[3].OUT_FAN_TMIN[7]        DSP.P45
-			// wire CELL[3].OUT_SEC_TMIN[12]       DSP.P42
-			// wire CELL[3].OUT_SEC_TMIN[13]       DSP.P41
-			// wire CELL[3].OUT_SEC_TMIN[14]       DSP.P47
-			// wire CELL[3].OUT_SEC_TMIN[15]       DSP.P46
+			// wire CELL[3].OUT_FAN_BEL[0]         DSP.P38
+			// wire CELL[3].OUT_FAN_BEL[1]         DSP.P37
+			// wire CELL[3].OUT_FAN_BEL[2]         DSP.P44
+			// wire CELL[3].OUT_FAN_BEL[3]         DSP.P43
+			// wire CELL[3].OUT_FAN_BEL[4]         DSP.P40
+			// wire CELL[3].OUT_FAN_BEL[5]         DSP.P39
+			// wire CELL[3].OUT_FAN_BEL[6]         DSP.P36
+			// wire CELL[3].OUT_FAN_BEL[7]         DSP.P45
+			// wire CELL[3].OUT_SEC_BEL[12]        DSP.P42
+			// wire CELL[3].OUT_SEC_BEL[13]        DSP.P41
+			// wire CELL[3].OUT_SEC_BEL[14]        DSP.P47
+			// wire CELL[3].OUT_SEC_BEL[15]        DSP.P46
 		}
 
 		tile_class DCM_S3 {

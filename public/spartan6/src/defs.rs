@@ -121,7 +121,8 @@ target_defs! {
     wire IMUX_LOGICIN52_N: branch S;
     wire IMUX_LOGICIN60_N: branch S;
     wire OUT[24]: bel;
-    wire OUT_TMIN[24]: bel;
+    wire OUT_BEL[24]: bel;
+    wire OUT_TEST[24]: test;
     wire IMUX_CLK_GCLK[2]: mux;
 
     bitrect INT = vertical (22, rev 64);
@@ -146,11 +147,16 @@ target_defs! {
     }
 
     tile_slot INTF {
+        bel_slot INTF_INT: routing;
         bel_slot INTF_TESTMUX: routing;
 
         tile_class INTF, INTF_IOI, INTF_CMT, INTF_CMT_IOI {
             cell CELL;
-            bitrect MAIN: INT;
+            if tile_class [INTF, INTF_IOI] {
+                bitrect MAIN: INT;
+            } else {
+                bitrect MAIN: CLE_CLK;
+            }
         }
     }
 

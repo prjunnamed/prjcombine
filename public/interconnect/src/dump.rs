@@ -302,59 +302,9 @@ impl TileClass {
                     }
                     writeln!(o, "\t\t\t}}")?;
                 }
+                BelInfo::OldTestMux => unreachable!(),
                 BelInfo::TestMux(tmux) => {
-                    writeln!(
-                        o,
-                        "\t\t\ttest_mux {slot} @{bit} {{",
-                        slot = db.bel_slots.key(slot),
-                        bit = self.dump_polbit(tmux.bit)
-                    )?;
-                    for (dst, tmwire) in &tmux.wires {
-                        write!(
-                            o,
-                            "\t\t\t\t{dst} = {psrc} || ",
-                            dst = dst.to_string(db, self),
-                            psrc = tmwire.primary_src.to_string(db, self),
-                        )?;
-                        if tmwire.bits.is_empty() {
-                            let mut first = true;
-                            for src in tmwire.test_src.keys() {
-                                if !first {
-                                    write!(o, " | ")?;
-                                }
-                                first = false;
-                                write!(o, "{src}", src = src.to_string(db, self))?;
-                            }
-                            writeln!(o, ";")?;
-                        } else {
-                            write!(o, "mux @[")?;
-                            let mut first = true;
-                            for &bit in tmwire.bits.iter().rev() {
-                                if !first {
-                                    write!(o, ", ")?;
-                                }
-                                first = false;
-                                write!(o, "{}", self.dump_bit(bit))?;
-                            }
-                            writeln!(o, "] {{")?;
-                            for (src, v) in &tmwire.test_src {
-                                writeln!(
-                                    o,
-                                    "\t\t\t\t\t{src} = 0b{v},",
-                                    src = src.to_string(db, self)
-                                )?;
-                            }
-                            writeln!(o, "\t\t\t\t}}")?;
-                        }
-                    }
-                    writeln!(o, "\t\t\t}}")?;
-                }
-                BelInfo::GroupTestMux(tmux) => {
-                    write!(
-                        o,
-                        "\t\t\tgroup_test_mux {slot}",
-                        slot = db.bel_slots.key(slot),
-                    )?;
+                    write!(o, "\t\t\ttest_mux {slot}", slot = db.bel_slots.key(slot),)?;
                     if tmux.bits.is_empty() {
                         writeln!(o, " #{n} {{", n = tmux.groups.len())?;
                     } else {
@@ -372,7 +322,7 @@ impl TileClass {
                         for (idx, v) in tmux.groups.iter().enumerate() {
                             writeln!(o, "\t\t\t\ttest_group {idx} = 0b{v},")?;
                         }
-                        writeln!(o, "\t\t\t\t}} {{")?;
+                        writeln!(o, "\t\t\t}} {{")?;
                     }
                     for (dst, tmwire) in &tmux.wires {
                         write!(

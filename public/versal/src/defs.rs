@@ -52,7 +52,8 @@ target_defs! {
     wire OUT[48]: bel;
     // only a few actually exist
     wire OUT_S[48]: branch N;
-    wire OUT_TMIN[48]: bel;
+    wire OUT_BEL[48]: bel;
+    wire OUT_TEST[48]: test;
     wire OUT_CLE[48]: branch INTF;
 
     wire SDQNODE[128]: mux;
@@ -154,7 +155,7 @@ target_defs! {
     tile_slot INTF {
         bel_slot INTF_INT: routing;
         bel_slot INTF_TESTMUX: routing;
-        bel_slot INTF_DELAY: routing;
+        bel_slot INTF_TEST_INT: routing;
         bel_slot IRI[4]: legacy;
 
         tile_class INTF_W, INTF_W_HB, INTF_W_HDIO, INTF_W_PSS {

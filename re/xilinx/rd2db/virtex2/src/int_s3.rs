@@ -2,12 +2,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, BelPin, GroupTestMux, GroupTestMuxWire, IntDb, LegacyBel, TileWireCoord},
+    db::{BelInfo, BelPin, IntDb, LegacyBel, TileWireCoord},
     dir::{Dir, DirMap},
 };
 use prjcombine_re_xilinx_naming::db::{BelNaming, BelPinNaming, NamingDb, PipNaming, RawTileId};
 use prjcombine_re_xilinx_rawdump::{Coord, Part};
-use prjcombine_types::bitvec::BitVec;
 use prjcombine_virtex2::{defs, defs::spartan3::ccls, defs::spartan3::tcls, defs::spartan3::wires};
 
 use prjcombine_re_xilinx_rd2db_interconnect::IntBuilder;
@@ -516,7 +515,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &format!("CNR_D_O_FAN_B{i}")[..],
             ],
         );
-        builder.mark_test_mux_in(wires::OUT_FAN_TMIN[i], wires::OUT_FAN[i]);
+        builder.mark_test_mux_in(wires::OUT_FAN_BEL[i], wires::OUT_FAN[i]);
     }
 
     for i in 0..16 {
@@ -629,7 +628,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &format!("CNR_D_OUT_B{i}")[..],
             ],
         );
-        builder.mark_test_mux_in(wires::OUT_SEC_TMIN[i], wires::OUT_SEC[i]);
+        builder.mark_test_mux_in(wires::OUT_SEC_BEL[i], wires::OUT_SEC[i]);
     }
     builder.stub_out("STUB_IOIS_X3");
     builder.stub_out("STUB_IOIS_Y3");
@@ -637,8 +636,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
     builder.stub_out("STUB_IOIS_YQ3");
 
     for (j, (ws, tmin)) in [
-        (wires::OUT_HALF0, wires::OUT_HALF0_TMIN),
-        (wires::OUT_HALF1, wires::OUT_HALF1_TMIN),
+        (wires::OUT_HALF0, wires::OUT_HALF0_BEL),
+        (wires::OUT_HALF1, wires::OUT_HALF1_BEL),
     ]
     .into_iter()
     .enumerate()
@@ -3101,7 +3100,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 let mut x = builder
                     .xtile_id(tcls::DSP, naming, xy)
                     .num_cells(int_xy.len())
-                    .extract_intfs(defs::bslots::DSP_TESTMUX, false)
+                    .extract_intfs(defs::bslots::DSP_TESTMUX, None, false)
                     .bel(bel_dsp.clone())
                     .force_test_mux_in();
                 for (i, &xy) in int_xy.iter().enumerate() {
@@ -3122,34 +3121,23 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         }
 
         let tcls = &mut builder.db.tile_classes[tcls::DSP];
-        let BelInfo::TestMux(tm) = tcls.bels.remove(defs::bslots::DSP_TESTMUX).unwrap() else {
+        let BelInfo::TestMux(ref mut tm) = tcls.bels[defs::bslots::DSP_TESTMUX] else {
             unreachable!()
         };
-        let mut gtm = GroupTestMux {
-            bits: vec![],
-            groups: vec![BitVec::new(), BitVec::new()],
-            bits_primary: BitVec::new(),
-            wires: Default::default(),
-        };
-        for (dst, tmux) in tm.wires {
-            let mut gtmux = GroupTestMuxWire {
-                primary_src: tmux.primary_src,
-                test_src: vec![None, None],
-            };
-            let num = tmux.test_src.len();
-            for src in tmux.test_src.into_keys() {
+        for tout in tm.wires.values_mut() {
+            let mut test_src = vec![None, None];
+            let num = tout.test_src.iter().flatten().count();
+            for &src in tout.test_src.iter().flatten() {
                 let group = if num == 2 && !wires_c.contains(&src.tw) {
                     1
                 } else {
                     0
                 };
-                assert_eq!(gtmux.test_src[group], None);
-                gtmux.test_src[group] = Some(src);
+                assert_eq!(test_src[group], None);
+                test_src[group] = Some(src);
             }
-            gtm.wires.insert(dst, gtmux);
+            tout.test_src = test_src;
         }
-        tcls.bels
-            .insert(defs::bslots::DSP_TESTMUX, BelInfo::GroupTestMux(gtm));
     } else if rd.family != "fpgacore" {
         let (tcid, kind) = match &*rd.family {
             "spartan3" => (tcls::BRAM_S3, "BRAM_S3"),

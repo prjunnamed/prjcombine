@@ -529,7 +529,7 @@ pub enum BelInfo {
     SwitchBox(SwitchBox),
     Bel(Bel),
     TestMux(TestMux),
-    GroupTestMux(GroupTestMux),
+    OldTestMux,
     Legacy(LegacyBel),
 }
 
@@ -683,29 +683,16 @@ pub struct Bidi {
     pub bit_upstream: PolTileBit,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
 pub struct TestMux {
+    pub bits: Vec<TileBit>,
+    pub groups: Vec<BitVec>,
+    pub bits_primary: BitVec,
     pub wires: BTreeMap<TileWireCoord, TestMuxWire>,
-    pub bit: PolTileBit,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
 pub struct TestMuxWire {
-    pub primary_src: PolTileWireCoord,
-    pub bits: Vec<TileBit>,
-    pub test_src: BTreeMap<PolTileWireCoord, BitVec>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode, Default)]
-pub struct GroupTestMux {
-    pub bits: Vec<TileBit>,
-    pub groups: Vec<BitVec>,
-    pub bits_primary: BitVec,
-    pub wires: BTreeMap<TileWireCoord, GroupTestMuxWire>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]
-pub struct GroupTestMuxWire {
     pub primary_src: PolTileWireCoord,
     pub test_src: Vec<Option<PolTileWireCoord>>,
 }

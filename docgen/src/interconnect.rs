@@ -789,7 +789,7 @@ fn gen_switchbox(tcgen: &mut TileClassGen, buf: &mut String, bslot: BelSlotId, s
         }
         writeln!(
             buf,
-            r#"<tr><th colspan="2"">Delay step</th><th colspan="{nbits}"></th></tr>"#
+            r#"<tr><th colspan="2">Delay step</th><th colspan="{nbits}"></th></tr>"#
         )
         .unwrap();
         for (idx, value) in steps.iter().enumerate() {
@@ -1553,38 +1553,8 @@ fn gen_tile(ctx: &mut DocgenContext, dbname: &str, intdb: &IntDb, tcid: TileClas
                 writeln!(buf, r#"</table></div>"#).unwrap();
                 writeln!(buf).unwrap();
             }
+            BelInfo::OldTestMux => unreachable!(),
             BelInfo::TestMux(bel) => {
-                writeln!(buf, r#"### Test mux {bname}"#).unwrap();
-                writeln!(buf).unwrap();
-                writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();
-                writeln!(buf, r#"<caption>{dbname} {tname} {bname} mux</caption>"#).unwrap();
-                writeln!(buf, r#"<thead>"#).unwrap();
-                writeln!(
-                    buf,
-                    r#"<tr><th>Destination</th><th>Primary source</th><th>Test sources</th></tr>"#
-                )
-                .unwrap();
-                writeln!(buf, r#"</thead>"#).unwrap();
-                writeln!(buf, r#"<tbody>"#).unwrap();
-                for (dst, tmux) in &bel.wires {
-                    let dst = dst.to_string(intdb, tcls);
-                    let primary_src = tmux.primary_src.to_string(intdb, tcls);
-                    let test_srcs = tmux
-                        .test_src
-                        .keys()
-                        .map(|wsrc| wsrc.to_string(intdb, tcls))
-                        .join(", ");
-                    writeln!(
-                        buf,
-                        r#"<tr><td>{dst}</td><td>{primary_src}</td><td>{test_srcs}</td></tr>"#
-                    )
-                    .unwrap();
-                }
-                writeln!(buf, r#"</tbody>"#).unwrap();
-                writeln!(buf, r#"</table></div>"#).unwrap();
-                writeln!(buf).unwrap();
-            }
-            BelInfo::GroupTestMux(bel) => {
                 writeln!(buf, r#"### Test mux {bname}"#).unwrap();
                 writeln!(buf).unwrap();
                 writeln!(buf, r#"<div class="table-wrapper"><table>"#).unwrap();

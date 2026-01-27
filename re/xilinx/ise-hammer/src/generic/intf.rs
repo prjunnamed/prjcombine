@@ -2,20 +2,17 @@ use std::collections::{HashMap, HashSet};
 
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::{
-    db::{BelInfo, TileWireCoord},
+    db::{BelInfo, TileWireCoord, WireSlotId},
     grid::TileCoord,
 };
-use prjcombine_re_collector::{
-    diff::{Diff, DiffKey, OcdMode, xlat_enum_raw},
-    legacy::{xlat_bit_legacy, xlat_enum_default_legacy, xlat_enum_legacy},
-};
+use prjcombine_re_collector::diff::{Diff, DiffKey, OcdMode, xlat_enum_raw};
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
 use prjcombine_re_xilinx_naming::db::{IntfWireInNaming, RawTileId};
 use prjcombine_types::bsdata::BitRectId;
 use prjcombine_virtex2::defs::spartan3::{tcls as tcls_s3, wires as wires_s3};
-use prjcombine_virtex4::defs::virtex4::tcls as tcls_v4;
+use prjcombine_virtex4::defs::virtex4::{tcls as tcls_v4, wires as wires_v4};
 
 use crate::{
     backend::{IseBackend, Key},
@@ -61,6 +58,7 @@ fn resolve_intf_test_pip<'a>(
             IntfWireInNaming::Simple { name } => name,
             IntfWireInNaming::Buf { name_in, .. } => name_in,
             IntfWireInNaming::TestBuf { name_out, .. } => name_out,
+            IntfWireInNaming::Anonymous => unreachable!(),
         },
     ))
 }
@@ -106,6 +104,29 @@ impl<'b> FuzzerProp<'b, IseBackend<'b>> for FuzzIntfTestPip {
     }
 }
 
+fn is_anon_wire(edev: &ExpandedDevice, wire: WireSlotId) -> bool {
+    match edev {
+        ExpandedDevice::Virtex2(_) => false,
+        ExpandedDevice::Spartan6(_) => prjcombine_spartan6::defs::wires::OUT_TEST.contains(wire),
+        ExpandedDevice::Virtex4(edev) => match edev.kind {
+            prjcombine_virtex4::chip::ChipKind::Virtex4 => {
+                prjcombine_virtex4::defs::virtex4::wires::OUT_HALF0_TEST.contains(wire)
+                    || prjcombine_virtex4::defs::virtex4::wires::OUT_HALF1_TEST.contains(wire)
+            }
+            prjcombine_virtex4::chip::ChipKind::Virtex5 => {
+                prjcombine_virtex4::defs::virtex5::wires::OUT_TEST.contains(wire)
+            }
+            prjcombine_virtex4::chip::ChipKind::Virtex6 => {
+                prjcombine_virtex4::defs::virtex6::wires::OUT_TEST.contains(wire)
+            }
+            prjcombine_virtex4::chip::ChipKind::Virtex7 => {
+                prjcombine_virtex4::defs::virtex7::wires::OUT_TEST.contains(wire)
+            }
+        },
+        _ => unreachable!(),
+    }
+}
+
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
     for (tcid, tcname, tcls) in &intdb.tile_classes {
@@ -113,11 +134,14 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
             continue;
         };
         for (slot, bel) in &tcls.bels {
-            match bel {
-                BelInfo::TestMux(bel) => {
-                    let mut bctx = ctx.bel(slot);
-                    for (&dst, tmux) in &bel.wires {
-                        for &src in tmux.test_src.keys() {
+            let BelInfo::TestMux(bel) = bel else {
+                continue;
+            };
+            let mut bctx = ctx.bel(slot);
+            for (&dst, tmux) in &bel.wires {
+                for &src in tmux.test_src.iter().flatten() {
+                    if is_anon_wire(backend.edev, src.wire) {
+                        for &src in &backend.edev.db_index.tile_classes[tcid].pips_bwd[&src.tw] {
                             bctx.build()
                                 .prop(IntMutex::new("INTF".into()))
                                 .test_raw(DiffKey::Routing(tcid, dst, src))
@@ -127,27 +151,17 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
                                 .prop(FuzzIntfTestPip::new(dst, src.tw))
                                 .commit();
                         }
+                    } else {
+                        bctx.build()
+                            .prop(IntMutex::new("INTF".into()))
+                            .test_raw(DiffKey::Routing(tcid, dst, src))
+                            .prop(TileMutexExclusive::new("INTF".into()))
+                            .prop(WireMutexExclusive::new(dst))
+                            .prop(WireMutexExclusive::new(src.tw))
+                            .prop(FuzzIntfTestPip::new(dst, src.tw))
+                            .commit();
                     }
                 }
-                BelInfo::GroupTestMux(bel) => {
-                    let mut bctx = ctx.bel(slot);
-                    for (&dst, tmux) in &bel.wires {
-                        for &src in &tmux.test_src {
-                            let Some(src) = src else {
-                                continue;
-                            };
-                            bctx.build()
-                                .prop(IntMutex::new("INTF".into()))
-                                .test_raw(DiffKey::Routing(tcid, dst, src))
-                                .prop(TileMutexExclusive::new("INTF".into()))
-                                .prop(WireMutexExclusive::new(dst))
-                                .prop(WireMutexExclusive::new(src.tw))
-                                .prop(FuzzIntfTestPip::new(dst, src.tw))
-                                .commit();
-                        }
-                    }
-                }
-                _ => (),
             }
         }
     }
@@ -155,152 +169,125 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let intdb = ctx.edev.db;
-    for (tcid, tcname, tcls) in &intdb.tile_classes {
+    for (tcid, _, tcls) in &intdb.tile_classes {
         if !ctx.has_tile_id(tcid) {
             continue;
         }
         for (bslot, bel) in &tcls.bels {
-            match bel {
-                BelInfo::TestMux(bel) => {
-                    let bname = ctx.edev.db.bel_slots.key(bslot);
-                    let mut test_muxes = vec![];
-                    let mut test_bits: Option<HashMap<_, _>> = None;
-                    for (&dst, tmux) in &bel.wires {
-                        let mux_name = if tcls.cells.len() == 1 {
-                            format!("MUX.{}", intdb.wires.key(dst.wire))
-                        } else {
-                            format!("MUX.{:#}.{}", dst.cell, intdb.wires.key(dst.wire))
-                        };
-                        let mut mux_inps = vec![];
-                        for &src in tmux.test_src.keys() {
-                            let in_name = if tcls.cells.len() == 1 {
-                                intdb.wires.key(src.wire).to_string()
-                            } else {
-                                format!("{:#}.{}", src.cell, intdb.wires.key(src.wire))
-                            };
-                            let diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
+            let BelInfo::TestMux(bel) = bel else {
+                continue;
+            };
+            let mut group_diffs = vec![(None, Diff::default())];
+            for group in 0..bel.groups.len() {
+                let mut test_muxes = vec![];
+                let mut test_bits: Option<HashMap<_, _>> = None;
+                for (&dst, tout) in &bel.wires {
+                    let Some(tsrc) = tout.test_src[group] else {
+                        continue;
+                    };
 
-                            match test_bits {
-                                Some(ref mut bits) => {
-                                    bits.retain(|bit, _| diff.bits.contains_key(bit))
-                                }
-                                None => {
-                                    test_bits =
-                                        Some(diff.bits.iter().map(|(&a, &b)| (a, b)).collect())
-                                }
-                            }
+                    let inps = if is_anon_wire(ctx.edev, tsrc.wire) {
+                        Vec::from_iter(
+                            ctx.edev.db_index.tile_classes[tcid].pips_bwd[&tsrc.tw]
+                                .iter()
+                                .copied(),
+                        )
+                    } else {
+                        vec![tsrc]
+                    };
 
-                            mux_inps.push((in_name, diff));
+                    let mut mux_diffs = vec![];
+                    for src in inps {
+                        let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
+                        if let ExpandedDevice::Virtex2(edev) = ctx.edev
+                            && !edev.chip.kind.is_virtex2()
+                            && (wires_s3::IMUX_SR_OPTINV.contains(src.wire)
+                                || wires_s3::IMUX_CE_OPTINV.contains(src.wire))
+                        {
+                            let mut bit = ctx.sb_inv(
+                                tcls_s3::INT_BRAM_S3ADSP,
+                                TileWireCoord::new_idx(0, src.wire),
+                            );
+                            bit.bit.rect = BitRectId::from_idx(src.cell.to_idx());
+                            diff.discard_bits(&[bit.bit]);
                         }
-                        test_muxes.push((mux_name, mux_inps));
+                        if let ExpandedDevice::Virtex4(edev) = ctx.edev
+                            && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex4
+                            && (wires_v4::IMUX_SR_OPTINV.contains(src.wire)
+                                || wires_v4::IMUX_CE_OPTINV.contains(src.wire)
+                                || wires_v4::IMUX_CLK_OPTINV.contains(src.wire))
+                        {
+                            diff.discard_bits(&[ctx.sb_inv(tcls_v4::INT, src.tw).bit]);
+                        }
+
+                        match test_bits {
+                            Some(ref mut bits) => bits.retain(|bit, _| diff.bits.contains_key(bit)),
+                            None => {
+                                test_bits = Some(diff.bits.iter().map(|(&a, &b)| (a, b)).collect())
+                            }
+                        }
+
+                        mux_diffs.push((src, diff));
                     }
-                    let Some(test_bits) = test_bits else { continue };
-                    assert_eq!(test_bits.len(), 1);
-                    let test_diff = Diff { bits: test_bits };
-                    for (_, mux_inps) in &mut test_muxes {
+                    test_muxes.push((tsrc, mux_diffs));
+                }
+                let test_diff = Diff {
+                    bits: test_bits.unwrap(),
+                };
+                for (_, mux_inps) in &mut test_muxes {
+                    for (_, diff) in mux_inps {
+                        *diff = diff.combine(&!&test_diff);
+                    }
+                }
+
+                group_diffs.push((Some(group), test_diff));
+
+                if let ExpandedDevice::Virtex4(edev) = ctx.edev
+                    && edev.kind == prjcombine_virtex4::chip::ChipKind::Virtex6
+                {
+                    let mut new_test_muxes = vec![];
+                    let mut known_bits = HashSet::new();
+                    for &(tsrc, ref mux_inps) in &test_muxes {
+                        let (_, _, common) =
+                            Diff::split(mux_inps[0].1.clone(), mux_inps[1].1.clone());
+                        let mut new_mux_inps = vec![];
+                        for &(src, ref diff) in mux_inps {
+                            let (diff, empty, check_common) =
+                                Diff::split(diff.clone(), common.clone());
+                            assert_eq!(check_common, common);
+                            empty.assert_empty();
+                            for &bit in diff.bits.keys() {
+                                known_bits.insert(bit);
+                            }
+                            new_mux_inps.push((src, diff));
+                        }
+                        new_test_muxes.push((tsrc, new_mux_inps));
+                    }
+                    for (_, mux_inps) in test_muxes {
                         for (_, diff) in mux_inps {
-                            *diff = diff.combine(&!&test_diff);
+                            for bit in diff.bits.keys() {
+                                assert!(known_bits.contains(bit));
+                            }
                         }
                     }
-                    ctx.insert(tcname, bname, "TEST_ENABLE", xlat_bit_legacy(test_diff));
-                    if let ExpandedDevice::Virtex4(edev) = ctx.edev {
-                        match edev.kind {
-                            prjcombine_virtex4::chip::ChipKind::Virtex4 => {
-                                for (_, mux_inps) in &mut test_muxes {
-                                    for (in_name, diff) in mux_inps {
-                                        if in_name.starts_with("IMUX_CLK")
-                                            || in_name.starts_with("IMUX_SR")
-                                            || in_name.starts_with("IMUX_CE")
-                                        {
-                                            diff.discard_bits(&[ctx
-                                                .sb_inv(
-                                                    tcls_v4::INT,
-                                                    TileWireCoord::new_idx(
-                                                        0,
-                                                        ctx.edev.db.get_wire(in_name),
-                                                    ),
-                                                )
-                                                .bit]);
-                                        }
-                                    }
-                                }
-                            }
-                            prjcombine_virtex4::chip::ChipKind::Virtex6 => {
-                                let mut new_test_muxes = vec![];
-                                let mut known_bits = HashSet::new();
-                                for (mux_name, mux_inps) in &test_muxes {
-                                    let (_, _, common) =
-                                        Diff::split(mux_inps[0].1.clone(), mux_inps[1].1.clone());
-                                    let mut new_mux_inps = vec![];
-                                    for (in_name, diff) in mux_inps {
-                                        let (diff, empty, check_common) =
-                                            Diff::split(diff.clone(), common.clone());
-                                        assert_eq!(check_common, common);
-                                        empty.assert_empty();
-                                        for &bit in diff.bits.keys() {
-                                            known_bits.insert(bit);
-                                        }
-                                        new_mux_inps.push((in_name.clone(), diff));
-                                    }
-                                    new_test_muxes.push((mux_name.clone(), new_mux_inps));
-                                }
-                                for (_, mux_inps) in test_muxes {
-                                    for (_, diff) in mux_inps {
-                                        for bit in diff.bits.keys() {
-                                            assert!(known_bits.contains(bit));
-                                        }
-                                    }
-                                }
-                                test_muxes = new_test_muxes;
-                            }
-                            _ => (),
+                    test_muxes = new_test_muxes;
+                }
+                for (dst, srcs) in test_muxes {
+                    let dst = dst.tw;
+                    if srcs.len() == 1 && srcs[0].0.tw == dst {
+                        srcs[0].1.assert_empty();
+                    } else {
+                        let has_empty = srcs.iter().any(|(_, diff)| diff.bits.is_empty());
+                        let mut diffs = Vec::from_iter(srcs.into_iter().map(|(k, v)| (Some(k), v)));
+                        if !has_empty {
+                            diffs.push((None, Diff::default()));
                         }
-                    }
-                    for (mux_name, mut mux_inps) in test_muxes {
-                        if mux_inps.len() == 1 {
-                            mux_inps.pop().unwrap().1.assert_empty();
-                        } else {
-                            let has_empty = mux_inps.iter().any(|(_, diff)| diff.bits.is_empty());
-                            let diffs = mux_inps
-                                .into_iter()
-                                .map(|(k, v)| (k.to_string(), v))
-                                .collect();
-
-                            let item = if has_empty {
-                                xlat_enum_legacy(diffs)
-                            } else {
-                                xlat_enum_default_legacy(diffs, "NONE")
-                            };
-                            ctx.insert(tcname, bname, mux_name, item);
-                        }
+                        let item = xlat_enum_raw(diffs, OcdMode::Mux);
+                        ctx.insert_mux(tcid, dst, item);
                     }
                 }
-                BelInfo::GroupTestMux(bel) => {
-                    let mut diffs = vec![(None, Diff::default())];
-                    for (&dst, tmux) in &bel.wires {
-                        for (group, &src) in tmux.test_src.iter().enumerate() {
-                            let Some(src) = src else { continue };
-                            let mut diff = ctx.get_diff_raw(&DiffKey::Routing(tcid, dst, src));
-                            if let ExpandedDevice::Virtex2(edev) = ctx.edev
-                                && !edev.chip.kind.is_virtex2()
-                                && (wires_s3::IMUX_SR_OPTINV.contains(src.wire)
-                                    || wires_s3::IMUX_CE_OPTINV.contains(src.wire))
-                            {
-                                let mut bit = ctx.sb_inv(
-                                    tcls_s3::INT_BRAM_S3ADSP,
-                                    TileWireCoord::new_idx(0, src.wire),
-                                );
-                                bit.bit.rect = BitRectId::from_idx(src.cell.to_idx());
-                                diff.discard_bits(&[bit.bit]);
-                            }
-
-                            diffs.push((Some(group), diff));
-                        }
-                    }
-                    ctx.insert_tmux_group(tcid, bslot, xlat_enum_raw(diffs, OcdMode::ValueOrder));
-                }
-                _ => (),
             }
+            ctx.insert_tmux_group(tcid, bslot, xlat_enum_raw(group_diffs, OcdMode::ValueOrder));
         }
     }
 }

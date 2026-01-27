@@ -552,16 +552,8 @@ impl<'a> Verifier<'a> {
                         }
                     }
                 }
+                BelInfo::OldTestMux => unreachable!(),
                 BelInfo::TestMux(tm) => {
-                    for (&dst, tmux) in &tm.wires {
-                        used_o.insert(dst);
-                        used_i.insert(tmux.primary_src.tw);
-                        for &src in tmux.test_src.keys() {
-                            used_i.insert(src.tw);
-                        }
-                    }
-                }
-                BelInfo::GroupTestMux(tm) => {
                     for (&dst, tmux) in &tm.wires {
                         used_o.insert(dst);
                         used_i.insert(tmux.primary_src.tw);
@@ -970,7 +962,7 @@ impl<'a> Verifier<'a> {
         self.tile_lut.get(tname).copied()
     }
 
-    pub fn get_node_crds(
+    pub fn get_tile_crds(
         &self,
         tcrd: TileCoord,
     ) -> Option<EntityPartVec<RawTileId, rawdump::Coord>> {
@@ -1003,7 +995,7 @@ impl<'a> Verifier<'a> {
     fn handle_tile_tmux(&mut self, tcrd: TileCoord) {
         let tile = &self.grid[tcrd];
         let crds;
-        if let Some(c) = self.get_node_crds(tcrd) {
+        if let Some(c) = self.get_tile_crds(tcrd) {
             crds = c;
         } else {
             return;
@@ -1021,58 +1013,29 @@ impl<'a> Verifier<'a> {
             wire_lut.insert(w, self.ngrid.resolve_wire_raw(ww));
         }
         for bel in tcls.bels.values() {
-            match bel {
-                BelInfo::TestMux(tm) => {
-                    for (&wt, tmux) in &tm.wires {
-                        let wti = self.grid.tile_wire(tcrd, wt);
-                        let wtn = &naming.wires[&wt].name;
-                        if !self.pin_int_wire(
-                            RawWireCoord {
-                                crd: crds[def_rt],
-                                wire: wtn,
-                            },
-                            wti,
-                        ) {
-                            let tname = &ntile.names[def_rt];
-                            println!(
-                                "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
-                                p = self.rd.part,
-                                wn = self.print_nw(wt),
-                            );
-                        }
-                        if Some(&naming.wires[&wt]) == naming.wires.get(&tmux.primary_src.tw) {
-                            let wfi = self.grid.tile_wire(tcrd, tmux.primary_src.tw);
-                            let iwd = self.int_wire_data.get_mut(&wfi).unwrap();
-                            iwd.node = Some(self.rd.lookup_wire(crds[def_rt], wtn).unwrap());
-                        }
-                    }
+            let BelInfo::TestMux(tm) = bel else { continue };
+            for (&wt, tmux) in &tm.wires {
+                let wti = self.grid.tile_wire(tcrd, wt);
+                let wtn = &naming.wires[&wt].name;
+                if !self.pin_int_wire(
+                    RawWireCoord {
+                        crd: crds[def_rt],
+                        wire: wtn,
+                    },
+                    wti,
+                ) {
+                    let tname = &ntile.names[def_rt];
+                    println!(
+                        "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
+                        p = self.rd.part,
+                        wn = self.print_nw(wt),
+                    );
                 }
-                BelInfo::GroupTestMux(tm) => {
-                    for (&wt, tmux) in &tm.wires {
-                        let wti = self.grid.tile_wire(tcrd, wt);
-                        let wtn = &naming.wires[&wt].name;
-                        if !self.pin_int_wire(
-                            RawWireCoord {
-                                crd: crds[def_rt],
-                                wire: wtn,
-                            },
-                            wti,
-                        ) {
-                            let tname = &ntile.names[def_rt];
-                            println!(
-                                "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
-                                p = self.rd.part,
-                                wn = self.print_nw(wt),
-                            );
-                        }
-                        if Some(&naming.wires[&wt]) == naming.wires.get(&tmux.primary_src.tw) {
-                            let wfi = self.grid.tile_wire(tcrd, tmux.primary_src.tw);
-                            let iwd = self.int_wire_data.get_mut(&wfi).unwrap();
-                            iwd.node = Some(self.rd.lookup_wire(crds[def_rt], wtn).unwrap());
-                        }
-                    }
+                if Some(&naming.wires[&wt]) == naming.wires.get(&tmux.primary_src.tw) {
+                    let wfi = self.grid.tile_wire(tcrd, tmux.primary_src.tw);
+                    let iwd = self.int_wire_data.get_mut(&wfi).unwrap();
+                    iwd.node = Some(self.rd.lookup_wire(crds[def_rt], wtn).unwrap());
                 }
-                _ => (),
             }
         }
     }
@@ -1096,7 +1059,7 @@ impl<'a> Verifier<'a> {
     fn handle_tile(&mut self, tcrd: TileCoord) {
         let tile = &self.grid[tcrd];
         let crds;
-        if let Some(c) = self.get_node_crds(tcrd) {
+        if let Some(c) = self.get_tile_crds(tcrd) {
             crds = c;
         } else {
             return;
@@ -1117,6 +1080,7 @@ impl<'a> Verifier<'a> {
         let mut wires_missing = HashSet::new();
         let mut tie_pins_extra = HashMap::new();
         let mut pips = BTreeSet::new();
+        let mut intf_anon_mux = HashMap::new();
         for (bslot, bel) in &tcls.bels {
             if self.skip_sb.contains(&bslot) {
                 continue;
@@ -1127,8 +1091,13 @@ impl<'a> Verifier<'a> {
             for item in &sb.items {
                 match item {
                     SwitchBoxItem::Mux(mux) => {
-                        for src in mux.src.keys() {
-                            pips.insert((mux.dst, src.tw));
+                        if naming.intf_wires_in.get(&mux.dst) == Some(&IntfWireInNaming::Anonymous)
+                        {
+                            intf_anon_mux.insert(mux.dst, &mux.src);
+                        } else {
+                            for src in mux.src.keys() {
+                                pips.insert((mux.dst, src.tw));
+                            }
                         }
                     }
                     SwitchBoxItem::ProgBuf(buf) => {
@@ -1668,6 +1637,7 @@ impl<'a> Verifier<'a> {
                         }
                     }
                 }
+                BelInfo::OldTestMux => unreachable!(),
                 BelInfo::TestMux(tm) => {
                     for (&wt, tmux) in &tm.wires {
                         let wti = self.grid.tile_wire(tcrd, wt);
@@ -1679,121 +1649,6 @@ impl<'a> Verifier<'a> {
                             let tname = &ntile.names[def_rt];
                             println!(
                                 "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
-                                p = self.rd.part,
-                                wtn = wtn.wire,
-                                wn = self.print_nw(wt),
-                            );
-                        }
-                        if Some(&naming.wires[&wt]) != naming.wires.get(&tmux.primary_src.tw) {
-                            let wf = tmux.primary_src.tw;
-                            let wfi = self.grid.tile_wire(tcrd, wf);
-                            if let Some(wfn) = naming.wires.get(&wf) {
-                                let wfn = RawWireCoord {
-                                    crd: crds[def_rt],
-                                    wire: &wfn.name,
-                                };
-                                if self.pin_int_wire(wfn, wfi) {
-                                    self.claim_pip(wtn, wfn);
-                                } else {
-                                    let iwd = &self.int_wire_data[&wfi];
-                                    if iwd.used_o {
-                                        let tname = &ntile.names[def_rt];
-                                        println!(
-                                            "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
-                                            p = self.rd.part,
-                                            wfn = wfn.wire,
-                                            wn = self.print_nw(wf),
-                                        );
-                                    }
-                                }
-                            } else {
-                                let iwd = &self.int_wire_data[&wfi];
-                                if iwd.used_o {
-                                    let tname = &ntile.names[def_rt];
-                                    println!(
-                                        "INTF INPUT MISSING FOR {p} {tname} {wn}",
-                                        p = self.rd.part,
-                                        wn = self.print_nw(wf),
-                                    );
-                                }
-                            }
-                        }
-                        for &wf in tmux.test_src.keys() {
-                            let wfi = self.grid.tile_wire(tcrd, wf.tw);
-                            if let Some(iwi) = naming.intf_wires_in.get(&wf) {
-                                let wfn = match *iwi {
-                                    IntfWireInNaming::Simple { name: ref wfn } => {
-                                        let wfn = RawWireCoord {
-                                            crd: crds[def_rt],
-                                            wire: wfn,
-                                        };
-
-                                        self.claim_pip(wtn, wfn);
-                                        wfn
-                                    }
-                                    IntfWireInNaming::TestBuf {
-                                        name_out: ref wfbn,
-                                        name_in: ref wfn,
-                                    } => {
-                                        let wfn = RawWireCoord {
-                                            crd: crds[def_rt],
-                                            wire: wfn,
-                                        };
-                                        let wfbn = RawWireCoord {
-                                            crd: crds[def_rt],
-                                            wire: wfbn,
-                                        };
-                                        self.claim_pip(wtn, wfbn);
-                                        wfn
-                                    }
-                                    IntfWireInNaming::Buf {
-                                        name_in: ref wfn, ..
-                                    } => {
-                                        let wfn = RawWireCoord {
-                                            crd: crds[def_rt],
-                                            wire: wfn,
-                                        };
-                                        self.claim_pip(wtn, wfn);
-                                        wfn
-                                    }
-                                };
-                                if !self.pin_int_wire(wfn, wfi) {
-                                    let iwd = &self.int_wire_data[&wfi];
-                                    if iwd.used_o {
-                                        let tname = &ntile.names[def_rt];
-                                        println!(
-                                            "INT NODE MISSING FOR {p} {tname} {wfn} {wn}",
-                                            wfn = wfn.wire,
-                                            p = self.rd.part,
-                                            wn = self.print_nw(wf.tw),
-                                        );
-                                    }
-                                }
-                            } else {
-                                let iwd = &self.int_wire_data[&wfi];
-                                if iwd.used_o {
-                                    let tname = &ntile.names[def_rt];
-                                    println!(
-                                        "INTF INPUT MISSING FOR {p} {tname} {wn}",
-                                        p = self.rd.part,
-                                        wn = self.print_nw(wf.tw),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-                BelInfo::GroupTestMux(tm) => {
-                    for (&wt, tmux) in &tm.wires {
-                        let wti = self.grid.tile_wire(tcrd, wt);
-                        let wtn = RawWireCoord {
-                            crd: crds[def_rt],
-                            wire: &naming.wires[&wt].name,
-                        };
-                        if !self.pin_int_wire(wtn, wti) {
-                            let tname = &ntile.names[def_rt];
-                            println!(
-                                "INT NODE MISSING FOR {p} {tname} {wtn} {wn}",
                                 wtn = wtn.wire,
                                 p = self.rd.part,
                                 wn = self.print_nw(wt),
@@ -1833,8 +1688,8 @@ impl<'a> Verifier<'a> {
                                 }
                             }
                         }
-                        for &wf in &tmux.test_src {
-                            let Some(wf) = wf else { continue };
+                        let mut wf_queue = Vec::from_iter(tmux.test_src.iter().flatten().copied());
+                        while let Some(wf) = wf_queue.pop() {
                             let wfi = self.grid.tile_wire(tcrd, wf.tw);
                             if let Some(iwi) = naming.intf_wires_in.get(&wf) {
                                 let wfn = match *iwi {
@@ -1870,6 +1725,10 @@ impl<'a> Verifier<'a> {
                                         };
                                         self.claim_pip(wtn, wfn);
                                         wfn
+                                    }
+                                    IntfWireInNaming::Anonymous => {
+                                        wf_queue.extend(intf_anon_mux[&wf.tw].keys().copied());
+                                        continue;
                                     }
                                 };
                                 if !self.pin_int_wire(wfn, wfi) {
@@ -2133,7 +1992,7 @@ impl<'a> Verifier<'a> {
     pub fn bel_rcrd_sub(&self, bcrd: BelCoord, sub: usize) -> Coord {
         let naming = self.ngrid.get_bel_naming(bcrd);
         let tcrd = self.grid.get_tile_by_bel(bcrd);
-        let crds = self.get_node_crds(tcrd).unwrap();
+        let crds = self.get_tile_crds(tcrd).unwrap();
         crds[naming.tiles[sub]]
     }
 
@@ -2162,7 +2021,7 @@ impl<'a> Verifier<'a> {
         .to_string();
         let tcrd = self.grid.get_tile_by_bel(bcrd);
         let ntile = &self.ngrid.tiles[&tcrd];
-        let crds = self.get_node_crds(tcrd).unwrap();
+        let crds = self.get_tile_crds(tcrd).unwrap();
         let naming = self.ngrid.get_bel_naming(bcrd);
         BelVerifier {
             vrf: self,
@@ -2200,7 +2059,7 @@ impl<'a> Verifier<'a> {
     pub fn find_bel(&self, bel: BelCoord) -> Option<LegacyBelContext<'a>> {
         let tcrd = self.grid.find_tile_by_bel(bel)?;
         let tile = &self.grid[tcrd];
-        let crds = self.get_node_crds(tcrd).unwrap();
+        let crds = self.get_tile_crds(tcrd).unwrap();
         let nk = &self.db[tile.class];
         let ntile = &self.ngrid.tiles[&tcrd];
         let name = self.ngrid.get_bel_name(bel);

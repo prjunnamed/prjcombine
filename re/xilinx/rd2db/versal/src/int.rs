@@ -784,7 +784,9 @@ impl IntMaker<'_> {
         // wires belonging to interconnect left/right half-tiles
         for i in 0..48 {
             self.builder
-                .mark_test_mux_in(wires::OUT_TMIN[i], wires::OUT[i]);
+                .mark_test_mux_in(wires::OUT_BEL[i], wires::OUT[i]);
+            self.builder
+                .mark_test_mux_in_test(wires::OUT_TEST[i], wires::OUT[i]);
             self.builder
                 .extra_name_tile_sub("INT", format!("LOGIC_OUTS_W{i}"), 0, wires::OUT[i]);
             self.builder
@@ -1258,11 +1260,11 @@ impl IntMaker<'_> {
                     .xtile_id(tcid, naming, xy)
                     .ref_int_side(int_xy, side, 0)
                     .extract_muxes(bslots::INTF_INT)
-                    .extract_intfs(bslots::INTF_TESTMUX, true)
+                    .extract_intfs(bslots::INTF_TESTMUX, Some(bslots::INTF_TEST_INT), true)
                     .skip_muxes(&self.iri_wires)
                     .bels(bels);
                 if delay {
-                    xn = xn.extract_delay(bslots::INTF_DELAY);
+                    xn = xn.extract_delay();
                 }
                 xn.extract();
                 break;
@@ -1298,7 +1300,7 @@ impl IntMaker<'_> {
                             },
                             cle_bc,
                         )
-                        .extract_intfs(bslots::INTF_TESTMUX, true)
+                        .extract_intfs(bslots::INTF_TESTMUX, Some(bslots::INTF_TEST_INT), true)
                         .skip_muxes(&self.iri_wires)
                         .bels(bels)
                         .extract();

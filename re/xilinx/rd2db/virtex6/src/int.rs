@@ -325,7 +325,8 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
 
     for i in 0..24 {
         builder.wire_names(wires::OUT[i], &[format!("LOGIC_OUTS{i}")]);
-        builder.mark_test_mux_in(wires::OUT_TMIN[i], wires::OUT[i]);
+        builder.mark_test_mux_in(wires::OUT_BEL[i], wires::OUT[i]);
+        builder.mark_test_mux_in_test(wires::OUT_TEST[i], wires::OUT[i]);
     }
 
     for i in 0..4 {
@@ -368,8 +369,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "INT_INTERFACE",
         "INTF",
         defs::bslots::INTF_TESTMUX,
+        Some(defs::bslots::INTF_INT),
         true,
-        None,
+        false,
     );
     builder.extract_intf_id(
         tcls::INTF,
@@ -377,8 +379,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
         "IOI_L_INT_INTERFACE",
         "INTF_IOI_L",
         defs::bslots::INTF_TESTMUX,
+        Some(defs::bslots::INTF_INT),
         true,
-        None,
+        false,
     );
     for (n, tkn) in [
         ("GT_L", "GT_L_INT_INTERFACE"),
@@ -393,8 +396,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             format!("INTF_{n}"),
             defs::bslots::INTF_TESTMUX,
+            Some(defs::bslots::INTF_INT),
             true,
-            Some(defs::bslots::INTF_DELAY),
+            true,
         );
     }
 

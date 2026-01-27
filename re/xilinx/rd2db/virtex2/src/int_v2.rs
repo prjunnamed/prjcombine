@@ -531,7 +531,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 &format!("GIGABIT_INT_PPC1{i}"),
             ],
         );
-        builder.mark_test_mux_in(wires::OUT_FAN_TMIN[i], w);
+        builder.mark_test_mux_in(wires::OUT_FAN_BEL[i], w);
         if i == 0 {
             builder.extra_name_tile("MK_T_IOIS", "IOIS_BREFCLK_SE", w);
         }
@@ -629,7 +629,7 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
                 },
             ],
         );
-        builder.mark_test_mux_in(wires::OUT_SEC_TMIN[i], w);
+        builder.mark_test_mux_in(wires::OUT_SEC_BEL[i], w);
     }
 
     // Same for tertiary.
@@ -1537,8 +1537,9 @@ pub fn make_int_db(rd: &Part) -> (IntDb, NamingDb) {
             tkn,
             naming,
             defs::bslots::INTF_TESTMUX,
-            false,
             None,
+            false,
+            false,
         );
     }
 

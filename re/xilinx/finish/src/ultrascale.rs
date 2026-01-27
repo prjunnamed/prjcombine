@@ -289,7 +289,7 @@ pub fn finish(geom: GeomDb, mut bitdb: CollectorData) -> Database {
     let mut int = geom.ints.into_values().next().unwrap();
 
     let bsdata = std::mem::take(&mut bitdb.bsdata);
-    bitdb.insert_into(&mut int, false);
+    bitdb.insert_into(&mut int, true);
 
     Database {
         chips,

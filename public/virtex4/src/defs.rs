@@ -108,10 +108,12 @@ target_defs! {
         wire OUT_BEST_TMIN[8]: bel;
         wire OUT_SEC[8]: bel;
         wire OUT_SEC_TMIN[8]: bel;
-        wire OUT_HALF_S[8]: bel;
-        wire OUT_HALF_S_TMIN[8]: bel;
-        wire OUT_HALF_N[8]: bel;
-        wire OUT_HALF_N_TMIN[8]: bel;
+        wire OUT_HALF0[8]: bel;
+        wire OUT_HALF0_BEL[8]: bel;
+        wire OUT_HALF0_TEST[8]: test;
+        wire OUT_HALF1[8]: bel;
+        wire OUT_HALF1_BEL[8]: bel;
+        wire OUT_HALF1_TEST[8]: test;
 
         wire TEST[4]: test;
     }
@@ -314,7 +316,8 @@ target_defs! {
         wire IMUX_IMUX_DELAY[48]: mux;
 
         wire OUT[24]: bel;
-        wire OUT_TMIN[24]: bel;
+        wire OUT_BEL[24]: bel;
+        wire OUT_TEST[24]: test;
         wire OUT_S12_DBL: branch N;
         wire OUT_N15_DBL: branch S;
         wire OUT_N17_DBL: branch S;
@@ -478,7 +481,8 @@ target_defs! {
         wire IMUX_IMUX_DELAY[48]: mux;
 
         wire OUT[24]: bel;
-        wire OUT_TMIN[24]: bel;
+        wire OUT_BEL[24]: bel;
+        wire OUT_TEST[24]: test;
 
         wire TEST[4]: test;
     }
@@ -653,7 +657,8 @@ target_defs! {
         wire IMUX_BRAM[48]: test;
 
         wire OUT[24]: bel;
-        wire OUT_TMIN[24]: bel;
+        wire OUT_BEL[24]: bel;
+        wire OUT_TEST[24]: test;
 
         wire TEST[4]: test;
     }
@@ -724,7 +729,7 @@ target_defs! {
     }
 
     tile_slot INTF {
-        bel_slot INTF_DELAY: routing;
+        bel_slot INTF_INT: routing;
         bel_slot INTF_TESTMUX: routing;
         tile_class INTF {
             cell CELL;
