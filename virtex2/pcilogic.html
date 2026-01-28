@@ -155,55 +155,55 @@
 <p>TODO: reverse, document</p>
 <h2 id="tile-pci_w"><a class="header" href="#tile-pci_w">Tile PCI_W</a></h2>
 <p>Cells: 4</p>
-<h3 id="bel-pcilogic"><a class="header" href="#bel-pcilogic">Bel PCILOGIC</a></h3>
+<h3 id="bels-pcilogic"><a class="header" href="#bels-pcilogic">Bels PCILOGIC</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex2 PCI_W bel PCILOGIC</caption>
+<caption>virtex2 PCI_W bel PCILOGIC pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>PCILOGIC</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>FI0</td><td>input</td><td>CELL[1].OMUX[14]</td></tr>
+<tr><td>FI[0]</td><td>in</td><td>CELL[1].OMUX[14]</td></tr>
 
-<tr><td>FI1</td><td>input</td><td>CELL[1].OMUX[9]</td></tr>
+<tr><td>FI[1]</td><td>in</td><td>CELL[1].OMUX[9]</td></tr>
 
-<tr><td>FI2</td><td>input</td><td>CELL[2].OMUX[1]</td></tr>
+<tr><td>FI[2]</td><td>in</td><td>CELL[2].OMUX[1]</td></tr>
 
-<tr><td>FI3</td><td>input</td><td>CELL[2].OMUX[6]</td></tr>
+<tr><td>FI[3]</td><td>in</td><td>CELL[2].OMUX[6]</td></tr>
 
-<tr><td>OUT0</td><td>output</td><td>CELL[1].OUT_PCI[0]</td></tr>
+<tr><td>SI[0]</td><td>in</td><td>CELL[1].DBL_E2[5]</td></tr>
 
-<tr><td>OUT1</td><td>output</td><td>CELL[1].OUT_PCI[1]</td></tr>
+<tr><td>SI[1]</td><td>in</td><td>CELL[1].DBL_E2[6]</td></tr>
 
-<tr><td>OUT2</td><td>output</td><td>CELL[0].OUT_PCI[0]</td></tr>
+<tr><td>SI[2]</td><td>in</td><td>CELL[1].DBL_E2[7]</td></tr>
 
-<tr><td>OUT3</td><td>output</td><td>CELL[2].OUT_PCI[0]</td></tr>
+<tr><td>SI[3]</td><td>in</td><td>CELL[1].DBL_E2[8]</td></tr>
 
-<tr><td>OUT4</td><td>output</td><td>CELL[2].OUT_PCI[1]</td></tr>
+<tr><td>SI[4]</td><td>in</td><td>CELL[1].DBL_E2[9]</td></tr>
 
-<tr><td>OUT5</td><td>output</td><td>CELL[3].OUT_PCI[0]</td></tr>
+<tr><td>SI[5]</td><td>in</td><td>CELL[1].DBL_E2_S[0]</td></tr>
 
-<tr><td>SI0</td><td>input</td><td>CELL[1].DBL_E2[5]</td></tr>
+<tr><td>SI[6]</td><td>in</td><td>CELL[1].DBL_E2_S[1]</td></tr>
 
-<tr><td>SI1</td><td>input</td><td>CELL[1].DBL_E2[6]</td></tr>
+<tr><td>SI[7]</td><td>in</td><td>CELL[2].DBL_E2[2]</td></tr>
 
-<tr><td>SI2</td><td>input</td><td>CELL[1].DBL_E2[7]</td></tr>
+<tr><td>SI[8]</td><td>in</td><td>CELL[2].DBL_E2[3]</td></tr>
 
-<tr><td>SI3</td><td>input</td><td>CELL[1].DBL_E2[8]</td></tr>
+<tr><td>SI[9]</td><td>in</td><td>CELL[2].DBL_E2[4]</td></tr>
 
-<tr><td>SI4</td><td>input</td><td>CELL[1].DBL_E2[9]</td></tr>
+<tr><td>OUT[0]</td><td>out</td><td>CELL[1].OUT_PCI[0]</td></tr>
 
-<tr><td>SI5</td><td>input</td><td>CELL[1].DBL_E2_S[0]</td></tr>
+<tr><td>OUT[1]</td><td>out</td><td>CELL[1].OUT_PCI[1]</td></tr>
 
-<tr><td>SI6</td><td>input</td><td>CELL[1].DBL_E2_S[1]</td></tr>
+<tr><td>OUT[2]</td><td>out</td><td>CELL[0].OUT_PCI[0]</td></tr>
 
-<tr><td>SI7</td><td>input</td><td>CELL[2].DBL_E2[2]</td></tr>
+<tr><td>OUT[3]</td><td>out</td><td>CELL[2].OUT_PCI[0]</td></tr>
 
-<tr><td>SI8</td><td>input</td><td>CELL[2].DBL_E2[3]</td></tr>
+<tr><td>OUT[4]</td><td>out</td><td>CELL[2].OUT_PCI[1]</td></tr>
 
-<tr><td>SI9</td><td>input</td><td>CELL[2].DBL_E2[4]</td></tr>
+<tr><td>OUT[5]</td><td>out</td><td>CELL[3].OUT_PCI[0]</td></tr>
 
 </tbody>
 
@@ -220,45 +220,45 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].OUT_PCI[0]</td><td>PCILOGIC.OUT2</td></tr>
+<tr><td>CELL[0].OUT_PCI[0]</td><td>PCILOGIC.OUT[2]</td></tr>
 
-<tr><td>CELL[1].OMUX[9]</td><td>PCILOGIC.FI1</td></tr>
+<tr><td>CELL[1].OMUX[9]</td><td>PCILOGIC.FI[1]</td></tr>
 
-<tr><td>CELL[1].OMUX[14]</td><td>PCILOGIC.FI0</td></tr>
+<tr><td>CELL[1].OMUX[14]</td><td>PCILOGIC.FI[0]</td></tr>
 
-<tr><td>CELL[1].DBL_E2[5]</td><td>PCILOGIC.SI0</td></tr>
+<tr><td>CELL[1].DBL_E2[5]</td><td>PCILOGIC.SI[0]</td></tr>
 
-<tr><td>CELL[1].DBL_E2[6]</td><td>PCILOGIC.SI1</td></tr>
+<tr><td>CELL[1].DBL_E2[6]</td><td>PCILOGIC.SI[1]</td></tr>
 
-<tr><td>CELL[1].DBL_E2[7]</td><td>PCILOGIC.SI2</td></tr>
+<tr><td>CELL[1].DBL_E2[7]</td><td>PCILOGIC.SI[2]</td></tr>
 
-<tr><td>CELL[1].DBL_E2[8]</td><td>PCILOGIC.SI3</td></tr>
+<tr><td>CELL[1].DBL_E2[8]</td><td>PCILOGIC.SI[3]</td></tr>
 
-<tr><td>CELL[1].DBL_E2[9]</td><td>PCILOGIC.SI4</td></tr>
+<tr><td>CELL[1].DBL_E2[9]</td><td>PCILOGIC.SI[4]</td></tr>
 
-<tr><td>CELL[1].DBL_E2_S[0]</td><td>PCILOGIC.SI5</td></tr>
+<tr><td>CELL[1].DBL_E2_S[0]</td><td>PCILOGIC.SI[5]</td></tr>
 
-<tr><td>CELL[1].DBL_E2_S[1]</td><td>PCILOGIC.SI6</td></tr>
+<tr><td>CELL[1].DBL_E2_S[1]</td><td>PCILOGIC.SI[6]</td></tr>
 
-<tr><td>CELL[1].OUT_PCI[0]</td><td>PCILOGIC.OUT0</td></tr>
+<tr><td>CELL[1].OUT_PCI[0]</td><td>PCILOGIC.OUT[0]</td></tr>
 
-<tr><td>CELL[1].OUT_PCI[1]</td><td>PCILOGIC.OUT1</td></tr>
+<tr><td>CELL[1].OUT_PCI[1]</td><td>PCILOGIC.OUT[1]</td></tr>
 
-<tr><td>CELL[2].OMUX[1]</td><td>PCILOGIC.FI2</td></tr>
+<tr><td>CELL[2].OMUX[1]</td><td>PCILOGIC.FI[2]</td></tr>
 
-<tr><td>CELL[2].OMUX[6]</td><td>PCILOGIC.FI3</td></tr>
+<tr><td>CELL[2].OMUX[6]</td><td>PCILOGIC.FI[3]</td></tr>
 
-<tr><td>CELL[2].DBL_E2[2]</td><td>PCILOGIC.SI7</td></tr>
+<tr><td>CELL[2].DBL_E2[2]</td><td>PCILOGIC.SI[7]</td></tr>
 
-<tr><td>CELL[2].DBL_E2[3]</td><td>PCILOGIC.SI8</td></tr>
+<tr><td>CELL[2].DBL_E2[3]</td><td>PCILOGIC.SI[8]</td></tr>
 
-<tr><td>CELL[2].DBL_E2[4]</td><td>PCILOGIC.SI9</td></tr>
+<tr><td>CELL[2].DBL_E2[4]</td><td>PCILOGIC.SI[9]</td></tr>
 
-<tr><td>CELL[2].OUT_PCI[0]</td><td>PCILOGIC.OUT3</td></tr>
+<tr><td>CELL[2].OUT_PCI[0]</td><td>PCILOGIC.OUT[3]</td></tr>
 
-<tr><td>CELL[2].OUT_PCI[1]</td><td>PCILOGIC.OUT4</td></tr>
+<tr><td>CELL[2].OUT_PCI[1]</td><td>PCILOGIC.OUT[4]</td></tr>
 
-<tr><td>CELL[3].OUT_PCI[0]</td><td>PCILOGIC.OUT5</td></tr>
+<tr><td>CELL[3].OUT_PCI[0]</td><td>PCILOGIC.OUT[5]</td></tr>
 
 </tbody>
 
@@ -267,55 +267,55 @@
 
 <h2 id="tile-pci_e"><a class="header" href="#tile-pci_e">Tile PCI_E</a></h2>
 <p>Cells: 4</p>
-<h3 id="bel-pcilogic-1"><a class="header" href="#bel-pcilogic-1">Bel PCILOGIC</a></h3>
+<h3 id="bels-pcilogic-1"><a class="header" href="#bels-pcilogic-1">Bels PCILOGIC</a></h3>
 <div class="table-wrapper">
 <table>
-<caption>virtex2 PCI_E bel PCILOGIC</caption>
+<caption>virtex2 PCI_E bel PCILOGIC pins</caption>
 <thead>
-<tr><th>Pin</th><th>Direction</th><th>Wires</th></tr>
+<tr><th>Pin</th><th>Direction</th><th>PCILOGIC</th></tr>
 
 </thead>
 
 <tbody>
-<tr><td>FI0</td><td>input</td><td>CELL[1].OMUX[8]</td></tr>
+<tr><td>FI[0]</td><td>in</td><td>CELL[1].OMUX[8]</td></tr>
 
-<tr><td>FI1</td><td>input</td><td>CELL[1].OMUX[13]</td></tr>
+<tr><td>FI[1]</td><td>in</td><td>CELL[1].OMUX[13]</td></tr>
 
-<tr><td>FI2</td><td>input</td><td>CELL[2].OMUX[2]</td></tr>
+<tr><td>FI[2]</td><td>in</td><td>CELL[2].OMUX[2]</td></tr>
 
-<tr><td>FI3</td><td>input</td><td>CELL[2].OMUX[7]</td></tr>
+<tr><td>FI[3]</td><td>in</td><td>CELL[2].OMUX[7]</td></tr>
 
-<tr><td>OUT0</td><td>output</td><td>CELL[1].OUT_PCI[0]</td></tr>
+<tr><td>SI[0]</td><td>in</td><td>CELL[1].DBL_W2[5]</td></tr>
 
-<tr><td>OUT1</td><td>output</td><td>CELL[1].OUT_PCI[1]</td></tr>
+<tr><td>SI[1]</td><td>in</td><td>CELL[1].DBL_W2[6]</td></tr>
 
-<tr><td>OUT2</td><td>output</td><td>CELL[0].OUT_PCI[0]</td></tr>
+<tr><td>SI[2]</td><td>in</td><td>CELL[1].DBL_W2[7]</td></tr>
 
-<tr><td>OUT3</td><td>output</td><td>CELL[2].OUT_PCI[0]</td></tr>
+<tr><td>SI[3]</td><td>in</td><td>CELL[1].DBL_W2[8]</td></tr>
 
-<tr><td>OUT4</td><td>output</td><td>CELL[2].OUT_PCI[1]</td></tr>
+<tr><td>SI[4]</td><td>in</td><td>CELL[1].DBL_W2[9]</td></tr>
 
-<tr><td>OUT5</td><td>output</td><td>CELL[3].OUT_PCI[0]</td></tr>
+<tr><td>SI[5]</td><td>in</td><td>CELL[2].DBL_W2[0]</td></tr>
 
-<tr><td>SI0</td><td>input</td><td>CELL[1].DBL_W2[5]</td></tr>
+<tr><td>SI[6]</td><td>in</td><td>CELL[2].DBL_W2[1]</td></tr>
 
-<tr><td>SI1</td><td>input</td><td>CELL[1].DBL_W2[6]</td></tr>
+<tr><td>SI[7]</td><td>in</td><td>CELL[2].DBL_W2[2]</td></tr>
 
-<tr><td>SI2</td><td>input</td><td>CELL[1].DBL_W2[7]</td></tr>
+<tr><td>SI[8]</td><td>in</td><td>CELL[2].DBL_W2[3]</td></tr>
 
-<tr><td>SI3</td><td>input</td><td>CELL[1].DBL_W2[8]</td></tr>
+<tr><td>SI[9]</td><td>in</td><td>CELL[2].DBL_W2[4]</td></tr>
 
-<tr><td>SI4</td><td>input</td><td>CELL[1].DBL_W2[9]</td></tr>
+<tr><td>OUT[0]</td><td>out</td><td>CELL[1].OUT_PCI[0]</td></tr>
 
-<tr><td>SI5</td><td>input</td><td>CELL[2].DBL_W2[0]</td></tr>
+<tr><td>OUT[1]</td><td>out</td><td>CELL[1].OUT_PCI[1]</td></tr>
 
-<tr><td>SI6</td><td>input</td><td>CELL[2].DBL_W2[1]</td></tr>
+<tr><td>OUT[2]</td><td>out</td><td>CELL[0].OUT_PCI[0]</td></tr>
 
-<tr><td>SI7</td><td>input</td><td>CELL[2].DBL_W2[2]</td></tr>
+<tr><td>OUT[3]</td><td>out</td><td>CELL[2].OUT_PCI[0]</td></tr>
 
-<tr><td>SI8</td><td>input</td><td>CELL[2].DBL_W2[3]</td></tr>
+<tr><td>OUT[4]</td><td>out</td><td>CELL[2].OUT_PCI[1]</td></tr>
 
-<tr><td>SI9</td><td>input</td><td>CELL[2].DBL_W2[4]</td></tr>
+<tr><td>OUT[5]</td><td>out</td><td>CELL[3].OUT_PCI[0]</td></tr>
 
 </tbody>
 
@@ -332,45 +332,45 @@
 </thead>
 
 <tbody>
-<tr><td>CELL[0].OUT_PCI[0]</td><td>PCILOGIC.OUT2</td></tr>
+<tr><td>CELL[0].OUT_PCI[0]</td><td>PCILOGIC.OUT[2]</td></tr>
 
-<tr><td>CELL[1].OMUX[8]</td><td>PCILOGIC.FI0</td></tr>
+<tr><td>CELL[1].OMUX[8]</td><td>PCILOGIC.FI[0]</td></tr>
 
-<tr><td>CELL[1].OMUX[13]</td><td>PCILOGIC.FI1</td></tr>
+<tr><td>CELL[1].OMUX[13]</td><td>PCILOGIC.FI[1]</td></tr>
 
-<tr><td>CELL[1].DBL_W2[5]</td><td>PCILOGIC.SI0</td></tr>
+<tr><td>CELL[1].DBL_W2[5]</td><td>PCILOGIC.SI[0]</td></tr>
 
-<tr><td>CELL[1].DBL_W2[6]</td><td>PCILOGIC.SI1</td></tr>
+<tr><td>CELL[1].DBL_W2[6]</td><td>PCILOGIC.SI[1]</td></tr>
 
-<tr><td>CELL[1].DBL_W2[7]</td><td>PCILOGIC.SI2</td></tr>
+<tr><td>CELL[1].DBL_W2[7]</td><td>PCILOGIC.SI[2]</td></tr>
 
-<tr><td>CELL[1].DBL_W2[8]</td><td>PCILOGIC.SI3</td></tr>
+<tr><td>CELL[1].DBL_W2[8]</td><td>PCILOGIC.SI[3]</td></tr>
 
-<tr><td>CELL[1].DBL_W2[9]</td><td>PCILOGIC.SI4</td></tr>
+<tr><td>CELL[1].DBL_W2[9]</td><td>PCILOGIC.SI[4]</td></tr>
 
-<tr><td>CELL[1].OUT_PCI[0]</td><td>PCILOGIC.OUT0</td></tr>
+<tr><td>CELL[1].OUT_PCI[0]</td><td>PCILOGIC.OUT[0]</td></tr>
 
-<tr><td>CELL[1].OUT_PCI[1]</td><td>PCILOGIC.OUT1</td></tr>
+<tr><td>CELL[1].OUT_PCI[1]</td><td>PCILOGIC.OUT[1]</td></tr>
 
-<tr><td>CELL[2].OMUX[2]</td><td>PCILOGIC.FI2</td></tr>
+<tr><td>CELL[2].OMUX[2]</td><td>PCILOGIC.FI[2]</td></tr>
 
-<tr><td>CELL[2].OMUX[7]</td><td>PCILOGIC.FI3</td></tr>
+<tr><td>CELL[2].OMUX[7]</td><td>PCILOGIC.FI[3]</td></tr>
 
-<tr><td>CELL[2].DBL_W2[0]</td><td>PCILOGIC.SI5</td></tr>
+<tr><td>CELL[2].DBL_W2[0]</td><td>PCILOGIC.SI[5]</td></tr>
 
-<tr><td>CELL[2].DBL_W2[1]</td><td>PCILOGIC.SI6</td></tr>
+<tr><td>CELL[2].DBL_W2[1]</td><td>PCILOGIC.SI[6]</td></tr>
 
-<tr><td>CELL[2].DBL_W2[2]</td><td>PCILOGIC.SI7</td></tr>
+<tr><td>CELL[2].DBL_W2[2]</td><td>PCILOGIC.SI[7]</td></tr>
 
-<tr><td>CELL[2].DBL_W2[3]</td><td>PCILOGIC.SI8</td></tr>
+<tr><td>CELL[2].DBL_W2[3]</td><td>PCILOGIC.SI[8]</td></tr>
 
-<tr><td>CELL[2].DBL_W2[4]</td><td>PCILOGIC.SI9</td></tr>
+<tr><td>CELL[2].DBL_W2[4]</td><td>PCILOGIC.SI[9]</td></tr>
 
-<tr><td>CELL[2].OUT_PCI[0]</td><td>PCILOGIC.OUT3</td></tr>
+<tr><td>CELL[2].OUT_PCI[0]</td><td>PCILOGIC.OUT[3]</td></tr>
 
-<tr><td>CELL[2].OUT_PCI[1]</td><td>PCILOGIC.OUT4</td></tr>
+<tr><td>CELL[2].OUT_PCI[1]</td><td>PCILOGIC.OUT[4]</td></tr>
 
-<tr><td>CELL[3].OUT_PCI[0]</td><td>PCILOGIC.OUT5</td></tr>
+<tr><td>CELL[3].OUT_PCI[0]</td><td>PCILOGIC.OUT[5]</td></tr>
 
 </tbody>
 

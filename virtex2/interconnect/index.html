@@ -551,7 +551,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>INTF</td><td>INTF_GT_S0, INTF_GT_S123, INTF_GT_S_CLKPAD, INTF_GT_N0, INTF_GT_N123, INTF_GT_N_CLKPAD, INTF_PPC</td><td>INTF_TESTMUX</td></tr>
 
-<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, DSP, DSP_TESTMUX, DCM, GT, GT10, IPAD_RXP, IPAD_RXN, OPAD_TXP, OPAD_TXN, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
+<tr><td>BEL</td><td>CLB, IOI, IOI_CLK_S, IOI_CLK_N, BRAM, DCM_V2, DCM_V2P, GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N, PPC_W, PPC_E, CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td><td>SLICE[0], SLICE[1], SLICE[2], SLICE[3], TBUF[0], TBUF[1], TBUS, IOI[0], IOI[1], IOI[2], IOI[3], IBUF[0], IBUF[1], IBUF[2], IBUF[3], OBUF[0], OBUF[1], OBUF[2], OBUF[3], BRAM, MULT, DSP, DSP_TESTMUX, DCM, GT, GT10, PPC405, DCI[0], DCI[1], DCIRESET[0], DCIRESET[1], STARTUP, CAPTURE, ICAP, SPI_ACCESS, PMV, DNA_PORT, BSCAN, JTAGPPC, DCMCONN_S3E, BREFCLK_INT, RANDOR_OUT, MISR</td></tr>
 
 <tr><td>TERM_H</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E</td><td>TERM_W, TERM_E, PPC_TERM_W, PPC_TERM_E, LLH</td></tr>
 
@@ -646,19 +646,11 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>DCM</td><td>legacy</td><td>BEL</td><td>DCM_V2, DCM_V2P</td></tr>
 
-<tr><td>GT</td><td>legacy</td><td>BEL</td><td>GIGABIT_S, GIGABIT_N</td></tr>
+<tr><td>GT</td><td>GT</td><td>BEL</td><td>GIGABIT_S, GIGABIT_N</td></tr>
 
-<tr><td>GT10</td><td>legacy</td><td>BEL</td><td>GIGABIT10_S, GIGABIT10_N</td></tr>
+<tr><td>GT10</td><td>GT10</td><td>BEL</td><td>GIGABIT10_S, GIGABIT10_N</td></tr>
 
-<tr><td>IPAD_RXP</td><td>legacy</td><td>BEL</td><td>GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N</td></tr>
-
-<tr><td>IPAD_RXN</td><td>legacy</td><td>BEL</td><td>GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N</td></tr>
-
-<tr><td>OPAD_TXP</td><td>legacy</td><td>BEL</td><td>GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N</td></tr>
-
-<tr><td>OPAD_TXN</td><td>legacy</td><td>BEL</td><td>GIGABIT_S, GIGABIT_N, GIGABIT10_S, GIGABIT10_N</td></tr>
-
-<tr><td>PPC405</td><td>legacy</td><td>BEL</td><td>PPC_W, PPC_E</td></tr>
+<tr><td>PPC405</td><td>PPC405</td><td>BEL</td><td>PPC_W, PPC_E</td></tr>
 
 <tr><td>DCI[0]</td><td>legacy</td><td>BEL</td><td>CNR_SW_V2, CNR_SW_V2P, CNR_SE_V2, CNR_SE_V2P, CNR_NW_V2, CNR_NW_V2P, CNR_NE_V2, CNR_NE_V2P</td></tr>
 
@@ -730,7 +722,7 @@ Only <code>.0</code>, <code>.6</code>, <code>.12</code>, <code>.18</code> segmen
 
 <tr><td>BUFGMUX[7]</td><td>legacy</td><td>CLK</td><td>CLK_S_V2, CLK_S_V2P, CLK_S_V2PX, CLK_N_V2, CLK_N_V2P, CLK_N_V2PX</td></tr>
 
-<tr><td>PCILOGIC</td><td>legacy</td><td>CLK</td><td>PCI_W, PCI_E</td></tr>
+<tr><td>PCILOGIC</td><td>PCILOGIC</td><td>CLK</td><td>PCI_W, PCI_E</td></tr>
 
 <tr><td>PCILOGICSE</td><td>legacy</td><td>CLK</td><td></td></tr>
 
