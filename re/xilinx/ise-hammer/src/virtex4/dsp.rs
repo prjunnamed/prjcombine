@@ -78,7 +78,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let ti0 = ctx.extract_bit_bi_legacy(tile, "DSP[0]", pininv, pin, pin_b);
         let ti1 = ctx.extract_bit_bi_legacy(tile, "DSP[1]", pininv, pin, pin_b);
         assert_eq!(ti0, ti1);
-        ctx.insert_int_inv(&[tcls::INT; 4], tcid, bslots::DSP[0], pin, ti0.as_bit());
+        ctx.insert_int_inv_legacy(&[tcls::INT; 4], tcid, bslots::DSP[0], pin, ti0.as_bit());
     }
     let d0_0 = ctx.get_diff_legacy(tile, "DSP[0]", "CREG", "0");
     let d0_1 = ctx.get_diff_legacy(tile, "DSP[0]", "CREG", "1");
@@ -104,7 +104,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = ctx.edev.db.bel_slots.key(bslot);
         for &pin in DSP48_INVPINS {
             if pin.starts_with("CLK") || pin.starts_with("RST") || pin.starts_with("CE") {
-                ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, pin, false);
+                ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslot, pin, false);
             } else {
                 ctx.collect_inv(tile, bel, pin);
             }

@@ -1598,16 +1598,16 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
         .assert_empty();
     let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CLKINV", "CLK", "CLK_B");
-    ctx.insert_int_inv(int_tiles, tcid, bslot, "CLK", item.as_bit());
+    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CLK", item.as_bit());
     let item = if edev.chip.kind.is_virtex2() {
         // caution: invert
         ctx.extract_bit_bi_legacy(int_tile, bel, "GTSINV", "GTS_B", "GTS")
     } else {
         ctx.extract_bit_bi_legacy(int_tile, bel, "GTSINV", "GTS", "GTS_B")
     };
-    ctx.insert_int_inv(int_tiles, tcid, bslot, "GTS", item.as_bit());
+    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "GTS", item.as_bit());
     let item = ctx.extract_bit_bi_legacy(int_tile, bel, "GSRINV", "GSR", "GSR_B");
-    ctx.insert_int_inv(int_tiles, tcid, bslot, "GSR", item.as_bit());
+    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "GSR", item.as_bit());
     let diff0_gts = ctx.get_diff_legacy(tile, bel, "GTSINV", "GTS");
     let diff1_gts = ctx.get_diff_legacy(tile, bel, "GTSINV", "GTS_B");
     assert_eq!(diff0_gts, diff1_gts);
@@ -1626,20 +1626,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, skip_io: bool, devdata_only: bool
     ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
         .assert_empty();
     let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CLKINV", "CLK", "CLK_B");
-    ctx.insert_int_inv(int_tiles, tcid, bslot, "CLK", item.as_bit());
+    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CLK", item.as_bit());
     let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CAPINV", "CAP", "CAP_B");
-    ctx.insert_int_inv(int_tiles, tcid, bslot, "CAP", item.as_bit());
+    ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CAP", item.as_bit());
     let bel = "ICAP";
     let bslot = bslots::ICAP;
     if edev.chip.kind != ChipKind::Spartan3E {
         let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CLKINV", "CLK", "CLK_B");
-        ctx.insert_int_inv(int_tiles, tcid, bslot, "CLK", item.as_bit());
+        ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CLK", item.as_bit());
         // caution: inverted
         let item = ctx.extract_bit_bi_legacy(int_tile, bel, "CEINV", "CE_B", "CE");
-        ctx.insert_int_inv(int_tiles, tcid, bslot, "CE", item.as_bit());
+        ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "CE", item.as_bit());
         // caution: inverted
         let item = ctx.extract_bit_bi_legacy(int_tile, bel, "WRITEINV", "WRITE_B", "WRITE");
-        ctx.insert_int_inv(int_tiles, tcid, bslot, "WRITE", item.as_bit());
+        ctx.insert_int_inv_legacy(int_tiles, tcid, bslot, "WRITE", item.as_bit());
         if !edev.chip.kind.is_spartan3a() {
             ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
         }

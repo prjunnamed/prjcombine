@@ -7,10 +7,10 @@ use prjcombine_entity::{
 use prjcombine_interconnect::db::{
     Bel, BelAttribute, BelAttributeEnum, BelAttributeType, BelClass, BelClassAttribute,
     BelClassBidir, BelClassId, BelClassInput, BelClassOutput, BelClassPad, BelInfo, BelInput,
-    BelKind, BelSlot, BelSlotId, Bidi, BitRectInfo, CellSlotId, ConnectorClass, ConnectorClassId,
-    ConnectorSlot, ConnectorSlotId, ConnectorWire, EnumClass, IntDb, Mux, PermaBuf,
-    PolTileWireCoord, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem, Table, TableId, TileClass,
-    TileClassId, TileSlotId, TileWireCoord, WireKind,
+    BelKind, BelPinIndexing, BelSlot, BelSlotId, Bidi, BitRectInfo, CellSlotId, ConnectorClass,
+    ConnectorClassId, ConnectorSlot, ConnectorSlotId, ConnectorWire, EnumClass, IntDb, Mux,
+    PermaBuf, PolTileWireCoord, ProgBuf, ProgInv, SwitchBox, SwitchBoxItem, Table, TableId,
+    TileClass, TileClassId, TileSlotId, TileWireCoord, WireKind,
 };
 use prjcombine_types::bsdata::{BitRectGeometry, PolTileBit, RectBitId, RectFrameId, TileBit};
 use proc_macro::{Ident, Span, TokenStream};
@@ -356,16 +356,55 @@ impl Context {
         Ok(())
     }
 
+    fn eval_pin_indexing(
+        &self,
+        name: &ast::PinArrayIdDef,
+    ) -> Result<(Ident, Option<usize>, BelPinIndexing)> {
+        Ok(match *name {
+            ast::PinArrayIdDef::Plain(ref name) => {
+                let name = self.eval_templ_id(name)?;
+                (name, None, Default::default())
+            }
+            ast::PinArrayIdDef::Array(ref name, width) => {
+                let name = self.eval_templ_id(name)?;
+                (name, Some(width), Default::default())
+            }
+            ast::PinArrayIdDef::ArrayRange(ref name, msb, lsb) => {
+                let name = self.eval_templ_id(name)?;
+                if msb < lsb {
+                    (
+                        name,
+                        Some(lsb - msb + 1),
+                        BelPinIndexing {
+                            lsb_index: lsb,
+                            wrong_endian: true,
+                        },
+                    )
+                } else {
+                    (
+                        name,
+                        Some(lsb - msb + 1),
+                        BelPinIndexing {
+                            lsb_index: lsb,
+                            wrong_endian: false,
+                        },
+                    )
+                }
+            }
+        })
+    }
+
     fn eval_bel_class(&mut self, bcls: BelClassId, item: &ast::BelClassItem) -> Result<()> {
         match item {
             ast::BelClassItem::Input(pin) => {
                 for name in &pin.names {
+                    let (name, width, indexing) = self.eval_pin_indexing(name)?;
                     let inp = BelClassInput {
                         nonroutable: pin.nonroutable,
+                        indexing,
                     };
-                    match *name {
-                        ast::ArrayIdDef::Plain(ref name) => {
-                            let name = self.eval_templ_id(name)?;
+                    match width {
+                        None => {
                             if self.db.db.bel_classes[bcls]
                                 .inputs
                                 .insert(name.to_string(), inp)
@@ -375,21 +414,20 @@ impl Context {
                             }
                             self.db.bcls[bcls]
                                 .input_id
-                                .insert(name.to_string(), name.clone());
+                                .insert(name.to_string(), (name, indexing));
                         }
-                        ast::ArrayIdDef::Array(ref name, num) => {
-                            let name = self.eval_templ_id(name)?;
+                        Some(width) => {
                             if self.db.db.bel_classes[bcls]
                                 .inputs
-                                .insert_array(name.to_string(), num, inp)
+                                .insert_array(name.to_string(), width, inp)
                                 .is_none()
                             {
                                 error_at(name.span(), "bel input redefined")?
                             }
                             self.db.bcls[bcls].input_id.insert_array(
                                 name.to_string(),
-                                num,
-                                name.clone(),
+                                width,
+                                (name, indexing),
                             );
                         }
                     }
@@ -397,12 +435,13 @@ impl Context {
             }
             ast::BelClassItem::Output(pin) => {
                 for name in &pin.names {
+                    let (name, width, indexing) = self.eval_pin_indexing(name)?;
                     let outp = BelClassOutput {
                         nonroutable: pin.nonroutable,
+                        indexing,
                     };
-                    match *name {
-                        ast::ArrayIdDef::Plain(ref name) => {
-                            let name = self.eval_templ_id(name)?;
+                    match width {
+                        None => {
                             if self.db.db.bel_classes[bcls]
                                 .outputs
                                 .insert(name.to_string(), outp)
@@ -412,21 +451,20 @@ impl Context {
                             }
                             self.db.bcls[bcls]
                                 .output_id
-                                .insert(name.to_string(), name.clone());
+                                .insert(name.to_string(), (name, indexing));
                         }
-                        ast::ArrayIdDef::Array(ref name, num) => {
-                            let name = self.eval_templ_id(name)?;
+                        Some(width) => {
                             if self.db.db.bel_classes[bcls]
                                 .outputs
-                                .insert_array(name.to_string(), num, outp)
+                                .insert_array(name.to_string(), width, outp)
                                 .is_none()
                             {
                                 error_at(name.span(), "bel output redefined")?
                             }
                             self.db.bcls[bcls].output_id.insert_array(
                                 name.to_string(),
-                                num,
-                                name.clone(),
+                                width,
+                                (name, indexing),
                             );
                         }
                     }
@@ -434,12 +472,13 @@ impl Context {
             }
             ast::BelClassItem::Bidir(pin) => {
                 for name in &pin.names {
+                    let (name, width, indexing) = self.eval_pin_indexing(name)?;
                     let bidi = BelClassBidir {
                         nonroutable: pin.nonroutable,
+                        indexing,
                     };
-                    match *name {
-                        ast::ArrayIdDef::Plain(ref name) => {
-                            let name = self.eval_templ_id(name)?;
+                    match width {
+                        None => {
                             if self.db.db.bel_classes[bcls]
                                 .bidirs
                                 .insert(name.to_string(), bidi)
@@ -449,21 +488,20 @@ impl Context {
                             }
                             self.db.bcls[bcls]
                                 .bidir_id
-                                .insert(name.to_string(), name.clone());
+                                .insert(name.to_string(), (name, indexing));
                         }
-                        ast::ArrayIdDef::Array(ref name, num) => {
-                            let name = self.eval_templ_id(name)?;
+                        Some(width) => {
                             if self.db.db.bel_classes[bcls]
                                 .bidirs
-                                .insert_array(name.to_string(), num, bidi)
+                                .insert_array(name.to_string(), width, bidi)
                                 .is_none()
                             {
                                 error_at(name.span(), "bel bidir redefined")?
                             }
                             self.db.bcls[bcls].bidir_id.insert_array(
                                 name.to_string(),
-                                num,
-                                name.clone(),
+                                width,
+                                (name, indexing),
                             );
                         }
                     }
@@ -507,7 +545,10 @@ impl Context {
             ast::BelClassItem::Attribute(attr) => {
                 let typ = match attr.typ {
                     ast::AttributeType::Bool => BelAttributeType::Bool,
-                    ast::AttributeType::BitVec(num) => BelAttributeType::Bitvec(num),
+                    ast::AttributeType::BitVec(width) => BelAttributeType::BitVec(width),
+                    ast::AttributeType::BitVecArray(width, depth) => {
+                        BelAttributeType::BitVecArray(width, depth)
+                    }
                     ast::AttributeType::Enum(ref ident) => {
                         let Some((eid, _)) = self.db.db.enum_classes.get(&ident.to_string()) else {
                             error_at(ident.span(), "undefined enum")?
@@ -817,6 +858,44 @@ impl Context {
         Ok(())
     }
 
+    fn eval_pin_array_ref<T: EntityId>(
+        &self,
+        id: &ast::ArrayIdRef,
+        map: &EntityBundleMap<T, (Ident, BelPinIndexing)>,
+    ) -> Result<T> {
+        match id {
+            ast::ArrayIdRef::Plain(id) => {
+                let id = self.eval_templ_id(id)?;
+                let Some((item, _)) = map.get(&id.to_string()) else {
+                    error_at(id.span(), "undefined object")?
+                };
+                match item {
+                    EntityBundleIndex::Single(id) => Ok(id),
+                    EntityBundleIndex::Array(_) => error_at(id.span(), "object is an array")?,
+                }
+            }
+            ast::ArrayIdRef::Indexed(id, index) => {
+                let id = self.eval_templ_id(id)?;
+                let index = self.eval_index(index)?;
+                let Some((item, &(_, indexing))) = map.get(&id.to_string()) else {
+                    error_at(id.span(), "undefined object")?
+                };
+                match item {
+                    EntityBundleIndex::Single(_) => error_at(id.span(), "object is not an array")?,
+                    EntityBundleIndex::Array(range) => {
+                        let Some(index) = indexing.try_virt_to_phys(index) else {
+                            error_at(id.span(), "index out of bounds")?
+                        };
+                        if index > range.len() {
+                            error_at(id.span(), "index out of bounds")?
+                        }
+                        Ok(range.index(index))
+                    }
+                }
+            }
+        }
+    }
+
     fn eval_bel(
         &mut self,
         tcls: TileClassId,
@@ -827,12 +906,12 @@ impl Context {
     ) -> Result<()> {
         match item {
             ast::BelItem::Input(pin, wire_ref) => {
-                let pin = self.eval_array_ref(pin, &self.db.bcls[bcls].input_id)?;
+                let pin = self.eval_pin_array_ref(pin, &self.db.bcls[bcls].input_id)?;
                 let wire = self.eval_pol_wire_ref(tcls, wire_ref)?;
                 bel.inputs.insert(pin, BelInput::Fixed(wire));
             }
             ast::BelItem::Output(pin, wire_refs) => {
-                let pin = self.eval_array_ref(pin, &self.db.bcls[bcls].output_id)?;
+                let pin = self.eval_pin_array_ref(pin, &self.db.bcls[bcls].output_id)?;
                 let mut wires = BTreeSet::new();
                 for wref in wire_refs {
                     let wire = self.eval_wire_ref(tcls, wref)?;
@@ -841,7 +920,7 @@ impl Context {
                 bel.outputs.insert(pin, wires);
             }
             ast::BelItem::Bidir(pin, wire_ref) => {
-                let pin = self.eval_array_ref(pin, &self.db.bcls[bcls].bidir_id)?;
+                let pin = self.eval_pin_array_ref(pin, &self.db.bcls[bcls].bidir_id)?;
                 let wire = self.eval_wire_ref(tcls, wire_ref)?;
                 bel.bidirs.insert(pin, wire);
             }
@@ -885,7 +964,7 @@ impl Context {
                                 error_at(name.span(), "expected single bit")?;
                             }
                         }
-                        BelAttributeType::Bitvec(width) => {
+                        BelAttributeType::BitVec(width) => {
                             if bits.len() != width {
                                 error_at(
                                     name.span(),
@@ -893,7 +972,7 @@ impl Context {
                                 )?;
                             }
                         }
-                        BelAttributeType::BitvecArray(_, _) => todo!("bitvec array"),
+                        BelAttributeType::BitVecArray(_, _) => todo!("bitvec array"),
                     }
                     bel.attributes.insert(aid, BelAttribute::BitVec(bits));
                 }
@@ -1036,7 +1115,10 @@ impl Context {
             ast::TableItem::Field(field) => {
                 let typ = match field.typ {
                     ast::AttributeType::Bool => BelAttributeType::Bool,
-                    ast::AttributeType::BitVec(num) => BelAttributeType::Bitvec(num),
+                    ast::AttributeType::BitVec(width) => BelAttributeType::BitVec(width),
+                    ast::AttributeType::BitVecArray(width, depth) => {
+                        BelAttributeType::BitVecArray(width, depth)
+                    }
                     ast::AttributeType::Enum(ref ident) => {
                         let Some((eid, _)) = self.db.db.enum_classes.get(&ident.to_string()) else {
                             error_at(ident.span(), "undefined enum")?

@@ -1,8 +1,10 @@
 use std::ops::{Deref, DerefMut};
 
 use prjcombine_entity::EntityId;
-use prjcombine_interconnect::db::{BelInfo, BelSlotId, TileClassId, TileWireCoord};
-use prjcombine_re_collector::collect::Collector;
+use prjcombine_interconnect::db::{
+    BelInfo, BelInput, BelInputId, BelSlotId, TileClassId, TileWireCoord,
+};
+use prjcombine_re_collector::{collect::Collector, diff::xlat_bit_bi};
 use prjcombine_re_xilinx_geom::{Device, ExpandedDevice, GeomDb};
 use prjcombine_types::bsdata::{BitRectId, DbValue, PolTileBit, TileItem};
 use prjcombine_xilinx_bitstream::Bitstream;
@@ -78,13 +80,25 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         !self.edev.tile_index[tcid].is_empty()
     }
 
-    pub fn insert_int_inv(
+    pub fn insert_int_inv_wire(
+        &mut self,
+        int_tiles: &[TileClassId],
+        wire: TileWireCoord,
+        mut bit: PolTileBit,
+    ) {
+        assert_eq!(wire.cell.to_idx(), bit.bit.rect.to_idx());
+        bit.bit.rect = BitRectId::from_idx(0);
+        let int_tcid = int_tiles[wire.cell.to_idx()];
+        self.insert_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire), bit);
+    }
+
+    pub fn insert_int_inv_legacy(
         &mut self,
         int_tiles: &[TileClassId],
         tcid: TileClassId,
         bslot: BelSlotId,
         pin: &str,
-        mut bit: PolTileBit,
+        bit: PolTileBit,
     ) {
         let intdb = self.edev.db;
         let tcls = &intdb[tcid];
@@ -95,10 +109,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         let pin = &bel.pins[pin];
         assert_eq!(pin.wires.len(), 1);
         let wire = *pin.wires.first().unwrap();
-        assert_eq!(wire.cell.to_idx(), bit.bit.rect.to_idx());
-        bit.bit.rect = BitRectId::from_idx(0);
-        let int_tcid = int_tiles[wire.cell.to_idx()];
-        self.insert_inv(int_tcid, TileWireCoord::new_idx(0, wire.wire), bit);
+        self.insert_int_inv_wire(int_tiles, wire, bit);
     }
 
     pub fn item_int_inv(
@@ -123,7 +134,7 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
         bit
     }
 
-    pub fn collect_int_inv(
+    pub fn collect_int_inv_legacy(
         &mut self,
         int_tiles: &[TileClassId],
         tcid: TileClassId,
@@ -141,6 +152,29 @@ impl<'a, 'b: 'a> CollectorCtx<'a, 'b> {
             if flip { &pin_b } else { pin },
             if flip { pin } else { &pin_b },
         );
-        self.insert_int_inv(int_tiles, tcid, bslot, pin, item.as_bit());
+        self.insert_int_inv_legacy(int_tiles, tcid, bslot, pin, item.as_bit());
+    }
+
+    pub fn collect_bel_input_inv_int_bi(
+        &mut self,
+        int_tiles: &[TileClassId],
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        pin: BelInputId,
+    ) {
+        let diff0 = self.get_diff_bel_input_inv(tcid, bslot, pin, false);
+        let diff1 = self.get_diff_bel_input_inv(tcid, bslot, pin, true);
+        let mut bit = xlat_bit_bi(diff0, diff1);
+        let intdb = self.edev.db;
+        let tcls = &intdb[tcid];
+        let bel = &tcls.bels[bslot];
+        let BelInfo::Bel(bel) = bel else {
+            unreachable!()
+        };
+        let BelInput::Fixed(wire) = bel.inputs[pin] else {
+            unreachable!()
+        };
+        bit.inv ^= wire.inv;
+        self.insert_int_inv_wire(int_tiles, wire.tw, bit);
     }
 }

@@ -9,7 +9,7 @@ use prjcombine_entity::{
 use prjcombine_interconnect::{
     db::{
         BelAttribute, BelAttributeEnum, BelAttributeId, BelInputId, BelSlotId, ConnectorSlotId,
-        EnumValueId, PolTileWireCoord, TileClassId, TileWireCoord,
+        EnumValueId, PolTileWireCoord, TableRowId, TileClassId, TileWireCoord,
     },
     grid::{BelCoord, PolWireCoord, WireCoord},
 };
@@ -56,6 +56,7 @@ pub enum DiffKey {
     Legacy(FeatureId),
     BelAttrBit(TileClassId, BelSlotId, BelAttributeId, usize),
     BelAttrValue(TileClassId, BelSlotId, BelAttributeId, EnumValueId),
+    BelAttrBitVec(TileClassId, BelSlotId, BelAttributeId, BitVec),
     BelAttrValueSpecial(
         TileClassId,
         BelSlotId,
@@ -68,6 +69,8 @@ pub enum DiffKey {
     BelAttrSpecialBit(TileClassId, BelSlotId, BelAttributeId, SpecialId, usize),
     BelSpecial(TileClassId, BelSlotId, SpecialId),
     BelSpecialVal(TileClassId, BelSlotId, SpecialId, EnumValueId),
+    BelSpecialBit(TileClassId, BelSlotId, SpecialId, usize),
+    BelSpecialRow(TileClassId, BelSlotId, SpecialId, TableRowId),
     BelSpecialString(TileClassId, BelSlotId, SpecialId, String),
     BelInputInv(TileClassId, BelSlotId, BelInputId, bool),
     GlobalSpecial(SpecialId),
@@ -511,53 +514,91 @@ pub fn xlat_enum_attr(diffs: Vec<(EnumValueId, Diff)>) -> BelAttribute {
     xlat_enum_attr_ocd(diffs, OcdMode::ValueOrder)
 }
 
-pub fn xlat_bitvec_sparse(diffs: Vec<(u32, Diff)>) -> Vec<PolTileBit> {
-    let mut bits: Vec<Option<TileBit>> = vec![];
-    let mut xor = 0;
+pub fn xlat_bitvec_sparse(diffs: Vec<(BitVec, Diff)>) -> Vec<PolTileBit> {
+    let width = diffs[0].0.len();
+    let mut bits: Vec<Option<PolTileBit>> = vec![None; width];
+    let mut xor = BitVec::repeat(false, width);
     for (val, diff) in &diffs {
+        assert_eq!(val.len(), width);
         if diff.bits.is_empty() {
-            xor = *val;
+            xor = val.clone();
         }
+    }
+    fn strip_known(
+        val: &BitVec,
+        diff: &Diff,
+        tgt: &BitVec,
+        bits: &[Option<PolTileBit>],
+    ) -> (BitVec, Diff) {
+        let mut val = val.clone();
+        let mut diff = diff.clone();
+        for (i, &bit) in bits.iter().enumerate() {
+            let Some(bit) = bit else { continue };
+            if val[i] != tgt[i] {
+                diff.apply_bit_diff(bit, val[i], tgt[i]);
+                val.set(i, tgt[i]);
+            }
+        }
+        (val, diff)
     }
     loop {
         let mut progress = false;
         let mut done = true;
-        for &(mut val, ref diff) in &diffs {
-            let mut mdiff = diff.clone();
-            val ^= xor;
-            for (i, &bit) in bits.iter().enumerate() {
-                let Some(bit) = bit else { continue };
-                if (val & 1 << i) != 0 {
-                    val &= !(1 << i);
-                    assert_eq!(mdiff.bits.remove(&bit), Some((xor >> i & 1) == 0));
-                }
-            }
-            if val == 0 {
-                mdiff.assert_empty();
-            } else if val.is_power_of_two() {
-                let bidx: usize = val.ilog2().try_into().unwrap();
-                while bits.len() <= bidx {
-                    bits.push(None);
-                }
-                assert_eq!(mdiff.bits.len(), 1);
-                let (bit, pol) = mdiff.bits.into_iter().next().unwrap();
+        for (val, diff) in &diffs {
+            let (val, diff) = strip_known(val, diff, &xor, &bits);
+            let val_xor = &val ^ &xor;
+            if !val_xor.any() {
+                diff.assert_empty();
+            } else if let Some(bidx) = val_xor.as_one_hot() {
+                let mut bit = xlat_bit(diff);
+                bit.inv ^= xor[bidx];
                 bits[bidx] = Some(bit);
-                assert_eq!(pol, (xor >> bidx & 1) == 0);
                 progress = true;
             } else {
                 done = false;
             }
         }
         if done {
-            return Vec::from_iter(bits.iter().map(|bit| PolTileBit {
-                bit: bit.unwrap(),
-                inv: false,
-            }));
+            return Vec::from_iter(bits.iter().map(|bit| bit.unwrap()));
+        }
+        if !progress {
+            'try_two: for (val_a, diff_a) in &diffs {
+                let (val_a, diff_a) = strip_known(val_a, diff_a, &xor, &bits);
+                for (val_b, diff_b) in &diffs {
+                    let (val_b, diff_b) = strip_known(val_b, diff_b, &xor, &bits);
+                    let val_xor = &val_a ^ &val_b;
+                    if let Some(bidx) = val_xor.as_one_hot() {
+                        assert!(bits[bidx].is_none());
+                        let diff = if val_b[bidx] {
+                            diff_b.combine(&!diff_a)
+                        } else {
+                            diff_a.combine(&!diff_b)
+                        };
+                        let bit = xlat_bit(diff);
+                        bits[bidx] = Some(bit);
+                        progress = true;
+                        break 'try_two;
+                    }
+                }
+            }
         }
         if !progress {
             panic!("NO PROGRESS: {bits:?} {diffs:?}")
         }
     }
+}
+
+pub fn xlat_bitvec_sparse_u32(diffs: Vec<(u32, Diff)>) -> Vec<PolTileBit> {
+    let mut width = 0;
+    for &(n, _) in &diffs {
+        width = width.max(32 - n.leading_zeros());
+    }
+    let mut new_diffs = vec![];
+    for (n, diff) in diffs {
+        let bits = BitVec::from_iter((0..width).map(|bidx| n >> bidx != 0));
+        new_diffs.push((bits, diff));
+    }
+    xlat_bitvec_sparse(new_diffs)
 }
 
 pub fn extract_bitvec_val_part(bits: &[PolTileBit], base: &BitVec, diff: &mut Diff) -> BitVec {

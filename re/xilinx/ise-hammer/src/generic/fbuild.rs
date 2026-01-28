@@ -1,6 +1,7 @@
 use prjcombine_interconnect::{
     db::{
-        BelAttributeId, BelAttributeType, BelInputId, BelKind, BelSlotId, EnumValueId, TileClassId,
+        BelAttributeId, BelAttributeType, BelInputId, BelKind, BelSlotId, EnumValueId, TableRowId,
+        TileClassId,
     },
     dir::DirV,
     grid::TileCoord,
@@ -8,13 +9,17 @@ use prjcombine_interconnect::{
 use prjcombine_re_collector::diff::{DiffKey, FeatureId, SpecialId};
 use prjcombine_re_fpga_hammer::{FpgaFuzzerGen, FuzzerProp};
 use prjcombine_re_hammer::Session;
+use prjcombine_types::bitvec::BitVec;
 use prjcombine_xilinx_bitstream::Reg;
 
 use crate::{
     backend::{IseBackend, Key, MultiValue, PinFromKind, Value},
-    generic::props::extra::{
-        ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyLegacy,
-        ExtraKeyLegacyAttr,
+    generic::{
+        props::extra::{
+            ExtraKeyBelAttrBits, ExtraKeyBelAttrValue, ExtraKeyBelSpecial, ExtraKeyLegacy,
+            ExtraKeyLegacyAttr,
+        },
+        utils::get_input_name,
     },
 };
 
@@ -766,7 +771,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
             unreachable!()
         };
-        let BelAttributeType::Bitvec(width) = self.backend.edev.db[bcid].attributes[attr].typ
+        let BelAttributeType::BitVec(width) = self.backend.edev.db[bcid].attributes[attr].typ
         else {
             unreachable!()
         };
@@ -826,6 +831,20 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         self.test_raw(key)
     }
 
+    pub fn test_bel_special_bits(self, spec: SpecialId) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelSpecialBit(self.tile_class, self.bel, spec, 0);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_special_row(
+        self,
+        spec: SpecialId,
+        row: TableRowId,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelSpecialRow(self.tile_class, self.bel, spec, row);
+        self.test_raw(key)
+    }
+
     pub fn test_bel_attr_bits(self, attr: BelAttributeId) -> FuzzBuilderBelTestManual<'sm, 'b> {
         let key = DiffKey::BelAttrBit(self.tile_class, self.bel, attr, 0);
         self.test_raw(key)
@@ -837,6 +856,43 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         val: EnumValueId,
     ) -> FuzzBuilderBelTestManual<'sm, 'b> {
         let key = DiffKey::BelAttrValue(self.tile_class, self.bel, attr, val);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_attr_bitvec(
+        self,
+        attr: BelAttributeId,
+        val: BitVec,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelAttrBitVec(self.tile_class, self.bel, attr, val);
+        self.test_raw(key)
+    }
+
+    pub fn test_bel_attr_u32(
+        self,
+        attr: BelAttributeId,
+        val: i32,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let BelAttributeType::BitVec(width) = self.backend.edev.db[bcid].attributes[attr].typ
+        else {
+            unreachable!()
+        };
+        let mut bv = BitVec::repeat(false, width);
+        for i in 0..width {
+            bv.set(i, (val & 1 << i) != 0);
+        }
+        self.test_bel_attr_bitvec(attr, bv)
+    }
+
+    pub fn test_bel_attr_special(
+        self,
+        attr: BelAttributeId,
+        spec: SpecialId,
+    ) -> FuzzBuilderBelTestManual<'sm, 'b> {
+        let key = DiffKey::BelAttrSpecial(self.tile_class, self.bel, attr, spec);
         self.test_raw(key)
     }
 
@@ -912,6 +968,7 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
         };
         let ecls = &self.backend.edev.db[ecid];
         for (vid, val) in &ecls.values {
+            let val = val.strip_prefix('_').unwrap_or(&val[..]);
             self.clone()
                 .test_bel_attr_val(attr, vid)
                 .attr(rattr, val)
@@ -960,6 +1017,19 @@ impl<'sm, 'b> FuzzBuilderBel<'sm, 'b> {
             .test_bel_input_inv(pin, true)
             .attr(rattr, val1)
             .commit();
+    }
+
+    pub fn test_bel_input_inv_auto(self, pid: BelInputId) {
+        let BelKind::Class(bcid) = self.backend.edev.db.bel_slots[self.bel].kind else {
+            unreachable!()
+        };
+        let pname = get_input_name(self.backend.edev, bcid, pid);
+        self.pin(&pname).test_bel_input_inv_enum(
+            format!("{pname}INV"),
+            pid,
+            &pname,
+            format!("{pname}_B"),
+        );
     }
 
     pub fn test_bel_attr(self, attr: BelAttributeId) {

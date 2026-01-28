@@ -153,7 +153,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 continue;
             }
             let int_tiles = &[tcls::INT; 62];
-            ctx.collect_int_inv(int_tiles, tcid, bslot, pin, true);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslot, pin, true);
         }
     }
 }

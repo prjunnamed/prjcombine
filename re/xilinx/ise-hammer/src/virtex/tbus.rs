@@ -145,8 +145,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 }
             } else {
                 let int_tcid = &[prjcombine_virtex2::defs::virtex2::tcls::INT_CLB];
-                ctx.collect_int_inv(int_tcid, tcid, bslot, "T", false);
-                ctx.collect_int_inv(int_tcid, tcid, bslot, "I", false);
+                ctx.collect_int_inv_legacy(int_tcid, tcid, bslot, "T", false);
+                ctx.collect_int_inv_legacy(int_tcid, tcid, bslot, "I", false);
             }
             for attr in ["OUT_A", "OUT_B"] {
                 ctx.collect_bit_legacy(tile, bel, attr, "1");

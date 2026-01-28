@@ -727,7 +727,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ChipKind::Spartan3 => tcls_s3::INT_DCM,
         _ => unreachable!(),
     }];
-    ctx.collect_int_inv(int_tiles, tcid, bslot, "PSCLK", false);
+    ctx.collect_int_inv_legacy(int_tiles, tcid, bslot, "PSCLK", false);
     for pin in ["RST", "PSEN", "PSINCDEC"] {
         ctx.collect_inv(tile, bel, pin);
     }

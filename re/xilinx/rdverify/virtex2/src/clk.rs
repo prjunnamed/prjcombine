@@ -1,6 +1,6 @@
-use prjcombine_interconnect::dir::Dir;
+use prjcombine_interconnect::{dir::Dir, grid::BelCoord};
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{SitePinDir, Verifier};
 use prjcombine_virtex2::{
     chip::{ChipKind, Dcms},
     defs,
@@ -8,7 +8,8 @@ use prjcombine_virtex2::{
 
 use crate::get_bel_iob;
 
-pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     let idx = defs::bslots::BUFGMUX.index_of(bel.slot).unwrap();
     if endev.edev.chip.kind == ChipKind::FpgaCore {
         vrf.verify_legacy_bel(bel, "BUFG", &[("I", SitePinDir::In)], &["CLK"]);
@@ -215,7 +216,8 @@ pub fn verify_bufgmux(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Leg
     }
 }
 
-pub fn verify_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     for i in 0..8 {
         for bt in ["B", "T"] {
             if bel.tcls.ends_with("_S") && bt == "T" {
@@ -275,7 +277,8 @@ pub fn verify_hclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Legacy
     }
 }
 
-pub fn verify_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     if endev.chip.kind.is_virtex2() {
         for i in 0..8 {
             for lr in ['L', 'R'] {
@@ -326,7 +329,8 @@ pub fn verify_hrow(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Legacy
     }
 }
 
-pub fn verify_clkc_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_clkc_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     for i in 0..8 {
         for bt in ['B', 'T'] {
             vrf.claim_net(&[(bel.wire(&format!("OUT_{bt}{i}")))]);
@@ -349,7 +353,8 @@ pub fn verify_clkc_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Leg
     }
 }
 
-pub fn verify_clkc_s3(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_clkc_s3(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     for i in 0..8 {
         let (bt, j) = if i < 4 { ('B', i) } else { ('T', i - 4) };
         vrf.claim_net(&[bel.wire(&format!("OUT{i}"))]);
@@ -371,7 +376,8 @@ pub fn verify_clkc_s3(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Leg
     }
 }
 
-pub fn verify_clkc_50a(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_clkc_50a(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     for i in 0..8 {
         let (bt, j) = if i < 4 { ('B', i) } else { ('T', i - 4) };
         for lr in ['L', 'R'] {
@@ -410,7 +416,8 @@ pub fn verify_clkc_50a(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Le
     }
 }
 
-pub fn verify_gclkvm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_gclkvm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     for i in 0..8 {
         for bt in ["B", "T"] {
             vrf.claim_net(&[bel.wire(&format!("OUT_{bt}{i}"))]);
@@ -450,7 +457,8 @@ pub fn verify_gclkvm(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Lega
     }
 }
 
-pub fn verify_dcmconn(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_dcmconn(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     let opin_pad;
     let pins_out;
     let pins_pad;
@@ -530,7 +538,8 @@ pub fn verify_dcmconn(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Leg
     }
 }
 
-pub fn verify_brefclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_brefclk(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.claim_net(&[bel.wire("BREFCLK")]);
     vrf.claim_net(&[bel.wire("BREFCLK2")]);
     if bel.row == endev.chip.row_s() {

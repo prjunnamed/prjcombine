@@ -280,7 +280,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bel = edev.db.bel_slots.key(bslot);
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
-        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, "RST", false);
+        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslot, "RST", false);
         ctx.collect_inv(tile, bel, "REL");
         ctx.collect_bit_wide_legacy(tile, bel, "CLKA_ENABLE", "1");
         ctx.collect_bit_legacy(tile, bel, "CLKB_ENABLE", "1");
@@ -371,7 +371,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         let bslot = bslots::DPM;
         ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
             .assert_empty();
-        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, "RST", false);
+        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslot, "RST", false);
         for pin in [
             "ENOSC0", "ENOSC1", "ENOSC2", "OUTSEL0", "OUTSEL1", "OUTSEL2", "HFSEL0", "HFSEL1",
             "HFSEL2", "SELSKEW", "FREEZE",

@@ -78,8 +78,15 @@ pub enum BelClassItem {
 
 #[derive(Debug)]
 pub struct BelClassPin {
-    pub names: Vec<ArrayIdDef>,
+    pub names: Vec<PinArrayIdDef>,
     pub nonroutable: bool,
+}
+
+#[derive(Debug)]
+pub enum PinArrayIdDef {
+    Plain(TemplateId),
+    Array(TemplateId, usize),
+    ArrayRange(TemplateId, usize, usize),
 }
 
 #[derive(Debug)]
@@ -98,6 +105,7 @@ pub struct BelClassAttribute {
 pub enum AttributeType {
     Bool,
     BitVec(usize),
+    BitVecArray(usize, usize),
     Enum(Ident),
 }
 

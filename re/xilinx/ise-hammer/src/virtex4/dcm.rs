@@ -500,7 +500,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     }
 
     for pin in ["RST", "CTLMODE", "FREEZE_DLL", "FREEZE_DFS", "DEN", "DWE"] {
-        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslot, pin, false);
+        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslot, pin, false);
     }
 
     for pin in [

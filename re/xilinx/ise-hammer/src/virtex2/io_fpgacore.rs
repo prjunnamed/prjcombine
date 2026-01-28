@@ -265,7 +265,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         for pin in ["CLK", "O"] {
             ctx.collect_inv(tile, bel, pin);
         }
-        ctx.collect_int_inv(&[tcls::INT_IOI_FC], tcid, bslot, "CE", false);
+        ctx.collect_int_inv_legacy(&[tcls::INT_IOI_FC], tcid, bslot, "CE", false);
         for pin in ["REV", "SR"] {
             let d0 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), pin);
             let d1 = ctx.get_diff_legacy(tile, bel, format!("{pin}INV"), format!("{pin}_B"));
@@ -273,7 +273,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             if pin == "REV" {
                 ctx.insert(tile, bel, format!("INV.{pin}"), xlat_bit_bi_legacy(d0, d1));
             } else {
-                ctx.insert_int_inv(&[tcls::INT_IOI_FC], tcid, bslot, pin, xlat_bit_bi(d0, d1));
+                ctx.insert_int_inv_legacy(
+                    &[tcls::INT_IOI_FC],
+                    tcid,
+                    bslot,
+                    pin,
+                    xlat_bit_bi(d0, d1),
+                );
             }
             ctx.insert(tile, bel, format!("FF_{pin}_ENABLE"), xlat_bit_legacy(de));
         }

@@ -407,7 +407,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
         ] {
             ctx.collect_inv(tile, bel, pin);
         }
-        ctx.collect_int_inv(&[tcls::INT_DCM], tcid, bslot, "PSCLK", false);
+        ctx.collect_int_inv_legacy(&[tcls::INT_DCM], tcid, bslot, "PSCLK", false);
         ctx.get_diff_legacy(tile, bel, "DSSENINV", "DSSEN")
             .assert_empty();
         ctx.get_diff_legacy(tile, bel, "DSSENINV", "DSSEN_B")

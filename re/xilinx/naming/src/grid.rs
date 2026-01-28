@@ -39,8 +39,8 @@ impl TileNaming {
         self.bels.insert(slot, vec![name]);
     }
 
-    pub fn add_bel_multi(&mut self, slot: BelSlotId, names: Vec<String>) {
-        self.bels.insert(slot, names);
+    pub fn add_bel_multi(&mut self, slot: BelSlotId, names: impl IntoIterator<Item = String>) {
+        self.bels.insert(slot, Vec::from_iter(names));
     }
 }
 

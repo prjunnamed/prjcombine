@@ -6,6 +6,775 @@ target_defs! {
 
     // TODO: enums and bel classes
 
+    bel_class PCILOGIC {
+        input FI[4];
+        input SI[10];
+        output OUT[6];
+    }
+
+    enum GT_DATA_WIDTH { _1, _2, _4 }
+    enum GT_SEQ_LEN { _1, _2, _3, _4 }
+    enum GT_CHAN_BOND_MODE { NONE, MASTER, SLAVE_1_HOP, SLAVE_2_HOPS }
+    enum GT_CRC_FORMAT { USER_MODE, ETHERNET, INFINIBAND, FIBRE_CHAN }
+    enum GT_RX_LOS_INVALID_INCR { _1, _2, _4, _8, _16, _32, _64, _128 }
+    enum GT_RX_LOS_THRESHOLD { _4, _8, _16, _32, _64, _128, _256, _512 }
+    enum GT_TERMINATION_IMP { _50, _75 }
+    enum GT_TX_DIFF_CTRL { _400, _500, _600, _700, _800 }
+    bel_class GT {
+        input REFCLK;
+        input REFCLK2;
+        input REFCLKSEL;
+        nonroutable input BREFCLK, BREFCLK2;
+
+        input POWERDOWN;
+        input LOOPBACK[2];
+
+        input RXUSRCLK;
+        input RXUSRCLK2;
+        output RXRECCLK;
+        input RXRESET;
+        input RXPOLARITY;
+        output RXDATA[32];
+        output RXNOTINTABLE[4];
+        output RXDISPERR[4];
+        output RXCHARISK[4];
+        output RXCHARISCOMMA[4];
+        output RXRUNDISP[4];
+        output RXCOMMADET;
+        output RXREALIGN;
+        input ENPCOMMAALIGN;
+        input ENMCOMMAALIGN;
+        output RXLOSSOFSYNC[2];
+        output RXCLKCORCNT[3];
+        output RXBUFSTATUS[2];
+        output RXCHECKINGCRC;
+        output RXCRCERR;
+
+        input TXUSRCLK;
+        input TXUSRCLK2;
+        input TXRESET;
+        input TXPOLARITY;
+        input TXINHIBIT;
+        input TXDATA[32];
+        input TXBYPASS8B10B[4];
+        input TXCHARISK[4];
+        input TXCHARDISPMODE[4];
+        input TXCHARDISPVAL[4];
+        input TXFORCECRCERR;
+        output TXKERR[4];
+        output TXRUNDISP[4];
+        output TXBUFERR;
+
+        input CONFIGENABLE;
+        input CONFIGIN;
+        output CONFIGOUT;
+
+        input ENCHANSYNC;
+        input CHBONDI[4];
+        output CHBONDO[4];
+        output CHBONDDONE;
+
+        pad RXP, RXN: input;
+        pad TXP, TXN: output;
+        pad GNDA: power;
+        pad AVCCAUXRX, AVCCAUXTX: power;
+        pad VTRX, VTTX: power;
+
+        attribute ENABLE: bool;
+        attribute REF_CLK_V_SEL: bitvec[1];
+        attribute SERDES_10B: bool;
+        attribute TERMINATION_IMP: GT_TERMINATION_IMP;
+
+        attribute ALIGN_COMMA_MSB: bool;
+        attribute PCOMMA_DETECT: bool;
+        attribute MCOMMA_DETECT: bool;
+        attribute COMMA_10B_MASK: bitvec[10];
+        attribute PCOMMA_10B_VALUE: bitvec[10];
+        attribute MCOMMA_10B_VALUE: bitvec[10];
+        attribute DEC_PCOMMA_DETECT: bool;
+        attribute DEC_MCOMMA_DETECT: bool;
+        attribute DEC_VALID_COMMA_ONLY: bool;
+
+        attribute RX_DATA_WIDTH: GT_DATA_WIDTH;
+        attribute RX_BUFFER_USE: bool;
+        attribute RX_BUFFER_LIMIT: bitvec[4];
+        attribute RX_DECODE_USE: bool;
+        attribute RX_CRC_USE: bool;
+        attribute RX_LOS_INVALID_INCR: GT_RX_LOS_INVALID_INCR;
+        attribute RX_LOS_THRESHOLD: GT_RX_LOS_THRESHOLD;
+        attribute RX_LOSS_OF_SYNC_FSM: bool;
+
+        attribute TX_DATA_WIDTH: GT_DATA_WIDTH;
+        attribute TX_BUFFER_USE: bool;
+        attribute TX_CRC_USE: bool;
+        attribute TX_CRC_FORCE_VALUE: bitvec[8];
+        attribute TX_DIFF_CTRL: GT_TX_DIFF_CTRL;
+        attribute TX_PREEMPHASIS: bitvec[2];
+
+        attribute CRC_FORMAT: GT_CRC_FORMAT;
+        attribute CRC_START_OF_PKT: bitvec[8];
+        attribute CRC_END_OF_PKT: bitvec[8];
+
+        attribute CLK_CORRECT_USE: bool;
+        attribute CLK_COR_INSERT_IDLE_FLAG: bool;
+        attribute CLK_COR_KEEP_IDLE: bool;
+        attribute CLK_COR_REPEAT_WAIT: bitvec[5];
+        attribute CLK_COR_SEQ_LEN: GT_SEQ_LEN;
+        attribute CLK_COR_SEQ_2_USE: bool;
+        for i in 1..=4 {
+            attribute "CLK_COR_SEQ_1_{i}": bitvec[11];
+        }
+        for i in 1..=4 {
+            attribute "CLK_COR_SEQ_2_{i}": bitvec[11];
+        }
+
+        attribute CHAN_BOND_MODE: GT_CHAN_BOND_MODE;
+        attribute CHAN_BOND_WAIT: bitvec[4];
+        attribute CHAN_BOND_OFFSET: bitvec[4];
+        attribute CHAN_BOND_LIMIT: bitvec[5];
+        attribute CHAN_BOND_ONE_SHOT: bool;
+        attribute CHAN_BOND_SEQ_LEN: GT_SEQ_LEN;
+        attribute CHAN_BOND_SEQ_2_USE: bool;
+        for i in 1..=4 {
+            attribute "CHAN_BOND_SEQ_1_{i}": bitvec[11];
+        }
+        for i in 1..=4 {
+            attribute "CHAN_BOND_SEQ_2_{i}": bitvec[11];
+        }
+
+        attribute TEST_MODE_1: bool;
+        attribute TEST_MODE_2: bool;
+        attribute TEST_MODE_3: bool;
+        attribute TEST_MODE_4: bool;
+        attribute TEST_MODE_5: bool;
+        attribute TEST_MODE_6: bool;
+    }
+
+    enum GT10_ALIGN_COMMA_WORD { _1, _2, _4 }
+    enum GT10_SEQ_LEN { _1, _2, _3, _4, _8 }
+    bel_class GT10 {
+        input REFCLK;
+        input REFCLK2;
+        input REFCLKBSEL;
+        input REFCLKSEL;
+        nonroutable input BREFCLKPIN, BREFCLKNIN;
+
+        input POWERDOWN;
+        input LOOPBACK[2];
+
+        input RXUSRCLK;
+        input RXUSRCLK2;
+        output RXRECCLK;
+        input RXRESET;
+        input PMARXLOCKSEL[2];
+        output PMARXLOCK;
+        input RXPOLARITY;
+        input RXDATAWIDTH[2];
+        input RXINTDATAWIDTH[2];
+        output RXDATA[64];
+        output RXNOTINTABLE[8];
+        output RXDISPERR[8];
+        output RXCHARISK[8];
+        output RXCHARISCOMMA[8];
+        output RXRUNDISP[8];
+        input RXDEC8B10BUSE;
+        input RXDEC64B66BUSE;
+        input RXBLOCKSYNC64B66BUSE;
+        input RXDESCRAM64B66BUSE;
+        input RXCOMMADETUSE;
+        input RXIGNOREBTF;
+        output RXCOMMADET;
+        output RXREALIGN;
+        input RXSLIDE;
+        input ENMCOMMAALIGN;
+        input ENPCOMMAALIGN;
+        output RXLOSSOFSYNC[2];
+        output RXCLKCORCNT[3];
+        output RXBUFSTATUS[2];
+        output RXCHECKINGCRC;
+        output RXCRCERR;
+
+        input TXUSRCLK;
+        input TXUSRCLK2;
+        output TXOUTCLK;
+        input TXRESET;
+        input TXPOLARITY;
+        input TXINHIBIT;
+        input TXDATAWIDTH[2];
+        input TXINTDATAWIDTH[2];
+        input TXDATA[64];
+        input TXBYPASS8B10B[8];
+        input TXCHARISK[8];
+        input TXCHARDISPMODE[8];
+        input TXCHARDISPVAL[8];
+        input TXFORCECRCERR;
+        input TXENC8B10BUSE;
+        input TXENC64B66BUSE;
+        input TXSCRAM64B66BUSE;
+        input TXGEARBOX64B66BUSE;
+        output TXKERR[8];
+        output TXRUNDISP[8];
+        output TXBUFERR;
+
+        input ENCHANSYNC;
+        input CHBONDI[5];
+        output CHBONDO[5];
+        output CHBONDDONE;
+
+        input PMAINIT;
+        input PMAREGADDR[6];
+        input PMAREGDATAIN[8];
+        input PMAREGRW;
+        input PMAREGSTROBE;
+
+        input SCANEN;
+        input SCANMODE;
+        input SCANIN;
+        output SCANOUT;
+        input TESTMEMORY;
+
+        pad RXP, RXN: input;
+        pad TXP, TXN: output;
+        pad GNDA: power;
+        pad AVCCAUXRX, AVCCAUXTX: power;
+        pad VTRX, VTTX: power;
+
+        attribute PMA_REG: bitvec[8][16];
+
+        // the following are contained within PMA_REG
+        attribute MASTERBIAS: bitvec[2];
+        attribute VCODAC: bitvec[6];
+        attribute TXDIVRATIO: bitvec[10];
+        attribute TXBUSWID: bitvec[1];
+        attribute ENDCD: bitvec[1];
+        attribute SEL_DAC_TRAN: bitvec[4];
+        attribute SEL_DAC_FIX: bitvec[4];
+        attribute TXLOOPFILTERC: bitvec[2];
+        attribute TXLOOPFILTERR: bitvec[2];
+        attribute IBOOST: bitvec[1];
+        attribute TXCPI: bitvec[1];
+        attribute TXVCODAC: bitvec[1];
+        attribute TXVCOGAIN: bitvec[1];
+        attribute TXVSEL: bitvec[2];
+        attribute TXREG: bitvec[2];
+        attribute TXDOWNLEVEL: bitvec[4];
+        attribute PRDRVOFF: bitvec[1];
+        attribute EMPOFF: bitvec[1];
+        attribute SLEW: bitvec[1];
+        attribute TXEMPHLEVEL: bitvec[4];
+        attribute TXDIGSW: bitvec[1];
+        attribute TXANASW: bitvec[1];
+        attribute RXDIVRATIO: bitvec[14];
+        attribute RXLOOPFILTERC: bitvec[2];
+        attribute RXLOOPFILTERR: bitvec[3];
+        attribute AFE_FLAT_ENABLE: bitvec[1];
+        attribute RXVCOSW: bitvec[1];
+        attribute RXCPI: bitvec[2];
+        attribute RXVCODAC: bitvec[1];
+        attribute RXVCOGAIN: bitvec[1];
+        attribute RXVSEL: bitvec[2];
+        attribute RXREG: bitvec[2];
+        attribute RXFLTCPT: bitvec[5];
+        attribute RXVSELCP: bitvec[2];
+        attribute VSELAFE: bitvec[2];
+        attribute RXFEI: bitvec[2];
+        attribute RXFLCPI: bitvec[2];
+        attribute RXFER: bitvec[10];
+        attribute PMA_REG_0E: bitvec[8];
+        attribute BIASEN: bool;
+        attribute TXANAEN: bool;
+        attribute TXDIGEN: bool;
+        attribute RXANAEN: bool;
+        attribute PMA_PWR_CNTRL_BIT4: bool;
+        attribute TXEN: bool;
+        attribute RXEN: bool;
+        attribute TXDRVEN: bool;
+
+        attribute RX_BUFFER_USE: bool;
+        attribute RX_CRC_USE: bool;
+        attribute RX_LOS_INVALID_INCR: GT_RX_LOS_INVALID_INCR;
+        attribute RX_LOS_THRESHOLD: GT_RX_LOS_THRESHOLD;
+        attribute RX_LOSS_OF_SYNC_FSM: bool;
+
+        attribute TX_BUFFER_USE: bool;
+        attribute TX_CRC_FORCE_VALUE: bitvec[8];
+        attribute TX_CRC_USE: bool;
+
+        attribute ALIGN_COMMA_WORD: GT10_ALIGN_COMMA_WORD;
+        attribute PCOMMA_DETECT: bool;
+        attribute MCOMMA_DETECT: bool;
+        attribute COMMA_10B_MASK: bitvec[10];
+        attribute PCOMMA_10B_VALUE: bitvec[10];
+        attribute MCOMMA_10B_VALUE: bitvec[10];
+        attribute DEC_PCOMMA_DETECT: bool;
+        attribute DEC_MCOMMA_DETECT: bool;
+        attribute DEC_VALID_COMMA_ONLY: bool;
+
+        attribute SH_CNT_MAX: bitvec[8];
+        attribute SH_INVALID_CNT_MAX: bitvec[8];
+
+        attribute CRC_FORMAT: GT_CRC_FORMAT;
+        attribute CRC_START_OF_PKT: bitvec[8];
+        attribute CRC_END_OF_PKT: bitvec[8];
+
+        attribute CLK_CORRECT_USE: bool;
+        attribute CLK_COR_8B10B_DE: bool;
+        attribute CLK_COR_INSERT_IDLE_FLAG: bool;
+        attribute CLK_COR_KEEP_IDLE: bool;
+        attribute CLK_COR_REPEAT_WAIT: bitvec[5];
+        attribute CLK_COR_ADJ_MAX: bitvec[5];
+        attribute CLK_COR_MIN_LAT: bitvec[6];
+        attribute CLK_COR_MAX_LAT: bitvec[6];
+        attribute CLK_COR_SEQ_LEN: GT10_SEQ_LEN;
+        attribute CLK_COR_SEQ_2_USE: bool;
+        attribute CLK_COR_SEQ_DROP: bool;
+        attribute CLK_COR_SEQ_1_MASK: bitvec[4];
+        attribute CLK_COR_SEQ_2_MASK: bitvec[4];
+        for i in 1..=4 {
+            attribute "CLK_COR_SEQ_1_{i}": bitvec[11];
+        }
+        for i in 1..=4 {
+            attribute "CLK_COR_SEQ_2_{i}": bitvec[11];
+        }
+
+        attribute CHAN_BOND_MODE: GT_CHAN_BOND_MODE;
+        attribute CHAN_BOND_64B66B_SV: bool;
+        attribute CHAN_BOND_LIMIT: bitvec[5];
+        attribute CHAN_BOND_ONE_SHOT: bool;
+        attribute CHAN_BOND_SEQ_LEN: GT10_SEQ_LEN;
+        attribute CHAN_BOND_SEQ_2_USE: bool;
+        attribute CHAN_BOND_SEQ_1_MASK: bitvec[4];
+        attribute CHAN_BOND_SEQ_2_MASK: bitvec[4];
+        for i in 1..=4 {
+            attribute "CHAN_BOND_SEQ_1_{i}": bitvec[11];
+        }
+        for i in 1..=4 {
+            attribute "CHAN_BOND_SEQ_2_{i}": bitvec[11];
+        }
+
+        attribute TEST_MODE_1: bool;
+        attribute TEST_MODE_2: bool;
+        attribute TEST_MODE_3: bool;
+        attribute TEST_MODE_4: bool;
+        attribute TEST_MODE_5: bool;
+        attribute TEST_MODE_6: bool;
+    }
+
+    table GT10_PMA_SPEED {
+        field MASTERBIAS: bitvec[2];
+        field VCODAC: bitvec[6];
+        field TXDIVRATIO: bitvec[10];
+        field TXBUSWID: bitvec[1];
+        field ENDCD: bitvec[1];
+        field SEL_DAC_TRAN: bitvec[4];
+        field SEL_DAC_FIX: bitvec[4];
+        field TXLOOPFILTERC: bitvec[2];
+        field TXLOOPFILTERR: bitvec[2];
+        field IBOOST: bitvec[1];
+        field TXCPI: bitvec[1];
+        field TXVCODAC: bitvec[1];
+        field TXVCOGAIN: bitvec[1];
+        field TXVSEL: bitvec[2];
+        field TXREG: bitvec[2];
+        field TXDOWNLEVEL: bitvec[4];
+        field PRDRVOFF: bitvec[1];
+        field EMPOFF: bitvec[1];
+        field SLEW: bitvec[1];
+        field TXEMPHLEVEL: bitvec[4];
+        field TXDIGSW: bitvec[1];
+        field TXANASW: bitvec[1];
+        field RXDIVRATIO: bitvec[14];
+        field RXLOOPFILTERC: bitvec[2];
+        field RXLOOPFILTERR: bitvec[3];
+        field AFE_FLAT_ENABLE: bitvec[1];
+        field RXVCOSW: bitvec[1];
+        field RXCPI: bitvec[2];
+        field RXVCODAC: bitvec[1];
+        field RXVCOGAIN: bitvec[1];
+        field RXVSEL: bitvec[2];
+        field RXREG: bitvec[2];
+        field RXFLTCPT: bitvec[5];
+        field RXVSELCP: bitvec[2];
+        field VSELAFE: bitvec[2];
+        field RXFEI: bitvec[2];
+        field RXFLCPI: bitvec[2];
+        field RXFER: bitvec[10];
+        field PMA_REG_0E: bitvec[8];
+
+        row _0_32;
+        row _0_64;
+        row _1_32;
+        row _1_64;
+        row _2_32;
+        row _2_64;
+        row _3_32;
+        row _3_64;
+        row _4_32;
+        row _4_64;
+        row _5_32;
+        row _5_64;
+        row _6_32;
+        row _6_64;
+        row _7_32;
+        row _7_64;
+        row _8_32;
+        row _8_64;
+        row _9_32;
+        row _9_64;
+        row _10_32;
+        row _10_64;
+        row _11_32;
+        row _11_64;
+        row _12_40;
+        row _12_80;
+        row _13_40;
+        row _13_80;
+        row _14_40;
+        row _14_80;
+        row _15_32;
+        row _15_64;
+        row _16_32;
+        row _16_64;
+        row _17_32;
+        row _17_64;
+        row _18_40;
+        row _18_80;
+        row _19_40;
+        row _19_80;
+        row _20_40;
+        row _20_80;
+        row _21_40;
+        row _21_80;
+        row _22_40;
+        row _22_80;
+        row _23_10;
+        row _23_20;
+        row _23_40;
+        row _24_10;
+        row _24_20;
+        row _24_40;
+        row _25_10;
+        row _25_20;
+        row _25_40;
+        row _26_10;
+        row _26_20;
+        row _26_40;
+        row _27_10;
+        row _27_20;
+        row _27_40;
+        row _28_10;
+        row _28_20;
+        row _28_40;
+        row _29_10;
+        row _29_20;
+        row _29_40;
+        row _30_8;
+        row _30_16;
+        row _30_32;
+        row _31_8;
+        row _31_16;
+        row _31_32;
+    }
+
+    bel_class PPC405 {
+        input CPMC405CLOCK;
+        input CPMC405CORECLKINACTIVE;
+        input CPMC405CPUCLKEN;
+        input CPMC405JTAGCLKEN;
+        input CPMC405TIMERCLKEN;
+        input CPMC405TIMERTICK;
+        output C405CPMCORESLEEPREQ;
+        output C405CPMMSRCE;
+        output C405CPMMSREE;
+        output C405CPMTIMERIRQ;
+        output C405CPMTIMERRESETREQ;
+
+        input RSTC405RESETCHIP;
+        input RSTC405RESETCORE;
+        input RSTC405RESETSYS;
+        input MCBCPUCLKEN;
+        input MCBJTAGEN;
+        input MCBTIMEREN;
+        input MCPPCRST;
+        output C405RSTCHIPRESETREQ;
+        output C405RSTCORERESETREQ;
+        output C405RSTSYSRESETREQ;
+
+        input PLBCLK;
+
+        input PLBC405DCUADDRACK;
+        input PLBC405DCUBUSY;
+        input PLBC405DCUERR;
+        input PLBC405DCURDDACK;
+        input PLBC405DCURDDBUS[0:63];
+        input PLBC405DCURDWDADDR[1:3];
+        input PLBC405DCUSSIZE1;
+        input PLBC405DCUWRDACK;
+        output C405PLBDCUABORT;
+        output C405PLBDCUABUS[0:31];
+        output C405PLBDCUBE[0:7];
+        output C405PLBDCUCACHEABLE;
+        output C405PLBDCUGUARDED;
+        output C405PLBDCUPRIORITY[0:1];
+        output C405PLBDCUREQUEST;
+        output C405PLBDCURNW;
+        output C405PLBDCUSIZE2;
+        output C405PLBDCUU0ATTR;
+        output C405PLBDCUWRDBUS[0:63];
+        output C405PLBDCUWRITETHRU;
+
+        input PLBC405ICUADDRACK;
+        input PLBC405ICUBUSY;
+        input PLBC405ICUERR;
+        input PLBC405ICURDDACK;
+        input PLBC405ICURDDBUS[0:63];
+        input PLBC405ICURDWDADDR[1:3];
+        input PLBC405ICUSSIZE1;
+        output C405PLBICUABORT;
+        output C405PLBICUABUS[0:29];
+        output C405PLBICUCACHEABLE;
+        output C405PLBICUPRIORITY[0:1];
+        output C405PLBICUREQUEST;
+        output C405PLBICUSIZE[2:3];
+        output C405PLBICUU0ATTR;
+
+        input DCRC405ACK;
+        input DCRC405DBUSIN[0:31];
+        output C405DCRABUS[0:9];
+        output C405DCRDBUSOUT[0:31];
+        output C405DCRREAD;
+        output C405DCRWRITE;
+
+        input EICC405CRITINPUTIRQ;
+        input EICC405EXTINPUTIRQ;
+
+        input DBGC405DEBUGHALT;
+        input DBGC405EXTBUSHOLDACK;
+        input DBGC405UNCONDDEBUGEVENT;
+        output C405DBGLOADDATAONAPUDBUS;
+        output C405DBGMSRWE;
+        output C405DBGSTOPACK;
+        output C405DBGWBCOMPLETE;
+        output C405DBGWBFULL;
+        output C405DBGWBIAR[0:29];
+
+        input JTGC405BNDSCANTDO;
+        input JTGC405TCK;
+        input JTGC405TDI;
+        input JTGC405TMS;
+        input JTGC405TRSTNEG;
+        output C405JTGCAPTUREDR;
+        output C405JTGEXTEST;
+        output C405JTGPGMOUT;
+        output C405JTGSHIFTDR;
+        output C405JTGTDO;
+        output C405JTGTDOEN;
+        output C405JTGUPDATEDR;
+
+        input TRCC405TRACEDISABLE;
+        input TRCC405TRIGGEREVENTIN;
+        output C405TRCCYCLE;
+        output C405TRCEVENEXECUTIONSTATUS[0:1];
+        output C405TRCODDEXECUTIONSTATUS[0:1];
+        output C405TRCTRACESTATUS[0:3];
+        output C405TRCTRIGGEREVENTOUT;
+        output C405TRCTRIGGEREVENTTYPE[0:10];
+
+        output C405XXXMACHINECHECK;
+
+        input BRAMDSOCMCLK;
+        input BRAMDSOCMRDDACK;
+        input BRAMDSOCMRDDBUS[0:31];
+        input TIEDSOCMDCRADDR[0:7];
+        input DSARCVALUE[0:7];
+        input DSCNTLVALUE[0:7];
+        output DSOCMBRAMABUS[8:29];
+        output DSOCMBRAMBYTEWRITE[0:3];
+        output DSOCMBRAMEN;
+        output DSOCMBRAMWRDBUS[0:31];
+        output DSOCMBUSY;
+        output DSOCMRDADDRVALID;
+        output C405DSOCMCACHEABLE;
+        output C405DSOCMGUARDED;
+        output C405DSOCMSTRINGMULTIPLE;
+        output C405DSOCMU0ATTR;
+
+        input BRAMISOCMCLK;
+        input BRAMISOCMRDDACK;
+        input BRAMISOCMRDDBUS[0:63];
+        input TIEISOCMDCRADDR[0:7];
+        input ISARCVALUE[0:7];
+        input ISCNTLVALUE[0:7];
+        output ISOCMBRAMEN;
+        output ISOCMBRAMEVENWRITEEN;
+        output ISOCMBRAMODDWRITEEN;
+        output ISOCMBRAMRDABUS[8:28];
+        output ISOCMBRAMWRABUS[8:28];
+        output ISOCMBRAMWRDBUS[0:31];
+        output ISOCMRDADDRVALID;
+        output C405ISOCMCACHEABLE;
+        output C405ISOCMCONTEXTSYNC;
+        output C405ISOCMU0ATTR;
+
+        input APUC405DCDAPUOP;
+        input APUC405DCDCREN;
+        input APUC405DCDFORCEALGN;
+        input APUC405DCDFORCEBESTEERING;
+        input APUC405DCDFPUOP;
+        input APUC405DCDGPRWRITE;
+        input APUC405DCDLDSTBYTE;
+        input APUC405DCDLDSTDW;
+        input APUC405DCDLDSTHW;
+        input APUC405DCDLDSTQW;
+        input APUC405DCDLDSTWD;
+        input APUC405DCDLOAD;
+        input APUC405DCDPRIVOP;
+        input APUC405DCDRAEN;
+        input APUC405DCDRBEN;
+        input APUC405DCDSTORE;
+        input APUC405DCDTRAPBE;
+        input APUC405DCDTRAPLE;
+        input APUC405DCDUPDATE;
+        input APUC405DCDVALIDOP;
+        input APUC405DCDXERCAEN;
+        input APUC405DCDXEROVEN;
+        input APUC405EXCEPTION;
+        input APUC405EXEBLOCKINGMCO;
+        input APUC405EXEBUSY;
+        input APUC405EXECR[0:3];
+        input APUC405EXECRFIELD[0:2];
+        input APUC405EXELDDEPEND;
+        input APUC405EXENONBLOCKINGMCO;
+        input APUC405EXERESULT[0:31];
+        input APUC405EXEXERCA;
+        input APUC405EXEXEROV;
+        input APUC405FPUEXCEPTION;
+        input APUC405LWBLDDEPEND;
+        input APUC405SLEEPREQ;
+        input APUC405WBLDDEPEND;
+        output C405APUDCDFULL;
+        output C405APUDCDHOLD;
+        output C405APUDCDINSTRUCTION[0:31];
+        output C405APUEXEFLUSH;
+        output C405APUEXEHOLD;
+        output C405APUEXELOADDBUS[0:31];
+        output C405APUEXELOADDVALID;
+        output C405APUEXERADATA[0:31];
+        output C405APUEXERBDATA[0:31];
+        output C405APUEXEWDCNT[0:1];
+        output C405APUMSRFE[0:1];
+        output C405APUWBBYTEEN[0:3];
+        output C405APUWBENDIAN;
+        output C405APUWBFLUSH;
+        output C405APUWBHOLD;
+        output C405APUXERCA;
+
+        input LSSDC405ACLK;
+        input LSSDC405ARRAYCCLKNEG;
+        input LSSDC405BCLK;
+        input LSSDC405BISTCCLK;
+        input LSSDC405CNTLPOINT;
+        input LSSDC405SCANGATE;
+        input LSSDC405SCANIN[0:9];
+        input LSSDC405TESTEVS;
+        input LSSDC405TESTM1;
+        input LSSDC405TESTM3;
+        output C405LSSDDIAGABISTDONE;
+        output C405LSSDDIAGOUT;
+        output C405LSSDSCANOUT[0:9];
+
+        input TESTSELI;
+
+        input TIEC405APUDIVEN;
+        input TIEC405APUPRESENT;
+        input TIEC405DETERMINISTICMULT;
+        input TIEC405DISOPERANDFWD;
+        input TIEC405MMUEN;
+        input TIEC405PVR[0:31];
+        input TIERAMTAP1;
+        input TIERAMTAP2;
+        input TIETAGTAP1;
+        input TIETAGTAP2;
+        input TIEUTLBTAP1;
+        input TIEUTLBTAP2;
+
+        input TSTC405DCRABUSI[0:9];
+        input TSTC405DCRDBUSOUTI[0:31];
+        input TSTC405DCRREADI;
+        input TSTC405DCRWRITEI;
+
+        input TSTCLKINACTI;
+        output TSTCLKINACTO;
+        input TSTCPUCLKENI;
+        output TSTCPUCLKENO;
+        input TSTCPUCLKI;
+        output TSTCPUCLKO;
+        input TSTDCRACKI;
+        output TSTDCRACKO;
+        input TSTDCRBUSI[0:31];
+        output TSTDCRBUSO[0:31];
+        input TSTDSOCMABORTOPI;
+        output TSTDSOCMABORTOPO;
+        input TSTDSOCMABORTREQI;
+        output TSTDSOCMABORTREQO;
+        input TSTDSOCMABUSI[0:29];
+        output TSTDSOCMABUSO[0:29];
+        input TSTDSOCMBYTEENI[0:3];
+        output TSTDSOCMBYTEENO[0:3];
+        input TSTDSOCMCOMPLETEI;
+        input TSTDSOCMDBUSI[0:7];
+        output TSTDSOCMDBUSO[0:7];
+        input TSTDSOCMDCRACKI;
+        output TSTDSOCMDCRACKO;
+        input TSTDSOCMHOLDI;
+        output TSTDSOCMHOLDO;
+        input TSTDSOCMLOADREQI;
+        output TSTDSOCMLOADREQO;
+        input TSTDSOCMSTOREREQI;
+        output TSTDSOCMSTOREREQO;
+        input TSTDSOCMWAITI;
+        output TSTDSOCMWAITO;
+        input TSTDSOCMWRDBUSI[0:31];
+        output TSTDSOCMWRDBUSO[0:31];
+        input TSTDSOCMXLATEVALIDI;
+        output TSTDSOCMXLATEVALIDO;
+        input TSTISOCMABORTI;
+        output TSTISOCMABORTO;
+        input TSTISOCMABUSI[0:29];
+        output TSTISOCMABUSO[0:29];
+        input TSTISOCMHOLDI;
+        output TSTISOCMHOLDO;
+        input TSTISOCMICUREADYI;
+        output TSTISOCMICUREADYO;
+        input TSTISOCMRDATAI[0:63];
+        output TSTISOCMRDATAO[0:63];
+        input TSTISOCMRDDVALIDI[0:1];
+        output TSTISOCMRDDVALIDO[0:1];
+        input TSTISOCMREQPENDI;
+        output TSTISOCMREQPENDO;
+        input TSTISOCMXLATEVALIDI;
+        output TSTISOCMXLATEVALIDO;
+        input TSTISOPFWDI;
+        output TSTISOPFWDO;
+        input TSTJTAGENI;
+        output TSTJTAGENO;
+        output TSTOCMCOMPLETEO;
+        input TSTPLBSAMPLECYCLEI;
+        output TSTPLBSAMPLECYCLEO;
+        input TSTRDDBUSI[0:31];
+        output TSTRDDBUSO[0:31];
+        input TSTRESETCHIPI;
+        output TSTRESETCHIPO;
+        input TSTRESETCOREI;
+        output TSTRESETCOREO;
+        input TSTRESETSYSI;
+        output TSTRESETSYSO;
+        input TSTTIMERENI;
+        output TSTTIMERENO;
+        input TSTTRSTNEGI;
+        output TSTTRSTNEGO;
+    }
+
     // A set of cells sharing a HCLK row.
     region_slot HCLK;
     // A set of cells sharing HCLK leaf.
@@ -411,13 +1180,8 @@ target_defs! {
             }
         }
 
-        bel_slot GT: legacy;
-        bel_slot GT10: legacy;
-        // TODO: remove
-        bel_slot IPAD_RXP: legacy;
-        bel_slot IPAD_RXN: legacy;
-        bel_slot OPAD_TXP: legacy;
-        bel_slot OPAD_TXN: legacy;
+        bel_slot GT: GT;
+        bel_slot GT10: GT10;
         if variant virtex2 {
             tile_class GIGABIT_S, GIGABIT_N {
                 cell CELL_IO;
@@ -433,7 +1197,7 @@ target_defs! {
             }
         }
 
-        bel_slot PPC405: legacy;
+        bel_slot PPC405: PPC405;
         if variant virtex2 {
             tile_class PPC_W, PPC_E {
                 cell CELL_W[16];
@@ -739,7 +1503,7 @@ target_defs! {
     tile_slot CLK {
         bel_slot CLK_INT: routing;
         bel_slot BUFGMUX[8]: legacy;
-        bel_slot PCILOGIC: legacy;
+        bel_slot PCILOGIC: PCILOGIC;
         bel_slot PCILOGICSE: legacy;
         // TODO: remove
         bel_slot VCC: legacy;

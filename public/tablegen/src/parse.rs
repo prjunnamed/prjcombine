@@ -135,6 +135,29 @@ impl Tokenizer {
         )
     }
 
+    fn pin_array_id_def(&mut self) -> Result<ast::PinArrayIdDef> {
+        let id = self.template_id()?;
+        Ok(
+            if let Some(TokenTree::Group(g)) = self.tokens.peek()
+                && g.delimiter() == Delimiter::Bracket
+            {
+                let mut tokenizer = Tokenizer::new(g.span(), Vec::from_iter(g.stream()));
+                self.next();
+                let num = tokenizer.usize()?;
+                if tokenizer.try_punct(':') {
+                    let num2 = tokenizer.usize()?;
+                    tokenizer.finish()?;
+                    ast::PinArrayIdDef::ArrayRange(id, num, num2)
+                } else {
+                    tokenizer.finish()?;
+                    ast::PinArrayIdDef::Array(id, num)
+                }
+            } else {
+                ast::PinArrayIdDef::Plain(id)
+            },
+        )
+    }
+
     fn array_id_ref(&mut self) -> Result<ast::ArrayIdRef> {
         let id = self.template_id()?;
         Ok(if let Some(index) = self.try_index()? {
@@ -210,9 +233,13 @@ impl Tokenizer {
         let Some(TokenTree::Literal(lit)) = self.next() else {
             self.error("expected number")?
         };
-        lit.to_string()
-            .parse()
-            .map_err(|_| self.error::<()>("expected number").unwrap_err())
+        let s = lit.to_string();
+        if let Some(s) = s.strip_prefix("0x") {
+            usize::from_str_radix(s, 16)
+        } else {
+            s.parse()
+        }
+        .map_err(|_| self.error::<()>("expected number").unwrap_err())
     }
 
     fn bitvec(&mut self) -> Result<BitVec> {
@@ -444,7 +471,7 @@ impl Item for ast::BelClassItem {
                 } else {
                     false
                 };
-                let names = tokenizer.list(Tokenizer::array_id_def)?;
+                let names = tokenizer.list(Tokenizer::pin_array_id_def)?;
                 tokenizer.finish()?;
                 let pin = ast::BelClassPin { names, nonroutable };
                 match keyword.to_string().as_str() {
@@ -485,7 +512,13 @@ impl Item for ast::BelClassItem {
                         let mut inner = tokenizer.brackets()?;
                         let width = inner.usize()?;
                         inner.finish()?;
-                        ast::AttributeType::BitVec(width)
+                        if let Some(mut inner) = tokenizer.try_brackets() {
+                            let depth = inner.usize()?;
+                            inner.finish()?;
+                            ast::AttributeType::BitVecArray(width, depth)
+                        } else {
+                            ast::AttributeType::BitVec(width)
+                        }
                     }
                     _ => ast::AttributeType::Enum(typ_raw),
                 };

@@ -2665,7 +2665,7 @@ impl<'a> IntBuilder<'a> {
                     }
                 };
                 let mut res = Bel::default();
-                for (index, name, _inp) in bcls.inputs.bundles() {
+                for (index, name, inp) in bcls.inputs.bundles() {
                     match index {
                         EntityBundleIndex::Single(id) => {
                             if let Some(pin) = bel.pins.remove(name) {
@@ -2674,14 +2674,15 @@ impl<'a> IntBuilder<'a> {
                         }
                         EntityBundleIndex::Array(range) => {
                             for (i, id) in range.into_iter().enumerate() {
-                                if let Some(pin) = bel.pins.remove(&name_index(name, i)) {
+                                let idx = inp.indexing.phys_to_virt(i);
+                                if let Some(pin) = bel.pins.remove(&name_index(name, idx)) {
                                     res.inputs.insert(id, convert_input(pin));
                                 }
                             }
                         }
                     }
                 }
-                for (index, name, _outp) in bcls.outputs.bundles() {
+                for (index, name, outp) in bcls.outputs.bundles() {
                     match index {
                         EntityBundleIndex::Single(id) => {
                             if let Some(pin) = bel.pins.remove(name) {
@@ -2690,14 +2691,15 @@ impl<'a> IntBuilder<'a> {
                         }
                         EntityBundleIndex::Array(range) => {
                             for (i, id) in range.into_iter().enumerate() {
-                                if let Some(pin) = bel.pins.remove(&name_index(name, i)) {
+                                let idx = outp.indexing.phys_to_virt(i);
+                                if let Some(pin) = bel.pins.remove(&name_index(name, idx)) {
                                     res.outputs.insert(id, convert_output(pin));
                                 }
                             }
                         }
                     }
                 }
-                for (index, name, _bidir) in bcls.bidirs.bundles() {
+                for (index, name, bidir) in bcls.bidirs.bundles() {
                     match index {
                         EntityBundleIndex::Single(id) => {
                             if let Some(pin) = bel.pins.remove(name) {
@@ -2706,7 +2708,8 @@ impl<'a> IntBuilder<'a> {
                         }
                         EntityBundleIndex::Array(range) => {
                             for (i, id) in range.into_iter().enumerate() {
-                                if let Some(pin) = bel.pins.remove(&name_index(name, i)) {
+                                let idx = bidir.indexing.phys_to_virt(i);
+                                if let Some(pin) = bel.pins.remove(&name_index(name, idx)) {
                                     res.bidirs.insert(id, convert_bidir(pin));
                                 }
                             }

@@ -1,8 +1,10 @@
+use prjcombine_interconnect::grid::BelCoord;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{SitePinDir, Verifier};
 use prjcombine_virtex2::{chip::ColumnKind, defs};
 
-pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.verify_legacy_bel(
         bel,
         "SLICE",
@@ -308,7 +310,8 @@ pub fn verify_slice_v2(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &Le
     }
 }
 
-pub fn verify_slice_s3(vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_slice_s3(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     let idx = defs::bslots::SLICE.index_of(bel.slot).unwrap();
     let kind = if matches!(idx, 0 | 2) {
         "SLICEM"
@@ -464,7 +467,8 @@ pub fn verify_slice_s3(vrf: &mut Verifier, bel: &LegacyBelContext) {
     }
 }
 
-pub fn verify_tbus(vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_tbus(vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     let obel = vrf.find_bel_sibling(bel, defs::bslots::TBUF[0]);
     vrf.claim_pip(bel.wire("BUS0"), obel.wire("O"));
     vrf.claim_pip(bel.wire("BUS2"), obel.wire("O"));
@@ -486,7 +490,8 @@ pub fn verify_tbus(vrf: &mut Verifier, bel: &LegacyBelContext) {
     vrf.claim_pip(bel.wire("OUT"), bel.wire("BUS2"));
 }
 
-pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext) {
+pub fn verify_randor(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.verify_legacy_bel(
         bel,
         "RESERVED_ANDOR",

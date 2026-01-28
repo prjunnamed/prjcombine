@@ -2,8 +2,9 @@
 
 use prjcombine_entity::{EntityBitVec, EntityBundleItemIndex, EntityId, EntityPartVec, EntityVec};
 use prjcombine_interconnect::db::{
-    BelBidirId, BelInfo, BelInput, BelInputId, BelKind, BelOutputId, BelSlotId, ConnectorWire,
-    IntDb, LegacyBel, PinDir, SwitchBoxItem, TileClassId, TileWireCoord, WireKind, WireSlotId,
+    BelBidirId, BelInfo, BelInput, BelInputId, BelKind, BelOutputId, BelPinIndexing, BelSlotId,
+    ConnectorWire, IntDb, LegacyBel, PinDir, SwitchBoxItem, TileClassId, TileWireCoord, WireKind,
+    WireSlotId,
 };
 use prjcombine_interconnect::grid::{
     BelCoord, CellCoord, ColId, ConnectorCoord, DieId, ExpandedGrid, RowId, Tile, TileCoord,
@@ -91,6 +92,7 @@ pub struct BelVerifier<'a, 'b> {
     bidir_dirs: EntityPartVec<BelBidirId, SitePinDir>,
     skip_ins: HashSet<BelInputId>,
     skip_outs: HashSet<BelOutputId>,
+    skip_auto: bool,
     rename_ins: EntityPartVec<BelInputId, String>,
     rename_outs: EntityPartVec<BelOutputId, String>,
     sub: usize,
@@ -167,6 +169,11 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         self
     }
 
+    pub fn skip_auto(mut self) -> Self {
+        self.skip_auto = true;
+        self
+    }
+
     pub fn skip_in(mut self, pin: BelInputId) -> Self {
         self.skip_ins.insert(pin);
         self
@@ -207,11 +214,11 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
         let bcls = &db[bcid];
         let mut pins = vec![];
         for pid in bel.inputs.ids() {
-            if self.skip_ins.contains(&pid) {
+            if self.skip_ins.contains(&pid) || self.skip_auto {
                 continue;
             }
             let (name, idx) = bcls.inputs.key(pid);
-            let name = self.vrf.pin_index(name, idx);
+            let name = self.vrf.pin_index(name, idx, bcls.inputs[pid].indexing);
             let n = &self.naming.pins[&name];
             let pin = if let Some(pin) = self.rename_ins.get(pid) {
                 pin.into()
@@ -225,11 +232,11 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
             });
         }
         for pid in bel.outputs.ids() {
-            if self.skip_outs.contains(&pid) {
+            if self.skip_outs.contains(&pid) || self.skip_auto {
                 continue;
             }
             let (name, idx) = bcls.outputs.key(pid);
-            let name = self.vrf.pin_index(name, idx);
+            let name = self.vrf.pin_index(name, idx, bcls.outputs[pid].indexing);
             let n = &self.naming.pins[&name];
             let pin = if let Some(pin) = self.rename_outs.get(pid) {
                 pin.into()
@@ -243,8 +250,11 @@ impl<'a, 'b> BelVerifier<'a, 'b> {
             });
         }
         for pid in bel.bidirs.ids() {
+            if self.skip_auto {
+                continue;
+            }
             let (name, idx) = bcls.bidirs.key(pid);
-            let name = self.vrf.pin_index(name, idx);
+            let name = self.vrf.pin_index(name, idx, bcls.bidirs[pid].indexing);
             let n = &self.naming.pins[&name];
             let dir = self
                 .bidir_dirs
@@ -1040,10 +1050,16 @@ impl<'a> Verifier<'a> {
         }
     }
 
-    fn pin_index(&self, name: &str, idx: EntityBundleItemIndex) -> String {
+    fn pin_index(
+        &self,
+        name: &str,
+        idx: EntityBundleItemIndex,
+        indexing: BelPinIndexing,
+    ) -> String {
         match idx {
             EntityBundleItemIndex::Single => name.to_string(),
             EntityBundleItemIndex::Array { index, .. } => {
+                let index = indexing.phys_to_virt(index);
                 if matches!(
                     self.rd.family.as_str(),
                     "ultrascale" | "ultrascaleplus" | "versal"
@@ -1421,7 +1437,7 @@ impl<'a> Verifier<'a> {
                     let bcls = &self.db[bcid];
                     for (pin, &inp) in &bel.inputs {
                         let (name, idx) = bcls.inputs.key(pin);
-                        let pin = self.pin_index(name, idx);
+                        let pin = self.pin_index(name, idx, bcls.inputs[pin].indexing);
                         let n = &bn.pins[&pin];
                         let mut wc = RawWireCoord {
                             crd: crds[n.tile],
@@ -1481,7 +1497,7 @@ impl<'a> Verifier<'a> {
                     }
                     for (pin, wires) in &bel.outputs {
                         let (name, idx) = bcls.outputs.key(pin);
-                        let pin = self.pin_index(name, idx);
+                        let pin = self.pin_index(name, idx, bcls.outputs[pin].indexing);
                         let n = &bn.pins[&pin];
                         let mut wc = RawWireCoord {
                             crd: crds[n.tile],
@@ -1531,7 +1547,7 @@ impl<'a> Verifier<'a> {
                     }
                     for (pin, &w) in &bel.bidirs {
                         let (name, idx) = bcls.bidirs.key(pin);
-                        let pin = self.pin_index(name, idx);
+                        let pin = self.pin_index(name, idx, bcls.bidirs[pin].indexing);
                         let n = &bn.pins[&pin];
                         let wn = RawWireCoord {
                             crd: crds[n.tile],
@@ -2033,6 +2049,7 @@ impl<'a> Verifier<'a> {
             ntile,
             crds,
             bidir_dirs: Default::default(),
+            skip_auto: false,
             skip_ins: Default::default(),
             skip_outs: Default::default(),
             rename_ins: Default::default(),

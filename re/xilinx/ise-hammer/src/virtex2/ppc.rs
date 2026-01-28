@@ -1,15 +1,12 @@
 use prjcombine_entity::EntityVec;
 use prjcombine_interconnect::{
-    db::{BelInfo, PinDir},
+    db::{BelInfo, BelInput},
     grid::TileCoord,
 };
 use prjcombine_re_fpga_hammer::FuzzerProp;
 use prjcombine_re_hammer::{Fuzzer, Session};
 use prjcombine_re_xilinx_geom::ExpandedDevice;
-use prjcombine_virtex2::{
-    defs,
-    defs::virtex2::{tcls, wires},
-};
+use prjcombine_virtex2::defs::{bslots, virtex2::tcls};
 
 use crate::{
     backend::IseBackend,
@@ -18,6 +15,7 @@ use crate::{
         fbuild::{FuzzBuilderBase, FuzzCtx},
         props::DynProp,
     },
+    virtex2::specials,
 };
 
 #[derive(Clone, Debug)]
@@ -50,31 +48,38 @@ pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a I
         let Some(mut ctx) = FuzzCtx::try_new_id(session, backend, tcid) else {
             continue;
         };
-        let mut bctx = ctx.bel(defs::bslots::PPC405);
+        let mut bctx = ctx.bel(bslots::PPC405);
         let mode = "PPC405";
         bctx.build()
             .null_bits()
-            .test_manual("PRESENT", "1")
+            .test_bel_special(specials::PRESENT)
             .mode(mode)
             .commit();
-        let bel_data = &intdb[tcid].bels[defs::bslots::PPC405];
-        let BelInfo::Legacy(bel_data) = bel_data else {
+        let bel_data = &intdb[tcid].bels[bslots::PPC405];
+        let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        for (pin, pin_data) in &bel_data.pins {
-            if pin_data.dir != PinDir::Input {
-                continue;
-            }
-            assert_eq!(pin_data.wires.len(), 1);
-            let wire = *pin_data.wires.first().unwrap();
+        for (pid, &inp) in &bel_data.inputs {
+            let BelInput::Fixed(wire) = inp else {
+                unreachable!()
+            };
             if intdb.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
-            bctx.mode(mode).prop(ForceBitRects).test_inv(pin);
+            bctx.mode(mode)
+                .prop(ForceBitRects)
+                .test_bel_input_inv_auto(pid);
         }
-        bctx.mode(mode)
-            .null_bits()
-            .test_enum("PPC405_TEST_MODE", &["CORE_TEST", "GASKET_TEST"]);
+        for (spec, val) in [
+            (specials::PPC_CORE_TEST, "CORE_TEST"),
+            (specials::PPC_GASKET_TEST, "GASKET_TEST"),
+        ] {
+            bctx.mode(mode)
+                .null_bits()
+                .test_bel_special(spec)
+                .attr("PPC405_TEST_MODE", val)
+                .commit();
+        }
     }
 }
 
@@ -83,23 +88,20 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         if !ctx.has_tile_id(tcid) {
             continue;
         }
-        let bel_data = &ctx.edev.db[tcid].bels[defs::bslots::PPC405];
-        let BelInfo::Legacy(bel_data) = bel_data else {
+        let bslot = bslots::PPC405;
+        let bel_data = &ctx.edev.db[tcid].bels[bslot];
+        let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        for (pin, pin_data) in &bel_data.pins {
-            if pin_data.dir != PinDir::Input {
-                continue;
-            }
-            assert_eq!(pin_data.wires.len(), 1);
-            let wire = *pin_data.wires.first().unwrap();
+        for (pid, &inp) in &bel_data.inputs {
+            let BelInput::Fixed(wire) = inp else {
+                unreachable!()
+            };
             if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
             let int_tiles = &[tcls::INT_PPC; 48];
-            let flip = wires::IMUX_CE_OPTINV.contains(wire.wire)
-                || wires::IMUX_TI_OPTINV.contains(wire.wire);
-            ctx.collect_int_inv(int_tiles, tcid, defs::bslots::PPC405, pin, flip);
+            ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, pid);
         }
     }
 }

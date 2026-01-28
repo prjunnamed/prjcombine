@@ -151,9 +151,11 @@ impl TileClass {
                     let bcls = &db.bel_classes[bcid];
                     for (pid, wire) in &bel.inputs {
                         let (pname, idx) = bcls.inputs.key(pid);
+                        let indexing = bcls.inputs[pid].indexing;
                         let pname = match idx {
                             EntityBundleItemIndex::Single => pname.to_string(),
                             EntityBundleItemIndex::Array { index, .. } => {
+                                let index = indexing.phys_to_virt(index);
                                 format!("{pname}[{index}]")
                             }
                         };
@@ -177,9 +179,11 @@ impl TileClass {
                     }
                     for (pid, pwires) in &bel.outputs {
                         let (pname, idx) = bcls.outputs.key(pid);
+                        let indexing = bcls.outputs[pid].indexing;
                         let pname = match idx {
                             EntityBundleItemIndex::Single => pname.to_string(),
                             EntityBundleItemIndex::Array { index, .. } => {
+                                let index = indexing.phys_to_virt(index);
                                 format!("{pname}[{index}]")
                             }
                         };
@@ -197,9 +201,11 @@ impl TileClass {
                     }
                     for (pid, pwire) in &bel.bidirs {
                         let (pname, idx) = bcls.bidirs.key(pid);
+                        let indexing = bcls.bidirs[pid].indexing;
                         let pname = match idx {
                             EntityBundleItemIndex::Single => pname.to_string(),
                             EntityBundleItemIndex::Array { index, .. } => {
+                                let index = indexing.phys_to_virt(index);
                                 format!("{pname}[{index}]")
                             }
                         };
@@ -222,7 +228,7 @@ impl TileClass {
                                     assert_eq!(bits.len(), 1);
                                     writeln!(o, "@{};", self.dump_polbit(bits[0]))?;
                                 }
-                                BelAttributeType::Bitvec(width) => {
+                                BelAttributeType::BitVec(width) => {
                                     assert_eq!(bits.len(), width);
                                     write!(o, "@[")?;
                                     let mut first = true;
@@ -235,13 +241,13 @@ impl TileClass {
                                     }
                                     writeln!(o, "];")?;
                                 }
-                                BelAttributeType::BitvecArray(width, depth) => {
+                                BelAttributeType::BitVecArray(width, depth) => {
                                     assert_eq!(bits.len(), width * depth);
                                     writeln!(o, "@[")?;
                                     for i in 0..depth {
                                         write!(o, "\t\t\t\t\t[")?;
                                         let mut first = true;
-                                        for &bit in bits[i * depth..(i + 1) * depth].iter().rev() {
+                                        for &bit in bits[i * width..(i + 1) * width].iter().rev() {
                                             if !first {
                                                 write!(o, ", ")?;
                                             }
@@ -392,10 +398,10 @@ impl IntDb {
         match typ {
             BelAttributeType::Enum(eid) => self.enum_classes.key(eid).to_string(),
             BelAttributeType::Bool => "bool".to_string(),
-            BelAttributeType::Bitvec(width) => {
+            BelAttributeType::BitVec(width) => {
                 format!("bitvec[{width}]")
             }
-            BelAttributeType::BitvecArray(width, depth) => {
+            BelAttributeType::BitVecArray(width, depth) => {
                 format!("bitvec[{width}][{depth}]")
             }
         }
@@ -414,11 +420,11 @@ impl IntDb {
                     "false".to_string()
                 }
             }
-            (BelAttributeType::Bitvec(width), TableValue::BitVec(val)) => {
+            (BelAttributeType::BitVec(width), TableValue::BitVec(val)) => {
                 assert_eq!(val.len(), width);
                 format!("0b{val}")
             }
-            (BelAttributeType::BitvecArray(width, depth), TableValue::BitVec(val)) => {
+            (BelAttributeType::BitVecArray(width, depth), TableValue::BitVec(val)) => {
                 assert_eq!(val.len(), width * depth);
                 let mut res = "[".to_string();
                 let mut first = true;
@@ -459,7 +465,18 @@ impl IntDb {
                 )?;
                 match index {
                     EntityBundleIndex::Single(_) => writeln!(o, ";")?,
-                    EntityBundleIndex::Array(range) => writeln!(o, "[{n}];", n = range.len())?,
+                    EntityBundleIndex::Array(range) => {
+                        if pin.indexing == Default::default() {
+                            writeln!(o, "[{n}];", n = range.len())?;
+                        } else {
+                            writeln!(
+                                o,
+                                "[{msb}:{lsb}];",
+                                msb = pin.indexing.msb_index(range.len()),
+                                lsb = pin.indexing.lsb_index
+                            )?;
+                        }
+                    }
                 }
             }
             for (index, pname, pin) in bcls.outputs.bundles() {
@@ -470,7 +487,18 @@ impl IntDb {
                 )?;
                 match index {
                     EntityBundleIndex::Single(_) => writeln!(o, ";")?,
-                    EntityBundleIndex::Array(range) => writeln!(o, "[{n}];", n = range.len())?,
+                    EntityBundleIndex::Array(range) => {
+                        if pin.indexing == Default::default() {
+                            writeln!(o, "[{n}];", n = range.len())?;
+                        } else {
+                            writeln!(
+                                o,
+                                "[{msb}:{lsb}];",
+                                msb = pin.indexing.msb_index(range.len()),
+                                lsb = pin.indexing.lsb_index
+                            )?;
+                        }
+                    }
                 }
             }
             for (index, pname, pin) in bcls.bidirs.bundles() {
@@ -481,7 +509,18 @@ impl IntDb {
                 )?;
                 match index {
                     EntityBundleIndex::Single(_) => writeln!(o, ";")?,
-                    EntityBundleIndex::Array(range) => writeln!(o, "[{n}];", n = range.len())?,
+                    EntityBundleIndex::Array(range) => {
+                        if pin.indexing == Default::default() {
+                            writeln!(o, "[{n}];", n = range.len())?;
+                        } else {
+                            writeln!(
+                                o,
+                                "[{msb}:{lsb}];",
+                                msb = pin.indexing.msb_index(range.len()),
+                                lsb = pin.indexing.lsb_index
+                            )?;
+                        }
+                    }
                 }
             }
             for (index, pname, pad) in bcls.pads.bundles() {

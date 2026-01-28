@@ -13,8 +13,8 @@ use prjcombine_types::{
 use crate::{
     bitdata::CollectorData,
     diff::{
-        Diff, DiffKey, OcdMode, SpecialId, xlat_bit, xlat_bit_bi, xlat_bitvec, xlat_enum_attr,
-        xlat_enum_raw,
+        Diff, DiffKey, OcdMode, SpecialId, xlat_bit, xlat_bit_bi, xlat_bitvec, xlat_bitvec_sparse,
+        xlat_enum_attr, xlat_enum_raw,
     },
 };
 
@@ -102,6 +102,26 @@ impl Collector<'_, '_> {
         self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, attr, bit))
     }
 
+    pub fn get_diff_attr_bitvec(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        val: BitVec,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrBitVec(tcid, bslot, attr, val))
+    }
+
+    pub fn get_diff_bel_attr_special(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        attr: BelAttributeId,
+        spec: SpecialId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelAttrSpecial(tcid, bslot, attr, spec))
+    }
+
     pub fn get_diff_bel_special(
         &mut self,
         tcid: TileClassId,
@@ -109,6 +129,16 @@ impl Collector<'_, '_> {
         spec: SpecialId,
     ) -> Diff {
         self.get_diff_raw(&DiffKey::BelSpecial(tcid, bslot, spec))
+    }
+
+    pub fn get_diff_bel_special_row(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec: SpecialId,
+        row: TableRowId,
+    ) -> Diff {
+        self.get_diff_raw(&DiffKey::BelSpecialRow(tcid, bslot, spec, row))
     }
 
     pub fn get_diff_bel_input_inv(
@@ -387,6 +417,23 @@ impl Collector<'_, '_> {
     }
 }
 
+/// Extract functions (get_diff + xlat)
+impl Collector<'_, '_> {
+    pub fn extract_bel_special_bitvec(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        spec: SpecialId,
+        width: usize,
+    ) -> Vec<PolTileBit> {
+        xlat_bitvec(
+            (0..width)
+                .map(|idx| self.get_diff_raw(&DiffKey::BelSpecialBit(tcid, bslot, spec, idx)))
+                .collect(),
+        )
+    }
+}
+
 /// Full-service collect functions (get_diff + xlat + insert)
 impl Collector<'_, '_> {
     pub fn collect_bel_attr(&mut self, tcid: TileClassId, bslot: BelSlotId, aid: BelAttributeId) {
@@ -409,12 +456,12 @@ impl Collector<'_, '_> {
             BelAttributeType::Bool => BelAttribute::BitVec(vec![xlat_bit(
                 self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, 0)),
             )]),
-            BelAttributeType::Bitvec(width) => BelAttribute::BitVec(xlat_bitvec(
+            BelAttributeType::BitVec(width) => BelAttribute::BitVec(xlat_bitvec(
                 (0..width)
                     .map(|idx| self.get_diff_raw(&DiffKey::BelAttrBit(tcid, bslot, aid, idx)))
                     .collect(),
             )),
-            BelAttributeType::BitvecArray(_, _) => todo!(),
+            BelAttributeType::BitVecArray(_, _) => todo!(),
         };
         self.insert_bel_attr_raw(tcid, bslot, aid, attr);
     }
@@ -484,10 +531,36 @@ impl Collector<'_, '_> {
         let bit = xlat_bit_bi(diff0, diff1);
         assert!(matches!(
             bcattr.typ,
-            BelAttributeType::Bool | BelAttributeType::Bitvec(1)
+            BelAttributeType::Bool | BelAttributeType::BitVec(1)
         ));
-        let attr = BelAttribute::BitVec(vec![bit]);
-        self.insert_bel_attr_raw(tcid, bslot, aid, attr);
+        self.insert_bel_attr_bool(tcid, bslot, aid, bit);
+    }
+
+    pub fn collect_bel_attr_sparse(
+        &mut self,
+        tcid: TileClassId,
+        bslot: BelSlotId,
+        aid: BelAttributeId,
+        vals: impl IntoIterator<Item = u32>,
+    ) {
+        let BelKind::Class(bcid) = self.intdb.bel_slots[bslot].kind else {
+            unreachable!()
+        };
+        let bcattr = &self.intdb.bel_classes[bcid].attributes[aid];
+        let BelAttributeType::BitVec(width) = bcattr.typ else {
+            unreachable!()
+        };
+        let mut diffs = vec![];
+        for val in vals {
+            let mut bv = BitVec::repeat(false, width);
+            for i in 0..width {
+                bv.set(i, (val & 1 << i) != 0);
+            }
+            diffs.push((bv.clone(), self.get_diff_attr_bitvec(tcid, bslot, aid, bv)));
+        }
+        let bits = xlat_bitvec_sparse(diffs);
+        assert_eq!(bits.len(), width);
+        self.insert_bel_attr_bitvec(tcid, bslot, aid, bits);
     }
 
     pub fn collect_bel_input_inv(&mut self, tcid: TileClassId, bslot: BelSlotId, pin: BelInputId) {

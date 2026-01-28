@@ -10,3 +10,4 @@ pub mod io;
 pub mod io_fpgacore;
 pub mod misc;
 pub mod ppc;
+pub mod specials;

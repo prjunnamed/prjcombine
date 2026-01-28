@@ -471,10 +471,10 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
 
     let mut diffs_data = vec![];
     let mut diffs_datap = vec![];
-    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "CLKA", false);
-    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "CLKB", false);
-    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "ENA", false);
-    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "ENB", false);
+    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "CLKA", false);
+    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "CLKB", false);
+    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "ENA", false);
+    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "ENB", false);
     present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, "ENA").bit]);
     present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, "ENB").bit]);
     match chip_kind {
@@ -482,7 +482,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             for pin in [
                 "WEA0", "WEB0", "WEA1", "WEB1", "WEA2", "WEB2", "WEA3", "WEB3",
             ] {
-                ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, pin, false);
+                ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, pin, false);
                 present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
             }
             for i in 0..0x40 {
@@ -510,7 +510,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             }
             if chip_kind == ChipKind::Spartan3ADsp {
                 for pin in ["RSTA", "RSTB", "REGCEA", "REGCEB"] {
-                    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, pin, false);
+                    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, pin, false);
                     present
                         .discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
                 }
@@ -520,15 +520,15 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
                 ctx.collect_enum_legacy(tile, "BRAM", "RSTTYPE", &["ASYNC", "SYNC"]);
             } else {
                 for pin in ["SSRA", "SSRB"] {
-                    ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, pin, false);
+                    ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, pin, false);
                 }
             }
         }
         _ => {
-            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "WEA", false);
-            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "WEB", false);
-            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "SSRA", false);
-            ctx.collect_int_inv(int_tiles, tcid, bslots::BRAM, "SSRB", false);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "WEA", false);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "WEB", false);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "SSRA", false);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::BRAM, "SSRB", false);
             for pin in ["WEA", "WEB", "SSRA", "SSRB"] {
                 present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::BRAM, pin).bit]);
             }
@@ -618,13 +618,13 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx, devdata_only: bool) {
             let (f_clk, f_clk_b, f_reg) = Diff::split(f_clk, f_clk_b);
             f_clk.assert_empty();
             ctx.insert(tile, "MULT", "REG", xlat_bit_legacy(f_reg));
-            ctx.insert_int_inv(int_tiles, tcid, bslots::MULT, "CLK", xlat_bit(f_clk_b));
-            ctx.collect_int_inv(int_tiles, tcid, bslots::MULT, "CE", false);
-            ctx.collect_int_inv(int_tiles, tcid, bslots::MULT, "RST", false);
+            ctx.insert_int_inv_legacy(int_tiles, tcid, bslots::MULT, "CLK", xlat_bit(f_clk_b));
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::MULT, "CE", false);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::MULT, "RST", false);
             present.discard_bits(&[ctx.item_int_inv(int_tiles, tcid, bslots::MULT, "CE").bit]);
         } else {
             for pin in ["CLK", "CEA", "CEB", "CEP", "RSTA", "RSTB", "RSTP"] {
-                ctx.collect_int_inv(int_tiles, tcid, bslots::MULT, pin, false);
+                ctx.collect_int_inv_legacy(int_tiles, tcid, bslots::MULT, pin, false);
             }
             ctx.collect_enum_legacy(tile, "MULT", "AREG", &["0", "1"]);
             ctx.collect_enum_legacy(tile, "MULT", "BREG", &["0", "1"]);

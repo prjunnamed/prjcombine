@@ -2487,8 +2487,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.collect_inv(tile, bel, "OTCLK2");
             ctx.collect_inv(tile, bel, "ICLK1");
             ctx.collect_inv(tile, bel, "ICLK2");
-            ctx.collect_int_inv(int_tiles, tcid, bslot, "SR", false);
-            ctx.collect_int_inv(int_tiles, tcid, bslot, "OCE", false);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslot, "SR", false);
+            ctx.collect_int_inv_legacy(int_tiles, tcid, bslot, "OCE", false);
             ctx.collect_inv(tile, bel, "REV");
             ctx.collect_inv(tile, bel, "ICE");
             ctx.collect_inv(tile, bel, "TCE");

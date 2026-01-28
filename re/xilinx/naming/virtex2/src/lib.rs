@@ -1695,11 +1695,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, "GIGABIT_S", [format!("BMR{r}C{c}")]);
                 let gx = namer.gtxlut[col];
                 let (bank, _) = chip.cols_gt[&col];
-                ntile.add_bel(defs::bslots::GT, format!("GT_X{gx}Y0"));
-                ntile.add_bel(defs::bslots::IPAD_RXP, format!("RXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::IPAD_RXN, format!("RXNPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXP, format!("TXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXN, format!("TXNPAD{bank}"));
+                ntile.add_bel_multi(
+                    defs::bslots::GT,
+                    [
+                        format!("GT_X{gx}Y0"),
+                        format!("RXPPAD{bank}"),
+                        format!("RXNPAD{bank}"),
+                        format!("TXPPAD{bank}"),
+                        format!("TXNPAD{bank}"),
+                    ],
+                );
             }
             (true, tcls_v2::GIGABIT10_S) => {
                 let c = namer.bramclut[col];
@@ -1709,11 +1714,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, "GIGABIT10_S", [format!("BMR{r}C{c}")]);
                 let gx = namer.gtxlut[col];
                 let (bank, _) = chip.cols_gt[&col];
-                ntile.add_bel(defs::bslots::GT10, format!("GT10_X{gx}Y0"));
-                ntile.add_bel(defs::bslots::IPAD_RXP, format!("RXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::IPAD_RXN, format!("RXNPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXP, format!("TXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXN, format!("TXNPAD{bank}"));
+                ntile.add_bel_multi(
+                    defs::bslots::GT10,
+                    [
+                        format!("GT10_X{gx}Y0"),
+                        format!("RXPPAD{bank}"),
+                        format!("RXNPAD{bank}"),
+                        format!("TXPPAD{bank}"),
+                        format!("TXNPAD{bank}"),
+                    ],
+                );
             }
             (true, tcls_v2::GIGABIT_N) => {
                 let c = namer.bramclut[col];
@@ -1723,11 +1733,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, "GIGABIT_N", [format!("BMR{r}C{c}")]);
                 let gx = namer.gtxlut[col];
                 let (_, bank) = chip.cols_gt[&col];
-                ntile.add_bel(defs::bslots::GT, format!("GT_X{gx}Y1"));
-                ntile.add_bel(defs::bslots::IPAD_RXP, format!("RXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::IPAD_RXN, format!("RXNPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXP, format!("TXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXN, format!("TXNPAD{bank}"));
+                ntile.add_bel_multi(
+                    defs::bslots::GT,
+                    [
+                        format!("GT_X{gx}Y1"),
+                        format!("RXPPAD{bank}"),
+                        format!("RXNPAD{bank}"),
+                        format!("TXPPAD{bank}"),
+                        format!("TXNPAD{bank}"),
+                    ],
+                );
             }
             (true, tcls_v2::GIGABIT10_N) => {
                 let c = namer.bramclut[col];
@@ -1737,11 +1752,16 @@ pub fn name_device<'a>(edev: &'a ExpandedDevice<'a>, ndb: &'a NamingDb) -> Expan
                     .name_tile(tcrd, "GIGABIT10_N", [format!("BMR{r}C{c}")]);
                 let gx = namer.gtxlut[col];
                 let (_, bank) = chip.cols_gt[&col];
-                ntile.add_bel(defs::bslots::GT10, format!("GT10_X{gx}Y1"));
-                ntile.add_bel(defs::bslots::IPAD_RXP, format!("RXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::IPAD_RXN, format!("RXNPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXP, format!("TXPPAD{bank}"));
-                ntile.add_bel(defs::bslots::OPAD_TXN, format!("TXNPAD{bank}"));
+                ntile.add_bel_multi(
+                    defs::bslots::GT10,
+                    [
+                        format!("GT10_X{gx}Y1"),
+                        format!("RXPPAD{bank}"),
+                        format!("RXNPAD{bank}"),
+                        format!("TXPPAD{bank}"),
+                        format!("TXNPAD{bank}"),
+                    ],
+                );
             }
             (true, tcls_v2::PPC_W | tcls_v2::PPC_E) => {
                 let x = if tile.class == tcls_v2::PPC_W || chip.holes_ppc.len() == 1 {

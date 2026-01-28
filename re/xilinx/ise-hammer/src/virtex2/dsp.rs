@@ -79,7 +79,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
 
     for &pin in DSP48A_INVPINS {
         match mode {
-            Mode::Spartan3ADsp => ctx.collect_int_inv(
+            Mode::Spartan3ADsp => ctx.collect_int_inv_legacy(
                 &[tcls_s3::INT_BRAM_S3ADSP; 4],
                 tcls_s3::DSP,
                 bslots_s3::DSP,

@@ -674,7 +674,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             ctx.insert(tile, bel, format!("DRP{i:02X}_MASK"), item);
         }
         for &pin in GT11_INVPINS {
-            ctx.collect_int_inv(&[tcls::INT; 32], tcid, bslot, pin, false);
+            ctx.collect_int_inv_legacy(&[tcls::INT; 32], tcid, bslot, pin, false);
         }
         for pin in [
             "RXRESET",

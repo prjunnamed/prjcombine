@@ -151,14 +151,6 @@ pub fn gen_virtex2(ctx: &mut DocgenContext) {
                     "iostd-dci-term-vcc",
                     &["IOSTD:V2P:PMASK_TERM_VCC"],
                 );
-                gen_misc_table(
-                    ctx,
-                    &db.bsdata,
-                    &mut misc_used,
-                    "virtex2",
-                    "gt10-PMA_SPEED",
-                    &["GT10:PMA_SPEED"],
-                );
                 gen_devdata_table(
                     ctx,
                     &db.bsdata,

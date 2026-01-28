@@ -9,7 +9,7 @@ use crate::{
     diff::{
         Diff, DiffKey, FeatureId, OcdMode, extract_bitvec_val, extract_bitvec_val_part, xlat_bit,
         xlat_bit_bi, xlat_bit_bi_default, xlat_bit_wide, xlat_bit_wide_bi, xlat_bitvec,
-        xlat_bitvec_sparse, xlat_enum_raw,
+        xlat_bitvec_sparse_u32, xlat_enum_raw,
     },
 };
 
@@ -523,5 +523,5 @@ pub fn xlat_enum_default_ocd_legacy(
 }
 
 pub fn xlat_bitvec_sparse_legacy(diffs: Vec<(u32, Diff)>) -> TileItem {
-    xlat_bitvec_sparse(diffs).into()
+    xlat_bitvec_sparse_u32(diffs).into()
 }

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use prjcombine_entity::{EntityBundleIndex, EntityBundleMap, EntityId, EntityVec};
-use prjcombine_interconnect::db::IntDb;
+use prjcombine_interconnect::db::{BelPinIndexing, IntDb};
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 
 use crate::db::AnnotatedDb;
@@ -120,6 +120,25 @@ fn emit_array_ids<I: EntityId>(
     res
 }
 
+fn emit_pin_array_ids<I: EntityId>(
+    cls: &str,
+    idents: &EntityBundleMap<I, (Ident, BelPinIndexing)>,
+    do_use: bool,
+) -> TokenStream {
+    let mut new_idents: EntityBundleMap<I, _> = EntityBundleMap::new();
+    for (idx, name, (ident, _)) in idents.bundles() {
+        match idx {
+            EntityBundleIndex::Single(_) => {
+                new_idents.insert(name.into(), ident.clone());
+            }
+            EntityBundleIndex::Array(range) => {
+                new_idents.insert_array(name.into(), range.len(), ident.clone());
+            }
+        }
+    }
+    emit_array_ids(cls, &new_idents, do_use)
+}
+
 fn emit_tile_classes(stream: &mut TokenStream, adb: &AnnotatedDb) {
     let mut mod_stream = emit_ids("TileClassId", &adb.tcls_id);
     for (tcid, cell_ids) in &adb.tcls_cell_id {
@@ -134,9 +153,9 @@ fn emit_bel_classes(stream: &mut TokenStream, adb: &AnnotatedDb) {
     let mut mod_stream = emit_ids("BelClassId", &adb.bcls_id);
     for (bcid, bcls) in &adb.bcls {
         let mut inner = TokenStream::new();
-        inner.extend(emit_array_ids("BelInputId", &bcls.input_id, true));
-        inner.extend(emit_array_ids("BelOutputId", &bcls.output_id, false));
-        inner.extend(emit_array_ids("BelBidirId", &bcls.bidir_id, false));
+        inner.extend(emit_pin_array_ids("BelInputId", &bcls.input_id, true));
+        inner.extend(emit_pin_array_ids("BelOutputId", &bcls.output_id, false));
+        inner.extend(emit_pin_array_ids("BelBidirId", &bcls.bidir_id, false));
         inner.extend(emit_array_ids("BelPadId", &bcls.pad_id, false));
         inner.extend(emit_ids("BelAttributeId", &bcls.attr_id));
         mod_stream.extend(TokenStream::from_str("#[allow(non_snake_case)]").unwrap());

@@ -162,12 +162,12 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let tile = "BRAM";
     let tcid = tcls::BRAM;
     for pin in ["RDCLK", "WRCLK", "RDEN", "WREN", "RST"] {
-        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslots::FIFO, pin, false);
+        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslots::FIFO, pin, false);
     }
     for pin in [
         "CLKA", "CLKB", "ENA", "ENB", "SSRA", "SSRB", "REGCEA", "REGCEB",
     ] {
-        ctx.collect_int_inv(&[tcls::INT; 4], tcid, bslots::BRAM, pin, false);
+        ctx.collect_int_inv_legacy(&[tcls::INT; 4], tcid, bslots::BRAM, pin, false);
     }
     for pin in [
         "WEA0", "WEA1", "WEA2", "WEA3", "WEB0", "WEB1", "WEB2", "WEB3",

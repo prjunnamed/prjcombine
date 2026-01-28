@@ -1,180 +1,153 @@
-use prjcombine_interconnect::db::{BelInfo, PinDir};
-use prjcombine_re_collector::diff::OcdMode;
+use prjcombine_interconnect::db::{BelAttributeType, BelInfo, BelInput};
 use prjcombine_re_hammer::Session;
 use prjcombine_types::{bits, bitvec::BitVec};
-use prjcombine_virtex2::{defs, defs::virtex2::tcls};
+use prjcombine_virtex2::defs::{bcls, bslots, enums, virtex2::tcls};
 
-use crate::{backend::IseBackend, collector::CollectorCtx, generic::fbuild::FuzzCtx};
+use crate::{
+    backend::{IseBackend, MultiValue},
+    collector::CollectorCtx,
+    generic::fbuild::{FuzzBuilderBase, FuzzCtx},
+    virtex2::specials,
+};
 
 pub fn add_fuzzers<'a>(session: &mut Session<'a, IseBackend<'a>>, backend: &'a IseBackend<'a>) {
     let intdb = backend.edev.db;
+    let bcls = &intdb[bcls::GT];
     for tcid in [tcls::GIGABIT_S, tcls::GIGABIT_N] {
         let mut ctx = FuzzCtx::new_id(session, backend, tcid);
-        let bel_data = &intdb[ctx.tile_class.unwrap()].bels[defs::bslots::GT];
-        let BelInfo::Legacy(bel_data) = bel_data else {
+        let bel_data = &intdb[ctx.tile_class.unwrap()].bels[bslots::GT];
+        let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        let mut bctx = ctx.bel(defs::bslots::GT);
+        let mut bctx = ctx.bel(bslots::GT);
         let mode = "GT";
-        bctx.test_manual("ENABLE", "1").mode(mode).commit();
-        for (pin, pin_data) in &bel_data.pins {
-            if pin_data.dir != PinDir::Input {
-                continue;
-            }
-            assert_eq!(pin_data.wires.len(), 1);
-            let wire = *pin_data.wires.first().unwrap();
+        for (pid, &inp) in &bel_data.inputs {
+            let BelInput::Fixed(wire) = inp else {
+                unreachable!()
+            };
             if intdb.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
-            bctx.mode(mode).test_inv(pin);
+            bctx.mode(mode).test_bel_input_inv_auto(pid);
         }
-        bctx.mode(mode).test_enum(
-            "IOSTANDARD",
-            &["FIBRE_CHAN", "ETHERNET", "XAUI", "INFINIBAND", "AURORA"],
-        );
-        for attr in [
-            "ALIGN_COMMA_MSB",
-            "PCOMMA_DETECT",
-            "MCOMMA_DETECT",
-            "DEC_PCOMMA_DETECT",
-            "DEC_MCOMMA_DETECT",
-            "DEC_VALID_COMMA_ONLY",
-            "SERDES_10B",
-            "RX_DECODE_USE",
-            "RX_BUFFER_USE",
-            "TX_BUFFER_USE",
-            "CLK_CORRECT_USE",
-            "CLK_COR_KEEP_IDLE",
-            "CLK_COR_SEQ_2_USE",
-            "CLK_COR_INSERT_IDLE_FLAG",
-            "CHAN_BOND_SEQ_2_USE",
-            "CHAN_BOND_ONE_SHOT",
-            "TEST_MODE_1",
-            "TEST_MODE_2",
-            "TEST_MODE_3",
-            "TEST_MODE_4",
-            "TEST_MODE_5",
-            "TEST_MODE_6",
-            "RX_LOSS_OF_SYNC_FSM",
-            "TX_CRC_USE",
-            "RX_CRC_USE",
+        for (spec, val) in [
+            (specials::GT_IOSTANDARD_FIBRE_CHAN, "FIBRE_CHAN"),
+            (specials::GT_IOSTANDARD_ETHERNET, "ETHERNET"),
+            (specials::GT_IOSTANDARD_XAUI, "XAUI"),
+            (specials::GT_IOSTANDARD_INFINIBAND, "INFINIBAND"),
+            (specials::GT_IOSTANDARD_AURORA, "AURORA"),
         ] {
-            bctx.mode(mode).test_enum(attr, &["FALSE", "TRUE"]);
+            bctx.mode(mode)
+                .null_bits()
+                .test_bel_special(spec)
+                .attr("IOSTANDARD", val)
+                .commit();
         }
-        bctx.mode(mode)
-            .test_enum("TX_PREEMPHASIS", &["0", "1", "2", "3"]);
-        bctx.mode(mode).test_enum("TERMINATION_IMP", &["50", "75"]);
-        bctx.mode(mode)
-            .test_enum("CLK_COR_SEQ_LEN", &["1", "2", "3", "4"]);
-        bctx.mode(mode)
-            .test_multi_attr_dec("CLK_COR_REPEAT_WAIT", 5);
-        bctx.mode(mode)
-            .test_enum("CHAN_BOND_MODE", &["MASTER", "SLAVE_1_HOP", "SLAVE_2_HOPS"]);
-        bctx.mode(mode).test_enum(
-            "CHAN_BOND_WAIT",
-            &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
-            ],
-        );
-        bctx.mode(mode).test_enum(
-            "CHAN_BOND_LIMIT",
-            &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
-                "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
-                "30", "31",
-            ],
-        );
-        bctx.mode(mode)
-            .test_enum("CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4"]);
-        bctx.mode(mode).test_multi_attr_dec("CHAN_BOND_OFFSET", 4);
-        bctx.mode(mode).test_enum("RX_DATA_WIDTH", &["1", "2", "4"]);
-        bctx.mode(mode).test_enum("TX_DATA_WIDTH", &["1", "2", "4"]);
-        bctx.mode(mode)
-            .attr("CHAN_BOND_MODE", "")
-            .test_multi_attr_dec("RX_BUFFER_LIMIT", 4);
-        bctx.mode(mode)
-            .attr("CHAN_BOND_MODE", "MASTER")
-            .test_manual("RX_BUFFER_LIMIT", "15.MASTER")
-            .attr("RX_BUFFER_LIMIT", "15")
-            .commit();
-        bctx.mode(mode)
-            .attr("CHAN_BOND_MODE", "SLAVE_1_HOP")
-            .test_manual("RX_BUFFER_LIMIT", "15.SLAVE_1_HOP")
-            .attr("RX_BUFFER_LIMIT", "15")
-            .commit();
-        bctx.mode(mode)
-            .attr("CHAN_BOND_MODE", "SLAVE_2_HOPS")
-            .test_manual("RX_BUFFER_LIMIT", "15.SLAVE_2_HOPS")
-            .attr("RX_BUFFER_LIMIT", "15")
-            .commit();
-        bctx.mode(mode).test_enum(
-            "RX_LOS_INVALID_INCR",
-            &["1", "2", "4", "8", "16", "32", "64", "128"],
-        );
-        bctx.mode(mode).test_enum(
-            "RX_LOS_THRESHOLD",
-            &["4", "8", "16", "32", "64", "128", "256", "512"],
-        );
-        bctx.mode(mode).test_enum(
-            "CRC_FORMAT",
-            &["USER_MODE", "ETHERNET", "INFINIBAND", "FIBRE_CHAN"],
-        );
-        bctx.mode(mode).test_enum(
-            "CRC_START_OF_PKT",
-            &[
-                "K28_0", "K28_1", "K28_2", "K28_3", "K28_4", "K28_5", "K28_6", "K28_7", "K23_7",
-                "K27_7", "K29_7", "K30_7",
-            ],
-        );
-        bctx.mode(mode).test_enum(
-            "CRC_END_OF_PKT",
-            &[
-                "K28_0", "K28_1", "K28_2", "K28_3", "K28_4", "K28_5", "K28_6", "K28_7", "K23_7",
-                "K27_7", "K29_7", "K30_7",
-            ],
-        );
-        bctx.mode(mode)
-            .test_enum("TX_DIFF_CTRL", &["400", "500", "600", "700", "800"]);
-        bctx.mode(mode).test_enum("REF_CLK_V_SEL", &["0", "1"]);
-        bctx.mode(mode).test_multi_attr_bin("TX_CRC_FORCE_VALUE", 8);
-        bctx.mode(mode).test_multi_attr_bin("COMMA_10B_MASK", 10);
-        bctx.mode(mode).test_multi_attr_bin("MCOMMA_10B_VALUE", 10);
-        bctx.mode(mode).test_multi_attr_bin("PCOMMA_10B_VALUE", 10);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_1_1", 11);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_1_2", 11);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_1_3", 11);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_1_4", 11);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_2_1", 11);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_2_2", 11);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_2_3", 11);
-        bctx.mode(mode).test_multi_attr_bin("CLK_COR_SEQ_2_4", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_1_1", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_1_2", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_1_3", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_1_4", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_2_1", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_2_2", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_2_3", 11);
-        bctx.mode(mode).test_multi_attr_bin("CHAN_BOND_SEQ_2_4", 11);
+        for (aid, aname, attr) in &bcls.attributes {
+            match aid {
+                bcls::GT::ENABLE => {
+                    bctx.build()
+                        .test_bel_attr_bits(bcls::GT::ENABLE)
+                        .mode(mode)
+                        .commit();
+                }
+                bcls::GT::CHAN_BOND_MODE => {
+                    bctx.mode(mode)
+                        .test_bel_attr_default(aid, enums::GT_CHAN_BOND_MODE::NONE);
+                }
+                bcls::GT::TX_PREEMPHASIS
+                | bcls::GT::CLK_COR_REPEAT_WAIT
+                | bcls::GT::CHAN_BOND_OFFSET
+                | bcls::GT::REF_CLK_V_SEL => {
+                    bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Dec(0));
+                }
+                bcls::GT::CHAN_BOND_WAIT => {
+                    for val in 1..=15 {
+                        bctx.mode(mode)
+                            .test_bel_attr_u32(aid, val)
+                            .attr(aname, val.to_string())
+                            .commit();
+                    }
+                }
+                bcls::GT::CHAN_BOND_LIMIT => {
+                    for val in 1..=31 {
+                        bctx.mode(mode)
+                            .test_bel_attr_u32(aid, val)
+                            .attr(aname, val.to_string())
+                            .commit();
+                    }
+                }
+                bcls::GT::CRC_START_OF_PKT | bcls::GT::CRC_END_OF_PKT => {
+                    for (val, vname) in [
+                        (0x1c, "K28_0"),
+                        (0x3c, "K28_1"),
+                        (0x5c, "K28_2"),
+                        (0x7c, "K28_3"),
+                        (0x9c, "K28_4"),
+                        (0xbc, "K28_5"),
+                        (0xdc, "K28_6"),
+                        (0xf7, "K23_7"),
+                        (0xfb, "K27_7"),
+                        (0xfc, "K28_7"),
+                        (0xfd, "K29_7"),
+                        (0xfe, "K30_7"),
+                    ] {
+                        bctx.mode(mode)
+                            .test_bel_attr_u32(aid, val)
+                            .attr(aname, vname)
+                            .commit();
+                    }
+                }
+                bcls::GT::RX_BUFFER_LIMIT => {
+                    bctx.mode(mode)
+                        .attr("CHAN_BOND_MODE", "")
+                        .test_bel_attr_multi(aid, MultiValue::Dec(0));
+                    bctx.mode(mode)
+                        .attr("CHAN_BOND_MODE", "MASTER")
+                        .test_bel_attr_special(aid, specials::GT_CHAN_BOND_MODE_MASTER)
+                        .attr("RX_BUFFER_LIMIT", "15")
+                        .commit();
+                    bctx.mode(mode)
+                        .attr("CHAN_BOND_MODE", "SLAVE_1_HOP")
+                        .test_bel_attr_special(aid, specials::GT_CHAN_BOND_MODE_SLAVE_1_HOP)
+                        .attr("RX_BUFFER_LIMIT", "15")
+                        .commit();
+                    bctx.mode(mode)
+                        .attr("CHAN_BOND_MODE", "SLAVE_2_HOPS")
+                        .test_bel_attr_special(aid, specials::GT_CHAN_BOND_MODE_SLAVE_2_HOPS)
+                        .attr("RX_BUFFER_LIMIT", "15")
+                        .commit();
+                }
+                _ => match attr.typ {
+                    BelAttributeType::Enum(_) => {
+                        bctx.mode(mode).test_bel_attr(aid);
+                    }
+                    BelAttributeType::Bool => {
+                        bctx.mode(mode)
+                            .test_bel_attr_bool_rename(aname, aid, "FALSE", "TRUE");
+                    }
+                    BelAttributeType::BitVec(_) => {
+                        bctx.mode(mode).test_bel_attr_multi(aid, MultiValue::Bin);
+                    }
+                    _ => unreachable!(),
+                },
+            }
+        }
     }
 }
 
 pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
+    let bcls = &ctx.edev.db[bcls::GT];
     for tcid in [tcls::GIGABIT_S, tcls::GIGABIT_N] {
-        let tile = ctx.edev.db.tile_classes.key(tcid);
-        let bel = "GT";
-        let bslot = defs::bslots::GT;
-        ctx.collect_bit_legacy(tile, bel, "ENABLE", "1");
+        let bslot = bslots::GT;
         let bel_data = &ctx.edev.db[tcid].bels[bslot];
-        let BelInfo::Legacy(bel_data) = bel_data else {
+        let BelInfo::Bel(bel_data) = bel_data else {
             unreachable!()
         };
-        for (pin, pin_data) in &bel_data.pins {
-            if pin_data.dir != PinDir::Input {
-                continue;
-            }
-            assert_eq!(pin_data.wires.len(), 1);
-            let wire = *pin_data.wires.first().unwrap();
+        for (pid, &inp) in &bel_data.inputs {
+            let BelInput::Fixed(wire) = inp else {
+                unreachable!()
+            };
             if ctx.edev.db.wires.key(wire.wire).starts_with("IMUX_G") {
                 continue;
             }
@@ -185,133 +158,53 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
                 tcls::INT_PPC,
                 tcls::INT_PPC,
             ];
-            ctx.collect_int_inv(int_tiles, tcid, bslot, pin, false);
+            ctx.collect_bel_input_inv_int_bi(int_tiles, tcid, bslot, pid);
         }
-        for attr in [
-            "ALIGN_COMMA_MSB",
-            "PCOMMA_DETECT",
-            "MCOMMA_DETECT",
-            "DEC_PCOMMA_DETECT",
-            "DEC_MCOMMA_DETECT",
-            "DEC_VALID_COMMA_ONLY",
-            "SERDES_10B",
-            "RX_DECODE_USE",
-            "RX_BUFFER_USE",
-            "TX_BUFFER_USE",
-            "CLK_CORRECT_USE",
-            "CLK_COR_KEEP_IDLE",
-            "CLK_COR_SEQ_2_USE",
-            "CLK_COR_INSERT_IDLE_FLAG",
-            "CHAN_BOND_SEQ_2_USE",
-            "CHAN_BOND_ONE_SHOT",
-            "TEST_MODE_1",
-            "TEST_MODE_2",
-            "TEST_MODE_3",
-            "TEST_MODE_4",
-            "TEST_MODE_5",
-            "TEST_MODE_6",
-            "RX_LOSS_OF_SYNC_FSM",
-            "TX_CRC_USE",
-            "RX_CRC_USE",
+        for (aid, _, attr) in &bcls.attributes {
+            match aid {
+                bcls::GT::ENABLE => {
+                    ctx.collect_bel_attr(tcid, bslot, aid);
+                }
+                bcls::GT::CHAN_BOND_MODE => {
+                    ctx.collect_bel_attr_default(tcid, bslot, aid, enums::GT_CHAN_BOND_MODE::NONE);
+                }
+                bcls::GT::CHAN_BOND_WAIT => {
+                    ctx.collect_bel_attr_sparse(tcid, bslot, aid, 1..=15);
+                }
+                bcls::GT::CHAN_BOND_LIMIT => {
+                    ctx.collect_bel_attr_sparse(tcid, bslot, aid, 1..=31);
+                }
+                bcls::GT::CRC_START_OF_PKT | bcls::GT::CRC_END_OF_PKT => {
+                    ctx.collect_bel_attr_sparse(
+                        tcid,
+                        bslot,
+                        aid,
+                        [
+                            0x1c, 0x3c, 0x5c, 0x7c, 0x9c, 0xbc, 0xdc, 0xf7, 0xfb, 0xfc, 0xfd, 0xfe,
+                        ],
+                    );
+                }
+                _ => {
+                    if attr.typ == BelAttributeType::Bool {
+                        ctx.collect_bel_attr_bool_bi(tcid, bslot, aid);
+                    } else {
+                        ctx.collect_bel_attr(tcid, bslot, aid);
+                    }
+                }
+            }
+        }
+        let item = ctx
+            .bel_attr_bitvec(tcid, bslot, bcls::GT::RX_BUFFER_LIMIT)
+            .to_vec();
+        for (spec, val) in [
+            (specials::GT_CHAN_BOND_MODE_MASTER, bits![0, 0, 1, 1]),
+            (specials::GT_CHAN_BOND_MODE_SLAVE_1_HOP, bits![0, 0, 1, 0]),
+            (specials::GT_CHAN_BOND_MODE_SLAVE_2_HOPS, bits![0, 0, 1, 0]),
         ] {
-            ctx.collect_bit_bi_legacy(tile, bel, attr, "FALSE", "TRUE");
-        }
-        for val in ["ETHERNET", "AURORA", "FIBRE_CHAN", "INFINIBAND", "XAUI"] {
-            ctx.get_diff_legacy(tile, bel, "IOSTANDARD", val)
-                .assert_empty();
-        }
-        ctx.collect_enum_legacy_int(tile, bel, "TX_PREEMPHASIS", 0..4, 0);
-        ctx.collect_enum_legacy(tile, bel, "TERMINATION_IMP", &["50", "75"]);
-        ctx.collect_enum_legacy(tile, bel, "CLK_COR_SEQ_LEN", &["1", "2", "3", "4"]);
-        ctx.collect_enum_legacy(tile, bel, "CHAN_BOND_SEQ_LEN", &["1", "2", "3", "4"]);
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_REPEAT_WAIT", "");
-        ctx.collect_enum_default_legacy(
-            tile,
-            bel,
-            "CHAN_BOND_MODE",
-            &["MASTER", "SLAVE_1_HOP", "SLAVE_2_HOPS"],
-            "NONE",
-        );
-        ctx.collect_enum_legacy_int(tile, bel, "CHAN_BOND_WAIT", 1..16, 0);
-        ctx.collect_enum_legacy_int(tile, bel, "CHAN_BOND_LIMIT", 1..32, 0);
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_OFFSET", "");
-        ctx.collect_enum_legacy(tile, bel, "RX_DATA_WIDTH", &["1", "2", "4"]);
-        ctx.collect_enum_legacy(tile, bel, "TX_DATA_WIDTH", &["1", "2", "4"]);
-        ctx.collect_bitvec_legacy(tile, bel, "RX_BUFFER_LIMIT", "");
-        let item = ctx.item(tile, bel, "RX_BUFFER_LIMIT").clone();
-        for (name, val) in [
-            ("15.MASTER", bits![0, 0, 1, 1]),
-            ("15.SLAVE_1_HOP", bits![0, 0, 1, 0]),
-            ("15.SLAVE_2_HOPS", bits![0, 0, 1, 0]),
-        ] {
-            let mut diff = ctx.get_diff_legacy(tile, bel, "RX_BUFFER_LIMIT", name);
-            diff.apply_bitvec_diff_legacy(&item, &val, &BitVec::repeat(false, 4));
+            let mut diff =
+                ctx.get_diff_bel_attr_special(tcid, bslot, bcls::GT::RX_BUFFER_LIMIT, spec);
+            diff.apply_bitvec_diff(&item, &val, &BitVec::repeat(false, 4));
             diff.assert_empty();
         }
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "RX_LOS_INVALID_INCR",
-            &["1", "2", "4", "8", "16", "32", "64", "128"],
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "RX_LOS_THRESHOLD",
-            &["4", "8", "16", "32", "64", "128", "256", "512"],
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "CRC_FORMAT",
-            &["USER_MODE", "ETHERNET", "INFINIBAND", "FIBRE_CHAN"],
-        );
-        ctx.collect_enum_legacy_ocd(
-            tile,
-            bel,
-            "CRC_START_OF_PKT",
-            &[
-                "K28_0", "K28_1", "K28_2", "K28_3", "K28_4", "K28_5", "K28_6", "K28_7", "K23_7",
-                "K27_7", "K29_7", "K30_7",
-            ],
-            OcdMode::BitOrder,
-        );
-        ctx.collect_enum_legacy_ocd(
-            tile,
-            bel,
-            "CRC_END_OF_PKT",
-            &[
-                "K28_0", "K28_1", "K28_2", "K28_3", "K28_4", "K28_5", "K28_6", "K28_7", "K23_7",
-                "K27_7", "K29_7", "K30_7",
-            ],
-            OcdMode::BitOrder,
-        );
-        ctx.collect_enum_legacy(
-            tile,
-            bel,
-            "TX_DIFF_CTRL",
-            &["400", "500", "600", "700", "800"],
-        );
-        ctx.collect_bit_bi_legacy(tile, bel, "REF_CLK_V_SEL", "0", "1");
-        ctx.collect_bitvec_legacy(tile, bel, "TX_CRC_FORCE_VALUE", "");
-        ctx.collect_bitvec_legacy(tile, bel, "COMMA_10B_MASK", "");
-        ctx.collect_bitvec_legacy(tile, bel, "MCOMMA_10B_VALUE", "");
-        ctx.collect_bitvec_legacy(tile, bel, "PCOMMA_10B_VALUE", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_1", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_2", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_3", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_1_4", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_1", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_2", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_3", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CLK_COR_SEQ_2_4", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_1", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_2", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_3", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_1_4", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_1", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_2", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_3", "");
-        ctx.collect_bitvec_legacy(tile, bel, "CHAN_BOND_SEQ_2_4", "");
     }
 }

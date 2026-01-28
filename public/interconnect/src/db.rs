@@ -250,16 +250,67 @@ pub struct BelClass {
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BelClassInput {
     pub nonroutable: bool,
+    pub indexing: BelPinIndexing,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BelClassOutput {
     pub nonroutable: bool,
+    pub indexing: BelPinIndexing,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
 pub struct BelClassBidir {
     pub nonroutable: bool,
+    pub indexing: BelPinIndexing,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Default, Encode, Decode)]
+pub struct BelPinIndexing {
+    pub lsb_index: usize,
+    pub wrong_endian: bool,
+}
+
+impl BelPinIndexing {
+    pub fn try_virt_to_phys(self, index: usize) -> Option<usize> {
+        if self.wrong_endian {
+            if index > self.lsb_index {
+                None
+            } else {
+                Some(self.lsb_index - index)
+            }
+        } else {
+            if index < self.lsb_index {
+                None
+            } else {
+                Some(index - self.lsb_index)
+            }
+        }
+    }
+
+    pub fn virt_to_phys(self, index: usize) -> usize {
+        self.try_virt_to_phys(index).unwrap()
+    }
+
+    pub fn try_phys_to_virt(self, index: usize) -> Option<usize> {
+        if self.wrong_endian {
+            if index > self.lsb_index {
+                None
+            } else {
+                Some(self.lsb_index - index)
+            }
+        } else {
+            Some(self.lsb_index + index)
+        }
+    }
+
+    pub fn phys_to_virt(self, index: usize) -> usize {
+        self.try_phys_to_virt(index).unwrap()
+    }
+
+    pub fn msb_index(self, width: usize) -> usize {
+        self.phys_to_virt(width - 1)
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode)]
@@ -276,8 +327,8 @@ pub struct BelClassAttribute {
 pub enum BelAttributeType {
     Enum(EnumClassId),
     Bool,
-    Bitvec(usize),
-    BitvecArray(usize, usize),
+    BitVec(usize),
+    BitVecArray(usize, usize),
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Encode, Decode)]

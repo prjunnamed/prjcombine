@@ -922,9 +922,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         } else {
             unreachable!()
         };
-        ctx.collect_int_inv(&[int], tcid, bslot, "CLK", false);
-        ctx.collect_int_inv(&[int], tcid, bslot, "SR", false);
-        ctx.collect_int_inv(&[int], tcid, bslot, "CE", false);
+        ctx.collect_int_inv_legacy(&[int], tcid, bslot, "CLK", false);
+        ctx.collect_int_inv_legacy(&[int], tcid, bslot, "SR", false);
+        ctx.collect_int_inv_legacy(&[int], tcid, bslot, "CE", false);
         ctx.collect_inv("CLB", bel, "BX");
         ctx.collect_inv("CLB", bel, "BY");
     }

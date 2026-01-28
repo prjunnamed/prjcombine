@@ -112,6 +112,20 @@ impl BitVec {
         }
         res
     }
+
+    pub fn as_one_hot(&self) -> Option<usize> {
+        let mut res = None;
+        for (i, v) in self.iter().enumerate() {
+            if v {
+                if res.is_some() {
+                    return None;
+                } else {
+                    res = Some(i);
+                }
+            }
+        }
+        res
+    }
 }
 
 impl std::ops::BitAndAssign<&BitVec> for BitVec {
@@ -123,6 +137,16 @@ impl std::ops::BitAndAssign<&BitVec> for BitVec {
 impl std::ops::BitOrAssign<&BitVec> for BitVec {
     fn bitor_assign(&mut self, rhs: &BitVec) {
         self.inner |= &rhs.inner;
+    }
+}
+
+impl std::ops::BitXor<&BitVec> for &BitVec {
+    type Output = BitVec;
+
+    fn bitxor(self, rhs: &BitVec) -> BitVec {
+        let mut res = self.clone();
+        res ^= rhs;
+        res
     }
 }
 

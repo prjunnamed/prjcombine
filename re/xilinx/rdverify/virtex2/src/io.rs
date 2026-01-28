@@ -1,9 +1,9 @@
 use prjcombine_entity::EntityId;
 use prjcombine_interconnect::dir::DirH;
-use prjcombine_interconnect::grid::CellCoord;
+use prjcombine_interconnect::grid::{BelCoord, CellCoord};
 use prjcombine_re_xilinx_naming::db::RawTileId;
 use prjcombine_re_xilinx_naming_virtex2::ExpandedNamedDevice;
-use prjcombine_re_xilinx_rdverify::{LegacyBelContext, RawWireCoord, SitePinDir, Verifier};
+use prjcombine_re_xilinx_rdverify::{RawWireCoord, SitePinDir, Verifier};
 use prjcombine_virtex2::chip::{ChipKind, IoDiffKind};
 use prjcombine_virtex2::defs;
 use prjcombine_virtex2::iob::IobKind;
@@ -71,7 +71,8 @@ fn verify_pci_ce(
     }
 }
 
-pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyBelContext<'_>) {
+pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     let io = endev.chip.get_io_crd(bel.bel);
     let io_info = endev.chip.get_io_info(io);
     if io_info.pad_kind == Some(IobKind::Clk) {
@@ -195,11 +196,8 @@ pub fn verify_ioi(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bel: &LegacyB
     }
 }
 
-pub fn verify_pcilogicse(
-    endev: &ExpandedNamedDevice,
-    vrf: &mut Verifier,
-    bel: &LegacyBelContext<'_>,
-) {
+pub fn verify_pcilogicse(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.verify_legacy_bel(
         bel,
         "PCILOGICSE",
@@ -231,51 +229,36 @@ pub fn verify_pcilogicse(
     vrf.claim_net(&[wt]);
 }
 
-pub fn verify_pci_ce_n(
-    endev: &ExpandedNamedDevice,
-    vrf: &mut Verifier,
-    bel: &LegacyBelContext<'_>,
-) {
+pub fn verify_pci_ce_n(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.claim_net(&[bel.wire("O")]);
     vrf.claim_pip(bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell.delta(0, -1), bel.wire("I"));
 }
 
-pub fn verify_pci_ce_s(
-    endev: &ExpandedNamedDevice,
-    vrf: &mut Verifier,
-    bel: &LegacyBelContext<'_>,
-) {
+pub fn verify_pci_ce_s(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.claim_net(&[bel.wire("O")]);
     vrf.claim_pip(bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell, bel.wire("I"));
 }
 
-pub fn verify_pci_ce_e(
-    endev: &ExpandedNamedDevice,
-    vrf: &mut Verifier,
-    bel: &LegacyBelContext<'_>,
-) {
+pub fn verify_pci_ce_e(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.claim_net(&[bel.wire("O")]);
     vrf.claim_pip(bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell.delta(-1, 0), bel.wire("I"));
 }
 
-pub fn verify_pci_ce_w(
-    endev: &ExpandedNamedDevice,
-    vrf: &mut Verifier,
-    bel: &LegacyBelContext<'_>,
-) {
+pub fn verify_pci_ce_w(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.claim_net(&[bel.wire("O")]);
     vrf.claim_pip(bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell, bel.wire("I"));
 }
 
-pub fn verify_pci_ce_cnr(
-    endev: &ExpandedNamedDevice,
-    vrf: &mut Verifier,
-    bel: &LegacyBelContext<'_>,
-) {
+pub fn verify_pci_ce_cnr(endev: &ExpandedNamedDevice, vrf: &mut Verifier, bcrd: BelCoord) {
+    let bel = &vrf.get_legacy_bel(bcrd);
     vrf.claim_net(&[bel.wire("O")]);
     vrf.claim_pip(bel.wire("O"), bel.wire("I"));
     verify_pci_ce(endev, vrf, bel.cell, bel.wire("I"));

@@ -418,9 +418,9 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
         "USRCCLKTS",
         "USRCCLKO",
     ] {
-        ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, pin, false);
+        ctx.collect_int_inv_legacy(&[tcls::INT; 16], tcid, bslot, pin, false);
     }
-    ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, "GTS", true);
+    ctx.collect_int_inv_legacy(&[tcls::INT; 16], tcid, bslot, "GTS", true);
     let item0 = ctx.extract_bit_legacy(tile, bel, "PIN.GSR", "1");
     let item1 = ctx.extract_bit_legacy(tile, bel, "PIN.GTS", "1");
     assert_eq!(item0, item1);
@@ -434,7 +434,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     ctx.insert(tile, "ICAP_COMMON", "ICAP_WIDTH", item0);
     for bslot in bslots::ICAP {
         for pin in ["CLK", "CE", "WRITE"] {
-            ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, pin, false);
+            ctx.collect_int_inv_legacy(&[tcls::INT; 16], tcid, bslot, pin, false);
         }
     }
 
@@ -442,8 +442,8 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
     let bslot = bslots::CAPTURE;
     ctx.get_diff_legacy(tile, bel, "PRESENT", "1")
         .assert_empty();
-    ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, "CLK", false);
-    ctx.collect_int_inv(&[tcls::INT; 16], tcid, bslot, "CAP", true);
+    ctx.collect_int_inv_legacy(&[tcls::INT; 16], tcid, bslot, "CLK", false);
+    ctx.collect_int_inv_legacy(&[tcls::INT; 16], tcid, bslot, "CAP", true);
 
     // config regs
 
@@ -561,7 +561,7 @@ pub fn collect_fuzzers(ctx: &mut CollectorCtx) {
             "SEA",
             "SEB",
         ] {
-            ctx.collect_int_inv(&[tcls::INT; 8], tcid, bslot, pin, false);
+            ctx.collect_int_inv_legacy(&[tcls::INT; 8], tcid, bslot, pin, false);
         }
         ctx.collect_inv(tile, bel, "CONVST");
         let mut present = ctx.get_diff_legacy(tile, bel, "PRESENT", "1");
